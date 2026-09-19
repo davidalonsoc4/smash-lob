@@ -5,11 +5,13 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("v1.10.18 season roster, locations and personal dashboard", () => {
   it("auto-enrolls selected continuing players in later self-registration seasons without inheriting paid fees", async () => {
-    const [page, route, server] = await Promise.all([
+    const [pageSource, newSeasonForm, route, server] = await Promise.all([
       read("src/app/admin/season/page.tsx"),
+      read("src/components/admin/season/NewSeasonForm.tsx"),
       read("src/app/api/leagues/[id]/seasons/route.ts"),
       read("src/lib/serverSeasonMutations.ts"),
     ])
+    const page = `${pageSource}\n${newSeasonForm}`
 
     expect(page).toContain("Los jugadores de la temporada anterior están seleccionados por defecto")
     expect(page).toContain("playerIds: selectedPlayerIds")
@@ -21,12 +23,14 @@ describe("v1.10.18 season roster, locations and personal dashboard", () => {
   })
 
   it("can select registered app users using only public profile identity and link them directly into the league", async () => {
-    const [page, directory, route, server] = await Promise.all([
+    const [pageSource, newSeasonForm, directory, route, server] = await Promise.all([
       read("src/app/admin/season/page.tsx"),
+      read("src/components/admin/season/NewSeasonForm.tsx"),
       read("src/app/api/leagues/[id]/player-directory/route.ts"),
       read("src/app/api/leagues/[id]/seasons/route.ts"),
       read("src/lib/serverSeasonMutations.ts"),
     ])
+    const page = `${pageSource}\n${newSeasonForm}`
 
     expect(page).toContain("Seleccionar jugador de Smash & Lob")
     expect(page).toContain("appUserIds: rosterMode === \"fixed\" ? selectedAppUserIds : []")

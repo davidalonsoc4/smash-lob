@@ -1677,6 +1677,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La inscripción llena devuelve `202 Accepted`, el jugador puede consultar su posición, salir y confirmar una promoción durante 48 horas. La liberación de una plaza promociona automáticamente al siguiente miembro y registra un aviso dirigido al usuario.
 - La UI de administración ya permite reordenar la cola; la validación de cierre de inscripciones y los tests de promoción, cancelación, reordenación y cierre están cubiertos.
 - La promoción queda bloqueada cuando la temporada deja de estar `upcoming` o `registration_open` pasa a `false`; la confirmación aplica la misma protección.
-- Bloque 3 iniciado: `SeasonDangerZone`, `OrganizationBallsSettingsPanel` y `BalancedCalendarAuditPanel` se han extraído de `admin/season/page.tsx` sin cambiar sus anchors ni sus puntos de montaje. El presupuesto de esa página baja a 5.500 líneas.
+- Bloque 3 completado: `SeasonDangerZone`, `OrganizationBallsSettingsPanel`, `BalancedCalendarAuditPanel`, `NewSeasonForm` y `SeasonRulesSettings` se han extraído de `admin/season/page.tsx` sin cambiar anchors, onboarding ni puntos de montaje. La página queda en 2.166 líneas y el presupuesto se ajusta a 3.500 líneas, reflejando una reducción estructural real.
+- Los contratos estáticos de calendario e inscripción se han actualizado para proteger los componentes extraídos; typecheck y las pruebas focalizadas pasan.
 - `release:check` completado: 768 tests unitarios, build de producción, 68 E2E, presupuesto de build y auditoría npm sin vulnerabilidades runtime.
 - La rama queda sin despliegue: las migraciones de resiliencia y lista de espera son locales y requieren aplicación explícita posterior en PRE/PROD.

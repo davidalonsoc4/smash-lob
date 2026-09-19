@@ -6,23 +6,27 @@ const read = (path: string) => readFile(path, "utf8")
 describe("v1.10.0 pending-season registration settings", () => {
   it("lets admins enable or disable registration before the season starts", async () => {
     const adminPage = await read("src/app/admin/season/page.tsx")
+    const rulesPanel = await read("src/components/admin/season/SeasonRulesSettings.tsx")
+    const source = `${adminPage}\n${rulesPanel}`
 
     expect(adminPage).toContain('id="inscripcion"')
     expect(adminPage).toContain("<RegistrationFeeSettingsPanel")
     expect(adminPage).toContain("canToggleEnabled")
-    expect(adminPage).toContain("Cobrar inscripción esta temporada")
-    expect(adminPage).toContain('type="checkbox"')
-    expect(adminPage).toContain("Puedes cambiar esta decisión hasta que la temporada empiece.")
-    expect(adminPage).toContain("Precio por jugador")
-    expect(adminPage).toContain("Concepto")
+    expect(source).toContain("Cobrar inscripción esta temporada")
+    expect(source).toContain('type="checkbox"')
+    expect(source).toContain("Puedes cambiar esta decisión hasta que la temporada empiece.")
+    expect(source).toContain("Precio por jugador")
+    expect(source).toContain("Concepto")
   })
 
   it("preserves registration payment state when toggling the fee", async () => {
     const adminPage = await read("src/app/admin/season/page.tsx")
+    const rulesPanel = await read("src/components/admin/season/SeasonRulesSettings.tsx")
+    const source = `${adminPage}\n${rulesPanel}`
 
-    expect(adminPage).toContain("...roundSettings.registrationFee")
-    expect(adminPage).toContain("enabled: canToggleEnabled")
-    expect(adminPage).not.toContain("payments: []")
+    expect(source).toContain("...roundSettings.registrationFee")
+    expect(source).toContain("enabled: canToggleEnabled")
+    expect(source).not.toContain("payments: []")
   })
 
   it("locks registration enable/disable server-side after the season starts", async () => {

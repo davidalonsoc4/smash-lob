@@ -8,6 +8,7 @@ const assert = (condition, message) => {
 const [
   mvp,
   adminSeason,
+  seasonRules,
   adminMvp,
   settingsApi,
   createSeasonApi,
@@ -18,6 +19,7 @@ const [
 ] = await Promise.all([
   read("src/lib/mvp.ts"),
   read("src/app/admin/season/page.tsx"),
+  read("src/components/admin/season/SeasonRulesSettings.tsx"),
   read("src/app/admin/mvp/page.tsx"),
   read("src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts"),
   read("src/app/api/leagues/[id]/seasons/route.ts"),
@@ -43,8 +45,8 @@ assert(
   "El índice debe mantener la prioridad resultado > sets > juegos.",
 )
 assert(
-  adminSeason.includes('value: "automatic_advanced"') &&
-    adminSeason.includes("MVP automático avanzado"),
+  `${adminSeason}\n${seasonRules}`.includes('value: "automatic_advanced"') &&
+    `${adminSeason}\n${seasonRules}`.includes("MVP automático avanzado"),
   "Administrar temporada debe ofrecer MVP automático avanzado.",
 )
 assert(

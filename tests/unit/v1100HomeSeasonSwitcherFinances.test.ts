@@ -23,7 +23,8 @@ describe("v1.10.0 HOME season switcher and registration finances", () => {
   })
 
   it("exposes admin finance UI, expense API, tutorial and search entry", async () => {
-    const [screen, route, admin, settings, search] = await Promise.all([read("src/components/season/SeasonFinanceScreen.tsx"), read("src/app/api/leagues/[id]/seasons/[seasonId]/expenses/route.ts"), read("src/app/admin/page.tsx"), read("src/app/admin/season/page.tsx"), read("src/lib/settingsSearch.ts")])
+    const [screen, route, admin, settingsPage, newSeasonForm, seasonRules, search] = await Promise.all([read("src/components/season/SeasonFinanceScreen.tsx"), read("src/app/api/leagues/[id]/seasons/[seasonId]/expenses/route.ts"), read("src/app/admin/page.tsx"), read("src/app/admin/season/page.tsx"), read("src/components/admin/season/NewSeasonForm.tsx"), read("src/components/admin/season/SeasonRulesSettings.tsx"), read("src/lib/settingsSearch.ts")])
+    const settings = `${settingsPage}\n${newSeasonForm}\n${seasonRules}`
     for (const text of ["Ingresado", "Pendiente", "Gastado", "Disponible", "Registrar gasto"]) expect(screen).toContain(text)
     expect(route).toContain("export async function POST"); expect(route).toContain("export async function DELETE"); expect(route).toContain("registration_not_enabled")
     expect(admin).toContain('href="/admin/season/finances"'); expect(settings).toContain('data-tour="season-admin-finances"'); expect(search).toContain('seasonFinances: "/admin/season/finances"')

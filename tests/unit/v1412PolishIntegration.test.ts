@@ -5,12 +5,15 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("v1.4.12 personal and league polish", () => {
   it("moves first-league locations to season creation and keeps them searchable", async () => {
-    const [newLeague, seasonAdmin, editor, schedule] = await Promise.all([
+    const [newLeague, seasonAdminPage, newSeasonForm, seasonRules, editor, schedule] = await Promise.all([
       read("src/app/league/new/page.tsx"),
       read("src/app/admin/season/page.tsx"),
+      read("src/components/admin/season/NewSeasonForm.tsx"),
+      read("src/components/admin/season/SeasonRulesSettings.tsx"),
       read("src/components/league/LeagueLocationsEditor.tsx"),
       read("src/components/match/MatchScheduleForm.tsx"),
     ])
+    const seasonAdmin = `${seasonAdminPage}\n${newSeasonForm}\n${seasonRules}`
 
     expect(newLeague).not.toContain("<LeagueLocationsEditor")
     expect(seasonAdmin).toContain("<LeagueLocationsEditor")

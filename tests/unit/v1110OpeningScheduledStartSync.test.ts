@@ -6,14 +6,17 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("v1.11.0 opening round and scheduled start synchronization", () => {
   it("uses scheduled start as the single opening datetime when both features are enabled", async () => {
-    const [admin, settingsApi, createApi, mutations, scheduledPanel, spanish] = await Promise.all([
+    const [adminPage, newSeasonForm, seasonRules, settingsApi, createApi, mutations, scheduledPanel, spanish] = await Promise.all([
       read("src/app/admin/season/page.tsx"),
+      read("src/components/admin/season/NewSeasonForm.tsx"),
+      read("src/components/admin/season/SeasonRulesSettings.tsx"),
       read("src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts"),
       read("src/app/api/leagues/[id]/seasons/route.ts"),
       read("src/lib/serverSeasonMutations.ts"),
       read("src/components/season/ScheduledStartSettingsPanel.tsx"),
       read("src/i18n/locales/es.ts"),
     ])
+    const admin = `${adminPage}\n${newSeasonForm}\n${seasonRules}`
 
     expect(admin).toContain("const effectiveOpeningRoundIso = scheduledStartIso ?? openingRoundIso")
     expect(admin).toContain("const effectiveOpeningRoundIso = scheduledOpeningRoundIso ?? openingRoundIso")
@@ -46,7 +49,7 @@ describe("v1.11.0 opening round and scheduled start synchronization", () => {
   })
 
   it("keeps standalone opening datetimes on a full hour by default", async () => {
-    const admin = await read("src/app/admin/season/page.tsx")
+    const admin = `${await read("src/app/admin/season/page.tsx")}\n${await read("src/components/admin/season/NewSeasonForm.tsx")}\n${await read("src/components/admin/season/SeasonRulesSettings.tsx")}`
 
     expect(formatNextScheduledStartForInput(new Date("2026-08-24T19:01:24.000Z"))).toBe(
       "2026-08-24T22:00",

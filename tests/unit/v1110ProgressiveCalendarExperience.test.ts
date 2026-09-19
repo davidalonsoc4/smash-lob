@@ -133,7 +133,7 @@ describe("v1.11.0 progressive calendar and player experience", () => {
   })
 
   it("persists progressive visibility, opening round and per-league experience mode", async () => {
-    const [migration, repairMigration, openingLocationMigration, schemaProbe, access, settingsApi, createApi, experienceApi, adminSeason, settingsSearch] = await Promise.all([
+    const [migration, repairMigration, openingLocationMigration, schemaProbe, access, settingsApi, createApi, experienceApi, adminSeasonPage, newSeasonForm, seasonRules, settingsSearch] = await Promise.all([
       read("supabase/migrations/20260824011500_add_progressive_calendar_and_experience_mode.sql"),
       read("supabase/migrations/20260824090500_repair_progressive_experience_schema.sql"),
       read("supabase/migrations/20260824115500_add_opening_round_location.sql"),
@@ -143,8 +143,11 @@ describe("v1.11.0 progressive calendar and player experience", () => {
       read("src/app/api/leagues/[id]/seasons/route.ts"),
       read("src/app/api/leagues/[id]/experience-mode/route.ts"),
       read("src/app/admin/season/page.tsx"),
+      read("src/components/admin/season/NewSeasonForm.tsx"),
+      read("src/components/admin/season/SeasonRulesSettings.tsx"),
       read("src/lib/settingsSearch.ts"),
     ])
+    const adminSeason = `${adminSeasonPage}\n${newSeasonForm}\n${seasonRules}`
 
     expect(migration).toContain("calendar_visibility_mode text not null default 'full'")
     expect(migration).toContain("revealed_through_round integer not null default 0")

@@ -20,6 +20,7 @@ const [
   matchScheduleForm,
   newLeaguePage,
   seasonAdminPage,
+  newSeasonForm,
   matchEventMeta,
   structuredPersonalMigration,
 ] = await Promise.all([
@@ -37,6 +38,7 @@ const [
   read("src/components/match/MatchScheduleForm.tsx"),
   read("src/app/league/new/page.tsx"),
   read("src/app/admin/season/page.tsx"),
+  read("src/components/admin/season/NewSeasonForm.tsx"),
   read("src/components/matches/MatchEventMeta.tsx"),
   read("supabase/migrations/20260819173000_personal_locations_and_match_dashboard.sql"),
 ])
@@ -67,7 +69,8 @@ assert(leagueEditor.includes('fetch("/api/locations"'), "El editor de liga debe 
 assert(leagueEditor.includes("Ubicaciones de la app"), "El editor de liga debe permitir seleccionar ubicaciones existentes")
 assert(leagueEditor.includes("Buscar por nombre, localidad o dirección..."), "El catálogo global de liga debe tener buscador")
 assert(!newLeaguePage.includes("<LeagueLocationsEditor"), "La identidad inicial de la liga no debe pedir ubicaciones")
-assert(seasonAdminPage.includes("<LeagueLocationsEditor") && seasonAdminPage.includes("Cancelar creación de la liga"), "La primera temporada debe configurar ubicaciones y permitir cancelar la liga")
+const seasonAdminWithExtractedForm = `${seasonAdminPage}\n${newSeasonForm}`
+assert(seasonAdminWithExtractedForm.includes("<LeagueLocationsEditor") && seasonAdminWithExtractedForm.includes("Cancelar creación de la liga"), "La primera temporada debe configurar ubicaciones y permitir cancelar la liga")
 assert(
   matchScheduleForm.includes('fetch("/api/locations", { cache: "no-store" })'),
   "Programar partido debe cargar el catálogo global de ubicaciones",
