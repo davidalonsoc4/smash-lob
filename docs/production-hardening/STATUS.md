@@ -1773,3 +1773,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se eliminó el borde superior duplicado del panel Jornada en HOME; el acento queda controlado por la propia tarjeta, igual que en Líder.
 - Se unificó también el tratamiento visual: Líder y Jornada usan ahora el mismo borde superior de 2px y se desactiva el acento interno distinto de `app-stat-card`.
 - En Chats se elimina la barra lateral; la lista conserva el panel y la superficie propios de Competition sin esa línea de acento.
+
+## Competition visual style v3 — superficies translúcidas (2026-09-20)
+
+- Las tarjetas y paneles de Competition usan superficies semitransparentes con un desenfoque suave (`backdrop-filter`) para dejar ver el fondo sin perder legibilidad.
+- En Chats las conversaciones mantienen una base neutra; solo las no leídas reciben un acento discreto.
+- El alcance sigue limitado a `data-visual-style="competition"`; los modos clásicos no cambian.

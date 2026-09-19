@@ -52,6 +52,7 @@ describe("Competition visual style", () => {
     expect(css).toContain('text-transform: none;')
     expect(css).toContain('border-top: 2px solid color-mix(in srgb, var(--competition-accent) 80%, transparent) !important;')
     expect(css).toContain('/* Competition v3: a more dimensional information surface.')
+    expect(css).toContain('backdrop-filter: blur(14px) saturate(1.1);')
     expect(css).toContain('[data-route="/chats"] .chat-list-stack')
     expect(css).toContain('[data-route="/chats"] .chat-list-stack::before')
     expect(css).toContain('display: none;')
