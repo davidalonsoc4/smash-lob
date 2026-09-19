@@ -65,6 +65,11 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/seasons/[seasonId]/rounds/[round]/matches` | DELETE | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/settings` | PUT | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/start` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
+| `/api/leagues/[id]/seasons/[seasonId]/waitlist` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/seasons/[seasonId]/waitlist` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/seasons/[seasonId]/waitlist` | PUT | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/seasons/[seasonId]/waitlist` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/leagues/[id]/seasons/[seasonId]/waitlist/confirm` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/spectator-invite` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/spectator-self` | DELETE | Protegido | requireAuthenticatedAppUser |
 | `/api/leagues/[id]/spectators` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
