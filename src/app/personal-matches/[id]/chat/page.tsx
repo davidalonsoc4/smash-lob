@@ -1,6 +1,7 @@
 "use client"
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
+import { useI18n } from "@/i18n/I18nProvider"
 import { useParams } from "next/navigation"
 import {
   MatchChatComposer,
@@ -79,6 +80,7 @@ function mapSnapshot(value: unknown): PersonalChatSnapshot {
 }
 
 export default function PersonalMatchChatPage() {
+  const { tx } = useI18n()
   const id = String(useParams<{ id: string }>().id ?? "")
   const [snapshot, setSnapshot] = useState<PersonalChatSnapshot | null>(null)
   const [body, setBody] = useState("")
@@ -264,9 +266,7 @@ export default function PersonalMatchChatPage() {
         <MatchChatWriteWindowBanner writeUntil={snapshot.writeUntil} />
       ) : null}
       {snapshot?.expired ? (
-        <div className="shrink-0 border-b border-neutral-200 bg-white px-3 py-2 text-center type-caption font-bold text-neutral-500">
-          Historial eliminado · Los mensajes de los amistosos se borran 2 meses después del partido.
-        </div>
+        <div className="shrink-0 border-b border-neutral-200 bg-white px-3 py-2 text-center type-caption font-bold text-neutral-500">{tx("Historial eliminado · Los mensajes de los amistosos se borran 2 meses después del partido.")}</div>
       ) : null}
     </>
   )
@@ -292,12 +292,10 @@ export default function PersonalMatchChatPage() {
     <div className="flex min-h-full items-center justify-center px-8 py-10 text-center">
       <div>
         <p className="text-sm font-black text-neutral-700">
-          {snapshot?.expired ? "Chat eliminado" : "Aún no hay mensajes"}
+          {snapshot?.expired ? "Chat eliminado" : tx("Aún no hay mensajes")}
         </p>
         {!snapshot?.expired ? (
-          <p className="mt-1 type-caption font-semibold leading-4 text-neutral-400">
-            Usa este chat para coordinar cualquier detalle del amistoso.
-          </p>
+          <p className="mt-1 type-caption font-semibold leading-4 text-neutral-400">{tx("Usa este chat para coordinar cualquier detalle del amistoso.")}</p>
         ) : null}
       </div>
     </div>
@@ -307,7 +305,7 @@ export default function PersonalMatchChatPage() {
     <MatchChatReadOnlyBar>
       {snapshot.expired
         ? "Chat archivado · Historial eliminado tras 2 meses"
-        : "Partido finalizado · Chat en modo lectura"}
+        : tx("Partido finalizado · Chat en modo lectura")}
     </MatchChatReadOnlyBar>
   ) : (
     <MatchChatComposer
@@ -326,7 +324,7 @@ export default function PersonalMatchChatPage() {
     <MatchChatScreen
       viewportRef={viewportRef}
       backHref={`/personal-matches/${id}`}
-      title="Chat · Amistoso"
+      title={tx("Chat · Amistoso")}
       titleHref={`/personal-matches/${id}`}
       messagesRef={messagesRef}
       loading={loading}

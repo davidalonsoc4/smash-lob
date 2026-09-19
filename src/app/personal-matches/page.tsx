@@ -23,6 +23,7 @@ function emptyDashboard(): PersonalMatchesDashboardPayload {
 }
 
 export default function PersonalMatchesPage() {
+  const { tx } = useI18n()
   const { t } = useI18n()
   const [dashboard, setDashboard] = useState<PersonalMatchesDashboardPayload>(emptyDashboard)
   const [loading, setLoading] = useState(true)
@@ -99,8 +100,8 @@ export default function PersonalMatchesPage() {
 
       <Link
         href="/personal-matches/new"
-        aria-label="Crear nuevo encuentro"
-        title="Crear nuevo encuentro"
+        aria-label={tx("Crear nuevo encuentro")}
+        title={tx("Crear nuevo encuentro")}
         className="fixed z-40 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-950 text-white shadow-xl transition active:scale-95"
         style={{
           bottom: "calc(78px + env(safe-area-inset-bottom, 0px))",
@@ -113,9 +114,7 @@ export default function PersonalMatchesPage() {
       {!loading && dashboard.upcoming.length > 0 ? (
         <section className="space-y-2">
           <div className="flex items-center justify-between gap-3 px-1">
-            <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
-              Próximos partidos
-            </p>
+            <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">{tx("Próximos partidos")}</p>
             <span className="type-caption font-bold text-neutral-400">
               {dashboard.upcoming.length} amistoso{dashboard.upcoming.length === 1 ? "" : "s"}
             </span>
@@ -134,13 +133,13 @@ export default function PersonalMatchesPage() {
             Historial
           </p>
           {dashboard.items.length > 0 ? (
-            <span className="type-caption font-bold text-neutral-400">Más recientes primero</span>
+            <span className="type-caption font-bold text-neutral-400">{tx("Más recientes primero")}</span>
           ) : null}
         </div>
 
         {loading ? (
           <AppCard className="p-4">
-            <p className="text-xs font-semibold text-neutral-500">Cargando los últimos 10 partidos...</p>
+            <p className="text-xs font-semibold text-neutral-500">{tx("Cargando los últimos 10 partidos...")}</p>
           </AppCard>
         ) : error && dashboard.items.length === 0 ? (
           <AppCard className="border-red-100 bg-red-50 p-3">
@@ -148,9 +147,9 @@ export default function PersonalMatchesPage() {
           </AppCard>
         ) : dashboard.items.length === 0 ? (
           <EmptyState
-            title="Todavía no hay partidos en tu historial"
-            description="Aquí aparecerán tus partidos terminados de liga y los amistosos terminados o cuya fecha ya haya pasado."
-            action={{ label: "Crear mi primer encuentro", href: "/personal-matches/new" }}
+            title={tx("Todavía no hay partidos en tu historial")}
+            description={tx("Aquí aparecerán tus partidos terminados de liga y los amistosos terminados o cuya fecha ya haya pasado.")}
+            action={{ label: tx("Crear mi primer encuentro"), href: "/personal-matches/new" }}
           />
         ) : (
           <div className="space-y-2">
@@ -167,7 +166,7 @@ export default function PersonalMatchesPage() {
             disabled={loadingMore}
             className="flex w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
           >
-            {loadingMore ? "Cargando..." : "Cargar 10 más"}
+            {loadingMore ? "Cargando..." : tx("Cargar 10 más")}
           </button>
         ) : null}
 

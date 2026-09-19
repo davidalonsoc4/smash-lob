@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useI18n } from "@/i18n/I18nProvider"
 import { createPortal } from "react-dom"
 import {
   getLeagueLocationTownNameLabel,
@@ -24,6 +25,7 @@ export function PersonalMatchLocationPicker({
   onManualLocationNameChange: (value: string) => void
   disabled?: boolean
 }) {
+  const { tx } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [isAddingLocation, setIsAddingLocation] = useState(false)
@@ -67,9 +69,7 @@ export function PersonalMatchLocationPicker({
 
   return (
     <div className="min-w-0">
-      <span className="text-xs font-black uppercase tracking-wide text-neutral-600">
-        Pista o club
-      </span>
+      <span className="text-xs font-black uppercase tracking-wide text-neutral-600">{tx("Pista o club")}</span>
       <button
         type="button"
         aria-haspopup="dialog"
@@ -92,14 +92,14 @@ export function PersonalMatchLocationPicker({
             <>
               <button
                 type="button"
-                aria-label="Cerrar buscador de ubicaciones"
+                aria-label={tx("Cerrar buscador de ubicaciones")}
                 onClick={closePicker}
                 className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]"
               />
               <section
                 role="dialog"
                 aria-modal="true"
-                aria-label="Buscar ubicación"
+                aria-label={tx("Buscar ubicación")}
                 className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
                 style={{
                   top: "max(14px, calc(var(--app-safe-top) + 10px))",
@@ -110,10 +110,10 @@ export function PersonalMatchLocationPicker({
                 <div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-black text-neutral-950">Seleccionar ubicación</p>
+                      <p className="text-sm font-black text-neutral-950">{tx("Seleccionar ubicación")}</p>
                       <p className="type-caption font-semibold text-neutral-400">{locations.length} disponibles</p>
                     </div>
-                    <button type="button" onClick={closePicker} aria-label="Cerrar" className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-center text-sm font-black text-neutral-500">×</button>
+                    <button type="button" onClick={closePicker} aria-label={tx("Cerrar")} className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-center text-sm font-black text-neutral-500">×</button>
                   </div>
                   <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
                     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
@@ -122,22 +122,22 @@ export function PersonalMatchLocationPicker({
                       type="search"
                       value={query}
                       onChange={(event) => setQuery(event.target.value)}
-                      placeholder="Buscar por localidad o nombre..."
+                      placeholder={tx("Buscar por localidad o nombre...")}
                       className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-sm font-semibold outline-none"
                     />
-                    {query ? <button type="button" onClick={() => setQuery("")} aria-label="Borrar búsqueda" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-center text-xs font-black text-neutral-600">×</button> : null}
+                    {query ? <button type="button" onClick={() => setQuery("")} aria-label={tx("Borrar búsqueda")} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-center text-xs font-black text-neutral-600">×</button> : null}
                   </div>
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
                   {isAddingLocation ? (
                     <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
-                      <p className="text-sm font-black text-neutral-900">Nueva ubicación</p>
-                      <p className="mt-0.5 type-caption font-semibold text-neutral-500">Se guardará en el catálogo global al guardar el partido.</p>
+                      <p className="text-sm font-black text-neutral-900">{tx("Nueva ubicación")}</p>
+                      <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Se guardará en el catálogo global al guardar el partido.")}</p>
                       <input
                         value={manualLocationName}
                         onChange={(event) => onManualLocationNameChange(event.target.value.slice(0, 120))}
-                        placeholder="Nombre del club o ubicación"
+                        placeholder={tx("Nombre del club o ubicación")}
                         className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400"
                       />
                       <button
@@ -148,9 +148,7 @@ export function PersonalMatchLocationPicker({
                         }}
                         disabled={!manualLocationName.trim()}
                         className="mt-2 flex w-full items-center justify-center rounded-lg bg-neutral-950 px-3 py-2 text-center text-sm font-black text-white disabled:bg-neutral-300"
-                      >
-                        Usar esta ubicación
-                      </button>
+                      >{tx("Usar esta ubicación")}</button>
                     </div>
                   ) : (
                     <div className="space-y-1">
@@ -171,7 +169,7 @@ export function PersonalMatchLocationPicker({
                           </button>
                         )
                       })}
-                      {filteredLocations.length === 0 ? <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">No hay ubicaciones que coincidan con la búsqueda.</p> : null}
+                      {filteredLocations.length === 0 ? <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">{tx("No hay ubicaciones que coincidan con la búsqueda.")}</p> : null}
                     </div>
                   )}
                 </div>
@@ -182,7 +180,7 @@ export function PersonalMatchLocationPicker({
                     onClick={() => setIsAddingLocation((current) => !current)}
                     className="flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-center text-sm font-black text-neutral-800"
                   >
-                    {isAddingLocation ? "Cancelar nueva ubicación" : "+ Añadir nueva ubicación"}
+                    {isAddingLocation ? tx("Cancelar nueva ubicación") : tx("+ Añadir nueva ubicación")}
                   </button>
                 </div>
               </section>

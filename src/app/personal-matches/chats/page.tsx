@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useI18n } from "@/i18n/I18nProvider"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -68,6 +69,7 @@ function errorMessage(error: string | null) {
 }
 
 export default function PersonalMatchChatsPage() {
+  const { tx } = useI18n()
   const [chats, setChats] = useState<PersonalChatOverviewItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -152,10 +154,8 @@ export default function PersonalMatchChatsPage() {
 
       {!loading && !error && chats.length === 0 ? (
         <AppCard>
-          <p className="text-sm font-black">Todavía no tienes chats de amistosos.</p>
-          <p className="mt-1 text-xs font-semibold text-neutral-500">
-            Cuando registres un amistoso, su conversación aparecerá aquí.
-          </p>
+          <p className="text-sm font-black">{tx("Todavía no tienes chats de amistosos.")}</p>
+          <p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Cuando registres un amistoso, su conversación aparecerá aquí.")}</p>
         </AppCard>
       ) : null}
 
@@ -191,7 +191,7 @@ export default function PersonalMatchChatsPage() {
                       </p>
                       {chat.unread > 0 ? (
                         <span
-                          aria-label={`${chat.unread} mensaje${chat.unread === 1 ? "" : "s"} sin leer`}
+                          aria-label={tx(`${chat.unread} mensaje${chat.unread === 1 ? "" : "s"} sin leer`)}
                           className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-neutral-950 px-1.5 type-caption font-black text-white shadow-sm"
                         >
                           {chat.unread > 99 ? "99+" : chat.unread}
@@ -223,8 +223,8 @@ export default function PersonalMatchChatsPage() {
                         ) : (
                           <p className="type-caption font-semibold text-neutral-400">
                             {chat.expired
-                              ? "Los mensajes ya se han eliminado"
-                              : "Sin mensajes todavía"}
+                              ? tx("Los mensajes ya se han eliminado")
+                              : tx("Sin mensajes todavía")}
                           </p>
                         )}
                       </div>

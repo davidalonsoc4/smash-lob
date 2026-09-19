@@ -1,6 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
+import { useI18n } from "@/i18n/I18nProvider"
 import { useEffect, useMemo, useState } from "react"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { MatchChatFloatingAction } from "@/components/match/MatchChatFloatingAction"
@@ -14,6 +15,7 @@ import { buildPersonalMatchDetailModel } from "@/lib/personalMatchDetailModel"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 
 export default function PersonalMatchDetailPage() {
+  const { tx } = useI18n()
   const params = useParams<{ id: string }>()
   const router = useRouter()
   const [item, setItem] = useState<PersonalMatchItem | null>(null)
@@ -68,9 +70,9 @@ export default function PersonalMatchDetailPage() {
   if (loading) {
     return (
       <div className="compact-page space-y-3">
-        <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
+        <BackButton fallbackHref="/personal-matches" label={tx("Mis partidos")} />
         <AppCard className="p-4">
-          <p className="text-xs font-semibold text-neutral-500">Cargando partido...</p>
+          <p className="text-xs font-semibold text-neutral-500">{tx("Cargando partido...")}</p>
         </AppCard>
       </div>
     )
@@ -79,9 +81,9 @@ export default function PersonalMatchDetailPage() {
   if (!item || !scoreboard) {
     return (
       <div className="compact-page space-y-3">
-        <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
+        <BackButton fallbackHref="/personal-matches" label={tx("Mis partidos")} />
         <AppCard className="border-red-100 bg-red-50 p-4">
-          <p className="text-sm font-black text-red-800">Partido no disponible</p>
+          <p className="text-sm font-black text-red-800">{tx("Partido no disponible")}</p>
           <p className="mt-1 text-xs font-semibold text-red-700">{error}</p>
         </AppCard>
       </div>
@@ -92,7 +94,7 @@ export default function PersonalMatchDetailPage() {
     <MatchDetailView
       backHref="/personal-matches"
       backLabel="Mis partidos"
-      title="Partido"
+      title={tx("Partido")}
       status={item.status}
       scheduledAt={item.scheduledAt}
       resultRecordedAt={item.resultRecordedAt}
@@ -130,17 +132,13 @@ export default function PersonalMatchDetailPage() {
 
       {item.status === "finished" && item.canManage && !editingResult ? (
         <AppCard>
-          <p className="font-black">Resultado registrado</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            Puedes corregir los sets si detectas algún error en el amistoso.
-          </p>
+          <p className="font-black">{tx("Resultado registrado")}</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Puedes corregir los sets si detectas algún error en el amistoso.")}</p>
           <button
             type="button"
             onClick={() => setEditingResult(true)}
             className="flex mt-3 w-full rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 items-center justify-center text-center"
-          >
-            Editar resultado
-          </button>
+          >{tx("Editar resultado")}</button>
         </AppCard>
       ) : null}
 
@@ -157,10 +155,8 @@ export default function PersonalMatchDetailPage() {
       ) : null}
 
       <AppCard className="border-blue-100 bg-blue-50 p-3">
-        <p className="text-xs font-black text-blue-950">Partido personal</p>
-        <p className="mt-1 type-caption font-semibold leading-4 text-blue-700">
-          Este encuentro no pertenece a ninguna competición y no afecta a clasificación, estadísticas oficiales, récords ni MVP de tus ligas.
-        </p>
+        <p className="text-xs font-black text-blue-950">{tx("Partido personal")}</p>
+        <p className="mt-1 type-caption font-semibold leading-4 text-blue-700">{tx("Este encuentro no pertenece a ninguna competición y no afecta a clasificación, estadísticas oficiales, récords ni MVP de tus ligas.")}</p>
       </AppCard>
 
       {item.canDelete ? (
@@ -170,7 +166,7 @@ export default function PersonalMatchDetailPage() {
           onClick={() => void deleteMatch()}
           className="flex w-full rounded-xl bg-red-50 px-3 py-2.5 text-xs font-black text-red-700 disabled:opacity-50 items-center justify-center text-center"
         >
-          {deleting ? "Eliminando..." : "Eliminar partido"}
+          {deleting ? "Eliminando..." : tx("Eliminar partido")}
         </button>
       ) : null}
 

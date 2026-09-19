@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useI18n } from "@/i18n/I18nProvider"
 import { useRouter } from "next/navigation"
 import { MatchEventMeta } from "@/components/matches/MatchEventMeta"
 import { SetGameScore } from "@/components/matches/SetGameScore"
@@ -22,6 +23,7 @@ import {
 const showPersonalMatchChevron = false
 
 function MatchCardContent({ match }: { match: PersonalMatchItem }) {
+  const { tx } = useI18n()
   const teamA = getPersonalMatchTeamPlayers(match.participants, 1)
   const teamB = getPersonalMatchTeamPlayers(match.participants, 2)
   const setWins = getPersonalMatchSetWins(match.sets)
@@ -54,7 +56,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
             }`}
           >
             {outcome === "win"
-              ? "Victoria"
+              ? tx("Victoria")
               : outcome === "loss"
                 ? "Derrota"
                 : "Finalizado"}
@@ -64,7 +66,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
             {displayStatus === "in_progress"
               ? "En juego"
               : displayStatus === "result_pending"
-                ? "Pendiente de resultado"
+                ? tx("Pendiente de resultado")
                 : "Programado"}
           </span>
         )}
@@ -88,7 +90,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
               <div className="flex shrink-0 items-center gap-1 self-center">
                 <div
                   className="flex items-center gap-1"
-                  aria-label="Juegos por set de la pareja A"
+                  aria-label={tx("Juegos por set de la pareja A")}
                 >
                   {match.sets.map((set, index) => (
                     <SetGameScore
@@ -100,7 +102,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
                 </div>
                 <span
                   className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm"
-                  aria-label="Sets ganados por la pareja A"
+                  aria-label={tx("Sets ganados por la pareja A")}
                 >
                   {setWins.a}
                 </span>
@@ -122,7 +124,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
               <div className="flex shrink-0 items-center gap-1 self-center">
                 <div
                   className="flex items-center gap-1"
-                  aria-label="Juegos por set de la pareja B"
+                  aria-label={tx("Juegos por set de la pareja B")}
                 >
                   {match.sets.map((set, index) => (
                     <SetGameScore
@@ -134,7 +136,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
                 </div>
                 <span
                   className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm"
-                  aria-label="Sets ganados por la pareja B"
+                  aria-label={tx("Sets ganados por la pareja B")}
                 >
                   {setWins.b}
                 </span>
@@ -191,6 +193,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
 }
 
 export function PersonalMatchCard({ match }: { match: PersonalMatchItem }) {
+  const { tx } = useI18n()
   const router = useRouter()
   const { activateLeague } = useActiveLeague()
 
@@ -210,7 +213,7 @@ export function PersonalMatchCard({ match }: { match: PersonalMatchItem }) {
         if (!match.leagueId || !activateLeague(match.leagueId)) return
         router.push(`/match/${encodeURIComponent(match.id)}`)
       }}
-      aria-label={`Abrir partido de ${match.leagueName ?? "liga"}`}
+      aria-label={tx(`Abrir partido de ${match.leagueName ?? tx("liga")}`)}
     >
       <MatchCardContent match={match} />
     </button>
