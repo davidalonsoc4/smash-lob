@@ -2361,7 +2361,7 @@ html[data-visual-style="competition"] [data-route^="/match/"] .app-card,
 html[data-visual-style="competition"] [data-route^="/personal-matches/"] .app-card { border-radius: .8rem; }
 
 html[data-visual-style="competition"] [data-route="/profile"] .app-page-header { border-left-color: var(--competition-accent); }
-html[data-visual-style="competition"] [data-route="/profile"] .app-card { border-left: 2px solid color-mix(in srgb, var(--competition-accent) 55%, transparent) !important; }
+html[data-visual-style="competition"] [data-route="/profile"] .app-card { border-top: 2px solid color-mix(in srgb, var(--competition-accent) 80%, transparent) !important; }
 html[data-visual-style="competition"] [data-route="/profile"] .type-player-name-prominent,
 html[data-visual-style="competition"] [data-route="/profile"] .type-player-name { letter-spacing: .035em; }
 
@@ -2379,7 +2379,7 @@ html[data-visual-style="competition"] [data-route="/notifications"] .app-notific
   box-shadow: 0 12px 28px rgb(0 0 0 / .18) !important;
 }
 html[data-visual-style="competition"] [data-route="/notifications"] .app-notification-card:not(.opacity-70) {
-  border-left-color: var(--competition-accent) !important;
+  border-top: 2px solid var(--competition-accent) !important;
   background: linear-gradient(120deg, var(--competition-surface-raised), var(--competition-surface)) !important;
 }
 html[data-visual-style="competition"] [data-route="/notifications"] .app-notification-card.opacity-70 {
@@ -2444,4 +2444,12 @@ html[data-visual-style="competition"] [data-route="/matches"] [data-tour="matche
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack {
   border: 1px solid color-mix(in srgb, var(--competition-accent) 24%, var(--competition-border));
   box-shadow: 0 18px 38px rgb(0 0 0 / .2);
+}
+html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack::before {
+  display: block;
+  background: var(--competition-accent);
+}
+html[data-visual-style="competition"] [data-route="/chats"] .chat-list-card-unread {
+  border-top: 0 !important;
+  box-shadow: 0 12px 26px rgb(0 0 0 / .24) !important;
 }
