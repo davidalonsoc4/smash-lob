@@ -1667,3 +1667,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El PDF y las previsualizaciones usan la variante correspondiente; la transparencia y el resto del arte se conservan.
 - Versión local de la rama: v1.15.3. Sin despliegue remoto.
 - Publicación v1.15.3 verificada: `staging` y `main` apuntan a `caa2083`; Producción responde `/api/health` con v1.15.3. PRE responde mediante el alias protegido de Vercel y mantiene la protección SSO activa.
+### Rama independiente de resiliencia v1.15.4 (2026-09-19)
+
+- Se publicó el estado auditado anterior en `staging`/PRE con SHA `761b0be`; Vercel creó el despliegue `dpl_N4tpK6As332Vt2Kk8nFyNJYjveGG`, alias `https://pre.smashandlob.com`, estado `Ready`.
+- La batería manual para PRE está en `docs/preproduction/V1_15_4_PRE_MANUAL_QA.md`.
+- La nueva rama parte de `origin/main` en `01c9212` y avanza con el bloque 1: cola persistente de reintentos Push, deduplicada por evento y suscripción, backoff limitado a cinco intentos y descarte de suscripciones 404/410.
+- La migración `20260919120000_add_push_delivery_queue.sql` aún no se ha aplicado en ningún entorno.

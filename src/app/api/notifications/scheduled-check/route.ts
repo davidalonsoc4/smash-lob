@@ -18,6 +18,7 @@ import { runScheduledSeasonStartAutomation } from "@/lib/serverScheduledSeasonAu
 import { runPersonalMatchNotificationAutomation } from "@/lib/serverPersonalMatchAutomation";
 import { runProgressiveCalendarRevealAutomation } from "@/lib/serverProgressiveCalendarAutomation";
 import { getUpcomingReminderTargets, safelyRunBallCustodianNotificationAutomation, type OrganizationBallsSetting } from "@/lib/serverBallCustodianNotifications";
+import { processPushRetryQueue } from "@/lib/serverPushRetry";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type MatchRow = {
@@ -357,6 +358,7 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
+  const pushRetries = await processPushRetryQueue(supabase);
 
   let seasonStartAutomation: Awaited<ReturnType<typeof runScheduledSeasonStartAutomation>>;
   try {
@@ -991,6 +993,7 @@ export async function GET(request: Request) {
     ok: true,
     created: eventIds.length + personalMatchAutomation.created + progressiveCalendarAutomation.created,
     sent,
+    pushRetries,
     autoValidated: autoConfirmationRows.length,
   });
 }

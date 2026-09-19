@@ -14,6 +14,7 @@ import {
   normalizeLeagueActivitySettings,
 } from "@/lib/activitySettings";
 import { shouldSuppressSeasonMatchNotifications } from "@/lib/preseasonSecrets";
+import { enqueuePushRetry } from "@/lib/serverPushRetry";
 
 export type PushDispatchResult = {
   ok: boolean;
@@ -1314,6 +1315,14 @@ export async function dispatchPushForActivityEvent(
           statusCode,
           subscriptionId: subscription.id,
         });
+        if (statusCode !== 404 && statusCode !== 410) {
+          await enqueuePushRetry({
+            supabase,
+            eventId: event.id,
+            subscription,
+            payload: JSON.parse(payload) as Record<string, unknown>,
+          });
+        }
       }
     }),
   );
