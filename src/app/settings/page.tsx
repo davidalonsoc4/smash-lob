@@ -278,8 +278,8 @@ function AccountDataSection() {
         <p className="text-sm font-black text-neutral-950">{tx("Datos y privacidad")}</p>
         <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">{tx("La exportación incluye únicamente la información asociada a tu cuenta.")}</p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" onClick={() => void exportData()} disabled={busy !== null} className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:opacity-50">{busy === "export" ? tx("Preparando...") : tx("Descargar mis datos")}</button>
-          <button type="button" onClick={() => void deleteAccount()} disabled={busy !== null} className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:opacity-50">{busy === "delete" ? tx("Procesando...") : tx("Eliminar mi cuenta")}</button>
+          <button type="button" onClick={() => void exportData()} disabled={busy !== null} className="inline-flex items-center justify-center rounded-xl bg-neutral-950 px-3 py-2 text-center text-xs font-black text-white disabled:opacity-50">{busy === "export" ? tx("Preparando...") : tx("Descargar mis datos")}</button>
+          <button type="button" onClick={() => void deleteAccount()} disabled={busy !== null} className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-center text-xs font-black text-red-700 disabled:opacity-50">{busy === "delete" ? tx("Procesando...") : tx("Eliminar mi cuenta")}</button>
         </div>
         {message ? <p className="mt-2 text-xs font-bold text-neutral-600">{message}</p> : null}
       </div>
