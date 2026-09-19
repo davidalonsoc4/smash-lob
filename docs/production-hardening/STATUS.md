@@ -1675,6 +1675,8 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La migración `20260919120000_add_push_delivery_queue.sql` aún no se ha aplicado en ningún entorno.
 - Bloque 2 en curso: `20260919123000_add_season_waitlist.sql` y `20260919124500_add_season_waitlist_position.sql` crean una lista FIFO persistente con orden reordenable por administración, RLS cerrada al cliente y posición estable.
 - La inscripción llena devuelve `202 Accepted`, el jugador puede consultar su posición, salir y confirmar una promoción durante 48 horas. La liberación de una plaza promociona automáticamente al siguiente miembro y registra un aviso dirigido al usuario.
-- La UI de administración ya permite reordenar la cola; queda pendiente cerrar la validación integral de cierre de inscripciones y los tests de promoción/reordenación antes de marcar el bloque completo.
+- La UI de administración ya permite reordenar la cola; la validación de cierre de inscripciones y los tests de promoción, cancelación, reordenación y cierre están cubiertos.
 - La promoción queda bloqueada cuando la temporada deja de estar `upcoming` o `registration_open` pasa a `false`; la confirmación aplica la misma protección.
 - Bloque 3 iniciado: `SeasonDangerZone`, `OrganizationBallsSettingsPanel` y `BalancedCalendarAuditPanel` se han extraído de `admin/season/page.tsx` sin cambiar sus anchors ni sus puntos de montaje. El presupuesto de esa página baja a 5.500 líneas.
+- `release:check` completado: 768 tests unitarios, build de producción, 68 E2E, presupuesto de build y auditoría npm sin vulnerabilidades runtime.
+- La rama queda sin despliegue: las migraciones de resiliencia y lista de espera son locales y requieren aplicación explícita posterior en PRE/PROD.
