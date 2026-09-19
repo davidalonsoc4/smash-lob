@@ -224,6 +224,68 @@ function SessionSection() {
     </SettingsSection>
   )
 }
+
+function AccountDataSection() {
+  const { tx } = useI18n()
+  const [busy, setBusy] = useState<"export" | "delete" | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+
+  async function exportData() {
+    setBusy("export")
+    setMessage(null)
+    try {
+      const response = await fetch("/api/account/export", { cache: "no-store" })
+      if (!response.ok) throw new Error("export_failed")
+      const payload = await response.json()
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement("a")
+      anchor.href = url
+      anchor.download = `smash-and-lob-datos-${new Date().toISOString().slice(0, 10)}.json`
+      anchor.click()
+      URL.revokeObjectURL(url)
+      setMessage(tx("Tus datos se han descargado en formato JSON."))
+    } catch {
+      setMessage(tx("No se han podido exportar tus datos."))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function deleteAccount() {
+    const confirmation = window.prompt(tx("Para confirmar, escribe ELIMINAR MI CUENTA."))
+    if (confirmation !== "ELIMINAR MI CUENTA") return
+    setBusy("delete")
+    setMessage(null)
+    try {
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ confirmation }),
+      })
+      if (!response.ok) throw new Error("delete_failed")
+      setMessage(tx("Tu cuenta se ha anonimizado. Cierra sesión para terminar."))
+    } catch {
+      setMessage(tx("No se ha podido completar la eliminación de la cuenta."))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <SettingsSection title={tx("Mis datos") } description={tx("Descarga tus datos o solicita la anonimización de tu cuenta.")}>
+      <div className="settings-row settings-row-default settings-search-target px-3 py-3" id="account-data">
+        <p className="text-sm font-black text-neutral-950">{tx("Datos y privacidad")}</p>
+        <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">{tx("La exportación incluye únicamente la información asociada a tu cuenta.")}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" onClick={() => void exportData()} disabled={busy !== null} className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-black text-white disabled:opacity-50">{busy === "export" ? tx("Preparando...") : tx("Descargar mis datos")}</button>
+          <button type="button" onClick={() => void deleteAccount()} disabled={busy !== null} className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700 disabled:opacity-50">{busy === "delete" ? tx("Procesando...") : tx("Eliminar mi cuenta")}</button>
+        </div>
+        {message ? <p className="mt-2 text-xs font-bold text-neutral-600">{message}</p> : null}
+      </div>
+    </SettingsSection>
+  )
+}
 function SpectatorSettingsPage() {
   const { tx } = useI18n()
 
@@ -335,6 +397,7 @@ function SpectatorSettingsPage() {
           description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")}
         />
       </SettingsSection>
+      <AccountDataSection />
       <SessionSection />
       <p
         data-visual-stable-version
@@ -722,6 +785,7 @@ function PlayerSettingsPage() {
           description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")}
         />
       </SettingsSection>
+      <AccountDataSection />
       <SessionSection />
       <p
         data-visual-stable-version
