@@ -2185,6 +2185,8 @@ html[data-visual-style="competition"] .bg-neutral-50,
 html[data-visual-style="competition"] .bg-neutral-100,
 html[data-visual-style="competition"] .bg-neutral-200 { background: var(--competition-surface-raised) !important; }
 html[data-visual-style="competition"] .bg-neutral-950 { background: var(--competition-accent) !important; color: var(--competition-accent-contrast) !important; }
+html[data-visual-style="competition"] .bg-neutral-950 .text-white,
+html[data-visual-style="competition"] .bg-neutral-950 .text-neutral-300 { color: var(--competition-accent-contrast) !important; }
 html[data-visual-style="competition"] .border-neutral-100,
 html[data-visual-style="competition"] .border-neutral-200,
 html[data-visual-style="competition"] .border-neutral-300,
@@ -2334,3 +2336,9 @@ html[data-visual-style="competition"] .bg-red-50,
 html[data-visual-style="competition"] .bg-red-100 { background: rgb(127 29 29 / .24) !important; }
 html[data-visual-style="competition"] .bg-sky-50,
 html[data-visual-style="competition"] .bg-sky-100 { background: rgb(14 116 144 / .22) !important; }
+html[data-visual-style="competition"] .appearance-preview-competition {
+  background: var(--competition-surface-raised) !important;
+  box-shadow: inset 0 0 0 1px var(--competition-border-strong);
+}
+html[data-visual-style="competition"] .appearance-preview-competition .appearance-preview-card { background: var(--competition-accent) !important; }
+html[data-visual-style="competition"] .appearance-preview-competition .appearance-preview-chip { background: var(--competition-accent) !important; }

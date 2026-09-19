@@ -1724,3 +1724,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se refuerza la jerarquía de Home, ranking, estadísticas, partidos y perfil con cabeceras editoriales, tarjetas con niveles de superficie, acentos de liga y estados más legibles.
 - Se corrigen colores de avisos ámbar, rojo y azul sobre fondo oscuro, además de foco visible para teclado.
 - TypeScript, ESLint, build de producción y pruebas focalizadas pasan. No se ha desplegado la rama.
+- Revisión visual en la IP local: se corrigió la miniatura de Competition que conservaba un degradado del estilo anterior y el contraste de textos secundarios dentro de badges con acento. El acento se verificó al cambiar entre ligas.

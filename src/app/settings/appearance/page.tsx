@@ -76,7 +76,7 @@ function StylePreview({ style }: { style: VisualStyle }) {
   return (
     <span
       aria-hidden="true"
-      className="appearance-preview-colorful relative block h-9 overflow-hidden rounded-xl ring-1"
+      className="appearance-preview-competition relative block h-9 overflow-hidden rounded-xl ring-1"
     >
       <span className="appearance-preview-card absolute inset-x-2 top-2 h-2 rounded-full" />
       <span className="appearance-preview-card absolute bottom-2 left-2 h-3 w-8 rounded-md" />
