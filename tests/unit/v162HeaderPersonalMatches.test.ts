@@ -6,7 +6,7 @@ const read = (path: string) => readFileSync(path, "utf8")
 describe("v1.6.2 homogeneous headers and personal match flow", () => {
   it("left-aligns HOME identity when a league has no logo", () => {
     const home = read("src/app/page.tsx")
-    expect(home).toContain('className={activeLeague.logoUrl ? "flex items-start gap-3" : "block"}')
+    expect(home).toContain('visualStyle === "competition" ? "flex items-center gap-2" : "flex items-start gap-3"')
     expect(home).toContain('className="min-w-0 flex-1"')
   })
 

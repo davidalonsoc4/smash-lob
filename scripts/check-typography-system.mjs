@@ -273,7 +273,7 @@ const [homePage, rankingPage, matchesPage, profileScreen, seasonContextLine] = a
 ])
 assert(homePage.includes('<header data-tour="home-header" className="app-page-header">'), "Inicio debe usar la misma geometría global de cabecera que el resto de pantallas")
 assert(homePage.includes('<LeagueLogo league={activeLeague} size="md" previewable />'), "Inicio debe usar el logo de liga de tamaño normal junto a su identidad")
-assert(homePage.includes('className="mr-[0.9rem] origin-bottom-left scale-[1.3]" data-home-league-logo-scale'), "Inicio debe ampliar el logo aproximadamente un 30% manteniendo fijo su borde inferior izquierdo")
+assert(homePage.includes("scale-[1.3]") && homePage.includes('visualStyle === "competition"'), "Inicio debe ampliar el logo en Classic y neutralizar esa escala en Competition")
 assert(homePage.includes("<SeasonContextLine"), "Inicio debe integrar temporada y estado en una sola línea")
 assert(!homePage.includes("activeLeague.description"), "Inicio no debe repetir la descripción de la liga en la cabecera")
 assert(homePage.includes('data-tour="home-season-summary"'), "La temporada cerrada debe usar un resumen compacto")

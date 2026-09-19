@@ -36,7 +36,7 @@ describe("top functional header row", () => {
     expect(home).toContain('size="md"')
     expect(home).toContain('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">')
     expect(home).toContain('{tx("Mis ligas")}')
-    expect(home).toContain('className={activeLeague.logoUrl ? "flex items-start gap-3" : "block"}')
+    expect(home).toContain('visualStyle === "competition" ? "flex items-center gap-2" : "flex items-start gap-3"')
     expect(home).toContain("<ResponsiveLeagueTitle")
     expect(globals).toContain(".app-page-header")
     expect(globals).toContain("padding-top: 0.5rem !important")

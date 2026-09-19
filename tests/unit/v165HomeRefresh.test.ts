@@ -5,7 +5,7 @@ describe("v1.6.5 HOME refresh and compact season sharing", () => {
   it("uses a normal league logo beside the HOME title", async () => {
     const home = await readFile("src/app/page.tsx", "utf8")
     expect(home).toContain('<LeagueLogo league={activeLeague} size="md" previewable />')
-    expect(home).toContain('className={activeLeague.logoUrl ? "flex items-start gap-3" : "block"}')
+    expect(home).toContain('visualStyle === "competition" ? "flex items-center gap-2" : "flex items-start gap-3"')
     expect(home).not.toContain("app-home-top-logo")
   })
 

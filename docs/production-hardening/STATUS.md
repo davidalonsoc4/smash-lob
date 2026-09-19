@@ -1743,3 +1743,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Las ligas nuevas aceptan un color de acento validado; la identidad de liga puede derivarlo inicialmente del logo y mantener un valor elegido manualmente. Welcome Pack y Media Kit toman el acento de la liga como valor inicial.
 - Se reorganizó la cabecera de Notificaciones en móvil: el título queda separado de las acciones y los botones dejan de comprimirse en Competition.
 - Se verificaron visualmente HOME, Apariencia, Notificaciones y cambios Classic/Competition en el navegador local sin errores de consola. No se ha desplegado.
+
+## Competition visual style v2 — centrado y separación del logo (2026-09-19)
+
+- La cabecera de HOME usa `items-center` y un `gap` compacto únicamente en Competition; el logo queda centrado respecto al bloque de identidad y más próximo al nombre de la liga.
+- Classic conserva su estructura `items-start`, margen y escala `1.3` originales.
+- Se actualizó el gate tipográfico y la prueba de geometría para proteger ambos comportamientos.
+- La corrección se revisó en la IP local con Competition y Classic; no se ha desplegado.

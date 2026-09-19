@@ -17,6 +17,7 @@ import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
+import { useTheme } from "@/context/ThemeProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useActiveLeague } from "@/context/ActiveLeagueProvider";
@@ -442,6 +443,7 @@ function SeasonSummaryAwardRow({
 export default function Home() {
   const { tx } = useI18n()
   const { t } = useI18n();
+  const { visualStyle } = useTheme();
   const { data: session } = useSession();
   const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings, seasons } = useSeasonSettings();
   const { replaceSeasonMatches } = useMatchData();
@@ -851,9 +853,9 @@ export default function Home() {
           <span aria-hidden="true" className="mr-1 inline-block">←</span>
           {tx("Mis ligas")}
         </Link>
-        <div className={activeLeague.logoUrl ? "flex items-start gap-3" : "block"}>
+        <div className={activeLeague.logoUrl ? (visualStyle === "competition" ? "flex items-center gap-2" : "flex items-start gap-3") : "block"}>
           {activeLeague.logoUrl ? (
-            <div className="mr-[0.9rem] origin-bottom-left scale-[1.3]" data-home-league-logo-scale><LeagueLogo league={activeLeague} size="md" previewable /></div>
+            <div className={visualStyle === "competition" ? "mr-0 origin-center" : "mr-[0.9rem] origin-bottom-left scale-[1.3]"} data-home-league-logo-scale><LeagueLogo league={activeLeague} size="md" previewable /></div>
           ) : null}
           <div className="min-w-0 flex-1">
             <div className="relative">
