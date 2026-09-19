@@ -49,5 +49,7 @@ describe("Competition visual style", () => {
     expect(css).toContain('html[data-visual-style="competition"] .app-page-header {')
     expect(css).toContain('border-left: .25rem solid var(--competition-accent);')
     expect(css).toContain('background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72));')
+    expect(css).toContain('text-transform: none;')
+    expect(css).toContain('border-left: 2px solid color-mix(in srgb, var(--competition-accent) 55%, transparent) !important;')
   })
 })

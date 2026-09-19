@@ -1756,3 +1756,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se aplica un panel editorial común a las cabeceras de Competition, incluyendo Calendario y Chats, con borde de acento, superficie oscura y jerarquía tipográfica coherente.
 - El botón Volver mantiene su fila superior independiente para evitar solapes en móvil.
 - La comprobación visual de Calendario y Chats se hizo en la IP local; Classic no recibe estos estilos.
+
+## Competition visual style v2 — acento en perfil e identidad de liga (2026-09-19)
+
+- Los bordes de los paneles de Mi perfil usan el acento de Competition mediante el token dinámico de la liga, eliminando el dorado fijo.
+- El nombre de la liga conserva su capitalización original para respetar la identidad de marca; las etiquetas y títulos funcionales siguen en mayúsculas.
+- Se verificó el color dinámico en el perfil y el build de producción; no se ha desplegado.
