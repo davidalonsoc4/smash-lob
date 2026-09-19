@@ -95,6 +95,7 @@ type LeagueAccessContextValue = {
     description: string;
     recommendations: string;
     locations: LeagueLocation[];
+    accentColor?: string;
   }) => Promise<League | null>;
   getMembershipForLeague: (leagueId: string) => UserLeagueMembership | null;
   getLeagueInviteCode: (leagueId: string) => string;
@@ -759,10 +760,12 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       description,
       locations,
       recommendations,
+      accentColor,
     }: {
       name: string;
       description: string;
       recommendations: string;
+      accentColor?: string;
       locations: LeagueLocation[];
     }) => {
       if (!userId || !canCreateLeagues) {
@@ -792,6 +795,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           inviteCode,
           locations,
           leagueRecommendations: recommendations.trim(),
+          accentColor,
         });
 
         setLeagues((currentLeagues) => {

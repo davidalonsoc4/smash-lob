@@ -3,8 +3,10 @@ import {
   DEFAULT_LEAGUE_ACCENT,
   DEFAULT_PALETTE,
   DEFAULT_VISUAL_STYLE,
+  getCompetitionAccentColor,
   migrateStoredAppearance,
   normalizeAccentColor,
+  normalizeCompetitionAccent,
   normalizeLegacyStyle,
   normalizePalette,
 } from "@/lib/visualStyle"
@@ -32,5 +34,12 @@ describe("Competition visual style", () => {
     expect(normalizeAccentColor("#abc")).toBe(DEFAULT_LEAGUE_ACCENT)
     expect(normalizeAccentColor("#abcdef")).toBe("#ABCDEF")
     expect(normalizeAccentColor(null)).toBe(DEFAULT_LEAGUE_ACCENT)
+  })
+
+  it("supports curated Competition accents and the league-derived option", () => {
+    expect(normalizeCompetitionAccent("blue")).toBe("blue")
+    expect(normalizeCompetitionAccent("unknown")).toBe("league")
+    expect(getCompetitionAccentColor("blue", "#123456")).toBe("#477BD1")
+    expect(getCompetitionAccentColor("league", "#123456")).toBe("#123456")
   })
 })

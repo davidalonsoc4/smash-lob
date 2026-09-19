@@ -10,8 +10,10 @@ type MediaKitSettingsContextValue = {
 
 const MediaKitSettingsContext = createContext<MediaKitSettingsContextValue | null>(null)
 
-export function MediaKitSettingsProvider({ children }: { children: ReactNode }) {
-  const [accentColor, setAccentColorState] = useState<string>(DEFAULT_MEDIA_KIT_ACCENT)
+export function MediaKitSettingsProvider({ children, initialAccentColor }: { children: ReactNode; initialAccentColor?: string | null }) {
+  const [accentColor, setAccentColorState] = useState<string>(
+    normalizeMediaKitAccentColor(initialAccentColor ?? DEFAULT_MEDIA_KIT_ACCENT),
+  )
 
   const value = useMemo<MediaKitSettingsContextValue>(
     () => ({

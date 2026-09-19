@@ -24,6 +24,7 @@ type CreateLeagueBody = {
   inviteCode?: unknown
   locations?: unknown
   leagueRecommendations?: unknown
+  accentColor?: unknown
 }
 
 type SupabaseErrorLike = {
@@ -73,6 +74,7 @@ async function insertLeagueWithAvailableSlug({
   creatorUserId,
   locations,
   recommendations,
+  accentColor,
 }: {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>
   leagueSlug: string
@@ -82,6 +84,7 @@ async function insertLeagueWithAvailableSlug({
   creatorUserId: string
   locations: unknown
   recommendations: string
+  accentColor: string
 }) {
   let lastError: unknown = null
 
@@ -102,7 +105,7 @@ async function insertLeagueWithAvailableSlug({
         status_colors_enabled: true,
         show_ranking_avatars: true,
         show_historical_profile_stats: false,
-        accent_color: "#D7A544",
+        accent_color: accentColor,
       })
       .select(
         "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
@@ -154,11 +157,16 @@ export async function POST(request: Request) {
     body?.leagueRecommendations,
     2000,
   )
+  const accentColor = body?.accentColor === undefined
+    ? "#D7A544"
+    : typeof body.accentColor === "string" && /^#[0-9a-f]{6}$/i.test(body.accentColor.trim())
+      ? normalizeAccentColor(body.accentColor)
+      : null
 
   if (
     !leagueName ||
     !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(leagueSlug) ||
-    !inviteCode
+    !inviteCode || !accentColor
   ) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
@@ -181,6 +189,7 @@ export async function POST(request: Request) {
       creatorUserId: id,
       locations: body?.locations,
       recommendations: leagueRecommendations,
+      accentColor,
     })
     const creatorIsSuperuser = isSuperuser
 

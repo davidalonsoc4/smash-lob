@@ -105,5 +105,6 @@ function MediaKitWorkspaceContent({ children }: { children: ReactNode }) {
 }
 
 export function MediaKitWorkspaceShell({ children }: { children: ReactNode }) {
-  return <MediaKitSettingsProvider><MediaKitWorkspaceContent>{children}</MediaKitWorkspaceContent></MediaKitSettingsProvider>
+  const { activeLeague } = useCurrentLeagueData()
+  return <MediaKitSettingsProvider key={activeLeague.id} initialAccentColor={activeLeague.accentColor}><MediaKitWorkspaceContent>{children}</MediaKitWorkspaceContent></MediaKitSettingsProvider>
 }

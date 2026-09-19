@@ -7,6 +7,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { DEFAULT_LEAGUE_ACCENT, normalizeAccentColor } from "@/lib/visualStyle"
 
 export default function NewLeaguePage() {
   const { tx } = useI18n()
@@ -17,6 +18,7 @@ export default function NewLeaguePage() {
   const [leagueName, setLeagueName] = useState("")
   const [leagueDescription, setLeagueDescription] = useState("")
   const [leagueRecommendations, setLeagueRecommendations] = useState("")
+  const [accentColor, setAccentColor] = useState(DEFAULT_LEAGUE_ACCENT)
   const [error, setError] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
 
@@ -36,6 +38,7 @@ export default function NewLeaguePage() {
       name: leagueName.trim(),
       description: leagueDescription.trim() || t.newLeague.defaultDescription,
       recommendations: leagueRecommendations.trim(),
+      accentColor,
       locations: [],
     })
 
@@ -130,6 +133,29 @@ export default function NewLeaguePage() {
               />
               <p className="mt-1 text-xs text-neutral-500">
                 {tx("Campo opcional para dejar indicaciones útiles a todos los jugadores.")}{" "}</p>
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-semibold text-neutral-700">{t.settings.leagueAccentColor}</span>
+              <span className="mt-1 block text-xs font-semibold text-neutral-500">{t.settings.leagueAccentDescription}</span>
+              <div className="mt-2 flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 shadow-sm">
+                <input
+                  aria-label={t.settings.leagueAccentColor}
+                  type="color"
+                  value={accentColor}
+                  disabled={isCreating}
+                  onChange={(event) => setAccentColor(normalizeAccentColor(event.target.value))}
+                  className="h-10 w-14 cursor-pointer rounded-xl border-0 bg-transparent p-0"
+                />
+                <span className="font-mono text-sm font-bold uppercase text-neutral-700">{accentColor}</span>
+                <button
+                  type="button"
+                  onClick={() => setAccentColor(DEFAULT_LEAGUE_ACCENT)}
+                  className="ml-auto inline-flex items-center justify-center rounded-xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-700"
+                >
+                  {t.common.reset}
+                </button>
+              </div>
             </label>
           </div>
         </AppCard>

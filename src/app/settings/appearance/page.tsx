@@ -9,6 +9,7 @@ import {
   type VisualStyle,
   useTheme,
 } from "@/context/ThemeProvider"
+import { COMPETITION_ACCENT_COLORS, type CompetitionAccent } from "@/lib/visualStyle"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
   type AppFontSize,
@@ -99,6 +100,11 @@ function PaletteSwatches({ palette }: { palette: Exclude<Palette, "league"> }) {
   )
 }
 
+function CompetitionAccentSwatch({ value }: { value: CompetitionAccent }) {
+  const color = value === "league" ? "var(--league-accent, #D7A544)" : COMPETITION_ACCENT_COLORS[value]
+  return <span aria-hidden="true" className="h-6 w-6 rounded-full border border-white/80 shadow-sm" style={{ backgroundColor: color }} />
+}
+
 const fontSizeCopy = {
   es: {
     title: "Tamaño de texto",
@@ -186,6 +192,8 @@ export default function AppearancePage() {
     setVisualStyle,
     palette,
     setPalette,
+    competitionAccent,
+    setCompetitionAccent,
     canUseCompetition,
   } = useTheme()
 
@@ -206,7 +214,12 @@ export default function AppearancePage() {
       description: t.settings.visualStyleColorfulDescription,
     },
   ]
-  const paletteOptions: Array<{ value: Exclude<Palette, "classic" | "league">; label: string; description: string }> = [
+  const paletteOptions: Array<{ value: Exclude<Palette, "league">; label: string; description: string }> = [
+    {
+      value: "classic",
+      label: t.settings.colorfulPaletteClassic,
+      description: t.settings.colorfulPaletteClassicDescription,
+    },
     {
       value: "indigo",
       label: t.settings.colorfulPaletteIndigo,
@@ -234,6 +247,15 @@ export default function AppearancePage() {
     },
   ]
   const selectedPalette = paletteOptions.find((option) => option.value === palette)
+  const competitionAccentOptions: Array<{ value: CompetitionAccent; label: string; description: string }> = [
+    { value: "league", label: t.settings.competitionAccentLeague, description: t.settings.competitionAccentLeagueDescription },
+    { value: "gold", label: t.settings.competitionAccentGold, description: t.settings.competitionAccentGoldDescription },
+    { value: "blue", label: t.settings.competitionAccentBlue, description: t.settings.competitionAccentBlueDescription },
+    { value: "green", label: t.settings.competitionAccentGreen, description: t.settings.competitionAccentGreenDescription },
+    { value: "coral", label: t.settings.competitionAccentCoral, description: t.settings.competitionAccentCoralDescription },
+    { value: "violet", label: t.settings.competitionAccentViolet, description: t.settings.competitionAccentVioletDescription },
+    { value: "ice", label: t.settings.competitionAccentIce, description: t.settings.competitionAccentIceDescription },
+  ]
 
   return (
     <div className="compact-page space-y-4">
@@ -377,6 +399,40 @@ export default function AppearancePage() {
               {selectedPalette.description}
             </p>
           ) : null}
+        </AppearanceSection>
+      ) : null}
+
+      {visualStyle === "competition" ? (
+        <AppearanceSection
+          id="competition-accent"
+          title={t.settings.competitionAccentTitle}
+          description={t.settings.competitionAccentDescription}
+        >
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {competitionAccentOptions.map((option) => {
+              const selected = competitionAccent === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setCompetitionAccent(option.value)}
+                  className={`colorful-palette-option min-h-16 rounded-xl border px-2.5 py-2 text-left transition active:scale-[0.98] ${
+                    selected
+                      ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
+                      : "border-neutral-200 bg-neutral-50"
+                  }`}
+                >
+                  <span className="flex items-start justify-between gap-2">
+                    <CompetitionAccentSwatch value={option.value} />
+                    {selected ? <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-neutral-950 type-caption font-black text-white">✓</span> : null}
+                  </span>
+                  <span className="mt-1.5 block type-caption font-black leading-4 text-neutral-950">{option.label}</span>
+                  <span className="mt-0.5 block type-caption font-semibold leading-3.5 text-neutral-500">{option.description}</span>
+                </button>
+              )
+            })}
+          </div>
         </AppearanceSection>
       ) : null}
 

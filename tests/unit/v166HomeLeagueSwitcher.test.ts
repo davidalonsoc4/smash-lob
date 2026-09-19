@@ -7,10 +7,9 @@ describe("v1.6.6 HOME quick league switcher", () => {
 
     expect(home).toContain('import { useActiveLeague } from "@/context/ActiveLeagueProvider"')
     expect(home).toContain("const { activateLeague } = useActiveLeague()")
-    expect(home).toContain('data-tour="home-league-switcher"')
-    expect(home).toContain('aria-haspopup="menu"')
-    expect(home).toContain('aria-expanded={isLeaguePickerOpen}')
-    expect(home).toContain("{activeLeague.name}</button>")
+    expect(home).toContain("<ResponsiveLeagueTitle")
+    expect(home).toContain('ariaHasPopup="menu"')
+    expect(home).toContain('ariaExpanded={isLeaguePickerOpen}')
     expect(home).toContain("activateLeague(league.id)")
   })
 

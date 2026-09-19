@@ -1729,8 +1729,17 @@ This is human acceptance evidence reported by the project owner. It was not repl
 ## Competition visual style v2 — revisión visual HOME y regresión Classic (2026-09-19)
 
 - Se corrigió el desbordamiento del logo de liga en la cabecera de HOME: se elimina la transformación que lo hacía sobresalir de la tarjeta y se conserva su proporción dentro del contenedor.
-- El nombre de liga queda limitado a su ancho disponible con truncado seguro para nombres largos, evitando colisiones con la barra flotante.
+- El nombre de liga se mantiene en una sola línea y ajusta dinámicamente la fuente al ancho disponible, evitando truncado y colisiones con la barra flotante.
 - El panel `Líder` deja de heredar una altura mínima artificial y se ajusta a su contenido, manteniendo alineación equilibrada con `Jornadas`.
 - Se revisaron visualmente HOME, Mis ligas, Ranking, Calendario, Jornada, detalle de partido, Perfil, Estadísticas, Apariencia y Mis partidos en el navegador local; no se observaron errores de consola.
 - Se comprobó la HOME con el estilo Classic y se restauró Competition al finalizar. No se desplegó.
 - `npm run release:check` se ejecutó completo: validaciones, 205 archivos/778 pruebas, build y presupuesto pasan; 42 E2E pasan y 26 quedan bloqueados por snapshots visuales históricos y avisos de contraste ya existentes en pantallas Classic (la revisión visual de esta iteración no introduce errores de consola). No se despliega hasta actualizar esas baselines/contrastes deliberadamente.
+
+## Competition visual style v2 — acentos, paletas y cabeceras (2026-09-19)
+
+- El título de la liga en HOME usa un ajuste responsive real: mantiene una sola línea y reduce progresivamente la fuente hasta el mínimo legible cuando cambia el ancho disponible.
+- Competition incorpora acentos seleccionables (Color de la liga, dorado, azul, verde, coral, violeta y azul hielo). El acento seleccionado se aplica a los tokens `--app-accent` y `--competition-accent`; Color de la liga conserva el color propio de la liga.
+- Classic vuelve a distinguir la paleta normal de las paletas coloridas y activa la clase `colorful` para que los temas índigo, medianoche, salvia, borgoña y grafito cambien realmente la interfaz.
+- Las ligas nuevas aceptan un color de acento validado; la identidad de liga puede derivarlo inicialmente del logo y mantener un valor elegido manualmente. Welcome Pack y Media Kit toman el acento de la liga como valor inicial.
+- Se reorganizó la cabecera de Notificaciones en móvil: el título queda separado de las acciones y los botones dejan de comprimirse en Competition.
+- Se verificaron visualmente HOME, Apariencia, Notificaciones y cambios Classic/Competition en el navegador local sin errores de consola. No se ha desplegado.

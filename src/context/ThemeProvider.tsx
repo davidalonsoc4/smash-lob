@@ -3,17 +3,22 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
   BASE_THEME_STORAGE_KEY,
+  COMPETITION_ACCENT_STORAGE_KEY,
+  DEFAULT_COMPETITION_ACCENT,
   DEFAULT_BASE_THEME,
   DEFAULT_LEAGUE_ACCENT,
   DEFAULT_PALETTE,
   DEFAULT_VISUAL_STYLE,
+  getCompetitionAccentColor,
   LEGACY_PALETTE_STORAGE_KEY,
   LEGACY_THEME_STORAGE_KEY,
   migrateStoredAppearance,
   normalizeAccentColor,
+  normalizeCompetitionAccent,
   normalizePalette,
   PALETTE_STORAGE_KEY,
   type BaseTheme,
+  type CompetitionAccent,
   type Palette,
   isCompetitionAvailable,
   VISUAL_STYLE_STORAGE_KEY,
@@ -34,6 +39,8 @@ type ThemeContextValue = {
   setPalette: (palette: Palette) => void
   leagueAccent: string
   setLeagueAccent: (accent: string | null | undefined) => void
+  competitionAccent: CompetitionAccent
+  setCompetitionAccent: (accent: CompetitionAccent) => void
   canUseCompetition: boolean
 }
 
@@ -68,14 +75,30 @@ function resolveDark(themeMode: ThemeMode) {
   return themeMode === "dark" || (themeMode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
 }
 
-function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette: Palette, leagueAccent: string) {
+function getClassicAccentColor(palette: Palette, themeMode: ThemeMode) {
+  if (palette === "classic" || palette === "league") return "#111827"
+  const colors = {
+    indigo: "#5b5ce2",
+    midnight: "#365f9d",
+    sage: "#55765f",
+    burgundy: "#8b3f57",
+    graphite: "#4f6379",
+  } as const
+  return colors[palette as keyof typeof colors] ?? (themeMode === "dark" ? "#dbe6f3" : "#111827")
+}
+
+function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette: Palette, leagueAccent: string, competitionAccent: CompetitionAccent) {
   const dark = visualStyle === "competition" ? true : resolveDark(themeMode)
   const resolvedTheme = dark ? "dark" : "light"
   const root = document.documentElement
   const effectivePalette = visualStyle === "competition" ? "league" : palette
+  const effectiveAccent = visualStyle === "competition"
+    ? getCompetitionAccentColor(competitionAccent, leagueAccent)
+    : getClassicAccentColor(palette, themeMode)
+  const colorful = visualStyle === "classic" && palette !== "classic"
 
   root.classList.toggle("dark", dark)
-  root.classList.toggle("colorful", false)
+  root.classList.toggle("colorful", colorful)
   root.classList.toggle("competition", visualStyle === "competition")
   root.dataset.theme = resolvedTheme
   root.dataset.baseTheme = visualStyle === "competition" ? "dark" : themeMode
@@ -85,9 +108,12 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   root.dataset.colorfulPalette = effectivePalette
   root.style.setProperty("--league-accent", leagueAccent)
   root.style.setProperty("--league-accent-contrast", getContrastColor(leagueAccent))
+  root.style.setProperty("--app-accent", effectiveAccent)
+  root.style.setProperty("--competition-accent", effectiveAccent)
+  root.style.setProperty("--competition-accent-contrast", getContrastColor(effectiveAccent))
   root.style.colorScheme = resolvedTheme
 
-  const themeColor = visualStyle === "competition" ? leagueAccent : dark ? "#0b1119" : "#0a0a0a"
+  const themeColor = visualStyle === "competition" ? effectiveAccent : dark ? "#0b1119" : "#0a0a0a"
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", themeColor)
 }
 
@@ -102,6 +128,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   )
   const [palette, setPaletteState] = useState<Palette>(initialAppearance.palette)
   const [leagueAccent, setLeagueAccentState] = useState(DEFAULT_LEAGUE_ACCENT)
+  const [competitionAccent, setCompetitionAccentState] = useState<CompetitionAccent>(() =>
+    typeof window === "undefined"
+      ? DEFAULT_COMPETITION_ACCENT
+      : normalizeCompetitionAccent(window.localStorage.getItem(COMPETITION_ACCENT_STORAGE_KEY)),
+  )
 
   useEffect(() => {
     const effectiveStyle = canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE
@@ -109,16 +140,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem(BASE_THEME_STORAGE_KEY, themeMode)
     window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, effectiveStyle)
     window.localStorage.setItem(PALETTE_STORAGE_KEY, palette)
+    window.localStorage.setItem(COMPETITION_ACCENT_STORAGE_KEY, competitionAccent)
     window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY)
     window.localStorage.removeItem(LEGACY_PALETTE_STORAGE_KEY)
-    applyAppearance(themeMode, effectiveStyle, palette, leagueAccent)
+    applyAppearance(themeMode, effectiveStyle, palette, leagueAccent, competitionAccent)
 
     if (themeMode !== "system" || effectiveStyle === "competition") return
     const media = window.matchMedia("(prefers-color-scheme: dark)")
-    const handleChange = () => applyAppearance(themeMode, effectiveStyle, palette, leagueAccent)
+    const handleChange = () => applyAppearance(themeMode, effectiveStyle, palette, leagueAccent, competitionAccent)
     media.addEventListener("change", handleChange)
     return () => media.removeEventListener("change", handleChange)
-  }, [canUseCompetition, leagueAccent, palette, themeMode, visualStyle])
+  }, [canUseCompetition, competitionAccent, leagueAccent, palette, themeMode, visualStyle])
 
   const setThemeMode = useCallback((nextThemeMode: ThemeMode) => {
     setThemeModeState(nextThemeMode)
@@ -138,9 +170,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setLeagueAccentState(normalizeAccentColor(accent))
   }, [])
 
+  const setCompetitionAccent = useCallback((nextAccent: CompetitionAccent) => {
+    setCompetitionAccentState(normalizeCompetitionAccent(nextAccent))
+  }, [])
+
   const value = useMemo(
-    () => ({ themeMode, setThemeMode, visualStyle, setVisualStyle, palette, setPalette, leagueAccent, setLeagueAccent, canUseCompetition }),
-    [canUseCompetition, leagueAccent, palette, setLeagueAccent, setPalette, setThemeMode, setVisualStyle, themeMode, visualStyle],
+    () => ({ themeMode, setThemeMode, visualStyle, setVisualStyle, palette, setPalette, leagueAccent, setLeagueAccent, competitionAccent, setCompetitionAccent, canUseCompetition }),
+    [canUseCompetition, competitionAccent, leagueAccent, palette, setCompetitionAccent, setLeagueAccent, setPalette, setThemeMode, setVisualStyle, themeMode, visualStyle],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

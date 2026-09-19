@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine";
 import { LeagueAnnouncementsCard } from "@/components/announcements/LeagueAnnouncementsCard";
@@ -64,6 +64,61 @@ type AwardPlayer = {
   avatarInitials?: string | null;
   avatarUrl?: string | null;
 };
+
+function ResponsiveLeagueTitle({
+  name,
+  onClick,
+  ariaHasPopup,
+  ariaExpanded,
+  ariaControls,
+}: {
+  name: string;
+  onClick: () => void;
+  ariaHasPopup?: boolean | "menu";
+  ariaExpanded?: boolean;
+  ariaControls?: string;
+}) {
+  const titleRef = useRef<HTMLButtonElement>(null);
+
+  useLayoutEffect(() => {
+    const title = titleRef.current;
+    const container = title?.parentElement;
+    if (!title || !container) return;
+
+    const fit = () => {
+      title.style.removeProperty("font-size");
+      const baseSize = Number.parseFloat(window.getComputedStyle(title).fontSize);
+      if (!Number.isFinite(baseSize) || title.clientWidth <= 0) return;
+
+      let size = baseSize;
+      title.style.fontSize = `${size}px`;
+      while (title.scrollWidth > title.clientWidth && size > 12) {
+        size = Math.max(12, size - 0.5);
+        title.style.fontSize = `${size}px`;
+      }
+    };
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [name]);
+
+  return (
+    <button
+      ref={titleRef}
+      type="button"
+      data-tour="home-league-switcher"
+      aria-haspopup={ariaHasPopup}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
+      onClick={onClick}
+      className="m-0 block w-full max-w-full overflow-visible border-0 bg-transparent p-0 text-left font-black leading-tight tracking-tight focus:outline-none focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500"
+    >
+      {name}
+    </button>
+  );
+}
 
 function CrownIcon() {
   return (
@@ -802,7 +857,7 @@ export default function Home() {
           ) : null}
           <div className="min-w-0 flex-1">
             <div className="relative">
-              <h1 className="type-page-title text-2xl font-black leading-tight tracking-tight"><button type="button" data-tour="home-league-switcher" aria-haspopup="menu" aria-expanded={isLeaguePickerOpen} aria-controls="home-league-picker" onClick={() => setIsLeaguePickerOpen((open) => !open)} className="m-0 block max-w-full truncate border-0 bg-transparent p-0 text-left font-black leading-tight tracking-tight focus:outline-none focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500">{activeLeague.name}</button></h1>
+              <h1 className="type-page-title min-w-0 text-2xl font-black leading-tight tracking-tight"><ResponsiveLeagueTitle name={activeLeague.name} ariaHasPopup="menu" ariaExpanded={isLeaguePickerOpen} ariaControls="home-league-picker" onClick={() => setIsLeaguePickerOpen((open) => !open)} /></h1>
               {isLeaguePickerOpen ? <button type="button" aria-label={tx("Cerrar selector de ligas")} className="fixed inset-0 z-40 cursor-default" onClick={() => setIsLeaguePickerOpen(false)} /> : null}
               {isLeaguePickerOpen ? <div id="home-league-picker" role="menu" aria-label={tx("Cambiar liga")} className="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                 {accessibleHomeLeagues.map((league) => <button key={league.id} type="button" role="menuitemradio" aria-checked={league.id === activeLeague.id} onClick={() => { if (league.id === activeLeague.id || activateLeague(league.id)) setIsLeaguePickerOpen(false); }} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-black transition ${league.id === activeLeague.id ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"}`}><span className="truncate">{league.name}</span>{league.id === activeLeague.id ? <span aria-hidden="true">✓</span> : null}</button>)}

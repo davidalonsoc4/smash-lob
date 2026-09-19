@@ -2239,6 +2239,7 @@ html[data-visual-style="competition"] [data-route="/"] [data-home-league-logo-sc
   transform-origin: center;
   margin-right: .75rem !important;
   flex-shrink: 0;
+  align-self: center;
 }
 html[data-visual-style="competition"] [data-route="/"] .app-page-header > :has(.type-page-title),
 html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-page-title,
@@ -2248,8 +2249,8 @@ html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-pa
 }
 html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-page-title button {
   width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
   white-space: nowrap;
 }
 html[data-visual-style="competition"] [data-route="/"] .season-summary-panel {
@@ -2345,6 +2346,27 @@ html[data-visual-style="competition"] [data-route="/profile"] .app-page-header {
 html[data-visual-style="competition"] [data-route="/profile"] .app-card { border-left: 2px solid rgb(215 165 68 / .55) !important; }
 html[data-visual-style="competition"] [data-route="/profile"] .type-player-name-prominent,
 html[data-visual-style="competition"] [data-route="/profile"] .type-player-name { letter-spacing: .035em; }
+
+html[data-visual-style="competition"] [data-route="/notifications"] .app-page-header {
+  margin-inline: -.25rem;
+  padding: .8rem .8rem .75rem;
+  border-left: .25rem solid var(--competition-accent);
+  border-radius: .85rem;
+  background: linear-gradient(110deg, rgb(20 21 24 / .96), transparent);
+}
+html[data-visual-style="competition"] [data-route="/notifications"] .app-notification-card {
+  border-color: var(--competition-border) !important;
+  background: var(--competition-surface) !important;
+  color: var(--competition-text) !important;
+  box-shadow: 0 12px 28px rgb(0 0 0 / .18) !important;
+}
+html[data-visual-style="competition"] [data-route="/notifications"] .app-notification-card:not(.opacity-70) {
+  border-left-color: var(--competition-accent) !important;
+  background: linear-gradient(120deg, var(--competition-surface-raised), var(--competition-surface)) !important;
+}
+html[data-visual-style="competition"] [data-route="/notifications"] .app-notification-card.opacity-70 {
+  opacity: .82;
+}
 
 html[data-visual-style="competition"] :where(button, a):focus-visible {
   outline: 2px solid var(--competition-accent) !important;

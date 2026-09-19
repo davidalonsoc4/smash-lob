@@ -1,6 +1,6 @@
 "use client"
 
-import { ChangeEvent, FormEvent, useState } from "react"
+import { ChangeEvent, FormEvent, useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { ImageCropDialog } from "@/components/images/ImageCropDialog"
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
@@ -15,6 +15,7 @@ import { recordActivityEvent } from "@/lib/activity"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import type { LeagueLocation } from "@/lib/leagueLocations"
 import { DEFAULT_LEAGUE_ACCENT, normalizeAccentColor } from "@/lib/visualStyle"
+import { extractLogoAccentPalette } from "@/lib/logoAccentPalette"
 
 type LeagueIdentityFormProps = {
   leagueId: string
@@ -62,6 +63,7 @@ function LeagueIdentityForm({
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl ?? null)
   const [recommendations, setRecommendations] = useState(initialRecommendations)
   const [accentColor, setAccentColor] = useState(normalizeAccentColor(initialAccentColor))
+  const [accentTouched, setAccentTouched] = useState(false)
   const [logoCropSource, setLogoCropSource] = useState<string | null>(null)
   const [isSavingDetails, setIsSavingDetails] = useState(false)
   const [isSavingLogo, setIsSavingLogo] = useState(false)
@@ -72,6 +74,15 @@ function LeagueIdentityForm({
   const cleanDescription = description.trim()
   const canSaveDetails = cleanName.length > 0 && !isSavingDetails
   const previewLeagueName = cleanName || initialName
+
+  useEffect(() => {
+    if (!logoUrl || accentTouched || normalizeAccentColor(initialAccentColor) !== DEFAULT_LEAGUE_ACCENT) return
+    let active = true
+    void extractLogoAccentPalette(logoUrl).then((colors) => {
+      if (active && colors[0]) setAccentColor(normalizeAccentColor(colors[0]))
+    }).catch(() => null)
+    return () => { active = false }
+  }, [accentTouched, initialAccentColor, logoUrl])
 
   async function handleSubmitDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -308,6 +319,7 @@ function LeagueIdentityForm({
                 value={accentColor}
                 disabled={isSavingDetails}
                 onChange={(event) => {
+                  setAccentTouched(true)
                   setAccentColor(normalizeAccentColor(event.target.value))
                   setDetailsError(null)
                 }}
@@ -316,7 +328,7 @@ function LeagueIdentityForm({
               <span className="font-mono text-sm font-bold uppercase text-neutral-700">{accentColor}</span>
               <button
                 type="button"
-                onClick={() => setAccentColor(DEFAULT_LEAGUE_ACCENT)}
+                onClick={() => { setAccentTouched(true); setAccentColor(DEFAULT_LEAGUE_ACCENT) }}
                 className="ml-auto inline-flex items-center justify-center rounded-xl bg-neutral-100 px-3 py-2 text-center text-xs font-black text-neutral-700"
               >
                 {t.common.reset}

@@ -797,15 +797,18 @@ export default function NotificationsPage() {
       <header className="app-page-header">
         <BackButton fallbackHref="/" label={t.common.back} />
 
-        <div className="mt-0.5 flex items-center justify-between gap-3">
+        <div className="mt-0.5 space-y-2">
           <h1 className="type-page-title text-xl font-black tracking-tight">{tx("Notificaciones")}</h1>
-          {unreadNotifications.length > 0 ? <button type="button" onClick={markAllRead} className="inline-flex items-center justify-center text-center rounded-full bg-[var(--app-accent)] px-3 py-1.5 text-xs font-black text-white">{tx("Marcar todas como leídas")}</button> : null}
-          <button
-            type="button"
-            onClick={() => setRefreshKey((current) => current + 1)}
-            className="inline-flex rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-black text-neutral-700 items-center justify-center text-center"
-          >
-            {tx("Actualizar")}{" "}</button>
+          <div className="flex items-center justify-end gap-2">
+            {unreadNotifications.length > 0 ? <button type="button" onClick={markAllRead} className="inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-full bg-[var(--app-accent)] px-3 py-1.5 text-center text-xs font-black text-white">{tx("Marcar todas como leídas")}</button> : null}
+            <button
+              type="button"
+              onClick={() => setRefreshKey((current) => current + 1)}
+              className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-neutral-100 px-3 py-1.5 text-center text-xs font-black text-neutral-700"
+            >
+              {tx("Actualizar")}
+            </button>
+          </div>
         </div>
 
       </header>
