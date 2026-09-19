@@ -1667,3 +1667,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El PDF y las previsualizaciones usan la variante correspondiente; la transparencia y el resto del arte se conservan.
 - Versión local de la rama: v1.15.3. Sin despliegue remoto.
 - Publicación v1.15.3 verificada: `staging` y `main` apuntan a `caa2083`; Producción responde `/api/health` con v1.15.3. PRE responde mediante el alias protegido de Vercel y mantiene la protección SSO activa.
+
+### Inicio de saneamiento v1.15.4 (2026-09-19)
+
+- `main` remoto se verificó en `01c9212` (v1.15.3) y se creó `codex/v1.15.4-hardening-cleanup` desde ese estado.
+- La línea base, los huecos confirmados y las decisiones de producto quedan documentados en `docs/production-hardening/V1_15_4_HARDENING_AUDIT.md`.
+- Aún no hay migraciones, despliegues ni cambios de código funcional en esta rama.
