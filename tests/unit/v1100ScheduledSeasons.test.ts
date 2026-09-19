@@ -115,8 +115,10 @@ describe("v1.10.0 scheduled season start", () => {
     expect(home).toContain("showScheduledRegistrationWaiting && shouldShowRegistrationPanel")
     expect(home).toContain("shouldShowRegistrationPanel && !isSeasonScheduled")
     expect(home).toContain("SeasonStartCountdown")
-    expect(admin).toContain('type="datetime-local" step={3600}')
-    expect(admin).toContain("ScheduledStartSettingsPanel")
+    const newSeasonForm = await read("src/components/admin/season/NewSeasonForm.tsx")
+    const adminAndForm = `${admin}\n${newSeasonForm}`
+    expect(adminAndForm).toContain('type="datetime-local" step={3600}')
+    expect(adminAndForm).toContain("ScheduledStartSettingsPanel")
     expect(scheduledSettings).toContain("toDatetimeLocalValue(roundSettings.scheduledStartAt)")
     expect(scheduledSettings).toContain("formatNextScheduledStartForInput()")
     expect(scheduledSettings).toContain("step={3600}")

@@ -71,38 +71,39 @@ describe("organization ball assignment priorities", () => {
   it("wires draft priority references through season creation", async () => {
     const route = await readFile("src/app/api/leagues/[id]/seasons/route.ts", "utf8")
     const form = await readFile("src/app/admin/season/page.tsx", "utf8")
+    const newSeasonForm = await readFile("src/components/admin/season/NewSeasonForm.tsx", "utf8")
     const ballsPanel = await readFile("src/components/admin/season/OrganizationBallsSettingsPanel.tsx", "utf8")
     const priorityHelper = await readFile("src/lib/organizationBallsAssignment.ts", "utf8")
     const mutations = await readFile("src/lib/serverSeasonMutations.ts", "utf8")
 
     expect(route).toContain("parseBallsAssignmentPriority(body?.ballsAssignmentPriority ?? [])")
-    expect(form).toContain("buildBallsAssignmentPriorityEntries({")
-    expect(form).toContain("{player.name}")
+    expect(newSeasonForm).toContain("buildBallsAssignmentPriorityEntries({")
+    expect(newSeasonForm).toContain("{player.name}")
     expect(form).toContain('href: "#bolas-organizacion", label: "Bolas asignadas"')
     expect(ballsPanel).toContain("preview.custodianPlayerIds.map((playerId)")
     expect(ballsPanel).toContain("preview.botesByPlayerId[playerId]")
     expect(ballsPanel).toContain("El reparto se calculará cuando la plantilla esté completa y se genere el calendario.")
     expect(ballsPanel).toContain("moveBallsAssignmentPriority(normalizedPriority, index, -1)")
     expect(ballsPanel).toContain("moveBallsAssignmentPriority(normalizedPriority, index, 1)")
-    expect(form).toContain("moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, -1)")
-    expect(form).toContain("moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, 1)")
+    expect(newSeasonForm).toContain("moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, -1)")
+    expect(newSeasonForm).toContain("moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, 1)")
     expect(priorityHelper).toContain('ref: `new:${index}`')
     expect(priorityHelper).toContain('ref: `app:${userId}`')
     expect(mutations).toContain("resolveBallsAssignmentPriority({")
   })
 
   it("persists the selected-custodian mode and validates schedule coverage", async () => {
-    const [route, settingsRoute, form, mutations, migration] = await Promise.all([
+    const [route, settingsRoute, newSeasonForm, mutations, migration] = await Promise.all([
       readFile("src/app/api/leagues/[id]/seasons/route.ts", "utf8"),
       readFile("src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts", "utf8"),
-      readFile("src/app/admin/season/page.tsx", "utf8"),
+      readFile("src/components/admin/season/NewSeasonForm.tsx", "utf8"),
       readFile("src/lib/serverSeasonMutations.ts", "utf8"),
       readFile("supabase/migrations/20260917120000_add_manual_ball_custodian_selection.sql", "utf8"),
     ])
 
     expect(route).toContain("ballsAssignmentCustodianIds")
-    expect(form).toContain('setBallsAssignmentMode("selected")')
-    expect(form).toContain("ballsAssignmentCustodianIds: effectiveBallsAssignmentCustodianRefs")
+    expect(newSeasonForm).toContain('setBallsAssignmentMode("selected")')
+    expect(newSeasonForm).toContain("ballsAssignmentCustodianIds: effectiveBallsAssignmentCustodianRefs")
     expect(mutations).toContain("balls_assignment_custodian_ids: cleanBallsAssignmentCustodianIds")
     expect(mutations).toContain("balls_assignment_custodians_do_not_cover_schedule")
     expect(settingsRoute.indexOf("const { data: ballsSettings"))
