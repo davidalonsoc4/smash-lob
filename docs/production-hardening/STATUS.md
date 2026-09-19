@@ -1725,3 +1725,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se corrigen colores de avisos ámbar, rojo y azul sobre fondo oscuro, además de foco visible para teclado.
 - TypeScript, ESLint, build de producción y pruebas focalizadas pasan. No se ha desplegado la rama.
 - Revisión visual en la IP local: se corrigió la miniatura de Competition que conservaba un degradado del estilo anterior y el contraste de textos secundarios dentro de badges con acento. El acento se verificó al cambiar entre ligas.
+
+## Competition visual style v2 — revisión visual HOME y regresión Classic (2026-09-19)
+
+- Se corrigió el desbordamiento del logo de liga en la cabecera de HOME: se elimina la transformación que lo hacía sobresalir de la tarjeta y se conserva su proporción dentro del contenedor.
+- El nombre de liga queda limitado a su ancho disponible con truncado seguro para nombres largos, evitando colisiones con la barra flotante.
+- El panel `Líder` deja de heredar una altura mínima artificial y se ajusta a su contenido, manteniendo alineación equilibrada con `Jornadas`.
+- Se revisaron visualmente HOME, Mis ligas, Ranking, Calendario, Jornada, detalle de partido, Perfil, Estadísticas, Apariencia y Mis partidos en el navegador local; no se observaron errores de consola.
+- Se comprobó la HOME con el estilo Classic y se restauró Competition al finalizar. No se desplegó.
+- `npm run release:check` se ejecutó completo: validaciones, 205 archivos/778 pruebas, build y presupuesto pasan; 42 E2E pasan y 26 quedan bloqueados por snapshots visuales históricos y avisos de contraste ya existentes en pantallas Classic (la revisión visual de esta iteración no introduce errores de consola). No se despliega hasta actualizar esas baselines/contrastes deliberadamente.

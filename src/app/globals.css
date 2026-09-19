@@ -2231,6 +2231,27 @@ html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-pa
   line-height: .95;
   letter-spacing: .06em;
 }
+/* Keep the league identity inside the header card at every width. The source
+   markup uses a visual scale for the logo; on narrow viewports that transform
+   escapes the card's top edge and collides with the floating toolbar. */
+html[data-visual-style="competition"] [data-route="/"] [data-home-league-logo-scale] {
+  transform: none !important;
+  transform-origin: center;
+  margin-right: .75rem !important;
+  flex-shrink: 0;
+}
+html[data-visual-style="competition"] [data-route="/"] .app-page-header > :has(.type-page-title),
+html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-page-title,
+html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-page-title button {
+  min-width: 0;
+  max-width: 100%;
+}
+html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-page-title button {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 html[data-visual-style="competition"] [data-route="/"] .season-summary-panel {
   border: 1px solid var(--competition-border-strong) !important;
   background: linear-gradient(160deg, var(--competition-surface-raised), var(--competition-surface)) !important;
@@ -2254,7 +2275,14 @@ html[data-visual-style="competition"] [data-route="/"] .season-summary-action-pr
 }
 html[data-visual-style="competition"] [data-route="/"] .season-summary-action-primary { background: var(--competition-accent) !important; color: var(--competition-accent-contrast) !important; }
 html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > .app-stat-card,
-html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > .app-card { min-height: 7.8rem; }
+html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > .app-card {
+  min-height: 0;
+  height: fit-content;
+  align-self: start;
+}
+html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > a {
+  align-self: start;
+}
 html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid .text-xl { font-size: 1.18rem; }
 
 html[data-visual-style="competition"] [data-route="/ranking"] .app-page-header,
