@@ -1673,3 +1673,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La batería manual para PRE está en `docs/preproduction/V1_15_4_PRE_MANUAL_QA.md`.
 - La nueva rama parte de `origin/main` en `01c9212` y avanza con el bloque 1: cola persistente de reintentos Push, deduplicada por evento y suscripción, backoff limitado a cinco intentos y descarte de suscripciones 404/410.
 - La migración `20260919120000_add_push_delivery_queue.sql` aún no se ha aplicado en ningún entorno.
+- Bloque 2 iniciado: `20260919123000_add_season_waitlist.sql` crea una lista FIFO persistente con RLS cerrada al cliente, y la inscripción llena devuelve una entrada `202 Accepted` en la lista de espera. La API permite consultar posición, entrar y salir. La promoción automática, confirmación de 48 horas y UI de administración quedan para el siguiente commit del bloque 2.
