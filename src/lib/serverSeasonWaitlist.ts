@@ -4,6 +4,35 @@ import "server-only"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type WaitlistClient = { from: (table: string) => any }
 
+export async function assertSeasonWaitlistEligible({
+  supabase,
+  leagueId,
+  seasonId,
+  userId,
+}: {
+  supabase: WaitlistClient
+  leagueId: string
+  seasonId: string
+  userId: string
+}) {
+  const [{ data: season }, { data: settings }, { data: membership }] = await Promise.all([
+    supabase.from("seasons").select("status").eq("id", seasonId).eq("league_id", leagueId).maybeSingle(),
+    supabase.from("season_settings").select("registration_open,roster_mode,player_capacity").eq("season_id", seasonId).eq("league_id", leagueId).maybeSingle(),
+    supabase.from("league_memberships").select("player_id").eq("league_id", leagueId).eq("user_id", userId).maybeSingle(),
+  ])
+  if (season?.status !== "upcoming" || settings?.registration_open !== true || settings?.roster_mode !== "self_registration") {
+    throw new Error("waitlist_not_available")
+  }
+  if (membership?.player_id) {
+    const { data: registered } = await supabase.from("season_players").select("player_id").eq("season_id", seasonId).eq("player_id", membership.player_id).maybeSingle()
+    if (registered) throw new Error("already_registered")
+  }
+  const { count, error } = await supabase.from("season_players").select("player_id", { count: "exact", head: true }).eq("season_id", seasonId)
+  if (error || typeof settings.player_capacity !== "number" || (count ?? 0) < settings.player_capacity) {
+    throw new Error("waitlist_not_full")
+  }
+}
+
 export async function joinSeasonWaitlist({
   supabase,
   leagueId,

@@ -24,6 +24,8 @@ describe("v1.15.4 season waitlist", () => {
     expect(registration).toContain("waitlisted: true")
     expect(route).toContain("export async function DELETE")
     expect(route).toContain("waitlist_leave_failed")
+    expect(route).toContain("assertSeasonWaitlistEligible")
+    expect(registration).toContain("assertSeasonWaitlistEligible")
   })
 
   it("promotes the next player with a 48 hour confirmation window and exposes leave/position UI", async () => {
@@ -31,6 +33,7 @@ describe("v1.15.4 season waitlist", () => {
     const confirm = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/confirm/route.ts", "utf8")
     const screen = await readFile("src/components/season/SeasonRosterWaitingRoom.tsx", "utf8")
     expect(registration).toContain("48 * 60 * 60 * 1000")
+    expect(registration).toContain('.eq("status", "waiting").select("id,user_id")')
     expect(confirm).toContain("waitlist_confirmation_expired")
     expect(screen).toContain("waitlistPosition")
     expect(screen).toContain("handleLeaveWaitlist")
@@ -54,5 +57,14 @@ describe("v1.15.4 season waitlist", () => {
     expect(registration).toContain("registrationState?.registration_open === true")
     expect(registration).toContain("seasonState?.status === \"upcoming\"")
     expect(confirm).toContain("waitlist_registration_closed")
+    expect(confirm).toContain("waitlist_confirmation_cleanup_failed")
+  })
+
+  it("uses an atomic database reorder and rejects partial or stale operations", async () => {
+    const migration = await readFile("supabase/migrations/20260919131500_harden_season_waitlist_operations.sql", "utf8")
+    const route = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/route.ts", "utf8")
+    expect(migration).toContain("reorder_season_waitlist")
+    expect(migration).toContain("invalid_waitlist_order")
+    expect(route).toContain('rpc("reorder_season_waitlist"')
   })
 })

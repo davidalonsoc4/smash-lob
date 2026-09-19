@@ -7,7 +7,7 @@ import {
   removeSelfRegistrationPlayer,
 } from "@/lib/serverSelfRegistration"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
-import { joinSeasonWaitlist } from "@/lib/serverSeasonWaitlist"
+import { assertSeasonWaitlistEligible, joinSeasonWaitlist } from "@/lib/serverSeasonWaitlist"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -92,6 +92,7 @@ export async function POST(
     const message = error instanceof Error ? error.message : "self_registration_join_failed"
     if (message.includes("roster_full")) {
       try {
+        await assertSeasonWaitlistEligible({ supabase: access.actor.supabase, leagueId, seasonId, userId: access.actor.user.id })
         const entry = await joinSeasonWaitlist({
           supabase: access.actor.supabase,
           leagueId,
@@ -99,8 +100,9 @@ export async function POST(
           userId: access.actor.user.id,
         })
         return NextResponse.json({ ok: true, waitlisted: true, entry }, { status: 202 })
-      } catch {
-        return NextResponse.json({ error: "waitlist_join_failed" }, { status: 500 })
+      } catch (waitlistError) {
+        const code = waitlistError instanceof Error ? waitlistError.message : "waitlist_join_failed"
+        return NextResponse.json({ error: code }, { status: code === "waitlist_not_full" || code === "already_registered" || code === "waitlist_not_available" ? 409 : 500 })
       }
     }
     return NextResponse.json(
@@ -195,13 +197,14 @@ export async function DELETE(
           .maybeSingle()
       : { data: null }
     if (nextWaiting?.id) {
-      await access.actor.supabase.from("season_waitlist").update({
+      const { data: promotedEntry, error: promotionError } = await access.actor.supabase.from("season_waitlist").update({
         status: "promoted",
         promoted_at: new Date().toISOString(),
         confirmation_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
-      }).eq("id", nextWaiting.id)
+      }).eq("id", nextWaiting.id).eq("status", "waiting").select("id,user_id").maybeSingle()
 
-      await recordServerActorActivity({
+      if (promotionError) throw new Error("waitlist_promotion_failed")
+      if (promotedEntry) await recordServerActorActivity({
         supabase: access.actor.supabase,
         user: access.actor.user,
         membership: access.actor.membership,

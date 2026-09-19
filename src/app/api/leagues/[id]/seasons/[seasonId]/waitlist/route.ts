@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
-import { joinSeasonWaitlist, leaveSeasonWaitlist } from "@/lib/serverSeasonWaitlist"
+import { assertSeasonWaitlistEligible, joinSeasonWaitlist, leaveSeasonWaitlist } from "@/lib/serverSeasonWaitlist"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -34,10 +34,12 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   const access = await getServerLeagueActor(leagueId, { requireMember: true })
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
   try {
+    await assertSeasonWaitlistEligible({ supabase: access.actor.supabase, leagueId, seasonId, userId: access.actor.user.id })
     const entry = await joinSeasonWaitlist({ supabase: access.actor.supabase, leagueId, seasonId, userId: access.actor.user.id })
     return NextResponse.json({ ok: true, entry })
-  } catch {
-    return NextResponse.json({ error: "waitlist_join_failed" }, { status: 500 })
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "waitlist_join_failed"
+    return NextResponse.json({ error: code }, { status: code === "waitlist_not_full" || code === "already_registered" || code === "waitlist_not_available" ? 409 : 500 })
   }
 }
 
@@ -53,13 +55,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (lookupError) return NextResponse.json({ error: "waitlist_lookup_failed" }, { status: 500 })
   const currentIds = new Set((current ?? []).map((row: { user_id: string }) => row.user_id))
   if (currentIds.size !== orderedUserIds.length || orderedUserIds.some((id) => !currentIds.has(id))) return NextResponse.json({ error: "invalid_order" }, { status: 400 })
-  for (const [index, userId] of orderedUserIds.entries()) {
-    const row = (current ?? []).find((item: { user_id: string }) => item.user_id === userId)
-    if (row) {
-      const { error } = await access.actor.supabase.from("season_waitlist").update({ position: index + 1 }).eq("id", row.id)
-      if (error) return NextResponse.json({ error: "waitlist_reorder_failed" }, { status: 500 })
-    }
-  }
+  const { error: reorderError } = await access.actor.supabase.rpc("reorder_season_waitlist", { p_league_id: leagueId, p_season_id: seasonId, p_user_ids: orderedUserIds })
+  if (reorderError) return NextResponse.json({ error: "waitlist_reorder_failed" }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
 
