@@ -20,7 +20,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (error) return NextResponse.json({ error: "waitlist_lookup_failed" }, { status: 500 })
   const waiting = (data ?? []).filter((row: { status: string }) => row.status === "waiting")
   const position = waiting.findIndex((row: { user_id: string }) => row.user_id === access.actor.user.id)
-  return NextResponse.json({ items: data ?? [], position: position < 0 ? null : position + 1 })
+  const userIds = (data ?? []).map((row: { user_id: string }) => row.user_id)
+  const { data: users } = userIds.length
+    ? await access.actor.supabase.from("app_users").select("id,display_name").in("id", userIds)
+    : { data: [] }
+  const names = new Map((users ?? []).map((user: { id: string; display_name: string | null }) => [user.id, user.display_name ?? "Jugador"]))
+  return NextResponse.json({ items: (data ?? []).map((row: { user_id: string }) => ({ ...row, display_name: names.get(row.user_id) ?? "Jugador" })), position: position < 0 ? null : position + 1 })
 }
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string; seasonId: string }> }) {

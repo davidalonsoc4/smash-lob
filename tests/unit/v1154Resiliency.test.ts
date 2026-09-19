@@ -22,6 +22,8 @@ describe("v1.15.4 season waitlist", () => {
     expect(migration).toContain("season_waitlist_order_idx")
     expect(route).toContain("ascending: true")
     expect(registration).toContain("waitlisted: true")
+    expect(route).toContain("export async function DELETE")
+    expect(route).toContain("waitlist_leave_failed")
   })
 
   it("promotes the next player with a 48 hour confirmation window and exposes leave/position UI", async () => {
@@ -44,5 +46,13 @@ describe("v1.15.4 season waitlist", () => {
     expect(route).toContain("orderedUserIds")
     expect(page).toContain("SeasonDangerZone")
     expect(dangerZone).toContain("handleDeleteSeason")
+  })
+
+  it("does not promote or confirm entries after registration closes", async () => {
+    const registration = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/registration/route.ts", "utf8")
+    const confirm = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/confirm/route.ts", "utf8")
+    expect(registration).toContain("registrationState?.registration_open === true")
+    expect(registration).toContain("seasonState?.status === \"upcoming\"")
+    expect(confirm).toContain("waitlist_registration_closed")
   })
 })

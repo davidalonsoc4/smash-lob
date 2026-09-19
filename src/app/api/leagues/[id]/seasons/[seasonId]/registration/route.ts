@@ -169,16 +169,31 @@ export async function DELETE(
       playerId,
     })
 
-    const { data: nextWaiting } = await access.actor.supabase
-      .from("season_waitlist")
-      .select("id,user_id")
+    const { data: seasonState } = await access.actor.supabase
+      .from("seasons")
+      .select("status")
+      .eq("id", seasonId)
       .eq("league_id", leagueId)
-      .eq("season_id", seasonId)
-      .eq("status", "waiting")
-      .order("created_at", { ascending: true })
-      .order("id", { ascending: true })
-      .limit(1)
       .maybeSingle()
+    const { data: registrationState } = await access.actor.supabase
+      .from("season_settings")
+      .select("registration_open")
+      .eq("season_id", seasonId)
+      .maybeSingle()
+    const canPromote = seasonState?.status === "upcoming" && registrationState?.registration_open === true
+    const { data: nextWaiting } = canPromote
+      ? await access.actor.supabase
+          .from("season_waitlist")
+          .select("id,user_id")
+          .eq("league_id", leagueId)
+          .eq("season_id", seasonId)
+          .eq("status", "waiting")
+          .order("position", { ascending: true, nullsFirst: false })
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .limit(1)
+          .maybeSingle()
+      : { data: null }
     if (nextWaiting?.id) {
       await access.actor.supabase.from("season_waitlist").update({
         status: "promoted",

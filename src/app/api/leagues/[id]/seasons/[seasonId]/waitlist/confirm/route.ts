@@ -23,6 +23,20 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     await access.actor.supabase.from("season_waitlist").update({ status: "cancelled" }).eq("id", entry.id)
     return NextResponse.json({ error: "waitlist_confirmation_expired" }, { status: 409 })
   }
+  const { data: seasonState } = await access.actor.supabase
+    .from("seasons")
+    .select("status")
+    .eq("id", seasonId)
+    .eq("league_id", leagueId)
+    .maybeSingle()
+  const { data: registrationState } = await access.actor.supabase
+    .from("season_settings")
+    .select("registration_open")
+    .eq("season_id", seasonId)
+    .maybeSingle()
+  if (seasonState?.status !== "upcoming" || registrationState?.registration_open !== true) {
+    return NextResponse.json({ error: "waitlist_registration_closed" }, { status: 409 })
+  }
   try {
     const result = await joinSelfRegistrationSeason({ actor: access.actor, leagueId, seasonId })
     await access.actor.supabase.from("season_waitlist").update({ status: "cancelled" }).eq("id", entry.id)

@@ -29,7 +29,7 @@ export function SeasonRosterWaitingRoom({
   const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null)
   const [isWaitlisted, setIsWaitlisted] = useState(false)
   const [isPromoted, setIsPromoted] = useState(false)
-  const [adminWaitlist, setAdminWaitlist] = useState<Array<{ user_id: string; status: string }>>([])
+  const [adminWaitlist, setAdminWaitlist] = useState<Array<{ user_id: string; status: string; display_name?: string }>>([])
   const [rosterPermissions, setRosterPermissions] = useState<{
     leagueId: string
     removablePlayerIds: Set<string>
@@ -112,7 +112,7 @@ export function SeasonRosterWaitingRoom({
   useEffect(() => {
     let cancelled = false
     void fetch(`/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/waitlist`, { cache: "no-store" })
-      .then((response) => response.ok ? response.json() as Promise<{ position: number | null; items?: Array<{ user_id: string; status: string }> }> : null)
+      .then((response) => response.ok ? response.json() as Promise<{ position: number | null; items?: Array<{ user_id: string; status: string; display_name?: string }> }> : null)
       .then((payload) => {
         if (cancelled || !payload) return
         setWaitlistPosition(payload.position)
@@ -315,7 +315,7 @@ export function SeasonRosterWaitingRoom({
           <div className="mt-1 grid gap-1">
             {adminWaitlist.map((entry, index) => (
               <div key={entry.user_id} className="flex items-center justify-between gap-2 rounded-lg border border-emerald-100 px-2 py-1 text-xs">
-                <span>{index + 1}. {entry.user_id.slice(0, 8)}</span>
+                <span>{index + 1}. {entry.display_name ?? entry.user_id.slice(0, 8)}</span>
                 <span className="flex gap-1">
                   <button type="button" disabled={index === 0 || isSaving} onClick={() => void moveWaitlistEntry(index, -1)} aria-label={t.roster.waitlistAdminMoveUp} className="rounded px-1.5 py-0.5 hover:bg-emerald-50">↑</button>
                   <button type="button" disabled={index === adminWaitlist.length - 1 || isSaving} onClick={() => void moveWaitlistEntry(index, 1)} aria-label={t.roster.waitlistAdminMoveDown} className="rounded px-1.5 py-0.5 hover:bg-emerald-50">↓</button>

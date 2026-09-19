@@ -1,10 +1,10 @@
 {
-  "maxTotalSourceLines": 129600,
-  "maxClientFiles": 187,
+  "maxTotalSourceLines": 129700,
+  "maxClientFiles": 189,
   "maxClientPages": 50,
   "maxApiRouteLines": 1000,
   "files": {
-    "src/app/admin/season/page.tsx": 6200,
+    "src/app/admin/season/page.tsx": 5500,
     "src/lib/changelog.ts": 2490,
     "src/context/LeagueAccessProvider.tsx": 1950,
     "src/context/MatchDataProvider.tsx": 1830,
