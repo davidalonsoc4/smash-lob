@@ -374,7 +374,9 @@ function PlayerSettingsPage() {
   const hasAdminRole = hasLeagueAdminRole(activeLeague.id)
   const experienceMode = getLeagueExperienceMode(activeLeague.id)
   const canAccessAdmin = canAccessLeagueAdminTools(activeLeague.id)
-  const canCreateLeaguesInCurrentView = canCreateLeagues && canAccessAdmin
+  // Creating a new league is an account capability. It must remain available
+  // while the active league is displayed in player experience mode.
+  const canCreateLeaguesInCurrentView = canCreateLeagues
   const canSelfUnlink = Boolean(activeMembership && activeMembership.role !== "creator")
   const hasLeagues = userLeagues.length > 0
   const [isUnlinkingLeague, setIsUnlinkingLeague] = useState(false)
