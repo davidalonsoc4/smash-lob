@@ -54,7 +54,7 @@ describe("Competition visual style", () => {
     expect(css).toContain('/* Competition v3: a more dimensional information surface.')
     expect(css).toContain('[data-route="/chats"] .chat-list-stack')
     expect(css).toContain('[data-route="/chats"] .chat-list-stack::before')
-    expect(css).toContain('background: var(--competition-accent);')
+    expect(css).toContain('display: none;')
     expect(css).toContain('[data-route="/chats"] .chat-list-card-unread')
   })
 })

@@ -2446,8 +2446,7 @@ html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack {
   box-shadow: 0 18px 38px rgb(0 0 0 / .2);
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack::before {
-  display: block;
-  background: var(--competition-accent);
+  display: none;
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-card-unread {
   border-top: 0 !important;

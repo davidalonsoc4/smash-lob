@@ -1772,4 +1772,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Revisión visual local realizada en móvil simulado para HOME, Calendario, Chats y Perfil. No se ha desplegado.
 - Se eliminó el borde superior duplicado del panel Jornada en HOME; el acento queda controlado por la propia tarjeta, igual que en Líder.
 - Se unificó también el tratamiento visual: Líder y Jornada usan ahora el mismo borde superior de 2px y se desactiva el acento interno distinto de `app-stat-card`.
-- En Chats se conserva el acento lateral, pero como línea sólida de Competition; se elimina el degradado heredado de Classic.
+- En Chats se elimina la barra lateral; la lista conserva el panel y la superficie propios de Competition sin esa línea de acento.
