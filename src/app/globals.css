@@ -2428,8 +2428,7 @@ html[data-visual-style="competition"] .app-bottom-nav,
 html[data-visual-style="competition"] .personal-matches-bottom-nav {
   box-shadow: 0 -16px 34px rgb(0 0 0 / .3), inset 0 1px 0 color-mix(in srgb, var(--competition-accent) 20%, transparent);
 }
-html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > :first-child,
-html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > :nth-child(2) {
+html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > :first-child {
   border-top: 2px solid color-mix(in srgb, var(--competition-accent) 80%, transparent) !important;
 }
 html[data-visual-style="competition"] [data-route="/matches"] [data-tour="matches-scope"] {

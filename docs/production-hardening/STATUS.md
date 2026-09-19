@@ -1770,3 +1770,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - HOME, Calendario, Chats, Perfil y la navegación inferior comparten ahora un ritmo visual más marcado; las tarjetas de competición mantienen el contraste y el acento de la liga.
 - El alcance queda aislado a `data-visual-style="competition"`; Classic permanece sin cambios.
 - Revisión visual local realizada en móvil simulado para HOME, Calendario, Chats y Perfil. No se ha desplegado.
+- Se eliminó el borde superior duplicado del panel Jornada en HOME; el acento queda controlado por la propia tarjeta, igual que en Líder.
