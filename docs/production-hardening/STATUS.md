@@ -10,6 +10,7 @@
 - Añadidos endpoints autenticados de exportación JSON (`/api/account/export`) y solicitud de anonimización de cuenta (`/api/account/delete`, confirmación reforzada); no se despliega ni se aplica ninguna migración remotamente en esta rama.
 - Privacidad, condiciones y página informativa vuelven a estar presentes en el buscador de ajustes para usuarios autenticados y espectadores.
 - Se añadieron contratos unitarios de la rama para el estado de notificaciones, paginación, descubribilidad legal y autoservicio de cuenta.
+- `npm run validate` y `npm run release:check` se detienen deliberadamente en `i18n:check`: al proteger de nuevo `Mis partidos` aparecen textos visibles históricos sin `tx` en sus páginas y componentes. La deuda queda identificada y no se ha rebajado el gate.
 
 - En `codex/welcome-pack-stickers` queda v1.15.2 con margen exterior de seguridad de 5 mm, repetición configurable de 1 a 20 copias por diseño, recálculo del tamaño máximo para que todas quepan en una hoja A4, y relleno automático de huecos útiles con logos de liga sin solapes. Pasa typecheck, i18n, presupuestos de fuente, lint de archivos cambiados, 7 unitarias/integración dirigidas y 2 E2E del flujo de selección/repetición en móvil y escritorio. Build de producción generado por Playwright con el distDir de pruebas y sin tocar el `.next` de `npm run dev`; `release:check` completa no se repite mientras el servidor local solicitado sigue activo. Cambios solo locales, sin despliegue.
 
