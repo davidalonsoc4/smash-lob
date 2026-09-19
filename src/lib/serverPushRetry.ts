@@ -1,7 +1,30 @@
 import "server-only"
 
 type QueueClient = {
-  from: (table: string) => any
+  from: (table: string) => unknown
+}
+
+type QueueQuery = PromiseLike<{ data?: unknown[] }> & {
+  upsert: (values: Record<string, unknown>, options?: Record<string, unknown>) => QueueQuery
+  select: (columns: string) => QueueQuery
+  eq: (column: string, value: unknown) => QueueQuery
+  lte: (column: string, value: unknown) => QueueQuery
+  order: (column: string, options: Record<string, unknown>) => QueueQuery
+  limit: (count: number) => QueueQuery
+  update: (values: Record<string, unknown>) => QueueQuery
+}
+
+type QueueRow = {
+  id: string
+  endpoint: string
+  p256dh: string
+  auth: string
+  payload: Record<string, unknown>
+  attempts: number
+}
+
+function query(client: QueueClient, table: string) {
+  return client.from(table) as QueueQuery
 }
 
 const MAX_ATTEMPTS = 5
@@ -21,7 +44,7 @@ export async function enqueuePushRetry({
   subscription: { id: string; endpoint: string; p256dh: string; auth: string }
   payload: Record<string, unknown>
 }) {
-  await supabase.from("push_delivery_queue").upsert(
+  await query(supabase, "push_delivery_queue").upsert(
     {
       event_id: eventId,
       subscription_id: subscription.id,
@@ -38,13 +61,13 @@ export async function enqueuePushRetry({
 }
 
 export async function processPushRetryQueue(supabase: QueueClient) {
-  const { data: rows } = await supabase
-    .from("push_delivery_queue")
+  const { data } = await query(supabase, "push_delivery_queue")
     .select("id,endpoint,p256dh,auth,payload,attempts")
     .eq("status", "pending")
     .lte("next_attempt_at", new Date().toISOString())
     .order("next_attempt_at", { ascending: true })
     .limit(50)
+  const rows = (data ?? []) as QueueRow[]
 
   if (!rows?.length) return { attempted: 0, sent: 0, discarded: 0 }
   const webPush = await import("web-push")
@@ -63,12 +86,12 @@ export async function processPushRetryQueue(supabase: QueueClient) {
         { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } },
         JSON.stringify(row.payload),
       )
-      await supabase.from("push_delivery_queue").update({ status: "sent", attempts, updated_at: new Date().toISOString() }).eq("id", row.id)
+      await query(supabase, "push_delivery_queue").update({ status: "sent", attempts, updated_at: new Date().toISOString() }).eq("id", row.id)
       sent += 1
     } catch (error) {
       const statusCode = typeof error === "object" && error !== null && "statusCode" in error ? Number((error as { statusCode?: unknown }).statusCode) : null
       const discard = statusCode === 404 || statusCode === 410 || attempts >= MAX_ATTEMPTS
-      await supabase.from("push_delivery_queue").update({
+      await query(supabase, "push_delivery_queue").update({
         status: discard ? "discarded" : "pending",
         attempts,
         next_attempt_at: new Date(Date.now() + backoffMinutes(attempts) * 60_000).toISOString(),
