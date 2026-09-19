@@ -23,7 +23,7 @@ describe("v1.6.2 homogeneous headers and personal match flow", () => {
 
   it("adds a floating create encounter button above personal navigation", () => {
     const page = read("src/app/personal-matches/page.tsx")
-    expect(page).toContain('aria-label="Crear nuevo encuentro"')
+    expect(page).toMatch(/aria-label=(?:"Crear nuevo encuentro"|\{tx\("Crear nuevo encuentro"\)\})/)
     expect(page).toContain('href="/personal-matches/new"')
     expect(page).toContain('bottom: "calc(78px + env(safe-area-inset-bottom, 0px))"')
     expect(page).toContain(">+</span>")

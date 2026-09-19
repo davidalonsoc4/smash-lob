@@ -21,7 +21,7 @@ describe("unified match detail", () => {
     expect(leaguePage).toContain('href={`/round/${match.round}`}')
     expect(leaguePage).toContain('{t.matches.round} {match.round}')
     expect(leaguePage).not.toContain('subtitle={`${t.matches.round} ${match.round}`}')
-    expect(personalPage).toContain('title="Partido"')
+    expect(personalPage).toMatch(/title=(?:"Partido"|\{tx\("Partido"\)\})/)
     expect(personalPage).toContain("<MatchDetailView")
     expect(sharedView).toContain("<BackButton")
     expect(sharedView).toContain("<MatchStatusBadge")
