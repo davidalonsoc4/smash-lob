@@ -2303,6 +2303,7 @@ const ADDITIONAL_OVERRIDES = {
 
 const DYNAMIC_TEMPLATES = {
   en: [
+  ["Estás en la posición {} de la lista de espera.", "You are position {0} on the waiting list."],
     ["{} custodios · {} botes repartidos", "{0} custodians · {1} cans allocated"],
     ["1 bote", "1 can"],
     ["{} botes", "{0} cans"],
@@ -2492,6 +2493,7 @@ const DYNAMIC_TEMPLATES = {
   ["Última actualización: {}, {}", "Last updated: {0}, {1}"]
   ],
   eu: [
+    ["Estás en la posición {} de la lista de espera.", "Itxaron-zerrendako {0}. postuan zaude."],
     ["{} custodios · {} botes repartidos", "{0} zaindari · {1} poto banatuta"],
     ["1 bote", "Poto 1"],
     ["{} botes", "{0} poto"],
@@ -3558,6 +3560,12 @@ const FINAL_OVERRIDES = {
     "La temporada está cerrada, pero conviene revisar los avisos antes de tomar los récords como definitivos.": "The season is closed, but the warnings should be reviewed before treating the records as final.",
     "Los datos se actualizarán a medida que se completen y validen los partidos.": "The data will update as matches are completed and validated.",
     "Ámbito": "Scope",
+    "La plantilla está completa. Te has unido a la lista de espera.": "The roster is full. You have joined the waiting list.",
+    "En lista de espera": "On the waiting list",
+    "Entrar en lista de espera": "Join the waiting list",
+    "Estás en la lista de espera.": "You are on the waiting list.",
+    "Salir": "Leave",
+    "Estás en la posición {} de la lista de espera.": "You are position {0} on the waiting list.",
   },
   "eu": {
     "Reparto de botes actualizado.": "Boten banaketa eguneratu da.",
@@ -4434,6 +4442,12 @@ const FINAL_OVERRIDES = {
     "La temporada está cerrada, pero conviene revisar los avisos antes de tomar los récords como definitivos.": "Denboraldia itxita dago, baina komeni da abisuak berrikustea errekorrak behin betikotzat hartu aurretik.",
     "Los datos se actualizarán a medida que se completen y validen los partidos.": "Datuak eguneratuko dira partidak osatu eta baliozkotu ahala.",
     "Ámbito": "Esparrua",
+    "La plantilla está completa. Te has unido a la lista de espera.": "Taldea beteta dago. Itxaron-zerrendan sartu zara.",
+    "En lista de espera": "Itxaron-zerrendan",
+    "Entrar en lista de espera": "Itxaron-zerrendan sartu",
+    "Estás en la lista de espera.": "Itxaron-zerrendan zaude.",
+    "Salir": "Irten",
+    "Estás en la posición {} de la lista de espera.": "Itxaron-zerrendako {}. postuan zaude.",
   }
 } as const
 

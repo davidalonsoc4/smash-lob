@@ -23,4 +23,14 @@ describe("v1.15.4 season waitlist", () => {
     expect(route).toContain("ascending: true")
     expect(registration).toContain("waitlisted: true")
   })
+
+  it("promotes the next player with a 48 hour confirmation window and exposes leave/position UI", async () => {
+    const registration = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/registration/route.ts", "utf8")
+    const confirm = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/confirm/route.ts", "utf8")
+    const screen = await readFile("src/components/season/SeasonRosterWaitingRoom.tsx", "utf8")
+    expect(registration).toContain("48 * 60 * 60 * 1000")
+    expect(confirm).toContain("waitlist_confirmation_expired")
+    expect(screen).toContain("waitlistPosition")
+    expect(screen).toContain("handleLeaveWaitlist")
+  })
 })

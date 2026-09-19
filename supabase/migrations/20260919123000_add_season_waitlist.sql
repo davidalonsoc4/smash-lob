@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.season_waitlist (
   status text NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'promoted', 'cancelled')),
   created_at timestamptz NOT NULL DEFAULT now(),
   promoted_at timestamptz,
+  confirmation_expires_at timestamptz,
   UNIQUE (season_id, user_id)
 );
 

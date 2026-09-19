@@ -26,6 +26,8 @@ export function SeasonRosterWaitingRoom({
   const { playerProfiles, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null)
+  const [isWaitlisted, setIsWaitlisted] = useState(false)
   const [rosterPermissions, setRosterPermissions] = useState<{
     leagueId: string
     removablePlayerIds: Set<string>
@@ -105,6 +107,19 @@ export function SeasonRosterWaitingRoom({
     }
   }, [refreshLeagueAccess])
 
+  useEffect(() => {
+    let cancelled = false
+    void fetch(`/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/waitlist`, { cache: "no-store" })
+      .then((response) => response.ok ? response.json() as Promise<{ position: number | null; items?: Array<{ status: string }> }> : null)
+      .then((payload) => {
+        if (cancelled || !payload) return
+        setWaitlistPosition(payload.position)
+        setIsWaitlisted(payload.position !== null)
+      })
+      .catch(() => null)
+    return () => { cancelled = true }
+  }, [leagueId, seasonId])
+
   async function handleJoin() {
     if (isSaving) return
     setIsSaving(true)
@@ -114,7 +129,17 @@ export function SeasonRosterWaitingRoom({
       await joinSeasonRoster(leagueId, seasonId)
       await refreshLeagueAccess()
     } catch (joinError) {
-      setError(joinError instanceof Error ? joinError.message : t.roster.joinError)
+      const message = joinError instanceof Error ? joinError.message : t.roster.joinError
+      if (message.includes("roster_full")) {
+        const response = await fetch(`/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/waitlist`, { method: "POST" })
+        if (!response.ok) throw new Error("waitlist_join_failed")
+        const payload = await response.json() as { entry?: { created_at?: string } }
+        setIsWaitlisted(true)
+        setWaitlistPosition(null)
+        setError(tx("La plantilla está completa. Te has unido a la lista de espera."))
+        return payload
+      }
+      setError(message)
     } finally {
       setIsSaving(false)
     }
@@ -134,6 +159,21 @@ export function SeasonRosterWaitingRoom({
       await refreshLeagueAccess()
     } catch (leaveError) {
       setError(leaveError instanceof Error ? leaveError.message : t.roster.leaveError)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function handleLeaveWaitlist() {
+    if (isSaving) return
+    setIsSaving(true)
+    try {
+      const response = await fetch(`/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/waitlist`, { method: "DELETE" })
+      if (!response.ok) throw new Error("waitlist_leave_failed")
+      setIsWaitlisted(false)
+      setWaitlistPosition(null)
+    } catch (waitlistError) {
+      setError(waitlistError instanceof Error ? waitlistError.message : "waitlist_leave_failed")
     } finally {
       setIsSaving(false)
     }
@@ -200,15 +240,22 @@ export function SeasonRosterWaitingRoom({
         ))}
       </div>
 
-      {!isCurrentUserRegistered && settings.registrationOpen ? (
+      {!isCurrentUserRegistered && settings.registrationOpen && !isWaitlisted ? (
         <button
           type="button"
           onClick={handleJoin}
           disabled={isSaving}
           className="flex mt-2 w-full rounded-xl bg-emerald-700 px-3 py-2 text-xs font-black text-white disabled:bg-emerald-200 items-center justify-center text-center"
         >
-          {isSaving ? t.common.saving : t.roster.joinAction}
+          {isWaitlisted ? tx("En lista de espera") : isSaving ? t.common.saving : remaining > 0 ? t.roster.joinAction : tx("Entrar en lista de espera")}
         </button>
+      ) : null}
+
+      {isWaitlisted ? (
+        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
+          {waitlistPosition ? tx(`Estás en la posición ${waitlistPosition} de la lista de espera.`) : tx("Estás en la lista de espera.")}
+          <button type="button" onClick={() => void handleLeaveWaitlist()} disabled={isSaving} className="ml-2 underline disabled:opacity-50">{tx("Salir")}</button>
+        </div>
       ) : null}
 
       {error ? (

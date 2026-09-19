@@ -169,6 +169,24 @@ export async function DELETE(
       playerId,
     })
 
+    const { data: nextWaiting } = await access.actor.supabase
+      .from("season_waitlist")
+      .select("id,user_id")
+      .eq("league_id", leagueId)
+      .eq("season_id", seasonId)
+      .eq("status", "waiting")
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (nextWaiting?.id) {
+      await access.actor.supabase.from("season_waitlist").update({
+        status: "promoted",
+        promoted_at: new Date().toISOString(),
+        confirmation_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+      }).eq("id", nextWaiting.id)
+    }
+
     const targetPlayerIds = await getAdminTargetPlayerIds(access.actor, leagueId)
 
     await recordServerActorActivity({
