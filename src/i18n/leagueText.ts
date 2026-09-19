@@ -7,6 +7,9 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+    "La plantilla está completa. Te has unido a la lista de espera.": "The roster is full. You have joined the waitlist.",
+    "En lista de espera": "On the waitlist",
+    "Entrar en lista de espera": "Join the waitlist",
     "Tu plaza está disponible": "Your spot is available",
     "Se ha liberado una plaza. Confirma tu incorporación en las próximas 48 horas.": "A spot has opened. Confirm your place within the next 48 hours.",
     "Reserva del amistoso": "Friendly match booking",
@@ -816,6 +819,9 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "La plantilla está completa. Te has unido a la lista de espera.": "Taldea beteta dago. Itxaron-zerrendan sartu zara.",
+    "En lista de espera": "Itxaron-zerrendan",
+    "Entrar en lista de espera": "Sartu itxaron-zerrendan",
     "Tu plaza está disponible": "Zure plaza prest dago",
     "Se ha liberado una plaza. Confirma tu incorporación en las próximas 48 horas.": "Plaza bat libre geratu da. Berretsi zure parte-hartzea hurrengo 48 orduetan.",
     "Reserva del amistoso": "Lagunarteko partidaren erreserba",
@@ -2657,6 +2663,7 @@ const ADDITIONAL_OVERRIDES = {
 
 const DYNAMIC_TEMPLATES = {
   en: [
+  ['Estás en la posición {} de la lista de espera.', 'You are position {0} on the waitlist.'],
   ["Eliminar set {}", "Remove set {0}"],
   ["Abrir partido de {}", "Open {} match"],
   ["Cerrar selector de {}", "Close {} selector"],
@@ -2861,6 +2868,7 @@ const DYNAMIC_TEMPLATES = {
   ["Última actualización: {}, {}", "Last updated: {0}, {1}"]
   ],
   eu: [
+  ['Estás en la posición {} de la lista de espera.', 'Itxaron-zerrendako {}. postuan zaude.'],
   ["Eliminar set {}", "Remove set {0}"],
   ["Abrir partido de {}", "Open {} match"],
   ["Cerrar selector de {}", "Close {} selector"],
