@@ -1666,3 +1666,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se añade selector entre gris claro y blanco para las zonas blancas de los seis diseños. Gris claro queda como valor inicial.
 - El PDF y las previsualizaciones usan la variante correspondiente; la transparencia y el resto del arte se conservan.
 - Versión local de la rama: v1.15.3. Sin despliegue remoto.
+- Publicación v1.15.3 verificada: `staging` y `main` apuntan a `caa2083`; Producción responde `/api/health` con v1.15.3. PRE responde mediante el alias protegido de Vercel y mantiene la protección SSO activa.
