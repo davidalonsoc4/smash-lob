@@ -4,6 +4,7 @@ import Image from "next/image"
 import { OvergripBandPreview } from "@/components/media-kit/OvergripBandPreview"
 import { BallCanWrapPreview } from "@/components/media-kit/BallCanWrapPreview"
 import { LogoStickerPreview } from "@/components/media-kit/LogoStickerPreview"
+import { WelcomePackStickers } from "@/components/media-kit/WelcomePackStickers"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -54,6 +55,11 @@ const printDirections = {
     orientation: "A4 según ancho elegido",
     detail: "Una pegatina mínima por jugador · el alto se calcula automáticamente.",
     manual: "La vista indica si debes elegir Vertical u Horizontal según el ancho seleccionado.",
+  },
+  stickers: {
+    orientation: "A4 según los diseños y el tamaño elegidos",
+    detail: "Todos los diseños seleccionados caben en una hoja · separación interior 0 mm.",
+    manual: "Confirma la orientación indicada y escala 100 % antes de imprimir.",
   },
 } as const
 type SealLeague = {
@@ -194,7 +200,7 @@ export default function WelcomePackMediaKitPage() {
     () => [...players].sort((a, b) => a.displayName.localeCompare(b.displayName, "es", { sensitivity: "base" })),
     [players],
   )
-  const [activePiece, setActivePiece] = useState<"bag-seal" | "overgrip-band" | "ball-can-wrap" | "logo-stickers">("bag-seal")
+  const [activePiece, setActivePiece] = useState<"bag-seal" | "overgrip-band" | "ball-can-wrap" | "logo-stickers" | "stickers">("bag-seal")
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [playerFont, setPlayerFont] = useState<WelcomePackPlayerNameFont>("manuscript-elegant")
   const [playerNameCase, setPlayerNameCase] = useState<WelcomePackPlayerNameCase>("original")
@@ -300,7 +306,7 @@ export default function WelcomePackMediaKitPage() {
             <p className="type-caption font-black uppercase tracking-[.16em] text-neutral-500">{tx("Piezas")}</p>
             <h2 className="text-base font-black text-neutral-950">{tx("Diseños del Welcome Pack")}</h2>
           </div>
-          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">{tx("4 disponibles")}</span>
+          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[0.625rem] font-black text-neutral-600">{tx("5 disponibles")}</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
@@ -312,6 +318,18 @@ export default function WelcomePackMediaKitPage() {
             <div className="flex h-full flex-col justify-center px-2.5 py-2 pl-3.5">
               <h3 className="text-sm font-black leading-4 text-neutral-950">{tx("Precinto de bolsa")}</h3>
               <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">50 × 130 mm</p>
+            </div>
+          </button>
+          <button
+            type="button"
+            aria-pressed={activePiece === "stickers"}
+            onClick={() => setActivePiece("stickers")}
+            className={`relative h-[82px] w-[156px] flex-none overflow-hidden rounded-xl border bg-white text-left shadow-sm transition ${activePiece === "stickers" ? "border-neutral-950 ring-2 ring-neutral-950/10" : "border-neutral-200 hover:border-neutral-400"}`}
+          >
+            <span className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: accent }} />
+            <div className="flex h-full flex-col justify-center px-2.5 py-2 pl-3.5">
+              <h3 className="text-sm font-black leading-4 text-neutral-950">{tx("Pegatinas")}</h3>
+              <p className="mt-1 text-[0.625rem] font-semibold leading-3 text-neutral-600">{tx("Diseños seleccionables")}</p>
             </div>
           </button>
           <button
@@ -368,9 +386,9 @@ export default function WelcomePackMediaKitPage() {
         <p className="mt-2 text-[0.6875rem] font-bold leading-4 text-neutral-700">
           {tx(printDirection.manual)}
         </p>
-        <p className="mt-1 text-[0.625rem] font-medium leading-4 text-neutral-600">
+        {activePiece !== "stickers" ? <p className="mt-1 text-[0.625rem] font-medium leading-4 text-neutral-600">
           {tx("Ahora se genera una hoja por pieza. El siguiente paso será combinar todas las piezas configuradas en un único PDF de producción.")}
-        </p>
+        </p> : null}
       </AppCard>
       {activePiece === "bag-seal" ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
@@ -542,6 +560,8 @@ export default function WelcomePackMediaKitPage() {
         </div>
       ) : activePiece === "logo-stickers" ? (
         <LogoStickerPreview logoUrl={normalizedLogoUrl} leagueName={activeLeague.name} playerCount={sortedPlayers.length} />
+      ) : activePiece === "stickers" ? (
+        <WelcomePackStickers logoUrl={normalizedLogoUrl} leagueName={activeLeague.name} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_460px] lg:items-start">
           <div className="space-y-4">
@@ -623,7 +643,7 @@ export default function WelcomePackMediaKitPage() {
               {tx("Diseño en revisión")} </span>
           </div>
         </section>
-      ) : activePiece === "logo-stickers" ? null : (
+      ) : activePiece === "logo-stickers" || activePiece === "stickers" ? null : (
         <section className="rounded-[24px] bg-neutral-950 p-4 text-white shadow-[0_18px_45px_rgba(0,0,0,.2)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>

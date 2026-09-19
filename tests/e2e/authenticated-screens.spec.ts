@@ -29,6 +29,28 @@ test("welcome pack uses the final overgrip design and prints a full A4 sheet", a
   await popup.close()
 })
 
+test("welcome pack selects sticker designs and prints them together on one A4 sheet", async ({ page, context }) => {
+  await context.addInitScript(() => { window.print = () => {} })
+  await page.goto("/admin/media-kit/welcome-pack")
+  const stickersTab = page.locator("button").filter({ has: page.getByRole("heading", { name: "Pegatinas", exact: true }) })
+  await stickersTab.click()
+  await expect(stickersTab).toHaveAttribute("aria-pressed", "true")
+  await expect(page.getByRole("button", { name: "Generar PDF A4 · una hoja" })).toBeVisible()
+  const padelLovers = page.getByRole("button", { name: /Padel Lovers/ })
+  await expect(padelLovers).toHaveAttribute("aria-pressed", "true")
+  await padelLovers.click()
+  await expect(padelLovers).toHaveAttribute("aria-pressed", "false")
+  await page.getByLabel("Copias de cada diseño").selectOption("2")
+
+  const popupPromise = page.waitForEvent("popup")
+  await page.getByRole("button", { name: "Generar PDF A4 · una hoja" }).click()
+  const popup = await popupPromise
+  await expect(popup.locator(".sticker-artwork")).toHaveCount(10)
+  await expect(popup.locator(".sheet")).toBeVisible()
+  await expect(popup.locator(".sheet img").first()).toHaveAttribute("src", /\/media-kit\/stickers\//)
+  await popup.close()
+})
+
 test("calendar view selector fits without horizontal scrolling", async ({ page }) => {
   await page.goto("/matches")
   const selector = page.locator('[data-tour="matches-scope"] > div')

@@ -1,5 +1,7 @@
 # Publicación Welcome Pack — 2026-09-14 (en curso)
 
+- En `codex/welcome-pack-stickers` queda v1.15.2 con margen exterior de seguridad de 5 mm, repetición configurable de 1 a 20 copias por diseño, recálculo del tamaño máximo para que todas quepan en una hoja A4, y relleno automático de huecos útiles con logos de liga sin solapes. Pasa typecheck, i18n, presupuestos de fuente, lint de archivos cambiados, 7 unitarias/integración dirigidas y 2 E2E del flujo de selección/repetición en móvil y escritorio. Build de producción generado por Playwright con el distDir de pruebas y sin tocar el `.next` de `npm run dev`; `release:check` completa no se repite mientras el servidor local solicitado sigue activo. Cambios solo locales, sin despliegue.
+
 - v1.15.0 cierra `codex/anonymous-spectator-access` en el commit `3a64f9ed2a3d37d8fba95d1ff0852703c791ac6c`: la versión visible, paquetes, service worker, changelog y smoke contracts quedan sincronizados con `1.15.0`; se conserva el acceso de espectadores sin cuenta publicado en v1.14.40. `npm run release:check` pasa: 200 archivos / 757 pruebas unitarias e integración, 66 E2E, build de 1.055.668 bytes gzip y auditoría runtime con 0 vulnerabilidades. ESLint sin errores, con el warning previo de `window.location.assign()` en `SpectatorInviteFlow.tsx`. Sin migraciones nuevas. PRE deployment `dpl_AdWELZir5mqrcpfx9t6EEwjC3QGd` y Producción `dpl_97fnxuMr5YmH2RQwYo4auCm8X493` quedaron `Ready`; ambos health endpoints confirman v1.15.0 en su entorno y `npm run smoke:prod` pasa.
 - Para v1.14.40, el presupuesto global de fuente se ajusta de 128.150 a 128.700 líneas y los componentes cliente máximos de 184 a 185; se conservan los límites de páginas cliente, rutas API y archivos sensibles.
 - v1.14.40 implementada en `codex/anonymous-spectator-access` y publicada en PRE y Producción. `npm run release:check` supera 200 archivos / 757 pruebas unitarias e integración, 66 E2E, build de 1.055.669 bytes gzip y auditoría runtime con cero vulnerabilidades; `git diff --check` limpio. ESLint termina sin errores y conserva un warning previo de `window.location.assign()` en `SpectatorInviteFlow.tsx`. Sin migraciones nuevas.
@@ -1658,3 +1660,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 
 - v1.14.26: el bloque HEAD / Padel Pro / S+ vuelve a la posición original.
+
+### Welcome Pack: tinta para pegatinas (2026-09-19)
+
+- Se añade selector entre gris claro y blanco para las zonas blancas de los seis diseños. Gris claro queda como valor inicial.
+- El PDF y las previsualizaciones usan la variante correspondiente; la transparencia y el resto del arte se conservan.
+- Versión local de la rama: v1.15.3. Sin despliegue remoto.
