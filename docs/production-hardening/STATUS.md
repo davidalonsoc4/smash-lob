@@ -1716,3 +1716,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La UI de Ajustes ofrece Classic/Competition y desactiva claro/sistema cuando Competition está seleccionado; la página de administración de liga permite guardar el acento.
 - Se añadió una primera capa de tokens y geometría Competition en `globals.css`, manteniendo intacto el estilo Classic.
 - TypeScript, ESLint (sin errores), build de producción, i18n, seguridad, presupuesto de código, `git diff --check` y la batería unitaria completa pasan: 203 archivos y 769 tests.
+- La migración `20260919150000_add_league_accent_color` se aplicó y verificó en el proyecto Supabase enlazado a PRE mediante `npx supabase db push`; PROD no se modificó.
