@@ -84,7 +84,7 @@ export default function PersonalProfilePage() {
     return [...byId.entries()]
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name, "es"))
-  }, [items])
+  }, [items, tx])
 
   const seasons = useMemo(() => {
     if (!leagueId) return []
