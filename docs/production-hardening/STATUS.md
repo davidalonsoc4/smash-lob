@@ -1750,3 +1750,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Classic conserva su estructura `items-start`, margen y escala `1.3` originales.
 - Se actualizó el gate tipográfico y la prueba de geometría para proteger ambos comportamientos.
 - La corrección se revisó en la IP local con Competition y Classic; no se ha desplegado.
+
+## Competition visual style v2 — cabeceras unificadas (2026-09-19)
+
+- Se aplica un panel editorial común a las cabeceras de Competition, incluyendo Calendario y Chats, con borde de acento, superficie oscura y jerarquía tipográfica coherente.
+- El botón Volver mantiene su fila superior independiente para evitar solapes en móvil.
+- La comprobación visual de Calendario y Chats se hizo en la IP local; Classic no recibe estos estilos.

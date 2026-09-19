@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { readFile } from "node:fs/promises"
 import {
   DEFAULT_LEAGUE_ACCENT,
   DEFAULT_PALETTE,
@@ -41,5 +42,12 @@ describe("Competition visual style", () => {
     expect(normalizeCompetitionAccent("unknown")).toBe("league")
     expect(getCompetitionAccentColor("blue", "#123456")).toBe("#477BD1")
     expect(getCompetitionAccentColor("league", "#123456")).toBe("#123456")
+  })
+
+  it("keeps page titles inside a shared Competition panel without changing Classic", async () => {
+    const css = await readFile("src/app/globals.css", "utf8")
+    expect(css).toContain('html[data-visual-style="competition"] .app-page-header {')
+    expect(css).toContain('border-left: .25rem solid var(--competition-accent);')
+    expect(css).toContain('background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72));')
   })
 })
