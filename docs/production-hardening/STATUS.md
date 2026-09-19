@@ -1698,3 +1698,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Las baselines visuales de Ajustes se actualizaron porque la nueva sección de datos modifica intencionadamente la altura de la pantalla.
 - Ramas remotas auditadas sin borrar ninguna: todas las ramas de trabajo existentes están a 0 commits exclusivos frente a `origin/main` y se pueden considerar absorbidas; se conserva la decisión de no eliminarlas sin aprobación explícita.
 - Pendientes deliberadamente fuera de esta iteración por requerir decisiones/migraciones de mayor alcance: cola persistente de reintentos Push, lista de espera transaccional y extracción completa del macroarchivo de administración de temporadas. Quedan documentados como siguiente bloque, sin afirmar que estén implementados.
+
+## v1.15.4 — PRE/PROD promotion (2026-09-19)
+
+- `npm run release:check` completado: 204 archivos de test, 775 pruebas unitarias/integración, 68 E2E, lint sin errores (12 warnings preexistentes), typecheck, i18n, seguridad, migraciones, build dentro de presupuesto (1.072.077 bytes gzip), auditoría runtime sin vulnerabilidades.
+- La rama integra el estado actual de `origin/staging` y el hardening de waitlist; las migraciones nuevas de cola y operaciones atómicas quedan incluidas en el release.
+- PRE: migraciones aplicadas y verificadas en el proyecto Supabase enlazado durante esta sesión. El código queda listo para promocionarse a `staging`.
+- PROD: se requiere enlazar explícitamente el proyecto Supabase de producción antes de aplicar migraciones; no se ha usado ni supuesto el proyecto PRE para PROD.
