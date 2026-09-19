@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useI18n } from "@/i18n/I18nProvider"
 import { createPortal } from "react-dom"
 import type {
   PersonalMatchParticipantDraft,
@@ -24,6 +25,7 @@ export function PersonalMatchParticipantSelector({
   onChange: (next: EditablePersonalMatchParticipant) => void
   locked?: boolean
 }) {
+  const { tx } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState("")
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -87,16 +89,14 @@ export function PersonalMatchParticipantSelector({
                 {selectedPerson?.displayName ??
                   (participant.personKey
                     ? participant.displayName
-                    : participant.displayName.trim() || "Otro jugador...")}
+                    : participant.displayName.trim() || tx("Otro jugador..."))}
               </span>
               {selectedPerson?.sourceLeagueNames.length ? (
                 <span className="mt-0.5 block truncate type-caption font-semibold text-neutral-500">
                   {selectedPerson.sourceLeagueNames.join(" · ")}
                 </span>
               ) : !participant.personKey ? (
-                <span className="mt-0.5 block type-caption font-semibold text-neutral-500">
-                  Escribe un nombre que no esté en tus ligas
-                </span>
+                <span className="mt-0.5 block type-caption font-semibold text-neutral-500">{tx("Escribe un nombre que no esté en tus ligas")}</span>
               ) : null}
             </span>
             <svg
@@ -118,14 +118,14 @@ export function PersonalMatchParticipantSelector({
                 <>
                   <button
                     type="button"
-                    aria-label={`Cerrar selector de ${participant.label.toLowerCase()}`}
+                    aria-label={tx(`Cerrar selector de ${participant.label.toLowerCase()}`)}
                     onClick={closePicker}
                     className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]"
                   />
                   <section
                     role="dialog"
                     aria-modal="true"
-                    aria-label={`Seleccionar ${participant.label.toLowerCase()}`}
+                    aria-label={tx(`Seleccionar ${participant.label.toLowerCase()}`)}
                     className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
                     style={{
                       top: "max(14px, calc(var(--app-safe-top) + 10px))",
@@ -136,9 +136,7 @@ export function PersonalMatchParticipantSelector({
                     <div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm font-black text-neutral-950">
-                            Seleccionar jugador
-                          </p>
+                          <p className="text-sm font-black text-neutral-950">{tx("Seleccionar jugador")}</p>
                           <p className="type-caption font-semibold text-neutral-400">
                             {participant.label} · {filteredPeople.length} conocido{filteredPeople.length === 1 ? "" : "s"}
                           </p>
@@ -146,7 +144,7 @@ export function PersonalMatchParticipantSelector({
                         <button
                           type="button"
                           onClick={closePicker}
-                          aria-label="Cerrar"
+                          aria-label={tx("Cerrar")}
                           className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-center text-sm font-black text-neutral-500"
                         >
                           ×
@@ -171,15 +169,15 @@ export function PersonalMatchParticipantSelector({
                           type="search"
                           value={query}
                           onChange={(event) => setQuery(event.target.value)}
-                          placeholder="Buscar jugador o liga..."
-                          aria-label={`Buscar ${participant.label.toLowerCase()}`}
+                          placeholder={tx("Buscar jugador o liga...")}
+                          aria-label={tx(`Buscar ${participant.label.toLowerCase()}`)}
                           className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-sm font-semibold outline-none"
                         />
                         {query ? (
                           <button
                             type="button"
                             onClick={() => setQuery("")}
-                            aria-label="Borrar búsqueda"
+                            aria-label={tx("Borrar búsqueda")}
                             className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-center text-xs font-black text-neutral-600"
                           >
                             ×
@@ -205,16 +203,14 @@ export function PersonalMatchParticipantSelector({
                             : "border-neutral-200 bg-white text-neutral-900"
                         }`}
                       >
-                        <span className="block text-xs font-black">Otro jugador...</span>
+                        <span className="block text-xs font-black">{tx("Otro jugador...")}</span>
                         <span
                           className={`mt-0.5 block type-caption font-semibold ${
                             !participant.personKey
                               ? "text-neutral-300"
                               : "text-neutral-500"
                           }`}
-                        >
-                          Introducir nombre manualmente
-                        </span>
+                        >{tx("Introducir nombre manualmente")}</span>
                       </button>
 
                       {filteredPeople.map((person) => {
@@ -251,7 +247,7 @@ export function PersonalMatchParticipantSelector({
                             >
                               {person.sourceLeagueNames.length > 0
                                 ? person.sourceLeagueNames.join(" · ")
-                                : "Jugador conocido"}
+                                : tx("Jugador conocido")}
                               {unavailable ? " · Ya seleccionado" : ""}
                             </span>
                           </button>
@@ -259,9 +255,7 @@ export function PersonalMatchParticipantSelector({
                       })}
 
                       {filteredPeople.length === 0 ? (
-                        <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">
-                          No hay jugadores que coincidan. Usa «Otro jugador...» para escribir el nombre.
-                        </p>
+                        <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">{tx("No hay jugadores que coincidan. Usa «Otro jugador...» para escribir el nombre.")}</p>
                       ) : null}
                     </div>
                   </section>
@@ -279,7 +273,7 @@ export function PersonalMatchParticipantSelector({
                   displayName: event.target.value.slice(0, 60),
                 })
               }
-              placeholder="Nombre del jugador"
+              placeholder={tx("Nombre del jugador")}
               className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400"
             />
           ) : null}

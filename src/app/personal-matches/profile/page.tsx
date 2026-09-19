@@ -41,6 +41,7 @@ async function loadAllFinishedMatches() {
 }
 
 export default function PersonalProfilePage() {
+  const { tx } = useI18n()
   const router = useRouter()
   const { t } = useI18n()
   const { profile } = useAccountProfile()
@@ -77,13 +78,13 @@ export default function PersonalProfilePage() {
     const byId = new Map<string, string>()
     items.forEach((match) => {
       if (match.origin === "league" && match.leagueId) {
-        byId.set(match.leagueId, match.leagueName ?? "Liga")
+        byId.set(match.leagueId, match.leagueName ?? tx("Liga"))
       }
     })
     return [...byId.entries()]
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name, "es"))
-  }, [items])
+  }, [items, tx])
 
   const seasons = useMemo(() => {
     if (!leagueId) return []
@@ -110,6 +111,7 @@ export default function PersonalProfilePage() {
     [effectiveLeagueId, effectiveSeasonId, items, origin],
   )
   const stats = useMemo(() => getPersonalProfileStats(filteredMatches), [filteredMatches])
+  const filterOptions = [["all", tx("Todos"), tx("Todos los partidos")], ["league", tx("Liga"), tx("Partidos de liga")], ["friendly", tx("Amistoso"), tx("Amistosos")]] as const
   const comparisonPeople = useMemo(() => {
     const byKey = new Map<string, { key: string; name: string; avatarUrl: string | null }>()
     for (const relation of [...stats.teammateRelations, ...stats.rivalRelations]) {
@@ -159,32 +161,32 @@ export default function PersonalProfilePage() {
 
       {playerPositionLabel ? (
         <p className="type-caption font-bold text-neutral-500">
-          Posición preferida · {playerPositionLabel}
+          {tx("Posición preferida")} · {playerPositionLabel}
         </p>
       ) : null}
 
       <AppCard data-personal-global-filters className="!p-2">
         <div className="grid grid-cols-3 gap-1">
-          {([["all", "Todos", "Todos los partidos"], ["league", "Liga", "Partidos de liga"], ["friendly", "Amistoso", "Amistosos"]] as const).map(([value, label, ariaLabel]) => (
-            <button key={value} type="button" aria-label={ariaLabel} aria-pressed={origin === value} onClick={() => { setOrigin(value); if (value === "friendly") { setLeagueId(""); setSeasonId("") } }} className={`flex min-w-0 items-center justify-center rounded-lg px-1.5 py-1.5 text-center type-caption font-black transition ${origin === value ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-600"}`}>{label}</button>
+          {filterOptions.map(([value, label, ariaLabel]) => (
+            <button key={value} type="button" aria-label={tx(ariaLabel)} aria-pressed={origin === value} onClick={() => { setOrigin(value); if (value === "friendly") { setLeagueId(""); setSeasonId("") } }} className={`flex min-w-0 items-center justify-center rounded-lg px-1.5 py-1.5 text-center type-caption font-black transition ${origin === value ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-600"}`}>{tx(label)}</button>
           ))}
         </div>
         {origin === "league" ? (
           <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-            <label className="min-w-0"><span className="sr-only">Liga</span><select aria-label="Liga" value={effectiveLeagueId} onChange={(event) => { setLeagueId(event.target.value); setSeasonId("") }} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400"><option value="">Todas las ligas</option>{leagues.map((league) => <option key={league.id} value={league.id}>{league.name}</option>)}</select></label>
-            <label className="min-w-0"><span className="sr-only">Temporada</span><select aria-label="Temporada" value={effectiveSeasonId} disabled={!effectiveLeagueId} onChange={(event) => setSeasonId(event.target.value)} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"><option value="">Todas las temporadas</option>{seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
+            <label className="min-w-0"><span className="sr-only">{tx("Liga")}</span><select aria-label={tx("Liga")} value={effectiveLeagueId} onChange={(event) => { setLeagueId(event.target.value); setSeasonId("") }} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400"><option value="">{tx("Todas las ligas")}</option>{leagues.map((league) => <option key={league.id} value={league.id}>{league.name}</option>)}</select></label>
+            <label className="min-w-0"><span className="sr-only">{tx("Temporada")}</span><select aria-label={tx("Temporada")} value={effectiveSeasonId} disabled={!effectiveLeagueId} onChange={(event) => setSeasonId(event.target.value)} className="w-full rounded-lg border border-neutral-200 bg-white px-2 py-1.5 type-caption font-bold text-neutral-900 outline-none focus:border-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400"><option value="">{tx("Todas las temporadas")}</option>{seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
           </div>
         ) : null}
       </AppCard>
 
       {loading ? (
-        <AppCard><p className="text-sm font-semibold text-neutral-500">Calculando tu histórico completo...</p></AppCard>
+        <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Calculando tu histórico completo...")}</p></AppCard>
       ) : error ? (
         <AppCard><p className="text-sm font-bold text-red-700">{error}</p></AppCard>
       ) : stats.matchesPlayed === 0 ? (
         <EmptyState
-          title="No hay partidos para este filtro"
-          description="Prueba otro ámbito o registra nuevos resultados para ampliar tus estadísticas."
+          title={tx("No hay partidos para este filtro")}
+          description={tx("Prueba otro ámbito o registra nuevos resultados para ampliar tus estadísticas.")}
           action={{ label: "Volver a Mis partidos", href: "/personal-matches" }}
         />
       ) : (

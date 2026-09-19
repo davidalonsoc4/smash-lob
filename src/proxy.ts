@@ -15,6 +15,10 @@ function isAccessInviteRequest(request: NextRequest) {
   )
 }
 
+function isPublicSpectatorViewRequest(request: NextRequest) {
+  return /^\/spectate\/[^/]+\/view$/.test(request.nextUrl.pathname)
+}
+
 export function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === "/launch") {
     const pendingDestination = decodePendingAccessDestination(
@@ -47,7 +51,7 @@ export function proxy(request: NextRequest) {
     return response
   }
 
-  if (!isAvatarLabRequest(request)) {
+  if (!isAvatarLabRequest(request) && !isPublicSpectatorViewRequest(request)) {
     return new NextResponse(null, {
       status: 404,
       headers: { "Cache-Control": "no-store" },

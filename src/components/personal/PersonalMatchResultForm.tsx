@@ -1,6 +1,7 @@
 "use client"
 
 import { MatchResultForm } from "@/components/match/MatchResultForm"
+import { useI18n } from "@/i18n/I18nProvider"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 
 export function PersonalMatchResultForm({
@@ -14,6 +15,7 @@ export function PersonalMatchResultForm({
   onSaved: (match: PersonalMatchItem) => void
   onCancel?: () => void
 }) {
+  const { tx } = useI18n()
   async function persistResult(sets: { a: number; b: number }[]) {
     try {
       const response = await fetch(`/api/personal-matches/${encodeURIComponent(match.id)}`, {
@@ -39,7 +41,7 @@ export function PersonalMatchResultForm({
       reportedByPlayerId={null}
       onCancel={onCancel}
       persistResult={persistResult}
-      saveErrorMessage="No se ha podido guardar el resultado del amistoso."
+      saveErrorMessage={tx("No se ha podido guardar el resultado del amistoso.")}
     />
   )
 }

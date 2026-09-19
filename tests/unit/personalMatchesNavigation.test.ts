@@ -12,7 +12,7 @@ describe("personal matches navigation", () => {
       readFile("src/app/personal-matches/[id]/page.tsx", "utf8"),
     ])
 
-    expect(nav).toContain('aria-label="Navegación de Mis partidos"')
+    expect(nav).toMatch(/aria-label=(?:"Navegación de Mis partidos"|\{tx\("Navegación de Mis partidos"\)\})/)
     expect(nav).toContain('href: "/personal-matches"')
     expect(nav).toContain('href: "/personal-matches/chats"')
     expect(nav).toContain('href: "/personal-matches/profile"')

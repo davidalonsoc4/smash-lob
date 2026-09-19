@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { signIn, useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import { addCachedSpectatorLeagueId } from "@/lib/leagueAccessCache"
@@ -19,6 +19,7 @@ export function SpectatorInviteFlow() {
   const { tx } = useI18n()
   const { data: session } = useSession()
   const params = useParams<{ code: string }>()
+  const router = useRouter()
   const code = decodeURIComponent(params.code ?? "").trim().toUpperCase()
   const [invite, setInvite] = useState<SpectatorInviteSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -69,7 +70,7 @@ export function SpectatorInviteFlow() {
       if (userEmail) addCachedSpectatorLeagueId(userEmail, result.leagueId)
       window.localStorage.setItem("smash-lob-active-league", result.leagueId)
       await clearPendingAccessIntent()
-      window.location.assign("/")
+      router.replace("/")
     } catch {
       setError("No se ha podido activar el acceso de espectador.")
       setIsJoining(false)

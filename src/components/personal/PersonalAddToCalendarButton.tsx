@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { useI18n } from "@/i18n/I18nProvider"
 import { toCalendarFloatingDate } from "@/lib/matchScheduleTime"
 import {
   getPersonalMatchTeamNames,
@@ -17,6 +18,7 @@ export function PersonalAddToCalendarButton({
   match: PersonalMatchItem
   className?: string
 }) {
+  const { tx } = useI18n()
   const calendarUrl = useMemo(() => {
     if (!match.scheduledAt) return null
     const start = new Date(match.scheduledAt)
@@ -45,8 +47,6 @@ export function PersonalAddToCalendarButton({
       target="_blank"
       rel="noreferrer"
       className={`inline-flex w-full rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99] items-center justify-center ${className ?? ""}`}
-    >
-      Añadir al calendario
-    </a>
+    >{tx("Añadir al calendario")}</a>
   )
 }

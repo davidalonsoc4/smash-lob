@@ -52,7 +52,7 @@ assert(
   "El partido de liga debe usar Jornada X como título principal enlazado al resumen",
 )
 assert(
-  personalPage.includes('title="Partido"'),
+  personalPage.includes('title="Partido"') || personalPage.includes('title={tx("Partido")}'),
   "El amistoso debe mantener Partido como título principal",
 )
 assert(personalPage.includes("<MatchDetailView"), "La ruta de amistoso debe usar MatchDetailView")

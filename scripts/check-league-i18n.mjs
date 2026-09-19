@@ -205,8 +205,6 @@ const excludedLeaguePaths = [
   "/privacy/",
   "/terms/",
   "/application-admin/",
-  "/personal-matches/",
-  "/components/personal/",
   "/features/avatar-lab/",
   "/components/legal/",
   "/components/changelog/",

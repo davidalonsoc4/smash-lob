@@ -661,17 +661,21 @@ function NotificationCard({
   event,
   currentUserId,
   players,
+  isRead,
+  onOpen,
 }: {
   event: ActivityEvent;
   currentUserId: string;
   players: { id: string; displayName: string }[];
+  isRead: boolean;
+  onOpen: () => void;
 }) {
   const { tx, locale } = useI18n();
   const href = getNotificationUrl(event);
 
   return (
-    <Link href={href} className="block">
-      <AppCard className="app-notification-card p-3 transition active:scale-[0.99]">
+    <Link href={href} className="block" onClick={onOpen}>
+      <AppCard className={`app-notification-card p-3 transition active:scale-[0.99] ${isRead ? "opacity-70" : "border-l-4 border-l-[var(--app-accent)] bg-white"}`}>
         <div className="flex items-start justify-between gap-2">
           <p className="min-w-0 text-sm font-black text-neutral-950">
             {tx(getNotificationTitle(event, currentUserId))}
@@ -701,6 +705,7 @@ export default function NotificationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const currentUserEmail = normalizeEmail(session?.user?.email);
 
   useEffect(() => {
@@ -711,13 +716,16 @@ export default function NotificationsPage() {
       setError(null);
 
       try {
-        const activityEvents = await fetchSupabaseActivityEvents({
-          leagueId: activeLeague.id,
-          limit: 180,
-        });
+        const [activityEvents, readState] = await Promise.all([
+          fetchSupabaseActivityEvents({ leagueId: activeLeague.id, limit: 180 }),
+          fetch("/api/notifications/read-state", { cache: "no-store" }).then((response) =>
+            response.ok ? response.json() as Promise<{ items?: { event_id: string }[] }> : { items: [] },
+          ),
+        ]);
 
         if (isMounted) {
           setEvents(activityEvents);
+          setReadIds(new Set((readState.items ?? []).map((item) => item.event_id)));
         }
       } catch {
         if (isMounted) {
@@ -764,6 +772,25 @@ export default function NotificationsPage() {
       ),
     [currentUserEmail, currentUserId, currentUserMatchIds, events, isAdmin],
   );
+  const unreadNotifications = notifications.filter((event) => !readIds.has(event.id));
+  const markRead = (eventId: string) => {
+    setReadIds((current) => new Set(current).add(eventId));
+    void fetch("/api/notifications/read-state", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ eventId }),
+    });
+  };
+  const markAllRead = () => {
+    const ids = unreadNotifications.map((event) => event.id);
+    if (ids.length === 0) return;
+    setReadIds((current) => new Set([...current, ...ids]));
+    void fetch("/api/notifications/read-state", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ eventIds: ids }),
+    });
+  };
 
   return (
     <div className="compact-page space-y-3">
@@ -772,6 +799,7 @@ export default function NotificationsPage() {
 
         <div className="mt-0.5 flex items-center justify-between gap-3">
           <h1 className="type-page-title text-xl font-black tracking-tight">{tx("Notificaciones")}</h1>
+          {unreadNotifications.length > 0 ? <button type="button" onClick={markAllRead} className="inline-flex items-center justify-center text-center rounded-full bg-[var(--app-accent)] px-3 py-1.5 text-xs font-black text-white">{tx("Marcar todas como leídas")}</button> : null}
           <button
             type="button"
             onClick={() => setRefreshKey((current) => current + 1)}
@@ -813,7 +841,7 @@ export default function NotificationsPage() {
       {!isLoading && !error && notifications.length === 0 ? (
         <EmptyState
           title={tx("Estás al día")}
-          description={tx("No tienes avisos pendientes. Los próximos partidos, resultados, pagos y comunicados aparecerán aquí.")}
+          description={tx("No tienes notificaciones pendientes de leer. Los próximos partidos, resultados, pagos y comunicados aparecerán aquí.")}
           action={{
             label: "Configurar avisos",
             href: "/settings/notifications",
@@ -829,6 +857,8 @@ export default function NotificationsPage() {
               event={event}
               currentUserId={currentUserId}
               players={players}
+              isRead={readIds.has(event.id)}
+              onOpen={() => markRead(event.id)}
             />
           ))}
         </div>

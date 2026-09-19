@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useI18n } from "@/i18n/I18nProvider"
 import { useRouter } from "next/navigation"
 import {
   PersonalMatchParticipantSelector,
@@ -38,6 +39,7 @@ function initialParticipants(): EditableParticipant[] {
 }
 
 export default function NewPersonalMatchPage() {
+  const { tx } = useI18n()
   const router = useRouter()
   const [people, setPeople] = useState<PersonalMatchPerson[]>([])
   const [participants, setParticipants] = useState<EditableParticipant[]>(initialParticipants)
@@ -248,17 +250,15 @@ export default function NewPersonalMatchPage() {
   return (
     <div className="compact-page space-y-3">
       <header className="app-page-header">
-        <BackButton fallbackHref="/personal-matches" label="Mis partidos" />
-        <h1 className="type-page-title font-black tracking-tight">
-          Crear encuentro
-        </h1>
+        <BackButton fallbackHref="/personal-matches" label={tx("Mis partidos")} />
+        <h1 className="type-page-title font-black tracking-tight">{tx("Crear encuentro")}</h1>
         <p className="mt-0.5 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">Amistoso</p>
       </header>
 
       <AppCard className="p-3">
         <div className="grid gap-2 sm:grid-cols-2">
           <label className="block">
-            <span className="text-xs font-black text-neutral-800">Fecha y hora</span>
+            <span className="text-xs font-black text-neutral-800">{tx("Fecha y hora")}</span>
             <input
               type="datetime-local"
               step={3600}
@@ -280,10 +280,8 @@ export default function NewPersonalMatchPage() {
       </AppCard>
 
       <AppCard className="p-3">
-        <p className="text-sm font-black text-neutral-950">Jugadores</p>
-        <p className="mt-1 type-caption font-semibold leading-4 text-neutral-500">
-          Puedes elegir jugadores conocidos o escribir manualmente cualquier nombre. El mismo amistoso aparecerá en Mis partidos de todos los participantes que tengan una cuenta vinculada.
-        </p>
+        <p className="text-sm font-black text-neutral-950">{tx("Jugadores")}</p>
+        <p className="mt-1 type-caption font-semibold leading-4 text-neutral-500">{tx("Puedes elegir jugadores conocidos o escribir manualmente cualquier nombre. El mismo amistoso aparecerá en Mis partidos de todos los participantes que tengan una cuenta vinculada.")}</p>
         <div className="mt-3 grid gap-2">
           {participants.map((participant, index) => (
             <PersonalMatchParticipantSelector
@@ -297,17 +295,15 @@ export default function NewPersonalMatchPage() {
           ))}
         </div>
         {loadingPeople ? (
-          <p className="mt-2 type-caption font-semibold text-neutral-400">Cargando jugadores compartidos...</p>
+          <p className="mt-2 type-caption font-semibold text-neutral-400">{tx("Cargando jugadores compartidos...")}</p>
         ) : null}
       </AppCard>
 
       <AppCard className="p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-sm font-black text-neutral-950">Resultado · opcional</p>
-            <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
-              Puedes guardarlo ahora si el partido ya se ha jugado o añadirlo más adelante desde el detalle.
-            </p>
+            <p className="text-sm font-black text-neutral-950">{tx("Resultado · opcional")}</p>
+            <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">{tx("Puedes guardarlo ahora si el partido ya se ha jugado o añadirlo más adelante desde el detalle.")}</p>
           </div>
           <button
             type="button"
@@ -322,7 +318,7 @@ export default function NewPersonalMatchPage() {
                 : "border border-neutral-200 bg-white text-neutral-800"
             }`}
           >
-            {includeResult ? "Quitar" : "Añadir resultado"}
+            {includeResult ? "Quitar" : tx("Añadir resultado")}
           </button>
         </div>
 
@@ -367,7 +363,7 @@ export default function NewPersonalMatchPage() {
                   {sets.length > 1 ? (
                     <button
                       type="button"
-                      aria-label={`Eliminar set ${index + 1}`}
+                      aria-label={tx(`Eliminar set ${index + 1}`)}
                       onClick={() => setSets((current) => current.filter((_, setIndex) => setIndex !== index))}
                       className="h-8 w-8 rounded-lg text-sm font-black text-neutral-400"
                     >
@@ -380,7 +376,7 @@ export default function NewPersonalMatchPage() {
               ))}
             </div>
             {!hasWinner ? (
-              <p className="mt-2 type-caption font-bold text-amber-700">El resultado debe dejar un equipo ganador.</p>
+              <p className="mt-2 type-caption font-bold text-amber-700">{tx("El resultado debe dejar un equipo ganador.")}</p>
             ) : null}
           </>
         ) : null}
@@ -399,8 +395,8 @@ export default function NewPersonalMatchPage() {
         {submitting
           ? "Guardando..."
           : includeResult
-            ? "Guardar encuentro y resultado"
-            : "Guardar encuentro"}
+            ? tx("Guardar encuentro y resultado")
+            : tx("Guardar encuentro")}
       </button>
     </div>
   )

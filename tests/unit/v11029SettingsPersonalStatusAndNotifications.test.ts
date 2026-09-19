@@ -19,7 +19,7 @@ describe("v1.10.29 settings lock, personal status and friendly notification pari
     expect(card).toContain('import { getMatchDisplayStatus } from "@/lib/matchLifecycle"')
     expect(card).toContain("const displayStatus = getMatchDisplayStatus({")
     expect(card).toContain('? "En juego"')
-    expect(card).toContain('? "Pendiente de resultado"')
+    expect(card).toMatch(/\? (?:"Pendiente de resultado"|tx\("Pendiente de resultado"\))/)
     expect(card).toContain("getMatchStatusBadgeClassName(displayStatus)")
   })
 

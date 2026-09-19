@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useI18n } from "@/i18n/I18nProvider"
 import { usePathname } from "next/navigation"
 import { useEffect } from "react"
 
@@ -61,6 +62,7 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
 }
 
 export function PersonalMatchesNav() {
+  const { tx } = useI18n()
   const pathname = usePathname()
 
   useEffect(() => {
@@ -106,7 +108,7 @@ export function PersonalMatchesNav() {
 
   return (
     <nav
-      aria-label="Navegación de Mis partidos"
+      aria-label={tx("Navegación de Mis partidos")}
       className="personal-matches-bottom-nav fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-neutral-200 bg-white/95 shadow-[0_-5px_16px_rgba(0,0,0,0.05)] backdrop-blur"
       style={{
         minHeight: "62px",

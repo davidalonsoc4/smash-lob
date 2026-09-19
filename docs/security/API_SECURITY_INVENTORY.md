@@ -7,6 +7,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/access` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/access-intent` | GET | Público explícito | Allowlist revisada |
 | `/api/access-intent` | DELETE | Público explícito | Allowlist revisada |
+| `/api/account/delete` | POST | Protegido | requireAuthenticatedAppUser |
+| `/api/account/export` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/account/profile` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/account/profile` | PUT | Protegido | requireAuthenticatedAppUser |
 | `/api/account/profile` | PATCH | Protegido | requireAuthenticatedAppUser |
@@ -104,6 +106,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/notifications/dispatch` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/notifications/preferences` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/notifications/preferences` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/notifications/read-state` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/notifications/read-state` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/notifications/scheduled-check` | GET | Protegido | CRON_SECRET |
 | `/api/notifications/subscribe` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/notifications/unsubscribe` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |

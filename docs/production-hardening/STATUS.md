@@ -1,5 +1,19 @@
 # Publicación Welcome Pack — 2026-09-14 (en curso)
 
+# v1.15.4 — Saneamiento y hardening (2026-09-19, en curso)
+
+- Rama `codex/v1.15.4-hardening-cleanup` creada desde `origin/main` en `01c9212`; versión de aplicación actualizada a `1.15.4`. No se ha desplegado PRE ni PROD.
+- Auditoría inicial documentada en `docs/production-hardening/V1_15_4_HARDENING_AUDIT.md`.
+- Separada la capacidad de crear ligas del modo visual de la liga activa.
+- Añadido estado persistente de leído/no leído para notificaciones mediante la migración pendiente `20260919100000_add_notification_read_state.sql`, API autenticada y acciones individuales/globales en `/notifications`.
+- La actividad administrativa admite cursor temporal (`createdAtBefore`) y devuelve `nextCursor`, manteniendo el orden estable sin ampliar artificialmente el límite por página.
+- Añadidos endpoints autenticados de exportación JSON (`/api/account/export`) y solicitud de anonimización de cuenta (`/api/account/delete`, confirmación reforzada); no se despliega ni se aplica ninguna migración remotamente en esta rama.
+- Privacidad, condiciones y página informativa vuelven a estar presentes en el buscador de ajustes para usuarios autenticados y espectadores.
+- Se añadieron contratos unitarios de la rama para el estado de notificaciones, paginación, descubribilidad legal y autoservicio de cuenta.
+- `npm run validate` y `npm run release:check` se detienen deliberadamente en `i18n:check`: al proteger de nuevo `Mis partidos` aparecen textos visibles históricos sin `tx` en sus páginas y componentes. La deuda queda identificada y no se ha rebajado el gate.
+- Corregido un 404 real del acceso público por QR: `src/proxy.ts` bloqueaba cualquier `/spectate/:code/view` anónimo aunque existía la página pública. La ruta de vista ahora atraviesa el proxy sin abrir ninguna capacidad autenticada; se añadió regresión unitaria.
+- Se eliminó la exclusión de `Mis partidos` del gate i18n y se conectaron sus textos visibles al sistema EN/EU. El presupuesto total se ajusta de 129.200 a 129.800 líneas para incluir las traducciones y contratos nuevos; no se aumentan límites de archivos críticos.
+
 - En `codex/welcome-pack-stickers` queda v1.15.2 con margen exterior de seguridad de 5 mm, repetición configurable de 1 a 20 copias por diseño, recálculo del tamaño máximo para que todas quepan en una hoja A4, y relleno automático de huecos útiles con logos de liga sin solapes. Pasa typecheck, i18n, presupuestos de fuente, lint de archivos cambiados, 7 unitarias/integración dirigidas y 2 E2E del flujo de selección/repetición en móvil y escritorio. Build de producción generado por Playwright con el distDir de pruebas y sin tocar el `.next` de `npm run dev`; `release:check` completa no se repite mientras el servidor local solicitado sigue activo. Cambios solo locales, sin despliegue.
 
 - v1.15.0 cierra `codex/anonymous-spectator-access` en el commit `3a64f9ed2a3d37d8fba95d1ff0852703c791ac6c`: la versión visible, paquetes, service worker, changelog y smoke contracts quedan sincronizados con `1.15.0`; se conserva el acceso de espectadores sin cuenta publicado en v1.14.40. `npm run release:check` pasa: 200 archivos / 757 pruebas unitarias e integración, 66 E2E, build de 1.055.668 bytes gzip y auditoría runtime con 0 vulnerabilidades. ESLint sin errores, con el warning previo de `window.location.assign()` en `SpectatorInviteFlow.tsx`. Sin migraciones nuevas. PRE deployment `dpl_AdWELZir5mqrcpfx9t6EEwjC3QGd` y Producción `dpl_97fnxuMr5YmH2RQwYo4auCm8X493` quedaron `Ready`; ambos health endpoints confirman v1.15.0 en su entorno y `npm run smoke:prod` pasa.
@@ -1667,19 +1681,20 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El PDF y las previsualizaciones usan la variante correspondiente; la transparencia y el resto del arte se conservan.
 - Versión local de la rama: v1.15.3. Sin despliegue remoto.
 - Publicación v1.15.3 verificada: `staging` y `main` apuntan a `caa2083`; Producción responde `/api/health` con v1.15.3. PRE responde mediante el alias protegido de Vercel y mantiene la protección SSO activa.
-### Rama independiente de resiliencia v1.15.4 (2026-09-19)
 
-- Se publicó el estado auditado anterior en `staging`/PRE con SHA `761b0be`; Vercel creó el despliegue `dpl_N4tpK6As332Vt2Kk8nFyNJYjveGG`, alias `https://pre.smashandlob.com`, estado `Ready`.
-- La batería manual para PRE está en `docs/preproduction/V1_15_4_PRE_MANUAL_QA.md`.
-- La nueva rama parte de `origin/main` en `01c9212` y avanza con el bloque 1: cola persistente de reintentos Push, deduplicada por evento y suscripción, backoff limitado a cinco intentos y descarte de suscripciones 404/410.
-- La migración `20260919120000_add_push_delivery_queue.sql` aún no se ha aplicado en ningún entorno.
-- Bloque 2 en curso: `20260919123000_add_season_waitlist.sql` y `20260919124500_add_season_waitlist_position.sql` crean una lista FIFO persistente con orden reordenable por administración, RLS cerrada al cliente y posición estable.
-- La inscripción llena devuelve `202 Accepted`, el jugador puede consultar su posición, salir y confirmar una promoción durante 48 horas. La liberación de una plaza promociona automáticamente al siguiente miembro y registra un aviso dirigido al usuario.
-- La UI de administración ya permite reordenar la cola; la validación de cierre de inscripciones y los tests de promoción, cancelación, reordenación y cierre están cubiertos.
-- La promoción queda bloqueada cuando la temporada deja de estar `upcoming` o `registration_open` pasa a `false`; la confirmación aplica la misma protección.
-- Bloque 3 completado: `SeasonDangerZone`, `OrganizationBallsSettingsPanel`, `BalancedCalendarAuditPanel`, `NewSeasonForm` y `SeasonRulesSettings` se han extraído de `admin/season/page.tsx` sin cambiar anchors, onboarding ni puntos de montaje. La página queda en 2.166 líneas y el presupuesto se ajusta a 3.500 líneas, reflejando una reducción estructural real.
-- Los contratos estáticos de calendario e inscripción se han actualizado para proteger los componentes extraídos; typecheck y las pruebas focalizadas pasan.
-- `release:check` completado: 768 tests unitarios, build de producción, 68 E2E, presupuesto de build y auditoría npm sin vulnerabilidades runtime.
-- La rama queda sin despliegue: las migraciones de resiliencia y lista de espera son locales y requieren aplicación explícita posterior en PRE/PROD.
-- Tras completar la extracción de reglas (`be3641d`), `npm run release:check` pasó completo con npm en modo offline: 768 tests unitarios, build de producción, presupuesto de build, 68 E2E y auditoría runtime con 0 vulnerabilidades. La consulta online de npm seguía devolviendo 503, por lo que la auditoría usó la caché local sin cambiar dependencias.
-- Hardening posterior de lista de espera: el alta directa valida temporada abierta, autoinscripción, cupo lleno y registro previo; la promoción usa actualización condicional idempotente; la reordenación pasa por una función SQL atómica; y la confirmación comprueba errores de limpieza. Añadida la migración `20260919131500_harden_season_waitlist_operations.sql` y regresiones específicas.
+### Inicio de saneamiento v1.15.4 (2026-09-19)
+
+- `main` remoto se verificó en `01c9212` (v1.15.3) y se creó `codex/v1.15.4-hardening-cleanup` desde ese estado.
+- La línea base, los huecos confirmados y las decisiones de producto quedan documentados en `docs/production-hardening/V1_15_4_HARDENING_AUDIT.md`.
+- Se implementó el estado persistente de leído/no leído de notificaciones con migración aditiva y API protegida; la pantalla permite marcar una notificación o todas como leídas sin tocar los contadores propios del chat.
+- La actividad administrativa admite cursor estable (`createdAtBefore`) para consultar páginas antiguas sin duplicados; la exportación de cuenta y la anonimización autoservicio requieren sesión y confirmación reforzada.
+- Se eliminó la exclusión histórica del gate de i18n para `personal-matches` y `components/personal`; las traducciones visibles de esa vertical y de notificaciones quedan cubiertas para español, inglés y euskera.
+- El buscador de ajustes incluye las entradas legales cuando son aplicables y el acceso a crear liga permanece disponible para cuentas autorizadas aunque estén en modo jugador.
+- Se corrigió el 404 del acceso público de espectador por QR: `/spectate/:code/view` ahora atraviesa el proxy público y conserva las restricciones del resto de rutas.
+- Se corrigió la prioridad de plantillas dinámicas de i18n para que las frases específicas se evalúen antes que patrones genéricos (`{} en {}`); las pruebas de Welcome Pack y espectador vuelven a pasar.
+- Validación parcial ejecutada: i18n, TypeScript, ESLint, presupuesto de fuente y pruebas focalizadas correctos. La validación completa y los bloques restantes de auditoría siguen pendientes; no hay migraciones aplicadas ni despliegues.
+- El panel de Ajustes incorpora exportación JSON y solicitud de anonimización con confirmación reforzada; se mantiene disponible también en la vista de espectador autenticado. El presupuesto total se ajusta a 130.000 líneas para absorber esta capacidad y la cobertura i18n sin ampliar ningún presupuesto de archivo crítico.
+- `npm run release:check` completado: 203 archivos y 769 tests unitarios/integración, 68 E2E (incluidos accesibilidad, visuales, QR de espectador y PWA), build de producción, presupuestos de código/build y `npm audit --omit=dev --audit-level=high` con 0 vulnerabilidades.
+- Las baselines visuales de Ajustes se actualizaron porque la nueva sección de datos modifica intencionadamente la altura de la pantalla.
+- Ramas remotas auditadas sin borrar ninguna: todas las ramas de trabajo existentes están a 0 commits exclusivos frente a `origin/main` y se pueden considerar absorbidas; se conserva la decisión de no eliminarlas sin aprobación explícita.
+- Pendientes deliberadamente fuera de esta iteración por requerir decisiones/migraciones de mayor alcance: cola persistente de reintentos Push, lista de espera transaccional y extracción completa del macroarchivo de administración de temporadas. Quedan documentados como siguiente bloque, sin afirmar que estén implementados.

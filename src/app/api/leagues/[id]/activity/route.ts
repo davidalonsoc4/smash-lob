@@ -30,6 +30,12 @@ function parseOptionalCreatedAtFrom(value: string | null) {
   return trimmedValue.length > 0 ? trimmedValue : null
 }
 
+function parseOptionalCreatedAtBefore(value: string | null) {
+  if (!value) return null
+  const trimmedValue = value.trim()
+  return trimmedValue.length > 0 ? trimmedValue : null
+}
+
 function parseClampFlag(value: string | null) {
   return value === "1" || value === "true"
 }
@@ -60,18 +66,23 @@ export async function GET(
   }
 
   try {
-    return NextResponse.json({
-      items: await fetchServerActivityEvents({
+    const items = await fetchServerActivityEvents({
         viewer: access.actor,
         leagueId,
         limit,
         createdAtFrom: parseOptionalCreatedAtFrom(
           url.searchParams.get("createdAtFrom")
         ),
+        createdAtBefore: parseOptionalCreatedAtBefore(
+          url.searchParams.get("createdAtBefore")
+        ),
         clampToViewerJoinDate: parseClampFlag(
           url.searchParams.get("clampToViewerJoinDate")
         ),
-      }),
+      })
+    return NextResponse.json({
+      items,
+      nextCursor: items.length === limit ? items[items.length - 1]?.createdAt ?? null : null,
     })
   } catch {
     return NextResponse.json(

@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useI18n } from "@/i18n/I18nProvider"
 import {
   PersonalMatchParticipantSelector,
   type EditablePersonalMatchParticipant,
@@ -38,6 +39,7 @@ export function PersonalMatchParticipantsPanel({
   match: PersonalMatchItem
   onUpdated: (match: PersonalMatchItem) => void
 }) {
+  const { tx } = useI18n()
   const [editing, setEditing] = useState(false)
   const [people, setPeople] = useState<PersonalMatchPerson[]>([])
   const [participants, setParticipants] = useState<EditablePersonalMatchParticipant[]>(() =>
@@ -126,10 +128,8 @@ export function PersonalMatchParticipantsPanel({
     <AppCard accentStrip className="overflow-hidden !p-0">
       <div className="flex items-center justify-between gap-3 px-3 py-2.5">
         <div className="min-w-0">
-          <p className="type-panel-title text-neutral-950">Jugadores del amistoso</p>
-          <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-            Cambia tu pareja o los contrincantes antes de registrar el resultado.
-          </p>
+          <p className="type-panel-title text-neutral-950">{tx("Jugadores del amistoso")}</p>
+          <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Cambia tu pareja o los contrincantes antes de registrar el resultado.")}</p>
         </div>
         {!editing ? (
           <button
@@ -163,9 +163,7 @@ export function PersonalMatchParticipantsPanel({
           })}
 
           {loadingPeople ? (
-            <p className="type-caption font-semibold text-neutral-400">
-              Cargando jugadores compartidos...
-            </p>
+            <p className="type-caption font-semibold text-neutral-400">{tx("Cargando jugadores compartidos...")}</p>
           ) : null}
           {error ? (
             <p className="rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">
@@ -191,7 +189,7 @@ export function PersonalMatchParticipantsPanel({
               disabled={saving || loadingPeople || !participantsComplete}
               className="inline-flex flex-1 rounded-lg bg-neutral-950 px-2.5 py-2 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
             >
-              {saving ? "Guardando..." : "Guardar jugadores"}
+              {saving ? "Guardando..." : tx("Guardar jugadores")}
             </button>
           </div>
         </div>
