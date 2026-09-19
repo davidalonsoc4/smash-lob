@@ -1717,3 +1717,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se añadió una primera capa de tokens y geometría Competition en `globals.css`, manteniendo intacto el estilo Classic.
 - TypeScript, ESLint (sin errores), build de producción, i18n, seguridad, presupuesto de código, `git diff --check` y la batería unitaria completa pasan: 203 archivos y 769 tests.
 - La migración `20260919150000_add_league_accent_color` se aplicó y verificó en el proyecto Supabase enlazado a PRE mediante `npx supabase db push`; PROD no se modificó.
+
+## Competition visual style v2 (local branch, 2026-09-19)
+
+- La rama `codex/competition-visual-style-v2` parte de `75ae572` y conserva el fondo geométrico validado en v1.
+- Se refuerza la jerarquía de Home, ranking, estadísticas, partidos y perfil con cabeceras editoriales, tarjetas con niveles de superficie, acentos de liga y estados más legibles.
+- Se corrigen colores de avisos ámbar, rojo y azul sobre fondo oscuro, además de foco visible para teclado.
+- TypeScript, ESLint, build de producción y pruebas focalizadas pasan. No se ha desplegado la rama.
