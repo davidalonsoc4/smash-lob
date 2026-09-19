@@ -7,6 +7,7 @@ import {
   removeSelfRegistrationPlayer,
 } from "@/lib/serverSelfRegistration"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
+import { joinSeasonWaitlist } from "@/lib/serverSeasonWaitlist"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -89,6 +90,19 @@ export async function POST(
     return NextResponse.json({ ok: true, ...result })
   } catch (error) {
     const message = error instanceof Error ? error.message : "self_registration_join_failed"
+    if (message.includes("roster_full")) {
+      try {
+        const entry = await joinSeasonWaitlist({
+          supabase: access.actor.supabase,
+          leagueId,
+          seasonId,
+          userId: access.actor.user.id,
+        })
+        return NextResponse.json({ ok: true, waitlisted: true, entry }, { status: 202 })
+      } catch {
+        return NextResponse.json({ error: "waitlist_join_failed" }, { status: 500 })
+      }
+    }
     return NextResponse.json(
       { error: message },
       { status: getRpcErrorStatus(message) },

@@ -12,3 +12,15 @@ describe("v1.15.4 Push resiliency", () => {
     expect(dispatch).toContain("enqueuePushRetry")
   })
 })
+
+describe("v1.15.4 season waitlist", () => {
+  it("keeps FIFO ordering and turns a full roster into a waitlist entry", async () => {
+    const migration = await readFile("supabase/migrations/20260919123000_add_season_waitlist.sql", "utf8")
+    const route = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/route.ts", "utf8")
+    const registration = await readFile("src/app/api/leagues/[id]/seasons/[seasonId]/registration/route.ts", "utf8")
+    expect(migration).toContain("UNIQUE (season_id, user_id)")
+    expect(migration).toContain("season_waitlist_order_idx")
+    expect(route).toContain("ascending: true")
+    expect(registration).toContain("waitlisted: true")
+  })
+})
