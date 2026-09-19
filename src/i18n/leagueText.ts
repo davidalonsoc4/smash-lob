@@ -1978,7 +1978,6 @@ const ADDITIONAL_OVERRIDES = {
     "No se elegirán MVP de partido, jornada ni temporada.": "No match, round or season MVPs will be selected.",
     "No se ha podido cargar el chat.": "The chat could not be loaded.",
     "No se ha podido enviar la sugerencia. Inténtalo de nuevo.": "The suggestion could not be sent. Try again.",
-    "No se han podido cargar": "Could not load",
     "No se han podido cargar tus chats.": "Your chats could not be loaded.",
     "No se mostrará el apartado de confirmación de resultados.": "The result confirmation section will not be shown.",
     "No se pudo generar la imagen": "The image could not be generated",
@@ -2492,7 +2491,6 @@ const ADDITIONAL_OVERRIDES = {
     "No se elegirán MVP de partido, jornada ni temporada.": "Ez da partida, jardunaldi edo denboraldiko MVPrik hautatuko.",
     "No se ha podido cargar el chat.": "Ezin izan da txata kargatu.",
     "No se ha podido enviar la sugerencia. Inténtalo de nuevo.": "Ezin izan da iradokizuna bidali. Saiatu berriro.",
-    "No se han podido cargar": "Ezin izan dira kargatu",
     "No se han podido cargar tus chats.": "Ezin izan dira zure txatak kargatu.",
     "No se mostrará el apartado de confirmación de resultados.": "Emaitzak baieztatzeko atala ez da erakutsiko.",
     "No se pudo generar la imagen": "Ezin izan da irudia sortu",
@@ -4897,14 +4895,12 @@ function buildTemplateRegExp(sourceTemplate: string) {
 }
 
 const COMPILED_DYNAMIC_TEMPLATES = {
-  en: DYNAMIC_TEMPLATES.en.map(([source, target]) => [
-    buildTemplateRegExp(source),
-    target,
-  ] as const),
-  eu: DYNAMIC_TEMPLATES.eu.map(([source, target]) => [
-    buildTemplateRegExp(source),
-    target,
-  ] as const),
+  en: [...DYNAMIC_TEMPLATES.en]
+    .sort(([left], [right]) => right.length - left.length)
+    .map(([source, target]) => [buildTemplateRegExp(source), target] as const),
+  eu: [...DYNAMIC_TEMPLATES.eu]
+    .sort(([left], [right]) => right.length - left.length)
+    .map(([source, target]) => [buildTemplateRegExp(source), target] as const),
 }
 
 function interpolateIndexedTemplate(

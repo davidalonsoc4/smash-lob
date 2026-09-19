@@ -799,7 +799,7 @@ export default function NotificationsPage() {
 
         <div className="mt-0.5 flex items-center justify-between gap-3">
           <h1 className="type-page-title text-xl font-black tracking-tight">{tx("Notificaciones")}</h1>
-          {unreadNotifications.length > 0 ? <button type="button" onClick={markAllRead} className="inline-flex rounded-full bg-[var(--app-accent)] px-3 py-1.5 text-xs font-black text-white">{tx("Marcar todas como leídas")}</button> : null}
+          {unreadNotifications.length > 0 ? <button type="button" onClick={markAllRead} className="inline-flex items-center justify-center text-center rounded-full bg-[var(--app-accent)] px-3 py-1.5 text-xs font-black text-white">{tx("Marcar todas como leídas")}</button> : null}
           <button
             type="button"
             onClick={() => setRefreshKey((current) => current + 1)}

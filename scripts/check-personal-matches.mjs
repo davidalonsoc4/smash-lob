@@ -145,7 +145,7 @@ assert(serverHelper.includes('origin: "league"') && serverHelper.includes('origi
 assert(card.includes("getPersonalMatchSetWins"), "Las tarjetas deben mostrar los sets ganados junto a cada pareja")
 assert(card.includes("SetGameScore"), "Mis partidos debe reutilizar el marcador por set del Calendario")
 assert(card.includes("getPersonalMatchOutcome"), "Las tarjetas deben mostrar Victoria/Derrota para el usuario")
-assert(card.includes('aria-label="Juegos por set de la pareja A"') && card.includes('aria-label="Juegos por set de la pareja B"'), "Cada pareja debe mostrar sus juegos por set")
+assert((card.includes('aria-label="Juegos por set de la pareja A"') || card.includes('tx("Juegos por set de la pareja A")')) && (card.includes('aria-label="Juegos por set de la pareja B"') || card.includes('tx("Juegos por set de la pareja B")')), "Cada pareja debe mostrar sus juegos por set")
 assert(card.includes('rounded-xl bg-neutral-50 px-3 py-2'), "Cada pareja debe conservar el panel visual del Calendario")
 assert(card.includes("getPersonalMatchTeamPlayers"), "Los nombres deben renderizarse por participante")
 assert(card.includes("ClickableChevron") && card.includes("showPersonalMatchChevron = false"), "El chevron de partido debe conservarse en código pero quedar oculto")
@@ -162,7 +162,7 @@ assert(participantSelector.includes("sourceLeagueNames"), "Debe reutilizar jugad
 assert(newPage.includes("Crear encuentro") && newPage.includes("Resultado · opcional"), "El alta debe usar un único flujo con resultado opcional")
 assert(newPage.includes("includeResult") && newPage.includes('status: includeResult ? "finished" : "scheduled"'), "El resultado opcional debe decidir si el encuentro se guarda programado o finalizado")
 assert(!newPage.includes(">\n          Programar\n") && !newPage.includes(">\n          Ya jugado\n"), "No deben volver las pestañas Programar / Ya jugado")
-assert(personalPage.includes('aria-label="Crear nuevo encuentro"') && personalPage.includes('href="/personal-matches/new"'), "Mis partidos debe ofrecer el botón flotante para crear un encuentro")
+assert((personalPage.includes('aria-label="Crear nuevo encuentro"') || personalPage.includes('tx("Crear nuevo encuentro")')) && personalPage.includes('href="/personal-matches/new"'), "Mis partidos debe ofrecer el botón flotante para crear un encuentro")
 assert(detailPage.includes("<MatchDetailView"), "El detalle personal debe usar la pantalla compartida de partido")
 assert(matchDetailView.includes("<MatchDetailPairingPanel"), "La pantalla compartida debe ser dueña del emparejamiento")
 assert(!detailPage.includes("<MatchScoreboard"), "El detalle personal no debe reutilizar el marcador compacto")
@@ -223,7 +223,7 @@ assert(appShell.includes("const shouldShowSettingsButton"), "El modo personal de
 assert(appShell.includes("!isPersonalMatchesRoute"), "El modo personal debe ocultar la navegación completa y los controles de liga")
 assert(appShell.includes("shouldShowPersonalMatchesNav"), "El shell debe activar la navegación compacta del modo personal")
 assert(appShell.includes("<PersonalMatchesNav"), "El shell debe renderizar la navegación compacta de Mis partidos")
-assert(personalNav.includes('aria-label="Navegación de Mis partidos"'), "La navegación personal debe ser accesible")
+assert(personalNav.includes('aria-label="Navegación de Mis partidos"') || personalNav.includes('tx("Navegación de Mis partidos")'), "La navegación personal debe ser accesible")
 for (const label of ["Mis ligas", "Mis partidos", "Chats", "Mi perfil"]) {
   assert(personalNav.includes(label), `Falta el destino ${label} en la navegación personal`)
 }

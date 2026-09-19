@@ -12,6 +12,7 @@
 - Se añadieron contratos unitarios de la rama para el estado de notificaciones, paginación, descubribilidad legal y autoservicio de cuenta.
 - `npm run validate` y `npm run release:check` se detienen deliberadamente en `i18n:check`: al proteger de nuevo `Mis partidos` aparecen textos visibles históricos sin `tx` en sus páginas y componentes. La deuda queda identificada y no se ha rebajado el gate.
 - Corregido un 404 real del acceso público por QR: `src/proxy.ts` bloqueaba cualquier `/spectate/:code/view` anónimo aunque existía la página pública. La ruta de vista ahora atraviesa el proxy sin abrir ninguna capacidad autenticada; se añadió regresión unitaria.
+- Se eliminó la exclusión de `Mis partidos` del gate i18n y se conectaron sus textos visibles al sistema EN/EU. El presupuesto total se ajusta de 129.200 a 129.800 líneas para incluir las traducciones y contratos nuevos; no se aumentan límites de archivos críticos.
 
 - En `codex/welcome-pack-stickers` queda v1.15.2 con margen exterior de seguridad de 5 mm, repetición configurable de 1 a 20 copias por diseño, recálculo del tamaño máximo para que todas quepan en una hoja A4, y relleno automático de huecos útiles con logos de liga sin solapes. Pasa typecheck, i18n, presupuestos de fuente, lint de archivos cambiados, 7 unitarias/integración dirigidas y 2 E2E del flujo de selección/repetición en móvil y escritorio. Build de producción generado por Playwright con el distDir de pruebas y sin tocar el `.next` de `npm run dev`; `release:check` completa no se repite mientras el servidor local solicitado sigue activo. Cambios solo locales, sin despliegue.
 
@@ -1685,4 +1686,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 - `main` remoto se verificó en `01c9212` (v1.15.3) y se creó `codex/v1.15.4-hardening-cleanup` desde ese estado.
 - La línea base, los huecos confirmados y las decisiones de producto quedan documentados en `docs/production-hardening/V1_15_4_HARDENING_AUDIT.md`.
-- Aún no hay migraciones, despliegues ni cambios de código funcional en esta rama.
+- Se implementó el estado persistente de leído/no leído de notificaciones con migración aditiva y API protegida; la pantalla permite marcar una notificación o todas como leídas sin tocar los contadores propios del chat.
+- La actividad administrativa admite cursor estable (`createdAtBefore`) para consultar páginas antiguas sin duplicados; la exportación de cuenta y la anonimización autoservicio requieren sesión y confirmación reforzada.
+- Se eliminó la exclusión histórica del gate de i18n para `personal-matches` y `components/personal`; las traducciones visibles de esa vertical y de notificaciones quedan cubiertas para español, inglés y euskera.
+- El buscador de ajustes incluye las entradas legales cuando son aplicables y el acceso a crear liga permanece disponible para cuentas autorizadas aunque estén en modo jugador.
+- Se corrigió el 404 del acceso público de espectador por QR: `/spectate/:code/view` ahora atraviesa el proxy público y conserva las restricciones del resto de rutas.
+- Se corrigió la prioridad de plantillas dinámicas de i18n para que las frases específicas se evalúen antes que patrones genéricos (`{} en {}`); las pruebas de Welcome Pack y espectador vuelven a pasar.
+- Validación parcial ejecutada: i18n, TypeScript, ESLint, presupuesto de fuente y pruebas focalizadas correctos. La validación completa y los bloques restantes de auditoría siguen pendientes; no hay migraciones aplicadas ni despliegues.
