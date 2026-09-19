@@ -2431,6 +2431,12 @@ html[data-visual-style="competition"] .personal-matches-bottom-nav {
 html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > :first-child {
   border-top: 2px solid color-mix(in srgb, var(--competition-accent) 80%, transparent) !important;
 }
+html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > a > .app-stat-card {
+  border-top: 2px solid color-mix(in srgb, var(--competition-accent) 80%, transparent) !important;
+}
+html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > a > .app-stat-card::before {
+  display: none !important;
+}
 html[data-visual-style="competition"] [data-route="/matches"] [data-tour="matches-scope"] {
   border-radius: 1rem;
   background: color-mix(in srgb, var(--competition-accent) 8%, var(--competition-surface)) !important;

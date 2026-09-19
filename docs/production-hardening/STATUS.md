@@ -1771,3 +1771,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El alcance queda aislado a `data-visual-style="competition"`; Classic permanece sin cambios.
 - Revisión visual local realizada en móvil simulado para HOME, Calendario, Chats y Perfil. No se ha desplegado.
 - Se eliminó el borde superior duplicado del panel Jornada en HOME; el acento queda controlado por la propia tarjeta, igual que en Líder.
+- Se unificó también el tratamiento visual: Líder y Jornada usan ahora el mismo borde superior de 2px y se desactiva el acento interno distinto de `app-stat-card`.
