@@ -65,12 +65,16 @@ describe("v1.12.4 custom calendar audit and creation UX", () => {
       path.join(process.cwd(), "src/app/admin/season/page.tsx"),
       "utf8",
     )
+    const calendarPanelSource = fs.readFileSync(
+      path.join(process.cwd(), "src/components/admin/season/BalancedCalendarAuditPanel.tsx"),
+      "utf8",
+    )
 
     expect(adminSource).toContain('mode: "extended",\n      targetRoundCount: activeSeason.totalRounds')
     expect(adminSource).toContain('matches.some((match) => match.seasonId === activeSeason.id)')
     expect(adminSource).not.toContain('[getSeasonBaseRoundCount(players.length), getSeasonBaseRoundCount(players.length) * 2].includes(activeSeason.totalRounds)')
     expect(adminSource).toContain("<BalancedCalendarAuditPanel")
-    expect(adminSource).toContain("onClick={rerollCalendar}")
+    expect(calendarPanelSource).toContain("onClick={rerollCalendar}")
     expect(adminSource).toContain("data-season-calendar-type")
     expect(adminSource).toContain("data-season-duration")
     expect(adminSource).toContain("data-season-calendar-visibility")

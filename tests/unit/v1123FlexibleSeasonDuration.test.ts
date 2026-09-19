@@ -131,13 +131,14 @@ describe("v1.12.3 flexible season duration", () => {
 
   it("wires custom duration, expansion and the atomic resize migration through the product flow", () => {
     const adminSource = fs.readFileSync(path.join(process.cwd(), "src/app/admin/season/page.tsx"), "utf8")
+    const calendarPanelSource = fs.readFileSync(path.join(process.cwd(), "src/components/admin/season/BalancedCalendarAuditPanel.tsx"), "utf8")
     const apiSource = fs.readFileSync(path.join(process.cwd(), "src/app/api/leagues/[id]/seasons/route.ts"), "utf8")
     const repairSource = fs.readFileSync(path.join(process.cwd(), "src/app/api/leagues/[id]/seasons/[seasonId]/repair-calendar/route.ts"), "utf8")
     const migration = fs.readFileSync(path.join(process.cwd(), "supabase/migrations/20260826002000_resize_balanced_season_calendar.sql"), "utf8")
 
     expect(adminSource).toContain('type SeasonDurationMode = "complete" | "custom"')
-    expect(adminSource).toContain("expandToDoubleRound")
-    expect(adminSource).toContain("expandToLongSeason")
+    expect(calendarPanelSource).toContain("expandToDoubleRound")
+    expect(calendarPanelSource).toContain("expandToLongSeason")
     expect(apiSource).toContain("targetRoundCount")
     expect(repairSource).toContain("targetRoundCount")
     expect(migration).toContain("resize_season_calendar_matches")
