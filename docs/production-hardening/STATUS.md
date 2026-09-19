@@ -1,5 +1,12 @@
 # Publicación Welcome Pack — 2026-09-14 (en curso)
 
+# v1.15.4 — Saneamiento y hardening (2026-09-19, en curso)
+
+- Rama `codex/v1.15.4-hardening-cleanup` creada desde `origin/main` en `01c9212`; versión de aplicación actualizada a `1.15.4`. No se ha desplegado PRE ni PROD.
+- Auditoría inicial documentada en `docs/production-hardening/V1_15_4_HARDENING_AUDIT.md`.
+- Separada la capacidad de crear ligas del modo visual de la liga activa.
+- Añadido estado persistente de leído/no leído para notificaciones mediante la migración pendiente `20260919100000_add_notification_read_state.sql`, API autenticada y acciones individuales/globales en `/notifications`.
+
 - En `codex/welcome-pack-stickers` queda v1.15.2 con margen exterior de seguridad de 5 mm, repetición configurable de 1 a 20 copias por diseño, recálculo del tamaño máximo para que todas quepan en una hoja A4, y relleno automático de huecos útiles con logos de liga sin solapes. Pasa typecheck, i18n, presupuestos de fuente, lint de archivos cambiados, 7 unitarias/integración dirigidas y 2 E2E del flujo de selección/repetición en móvil y escritorio. Build de producción generado por Playwright con el distDir de pruebas y sin tocar el `.next` de `npm run dev`; `release:check` completa no se repite mientras el servidor local solicitado sigue activo. Cambios solo locales, sin despliegue.
 
 - v1.15.0 cierra `codex/anonymous-spectator-access` en el commit `3a64f9ed2a3d37d8fba95d1ff0852703c791ac6c`: la versión visible, paquetes, service worker, changelog y smoke contracts quedan sincronizados con `1.15.0`; se conserva el acceso de espectadores sin cuenta publicado en v1.14.40. `npm run release:check` pasa: 200 archivos / 757 pruebas unitarias e integración, 66 E2E, build de 1.055.668 bytes gzip y auditoría runtime con 0 vulnerabilidades. ESLint sin errores, con el warning previo de `window.location.assign()` en `SpectatorInviteFlow.tsx`. Sin migraciones nuevas. PRE deployment `dpl_AdWELZir5mqrcpfx9t6EEwjC3QGd` y Producción `dpl_97fnxuMr5YmH2RQwYo4auCm8X493` quedaron `Ready`; ambos health endpoints confirman v1.15.0 en su entorno y `npm run smoke:prod` pasa.
