@@ -1836,3 +1836,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El commit `c0210f41` se publicó en PRE como deployment Vercel `dpl_4otDuoXo9jzmJFG6ETz9LXSosnyE` (`Ready`, target `preview`) y `pre.smashandlob.com` quedó reasignado a esa versión. La sonda autenticada de `/api/health` devuelve `1.15.4/pre`. PROD no se ha modificado.
 
 - La misma implementación, con la anotación documental `e9d85d89`, se publicó en PROD como deployment Vercel `dpl_8g4BQFQ99J3DhPJ7Jr2dXFy9diKu` (`Ready`, target `production`) y quedó asociada a `https://smashandlob.com`. La sonda autenticada de `/api/health` devuelve `1.15.4/prod`.
+
+## Sincronización inmediata de la navegación por temporada (2026-09-20)
+
+- La selección de temporada emite un evento de cambio en la misma pestaña y la AppShell actualiza de inmediato el estado de la BottomNav y del bloqueo de temporadas programadas. También se sincronizan cambios realizados desde otra pestaña mediante el evento `storage`.
+- Alternar entre una temporada terminada y otra programada ya no requiere recargar la aplicación para recuperar o restringir la navegación.
+- Validación focalizada: 20 pruebas unitarias, ESLint, TypeScript y `git diff --check` pasan. Aún no se ha desplegado este ajuste.

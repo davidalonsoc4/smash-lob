@@ -1,4 +1,5 @@
 const seasonSelectionKeyPrefix = "smash-lob-selected-season:"
+export const SEASON_SELECTION_CHANGED_EVENT = "smash-lob-season-selection-changed"
 
 export function getSeasonSelectionStorageKey(leagueId: string) {
   return `${seasonSelectionKeyPrefix}${leagueId}`
@@ -12,4 +13,9 @@ export function readSelectedSeasonId(leagueId: string) {
 export function writeSelectedSeasonId(leagueId: string, seasonId: string) {
   if (typeof window === "undefined" || !leagueId || !seasonId) return
   window.localStorage.setItem(getSeasonSelectionStorageKey(leagueId), seasonId)
+  window.dispatchEvent(
+    new CustomEvent(SEASON_SELECTION_CHANGED_EVENT, {
+      detail: { leagueId, seasonId },
+    }),
+  )
 }

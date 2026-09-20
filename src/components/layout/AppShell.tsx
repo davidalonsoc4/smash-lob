@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { type CSSProperties, type ReactNode, useEffect } from "react"
+import { type CSSProperties, type ReactNode, useEffect, useState } from "react"
 import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { PendingAccessIntentNotice } from "@/components/invite/PendingAccessIntentNotice"
 import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
@@ -23,7 +23,10 @@ import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { getAppBranding } from "@/lib/appVariant"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 import { applyAppFontSize, readStoredAppFontSize } from "@/lib/fontSizePreference"
-import { readSelectedSeasonId } from "@/lib/seasonSelection"
+import {
+  readSelectedSeasonId,
+  SEASON_SELECTION_CHANGED_EVENT,
+} from "@/lib/seasonSelection"
 import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
 import { BottomNav } from "./BottomNav"
 
@@ -226,7 +229,33 @@ export function AppShell({ children }: AppShellProps) {
   const isInitialSeasonSetupRoute =
     pathname === "/admin/season" &&
     !seasons.some((season) => season.leagueId === activeLeagueId)
-  const selectedSeasonId = readSelectedSeasonId(activeLeagueId)
+  const [seasonSelectionState, setSeasonSelectionState] = useState(() => ({
+    leagueId: activeLeagueId,
+    seasonId: readSelectedSeasonId(activeLeagueId),
+  }))
+  const selectedSeasonId =
+    seasonSelectionState.leagueId === activeLeagueId
+      ? seasonSelectionState.seasonId
+      : readSelectedSeasonId(activeLeagueId)
+  useEffect(() => {
+    const handleSeasonSelectionChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ leagueId?: string; seasonId?: string }>).detail
+      if (detail?.leagueId === activeLeagueId && detail.seasonId) {
+        setSeasonSelectionState({ leagueId: detail.leagueId, seasonId: detail.seasonId })
+      }
+    }
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === `smash-lob-selected-season:${activeLeagueId}`) {
+        setSeasonSelectionState({ leagueId: activeLeagueId, seasonId: event.newValue })
+      }
+    }
+    window.addEventListener(SEASON_SELECTION_CHANGED_EVENT, handleSeasonSelectionChange)
+    window.addEventListener("storage", handleStorage)
+    return () => {
+      window.removeEventListener(SEASON_SELECTION_CHANGED_EVENT, handleSeasonSelectionChange)
+      window.removeEventListener("storage", handleStorage)
+    }
+  }, [activeLeagueId])
   const selectedSeason = selectedSeasonId
     ? seasons.find(
         (season) =>

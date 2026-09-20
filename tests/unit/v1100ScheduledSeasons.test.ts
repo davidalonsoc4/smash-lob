@@ -153,6 +153,8 @@ describe("v1.10.0 scheduled season start", () => {
     expect(shell).toContain("homeOnlyLocked={scheduledSeasonHomeOnly}")
     expect(shell).toContain("const selectedSeason =")
     expect(shell).toContain("const isScheduledSeasonUtilityRoute =")
+    expect(shell).toContain("SEASON_SELECTION_CHANGED_EVENT")
+    expect(shell).toContain('window.addEventListener("storage", handleStorage)')
     expect(shell).toContain("{children}")
     expect(shell).not.toContain("Activar VISTA ADMIN")
     expect(shell).not.toContain("setAdminViewEnabled(true)")
