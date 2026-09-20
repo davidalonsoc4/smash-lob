@@ -114,7 +114,9 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   root.style.setProperty("--competition-accent-contrast", getContrastColor(effectiveAccent))
   root.style.colorScheme = resolvedTheme
 
-  const themeColor = visualStyle === "competition" ? effectiveAccent : dark ? "#0b1119" : "#0a0a0a"
+  // Keep the browser/PWA status bar neutral. The league accent belongs to the
+  // app surfaces, not to the operating-system chrome above the viewport.
+  const themeColor = visualStyle === "competition" ? "#0a0a0a" : dark ? "#0b1119" : "#0a0a0a"
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", themeColor)
 }
 

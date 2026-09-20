@@ -1794,3 +1794,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La entrada anónima a la vista pública limpia también la cookie antes de navegar, y se puede cancelar explícitamente con `Cancelar invitación`, que devuelve a la entrada normal de la aplicación.
 - Se mantiene el enlace directo a la vista pública y se han añadido las traducciones de la nueva acción en español, inglés y euskera.
 - El commit `2990f7c9` se ha desplegado en PRE como `dpl_3kTNdP4G1sBNamJYMjxy3m52Ct1L`; el alias `https://pre.smashandlob.com` apunta a esa versión y el health check devuelve `1.15.4`.
+
+## Competition y vista pública — superficies y temporadas (2026-09-20)
+
+- El patrón de fondo de Competition se conserva en una única capa fija; el contenedor que hace scroll ya no pinta una segunda copia.
+- La barra del navegador/PWA mantiene un negro neutro en Competition. Ajustes, lista de Chats y Chat individual comparten ahora la superficie translúcida del resto del tema.
+- La vista pública muestra siempre el nombre de la liga y una temporada explícita; cuando existen varias temporadas, el selector consulta únicamente temporadas de la liga del enlace y actualiza clasificación, calendario y visibilidad.
+- Classic no recibe estas reglas porque todo el cambio queda bajo `data-visual-style="competition"`; la API pública valida el `seasonId` antes de resolverlo.

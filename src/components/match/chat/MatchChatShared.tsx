@@ -315,6 +315,7 @@ export function MatchChatComposer({
 export function MatchChatReadOnlyBar({ children }: { children: ReactNode }) {
   return (
     <div
+      data-tour="chat-read-only"
       className="flex min-h-14 shrink-0 items-center justify-center border-t border-neutral-200 bg-white px-3 pt-2 text-center type-caption font-bold text-neutral-500"
       style={{
         paddingBottom:

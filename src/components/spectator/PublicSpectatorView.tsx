@@ -11,6 +11,8 @@ import type { PublicSpectatorMatch, PublicSpectatorRankingRow } from "@/lib/publ
 type PublicViewPayload = {
   league: { name: string; description: string; logoUrl: string | null }
   season: { name: string; status: string; totalRounds: number; completedRounds: number } | null
+  seasonId?: string
+  seasons: { id: string; name: string; status: "active" | "upcoming" | "finished" }[]
   ranking: PublicSpectatorRankingRow[]
   matches: PublicSpectatorMatch[]
   visibility: "empty" | "locked" | "secrets" | "progressive" | "full"
@@ -79,12 +81,14 @@ export function PublicSpectatorView({ code }: { code: string }) {
   const { tx } = useI18n()
   const [view, setView] = useState<PublicViewPayload | null>(null)
   const [state, setState] = useState<"loading" | "ready" | "missing" | "error">("loading")
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     void clearPendingAccessIntent()
 
-    fetch(`/api/public-spectator/${encodeURIComponent(code)}`, { cache: "no-store" })
+    const query = selectedSeasonId ? `?seasonId=${encodeURIComponent(selectedSeasonId)}` : ""
+    fetch(`/api/public-spectator/${encodeURIComponent(code)}${query}`, { cache: "no-store" })
       .then(async (response) => {
         if (response.status === 404) return null
         if (!response.ok) throw new Error("public_spectator_unavailable")
@@ -96,6 +100,7 @@ export function PublicSpectatorView({ code }: { code: string }) {
           setState("missing")
           return
         }
+        if (!selectedSeasonId && payload.seasonId) setSelectedSeasonId(payload.seasonId)
         setView(payload)
         setState("ready")
       })
@@ -103,7 +108,7 @@ export function PublicSpectatorView({ code }: { code: string }) {
         if (!cancelled) setState("error")
       })
     return () => { cancelled = true }
-  }, [code])
+  }, [code, selectedSeasonId])
 
   return (
     <main className="min-h-screen bg-neutral-100 px-3 pb-10 pt-6 text-neutral-950 sm:px-5 sm:pt-10">
@@ -113,15 +118,41 @@ export function PublicSpectatorView({ code }: { code: string }) {
         {state === "error" ? <AppCard><h1 className="text-xl font-black">{tx("No se ha podido cargar la liga")}</h1><p className="mt-2 text-sm text-neutral-500">{tx("Comprueba tu conexión e inténtalo de nuevo.")}</p><button type="button" onClick={() => { setState("loading"); setView(null); window.location.reload() }} className="mt-4 flex items-center justify-center rounded-xl bg-neutral-950 px-4 py-2 text-center text-sm font-black text-white">{tx("Reintentar")}</button></AppCard> : null}
         {state === "ready" && view ? (
           <>
-            <AppCard className="overflow-hidden bg-neutral-950 text-white">
+            <AppCard className="public-spectator-hero overflow-hidden bg-neutral-950 text-white">
               <div className="flex items-center gap-3">
                 <LeagueLogo league={{ name: view.league.name, logoUrl: view.league.logoUrl }} size="lg" />
                 <div className="min-w-0">
                   <p className="type-caption font-black uppercase tracking-[0.16em] text-white/60">{tx("Vista de espectador")}</p>
-                  <h1 className="mt-1 truncate text-2xl font-black tracking-tight">{view.league.name}</h1>
-                  {view.season ? <p className="mt-1 text-sm font-bold text-white/70">{view.season.name}</p> : null}
+                  <h1 className="public-spectator-league-title mt-1 break-words text-[clamp(1.25rem,6vw,1.75rem)] font-black leading-tight tracking-tight">{view.league.name}</h1>
                 </div>
               </div>
+              {view.season ? (
+                <div className="public-spectator-season mt-4 border-t border-white/15 pt-3">
+                  <label htmlFor="public-spectator-season" className="type-micro font-black uppercase tracking-[0.16em] text-white/55">
+                    {tx("Temporada")}
+                  </label>
+                  {view.seasons.length > 1 ? (
+                    <select
+                      id="public-spectator-season"
+                      data-public-season-selector
+                      value={view.seasonId ?? selectedSeasonId ?? ""}
+                      onChange={(event) => {
+                        setState("loading")
+                        setSelectedSeasonId(event.target.value)
+                      }}
+                      className="mt-1 block w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-black text-white outline-none"
+                    >
+                      {view.seasons.map((season) => (
+                        <option key={season.id} value={season.id} className="bg-neutral-900 text-white">
+                          {season.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="mt-1 text-base font-black text-white">{view.season.name}</p>
+                  )}
+                </div>
+              ) : null}
               {view.league.description ? <p className="mt-4 text-sm font-semibold leading-6 text-white/75">{view.league.description}</p> : null}
               <p className="mt-4 rounded-xl bg-white/10 px-3 py-2 type-caption font-bold text-white/75">{tx("Solo lectura · no se muestran datos personales ni actividad interna")}</p>
             </AppCard>

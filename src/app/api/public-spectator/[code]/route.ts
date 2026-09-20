@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { applyPrivateNoStore } from "@/lib/serverResponse"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
-import { validateInviteCode } from "@/lib/serverRequest"
+import { validateInviteCode, validateUuid } from "@/lib/serverRequest"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { mapSupabaseMatch } from "@/lib/supabaseMatches"
 import { getPreseasonAccessPhase } from "@/lib/preseasonSecrets"
@@ -60,7 +60,15 @@ export async function GET(
     .order("created_at", { ascending: false })
   if (seasonsError) return empty(500, "spectator_view_unavailable")
 
+  const requestedSeasonId = validateUuid(new URL(request.url).searchParams.get("seasonId"))
+  const availableSeasons = (seasons ?? []).map((item) => ({
+    id: String(item.id),
+    name: String(item.name ?? "Temporada"),
+    status: item.status === "finished" || item.status === "upcoming" ? item.status : "active",
+  }))
+
   const season =
+    (requestedSeasonId ? (seasons ?? []).find((item) => item.id === requestedSeasonId) : null) ??
     (seasons ?? []).find((item) => item.id === league.active_season_id) ??
     (seasons ?? []).find((item) => item.status === "active") ??
     (seasons ?? [])[0] ??
@@ -70,6 +78,7 @@ export async function GET(
     return applyPrivateNoStore(NextResponse.json({
       league: { name: league.name, description: league.description ?? "", logoUrl: league.logo_url ?? null, accentColor: league.accent_color ?? null },
       season: null,
+      seasons: availableSeasons,
       ranking: [],
       matches: [],
       visibility: "empty",
@@ -165,6 +174,8 @@ export async function GET(
   return applyPrivateNoStore(NextResponse.json({
     league: { name: league.name, description: league.description ?? "", logoUrl: league.logo_url ?? null, accentColor: league.accent_color ?? null },
     season: { name: season.name, status: season.status, totalRounds: Number(season.total_rounds) || 0, completedRounds: Number(season.completed_rounds) || 0 },
+    seasonId: String(season.id),
+    seasons: availableSeasons,
     ranking,
     matches: safeMatches,
     visibility: locked ? "locked" : phase === "secrets" ? "secrets" : calendarIsProgressive ? "progressive" : "full",

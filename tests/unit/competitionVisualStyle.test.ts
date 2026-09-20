@@ -56,6 +56,8 @@ describe("Competition visual style", () => {
   it("keeps page titles inside a shared Competition panel without changing Classic", async () => {
     const css = await readFile("src/app/globals.css", "utf8")
     expect(css).toContain('html[data-visual-style="competition"] .app-page-header {')
+    expect(css).toContain('background-image: none !important;')
+    expect(css).toContain('html[data-visual-style="competition"] .app-shell-frame::before {')
     expect(css).toContain('border-left: .25rem solid var(--competition-accent);')
     expect(css).toContain('background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72));')
     expect(css).toContain('text-transform: none;')
