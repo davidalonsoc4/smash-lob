@@ -99,15 +99,17 @@ describe("public spectator data", () => {
     expect(flow).toContain('window.localStorage.setItem("smash-lob-active-league", invite.leagueId)')
     expect(flow).toContain('router.replace("/")')
     expect(flow).toContain("hasFullLeagueAccess")
-    expect(flow).toContain("hasStoredAppearancePreference")
     expect(flow).toContain("applySpectatorInviteAppearance")
   })
 
   it("does not mistake ThemeProvider defaults for an explicit appearance preference", async () => {
     const theme = await readFile("src/context/ThemeProvider.tsx", "utf8")
     const helper = await readFile("src/lib/spectatorTheme.ts", "utf8")
+    const publicView = await readFile("src/components/spectator/PublicSpectatorView.tsx", "utf8")
     expect(theme).toContain("APPEARANCE_PREFERENCE_STORAGE_KEY")
     expect(theme).toContain("readHadStoredAppearancePreference")
     expect(helper).toContain('localStorage.getItem(APPEARANCE_PREFERENCE_STORAGE_KEY) === "1"')
+    expect(theme).toContain('pathname.startsWith("/spectate/")')
+    expect(publicView).toContain('sessionStatus === "authenticated"')
   })
 })

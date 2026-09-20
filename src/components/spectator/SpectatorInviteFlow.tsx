@@ -14,7 +14,7 @@ import {
 } from "@/lib/spectatorInvites"
 import { useI18n } from "@/i18n/I18nProvider"
 import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
-import { applySpectatorInviteAppearance, hasStoredAppearancePreference } from "@/lib/spectatorTheme"
+import { applySpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 export function SpectatorInviteFlow() {
   const { tx } = useI18n()
@@ -71,7 +71,7 @@ export function SpectatorInviteFlow() {
   }, [code])
 
   useEffect(() => {
-    if (!invite || sessionStatus !== "unauthenticated" || hasStoredAppearancePreference()) return
+    if (!invite || sessionStatus === "authenticated") return
     applySpectatorInviteAppearance(invite.appearance)
   }, [invite, sessionStatus])
 

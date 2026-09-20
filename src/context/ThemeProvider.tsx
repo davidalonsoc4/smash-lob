@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { useSession } from "next-auth/react"
+import { usePathname } from "next/navigation"
 import {
   BASE_THEME_STORAGE_KEY,
   APPEARANCE_PREFERENCE_STORAGE_KEY,
@@ -135,6 +136,7 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status: sessionStatus } = useSession()
+  const pathname = usePathname()
   const initialAppearance = readStoredAppearance()
   const hadStoredAppearancePreference = useState(readHadStoredAppearancePreference)[0]
   const canUseCompetition = isCompetitionAvailable(session?.user?.email)
@@ -151,6 +153,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   )
 
   useEffect(() => {
+    // Public spectator pages use the immutable appearance carried by the
+    // invitation. Do not reapply a local account preference over it while the
+    // visitor is anonymous; the spectator components apply the invite once it
+    // has been fetched.
+    if (pathname.startsWith("/spectate/") && sessionStatus !== "authenticated") return
+
     const sessionResolved = sessionStatus !== "loading"
     const effectiveStyle = !sessionResolved || canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE
 
@@ -168,7 +176,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const handleChange = () => applyAppearance(themeMode, effectiveStyle, palette, leagueAccent, competitionAccent)
     media.addEventListener("change", handleChange)
     return () => media.removeEventListener("change", handleChange)
-  }, [canUseCompetition, competitionAccent, hadStoredAppearancePreference, leagueAccent, palette, sessionStatus, themeMode, visualStyle])
+  }, [canUseCompetition, competitionAccent, hadStoredAppearancePreference, leagueAccent, palette, pathname, sessionStatus, themeMode, visualStyle])
 
   const setThemeMode = useCallback((nextThemeMode: ThemeMode) => {
     window.localStorage.setItem(APPEARANCE_PREFERENCE_STORAGE_KEY, "1")

@@ -8,7 +8,7 @@ import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useI18n } from "@/i18n/I18nProvider"
 import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
 import type { PublicSpectatorMatch, PublicSpectatorRankingRow } from "@/lib/publicSpectator"
-import { applySpectatorInviteAppearance, hasStoredAppearancePreference, type SpectatorInviteAppearance } from "@/lib/spectatorTheme"
+import { applySpectatorInviteAppearance, type SpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 type PublicViewPayload = {
   league: { name: string; description: string; logoUrl: string | null }
@@ -122,7 +122,10 @@ export function PublicSpectatorView({ code }: { code: string }) {
   }, [code, selectedSeasonId])
 
   useEffect(() => {
-    if (!view || sessionStatus !== "unauthenticated" || hasStoredAppearancePreference()) return
+    // An anonymous spectator link carries the appearance chosen by its
+    // creator. Local theme storage belongs to signed-in app usage and must not
+    // override the invitation while no account is active.
+    if (!view || sessionStatus === "authenticated") return
     applySpectatorInviteAppearance(view.appearance)
   }, [sessionStatus, view])
 
@@ -139,7 +142,7 @@ export function PublicSpectatorView({ code }: { code: string }) {
                 <LeagueLogo league={{ name: view.league.name, logoUrl: view.league.logoUrl }} size="lg" />
                 <div className="min-w-0">
                   <p className="type-caption font-black uppercase tracking-[0.16em] text-white/60">{tx("Vista de espectador")}</p>
-                  <h1 className="public-spectator-league-title mt-1 break-words text-[clamp(1.25rem,6vw,1.75rem)] font-black leading-tight tracking-tight">{view.league.name}</h1>
+                  <h1 className="public-spectator-league-title mt-1 break-words text-[clamp(1.25rem,6vw,1.75rem)] font-black leading-tight tracking-tight text-white">{view.league.name}</h1>
                 </div>
               </div>
               {view.season ? (

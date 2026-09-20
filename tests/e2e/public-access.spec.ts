@@ -40,7 +40,13 @@ test("spectator invitation opens a read-only league without signing in", async (
       contentType: "application/json",
       body: JSON.stringify({
         league: { name: "Liga de prueba", description: "Competición de prueba", logoUrl: null },
-        appearance: null,
+        appearance: {
+          visualStyle: "classic",
+          baseTheme: "light",
+          palette: "indigo",
+          competitionAccent: "league",
+          accentColor: "#477BD1",
+        },
         season: { name: "Temporada activa", status: "active", totalRounds: 4, completedRounds: 1 },
         seasonId: "season-public-test",
         seasons: [{ id: "season-public-test", name: "Temporada activa", status: "active" }],
@@ -53,6 +59,7 @@ test("spectator invitation opens a read-only league without signing in", async (
 
   await page.goto(`/spectate/${code}/view`)
   await expect(page.getByRole("heading", { name: "Liga de prueba" })).toBeVisible()
+  await expect(page.locator("html")).toHaveAttribute("data-palette", "indigo")
   await expect(page.getByRole("heading", { name: "Clasificación" })).toBeVisible()
   await expect(page.getByText("Ana / Luis")).toBeVisible()
   await expect(page.getByText("Solo lectura · no se muestran datos personales ni actividad interna")).toBeVisible()
