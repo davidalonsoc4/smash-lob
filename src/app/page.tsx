@@ -23,6 +23,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useActiveLeague } from "@/context/ActiveLeagueProvider";
 import { useMvp } from "@/context/MvpProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
+import { writeSelectedSeasonId } from "@/lib/seasonSelection";
 import { useMatchData, type MatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -456,7 +457,7 @@ export default function Home() {
   const [isSeasonPickerOpen, setIsSeasonPickerOpen] = useState(false);
   const [selectedHomeSeasonId, setSelectedHomeSeasonId] = useState<string | null>(null);
   const { currentUserId, currentUser } = useCurrentUser();
-  const { activateLeague } = useActiveLeague();
+  const { activeLeagueId, activateLeague } = useActiveLeague();
   const {
     canAccessLeague,
     isLeagueAdmin,
@@ -464,6 +465,13 @@ export default function Home() {
     leagues,
   } = useLeagueAccess();
   const { votes } = useMvp();
+  const selectedHomeSeasonIdForLeague = selectedHomeSeasonId &&
+    seasons.some(
+      (season) =>
+        season.id === selectedHomeSeasonId && season.leagueId === activeLeagueId,
+    )
+    ? selectedHomeSeasonId
+    : null;
   const {
     activeLeague,
     activeSeason,
@@ -473,7 +481,7 @@ export default function Home() {
     rankingPlayers: seasonRankingPlayers,
     matches,
     rounds,
-  } = useCurrentLeagueData(selectedHomeSeasonId);
+  } = useCurrentLeagueData(selectedHomeSeasonIdForLeague);
 
   const canManageSeason = isLeagueAdmin(activeLeague.id);
   const spectatorMode = isLeagueSpectator(activeLeague.id);
@@ -884,7 +892,7 @@ export default function Home() {
                   {isSeasonPickerOpen ? (
                     <div id="home-season-picker" role="menu" aria-label={tx("Cambiar temporada")} className="absolute left-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                       {selectableHomeSeasons.map((season) => (
-                        <button key={season.id} type="button" role="menuitemradio" aria-checked={season.id === activeSeason.id} onClick={() => { setSelectedHomeSeasonId(season.id); setIsSeasonPickerOpen(false); }} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-black transition ${season.id === activeSeason.id ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"}`}>
+                        <button key={season.id} type="button" role="menuitemradio" aria-checked={season.id === activeSeason.id} onClick={() => { writeSelectedSeasonId(activeLeague.id, season.id); setSelectedHomeSeasonId(season.id); setIsSeasonPickerOpen(false); }} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-black transition ${season.id === activeSeason.id ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"}`}>
                           <span className="min-w-0"><span className="block truncate">{season.name}</span><span className="mt-0.5 block type-caption font-semibold text-neutral-500">{season.status === "finished" ? t.common.finishedSeasonBadge : season.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}</span></span>
                           {season.id === activeSeason.id ? <span aria-hidden="true">✓</span> : null}
                         </button>

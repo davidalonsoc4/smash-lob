@@ -23,6 +23,8 @@ import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { getAppBranding } from "@/lib/appVariant"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 import { applyAppFontSize, readStoredAppFontSize } from "@/lib/fontSizePreference"
+import { readSelectedSeasonId } from "@/lib/seasonSelection"
+import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
 import { BottomNav } from "./BottomNav"
 
 type AppShellProps = {
@@ -224,16 +226,43 @@ export function AppShell({ children }: AppShellProps) {
   const isInitialSeasonSetupRoute =
     pathname === "/admin/season" &&
     !seasons.some((season) => season.leagueId === activeLeagueId)
-  const activeSeason = seasons.find(
-    (season) => season.leagueId === activeLeagueId && season.status !== "finished",
-  )
+  const selectedSeasonId = readSelectedSeasonId(activeLeagueId)
+  const selectedSeason = selectedSeasonId
+    ? seasons.find(
+        (season) =>
+          season.id === selectedSeasonId && season.leagueId === activeLeagueId,
+      ) ?? null
+    : null
+  const activeSeason =
+    selectedSeason ??
+    seasons.find(
+      (season) => season.leagueId === activeLeagueId && season.status !== "finished",
+    ) ??
+    null
   const activeRoundSettings = activeSeason
     ? seasonSettings.find((settings) => settings.seasonId === activeSeason.id)
     : null
   const spectatorMode = isLeagueSpectator(activeLeagueId)
   const activeMembership = getMembershipForLeague(activeLeagueId)
+  const competitionAdmin = isLeagueAdmin(activeLeagueId)
   const canAccessAdmin = canAccessLeagueAdminTools(activeLeagueId)
   const hasAdminRole = hasLeagueAdminRole(activeLeagueId)
+  const scheduledSeasonHomeOnly = Boolean(
+    activeSeason &&
+      activeRoundSettings &&
+      !spectatorMode &&
+      isScheduledSeasonHomeLocked(
+        activeSeason.status,
+        activeRoundSettings.scheduledStartAt,
+        competitionAdmin,
+      ),
+  )
+  const isScheduledSeasonUtilityRoute =
+    pathname === "/" ||
+    isSettingsContextRoute ||
+    isPersonalMatchesRoute ||
+    isPublicAccessRoute ||
+    pathname === "/notifications"
   const canCreateLeague = canCreateLeagues && canAccessAdmin
   const canSelfUnlink = Boolean(
     activeMembership && activeMembership.role !== "creator",
@@ -249,7 +278,10 @@ export function AppShell({ children }: AppShellProps) {
       router.replace("/settings")
       return
     }
-  }, [canAccessAdmin, pathname, router])
+    if (scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute) {
+      router.replace("/")
+    }
+  }, [canAccessAdmin, isScheduledSeasonUtilityRoute, pathname, router, scheduledSeasonHomeOnly])
 
   const shouldShowSettingsSearch =
     settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute && !isPersonalMatchesRoute
@@ -421,8 +453,23 @@ export function AppShell({ children }: AppShellProps) {
             } as CSSProperties
           }
         >
-          {pathname === "/" ? <PendingAccessIntentNotice /> : null}
-          {children}
+          {scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute ? (
+            <div
+              data-scheduled-season-home-lock
+              aria-live="polite"
+              className="rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm"
+            >
+              <p className="type-panel-title font-black text-neutral-950">{tx("Temporada programada")}</p>
+              <p className="mt-1 text-sm font-semibold text-neutral-600">
+                {tx("Esta sección estará disponible cuando comience la temporada. Volviendo a Inicio…")} {" "}
+              </p>
+            </div>
+          ) : (
+            <>
+              {pathname === "/" ? <PendingAccessIntentNotice /> : null}
+              {children}
+            </>
+          )}
         </main>
 
         {shouldShowSettingsSearch ? (
@@ -437,7 +484,7 @@ export function AppShell({ children }: AppShellProps) {
 
         <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav || shouldShowPersonalMatchesNav} />
 
-        {shouldShowBottomNav ? <BottomNav /> : null}
+        {shouldShowBottomNav ? <BottomNav homeOnlyLocked={scheduledSeasonHomeOnly} /> : null}
         {shouldShowPersonalMatchesNav ? <PersonalMatchesNav /> : null}
       </div>
     </div>

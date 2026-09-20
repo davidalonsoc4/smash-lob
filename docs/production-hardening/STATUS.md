@@ -1825,3 +1825,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La migración se aplicó con `npx supabase db push --linked`; la lista remota quedó alineada con todas las migraciones locales.
 - `npx supabase db lint --linked --schema public` terminó sin errores.
 - La CLI se volvió a enlazar al proyecto PRE `miadjotkucgluwbrgeih` después de la operación.
+
+## Bloqueo por temporada y panel de inscripciones en Competition (2026-09-20)
+
+- La temporada elegida en HOME se persiste por liga en `localStorage` y se reutiliza al navegar por el resto de la aplicación. Esto permite consultar temporadas terminadas con normalidad aunque exista otra temporada programada en la misma liga.
+- El bloqueo global de la experiencia jugador vuelve a estar acotado a la temporada seleccionada: las temporadas con inicio programado (incluida la fase de secretos) mantienen la vista de espera, mientras que una temporada terminada no queda bloqueada. Administración, ajustes, partidos personales, notificaciones y accesos públicos conservan sus rutas de utilidad.
+- El panel de Inscripciones recibe una superficie Competition específica, con contraste, bordes, estados de pago y avisos legibles en oscuro. Las reglas quedan bajo `data-visual-style="competition"`; Classic no cambia.
+- Validación focalizada: 23 pruebas unitarias, ESLint de los archivos modificados y TypeScript pasan. No se ha desplegado.

@@ -147,9 +147,12 @@ describe("v1.10.0 scheduled season start", () => {
       read("src/components/layout/BottomNav.tsx"),
     ])
 
-    expect(shell).not.toContain("isScheduledSeasonHomeLocked")
-    expect(shell).not.toContain("data-scheduled-season-home-lock")
-    expect(shell).not.toContain("homeOnlyLocked={scheduledSeasonHomeOnly}")
+    expect(shell).toContain("isScheduledSeasonHomeLocked")
+    expect(shell).toContain("readSelectedSeasonId")
+    expect(shell).toContain("data-scheduled-season-home-lock")
+    expect(shell).toContain("homeOnlyLocked={scheduledSeasonHomeOnly}")
+    expect(shell).toContain("const selectedSeason =")
+    expect(shell).toContain("const isScheduledSeasonUtilityRoute =")
     expect(shell).toContain("{children}")
     expect(shell).not.toContain("Activar VISTA ADMIN")
     expect(shell).not.toContain("setAdminViewEnabled(true)")

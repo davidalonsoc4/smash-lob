@@ -119,11 +119,11 @@ export function SeasonRegistrationPanel({
   }
   const content = (
     <>
-      <div className="flex items-center justify-between gap-2">
+      <div className="season-registration-header flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-black text-emerald-950">
+          <p className="season-registration-title truncate text-sm font-black text-emerald-950">
             {tx("Inscripciones")}
-            <span className="ml-1.5 text-xs font-bold text-emerald-700">
+            <span className="season-registration-amount ml-1.5 text-xs font-bold text-emerald-700">
               · {formatMoney(registrationFee.amount)}{tx("/jugador")}{" "}</span>
           </p>
         </div>
@@ -132,7 +132,7 @@ export function SeasonRegistrationPanel({
         </span>
       </div>
       {canManage ? (
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 rounded-xl bg-white/75 px-2.5 py-1.5">
+        <div className="season-registration-summary mt-2 flex flex-wrap items-center justify-between gap-1.5 rounded-xl bg-white/75 px-2.5 py-1.5">
           <p className="type-caption font-semibold text-neutral-600">
             <strong className="font-black text-neutral-950">
               {pendingPlayers.length}
@@ -155,16 +155,16 @@ export function SeasonRegistrationPanel({
           ) : null}
         </div>
       ) : currentUserPayment && !currentUserPayment.isPaid ? (
-        <p className="mt-2 rounded-xl bg-amber-50 px-2.5 py-1.5 type-caption font-semibold text-amber-900">
+        <p className="season-registration-owed mt-2 rounded-xl bg-amber-50 px-2.5 py-1.5 type-caption font-semibold text-amber-900">
           {tx("Debes")} {formatMoney(registrationFee.amount)} {tx("a")}{" "}
           {organizerName?.trim() || tx("la organización")}.
         </p>
       ) : null}
       {isSeasonUpcoming && pendingPlayers.length > 0 ? (
-        <p className="mt-1.5 type-caption font-semibold leading-4 text-amber-900">
+        <p className="season-registration-upcoming mt-1.5 type-caption font-semibold leading-4 text-amber-900">
           {tx("La temporada no puede comenzar hasta saldar todas las inscripciones.")}{" "}</p>
       ) : null}
-      <details className="mt-1.5 rounded-xl bg-white/65 px-2.5 py-1.5">
+      <details className="season-registration-details mt-1.5 rounded-xl bg-white/65 px-2.5 py-1.5">
         <summary className="cursor-pointer type-caption font-black text-emerald-900">
           {tx("Destino de la inscripción")}{" "}</summary>
         <p className="mt-1 type-caption font-semibold leading-4 text-neutral-600">
@@ -175,7 +175,7 @@ export function SeasonRegistrationPanel({
         <button
           type="button"
           onClick={() => setArePaymentsExpanded((current) => !current)}
-          className="mt-1.5 flex w-full items-center justify-between rounded-xl bg-white/80 px-2.5 py-1.5 text-left type-caption font-black text-neutral-800 transition active:scale-[0.99]"
+          className="season-registration-manage-toggle mt-1.5 flex w-full items-center justify-between rounded-xl bg-white/80 px-2.5 py-1.5 text-left type-caption font-black text-neutral-800 transition active:scale-[0.99]"
           aria-expanded={arePaymentsExpanded}
         >
           <span>{arePaymentsExpanded ? "Ocultar pagos" : "Gestionar pagos"}</span>
@@ -198,7 +198,7 @@ export function SeasonRegistrationPanel({
             return (
               <div
                 key={player.id}
-                className="flex min-h-10 items-center gap-2 rounded-xl bg-white/80 px-2 py-1.5"
+                className="season-registration-player-row flex min-h-10 items-center gap-2 rounded-xl bg-white/80 px-2 py-1.5"
               >
                 <PlayerAvatar
                   player={player}
@@ -206,7 +206,7 @@ export function SeasonRegistrationPanel({
                   className="bg-neutral-950 text-white"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-black text-neutral-950">
+                  <p className="season-registration-player-name truncate text-xs font-black text-neutral-950">
                     {player.displayName}
                   </p>
                   <div className="mt-0.5 flex items-center gap-1.5">
@@ -246,7 +246,7 @@ export function SeasonRegistrationPanel({
     </>
   )
   if (embedded) {
-    return <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-2.5">{content}</div>
+    return <div className="season-registration-panel rounded-2xl border border-emerald-200 bg-emerald-50 p-2.5">{content}</div>
   }
-  return <AppCard className="border-emerald-200 bg-emerald-50 p-2.5">{content}</AppCard>
+  return <AppCard className="season-registration-panel border-emerald-200 bg-emerald-50 p-2.5">{content}</AppCard>
 }

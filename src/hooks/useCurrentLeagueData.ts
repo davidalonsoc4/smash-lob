@@ -12,6 +12,7 @@ import {
 } from "@/lib/leagues"
 import { buildSeasonRounds } from "@/lib/rounds"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
+import { readSelectedSeasonId } from "@/lib/seasonSelection"
 
 export function useCurrentLeagueData(selectedSeasonId?: string | null) {
   const { activeLeagueId } = useActiveLeague()
@@ -59,10 +60,11 @@ export function useCurrentLeagueData(selectedSeasonId?: string | null) {
         .at(-1) ?? null
     : null
 
-  const requestedSeason = selectedSeasonId
+  const requestedSeasonId = selectedSeasonId ?? readSelectedSeasonId(activeLeague.id)
+  const requestedSeason = requestedSeasonId
     ? seasons.find(
         (season) =>
-          season.id === selectedSeasonId && season.leagueId === activeLeague.id,
+          season.id === requestedSeasonId && season.leagueId === activeLeague.id,
       ) ?? null
     : null
   const baseActiveSeason =

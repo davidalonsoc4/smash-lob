@@ -79,4 +79,15 @@ describe("Competition visual style", () => {
     expect(css).toContain('background: #111827 !important;')
     expect(publicView).toContain('public-spectator-match-card')
   })
+
+  it("keeps scheduled registration legible on the dark Competition surface", async () => {
+    const css = await readFile("src/app/globals.css", "utf8")
+    const panel = await readFile("src/components/season/SeasonRegistrationPanel.tsx", "utf8")
+    expect(panel).toContain("season-registration-panel")
+    expect(panel).toContain("season-registration-summary")
+    expect(css).toContain('html[data-visual-style="competition"] .season-registration-panel {')
+    expect(css).toContain(".season-registration-owed")
+    expect(css).toContain(".season-registration-panel .status-tone-green")
+    expect(css).toContain(".season-registration-panel .bg-emerald-600")
+  })
 })

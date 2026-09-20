@@ -2220,6 +2220,52 @@ html[data-visual-style="competition"] textarea {
 html[data-visual-style="competition"] input::placeholder,
 html[data-visual-style="competition"] textarea::placeholder { color: var(--competition-text-subtle) !important; }
 
+/* Scheduled-season registration is rendered as an embedded surface on HOME,
+   so it does not inherit the `.app-card` Competition treatment by itself.
+   Keep the Classic emerald/amber palette intact and remap only this panel
+   when Competition is active. */
+html[data-visual-style="competition"] .season-registration-panel {
+  background: linear-gradient(145deg, rgb(20 21 24 / .96), rgb(27 29 33 / .86)) !important;
+  border-color: var(--competition-border) !important;
+  color: var(--competition-text) !important;
+  box-shadow: 0 14px 30px rgb(0 0 0 / .2) !important;
+}
+html[data-visual-style="competition"] .season-registration-title,
+html[data-visual-style="competition"] .season-registration-player-name {
+  color: var(--competition-text) !important;
+}
+html[data-visual-style="competition"] .season-registration-amount,
+html[data-visual-style="competition"] .season-registration-details summary {
+  color: var(--competition-accent) !important;
+}
+html[data-visual-style="competition"] .season-registration-summary,
+html[data-visual-style="competition"] .season-registration-details,
+html[data-visual-style="competition"] .season-registration-manage-toggle,
+html[data-visual-style="competition"] .season-registration-player-row {
+  background: rgb(34 37 42 / .72) !important;
+  border: 1px solid rgb(72 78 88 / .72);
+  color: var(--competition-text) !important;
+}
+html[data-visual-style="competition"] .season-registration-owed,
+html[data-visual-style="competition"] .season-registration-upcoming {
+  background: rgb(161 112 22 / .2) !important;
+  color: #f4c86b !important;
+}
+html[data-visual-style="competition"] .season-registration-panel .bg-emerald-600 {
+  background: var(--competition-accent) !important;
+  color: var(--competition-accent-contrast) !important;
+}
+html[data-visual-style="competition"] .season-registration-panel .status-tone-green {
+  background: rgb(61 157 134 / .24) !important;
+  color: #9de4d2 !important;
+  --tw-ring-color: rgb(61 157 134 / .48) !important;
+}
+html[data-visual-style="competition"] .season-registration-panel .status-tone-amber {
+  background: rgb(161 112 22 / .24) !important;
+  color: #f4c86b !important;
+  --tw-ring-color: rgb(161 112 22 / .48) !important;
+}
+
 html[data-visual-style="competition"] .app-bottom-nav,
 html[data-visual-style="competition"] .personal-matches-bottom-nav,
 html[data-visual-style="competition"] .app-floating-control {

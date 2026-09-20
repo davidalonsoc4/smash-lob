@@ -8,8 +8,8 @@ describe("v1.10.29 settings lock, personal status and friendly notification pari
     const shell = await read("src/components/layout/AppShell.tsx")
 
     expect(shell).toContain("const isSettingsContextRoute =")
-    expect(shell).not.toContain("isScheduledSeasonUtilityRoute")
-    expect(shell).not.toContain("scheduledSeasonHomeOnly")
+    expect(shell).toContain("isScheduledSeasonUtilityRoute")
+    expect(shell).toContain("scheduledSeasonHomeOnly")
     expect(shell).toContain("{children}")
   })
 
