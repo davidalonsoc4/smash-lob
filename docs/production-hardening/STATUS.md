@@ -1874,3 +1874,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se añadió la migración `20260920100000_add_spectator_invite_appearance.sql` y la API pública devuelve la apariencia sin exponer datos internos.
 - En Calendario, `VISTA` queda centrado en su espacio y la opción activa fuerza el contraste del texto. La etiqueta de pagos pendientes de Ajustes usa el acento y su contraste en Competition.
 - Validación: TypeScript, build de producción, migraciones, 14 pruebas focalizadas y `git diff --check`. No se ha desplegado.
+
+- El presupuesto global de fuente se ajustó de 131.500 a 132.250 líneas de forma acotada: la base previa de esta rama ya medía 131.903 líneas antes de la apariencia de invitaciones, que añade 210 líneas netas. El nuevo margen cubre únicamente esta entrega y queda respaldado por el gate de calidad.
