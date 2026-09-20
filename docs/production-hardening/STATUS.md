@@ -1884,4 +1884,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Axe detectó y se corrigieron contrastes insuficientes en los estados de jornadas, las tarjetas de Estadísticas y el bloque de imágenes del resumen de temporada.
 - Se regeneraron las referencias visuales de los recorridos E2E tras los cambios de diseño vigentes.
 - Suite unitaria: 205 archivos y 789 tests correctos. E2E focalizado de accesibilidad y espectador: 24 tests correctos. Recorrido visual actualizado: 20 tests correctos.
-- `release:check` queda pendiente de repetición completa tras estos ajustes antes de publicar.
+- `release:check` completo correcto tras estos ajustes: validación, 205 archivos/789 tests unitarios, build y presupuesto, 68 pruebas E2E y `npm audit --omit=dev --audit-level=high` sin vulnerabilidades.
