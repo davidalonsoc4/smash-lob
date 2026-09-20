@@ -1786,3 +1786,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Competition mantiene Classic como valor predeterminado y queda disponible únicamente para la allowlist de `NEXT_PUBLIC_COMPETITION_STYLE_ALLOWED_EMAILS`, también en desarrollo local.
 - La cuenta autorizada para esta fase es `davidalonsoc4@gmail.com`; el selector se oculta a las demás cuentas.
 - La sesión Auth.js se resuelve antes del `ThemeProvider` para aplicar el permiso también en PRE/PROD, sin depender solo de `localStorage`.
+- PRE desplegado y verificado en `https://pre.smashandlob.com` con v1.15.4 y `staging` apuntando a `dbf08fa`; PROD no se ha modificado.
