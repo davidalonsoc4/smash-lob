@@ -1787,3 +1787,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La cuenta autorizada para esta fase es `davidalonsoc4@gmail.com`; el selector se oculta a las demás cuentas.
 - La sesión Auth.js se resuelve antes del `ThemeProvider` para aplicar el permiso también en PRE/PROD, sin depender solo de `localStorage`.
 - PRE desplegado y verificado en `https://pre.smashandlob.com` con v1.15.4 y `staging` apuntando a `dbf08fa`; PROD no se ha modificado.
+
+## Invitación de espectador — salida y recuperación de sesión (2026-09-20)
+
+- La pantalla de invitación limpia al abrirse la cookie de recuperación de PWA; cerrar la aplicación ya no vuelve a forzar la invitación en el siguiente arranque.
+- La entrada anónima a la vista pública limpia también la cookie antes de navegar, y se puede cancelar explícitamente con `Cancelar invitación`, que devuelve a la entrada normal de la aplicación.
+- Se mantiene el enlace directo a la vista pública y se han añadido las traducciones de la nueva acción en español, inglés y euskera.

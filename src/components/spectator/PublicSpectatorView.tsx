@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useI18n } from "@/i18n/I18nProvider"
+import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
 import type { PublicSpectatorMatch, PublicSpectatorRankingRow } from "@/lib/publicSpectator"
 
 type PublicViewPayload = {
@@ -81,6 +82,8 @@ export function PublicSpectatorView({ code }: { code: string }) {
 
   useEffect(() => {
     let cancelled = false
+    void clearPendingAccessIntent()
+
     fetch(`/api/public-spectator/${encodeURIComponent(code)}`, { cache: "no-store" })
       .then(async (response) => {
         if (response.status === 404) return null

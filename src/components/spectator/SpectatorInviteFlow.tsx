@@ -24,11 +24,17 @@ export function SpectatorInviteFlow() {
   const [invite, setInvite] = useState<SpectatorInviteSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isJoining, setIsJoining] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
+
+    // The invite URL itself is enough to keep this screen available. Clear the
+    // PWA recovery hint as soon as the invite is opened so closing the app does
+    // not make the same invitation block the normal login on the next launch.
+    void clearPendingAccessIntent()
 
     async function loadInvite() {
       try {
@@ -75,6 +81,14 @@ export function SpectatorInviteFlow() {
       setError("No se ha podido activar el acceso de espectador.")
       setIsJoining(false)
     }
+  }
+
+  async function handleCancel() {
+    if (isCancelling) return
+
+    setIsCancelling(true)
+    await clearPendingAccessIntent()
+    router.replace("/")
   }
 
   return (
@@ -130,6 +144,11 @@ export function SpectatorInviteFlow() {
 
               <Link
                 href={`/spectate/${encodeURIComponent(code)}/view`}
+                onClick={async (event) => {
+                  event.preventDefault()
+                  await clearPendingAccessIntent()
+                  router.replace(`/spectate/${encodeURIComponent(code)}/view`)
+                }}
                 className="mt-4 flex w-full items-center justify-center rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white"
               >
                 {tx("Ver liga sin iniciar sesión")}
@@ -153,6 +172,15 @@ export function SpectatorInviteFlow() {
                   {tx("O inicia sesión para guardar esta liga en tu cuenta")}
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={() => void handleCancel()}
+                disabled={isCancelling}
+                className="mt-3 w-full px-3 py-2 text-center text-xs font-bold text-neutral-500 underline underline-offset-2 disabled:text-neutral-300"
+              >
+                {isCancelling ? tx("Cancelando...") : tx("Cancelar invitación")}
+              </button>
 
               {error ? (
                 <p className="mt-3 text-sm font-semibold text-red-600">

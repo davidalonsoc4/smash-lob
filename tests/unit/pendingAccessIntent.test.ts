@@ -127,4 +127,16 @@ describe("recoverable invitation entry", () => {
     expect(spectatorFlow).toContain("await clearPendingAccessIntent()")
     expect(launchPage).toContain('redirect(pendingDestination ?? "/")')
   })
+
+  it("does not leave spectator recovery blocking the next app launch", async () => {
+    const [inviteFlow, publicView] = await Promise.all([
+      readFile("src/components/spectator/SpectatorInviteFlow.tsx", "utf8"),
+      readFile("src/components/spectator/PublicSpectatorView.tsx", "utf8"),
+    ])
+
+    expect(inviteFlow).toContain('tx("Cancelar invitación")')
+    expect(inviteFlow).toContain('router.replace("/")')
+    expect(inviteFlow).toContain("router.replace(`/spectate/${encodeURIComponent(code)}/view`)")
+    expect(publicView).toContain("void clearPendingAccessIntent()")
+  })
 })
