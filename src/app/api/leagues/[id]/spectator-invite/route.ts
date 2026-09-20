@@ -53,7 +53,7 @@ export async function POST(
   const requestedAppearance = DEFAULT_SPECTATOR_INVITE_APPEARANCE
   const { data: existingInvite, error: existingInviteError } = await supabase
     .from("spectator_invites")
-    .select("id,code,theme_visual_style,theme_base,theme_palette,theme_competition_accent,theme_accent_color")
+    .select("id,code")
     .eq("league_id", leagueId)
     .eq("is_active", true)
     .order("created_at", { ascending: false })

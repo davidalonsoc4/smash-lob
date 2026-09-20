@@ -38,7 +38,7 @@ export async function GET(
 
   const { data: invite, error: inviteError } = await supabase
     .from("spectator_invites")
-    .select("league_id,theme_visual_style,theme_base,theme_palette,theme_competition_accent,theme_accent_color")
+    .select("league_id")
     .eq("code", code)
     .eq("is_active", true)
     .maybeSingle()

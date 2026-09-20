@@ -22,7 +22,7 @@ async function resolveInvite(code: string) {
 
   const { data: invite, error: inviteError } = await supabase
     .from("spectator_invites")
-    .select("id,league_id,code,is_active,created_at,theme_visual_style,theme_base,theme_palette,theme_competition_accent,theme_accent_color")
+    .select("id,league_id,code,is_active")
     .eq("code", code)
     .eq("is_active", true)
     .maybeSingle()
