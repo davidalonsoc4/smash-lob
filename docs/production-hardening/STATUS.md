@@ -1897,4 +1897,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Los logs de PROD mostraron que `/spectate/:code` fallaba al renderizar con `useLeagueAccess must be used inside LeagueAccessProvider`: las rutas públicas omiten deliberadamente los proveedores autenticados, pero la pantalla intermedia todavía intentaba usar ese hook.
 - La API de invitaciones resuelve ahora de forma segura si la sesión actual pertenece a la liga (o es superusuario) y devuelve solo el estado `viewerAccess`; la pantalla pública ya no depende de `LeagueAccessProvider`.
 - Se añadió una prueba E2E de la pantalla intermedia anónima para evitar que vuelva a aparecer el error genérico “Algo no ha salido bien”.
-- Validación focalizada: 17 tests unitarios, 4 E2E de espectadores, ESLint, TypeScript y `git diff --check` correctos. Pendiente publicar esta corrección en PROD.
+- Validación focalizada: 17 tests unitarios, 4 E2E de espectadores, ESLint, TypeScript, build de producción y `git diff --check` correctos.
+- El commit `0288fbf6` se publicó en PROD como deployment `dpl_FUx4AYwrQSQYADKXuZpYfYwnJS2N`; quedó `Ready` y el alias `https://smashandlob.com` apunta a él. Health check y `smoke:prod` pasan. La ruta real `/spectate/SP-58ZK-GUD9D-FDE3` responde sin el error de proveedor y no aparecen nuevas incidencias `1295237974` en los logs.
