@@ -1816,4 +1816,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Las tarjetas de partidos de la vista pública siguen la misma distribución de cabecera, parejas, tanteo y metadatos que Calendario, manteniendo la sanitización de datos públicos.
 - El bloqueo de una temporada con inicio programado deja de ser global en `AppShell`: cada pantalla aplica el bloqueo según la temporada que realmente está mostrando. Una temporada anterior se puede consultar y utilizar con normalidad.
 - Si una persona autenticada abre un enlace de espectador de una liga a la que ya pertenece, la aplicación selecciona esa liga y abre la experiencia completa; los usuarios sin membresía conservan el flujo de solo lectura.
-- Se añadieron pruebas de regresión para contraste Classic, distribución pública, alcance del bloqueo y redirección de miembros. No se ha desplegado.
+- Se añadieron pruebas de regresión para contraste Classic, distribución pública, alcance del bloqueo y redirección de miembros.
+- La línea completa de la rama (`26` commits por delante de `origin/main`) se publicó en PRE como `dpl_EUm9BfzekUzK5VbcvaMZaopexMrW` y en PROD como `dpl_wRgjMQ1NjdSCtQzBrmRVTgTwzEFa`; ambos deployments quedaron `Ready` y los health checks devuelven `1.15.4` en su entorno.
