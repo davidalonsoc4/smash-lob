@@ -1842,3 +1842,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La selección de temporada emite un evento de cambio en la misma pestaña y la AppShell actualiza de inmediato el estado de la BottomNav y del bloqueo de temporadas programadas. También se sincronizan cambios realizados desde otra pestaña mediante el evento `storage`.
 - Alternar entre una temporada terminada y otra programada ya no requiere recargar la aplicación para recuperar o restringir la navegación.
 - Validación focalizada: 20 pruebas unitarias, ESLint, TypeScript y `git diff --check` pasan. Aún no se ha desplegado este ajuste.
+
+- El commit `ea67a3f0` se publicó en PRE como `dpl_EYCT9fntL83KFTtpeacY9h4a1oi2` y en PROD como `dpl_ELHq99Rk8urTaFA6HAgHaxQisksU`; ambos deployments quedaron `Ready`. Los health checks devuelven `1.15.4/pre` y `1.15.4/prod` respectivamente.
