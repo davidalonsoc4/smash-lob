@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { readFile } from "node:fs/promises"
 import { sanitizePublicSpectatorMatch } from "@/lib/publicSpectator"
 
 describe("public spectator data", () => {
@@ -70,5 +71,14 @@ describe("public spectator data", () => {
     expect(result.scheduledAt).toBe("2026-09-17T18:00:00.000Z")
     expect(JSON.stringify(result)).not.toContain("Ana")
     expect(JSON.stringify(result)).not.toContain("player-a")
+  })
+
+  it("opens the full league for an authenticated member using a spectator link", async () => {
+    const flow = await readFile("src/components/spectator/SpectatorInviteFlow.tsx", "utf8")
+    expect(flow).toContain("getMembershipForLeague(invite.leagueId)")
+    expect(flow).toContain("isAccessHydrated")
+    expect(flow).toContain('window.localStorage.setItem("smash-lob-active-league", invite.leagueId)')
+    expect(flow).toContain('router.replace("/")')
+    expect(flow).toContain("hasFullLeagueAccess")
   })
 })

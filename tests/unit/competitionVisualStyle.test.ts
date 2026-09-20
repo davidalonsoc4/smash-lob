@@ -75,5 +75,8 @@ describe("Competition visual style", () => {
     expect(themeProvider).toContain('if (sessionResolved) window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, effectiveStyle)')
     expect(publicView).toContain('public-spectator-league-title')
     expect(publicView).toContain('data-public-season-selector')
+    expect(css).toContain('.public-spectator-hero {')
+    expect(css).toContain('background: #111827 !important;')
+    expect(publicView).toContain('public-spectator-match-card')
   })
 })

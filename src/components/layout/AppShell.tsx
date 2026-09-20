@@ -23,7 +23,6 @@ import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { getAppBranding } from "@/lib/appVariant"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 import { applyAppFontSize, readStoredAppFontSize } from "@/lib/fontSizePreference"
-import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
 import { BottomNav } from "./BottomNav"
 
 type AppShellProps = {
@@ -233,25 +232,8 @@ export function AppShell({ children }: AppShellProps) {
     : null
   const spectatorMode = isLeagueSpectator(activeLeagueId)
   const activeMembership = getMembershipForLeague(activeLeagueId)
-  const competitionAdmin = isLeagueAdmin(activeLeagueId)
   const canAccessAdmin = canAccessLeagueAdminTools(activeLeagueId)
   const hasAdminRole = hasLeagueAdminRole(activeLeagueId)
-  const scheduledSeasonHomeOnly = Boolean(
-    activeSeason &&
-      activeRoundSettings &&
-      !spectatorMode &&
-      isScheduledSeasonHomeLocked(
-        activeSeason.status,
-        activeRoundSettings.scheduledStartAt,
-        competitionAdmin,
-      ),
-  )
-  const isScheduledSeasonUtilityRoute =
-    pathname === "/" ||
-    isSettingsContextRoute ||
-    isPersonalMatchesRoute ||
-    isPublicAccessRoute ||
-    pathname === "/notifications"
   const canCreateLeague = canCreateLeagues && canAccessAdmin
   const canSelfUnlink = Boolean(
     activeMembership && activeMembership.role !== "creator",
@@ -267,10 +249,7 @@ export function AppShell({ children }: AppShellProps) {
       router.replace("/settings")
       return
     }
-    if (scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute) {
-      router.replace("/")
-    }
-  }, [canAccessAdmin, isScheduledSeasonUtilityRoute, pathname, router, scheduledSeasonHomeOnly])
+  }, [canAccessAdmin, pathname, router])
 
   const shouldShowSettingsSearch =
     settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute && !isPersonalMatchesRoute
@@ -442,22 +421,8 @@ export function AppShell({ children }: AppShellProps) {
             } as CSSProperties
           }
         >
-          {scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute ? (
-            <div
-              data-scheduled-season-home-lock
-              aria-live="polite"
-              className="rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm"
-            >
-              <p className="type-panel-title font-black text-neutral-950">{tx("Temporada programada")}</p>
-              <p className="mt-1 text-sm font-semibold text-neutral-600">
-                {tx("Esta sección estará disponible cuando comience la temporada. Volviendo a Inicio…")}{" "}</p>
-            </div>
-          ) : (
-            <>
-              {pathname === "/" ? <PendingAccessIntentNotice /> : null}
-              {children}
-            </>
-          )}
+          {pathname === "/" ? <PendingAccessIntentNotice /> : null}
+          {children}
         </main>
 
         {shouldShowSettingsSearch ? (
@@ -472,7 +437,7 @@ export function AppShell({ children }: AppShellProps) {
 
         <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav || shouldShowPersonalMatchesNav} />
 
-        {shouldShowBottomNav ? <BottomNav homeOnlyLocked={scheduledSeasonHomeOnly} /> : null}
+        {shouldShowBottomNav ? <BottomNav /> : null}
         {shouldShowPersonalMatchesNav ? <PersonalMatchesNav /> : null}
       </div>
     </div>

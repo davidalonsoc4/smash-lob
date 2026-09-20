@@ -2099,6 +2099,19 @@ html[data-match-chat-active="true"] body { background: var(--app-match-chat-safe
 html.dark[data-style="plain"] .chat-list-stack::before { background: linear-gradient(180deg,#dbe6f3,#536a84 58%,#9fb1c7); }
 html.colorful .chat-list-stack::before { background: linear-gradient(180deg,var(--colorful-primary),var(--colorful-secondary),var(--colorful-accent)); }
 
+/* Public spectator pages keep a high-contrast identity in Classic too. The
+   AppCard utility adds a white background after the component class, so make
+   the hero explicit instead of relying on inherited text colour. Competition
+   overrides this block below with its glass surface. */
+.public-spectator-hero {
+  background: #111827 !important;
+  border-color: #1f2937 !important;
+  color: #ffffff !important;
+}
+.public-spectator-hero .text-white {
+  color: #ffffff !important;
+}
+
 /* Experimental COMPETITION visual system. It is intentionally scoped to the
    data attribute so Classic keeps its existing rendering and tokens. */
 html[data-visual-style="competition"] {

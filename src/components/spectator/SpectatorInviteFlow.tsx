@@ -14,10 +14,12 @@ import {
 } from "@/lib/spectatorInvites"
 import { useI18n } from "@/i18n/I18nProvider"
 import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 
 export function SpectatorInviteFlow() {
   const { tx } = useI18n()
   const { data: session } = useSession()
+  const { getMembershipForLeague, isAccessHydrated, isSuperuser } = useLeagueAccess()
   const params = useParams<{ code: string }>()
   const router = useRouter()
   const code = decodeURIComponent(params.code ?? "").trim().toUpperCase()
@@ -27,6 +29,12 @@ export function SpectatorInviteFlow() {
   const [isCancelling, setIsCancelling] = useState(false)
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const hasFullLeagueAccess = Boolean(
+    invite &&
+      session?.user &&
+      isAccessHydrated &&
+      (isSuperuser || getMembershipForLeague(invite.leagueId)),
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -63,6 +71,17 @@ export function SpectatorInviteFlow() {
       cancelled = true
     }
   }, [code])
+
+  useEffect(() => {
+    if (!hasFullLeagueAccess || !invite) return
+
+    // A spectator URL is also a convenient deep link for members who already
+    // belong to the league. Keep their full player/admin experience instead
+    // of downgrading the active league to the public read-only view.
+    window.localStorage.setItem("smash-lob-active-league", invite.leagueId)
+    void clearPendingAccessIntent()
+    router.replace("/")
+  }, [hasFullLeagueAccess, invite, router])
 
   async function handleJoin() {
     if (!invite || isJoining) return
@@ -103,6 +122,10 @@ export function SpectatorInviteFlow() {
             <p className="font-black">{tx("Enlace no válido")}</p>
             <p className="mt-2 text-sm font-semibold text-neutral-500">
               {tx("Este enlace de espectador no existe o ha sido desactivado.")}{" "}</p>
+          </AppCard>
+        ) : hasFullLeagueAccess ? (
+          <AppCard>
+            <p className="font-black">{tx("Abriendo liga")}</p>
           </AppCard>
         ) : invite ? (
           <>

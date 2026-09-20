@@ -43,7 +43,7 @@ function MatchCard({ match, tx }: { match: PublicSpectatorMatch; tx: (value: str
           : tx("Detalles aún no disponibles")
 
   return (
-    <article className="rounded-2xl border border-neutral-200 bg-white p-3">
+    <article className="public-spectator-match-card rounded-xl border border-neutral-200 bg-white p-3 shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
       <div className="flex items-center justify-between gap-3">
         <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
           {tx("Jornada")} {match.round}
@@ -53,17 +53,24 @@ function MatchCard({ match, tx }: { match: PublicSpectatorMatch; tx: (value: str
         </span>
       </div>
       {match.teams ? (
-        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <p className="text-sm font-bold leading-5 text-neutral-900">{match.teams[0].join(" / ")}</p>
-          {match.score ? (
-            <div className="text-center">
-              <p className="text-sm font-black tabular-nums text-neutral-950">
-                {match.score.sets.map((set) => `${set.a}-${set.b}`).join("  ") || `${match.score.pointsA ?? 0}-${match.score.pointsB ?? 0}`}
-              </p>
-              <p className="type-micro font-bold text-neutral-400">{tx("SETS")}</p>
+        <div className="mt-3 min-w-0 space-y-2">
+          {[match.teams[0], match.teams[1]].map((team, index) => (
+            <div key={index} className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
+              <p className="min-w-0 flex-1 text-sm font-bold leading-5 text-neutral-900">{team.join(" / ")}</p>
+              {match.score ? (
+                <p className="min-w-6 self-center text-right text-lg font-black tabular-nums text-neutral-950">
+                  {index === 0 ? match.score.pointsA : match.score.pointsB}
+                </p>
+              ) : null}
             </div>
-          ) : <span className="text-xs font-black text-neutral-400">VS</span>}
-          <p className="text-right text-sm font-bold leading-5 text-neutral-900">{match.teams[1].join(" / ")}</p>
+          ))}
+          {match.score ? (
+            <div className="flex gap-1.5 text-xs font-bold text-neutral-600">
+              {match.score.sets.map((set, index) => (
+                <span key={index} className="rounded-md bg-neutral-100 px-1.5 py-0.5">{set.a}-{set.b}</span>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : (
         <p className="mt-3 text-sm font-semibold text-neutral-500">{tx("La organización mostrará los detalles cuando empiece la temporada.")}</p>

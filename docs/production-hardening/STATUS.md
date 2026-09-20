@@ -1809,3 +1809,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La cabecera de espectadores fuerza contraste explícito para que el nombre de la liga y la temporada sigan visibles con cualquier acento Competition.
 - Validado con tests de Competition y espectadores, lint, TypeScript, build de producción y `git diff --check`. No desplegado todavía.
 - El commit `6a95ab82` se ha desplegado en PRE como `dpl_85Sm6xRDZpgJXibgzdPoSbP3T255`; `https://pre.smashandlob.com` apunta a esa versión y el health check devuelve `1.15.4`.
+
+## Vista pública, alcance del bloqueo programado y enlaces de espectador (2026-09-20)
+
+- La cabecera de `/spectate/:code/view` mantiene contraste explícito también en Classic claro; el título de la liga deja de quedar blanco sobre una tarjeta blanca.
+- Las tarjetas de partidos de la vista pública siguen la misma distribución de cabecera, parejas, tanteo y metadatos que Calendario, manteniendo la sanitización de datos públicos.
+- El bloqueo de una temporada con inicio programado deja de ser global en `AppShell`: cada pantalla aplica el bloqueo según la temporada que realmente está mostrando. Una temporada anterior se puede consultar y utilizar con normalidad.
+- Si una persona autenticada abre un enlace de espectador de una liga a la que ya pertenece, la aplicación selecciona esa liga y abre la experiencia completa; los usuarios sin membresía conservan el flujo de solo lectura.
+- Se añadieron pruebas de regresión para contraste Classic, distribución pública, alcance del bloqueo y redirección de miembros. No se ha desplegado.

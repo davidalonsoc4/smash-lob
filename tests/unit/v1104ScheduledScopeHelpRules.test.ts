@@ -6,18 +6,16 @@ const read = (path: string) => readFile(path, "utf8")
 const scheduledSettings: LeagueGuideSettings = { seasonStatus: "upcoming", scheduledStartAt: "2026-09-26T08:00:00.000Z", requiresThreeSets: true, mvpSystem: "voting", resultConfirmationMode: "required", registrationFee: { enabled: false, amount: 0, purpose: "" }, rosterMode: "fixed", playerCapacity: 8, registrationOpen: false, scheduleMode: "single", calendarMode: "balanced", roundWindowMode: "fixed-days", roundWindowDays: 14, allowPlayerIncidents: true, allowPlayerSubstitutions: true }
 
 describe("v1.10.4 scheduled-season personal scope and guidance", () => {
-  it("keeps global and personal routes outside the active league lock", async () => {
+  it("keeps global and personal routes reachable while season pages enforce their own status", async () => {
     const shell = await read("src/components/layout/AppShell.tsx")
     expect(shell).toContain('pathname === "/leagues"')
-    expect(shell).toContain("isPersonalMatchesRoute ||")
-    expect(shell).toContain("isPublicAccessRoute ||")
-    expect(shell).toContain('router.replace("/")')
-    expect(shell).toContain("scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute")
-    expect(shell).toContain('<BottomNav homeOnlyLocked={scheduledSeasonHomeOnly} />')
+    expect(shell).toContain("const isPersonalMatchesRoute =")
+    expect(shell).toContain("const isPublicAccessRoute =")
+    expect(shell).not.toContain("scheduledSeasonHomeOnly")
+    expect(shell).not.toContain('homeOnlyLocked={scheduledSeasonHomeOnly}')
     expect(shell).toContain('const shouldShowLeagueSearch =\n    pathname === "/leagues"')
     expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    isPersonalMatchesRoute')
-    expect(shell).not.toContain('!scheduledSeasonHomeOnly && pathname === "/leagues"')
-    expect(shell).not.toContain("!scheduledSeasonHomeOnly && isPersonalMatchesRoute")
+    expect(shell).toContain("{children}")
   })
   it("documents personal scope and the scheduled-season boundary in Help", () => {
     for (const locale of ["es", "en", "eu"] as const) {

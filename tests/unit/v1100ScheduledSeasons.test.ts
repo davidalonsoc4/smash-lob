@@ -133,7 +133,7 @@ describe("v1.10.0 scheduled season start", () => {
     expect(countdown).not.toContain("window.location.reload()")
   })
 
-  it("confines scheduled pre-start players to HOME until the season is actually active", async () => {
+  it("scopes scheduled-season locks to the selected season instead of the whole shell", async () => {
     const scheduled = "2026-09-03T12:30:00.000Z"
 
     expect(isScheduledSeasonHomeLocked("upcoming", scheduled, false)).toBe(true)
@@ -147,19 +147,10 @@ describe("v1.10.0 scheduled season start", () => {
       read("src/components/layout/BottomNav.tsx"),
     ])
 
-    expect(shell).toContain("isScheduledSeasonHomeLocked")
-    expect(shell).toContain("activeRoundSettings.scheduledStartAt,\n        competitionAdmin,")
-    expect(shell).toContain('router.replace("/")')
-    expect(shell).toContain("data-scheduled-season-home-lock")
-    expect(shell).toContain("<BottomNav homeOnlyLocked={scheduledSeasonHomeOnly} />")
-    expect(shell).toContain('pathname === "/leagues"')
-    expect(shell).toContain("isPersonalMatchesRoute")
-    expect(shell).toContain("isPublicAccessRoute")
-    expect(shell).toContain('pathname === "/notifications"')
-    expect(shell).toContain('pathname === "/help"')
-    expect(shell).toContain('pathname === "/settings"')
-    expect(shell).toContain('pathname.startsWith("/settings/")')
-    expect(shell).toContain("scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute")
+    expect(shell).not.toContain("isScheduledSeasonHomeLocked")
+    expect(shell).not.toContain("data-scheduled-season-home-lock")
+    expect(shell).not.toContain("homeOnlyLocked={scheduledSeasonHomeOnly}")
+    expect(shell).toContain("{children}")
     expect(shell).not.toContain("Activar VISTA ADMIN")
     expect(shell).not.toContain("setAdminViewEnabled(true)")
     expect(shell).toContain("const shouldShowSettingsButton =")
@@ -168,12 +159,7 @@ describe("v1.10.0 scheduled season start", () => {
     expect(shell).toContain("const shouldShowPlayerInviteButton =")
     expect(shell).toContain('const shouldShowLeagueSearch =\n    pathname === "/leagues"')
     expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    isPersonalMatchesRoute')
-    expect(shell).not.toContain('!scheduledSeasonHomeOnly && pathname === "/leagues"')
-    expect(shell).not.toContain("!scheduledSeasonHomeOnly && isPersonalMatchesRoute")
-    expect(shell).not.toContain("!isPublicAccessRoute && !scheduledSeasonHomeOnly")
     expect(nav).toContain('const isDisabled = homeOnlyLocked && item.href !== "/"')
-    expect(nav).toContain("disabled")
-    expect(nav).toContain("Disponible cuando comience la temporada")
   })
 
   it("lets admin experience bypass the scheduled-season lock while player experiences remain locked", async () => {

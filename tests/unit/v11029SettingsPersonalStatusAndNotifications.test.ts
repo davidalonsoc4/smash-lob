@@ -4,13 +4,13 @@ import { describe, expect, it } from "vitest"
 const read = (path: string) => readFile(path, "utf8")
 
 describe("v1.10.29 settings lock, personal status and friendly notification parity", () => {
-  it("keeps the whole Settings context reachable during a programmed-season lock", async () => {
+  it("keeps the whole Settings context reachable while page-level season locks remain scoped", async () => {
     const shell = await read("src/components/layout/AppShell.tsx")
 
     expect(shell).toContain("const isSettingsContextRoute =")
-    expect(shell).toContain("const isScheduledSeasonUtilityRoute =")
-    expect(shell).toContain('pathname === "/" ||\n    isSettingsContextRoute ||')
-    expect(shell).toContain("scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute")
+    expect(shell).not.toContain("isScheduledSeasonUtilityRoute")
+    expect(shell).not.toContain("scheduledSeasonHomeOnly")
+    expect(shell).toContain("{children}")
   })
 
   it("uses the same temporal match lifecycle in Mis partidos and the detail", async () => {
