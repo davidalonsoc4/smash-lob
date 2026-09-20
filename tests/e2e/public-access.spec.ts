@@ -59,6 +59,34 @@ test("spectator invitation opens a read-only league without signing in", async (
   await expect(page.getByRole("button", { name: /google/i })).toHaveCount(0)
 })
 
+test("spectator invitation landing page renders without the authenticated app providers", async ({ page }) => {
+  const code = "SL-INVITE-TEST"
+  await page.route(`**/api/spectator-invites/${code}`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        invite: {
+          code,
+          leagueId: "league-public-test",
+          leagueName: "Liga de prueba",
+          leagueDescription: "Competición de prueba",
+          leagueLogoUrl: null,
+          seasonName: "Temporada activa",
+          seasonStatus: "active",
+          appearance: null,
+          viewerAccess: null,
+        },
+      }),
+    })
+  })
+
+  await page.goto(`/spectate/${code}`)
+  await expect(page.getByRole("heading", { name: "Liga de prueba" })).toBeVisible()
+  await expect(page.getByText("Algo no ha salido bien")).toHaveCount(0)
+  await expect(page.getByRole("link", { name: "Ver liga sin iniciar sesión" })).toBeVisible()
+})
+
 test("shows an actionable authentication error with an incidence code", async ({
   page,
 }) => {

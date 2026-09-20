@@ -92,8 +92,10 @@ describe("public spectator data", () => {
 
   it("opens the full league for an authenticated member using a spectator link", async () => {
     const flow = await readFile("src/components/spectator/SpectatorInviteFlow.tsx", "utf8")
-    expect(flow).toContain("getMembershipForLeague(invite.leagueId)")
-    expect(flow).toContain("isAccessHydrated")
+    const route = await readFile("src/app/api/spectator-invites/[code]/route.ts", "utf8")
+    expect(route).toContain("viewerAccess")
+    expect(route).toContain("league_memberships")
+    expect(flow).toContain('invite.viewerAccess === "member"')
     expect(flow).toContain('window.localStorage.setItem("smash-lob-active-league", invite.leagueId)')
     expect(flow).toContain('router.replace("/")')
     expect(flow).toContain("hasFullLeagueAccess")

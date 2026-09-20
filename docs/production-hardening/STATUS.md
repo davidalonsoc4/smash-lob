@@ -1891,3 +1891,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La migración `20260920100000_add_spectator_invite_appearance.sql` se aplicó en PRE (`miadjotkucgluwbrgeih`) y PROD (`szycbwdzestcmimziyey`). En ambos proyectos `migration list` quedó alineado y `db lint --linked --schema public` no encontró errores.
 - El commit `8c47d780` se publicó en PRE como deployment `dpl_GANmaQbvjUR2AfPpJXEuhUKoTTqX`; quedó `Ready` y el alias `https://pre.smashandlob.com` apunta a él. La comprobación autenticada con `vercel curl` devuelve `1.15.4/pre`; la petición HTTP anónima del smoke recibe el `302` de protección SSO previsto.
 - El mismo commit se publicó en PROD como deployment `dpl_3L1PsgB2sEW3tDTnzGMkwctj1jKs`; quedó `Ready` y asociado a `https://smashandlob.com`. `vercel curl` devuelve `1.15.4/prod` y `npm run smoke:prod` pasa completo.
+
+## Corrección de acceso al enlace QR de espectadores en PROD (2026-09-20)
+
+- Los logs de PROD mostraron que `/spectate/:code` fallaba al renderizar con `useLeagueAccess must be used inside LeagueAccessProvider`: las rutas públicas omiten deliberadamente los proveedores autenticados, pero la pantalla intermedia todavía intentaba usar ese hook.
+- La API de invitaciones resuelve ahora de forma segura si la sesión actual pertenece a la liga (o es superusuario) y devuelve solo el estado `viewerAccess`; la pantalla pública ya no depende de `LeagueAccessProvider`.
+- Se añadió una prueba E2E de la pantalla intermedia anónima para evitar que vuelva a aparecer el error genérico “Algo no ha salido bien”.
+- Validación focalizada: 17 tests unitarios, 4 E2E de espectadores, ESLint, TypeScript y `git diff --check` correctos. Pendiente publicar esta corrección en PROD.

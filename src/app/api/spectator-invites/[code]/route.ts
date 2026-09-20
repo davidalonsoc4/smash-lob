@@ -6,6 +6,8 @@ import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { applyPrivateNoStore } from "@/lib/serverResponse"
 import { expirePendingAccessIntentCookie } from "@/lib/serverPendingAccessIntent"
 import { normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
+import { auth } from "@/auth"
+import { normalizeSessionEmail } from "@/lib/serverAuth"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -60,12 +62,41 @@ async function resolveInvite(code: string) {
     (seasons ?? [])[0] ??
     null
 
+  // Public spectator routes deliberately render without the authenticated app
+  // providers. Resolve an existing member here so a signed-in member can keep
+  // the full league experience without exposing account data to anonymous
+  // viewers.
+  let viewerAccess: "member" | "superuser" | null = null
+  const session = await auth()
+  const email = normalizeSessionEmail(session?.user?.email)
+  if (email) {
+    const { data: viewer } = await supabase
+      .from("app_users")
+      .select("id,is_superuser")
+      .eq("email", email)
+      .maybeSingle()
+
+    if (viewer?.is_superuser) {
+      viewerAccess = "superuser"
+    } else if (viewer?.id) {
+      const { data: membership } = await supabase
+        .from("league_memberships")
+        .select("id")
+        .eq("league_id", league.id)
+        .eq("user_id", viewer.id)
+        .maybeSingle()
+
+      if (membership) viewerAccess = "member"
+    }
+  }
+
   return {
     ok: true as const,
     supabase,
     invite,
     league,
     visibleSeason,
+    viewerAccess,
   }
 }
 
@@ -111,6 +142,7 @@ export async function GET(
               accentColor: result.invite.theme_accent_color,
             })
           : null,
+        viewerAccess: result.viewerAccess,
         seasonName: result.visibleSeason?.name ?? null,
         seasonStatus: result.visibleSeason?.status ?? null,
       },

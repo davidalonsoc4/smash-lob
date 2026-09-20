@@ -9,6 +9,7 @@ export type SpectatorInviteSummary = {
   seasonName: string | null
   seasonStatus: "upcoming" | "active" | "finished" | null
   appearance: SpectatorInviteAppearance | null
+  viewerAccess: "member" | "superuser" | null
 }
 
 export type LeagueSpectator = {
