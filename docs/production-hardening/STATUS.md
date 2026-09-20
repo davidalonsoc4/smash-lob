@@ -1885,3 +1885,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se regeneraron las referencias visuales de los recorridos E2E tras los cambios de diseño vigentes.
 - Suite unitaria: 205 archivos y 789 tests correctos. E2E focalizado de accesibilidad y espectador: 24 tests correctos. Recorrido visual actualizado: 20 tests correctos.
 - `release:check` completo correcto tras estos ajustes: validación, 205 archivos/789 tests unitarios, build y presupuesto, 68 pruebas E2E y `npm audit --omit=dev --audit-level=high` sin vulnerabilidades.
+
+## Publicación v1.15.4 de apariencia de espectadores (2026-09-20)
+
+- La migración `20260920100000_add_spectator_invite_appearance.sql` se aplicó en PRE (`miadjotkucgluwbrgeih`) y PROD (`szycbwdzestcmimziyey`). En ambos proyectos `migration list` quedó alineado y `db lint --linked --schema public` no encontró errores.
+- El commit `8c47d780` se publicó en PRE como deployment `dpl_GANmaQbvjUR2AfPpJXEuhUKoTTqX`; quedó `Ready` y el alias `https://pre.smashandlob.com` apunta a él. La comprobación autenticada con `vercel curl` devuelve `1.15.4/pre`; la petición HTTP anónima del smoke recibe el `302` de protección SSO previsto.
+- El mismo commit se publicó en PROD como deployment `dpl_3L1PsgB2sEW3tDTnzGMkwctj1jKs`; quedó `Ready` y asociado a `https://smashandlob.com`. `vercel curl` devuelve `1.15.4/prod` y `npm run smoke:prod` pasa completo.
