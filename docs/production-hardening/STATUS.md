@@ -1913,4 +1913,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Los enlaces de espectador vuelven a usar siempre la apariencia pública neutra de la aplicación: `Classic`, paleta normal y tema `Sistema`, sin heredar Competition, acentos ni paletas privadas del creador.
 - La API de creación actualiza también las invitaciones activas existentes al valor canónico y las rutas públicas dejan de confiar en snapshots antiguos, por lo que un QR ya impreso no puede seguir abriendo Competition.
 - La migración `20260920113000_reset_spectator_invite_appearance.sql` normaliza los registros persistidos y actualiza sus comentarios sin modificar migraciones aplicadas.
-- Validación focalizada: 6 tests de espectador, ESLint de los archivos modificados, TypeScript y `git diff --check` correctos. No se ha desplegado.
+- Validación focalizada: 6 tests de espectador, 4 E2E de invitaciones, ESLint de los archivos modificados, TypeScript, build y `git diff --check` correctos. `supabase db lint --local` no pudo ejecutarse porque Docker/Postgres local no está levantado; las migraciones remotas sí se aplicaron y verificaron.
+- La migración quedó aplicada en PRE (`miadjotkucgluwbrgeih`) y PROD (`szycbwdzestcmimziyey`), con los historiales remotos alineados.
+- PRE se publicó desde `1c474047` como deployment `dpl_BPAY6Tjm3yXqW5vXRGZekDodg55M`, `Ready` y alias `https://pre.smashandlob.com`; la comprobación autenticada de `/api/health` devuelve `1.15.4`.
+- PROD se publicó desde `1c474047` como deployment `dpl_3QNpfqUtdnwRCyWx8CNiTX31BQxC`, `Ready` y alias `https://smashandlob.com`; `/api/health` devuelve `1.15.4` y `npm run smoke:prod` pasa.
