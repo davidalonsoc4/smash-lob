@@ -121,15 +121,13 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
   const initialAppearance = readStoredAppearance()
   const canUseCompetition = isCompetitionAvailable(session?.user?.email)
   const [themeMode, setThemeModeState] = useState<ThemeMode>(initialAppearance.baseTheme)
-  const [visualStyle, setVisualStyleState] = useState<VisualStyle>(
-    canUseCompetition || initialAppearance.visualStyle !== "competition"
-      ? initialAppearance.visualStyle
-      : DEFAULT_VISUAL_STYLE,
-  )
+  // Do not discard a persisted Competition choice while Auth.js is still
+  // loading the session. The allowlist is enforced once the session resolves.
+  const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialAppearance.visualStyle)
   const [palette, setPaletteState] = useState<Palette>(initialAppearance.palette)
   const [leagueAccent, setLeagueAccentState] = useState(DEFAULT_LEAGUE_ACCENT)
   const [competitionAccent, setCompetitionAccentState] = useState<CompetitionAccent>(() =>
@@ -139,10 +137,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   )
 
   useEffect(() => {
-    const effectiveStyle = canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE
+    const sessionResolved = sessionStatus !== "loading"
+    const effectiveStyle = !sessionResolved || canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE
 
     window.localStorage.setItem(BASE_THEME_STORAGE_KEY, themeMode)
-    window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, effectiveStyle)
+    if (sessionResolved) window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, effectiveStyle)
     window.localStorage.setItem(PALETTE_STORAGE_KEY, palette)
     window.localStorage.setItem(COMPETITION_ACCENT_STORAGE_KEY, competitionAccent)
     window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY)
@@ -154,17 +153,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const handleChange = () => applyAppearance(themeMode, effectiveStyle, palette, leagueAccent, competitionAccent)
     media.addEventListener("change", handleChange)
     return () => media.removeEventListener("change", handleChange)
-  }, [canUseCompetition, competitionAccent, leagueAccent, palette, themeMode, visualStyle])
+  }, [canUseCompetition, competitionAccent, leagueAccent, palette, sessionStatus, themeMode, visualStyle])
 
   const setThemeMode = useCallback((nextThemeMode: ThemeMode) => {
     setThemeModeState(nextThemeMode)
   }, [])
 
   const setVisualStyle = useCallback((nextVisualStyle: VisualStyle) => {
-    if (nextVisualStyle === "competition" && !canUseCompetition) return
+    if (nextVisualStyle === "competition" && !canUseCompetition && sessionStatus !== "loading") return
     setVisualStyleState(nextVisualStyle)
     if (nextVisualStyle === "competition") setThemeModeState("dark")
-  }, [canUseCompetition])
+  }, [canUseCompetition, sessionStatus])
 
   const setPalette = useCallback((nextPalette: Palette) => {
     setPaletteState(normalizePalette(nextPalette) ?? DEFAULT_PALETTE)
@@ -179,8 +178,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ themeMode, setThemeMode, visualStyle: canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE, setVisualStyle, palette, setPalette, leagueAccent, setLeagueAccent, competitionAccent, setCompetitionAccent, canUseCompetition }),
-    [canUseCompetition, competitionAccent, leagueAccent, palette, setCompetitionAccent, setLeagueAccent, setPalette, setThemeMode, setVisualStyle, themeMode, visualStyle],
+    () => ({ themeMode, setThemeMode, visualStyle: sessionStatus === "loading" || canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE, setVisualStyle, palette, setPalette, leagueAccent, setLeagueAccent, competitionAccent, setCompetitionAccent, canUseCompetition }),
+    [canUseCompetition, competitionAccent, leagueAccent, palette, sessionStatus, setCompetitionAccent, setLeagueAccent, setPalette, setThemeMode, setVisualStyle, themeMode, visualStyle],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

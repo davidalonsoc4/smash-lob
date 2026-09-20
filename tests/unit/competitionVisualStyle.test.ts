@@ -55,6 +55,8 @@ describe("Competition visual style", () => {
 
   it("keeps page titles inside a shared Competition panel without changing Classic", async () => {
     const css = await readFile("src/app/globals.css", "utf8")
+    const themeProvider = await readFile("src/context/ThemeProvider.tsx", "utf8")
+    const publicView = await readFile("src/components/spectator/PublicSpectatorView.tsx", "utf8")
     expect(css).toContain('html[data-visual-style="competition"] .app-page-header {')
     expect(css).toContain('background-image: none !important;')
     expect(css).toContain('html[data-visual-style="competition"] .app-shell-frame::before {')
@@ -68,5 +70,10 @@ describe("Competition visual style", () => {
     expect(css).toContain('[data-route="/chats"] .chat-list-stack::before')
     expect(css).toContain('display: none;')
     expect(css).toContain('[data-route="/chats"] .chat-list-card-unread')
+    expect(css).toContain('color: var(--competition-text) !important;')
+    expect(themeProvider).toContain('const sessionResolved = sessionStatus !== "loading"')
+    expect(themeProvider).toContain('if (sessionResolved) window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, effectiveStyle)')
+    expect(publicView).toContain('public-spectator-league-title')
+    expect(publicView).toContain('data-public-season-selector')
   })
 })

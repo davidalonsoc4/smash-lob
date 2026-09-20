@@ -1802,3 +1802,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La vista pública muestra siempre el nombre de la liga y una temporada explícita; cuando existen varias temporadas, el selector consulta únicamente temporadas de la liga del enlace y actualiza clasificación, calendario y visibilidad.
 - Classic no recibe estas reglas porque todo el cambio queda bajo `data-visual-style="competition"`; la API pública valida el `seasonId` antes de resolverlo.
 - El commit `a8476a7b` se ha desplegado en PRE como `dpl_BDPgZckqtHdnFEwMS4Zb48R4chxo`; `https://pre.smashandlob.com` apunta a esa versión y el health check devuelve `1.15.4`.
+
+## Competition — persistencia de selección y cabecera pública (2026-09-20)
+
+- `ThemeProvider` ya no convierte una selección Competition en Classic mientras Auth.js resuelve la sesión; la selección persistida se conserva durante la recarga y la allowlist se aplica al terminar la resolución.
+- La cabecera de espectadores fuerza contraste explícito para que el nombre de la liga y la temporada sigan visibles con cualquier acento Competition.
+- Validado con tests de Competition y espectadores, lint, TypeScript, build de producción y `git diff --check`. No desplegado todavía.

@@ -2506,6 +2506,7 @@ html[data-visual-style="competition"] [data-tour="chat-composer"] textarea {
 html[data-visual-style="competition"] .public-spectator-hero {
   background: linear-gradient(145deg, rgb(48 52 59 / .52), rgb(20 21 24 / .26)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 28%, var(--competition-border)) !important;
+  color: var(--competition-text) !important;
 }
 html[data-visual-style="competition"] .public-spectator-hero .text-white {
   color: var(--competition-text) !important;
