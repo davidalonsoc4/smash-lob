@@ -1808,3 +1808,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - `ThemeProvider` ya no convierte una selección Competition en Classic mientras Auth.js resuelve la sesión; la selección persistida se conserva durante la recarga y la allowlist se aplica al terminar la resolución.
 - La cabecera de espectadores fuerza contraste explícito para que el nombre de la liga y la temporada sigan visibles con cualquier acento Competition.
 - Validado con tests de Competition y espectadores, lint, TypeScript, build de producción y `git diff --check`. No desplegado todavía.
+- El commit `6a95ab82` se ha desplegado en PRE como `dpl_85Sm6xRDZpgJXibgzdPoSbP3T255`; `https://pre.smashandlob.com` apunta a esa versión y el health check devuelve `1.15.4`.
