@@ -64,13 +64,13 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var n=navigator,s=window.screen,m=window.matchMedia('(display-mode: standalone)').matches||n.standalone===true,h=Math.max(s.width,s.height);if(m&&/iPhone/i.test(n.userAgent)&&h>=812)document.documentElement.style.setProperty('--app-safe-top-fallback',h>=852?'59px':'47px')}catch(e){}})();` }} />
       </head>
       <body>
-        <ThemeProvider>
-        <I18nProvider>
-          <AuthSessionProvider>
+        <AuthSessionProvider>
+          <ThemeProvider>
+          <I18nProvider>
             <AppRouteBoundary>{children}</AppRouteBoundary>
-          </AuthSessionProvider>
-        </I18nProvider>
-        </ThemeProvider>
+          </I18nProvider>
+          </ThemeProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   )

@@ -214,6 +214,9 @@ export default function AppearancePage() {
       description: t.settings.visualStyleColorfulDescription,
     },
   ]
+  const availableStyleOptions = canUseCompetition
+    ? styleOptions
+    : styleOptions.filter((option) => option.value === "classic")
   const paletteOptions: Array<{ value: Exclude<Palette, "league">; label: string; description: string }> = [
     {
       value: "classic",
@@ -328,7 +331,7 @@ export default function AppearancePage() {
         description={t.settings.visualStyleDescription}
       >
         <div className="grid grid-cols-2 gap-2">
-          {styleOptions.map((option) => {
+          {availableStyleOptions.map((option) => {
             const selected = visualStyle === option.value
             return (
               <button
@@ -336,15 +339,13 @@ export default function AppearancePage() {
                 type="button"
                 aria-pressed={selected}
                 onClick={() => {
-                  if (option.value === "competition" && !canUseCompetition) return
                   setVisualStyle(option.value)
                 }}
-                disabled={option.value === "competition" && !canUseCompetition}
                 className={`appearance-compact-option rounded-xl border p-2 text-left transition active:scale-[0.98] ${
                   selected
                     ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
                     : "border-neutral-200 bg-neutral-50"
-                } ${option.value === "competition" && !canUseCompetition ? "cursor-not-allowed opacity-45" : ""}`}
+                }`}
               >
                 <StylePreview style={option.value} />
                 <span className="mt-1.5 flex items-center justify-between gap-2">

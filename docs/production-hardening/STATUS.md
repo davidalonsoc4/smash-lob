@@ -1780,3 +1780,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se reforzó la transparencia y se llevó el patrón geométrico al contenedor de Competition para que el efecto sea visible también en HOME, sin aclarar en exceso el texto.
 - En Chats las conversaciones mantienen una base neutra; solo las no leídas reciben un acento discreto.
 - El alcance sigue limitado a `data-visual-style="competition"`; los modos clásicos no cambian.
+
+## Competition visual style v3 — acceso controlado (2026-09-20)
+
+- Competition mantiene Classic como valor predeterminado y queda disponible únicamente para la allowlist de `NEXT_PUBLIC_COMPETITION_STYLE_ALLOWED_EMAILS`, también en desarrollo local.
+- La cuenta autorizada para esta fase es `davidalonsoc4@gmail.com`; el selector se oculta a las demás cuentas.
+- La sesión Auth.js se resuelve antes del `ThemeProvider` para aplicar el permiso también en PRE/PROD, sin depender solo de `localStorage`.

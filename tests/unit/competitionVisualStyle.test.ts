@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { readFile } from "node:fs/promises"
 import {
   DEFAULT_LEAGUE_ACCENT,
   DEFAULT_PALETTE,
   DEFAULT_VISUAL_STYLE,
   getCompetitionAccentColor,
+  isCompetitionAvailable,
   migrateStoredAppearance,
   normalizeAccentColor,
   normalizeCompetitionAccent,
@@ -42,6 +43,14 @@ describe("Competition visual style", () => {
     expect(normalizeCompetitionAccent("unknown")).toBe("league")
     expect(getCompetitionAccentColor("blue", "#123456")).toBe("#477BD1")
     expect(getCompetitionAccentColor("league", "#123456")).toBe("#123456")
+  })
+
+  it("allows Competition outside local development only for the configured email", () => {
+    vi.stubEnv("NEXT_PUBLIC_COMPETITION_STYLE_ENABLED", "true")
+    vi.stubEnv("NEXT_PUBLIC_COMPETITION_STYLE_ALLOWED_EMAILS", "davidalonsoc4@gmail.com")
+    expect(isCompetitionAvailable("DAVIDALONSOc4@GMAIL.COM")).toBe(true)
+    expect(isCompetitionAvailable("other@example.com")).toBe(false)
+    vi.unstubAllEnvs()
   })
 
   it("keeps page titles inside a shared Competition panel without changing Classic", async () => {

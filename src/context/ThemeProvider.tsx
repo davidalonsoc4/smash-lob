@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { useSession } from "next-auth/react"
 import {
   BASE_THEME_STORAGE_KEY,
   COMPETITION_ACCENT_STORAGE_KEY,
@@ -118,8 +119,9 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession()
   const initialAppearance = readStoredAppearance()
-  const canUseCompetition = isCompetitionAvailable()
+  const canUseCompetition = isCompetitionAvailable(session?.user?.email)
   const [themeMode, setThemeModeState] = useState<ThemeMode>(initialAppearance.baseTheme)
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(
     canUseCompetition || initialAppearance.visualStyle !== "competition"
@@ -175,7 +177,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ themeMode, setThemeMode, visualStyle, setVisualStyle, palette, setPalette, leagueAccent, setLeagueAccent, competitionAccent, setCompetitionAccent, canUseCompetition }),
+    () => ({ themeMode, setThemeMode, visualStyle: canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE, setVisualStyle, palette, setPalette, leagueAccent, setLeagueAccent, competitionAccent, setCompetitionAccent, canUseCompetition }),
     [canUseCompetition, competitionAccent, leagueAccent, palette, setCompetitionAccent, setLeagueAccent, setPalette, setThemeMode, setVisualStyle, themeMode, visualStyle],
   )
 

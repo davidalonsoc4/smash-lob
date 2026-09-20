@@ -26,6 +26,7 @@ export const DEFAULT_VISUAL_STYLE: VisualStyle = "classic"
 export const DEFAULT_PALETTE: Palette = "classic"
 export const DEFAULT_LEAGUE_ACCENT = "#D7A544"
 export const DEFAULT_COMPETITION_ACCENT: CompetitionAccent = "league"
+export const DEFAULT_COMPETITION_STYLE_ALLOWED_EMAILS = ["davidalonsoc4@gmail.com"] as const
 
 export const COMPETITION_ACCENT_COLORS: Record<Exclude<CompetitionAccent, "league">, string> = {
   gold: "#D7A544",
@@ -121,12 +122,19 @@ export function getContrastColor(value: string) {
   return luminance > 0.58 ? "#111111" : "#FFFFFF"
 }
 
-export function isCompetitionAvailable() {
-  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && !/^127(?:\.\d{1,3}){3}$/.test(window.location.hostname) && !/^192\.168(?:\.\d{1,3}){2}$/.test(window.location.hostname)) {
-    return false
-  }
+function getCompetitionStyleAllowedEmails() {
+  const configured = process.env.NEXT_PUBLIC_COMPETITION_STYLE_ALLOWED_EMAILS
+    ?.split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean)
 
-  return process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_COMPETITION_STYLE_ENABLED !== "false"
+  return configured?.length ? configured : [...DEFAULT_COMPETITION_STYLE_ALLOWED_EMAILS]
+}
+
+export function isCompetitionAvailable(email?: string | null) {
+  if (process.env.NEXT_PUBLIC_COMPETITION_STYLE_ENABLED === "false") return false
+  const normalizedEmail = email?.trim().toLowerCase()
+  return Boolean(normalizedEmail && getCompetitionStyleAllowedEmails().includes(normalizedEmail))
 }
 
 export function migrateStoredAppearance(input: {
@@ -146,7 +154,7 @@ export function migrateStoredAppearance(input: {
 
   return {
     baseTheme,
-    visualStyle: isCompetitionAvailable() && visualStyle === "competition" ? visualStyle : visualStyle === "competition" ? DEFAULT_VISUAL_STYLE : visualStyle,
+    visualStyle,
     palette,
   } satisfies { baseTheme: BaseTheme; visualStyle: VisualStyle; palette: Palette }
 }
