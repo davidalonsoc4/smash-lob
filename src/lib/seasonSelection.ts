@@ -18,4 +18,15 @@ export function writeSelectedSeasonId(leagueId: string, seasonId: string) {
       detail: { leagueId, seasonId },
     }),
   )
+  // The native storage signal keeps other mounted shells in sync even when
+  // the change happens in the same tab (browsers normally emit it only to
+  // other documents).
+  window.dispatchEvent(
+    new StorageEvent("storage", {
+      key: getSeasonSelectionStorageKey(leagueId),
+      newValue: seasonId,
+      storageArea: window.localStorage,
+      url: window.location.href,
+    }),
+  )
 }

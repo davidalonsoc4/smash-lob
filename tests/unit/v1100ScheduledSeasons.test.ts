@@ -155,6 +155,8 @@ describe("v1.10.0 scheduled season start", () => {
     expect(shell).toContain("const isScheduledSeasonUtilityRoute =")
     expect(shell).toContain("SEASON_SELECTION_CHANGED_EVENT")
     expect(shell).toContain('window.addEventListener("storage", handleStorage)')
+    const selection = await read("src/lib/seasonSelection.ts")
+    expect(selection).toContain('new StorageEvent("storage"')
     expect(shell).toContain("{children}")
     expect(shell).not.toContain("Activar VISTA ADMIN")
     expect(shell).not.toContain("setAdminViewEnabled(true)")
