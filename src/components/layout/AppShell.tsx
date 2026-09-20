@@ -166,7 +166,6 @@ function SpectatorFloatingControls() {
     <FloatingSpectatorShareButton
       leagueId={activeLeague.id}
       leagueName={activeLeague.name}
-      leagueAccent={activeLeague.accentColor}
     />
   )
 }

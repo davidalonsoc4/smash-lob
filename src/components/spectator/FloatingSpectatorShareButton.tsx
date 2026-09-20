@@ -4,14 +4,11 @@ import { useEffect, useRef, useState } from "react"
 import { GeneratedImagePreviewModal } from "@/components/images/GeneratedImagePreviewModal"
 import { createOrGetSpectatorInvite } from "@/lib/spectatorInvites"
 import { useI18n } from "@/i18n/I18nProvider"
-import { useTheme } from "@/context/ThemeProvider"
-import { getCompetitionAccentColor } from "@/lib/visualStyle"
-import type { SpectatorInviteAppearance } from "@/lib/spectatorTheme"
+import { DEFAULT_SPECTATOR_INVITE_APPEARANCE } from "@/lib/spectatorTheme"
 
 type FloatingSpectatorShareButtonProps = {
   leagueId: string
   leagueName: string
-  leagueAccent?: string | null
 }
 
 const QR_CELL_SIZE = 12
@@ -156,10 +153,8 @@ export function FloatingSpectatorShareButton(props: FloatingSpectatorShareButton
 function FloatingSpectatorShareButtonForLeague({
   leagueId,
   leagueName,
-  leagueAccent,
 }: FloatingSpectatorShareButtonProps) {
   const { tx } = useI18n()
-  const { themeMode, visualStyle, palette, competitionAccent, leagueAccent: storedLeagueAccent } = useTheme()
   const qrRequestIdRef = useRef(0)
   const [isOpen, setIsOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -185,21 +180,7 @@ function FloatingSpectatorShareButtonForLeague({
     const requestId = ++qrRequestIdRef.current
 
     try {
-      const resolvedLeagueAccent = leagueAccent ?? storedLeagueAccent
-      const appearance: SpectatorInviteAppearance = {
-        visualStyle,
-        baseTheme: visualStyle === "competition"
-          ? "dark"
-          : themeMode === "system"
-            ? (document.documentElement.classList.contains("dark") ? "dark" : "light")
-            : themeMode,
-        palette,
-        competitionAccent,
-        accentColor: visualStyle === "competition"
-          ? getCompetitionAccentColor(competitionAccent, resolvedLeagueAccent)
-          : resolvedLeagueAccent,
-      }
-      const invite = await createOrGetSpectatorInvite(leagueId, appearance)
+      const invite = await createOrGetSpectatorInvite(leagueId, DEFAULT_SPECTATOR_INVITE_APPEARANCE)
       const { default: createQrCode } = await import("qrcode-generator")
       const qrCode = createQrCode(0, "H")
       qrCode.addData(invite.url, "Byte")

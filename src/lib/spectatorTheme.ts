@@ -24,6 +24,18 @@ export type SpectatorInviteAppearance = {
   accentColor: string
 }
 
+/**
+ * Spectator links are deliberately stable and use the application's neutral
+ * default appearance. They must not inherit the creator's private theme.
+ */
+export const DEFAULT_SPECTATOR_INVITE_APPEARANCE: SpectatorInviteAppearance = {
+  visualStyle: "classic",
+  baseTheme: "system",
+  palette: "classic",
+  competitionAccent: "league",
+  accentColor: DEFAULT_LEAGUE_ACCENT,
+}
+
 const CLASSIC_ACCENTS: Record<Exclude<Palette, "classic" | "league">, string> = {
   indigo: "#5B5CE2",
   midnight: "#365F9D",

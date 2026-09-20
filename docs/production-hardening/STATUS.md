@@ -1907,3 +1907,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se añadió cobertura E2E para verificar que la paleta de la invitación se aplica sin sesión y regresión de la pantalla intermedia.
 - Validación: 5 tests unitarios de espectadores, 4 E2E de espectadores, ESLint, TypeScript, build de producción y `git diff --check` correctos.
 - El commit `58d34da8` está en la rama de trabajo y `origin/staging`. PRE apunta al deployment `dpl_Cppod6KMBmkJkqzxFx6ajBRsgDcV` (`Ready`, commit `58d34da8`) y `/api/health` devuelve `1.15.4/pre`. PROD apunta al deployment `dpl_Afb3nwRyudrCNyTQkiUzBb4pVcz9` (`Ready`, alias `https://smashandlob.com`) y `/api/health`/`smoke:prod` pasan.
+
+## Tema canónico para enlaces de espectadores (2026-09-20)
+
+- Los enlaces de espectador vuelven a usar siempre la apariencia pública neutra de la aplicación: `Classic`, paleta normal y tema `Sistema`, sin heredar Competition, acentos ni paletas privadas del creador.
+- La API de creación actualiza también las invitaciones activas existentes al valor canónico y las rutas públicas dejan de confiar en snapshots antiguos, por lo que un QR ya impreso no puede seguir abriendo Competition.
+- La migración `20260920113000_reset_spectator_invite_appearance.sql` normaliza los registros persistidos y actualiza sus comentarios sin modificar migraciones aplicadas.
+- Validación focalizada: 6 tests de espectador, ESLint de los archivos modificados, TypeScript y `git diff --check` correctos. No se ha desplegado.

@@ -4,7 +4,7 @@ import { getPublicSpectatorUrl } from "@/lib/inviteUrls"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { validateUuid } from "@/lib/serverRequest"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
-import { normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
+import { DEFAULT_SPECTATOR_INVITE_APPEARANCE } from "@/lib/spectatorTheme"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -47,10 +47,10 @@ export async function POST(
   }
 
   const { supabase, user } = access.actor
-  const body = (await request.json().catch(() => ({}))) as {
-    appearance?: Parameters<typeof normalizeSpectatorInviteAppearance>[0]
-  }
-  const requestedAppearance = normalizeSpectatorInviteAppearance(body.appearance)
+  // Keep one stable public link per league, always rendered with the neutral
+  // application default. The creator's private appearance must never leak into
+  // an invitation or make an already printed QR change unexpectedly.
+  const requestedAppearance = DEFAULT_SPECTATOR_INVITE_APPEARANCE
   const { data: existingInvite, error: existingInviteError } = await supabase
     .from("spectator_invites")
     .select("id,code,theme_visual_style,theme_base,theme_palette,theme_competition_accent,theme_accent_color")
@@ -69,7 +69,7 @@ export async function POST(
 
   let code = existingInvite?.code ?? null
 
-  if (existingInvite && !existingInvite.theme_visual_style) {
+  if (existingInvite) {
     const { error: appearanceError } = await supabase
       .from("spectator_invites")
       .update({

@@ -1,9 +1,31 @@
 import { describe, expect, it } from "vitest"
 import { readFile } from "node:fs/promises"
 import { sanitizePublicSpectatorMatch } from "@/lib/publicSpectator"
-import { normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
+import { DEFAULT_SPECTATOR_INVITE_APPEARANCE, normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 describe("public spectator data", () => {
+  it("uses the neutral Classic + system appearance for every stable spectator link", async () => {
+    expect(DEFAULT_SPECTATOR_INVITE_APPEARANCE).toEqual({
+      visualStyle: "classic",
+      baseTheme: "system",
+      palette: "classic",
+      competitionAccent: "league",
+      accentColor: "#D7A544",
+    })
+
+    const createRoute = await readFile("src/app/api/leagues/[id]/spectator-invite/route.ts", "utf8")
+    const inviteRoute = await readFile("src/app/api/spectator-invites/[code]/route.ts", "utf8")
+    const publicRoute = await readFile("src/app/api/public-spectator/[code]/route.ts", "utf8")
+    const shareButton = await readFile("src/components/spectator/FloatingSpectatorShareButton.tsx", "utf8")
+
+    expect(createRoute).toContain("DEFAULT_SPECTATOR_INVITE_APPEARANCE")
+    expect(createRoute).toContain("if (existingInvite)")
+    expect(inviteRoute).toContain("appearance: DEFAULT_SPECTATOR_INVITE_APPEARANCE")
+    expect(publicRoute).toContain("appearance: DEFAULT_SPECTATOR_INVITE_APPEARANCE")
+    expect(shareButton).toContain("DEFAULT_SPECTATOR_INVITE_APPEARANCE")
+    expect(shareButton).not.toContain("useTheme()")
+  })
+
   it("normalizes an invite appearance to an immutable safe theme", () => {
     expect(normalizeSpectatorInviteAppearance({
       visualStyle: "competition",

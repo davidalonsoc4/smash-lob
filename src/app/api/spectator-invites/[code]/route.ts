@@ -5,7 +5,7 @@ import { validateInviteCode } from "@/lib/serverRequest"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { applyPrivateNoStore } from "@/lib/serverResponse"
 import { expirePendingAccessIntentCookie } from "@/lib/serverPendingAccessIntent"
-import { normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
+import { DEFAULT_SPECTATOR_INVITE_APPEARANCE } from "@/lib/spectatorTheme"
 import { auth } from "@/auth"
 import { normalizeSessionEmail } from "@/lib/serverAuth"
 
@@ -133,15 +133,7 @@ export async function GET(
         leagueDescription: result.league.description ?? "",
         leagueLogoUrl: result.league.logo_url ?? null,
         leagueAccentColor: result.league.accent_color ?? null,
-        appearance: result.invite.theme_visual_style
-          ? normalizeSpectatorInviteAppearance({
-              visualStyle: result.invite.theme_visual_style,
-              baseTheme: result.invite.theme_base,
-              palette: result.invite.theme_palette,
-              competitionAccent: result.invite.theme_competition_accent,
-              accentColor: result.invite.theme_accent_color,
-            })
-          : null,
+        appearance: DEFAULT_SPECTATOR_INVITE_APPEARANCE,
         viewerAccess: result.viewerAccess,
         seasonName: result.visibleSeason?.name ?? null,
         seasonStatus: result.visibleSeason?.status ?? null,
