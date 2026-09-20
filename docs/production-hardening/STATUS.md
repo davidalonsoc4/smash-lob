@@ -1793,3 +1793,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La pantalla de invitación limpia al abrirse la cookie de recuperación de PWA; cerrar la aplicación ya no vuelve a forzar la invitación en el siguiente arranque.
 - La entrada anónima a la vista pública limpia también la cookie antes de navegar, y se puede cancelar explícitamente con `Cancelar invitación`, que devuelve a la entrada normal de la aplicación.
 - Se mantiene el enlace directo a la vista pública y se han añadido las traducciones de la nueva acción en español, inglés y euskera.
+- El commit `2990f7c9` se ha desplegado en PRE como `dpl_3kTNdP4G1sBNamJYMjxy3m52Ct1L`; el alias `https://pre.smashandlob.com` apunta a esa versión y el health check devuelve `1.15.4`.
