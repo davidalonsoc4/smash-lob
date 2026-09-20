@@ -1,0 +1,13 @@
+node_modules
+.next
+.next-playwright
+test-results
+playwright-report
+coverage
+.quality-artifacts
+.lighthouseci
+.git
+D
+*.tsbuildinfo
+.env*
+!.env.example
