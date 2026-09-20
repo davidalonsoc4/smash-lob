@@ -1834,3 +1834,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Validación focalizada: 23 pruebas unitarias, ESLint de los archivos modificados y TypeScript pasan. No se ha desplegado.
 
 - El commit `c0210f41` se publicó en PRE como deployment Vercel `dpl_4otDuoXo9jzmJFG6ETz9LXSosnyE` (`Ready`, target `preview`) y `pre.smashandlob.com` quedó reasignado a esa versión. La sonda autenticada de `/api/health` devuelve `1.15.4/pre`. PROD no se ha modificado.
+
+- La misma implementación, con la anotación documental `e9d85d89`, se publicó en PROD como deployment Vercel `dpl_8g4BQFQ99J3DhPJ7Jr2dXFy9diKu` (`Ready`, target `production`) y quedó asociada a `https://smashandlob.com`. La sonda autenticada de `/api/health` devuelve `1.15.4/prod`.
