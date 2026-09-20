@@ -94,6 +94,23 @@ describe("Competition visual style", () => {
     expect(css).toContain(".season-registration-panel .bg-emerald-600")
   })
 
+  it("keeps chat chrome and message metadata readable for every Competition accent", async () => {
+    const [css, shared] = await Promise.all([
+      readFile("src/app/globals.css", "utf8"),
+      readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
+    ])
+    expect(shared).toContain("app-match-chat-metadata")
+    expect(shared).toContain('data-mine={mine ? "true" : "false"}')
+    expect(shared).toContain("app-match-chat-receipt")
+    expect(shared).toContain('data-read={allRead ? "true" : "false"}')
+    expect(shared).toContain("app-match-chat-send")
+    expect(css).toContain('html[data-visual-style="competition"] .app-match-chat-header {')
+    expect(css).toContain("border-radius: 0 !important;")
+    expect(css).toContain(".app-match-chat-metadata[data-mine=\"true\"]")
+    expect(css).toContain(".app-match-chat-receipt[data-read=\"true\"]")
+    expect(css).toContain("var(--competition-accent-contrast) !important;")
+  })
+
   it("uses the Statistics icon pattern for settings navigation and notification groups", async () => {
     const settings = await readFile("src/app/settings/page.tsx", "utf8")
     const notifications = await readFile("src/app/settings/notifications/page.tsx", "utf8")

@@ -1858,3 +1858,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El chat de partido muestra `JORNADA X` como título compacto. La reserva fijada se presenta con pin, etiqueta y segunda línea para fecha y ubicación, con contraste específico para Competition.
 - Se revisaron los estados vacíos, el área de mensajes, el compositor y las tarjetas de coordinación en móvil; Classic queda fuera de los selectores visuales de Competition.
 - Validación: revisión visual local en Ajustes, Notificaciones y Chat, 26 pruebas focalizadas, ESLint, TypeScript, build de producción y `git diff --check`.
+
+## Pulido de cabecera y metadatos del chat en Competition (2026-09-20)
+
+- La cabecera del chat pasa a ocupar todo el ancho de la pantalla sin bordes redondeados ni el borde lateral editorial de las pantallas de contenido; el título mantiene su centrado y el botón de volver.
+- El compositor inferior se mantiene como una superficie continua y el botón de envío usa el acento y su color de contraste calculado, evitando una franja lateral o contrastes inconsistentes.
+- Las horas y los checks de los mensajes reciben clases semánticas propias. En Competition se pintan con el contraste del acento activo, manteniendo legibilidad con acentos claros y oscuros; Classic no cambia.
+- Validación focalizada: 19 pruebas unitarias, ESLint de TS (CSS ignorado por configuración), revisión visual local en móvil y `git diff --check`. No se ha desplegado.

@@ -85,9 +85,11 @@ export function MatchChatMessageReceipt({
 
   return (
     <span
-      className={`ml-1 inline-flex align-middle type-caption font-black ${
+      className={`app-match-chat-receipt ml-1 inline-flex align-middle type-caption font-black ${
         allRead ? "text-sky-400" : "text-neutral-400"
       }`}
+      data-read={allRead ? "true" : "false"}
+      data-pending={pending ? "true" : "false"}
       title={label}
       aria-label={label}
     >
@@ -215,9 +217,10 @@ export function MatchChatTextMessage({
             {bodyContent ?? message.body}
           </p>
           <span
-            className={`absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none ${
+            className={`app-match-chat-metadata absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none ${
               mine ? "text-neutral-300" : "text-neutral-400"
             }`}
+            data-mine={mine ? "true" : "false"}
           >
             <span className="origin-right scale-90 type-caption">
               {new Date(message.created_at).toLocaleTimeString(getIntlLocale(locale), {
@@ -304,7 +307,7 @@ export function MatchChatComposer({
         onPointerDown={(event) => event.preventDefault()}
         aria-label={tx("Enviar mensaje")}
         title={tx("Enviar mensaje")}
-        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-white transition active:scale-95 disabled:opacity-40"
+        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-white transition active:scale-95 disabled:opacity-40 app-match-chat-send"
       >
         <MatchChatSendIcon />
       </button>
@@ -377,12 +380,12 @@ export function MatchChatFrame({
             <Link
               href={titleHref}
               aria-label={tx("Abrir detalle del partido")}
-              className="absolute left-1/2 max-w-[65%] -translate-x-1/2 truncate rounded-lg px-1 text-center transition active:scale-[0.98]"
+              className="absolute left-1/2 max-w-[65%] -translate-x-1/2 truncate px-1 text-center transition active:scale-[0.98]"
             >
               <h1 className="type-page-title truncate font-black tracking-tight">{title}</h1>
             </Link>
           ) : (
-            <div className="absolute left-1/2 max-w-[65%] -translate-x-1/2 truncate rounded-lg px-1 text-center">
+            <div className="absolute left-1/2 max-w-[65%] -translate-x-1/2 truncate px-1 text-center">
               <h1 className="type-page-title truncate font-black tracking-tight">{title}</h1>
             </div>
           )}

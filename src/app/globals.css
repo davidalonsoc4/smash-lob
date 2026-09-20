@@ -2542,6 +2542,12 @@ html[data-visual-style="competition"] [data-route="/settings"] .settings-row-dan
 html[data-visual-style="competition"] .app-match-chat-header {
   background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72)) !important;
   border-color: var(--competition-border) !important;
+  /* Chat is an immersive screen: the header joins the viewport instead of
+     looking like a floating card with rounded corners. */
+  border-radius: 0 !important;
+  border-left-width: 0 !important;
+  border-right-width: 0 !important;
+  margin-inline: 0 !important;
 }
 html[data-visual-style="competition"] .app-match-chat-header .type-page-title {
   font-size: 1.2rem;
@@ -2567,15 +2573,39 @@ html[data-visual-style="competition"] .app-match-reservation-label {
 }
 html[data-visual-style="competition"] [data-tour="chat-composer"],
 html[data-visual-style="competition"] [data-tour="chat-read-only"] {
+  box-sizing: border-box;
+  width: 100%;
   background: rgb(20 21 24 / .88) !important;
   border-color: var(--competition-border) !important;
   color: var(--competition-text) !important;
   backdrop-filter: blur(18px);
 }
 html[data-visual-style="competition"] [data-tour="chat-composer"] textarea {
+  min-width: 0;
   background: var(--competition-surface-raised) !important;
   border: 1px solid var(--competition-border) !important;
   color: var(--competition-text) !important;
+  scrollbar-color: var(--competition-border) transparent;
+}
+html[data-visual-style="competition"] [data-tour="chat-composer"] .app-match-chat-send {
+  background: var(--competition-accent) !important;
+  color: var(--competition-accent-contrast) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--competition-accent-contrast) 18%, transparent), 0 6px 14px rgb(0 0 0 / .24);
+}
+html[data-visual-style="competition"] .app-match-chat-metadata[data-mine="true"] {
+  color: var(--competition-accent-contrast) !important;
+  opacity: .82;
+}
+html[data-visual-style="competition"] .app-match-chat-metadata[data-mine="false"] {
+  color: var(--competition-text-muted) !important;
+}
+html[data-visual-style="competition"] .app-match-chat-receipt[data-read="true"] {
+  color: var(--competition-accent-contrast) !important;
+  opacity: 1;
+}
+html[data-visual-style="competition"] .app-match-chat-receipt[data-read="false"] {
+  color: color-mix(in srgb, var(--competition-accent-contrast) 76%, var(--competition-accent)) !important;
+  opacity: .9;
 }
 
 html[data-visual-style="competition"] .public-spectator-hero {
