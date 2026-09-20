@@ -1818,3 +1818,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Si una persona autenticada abre un enlace de espectador de una liga a la que ya pertenece, la aplicación selecciona esa liga y abre la experiencia completa; los usuarios sin membresía conservan el flujo de solo lectura.
 - Se añadieron pruebas de regresión para contraste Classic, distribución pública, alcance del bloqueo y redirección de miembros.
 - La línea completa de la rama (`26` commits por delante de `origin/main`) se publicó en PRE como `dpl_EUm9BfzekUzK5VbcvaMZaopexMrW` y en PROD como `dpl_wRgjMQ1NjdSCtQzBrmRVTgTwzEFa`; ambos deployments quedaron `Ready` y los health checks devuelven `1.15.4` en su entorno.
+
+## Migración de acento de liga aplicada en PROD (2026-09-20)
+
+- Se enlazó explícitamente la CLI al proyecto Supabase PROD `szycbwdzestcmimziyey` y el dry-run mostró una única migración pendiente: `20260919150000_add_league_accent_color.sql`.
+- La migración se aplicó con `npx supabase db push --linked`; la lista remota quedó alineada con todas las migraciones locales.
+- `npx supabase db lint --linked --schema public` terminó sin errores.
+- La CLI se volvió a enlazar al proyecto PRE `miadjotkucgluwbrgeih` después de la operación.
