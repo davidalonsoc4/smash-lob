@@ -418,7 +418,7 @@ export function SeasonShareExportsCard({
     <>
     <AppCard className="space-y-4 border-neutral-200 bg-white shadow-sm">
       <div>
-        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
+        <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-600">
           {tx("Imágenes de la temporada")}
         </p>
         <p className="mt-1 type-panel-title text-neutral-950">{tx("Compartir temporada")}</p>
@@ -452,7 +452,7 @@ export function SeasonShareExportsCard({
       </div>
 
       <div>
-        <p className="mb-2 type-caption font-black uppercase tracking-[.16em] text-neutral-400">
+        <p className="mb-2 type-caption font-black uppercase tracking-[.16em] text-neutral-600">
           {tx("Vista previa")}
         </p>
         <div className="grid grid-cols-2 gap-2">

@@ -6,7 +6,7 @@ describe("v1.6.6 HOME quick league switcher", () => {
     const home = await readFile("src/app/page.tsx", "utf8")
 
     expect(home).toContain('import { useActiveLeague } from "@/context/ActiveLeagueProvider"')
-    expect(home).toContain("const { activateLeague } = useActiveLeague()")
+    expect(home).toContain("const { activeLeagueId, activateLeague } = useActiveLeague();")
     expect(home).toContain("<ResponsiveLeagueTitle")
     expect(home).toContain('ariaHasPopup="menu"')
     expect(home).toContain('ariaExpanded={isLeaguePickerOpen}')

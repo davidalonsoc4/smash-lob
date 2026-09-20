@@ -1876,3 +1876,12 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Validación: TypeScript, build de producción, migraciones, 14 pruebas focalizadas y `git diff --check`. No se ha desplegado.
 
 - El presupuesto global de fuente se ajustó de 131.500 a 132.250 líneas de forma acotada: la base previa de esta rama ya medía 131.903 líneas antes de la apariencia de invitaciones, que añade 210 líneas netas. El nuevo margen cubre únicamente esta entrega y queda respaldado por el gate de calidad.
+
+## Cierre de gates antes de despliegue (2026-09-20)
+
+- Se corrigió la aserción estructural obsoleta de `v166HomeLeagueSwitcher.test.ts`, que esperaba la firma anterior de `useActiveLeague()`.
+- El fixture E2E de espectador ahora refleja el contrato actual de la API (apariencia, temporada y lista de temporadas) y acepta el query string de selección.
+- Axe detectó y se corrigieron contrastes insuficientes en los estados de jornadas, las tarjetas de Estadísticas y el bloque de imágenes del resumen de temporada.
+- Se regeneraron las referencias visuales de los recorridos E2E tras los cambios de diseño vigentes.
+- Suite unitaria: 205 archivos y 789 tests correctos. E2E focalizado de accesibilidad y espectador: 24 tests correctos. Recorrido visual actualizado: 20 tests correctos.
+- `release:check` queda pendiente de repetición completa tras estos ajustes antes de publicar.

@@ -67,7 +67,7 @@ export default function StatisticsPage() {
       {statistics.ranking.length > 0 ? (
         <div data-tour="statistics-highlights" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <AppCard>
-            <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
               {isLeagueWide
                 ? statistics.leaders.length > 1
                   ? tx("Líderes históricos")
@@ -88,7 +88,7 @@ export default function StatisticsPage() {
             </p>
           </AppCard>
           <AppCard>
-            <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
               {tx("Más victorias")}{" "}</p>
             <p className="mt-1 truncate text-base font-black">
               {formatNames(mostWinsPlayers.map((player) => player.displayName))}
@@ -98,7 +98,7 @@ export default function StatisticsPage() {
             </p>
           </AppCard>
           <AppCard>
-            <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
               {tx("Mejor diferencia")}
             </p>
             <p className="mt-1 truncate text-base font-black">
@@ -108,7 +108,7 @@ export default function StatisticsPage() {
               {formatSigned(maximumGamesDiff)} {tx("juegos")}{" "}</p>
           </AppCard>
           <AppCard>
-            <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
+            <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
               {tx("Mejor racha")}
             </p>
             <p className="mt-1 truncate text-base font-black">

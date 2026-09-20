@@ -1128,7 +1128,7 @@ function RoundManagementPanel({
               }`}
             >
               <span className="block">{tx("J")}{round.round}</span>
-              <span className="mt-1 block type-caption uppercase tracking-wide opacity-70">
+              <span className="mt-1 block type-caption uppercase tracking-wide opacity-100">
                 {isInitialRound
                   ? "Inicial"
                   : round.status === "active"
