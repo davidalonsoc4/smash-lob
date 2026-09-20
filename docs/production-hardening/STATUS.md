@@ -1801,3 +1801,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La barra del navegador/PWA mantiene un negro neutro en Competition. Ajustes, lista de Chats y Chat individual comparten ahora la superficie translúcida del resto del tema.
 - La vista pública muestra siempre el nombre de la liga y una temporada explícita; cuando existen varias temporadas, el selector consulta únicamente temporadas de la liga del enlace y actualiza clasificación, calendario y visibilidad.
 - Classic no recibe estas reglas porque todo el cambio queda bajo `data-visual-style="competition"`; la API pública valida el `seasonId` antes de resolverlo.
+- El commit `a8476a7b` se ha desplegado en PRE como `dpl_BDPgZckqtHdnFEwMS4Zb48R4chxo`; `https://pre.smashandlob.com` apunta a esa versión y el health check devuelve `1.15.4`.
