@@ -1832,3 +1832,5 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El bloqueo global de la experiencia jugador vuelve a estar acotado a la temporada seleccionada: las temporadas con inicio programado (incluida la fase de secretos) mantienen la vista de espera, mientras que una temporada terminada no queda bloqueada. Administración, ajustes, partidos personales, notificaciones y accesos públicos conservan sus rutas de utilidad.
 - El panel de Inscripciones recibe una superficie Competition específica, con contraste, bordes, estados de pago y avisos legibles en oscuro. Las reglas quedan bajo `data-visual-style="competition"`; Classic no cambia.
 - Validación focalizada: 23 pruebas unitarias, ESLint de los archivos modificados y TypeScript pasan. No se ha desplegado.
+
+- El commit `c0210f41` se publicó en PRE como deployment Vercel `dpl_4otDuoXo9jzmJFG6ETz9LXSosnyE` (`Ready`, target `preview`) y `pre.smashandlob.com` quedó reasignado a esa versión. La sonda autenticada de `/api/health` devuelve `1.15.4/pre`. PROD no se ha modificado.
