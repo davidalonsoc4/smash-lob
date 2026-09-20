@@ -2577,3 +2577,108 @@ html[data-visual-style="competition"] [data-route="/chats"] .chat-list-card-unre
   border-top: 0 !important;
   box-shadow: 0 12px 26px rgb(0 0 0 / .24) !important;
 }
+
+/* Keep embedded match states legible on the dark Competition surface. These
+   utility colours are used by booking coordination and system messages; the
+   light Classic fills must not leak into Competition panels. */
+html[data-visual-style="competition"] .bg-blue-50,
+html[data-visual-style="competition"] .bg-blue-100 {
+  background: rgb(14 116 144 / .22) !important;
+}
+html[data-visual-style="competition"] .border-blue-100,
+html[data-visual-style="competition"] .border-blue-200,
+html[data-visual-style="competition"] .border-blue-800 {
+  border-color: rgb(96 165 250 / .45) !important;
+}
+html[data-visual-style="competition"] .text-blue-600,
+html[data-visual-style="competition"] .text-blue-700,
+html[data-visual-style="competition"] .text-blue-800,
+html[data-visual-style="competition"] .text-blue-900,
+html[data-visual-style="competition"] .text-blue-950 {
+  color: #a8d2ff !important;
+}
+
+html[data-visual-style="competition"] .bg-emerald-50,
+html[data-visual-style="competition"] .bg-emerald-100,
+html[data-visual-style="competition"] .bg-green-50,
+html[data-visual-style="competition"] .bg-green-100 {
+  background: rgb(6 95 70 / .24) !important;
+}
+html[data-visual-style="competition"] .border-emerald-100,
+html[data-visual-style="competition"] .border-emerald-200,
+html[data-visual-style="competition"] .border-emerald-300,
+html[data-visual-style="competition"] .border-emerald-600,
+html[data-visual-style="competition"] .border-emerald-800 {
+  border-color: rgb(52 211 153 / .42) !important;
+}
+html[data-visual-style="competition"] .text-emerald-600,
+html[data-visual-style="competition"] .text-emerald-700,
+html[data-visual-style="competition"] .text-emerald-800,
+html[data-visual-style="competition"] .text-emerald-900,
+html[data-visual-style="competition"] .text-emerald-950,
+html[data-visual-style="competition"] .text-green-600,
+html[data-visual-style="competition"] .text-green-700,
+html[data-visual-style="competition"] .text-green-800,
+html[data-visual-style="competition"] .text-green-900 {
+  color: #9de4d2 !important;
+}
+
+html[data-visual-style="competition"] .bg-indigo-50,
+html[data-visual-style="competition"] .bg-indigo-100,
+html[data-visual-style="competition"] .bg-violet-100,
+html[data-visual-style="competition"] .bg-violet-200 {
+  background: rgb(67 56 202 / .22) !important;
+}
+html[data-visual-style="competition"] .border-indigo-200,
+html[data-visual-style="competition"] .border-indigo-400,
+html[data-visual-style="competition"] .border-violet-200 {
+  border-color: rgb(129 140 248 / .46) !important;
+}
+html[data-visual-style="competition"] .text-indigo-600,
+html[data-visual-style="competition"] .text-indigo-700,
+html[data-visual-style="competition"] .text-violet-700,
+html[data-visual-style="competition"] .text-violet-900 {
+  color: #c4c9ff !important;
+}
+
+html[data-visual-style="competition"] .bg-orange-50,
+html[data-visual-style="competition"] .bg-orange-100,
+html[data-visual-style="competition"] .bg-yellow-50,
+html[data-visual-style="competition"] .bg-yellow-100,
+html[data-visual-style="competition"] .bg-lime-100 {
+  background: rgb(146 64 14 / .22) !important;
+}
+html[data-visual-style="competition"] .border-orange-200,
+html[data-visual-style="competition"] .border-orange-300 {
+  border-color: rgb(251 146 60 / .45) !important;
+}
+html[data-visual-style="competition"] .text-orange-600,
+html[data-visual-style="competition"] .text-orange-700,
+html[data-visual-style="competition"] .text-orange-800,
+html[data-visual-style="competition"] .text-orange-900,
+html[data-visual-style="competition"] .text-orange-950,
+html[data-visual-style="competition"] .text-lime-900,
+html[data-visual-style="competition"] .text-yellow-500 {
+  color: #ffd08a !important;
+}
+
+html[data-visual-style="competition"] .bg-rose-100,
+html[data-visual-style="competition"] .bg-pink-100 {
+  background: rgb(159 18 57 / .22) !important;
+}
+html[data-visual-style="competition"] .border-rose-200,
+html[data-visual-style="competition"] .border-pink-200 {
+  border-color: rgb(251 113 133 / .42) !important;
+}
+html[data-visual-style="competition"] .text-rose-800,
+html[data-visual-style="competition"] .text-pink-800 {
+  color: #ffb4c4 !important;
+}
+
+/* The scheduling card uses the accent-strip variant of AppCard. Its accent
+   tint is useful for small controls but makes the whole panel brown in dark
+   mode, so keep the surface neutral and retain the accent on the edge. */
+html[data-visual-style="competition"] .app-schedule-card {
+  background: linear-gradient(145deg, rgb(48 52 59 / .46), rgb(20 21 24 / .16)) !important;
+  border-color: color-mix(in srgb, var(--competition-accent) 18%, var(--competition-border)) !important;
+}

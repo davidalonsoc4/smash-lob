@@ -1844,3 +1844,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Validación focalizada: 20 pruebas unitarias, ESLint, TypeScript y `git diff --check` pasan. Aún no se ha desplegado este ajuste.
 
 - El commit `ea67a3f0` se publicó en PRE como `dpl_EYCT9fntL83KFTtpeacY9h4a1oi2` y en PROD como `dpl_ELHq99Rk8urTaFA6HAgHaxQisksU`; ambos deployments quedaron `Ready`. Los health checks devuelven `1.15.4/pre` y `1.15.4/prod` respectivamente.
+
+## Pulido de superficies oscuras en Competition (2026-09-20)
+
+- Las franjas de reserva del chat y los estados de coordinación ya no muestran fondos claros en Competition; usan superficies oscuras semánticas con contraste suficiente.
+- La tarjeta de Programación del detalle de partido conserva el acento en el borde, pero deja de heredar el tinte marrón del panel completo.
+- Se añadieron equivalencias oscuras para estados azules, verdes, índigo, naranjas y rosas, siempre bajo `data-visual-style="competition"`; Classic permanece intacto.
+- Validación: revisión visual local en detalle de partido y chat móvil, test de Competition (7 pruebas), TypeScript, build de producción y `git diff --check`.
