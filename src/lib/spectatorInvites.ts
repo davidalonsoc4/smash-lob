@@ -1,3 +1,5 @@
+import type { SpectatorInviteAppearance } from "@/lib/spectatorTheme"
+
 export type SpectatorInviteSummary = {
   code: string
   leagueId: string
@@ -6,6 +8,7 @@ export type SpectatorInviteSummary = {
   leagueLogoUrl: string | null
   seasonName: string | null
   seasonStatus: "upcoming" | "active" | "finished" | null
+  appearance: SpectatorInviteAppearance | null
 }
 
 export type LeagueSpectator = {
@@ -22,12 +25,16 @@ async function parseError(response: Response) {
   return body.error ?? `request_failed_${response.status}`
 }
 
-export async function createOrGetSpectatorInvite(leagueId: string) {
+export async function createOrGetSpectatorInvite(
+  leagueId: string,
+  appearance?: SpectatorInviteAppearance,
+) {
   const response = await fetch(
     `/api/leagues/${encodeURIComponent(leagueId)}/spectator-invite`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ appearance }),
       cache: "no-store",
     },
   )

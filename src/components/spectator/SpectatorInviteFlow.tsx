@@ -15,10 +15,11 @@ import {
 import { useI18n } from "@/i18n/I18nProvider"
 import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { applySpectatorInviteAppearance, hasStoredAppearancePreference } from "@/lib/spectatorTheme"
 
 export function SpectatorInviteFlow() {
   const { tx } = useI18n()
-  const { data: session } = useSession()
+  const { data: session, status: sessionStatus } = useSession()
   const { getMembershipForLeague, isAccessHydrated, isSuperuser } = useLeagueAccess()
   const params = useParams<{ code: string }>()
   const router = useRouter()
@@ -71,6 +72,11 @@ export function SpectatorInviteFlow() {
       cancelled = true
     }
   }, [code])
+
+  useEffect(() => {
+    if (!invite || sessionStatus !== "unauthenticated" || hasStoredAppearancePreference()) return
+    applySpectatorInviteAppearance(invite.appearance)
+  }, [invite, sessionStatus])
 
   useEffect(() => {
     if (!hasFullLeagueAccess || !invite) return

@@ -2505,6 +2505,21 @@ html[data-visual-style="competition"] [data-route="/matches"] [data-tour="matche
   border-radius: 1rem;
   background: color-mix(in srgb, var(--competition-accent) 8%, var(--competition-surface)) !important;
 }
+html[data-visual-style="competition"] [data-route="/matches"] .matches-scope-option[aria-current="page"] {
+  background: var(--competition-accent) !important;
+  color: var(--competition-accent-contrast) !important;
+}
+html[data-visual-style="competition"] [data-route="/matches"] .matches-scope-option[aria-current="page"] .matches-scope-label {
+  color: var(--competition-accent-contrast) !important;
+}
+html[data-visual-style="competition"] [data-route="/matches"] .matches-scope-option[aria-current="page"] .type-caption {
+  color: var(--competition-accent-contrast) !important;
+}
+html[data-visual-style="competition"] [data-route="/settings"] .settings-payment-badge {
+  background: var(--competition-accent) !important;
+  color: var(--competition-accent-contrast) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--competition-accent-contrast) 18%, transparent);
+}
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack {
   border: 1px solid color-mix(in srgb, var(--competition-accent) 24%, var(--competition-border));
   box-shadow: 0 18px 38px rgb(0 0 0 / .2);

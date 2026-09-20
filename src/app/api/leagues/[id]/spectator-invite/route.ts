@@ -4,6 +4,7 @@ import { getPublicSpectatorUrl } from "@/lib/inviteUrls"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { validateUuid } from "@/lib/serverRequest"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
+import { normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -46,9 +47,13 @@ export async function POST(
   }
 
   const { supabase, user } = access.actor
+  const body = (await request.json().catch(() => ({}))) as {
+    appearance?: Parameters<typeof normalizeSpectatorInviteAppearance>[0]
+  }
+  const requestedAppearance = normalizeSpectatorInviteAppearance(body.appearance)
   const { data: existingInvite, error: existingInviteError } = await supabase
     .from("spectator_invites")
-    .select("id,code")
+    .select("id,code,theme_visual_style,theme_base,theme_palette,theme_competition_accent,theme_accent_color")
     .eq("league_id", leagueId)
     .eq("is_active", true)
     .order("created_at", { ascending: false })
@@ -64,6 +69,26 @@ export async function POST(
 
   let code = existingInvite?.code ?? null
 
+  if (existingInvite && !existingInvite.theme_visual_style) {
+    const { error: appearanceError } = await supabase
+      .from("spectator_invites")
+      .update({
+        theme_visual_style: requestedAppearance.visualStyle,
+        theme_base: requestedAppearance.baseTheme,
+        theme_palette: requestedAppearance.palette,
+        theme_competition_accent: requestedAppearance.competitionAccent,
+        theme_accent_color: requestedAppearance.accentColor,
+      })
+      .eq("id", existingInvite.id)
+
+    if (appearanceError) {
+      return NextResponse.json(
+        { error: "spectator_invite_appearance_save_failed" },
+        { status: 500 },
+      )
+    }
+  }
+
   if (!code) {
     for (let attempt = 0; attempt < 8 && !code; attempt += 1) {
       const candidate = generateSpectatorCode()
@@ -74,6 +99,11 @@ export async function POST(
           code: candidate,
           created_by_user_id: user.id,
           is_active: true,
+          theme_visual_style: requestedAppearance.visualStyle,
+          theme_base: requestedAppearance.baseTheme,
+          theme_palette: requestedAppearance.palette,
+          theme_competition_accent: requestedAppearance.competitionAccent,
+          theme_accent_color: requestedAppearance.accentColor,
         })
         .select("code")
         .single()

@@ -1,8 +1,25 @@
 import { describe, expect, it } from "vitest"
 import { readFile } from "node:fs/promises"
 import { sanitizePublicSpectatorMatch } from "@/lib/publicSpectator"
+import { normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 describe("public spectator data", () => {
+  it("normalizes an invite appearance to an immutable safe theme", () => {
+    expect(normalizeSpectatorInviteAppearance({
+      visualStyle: "competition",
+      baseTheme: "light",
+      palette: "unknown" as never,
+      competitionAccent: "gold",
+      accentColor: "#abc",
+    })).toEqual({
+      visualStyle: "competition",
+      baseTheme: "light",
+      palette: "classic",
+      competitionAccent: "gold",
+      accentColor: "#D7A544",
+    })
+  })
+
   it("returns only public match fields and never includes internal identifiers or operations", () => {
     const result = sanitizePublicSpectatorMatch({
       match: {
@@ -80,5 +97,15 @@ describe("public spectator data", () => {
     expect(flow).toContain('window.localStorage.setItem("smash-lob-active-league", invite.leagueId)')
     expect(flow).toContain('router.replace("/")')
     expect(flow).toContain("hasFullLeagueAccess")
+    expect(flow).toContain("hasStoredAppearancePreference")
+    expect(flow).toContain("applySpectatorInviteAppearance")
+  })
+
+  it("does not mistake ThemeProvider defaults for an explicit appearance preference", async () => {
+    const theme = await readFile("src/context/ThemeProvider.tsx", "utf8")
+    const helper = await readFile("src/lib/spectatorTheme.ts", "utf8")
+    expect(theme).toContain("APPEARANCE_PREFERENCE_STORAGE_KEY")
+    expect(theme).toContain("readHadStoredAppearancePreference")
+    expect(helper).toContain('localStorage.getItem(APPEARANCE_PREFERENCE_STORAGE_KEY) === "1"')
   })
 })

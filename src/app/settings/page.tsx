@@ -652,7 +652,7 @@ function PlayerSettingsPage() {
           icon="payments"
           badge={
             hasPendingPayments ? (
-              <span className="rounded-full bg-amber-500 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-white">
+              <span className="settings-payment-badge rounded-full bg-amber-500 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-white">
                 {pendingPaymentCount} {tx("pendiente")}{pendingPaymentCount === 1 ? "" : "s"}
               </span>
             ) : null

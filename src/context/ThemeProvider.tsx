@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useSession } from "next-auth/react"
 import {
   BASE_THEME_STORAGE_KEY,
+  APPEARANCE_PREFERENCE_STORAGE_KEY,
   COMPETITION_ACCENT_STORAGE_KEY,
   DEFAULT_COMPETITION_ACCENT,
   DEFAULT_BASE_THEME,
@@ -65,6 +66,18 @@ function readStoredAppearance() {
   })
 }
 
+function readHadStoredAppearancePreference() {
+  if (typeof window === "undefined") return false
+  return [
+    BASE_THEME_STORAGE_KEY,
+    VISUAL_STYLE_STORAGE_KEY,
+    PALETTE_STORAGE_KEY,
+    COMPETITION_ACCENT_STORAGE_KEY,
+    LEGACY_THEME_STORAGE_KEY,
+    LEGACY_PALETTE_STORAGE_KEY,
+  ].some((key) => Boolean(window.localStorage.getItem(key)))
+}
+
 function getContrastColor(value: string) {
   const red = Number.parseInt(value.slice(1, 3), 16)
   const green = Number.parseInt(value.slice(3, 5), 16)
@@ -123,6 +136,7 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status: sessionStatus } = useSession()
   const initialAppearance = readStoredAppearance()
+  const hadStoredAppearancePreference = useState(readHadStoredAppearancePreference)[0]
   const canUseCompetition = isCompetitionAvailable(session?.user?.email)
   const [themeMode, setThemeModeState] = useState<ThemeMode>(initialAppearance.baseTheme)
   // Do not discard a persisted Competition choice while Auth.js is still
@@ -141,6 +155,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const effectiveStyle = !sessionResolved || canUseCompetition ? visualStyle : DEFAULT_VISUAL_STYLE
 
     window.localStorage.setItem(BASE_THEME_STORAGE_KEY, themeMode)
+    if (hadStoredAppearancePreference) window.localStorage.setItem(APPEARANCE_PREFERENCE_STORAGE_KEY, "1")
     if (sessionResolved) window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, effectiveStyle)
     window.localStorage.setItem(PALETTE_STORAGE_KEY, palette)
     window.localStorage.setItem(COMPETITION_ACCENT_STORAGE_KEY, competitionAccent)
@@ -153,19 +168,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const handleChange = () => applyAppearance(themeMode, effectiveStyle, palette, leagueAccent, competitionAccent)
     media.addEventListener("change", handleChange)
     return () => media.removeEventListener("change", handleChange)
-  }, [canUseCompetition, competitionAccent, leagueAccent, palette, sessionStatus, themeMode, visualStyle])
+  }, [canUseCompetition, competitionAccent, hadStoredAppearancePreference, leagueAccent, palette, sessionStatus, themeMode, visualStyle])
 
   const setThemeMode = useCallback((nextThemeMode: ThemeMode) => {
+    window.localStorage.setItem(APPEARANCE_PREFERENCE_STORAGE_KEY, "1")
     setThemeModeState(nextThemeMode)
   }, [])
 
   const setVisualStyle = useCallback((nextVisualStyle: VisualStyle) => {
     if (nextVisualStyle === "competition" && !canUseCompetition && sessionStatus !== "loading") return
+    window.localStorage.setItem(APPEARANCE_PREFERENCE_STORAGE_KEY, "1")
     setVisualStyleState(nextVisualStyle)
     if (nextVisualStyle === "competition") setThemeModeState("dark")
   }, [canUseCompetition, sessionStatus])
 
   const setPalette = useCallback((nextPalette: Palette) => {
+    window.localStorage.setItem(APPEARANCE_PREFERENCE_STORAGE_KEY, "1")
     setPaletteState(normalizePalette(nextPalette) ?? DEFAULT_PALETTE)
   }, [])
 
@@ -174,6 +192,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const setCompetitionAccent = useCallback((nextAccent: CompetitionAccent) => {
+    window.localStorage.setItem(APPEARANCE_PREFERENCE_STORAGE_KEY, "1")
     setCompetitionAccentState(normalizeCompetitionAccent(nextAccent))
   }, [])
 

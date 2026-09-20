@@ -5,6 +5,7 @@ import { validateInviteCode } from "@/lib/serverRequest"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { applyPrivateNoStore } from "@/lib/serverResponse"
 import { expirePendingAccessIntentCookie } from "@/lib/serverPendingAccessIntent"
+import { normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -19,7 +20,7 @@ async function resolveInvite(code: string) {
 
   const { data: invite, error: inviteError } = await supabase
     .from("spectator_invites")
-    .select("id,league_id,code,is_active,created_at")
+    .select("id,league_id,code,is_active,created_at,theme_visual_style,theme_base,theme_palette,theme_competition_accent,theme_accent_color")
     .eq("code", code)
     .eq("is_active", true)
     .maybeSingle()
@@ -101,6 +102,15 @@ export async function GET(
         leagueDescription: result.league.description ?? "",
         leagueLogoUrl: result.league.logo_url ?? null,
         leagueAccentColor: result.league.accent_color ?? null,
+        appearance: result.invite.theme_visual_style
+          ? normalizeSpectatorInviteAppearance({
+              visualStyle: result.invite.theme_visual_style,
+              baseTheme: result.invite.theme_base,
+              palette: result.invite.theme_palette,
+              competitionAccent: result.invite.theme_competition_accent,
+              accentColor: result.invite.theme_accent_color,
+            })
+          : null,
         seasonName: result.visibleSeason?.name ?? null,
         seasonStatus: result.visibleSeason?.status ?? null,
       },

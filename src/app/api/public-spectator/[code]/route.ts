@@ -8,6 +8,7 @@ import { getPreseasonAccessPhase } from "@/lib/preseasonSecrets"
 import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar"
 import { buildPublicSpectatorRanking, sanitizePublicSpectatorMatch } from "@/lib/publicSpectator"
 import type { PlayerProfile, SeasonPlayer } from "@/data/fakeData"
+import { normalizeSpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -37,7 +38,7 @@ export async function GET(
 
   const { data: invite, error: inviteError } = await supabase
     .from("spectator_invites")
-    .select("league_id")
+    .select("league_id,theme_visual_style,theme_base,theme_palette,theme_competition_accent,theme_accent_color")
     .eq("code", code)
     .eq("is_active", true)
     .maybeSingle()
@@ -77,6 +78,15 @@ export async function GET(
   if (!season) {
     return applyPrivateNoStore(NextResponse.json({
       league: { name: league.name, description: league.description ?? "", logoUrl: league.logo_url ?? null, accentColor: league.accent_color ?? null },
+      appearance: invite.theme_visual_style
+        ? normalizeSpectatorInviteAppearance({
+            visualStyle: invite.theme_visual_style,
+            baseTheme: invite.theme_base,
+            palette: invite.theme_palette,
+            competitionAccent: invite.theme_competition_accent,
+            accentColor: invite.theme_accent_color,
+          })
+        : null,
       season: null,
       seasons: availableSeasons,
       ranking: [],
@@ -173,6 +183,15 @@ export async function GET(
 
   return applyPrivateNoStore(NextResponse.json({
     league: { name: league.name, description: league.description ?? "", logoUrl: league.logo_url ?? null, accentColor: league.accent_color ?? null },
+    appearance: invite.theme_visual_style
+      ? normalizeSpectatorInviteAppearance({
+          visualStyle: invite.theme_visual_style,
+          baseTheme: invite.theme_base,
+          palette: invite.theme_palette,
+          competitionAccent: invite.theme_competition_accent,
+          accentColor: invite.theme_accent_color,
+        })
+      : null,
     season: { name: season.name, status: season.status, totalRounds: Number(season.total_rounds) || 0, completedRounds: Number(season.completed_rounds) || 0 },
     seasonId: String(season.id),
     seasons: availableSeasons,

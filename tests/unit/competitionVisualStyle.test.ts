@@ -112,6 +112,20 @@ describe("Competition visual style", () => {
     expect(css).toContain("var(--competition-accent-contrast) !important;")
   })
 
+  it("keeps the match scope label and payment badge legible on Competition accents", async () => {
+    const [matches, settings, css] = await Promise.all([
+      readFile("src/app/matches/page.tsx", "utf8"),
+      readFile("src/app/settings/page.tsx", "utf8"),
+      readFile("src/app/globals.css", "utf8"),
+    ])
+    expect(matches).toContain('data-matches-scope-option')
+    expect(matches).toContain('className="w-14 shrink-0 text-center type-caption font-black text-neutral-700"')
+    expect(matches).toContain("matches-scope-label")
+    expect(settings).toContain("settings-payment-badge")
+    expect(css).toContain('.matches-scope-option[aria-current="page"] .matches-scope-label')
+    expect(css).toContain('.settings-payment-badge {')
+  })
+
   it("uses the Statistics icon pattern for settings navigation and notification groups", async () => {
     const settings = await readFile("src/app/settings/page.tsx", "utf8")
     const notifications = await readFile("src/app/settings/notifications/page.tsx", "utf8")

@@ -16,6 +16,7 @@ export type CompetitionAccent = "league" | "gold" | "blue" | "green" | "coral" |
 
 export const VISUAL_STYLE_STORAGE_KEY = "smash-lob-visual-style"
 export const COMPETITION_ACCENT_STORAGE_KEY = "smash-lob-competition-accent"
+export const APPEARANCE_PREFERENCE_STORAGE_KEY = "smash-lob-appearance-preference-set"
 export const BASE_THEME_STORAGE_KEY = "smash-lob-theme-mode"
 export const LEGACY_THEME_STORAGE_KEY = "smash-lob-theme"
 export const PALETTE_STORAGE_KEY = "smash-lob-palette"

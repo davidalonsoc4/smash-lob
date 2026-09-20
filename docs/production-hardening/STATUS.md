@@ -1866,3 +1866,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Las horas y los checks de los mensajes reciben clases semánticas propias. En Competition se pintan con el contraste del acento activo, manteniendo legibilidad con acentos claros y oscuros; Classic no cambia.
 - Validación focalizada: 19 pruebas unitarias, ESLint de TS (CSS ignorado por configuración), revisión visual local en móvil y `git diff --check`. No se ha desplegado.
 - Ajuste posterior: la hora de los mensajes propios fuerza también el color de contraste en su elemento interno `.type-caption`, evitando que la regla global de captions la apague con el acento dorado.
+
+## Apariencia fija en enlaces de espectadores y contraste de navegación (2026-09-20)
+
+- Los enlaces de espectadores guardan al generarse una instantánea inmutable de la apariencia del creador: estilo visual, tema base, paleta, elección de acento y color resuelto. Los enlaces existentes sin instantánea se completan en su siguiente uso y después no vuelven a cambiar.
+- Una persona anónima sin una preferencia visual explícita recibe esa apariencia al abrir la invitación o la vista pública; sus preferencias guardadas y las cuentas autenticadas tienen prioridad. Los valores por defecto escritos automáticamente por `ThemeProvider` no se consideran una elección del usuario.
+- Se añadió la migración `20260920100000_add_spectator_invite_appearance.sql` y la API pública devuelve la apariencia sin exponer datos internos.
+- En Calendario, `VISTA` queda centrado en su espacio y la opción activa fuerza el contraste del texto. La etiqueta de pagos pendientes de Ajustes usa el acento y su contraste en Competition.
+- Validación: TypeScript, build de producción, migraciones, 14 pruebas focalizadas y `git diff --check`. No se ha desplegado.

@@ -2,14 +2,17 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { AppCard } from "@/components/ui/AppCard"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useI18n } from "@/i18n/I18nProvider"
 import { clearPendingAccessIntent } from "@/lib/pendingAccessIntentClient"
 import type { PublicSpectatorMatch, PublicSpectatorRankingRow } from "@/lib/publicSpectator"
+import { applySpectatorInviteAppearance, hasStoredAppearancePreference, type SpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 type PublicViewPayload = {
   league: { name: string; description: string; logoUrl: string | null }
+  appearance: SpectatorInviteAppearance | null
   season: { name: string; status: string; totalRounds: number; completedRounds: number } | null
   seasonId?: string
   seasons: { id: string; name: string; status: "active" | "upcoming" | "finished" }[]
@@ -86,6 +89,7 @@ function MatchCard({ match, tx }: { match: PublicSpectatorMatch; tx: (value: str
 
 export function PublicSpectatorView({ code }: { code: string }) {
   const { tx } = useI18n()
+  const { status: sessionStatus } = useSession()
   const [view, setView] = useState<PublicViewPayload | null>(null)
   const [state, setState] = useState<"loading" | "ready" | "missing" | "error">("loading")
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null)
@@ -116,6 +120,11 @@ export function PublicSpectatorView({ code }: { code: string }) {
       })
     return () => { cancelled = true }
   }, [code, selectedSeasonId])
+
+  useEffect(() => {
+    if (!view || sessionStatus !== "unauthenticated" || hasStoredAppearancePreference()) return
+    applySpectatorInviteAppearance(view.appearance)
+  }, [sessionStatus, view])
 
   return (
     <main className="min-h-screen bg-neutral-100 px-3 pb-10 pt-6 text-neutral-950 sm:px-5 sm:pt-10">

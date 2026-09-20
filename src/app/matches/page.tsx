@@ -135,20 +135,21 @@ export default function MatchesPage() {
 
       <AppCard data-tour="matches-scope" className="p-2">
         <div className="flex min-w-0 items-center gap-2 overflow-hidden">
-          <p className="shrink-0 type-caption font-black text-neutral-700">
+          <p className="w-14 shrink-0 text-center type-caption font-black text-neutral-700">
             {tx("Vista")}{" "}</p>
 
           <div className="ml-auto flex min-w-0 items-center gap-1.5">
             <Link
               href="/matches"
               aria-current={activeScope === "all" ? "page" : undefined}
-              className={`inline-flex min-w-0 items-center gap-1 rounded-xl px-2 py-1.5 transition ${
+              data-matches-scope-option
+              className={`matches-scope-option inline-flex min-w-0 items-center gap-1 rounded-xl px-2 py-1.5 transition ${
                 activeScope === "all"
                   ? "bg-neutral-950 text-white shadow-sm"
                   : "bg-neutral-100 text-neutral-700"
               }`}
             >
-              <span className="whitespace-nowrap type-caption font-black">
+              <span className="matches-scope-label whitespace-nowrap type-caption font-black">
                 {tx("Liga completa")}{" "}</span>
               <span
                 className={`rounded-full px-1.5 py-0.5 type-caption font-black ${
@@ -164,13 +165,14 @@ export default function MatchesPage() {
             <Link
               href="/matches?scope=mine"
               aria-current={activeScope === "mine" ? "page" : undefined}
-              className={`inline-flex min-w-0 items-center gap-1 rounded-xl px-2 py-1.5 transition ${
+              data-matches-scope-option
+              className={`matches-scope-option inline-flex min-w-0 items-center gap-1 rounded-xl px-2 py-1.5 transition ${
                 activeScope === "mine"
                   ? "bg-neutral-950 text-white shadow-sm"
                   : "bg-neutral-100 text-neutral-700"
               }`}
             >
-              <span className="whitespace-nowrap type-caption font-black">
+              <span className="matches-scope-label whitespace-nowrap type-caption font-black">
                 {tx("Mis partidos")}{" "}</span>
               <span
                 className={`rounded-full px-1.5 py-0.5 type-caption font-black ${
