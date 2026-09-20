@@ -40,7 +40,7 @@ describe("v1.7.0 match detail mobile UI polish", () => {
       readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
       readFile("src/components/layout/AppShell.tsx", "utf8"),
     ])
-    expect(page).toContain('matchRound ? tx(`Chat · Jornada ${matchRound}`)')
+    expect(page).toContain('matchRound ? tx(`Jornada ${matchRound}`)')
     expect(page).toContain("useCurrentLeagueData")
     expect(page).toContain('import { MatchTeamsPanel } from "@/components/matches/MatchTeamsPanel"')
     expect(page).toContain("teamA={match.teamA}")

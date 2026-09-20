@@ -2543,11 +2543,27 @@ html[data-visual-style="competition"] .app-match-chat-header {
   background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72)) !important;
   border-color: var(--competition-border) !important;
 }
+html[data-visual-style="competition"] .app-match-chat-header .type-page-title {
+  font-size: 1.2rem;
+  letter-spacing: .07em;
+}
 html[data-visual-style="competition"][data-match-chat-active="true"] .app-match-chat-header .type-page-title {
   color: var(--competition-text) !important;
 }
 html[data-visual-style="competition"] [data-tour="chat-messages"] {
   background: transparent !important;
+}
+html[data-visual-style="competition"] .app-match-reservation-banner {
+  border-color: color-mix(in srgb, #477bd1 40%, var(--competition-border)) !important;
+  background: linear-gradient(110deg, rgb(35 76 128 / .34), rgb(20 21 24 / .72)) !important;
+  color: var(--competition-text) !important;
+}
+html[data-visual-style="competition"] .app-match-reservation-icon {
+  background: #477bd1 !important;
+  color: #f7fbff !important;
+}
+html[data-visual-style="competition"] .app-match-reservation-label {
+  color: #a8d2ff !important;
 }
 html[data-visual-style="competition"] [data-tour="chat-composer"],
 html[data-visual-style="competition"] [data-tour="chat-read-only"] {

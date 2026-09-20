@@ -93,4 +93,14 @@ describe("Competition visual style", () => {
     expect(css).toContain(".season-registration-panel .status-tone-green")
     expect(css).toContain(".season-registration-panel .bg-emerald-600")
   })
+
+  it("uses the Statistics icon pattern for settings navigation and notification groups", async () => {
+    const settings = await readFile("src/app/settings/page.tsx", "utf8")
+    const notifications = await readFile("src/app/settings/notifications/page.tsx", "utf8")
+    const icon = await readFile("src/components/settings/SettingsSectionIcon.tsx", "utf8")
+    expect(settings).toContain('icon="notifications"')
+    expect(settings).toContain('icon="leagues"')
+    expect(notifications).toContain("<SettingsSectionIcon name={group.icon} />")
+    expect(icon).toContain("grid h-8 w-8 place-items-center rounded-xl bg-neutral-100 text-neutral-700")
+  })
 })

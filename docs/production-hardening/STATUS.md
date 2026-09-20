@@ -1851,3 +1851,10 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La tarjeta de Programación del detalle de partido conserva el acento en el borde, pero deja de heredar el tinte marrón del panel completo.
 - Se añadieron equivalencias oscuras para estados azules, verdes, índigo, naranjas y rosas, siempre bajo `data-visual-style="competition"`; Classic permanece intacto.
 - Validación: revisión visual local en detalle de partido y chat móvil, test de Competition (7 pruebas), TypeScript, build de producción y `git diff --check`.
+
+## Ajustes, notificaciones y chat en Competition (2026-09-20)
+
+- Las opciones de Ajustes y las categorías de Notificaciones incorporan el mismo patrón de iconos cuadrados que Estadísticas, manteniendo las miniaturas informativas de perfil y apariencia.
+- El chat de partido muestra `JORNADA X` como título compacto. La reserva fijada se presenta con pin, etiqueta y segunda línea para fecha y ubicación, con contraste específico para Competition.
+- Se revisaron los estados vacíos, el área de mensajes, el compositor y las tarjetas de coordinación en móvil; Classic queda fuera de los selectores visuales de Competition.
+- Validación: revisión visual local en Ajustes, Notificaciones y Chat, 26 pruebas focalizadas, ESLint, TypeScript, build de producción y `git diff --check`.

@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import {
+  SettingsSectionIcon,
+  type SettingsSectionIconName,
+} from "@/components/settings/SettingsSectionIcon"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
@@ -49,6 +53,7 @@ type SettingsLinkRowProps = {
   description: string
   id?: string
   leading?: ReactNode
+  icon?: SettingsSectionIconName
   badge?: ReactNode
   tone?: "default" | "warning" | "danger"
   tour?: string
@@ -59,6 +64,7 @@ function SettingsLinkRow({
   description,
   id,
   leading,
+  icon,
   badge,
   tone = "default",
   tour,
@@ -82,7 +88,9 @@ function SettingsLinkRow({
       data-tour={tour}
       className={`settings-row settings-row-${tone} settings-search-target flex items-center gap-3 px-3 py-3 transition active:bg-neutral-50 ${toneClass}`}
     >
-      {leading ? <div className="shrink-0">{leading}</div> : null}
+      {leading || icon ? (
+        <div className="shrink-0">{leading ?? <SettingsSectionIcon name={icon!} />}</div>
+      ) : null}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-black">{title}</p>
@@ -100,16 +108,19 @@ function SettingsStaticRow({
   id,
   title,
   description,
+  leading,
   children,
 }: {
   id?: string
   title: string
   description: string
+  leading?: ReactNode
   children: ReactNode
 }) {
   return (
     <div id={id} className="settings-row settings-row-default settings-search-target px-3 py-3">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
+        {leading ? <div className="shrink-0">{leading}</div> : null}
         <div className="min-w-0 flex-1">
           <p className="text-sm font-black text-neutral-950">{title}</p>
           <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
@@ -334,6 +345,7 @@ function SpectatorSettingsPage() {
           id="language"
           title={t.settings.language}
           description={t.settings.languageDescription}
+          leading={<SettingsSectionIcon name="language" />}
         >
           <LanguageSwitcher />
         </SettingsStaticRow>
@@ -349,6 +361,7 @@ function SpectatorSettingsPage() {
           tour="settings-context-switcher"
           title={tx("Mis ligas")}
           description={tx("Cambia entre ligas donde eres jugador o espectador.")}
+          icon="leagues"
         />
       </SettingsSection>
       {isAvatarLabEnabled() ? (
@@ -361,6 +374,7 @@ function SpectatorSettingsPage() {
             id="avatar-lab"
             title={tx("Laboratorio de avatares")}
             description={tx("Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil.")}
+            icon="avatar"
             badge={
               <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-amber-800">
                 PRE
@@ -379,24 +393,28 @@ function SpectatorSettingsPage() {
           tour="settings-suggestions"
           title={tx("Buzón de sugerencias")}
           description={tx("Propón mejoras y nuevas funciones para Smash & Lob.")}
+          icon="suggestions"
         />
         <SettingsLinkRow
           href="/help"
           id="help"
           title={t.settings.helpTitle}
           description={t.settings.helpDescription}
+          icon="help"
         />
         <SettingsLinkRow
           href="/changelog"
           id="changelog"
           title={tx("Registro de cambios")}
           description={tx("Consulta las novedades publicadas en cada versión.")}
+          icon="changelog"
         />
         <SettingsLinkRow
           href="/about"
           id="about-app"
           title={tx("Sobre Smash & Lob")}
           description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")}
+          icon="about"
         />
       </SettingsSection>
       <AccountDataSection />
@@ -538,6 +556,7 @@ function PlayerSettingsPage() {
           id="language"
           title={t.settings.language}
           description={t.settings.languageDescription}
+          leading={<SettingsSectionIcon name="language" />}
         >
           <LanguageSwitcher />
         </SettingsStaticRow>
@@ -548,6 +567,7 @@ function PlayerSettingsPage() {
           tour="settings-notifications"
           title={tx("Notificaciones")}
           description={tx("Activa push y elige qué avisos quieres recibir en este dispositivo.")}
+          icon="notifications"
         />
         {roundSettings.availabilityRecommendationsEnabled ? (
           <SettingsLinkRow
@@ -555,6 +575,7 @@ function PlayerSettingsPage() {
             id="availability"
             title={tx("Mi disponibilidad")}
             description={tx("Define cuándo puedes jugar para las recomendaciones de esta temporada.")}
+            icon="availability"
           />
         ) : null}
       </SettingsSection>
@@ -569,6 +590,7 @@ function PlayerSettingsPage() {
             tour="settings-context-switcher"
             title={tx("Mis ligas")}
             description={tx(`Liga activa: ${activeLeague.name}. Consulta y cambia de competición.`)}
+            icon="leagues"
           />
         ) : null}
         <SettingsLinkRow
@@ -576,6 +598,7 @@ function PlayerSettingsPage() {
           id="join-league"
           title={t.settings.joinNewExistingLeague}
           description={tx("Usa un código o enlace de invitación para acceder a otra liga.")}
+          icon="join"
         />
         {canCreateLeaguesInCurrentView ? (
           <SettingsLinkRow
@@ -583,6 +606,7 @@ function PlayerSettingsPage() {
             id="create-league"
             title={t.settings.createNewLeague}
             description={tx("Configura una competición nueva desde cero.")}
+            icon="create"
           />
         ) : null}
         {canSelfUnlink ? (
@@ -625,6 +649,7 @@ function PlayerSettingsPage() {
               : tx("Consulta tus pagos, reservas e historial de movimientos.")
           }
           tone={hasPendingPayments ? "warning" : "default"}
+          icon="payments"
           badge={
             hasPendingPayments ? (
               <span className="rounded-full bg-amber-500 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-white">
@@ -638,6 +663,7 @@ function PlayerSettingsPage() {
           id="activity"
           title={tx("Actividad de la liga")}
           description={tx("Consulta el historial de cambios y acciones desde que te vinculaste.")}
+          icon="activity"
         />
       </SettingsSection>
       {hasAdminRole || isSuperuser ? (
@@ -726,6 +752,7 @@ function PlayerSettingsPage() {
               id="admin"
               title={t.settings.adminPanelTitle}
               description={tx("Gestiona la liga por áreas: general, personas, competición, operaciones y datos.")}
+              icon="admin"
             />
           ) : null}
           {isSuperuser && canAccessAdmin ? (
@@ -735,6 +762,7 @@ function PlayerSettingsPage() {
               title={tx("Gestión de la app")}
               description={tx("Administra usuarios, ubicaciones y otras herramientas globales de Smash & Lob.")}
               tone="danger"
+              icon="applicationAdmin"
             />
           ) : null}
         </SettingsSection>
@@ -749,6 +777,7 @@ function PlayerSettingsPage() {
             id="avatar-lab"
             title={tx("Laboratorio de avatares")}
             description={tx("Prueba DiceBear Big Smile y Notion Avatar sin cambiar tu perfil.")}
+            icon="avatar"
             badge={
               <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.1em] text-amber-800">
                 PRE
@@ -767,24 +796,28 @@ function PlayerSettingsPage() {
           tour="settings-suggestions"
           title={tx("Buzón de sugerencias")}
           description={tx("Propón mejoras y nuevas funciones para Smash & Lob.")}
+          icon="suggestions"
         />
         <SettingsLinkRow
           href="/help"
           id="help"
           title={t.settings.helpTitle}
           description={t.settings.helpDescription}
+          icon="help"
         />
         <SettingsLinkRow
           href="/changelog"
           id="changelog"
           title={tx("Registro de cambios")}
           description={tx("Consulta las novedades publicadas en cada versión.")}
+          icon="changelog"
         />
         <SettingsLinkRow
           href="/about"
           id="about-app"
           title={tx("Sobre Smash & Lob")}
           description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")}
+          icon="about"
         />
       </SettingsSection>
       <AccountDataSection />

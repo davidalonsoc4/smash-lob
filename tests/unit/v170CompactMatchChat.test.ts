@@ -12,7 +12,7 @@ describe("v1.7.0 compact match chat", () => {
       readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
       readFile("src/app/match/[id]/page.tsx", "utf8"),
     ])
-    for (const token of ["const initialTimer = window.setTimeout", "subscribeChatRealtime", "Chat · Jornada", "useCurrentLeagueData"]) expect(page).toContain(token)
+    for (const token of ["const initialTimer = window.setTimeout", "subscribeChatRealtime", "Jornada ${matchRound}", "useCurrentLeagueData"]) expect(page).toContain(token)
     expect(page).toContain("<MatchChatFrame")
     expect(page).toContain("<MatchChatComposer")
     expect(shared).toContain("<BackButton")

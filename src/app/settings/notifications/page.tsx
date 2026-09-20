@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
+import { SettingsSectionIcon, type SettingsSectionIconName } from "@/components/settings/SettingsSectionIcon"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { showActionFeedback } from "@/lib/actionFeedback"
@@ -36,6 +37,7 @@ type NotificationPreferenceGroup = {
   id: NotificationGroupId
   title: string
   description: string
+  icon: SettingsSectionIconName
   keys: NotificationPreferenceKey[]
 }
 
@@ -44,12 +46,14 @@ const notificationPreferenceGroups: NotificationPreferenceGroup[] = [
     id: "matches",
     title: "Partidos",
     description: "Programación, incidencias, mensajes y recordatorios del próximo partido.",
+    icon: "matches",
     keys: ["match_schedule", "match_incidents", "match_upcoming", "match_chat"],
   },
   {
     id: "competition",
     title: "Resultados y competición",
     description: "Resultados, confirmaciones, MVP, jornadas y temporadas.",
+    icon: "competition",
     keys: [
       "match_results",
       "result_confirmations",
@@ -63,12 +67,14 @@ const notificationPreferenceGroups: NotificationPreferenceGroup[] = [
     id: "league",
     title: "Liga y jugadores",
     description: "Plantilla, comunicados y cambios en cuentas o permisos.",
+    icon: "leagues",
     keys: ["season_roster", "announcements", "player_account"],
   },
   {
     id: "payments",
     title: "Reservas y pagos",
     description: "Cambios de reserva, pagos recibidos y recordatorios.",
+    icon: "payments",
     keys: ["booking_updates", "booking_payments", "payment_reminders"],
   },
 ]
@@ -478,8 +484,8 @@ export default function NotificationSettingsPage() {
                 key={group.id}
                 id={group.id}
                 className="settings-search-target overflow-hidden rounded-2xl border border-neutral-200 bg-white"
-              >
-                <button
+                >
+                  <button
                   type="button"
                   onClick={() =>
                     setExpandedGroups((current) => ({
@@ -489,8 +495,9 @@ export default function NotificationSettingsPage() {
                   }
                   aria-expanded={isExpanded}
                   className="flex w-full items-center gap-3 px-3 py-3 text-left"
-                >
-                  <div className="min-w-0 flex-1">
+                  >
+                    <SettingsSectionIcon name={group.icon} />
+                    <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-black text-neutral-950">
                         {group.title}

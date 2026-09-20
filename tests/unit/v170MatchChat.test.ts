@@ -55,7 +55,7 @@ describe("v1.7.0 match chat MVP", () => {
     expect(chat).toContain("<MatchChatComposer")
     expect(shared).toContain("maxLength={2000}")
     expect(shared).toContain('event.key === "Enter"')
-    expect(chat).toContain("Chat · Jornada")
+    expect(chat).toContain("Jornada ${matchRound}")
     expect(chat).toContain("useCurrentLeagueData")
     expect(chat).not.toContain('bottom: "calc(72px + env(safe-area-inset-bottom, 0px))"')
   })

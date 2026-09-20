@@ -481,9 +481,34 @@ export default function MatchChatPage() {
   const replyingHref = participantProfileHref(replyingParticipant)
 
   return (
-    <MatchChatFrame viewportRef={viewportRef} backHref={`/match/${id}`} title={matchRound ? tx(`Chat · Jornada ${matchRound}`) : tx("Chat del partido")} titleHref={`/match/${id}`}>
+    <MatchChatFrame viewportRef={viewportRef} backHref={`/match/${id}`} title={matchRound ? tx(`Jornada ${matchRound}`) : tx("Chat del partido")} titleHref={`/match/${id}`}>
       {SHOW_MATCH_TEAMS_PANEL && match ? <div className="shrink-0 px-3 pt-2"><div className="rounded-2xl border border-neutral-200 bg-white p-2.5 shadow-sm"><MatchTeamsPanel teamA={match.teamA} teamB={match.teamB} players={players} mode="versus" linkPlayers={false} /></div></div> : null}
-      <div data-tour="chat-messages" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-neutral-100" style={{ visibility: initialLoadComplete ? "visible" : "hidden" }}>{reservationSummary ? <div className="flex shrink-0 items-center gap-1.5 border-b border-blue-100 bg-blue-50 px-3 py-1.5 text-blue-900"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0"><path d="M12 17v5" /><path d="m5 3 14 0" /><path d="m7 3 1.5 8-3 3h13l-3-3L17 3" /></svg><p className="min-w-0 flex-1 truncate type-caption font-black" title={`${reservationSummaryDate(reservationSummary.scheduledAt, locale)} · ${reservationSummary.locationText}`}><span className="uppercase tracking-wide text-blue-700">{tx("Reserva")}</span> · {reservationSummaryDate(reservationSummary.scheduledAt, locale)} · {reservationSummary.locationText}</p></div> : null}{!effectiveReadOnly && !hasConfirmedReservation && displayedCoordination?.status === "awaiting_booking" ? <MatchReservationConfirmation matchId={id} coordination={displayedCoordination} locations={activeLeague.locations} participantIds={participants.map((item) => item.playerId)} players={players} requireReservationPayments currentPlayerId={participants.find((item) => item.userId === me)?.playerId ?? ""} onConfirmed={() => loadFromServer(match)} onInvalidated={async () => { await loadFromServer(match); openProposalMode("date") }} /> : null}<div ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2">
+      <div data-tour="chat-messages" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-neutral-100" style={{ visibility: initialLoadComplete ? "visible" : "hidden" }}>
+        {reservationSummary ? (
+          <div
+            className="app-match-reservation-banner flex shrink-0 items-center gap-2 border-b border-blue-100 bg-blue-50 px-3 py-2 text-blue-900"
+            role="status"
+          >
+            <span className="app-match-reservation-icon inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                <path d="M12 17v5" />
+                <path d="m5 3 14 0" />
+                <path d="m7 3 1.5 8-3 3h13l-3-3L17 3" />
+              </svg>
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="app-match-reservation-label type-caption font-black uppercase tracking-[0.12em]">{tx("Reserva")}</p>
+              <p
+                className="truncate type-caption font-semibold"
+                title={`${reservationSummaryDate(reservationSummary.scheduledAt, locale)} · ${reservationSummary.locationText}`}
+              >
+                {reservationSummaryDate(reservationSummary.scheduledAt, locale)} · {reservationSummary.locationText}
+              </p>
+            </div>
+          </div>
+        ) : null}
+        {!effectiveReadOnly && !hasConfirmedReservation && displayedCoordination?.status === "awaiting_booking" ? <MatchReservationConfirmation matchId={id} coordination={displayedCoordination} locations={activeLeague.locations} participantIds={participants.map((item) => item.playerId)} players={players} requireReservationPayments currentPlayerId={participants.find((item) => item.userId === me)?.playerId ?? ""} onConfirmed={() => loadFromServer(match)} onInvalidated={async () => { await loadFromServer(match); openProposalMode("date") }} /> : null}
+        <div ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2">
         {initialLoadComplete && messages.length === 0 && !error ? <p className="py-16 text-center text-sm font-semibold text-neutral-500">{tx("Todavía no hay mensajes. Escribe para organizar el partido.")}</p> : null}
         <div>
           {messages.map((message, index) => {
