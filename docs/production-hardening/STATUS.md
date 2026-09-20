@@ -1865,3 +1865,4 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - El compositor inferior se mantiene como una superficie continua y el botón de envío usa el acento y su color de contraste calculado, evitando una franja lateral o contrastes inconsistentes.
 - Las horas y los checks de los mensajes reciben clases semánticas propias. En Competition se pintan con el contraste del acento activo, manteniendo legibilidad con acentos claros y oscuros; Classic no cambia.
 - Validación focalizada: 19 pruebas unitarias, ESLint de TS (CSS ignorado por configuración), revisión visual local en móvil y `git diff --check`. No se ha desplegado.
+- Ajuste posterior: la hora de los mensajes propios fuerza también el color de contraste en su elemento interno `.type-caption`, evitando que la regla global de captions la apague con el acento dorado.

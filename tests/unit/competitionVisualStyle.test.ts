@@ -107,6 +107,7 @@ describe("Competition visual style", () => {
     expect(css).toContain('html[data-visual-style="competition"] .app-match-chat-header {')
     expect(css).toContain("border-radius: 0 !important;")
     expect(css).toContain(".app-match-chat-metadata[data-mine=\"true\"]")
+    expect(css).toContain(".app-match-chat-metadata[data-mine=\"true\"] .type-caption")
     expect(css).toContain(".app-match-chat-receipt[data-read=\"true\"]")
     expect(css).toContain("var(--competition-accent-contrast) !important;")
   })

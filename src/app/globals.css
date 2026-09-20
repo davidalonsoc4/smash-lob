@@ -2594,7 +2594,13 @@ html[data-visual-style="competition"] [data-tour="chat-composer"] .app-match-cha
 }
 html[data-visual-style="competition"] .app-match-chat-metadata[data-mine="true"] {
   color: var(--competition-accent-contrast) !important;
-  opacity: .82;
+  /* Keep timestamps at full contrast: light/gold accents otherwise make the
+     muted timestamp disappear while the bubble text remains readable. */
+  opacity: 1;
+  font-weight: 700;
+}
+html[data-visual-style="competition"] .app-match-chat-metadata[data-mine="true"] .type-caption {
+  color: var(--competition-accent-contrast) !important;
 }
 html[data-visual-style="competition"] .app-match-chat-metadata[data-mine="false"] {
   color: var(--competition-text-muted) !important;
