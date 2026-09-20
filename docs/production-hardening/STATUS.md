@@ -1899,3 +1899,11 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Se añadió una prueba E2E de la pantalla intermedia anónima para evitar que vuelva a aparecer el error genérico “Algo no ha salido bien”.
 - Validación focalizada: 17 tests unitarios, 4 E2E de espectadores, ESLint, TypeScript, build de producción y `git diff --check` correctos.
 - El commit `0288fbf6` se publicó en PROD como deployment `dpl_FUx4AYwrQSQYADKXuZpYfYwnJS2N`; quedó `Ready` y el alias `https://smashandlob.com` apunta a él. Health check y `smoke:prod` pasan. La ruta real `/spectate/SP-58ZK-GUD9D-FDE3` responde sin el error de proveedor y no aparecen nuevas incidencias `1295237974` en los logs.
+
+## Apariencia de invitación anónima y título de liga en vista pública (2026-09-20)
+
+- En rutas `/spectate/...` sin sesión, `ThemeProvider` deja de reaplicar la preferencia local después de cargar la invitación; la apariencia inmutable del enlace se aplica siempre. Esto evita que un tema claro guardado en el dispositivo anule la apariencia del QR/enlace.
+- El título de la liga en la cabecera pública tiene color explícito de alto contraste, también en Classic claro.
+- Se añadió cobertura E2E para verificar que la paleta de la invitación se aplica sin sesión y regresión de la pantalla intermedia.
+- Validación: 5 tests unitarios de espectadores, 4 E2E de espectadores, ESLint, TypeScript, build de producción y `git diff --check` correctos.
+- El commit `58d34da8` está en la rama de trabajo y `origin/staging`. PRE apunta al deployment `dpl_Cppod6KMBmkJkqzxFx6ajBRsgDcV` (`Ready`, commit `58d34da8`) y `/api/health` devuelve `1.15.4/pre`. PROD apunta al deployment `dpl_Afb3nwRyudrCNyTQkiUzBb4pVcz9` (`Ready`, alias `https://smashandlob.com`) y `/api/health`/`smoke:prod` pasan.
