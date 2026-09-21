@@ -2346,6 +2346,16 @@ html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-pa
   text-transform: none;
   letter-spacing: .02em;
 }
+/* The Competition header is taller than Classic. The original countdown hero
+   min-height therefore pushed its lower edge behind the fixed bottom navbar on
+   mobile. Reserve the header/nav space explicitly while keeping the content
+   naturally taller when a device is too short for the full message. */
+@media (max-width: 640px) {
+  html[data-visual-style="competition"] [data-route="/"] [data-season-start-countdown="hero"] {
+    min-height: calc(100dvh - 16rem) !important;
+    padding-block: 1.5rem !important;
+  }
+}
 html[data-visual-style="competition"] [data-route="/"] .season-summary-panel {
   border: 1px solid var(--competition-border-strong) !important;
   background: linear-gradient(160deg, var(--competition-surface-raised), var(--competition-surface)) !important;

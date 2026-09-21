@@ -63,6 +63,8 @@ describe("Competition visual style", () => {
     expect(css).toContain('border-left: .25rem solid var(--competition-accent);')
     expect(css).toContain('background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72));')
     expect(css).toContain('text-transform: none;')
+    expect(css).toContain('[data-route="/"] [data-season-start-countdown="hero"]')
+    expect(css).toContain('min-height: calc(100dvh - 16rem) !important;')
     expect(css).toContain('border-top: 2px solid color-mix(in srgb, var(--competition-accent) 80%, transparent) !important;')
     expect(css).toContain('/* Competition v3: a more dimensional information surface.')
     expect(css).toContain('backdrop-filter: blur(18px) saturate(1.15);')
