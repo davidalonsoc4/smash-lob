@@ -2565,6 +2565,27 @@ html[data-visual-style="competition"] [data-route="/settings"] .settings-row-dan
   color: var(--competition-text) !important;
 }
 
+/* Origin labels in Mis partidos use stable light HSL colours in Classic. On
+   Competition those fills are too bright and the league text can disappear
+   against the dark glass cards, so keep the two origins distinct with the
+   same readable dark-surface treatment used by the rest of the screen. */
+html[data-visual-style="competition"] [data-personal-match-origin] {
+  border-color: var(--competition-border-strong) !important;
+  background: var(--competition-surface-raised) !important;
+  color: var(--competition-text) !important;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / .035);
+}
+html[data-visual-style="competition"] [data-personal-match-origin="league"] {
+  border-color: color-mix(in srgb, var(--competition-accent) 62%, var(--competition-border)) !important;
+  background: color-mix(in srgb, var(--competition-accent) 15%, var(--competition-surface-raised)) !important;
+  color: var(--competition-accent) !important;
+}
+html[data-visual-style="competition"] [data-personal-match-origin="friendly"] {
+  border-color: #527392 !important;
+  background: rgb(48 78 105 / .32) !important;
+  color: #c9e4fb !important;
+}
+
 /* Match chat follows the same surface language as the rest of Competition. */
 html[data-visual-style="competition"] .app-match-chat-header {
   background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72)) !important;

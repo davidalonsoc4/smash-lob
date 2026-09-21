@@ -123,6 +123,19 @@ describe("Competition visual style", () => {
     expect(css).toContain("var(--competition-accent-contrast) !important;")
   })
 
+  it("keeps personal match origin labels readable on Competition surfaces", async () => {
+    const [css, card] = await Promise.all([
+      readFile("src/app/globals.css", "utf8"),
+      readFile("src/components/personal/PersonalMatchCard.tsx", "utf8"),
+    ])
+    expect(card).toContain('data-personal-match-origin={match.origin}')
+    expect(css).toContain('html[data-visual-style="competition"] [data-personal-match-origin] {')
+    expect(css).toContain('[data-personal-match-origin="league"]')
+    expect(css).toContain('[data-personal-match-origin="friendly"]')
+    expect(css).toContain('color: var(--competition-accent) !important;')
+    expect(css).toContain('color: #c9e4fb !important;')
+  })
+
   it("keeps the match scope label and payment badge legible on Competition accents", async () => {
     const [matches, settings, css] = await Promise.all([
       readFile("src/app/matches/page.tsx", "utf8"),

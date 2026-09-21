@@ -39,6 +39,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
     <AppCard className="relative !p-3 transition active:scale-[0.99]">
       <div className="mb-2 flex items-center justify-between gap-3">
         <span
+          data-personal-match-origin={match.origin}
           className={`max-w-[58%] shrink truncate rounded-full border px-2 py-1 type-caption font-black uppercase tracking-[0.12em] ${getPersonalMatchOriginBadgeClass(match)}`}
           style={getPersonalMatchOriginBadgeStyle(match)}
         >
