@@ -2204,6 +2204,15 @@ html[data-visual-style="competition"] .bg-white,
 html[data-visual-style="competition"] .bg-neutral-50,
 html[data-visual-style="competition"] .bg-neutral-100,
 html[data-visual-style="competition"] .bg-neutral-200 { background: var(--competition-surface-raised) !important; }
+/* Tailwind's opacity variants use a different class name, so they do not
+   match the neutral utility above. Season-management helper panels such as
+   "Evitar spoilers" must use the same dark surface and readable copy. */
+html[data-visual-style="competition"] .bg-neutral-50\/70,
+html[data-visual-style="competition"] .bg-neutral-50\/80,
+html[data-visual-style="competition"] .bg-neutral-100\/70 {
+  background: color-mix(in srgb, var(--competition-surface-raised) 94%, transparent) !important;
+  color: var(--competition-text) !important;
+}
 html[data-visual-style="competition"] .bg-neutral-950 { background: var(--competition-accent) !important; color: var(--competition-accent-contrast) !important; }
 html[data-visual-style="competition"] .bg-neutral-950 .text-white,
 html[data-visual-style="competition"] .bg-neutral-950 .text-neutral-300 { color: var(--competition-accent-contrast) !important; }

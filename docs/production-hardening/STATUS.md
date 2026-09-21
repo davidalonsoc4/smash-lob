@@ -1917,3 +1917,9 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - La migración quedó aplicada en PRE (`miadjotkucgluwbrgeih`) y PROD (`szycbwdzestcmimziyey`), con los historiales remotos alineados.
 - PRE se publicó desde `1c474047` como deployment `dpl_BPAY6Tjm3yXqW5vXRGZekDodg55M`, `Ready` y alias `https://pre.smashandlob.com`; la comprobación autenticada de `/api/health` devuelve `1.15.4`.
 - PROD se publicó desde `1c474047` como deployment `dpl_3QNpfqUtdnwRCyWx8CNiTX31BQxC`, `Ready` y alias `https://smashandlob.com`; `/api/health` devuelve `1.15.4` y `npm run smoke:prod` pasa.
+
+## Contraste de paneles de temporada en Competition (local, 2026-09-21)
+
+- Las variantes Tailwind con opacidad `bg-neutral-50/70`, `bg-neutral-50/80` y `bg-neutral-100/70` reciben ahora la superficie elevada y el color de texto de Competition.
+- Esto corrige `EVITAR SPOILERS` y mantiene coherentes los paneles equivalentes de ampliación y reglas de temporada sin modificar Classic.
+- Validación local: 11 tests de Competition, ESLint del test y `git diff --check` correctos. No se ha hecho push ni despliegue.

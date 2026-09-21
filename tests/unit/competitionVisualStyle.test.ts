@@ -94,6 +94,17 @@ describe("Competition visual style", () => {
     expect(css).toContain(".season-registration-panel .bg-emerald-600")
   })
 
+  it("remaps translucent neutral helper panels used by season management", async () => {
+    const css = await readFile("src/app/globals.css", "utf8")
+    const audit = await readFile("src/components/admin/season/BalancedCalendarAuditPanel.tsx", "utf8")
+    expect(audit).toContain("rerollEyebrow")
+    expect(audit).toContain("bg-neutral-50/70")
+    expect(css).toContain('html[data-visual-style="competition"] .bg-neutral-50\\/70,')
+    expect(css).toContain('html[data-visual-style="competition"] .bg-neutral-50\\/80,')
+    expect(css).toContain('html[data-visual-style="competition"] .bg-neutral-100\\/70 {')
+    expect(css).toContain("var(--competition-surface-raised)")
+  })
+
   it("keeps chat chrome and message metadata readable for every Competition accent", async () => {
     const [css, shared] = await Promise.all([
       readFile("src/app/globals.css", "utf8"),
