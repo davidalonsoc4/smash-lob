@@ -334,6 +334,16 @@ export function PlayerStatsPanel({
   const emptyValue = "—";
   const mvpHref = getPlayerHref(playerId, players) + "/mvp";
 
+  if (matchesPlayed === 0) {
+    return (
+      <AppCard className="p-3">
+        <p className="type-panel-title">{t.playerStats.title}</p>
+        {scopeLabel ? <p className="mt-1 text-xs font-semibold text-neutral-500">{scopeLabel}</p> : null}
+        <p className="mt-3 text-sm text-neutral-500">{tx("No hay resultados suficientes.")}</p>
+      </AppCard>
+    );
+  }
+
   return (
     <AppCard className="p-2.5">
       <div className="flex items-start justify-between gap-3">

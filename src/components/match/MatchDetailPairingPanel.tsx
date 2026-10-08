@@ -55,7 +55,7 @@ function DetailPlayer({
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const name = (
-    <span className="block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
+    <span className="app-match-player-name block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
       {displayName}
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label={tx("MVP de jornada")} title={tx("MVP de jornada")}>
@@ -270,7 +270,7 @@ function FinishedPlayerName({
     player?.dominantHand,
   )
   const name = (
-    <span className="block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
+    <span className="app-match-player-name block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
       {displayName}
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label={tx("MVP de jornada")} title={tx("MVP de jornada")}>

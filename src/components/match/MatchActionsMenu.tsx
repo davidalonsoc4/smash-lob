@@ -28,13 +28,13 @@ export function MatchActionsTrigger({ match, isAdmin, canReportIncident, canMana
   if (!hasMenuActions && !chatHref) return null
   const selectPanel = (panel: Exclude<MatchActionPanel, null>) => { onSelectPanel(panel); onMenuOpenChange(false) }
   return (
-    <div className="fixed z-40 flex flex-col items-end gap-2" style={{ right: "max(14px, calc((100vw - 448px) / 2 + 14px))", bottom: "calc(84px + env(safe-area-inset-bottom, 0px))" }}>
+    <div className="app-match-actions fixed z-40 flex flex-col items-end gap-2" style={{ right: "max(14px, calc((100vw - 448px) / 2 + 14px))", bottom: "calc(84px + env(safe-area-inset-bottom, 0px))" }}>
       {chatHref ? <MatchChatActionLink href={chatHref} /> : null}
       {hasMenuActions ? <div className="relative">
         <button type="button" aria-expanded={menuOpen} aria-label={tx("Más acciones del partido")} title={tx("Más acciones")} onClick={() => onMenuOpenChange(!menuOpen)} className="app-floating-control grid h-10 w-10 place-items-center rounded-full border border-neutral-200 bg-white/95 text-neutral-600 shadow-lg backdrop-blur transition active:scale-95 active:bg-neutral-100">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor"><circle cx="5" cy="12" r="1.75" /><circle cx="12" cy="12" r="1.75" /><circle cx="19" cy="12" r="1.75" /></svg>
         </button>
-        {menuOpen ? <div className="absolute bottom-12 right-0 z-30 w-max min-w-52 max-w-[calc(100vw-28px)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 text-left shadow-xl">
+        {menuOpen ? <div className="app-match-actions-menu absolute bottom-12 right-0 z-30 w-max min-w-52 max-w-[calc(100vw-28px)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 text-left shadow-xl">
           {canOpenIncident ? <button type="button" onClick={() => selectPanel("incident")} className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-black hover:bg-neutral-100"><span aria-hidden="true">⚠</span>{tx(match.incidentStatus ? "Ver o gestionar incidencia" : "Comunicar incidencia")}</button> : null}
           {canOpenSubstitution ? <button type="button" onClick={() => selectPanel("substitution")} className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-black hover:bg-neutral-100"><span aria-hidden="true">↔</span>{tx("Gestionar suplente")}</button> : null}
         </div> : null}

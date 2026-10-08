@@ -41,7 +41,7 @@ export function MatchDetailView({
         <BackButton fallbackHref={backHref} label={backLabel} />
 
         <div className="min-w-0 w-full" style={{ maxWidth: "none" }}>
-          <div className="flex min-w-0 items-start justify-between gap-2.5">
+          <div className="app-match-header-row flex min-w-0 items-start justify-between gap-2.5">
             <h1 className="type-page-title min-w-0 font-black tracking-tight">{title}</h1>
 
             <div className="flex shrink-0 flex-col items-end gap-0.5">

@@ -423,7 +423,9 @@ export function SeasonShareExportsCard({
         </p>
         <p className="mt-1 type-panel-title text-neutral-950">{tx("Compartir temporada")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          {seasonFinished
+          {seasonFinished && summaryExport?.visible && !summaryExport.canExport
+            ? tx(summaryExport.blockedReason ?? "No hay resultados suficientes.")
+            : seasonFinished
             ? tx("El calendario, la clasificación y el resumen final están disponibles para compartir o guardar.")
             : tx("El calendario actual, los enfrentamientos y la clasificación están disponibles durante toda la temporada. Cuando termine, aparecerá también la descarga del resumen final.")}
         </p>

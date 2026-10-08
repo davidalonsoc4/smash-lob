@@ -63,7 +63,9 @@ export function PlayerAvatar({
   const imageUrl = hasImage(player)
     ? normalizeImageUrl(player?.avatarUrl)
     : null
-  const canPreview = Boolean(previewable && imageUrl)
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
+  const visibleImageUrl = imageUrl && imageUrl !== failedImageUrl ? imageUrl : null
+  const canPreview = Boolean(previewable && visibleImageUrl)
   const displayName = player?.displayName?.trim() || "Jugador"
   const openLabel = t.imageViewer.openPlayerImage.replace("{name}", displayName)
   const imageAlt = t.imageViewer.playerImageAlt.replace("{name}", displayName)
@@ -107,10 +109,11 @@ export function PlayerAvatar({
             : undefined
         }
       >
-        {imageUrl ? (
+        {visibleImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={imageUrl}
+            src={visibleImageUrl}
+            onError={() => { setFailedImageUrl(imageUrl); setIsPreviewOpen(false) }}
             alt=""
             className="h-full w-full object-cover"
           />
@@ -119,9 +122,9 @@ export function PlayerAvatar({
         )}
       </div>
 
-      {isPreviewOpen && imageUrl ? (
+      {isPreviewOpen && visibleImageUrl ? (
         <ImageLightbox
-          src={imageUrl}
+          src={visibleImageUrl}
           alt={imageAlt}
           onClose={closePreview}
         />

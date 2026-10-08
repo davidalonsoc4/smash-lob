@@ -1638,6 +1638,7 @@ const EXACT_OVERRIDES = {
 
 const ADDITIONAL_OVERRIDES = {
   en: {
+    "Ir a jornada en curso": "Go to current round",
     "+ Añadir nueva ubicación": "+ Añadir nueva ubicación",
     "A quien más te enfrentas": "Most frequent opponent",
     "Activa push y elige qué tipos de aviso quieres recibir.": "Activa push y elige qué tipos de aviso quieres recibir.",
@@ -2151,6 +2152,7 @@ const ADDITIONAL_OVERRIDES = {
     "🩹 Suplentes y reemplazos": "🩹 Substitutes and replacements",
   },
   eu: {
+    "Ir a jornada en curso": "Joan uneko jardunaldira",
     "+ Añadir nueva ubicación": "+ Añadir nueva ubicación",
     "A quien más te enfrentas": "Most frequent opponent",
     "Activa push y elige qué tipos de aviso quieres recibir.": "Activa push y elige qué tipos de aviso quieres recibir.",

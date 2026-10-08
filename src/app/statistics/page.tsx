@@ -14,8 +14,12 @@ function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
 }
 
-function formatNames(names: string[]) {
-  return names.length > 0 ? names.join(" / ") : "—"
+function HighlightNames({ names }: { names: string[] }) {
+  if (names.length < 2) return <p className="mt-1 break-words text-base font-black">{names[0] ?? "—"}</p>
+  return <details className="mt-1 text-base font-black">
+    <summary className="cursor-pointer break-words">{names[0]} <span className="whitespace-nowrap">+{names.length - 1}</span></summary>
+    <ul className="mt-2 space-y-1 text-sm font-semibold">{names.map((name, index) => <li key={index}>{name}</li>)}</ul>
+  </details>
 }
 
 export default function StatisticsPage() {
@@ -64,7 +68,7 @@ export default function StatisticsPage() {
         />
       </div>
 
-      {statistics.ranking.length > 0 ? (
+      {statistics.dataQuality.hasCountedResults ? (
         <div data-tour="statistics-highlights" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <AppCard>
             <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
@@ -80,9 +84,7 @@ export default function StatisticsPage() {
                     ? tx("Líderes")
                     : tx("Líder")}
             </p>
-            <p className="mt-1 truncate text-base font-black">
-              {formatNames(statistics.leaders.map((player) => player.displayName))}
-            </p>
+            <HighlightNames names={statistics.leaders.map((player) => player.displayName)} />
             <p className="mt-0.5 type-caption font-semibold text-neutral-500">
               {statistics.leader ? tx(`${statistics.leader.points} puntos`) : tx("Sin datos")}
             </p>
@@ -90,9 +92,7 @@ export default function StatisticsPage() {
           <AppCard>
             <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
               {tx("Más victorias")}{" "}</p>
-            <p className="mt-1 truncate text-base font-black">
-              {formatNames(mostWinsPlayers.map((player) => player.displayName))}
-            </p>
+            <HighlightNames names={mostWinsPlayers.map((player) => player.displayName)} />
             <p className="mt-0.5 type-caption font-semibold text-neutral-500">
               {maximumWins > 0 ? `${maximumWins} victorias` : tx("Sin victorias")}
             </p>
@@ -101,9 +101,7 @@ export default function StatisticsPage() {
             <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
               {tx("Mejor diferencia")}
             </p>
-            <p className="mt-1 truncate text-base font-black">
-              {formatNames(bestGamesDiffPlayers.map((player) => player.displayName))}
-            </p>
+            <HighlightNames names={bestGamesDiffPlayers.map((player) => player.displayName)} />
             <p className="mt-0.5 type-caption font-semibold text-neutral-500">
               {formatSigned(maximumGamesDiff)} {tx("juegos")}{" "}</p>
           </AppCard>
@@ -111,7 +109,7 @@ export default function StatisticsPage() {
             <p className="type-caption font-black uppercase tracking-wide text-neutral-600">
               {tx("Mejor racha")}
             </p>
-            <p className="mt-1 truncate text-base font-black">
+            <p className="mt-1 break-words text-base font-black">
               {statistics.longestWinStreak?.displayName ?? "—"}
             </p>
             <p className="mt-0.5 type-caption font-semibold text-neutral-500">

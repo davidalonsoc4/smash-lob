@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
+import { SeasonAdminSection } from "@/components/admin/season/SeasonAdminSection";
 import { SeasonDangerZone } from "@/components/admin/season/SeasonDangerZone";
 import { OrganizationBallsSettingsPanel } from "@/components/admin/season/OrganizationBallsSettingsPanel";
 import { BalancedCalendarAuditPanel } from "@/components/admin/season/BalancedCalendarAuditPanel";
@@ -251,6 +252,10 @@ function SeasonNavigation({
                 <a
                   key={link.href}
                   href={link.href}
+                  onClick={() => {
+                    const target = document.getElementById(link.href.slice(1));
+                    if (target instanceof HTMLDetailsElement) target.open = true;
+                  }}
                   className={`rounded-xl px-3 py-2 text-center text-xs font-black ${
                     link.danger
                       ? "bg-red-50 text-red-700"
@@ -2140,16 +2145,16 @@ export default function AdminSeasonPage() {
             title={tx("Calendario y jornadas")}
             description={tx("Ordena la competición, ajusta los plazos y comprueba el equilibrio del calendario.")}
           />
-          <div id="jornadas" data-tour="season-admin-calendar" className="settings-search-target">
+          <SeasonAdminSection id="jornadas" title={tx("Gestión y orden de jornadas")} data-tour="season-admin-calendar" className="settings-search-target">
             <RoundManagementPanel
               activeLeagueId={activeLeague.id}
               activeSeason={activeSeason}
               roundSettings={roundSettings}
               matches={matches}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="margen-jornadas" className="settings-search-target">
+          <SeasonAdminSection id="margen-jornadas" title={tx("Margen de jornadas")} className="settings-search-target">
             <RoundWindowSettingsPanel
               key={activeSeason.id}
               activeLeagueId={activeLeague.id}
@@ -2157,19 +2162,19 @@ export default function AdminSeasonPage() {
               locations={activeLeague.locations}
               canEditOpening={false}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="visibilidad-calendario" className="settings-search-target">
+          <SeasonAdminSection id="visibilidad-calendario" title={tx("Visibilidad de emparejamientos")} className="settings-search-target">
             <ProgressiveCalendarSettingsPanel
               activeLeagueId={activeLeague.id}
               activeSeason={activeSeason}
               roundSettings={roundSettings}
               matches={matches}
             />
-          </div>
+          </SeasonAdminSection>
 
           {canAuditCalendar ? (
-            <div id="equilibrio-calendario" className="settings-search-target">
+            <SeasonAdminSection id="equilibrio-calendario" title={tx("Equilibrio del calendario")} className="settings-search-target">
               <BalancedCalendarAuditPanel
                 activeLeagueId={activeLeague.id}
                 activeSeason={activeSeason}
@@ -2177,49 +2182,49 @@ export default function AdminSeasonPage() {
                 matches={matches}
                 roundSettings={roundSettings}
               />
-            </div>
+            </SeasonAdminSection>
           ) : null}
 
           <SeasonSectionIntro
             title={tx("Reglas de competición")}
             description={tx("Define MVP, confirmaciones, formato de sets y acciones permitidas a los jugadores.")}
           />
-          <div id="mvp" className="settings-search-target">
+          <SeasonAdminSection id="mvp" title={tx("Sistema MVP")} className="settings-search-target">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="confirmaciones" className="settings-search-target">
+          <SeasonAdminSection id="confirmaciones" title={tx("Confirmación de resultados")} className="settings-search-target">
             <ResultConfirmationSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="regla-tres-sets" className="settings-search-target">
+          <SeasonAdminSection id="regla-tres-sets" title={tx("Regla de los tres sets")} className="settings-search-target">
             <RequiresThreeSetsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="disponibilidad-recomendaciones" className="settings-search-target">
+          <SeasonAdminSection id="disponibilidad-recomendaciones" title={tx("Disponibilidad y recomendaciones")} className="settings-search-target">
             <AvailabilityRecommendationsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="acciones-partido" className="settings-search-target">
+          <SeasonAdminSection id="acciones-partido" title={tx("Acciones de partido para jugadores")} className="settings-search-target">
             <PlayerMatchActionsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="bolas-organizacion" className="settings-search-target">
+          <SeasonAdminSection id="bolas-organizacion" title={tx("Bolas asignadas por la organización")} className="settings-search-target">
             <OrganizationBallsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
@@ -2228,47 +2233,47 @@ export default function AdminSeasonPage() {
               creatorPlayerId={registrationRecipientPlayerId}
               creatorPlayerName={registrationRecipientPlayer?.displayName ?? null}
             />
-          </div>
+          </SeasonAdminSection>
 
           <SeasonSectionIntro
             title={tx("Personas e inscripción")}
             description={tx("Gestiona la cuota de inscripción y los nombres de la plantilla activa.")}
           />
-          <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
+          <SeasonAdminSection id="inscripcion" title={tx("Inscripción de temporada")} data-tour="season-admin-people" className="settings-search-target">
             <RegistrationFeeSettingsPanel
               key={activeSeason.id}
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
               canToggleEnabled={false}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="jugadores" data-tour="season-admin-people" className="settings-search-target">
+          <SeasonAdminSection id="jugadores" title={tx("Jugadores de temporada")} data-tour="season-admin-people" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
             />
-          </div>
+          </SeasonAdminSection>
 
           <SeasonSectionIntro
             title={tx("Ciclo de vida")}
             description={tx("Finaliza la temporada o accede a las acciones irreversibles.")}
           />
-          <div id="cierre" className="settings-search-target">
+          <SeasonAdminSection id="cierre" title={tx("Cerrar temporada activa")} className="settings-search-target">
             <FinishSeasonPanel
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
               winnerName={players[0]?.displayName ?? null}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="zona-sensible" className="settings-search-target">
+          <SeasonAdminSection id="zona-sensible" title={tx("Zona de eliminación")} className="settings-search-target">
             <SeasonDangerZone
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
               totalRounds={activeSeason.totalRounds}
             />
-          </div>
+          </SeasonAdminSection>
         </>
       ) : isUpcomingSeason ? (
         <>
@@ -2277,17 +2282,17 @@ export default function AdminSeasonPage() {
             description={tx("Completa la plantilla y comprueba los requisitos antes de comenzar.")}
           />
           {roundSettings.rosterMode === "self_registration" ? (
-            <div id="plantilla-temporada" className="settings-search-target">
+            <SeasonAdminSection id="plantilla-temporada" title={tx("Jugadores de temporada")} className="settings-search-target">
               <SeasonRosterWaitingRoom
                 leagueId={activeLeague.id}
                 seasonId={activeSeason.id}
               />
-            </div>
+            </SeasonAdminSection>
           ) : null}
 
-          <div id="inicio-programado" className="settings-search-target"><ScheduledStartSettingsPanel activeLeagueId={activeLeague.id} roundSettings={roundSettings} /></div>
+          <SeasonAdminSection id="inicio-programado" title={tx("Inicio programado")} className="settings-search-target"><ScheduledStartSettingsPanel activeLeagueId={activeLeague.id} roundSettings={roundSettings} /></SeasonAdminSection>
 
-          <div id="inicio-temporada" className="settings-search-target">
+          <SeasonAdminSection id="inicio-temporada" title={tx("Comenzar temporada")} className="settings-search-target">
             <StartSeasonPanel
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
@@ -2299,14 +2304,14 @@ export default function AdminSeasonPage() {
                   players.length === roundSettings.playerCapacity)
               }
             />
-          </div>
+          </SeasonAdminSection>
 
           <SeasonSectionIntro
             title={tx("Calendario y jornadas")}
             description={tx("Revisa el equilibrio, el orden y las fechas antes de publicar la temporada.")}
           />
           {canAuditCalendar ? (
-            <div id="equilibrio-calendario" className="settings-search-target">
+            <SeasonAdminSection id="equilibrio-calendario" title={tx("Equilibrio del calendario")} className="settings-search-target">
               <BalancedCalendarAuditPanel
                 activeLeagueId={activeLeague.id}
                 activeSeason={activeSeason}
@@ -2314,19 +2319,19 @@ export default function AdminSeasonPage() {
                 matches={matches}
                 roundSettings={roundSettings}
               />
-            </div>
+            </SeasonAdminSection>
           ) : null}
 
-          <div id="jornadas" data-tour="season-admin-calendar" className="settings-search-target">
+          <SeasonAdminSection id="jornadas" title={tx("Gestión y orden de jornadas")} data-tour="season-admin-calendar" className="settings-search-target">
             <RoundManagementPanel
               activeLeagueId={activeLeague.id}
               activeSeason={activeSeason}
               roundSettings={roundSettings}
               matches={matches}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="margen-jornadas" className="settings-search-target">
+          <SeasonAdminSection id="margen-jornadas" title={tx("Margen de jornadas")} className="settings-search-target">
             <RoundWindowSettingsPanel
               key={activeSeason.id}
               activeLeagueId={activeLeague.id}
@@ -2334,57 +2339,57 @@ export default function AdminSeasonPage() {
               locations={activeLeague.locations}
               canEditOpening
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="visibilidad-calendario" className="settings-search-target">
+          <SeasonAdminSection id="visibilidad-calendario" title={tx("Visibilidad de emparejamientos")} className="settings-search-target">
             <ProgressiveCalendarSettingsPanel
               activeLeagueId={activeLeague.id}
               activeSeason={activeSeason}
               roundSettings={roundSettings}
               matches={matches}
             />
-          </div>
+          </SeasonAdminSection>
 
           <SeasonSectionIntro
             title={tx("Reglas de competición")}
             description={tx("Configura MVP, confirmaciones, formato de sets y acciones de los jugadores.")}
           />
-          <div id="mvp" className="settings-search-target">
+          <SeasonAdminSection id="mvp" title={tx("Sistema MVP")} className="settings-search-target">
             <MvpSystemSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="confirmaciones" className="settings-search-target">
+          <SeasonAdminSection id="confirmaciones" title={tx("Confirmación de resultados")} className="settings-search-target">
             <ResultConfirmationSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="regla-tres-sets" className="settings-search-target">
+          <SeasonAdminSection id="regla-tres-sets" title={tx("Regla de los tres sets")} className="settings-search-target">
             <RequiresThreeSetsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="disponibilidad-recomendaciones" className="settings-search-target">
+          <SeasonAdminSection id="disponibilidad-recomendaciones" title={tx("Disponibilidad y recomendaciones")} className="settings-search-target">
             <AvailabilityRecommendationsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="acciones-partido" className="settings-search-target">
+          <SeasonAdminSection id="acciones-partido" title={tx("Acciones de partido para jugadores")} className="settings-search-target">
             <PlayerMatchActionsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="bolas-organizacion" className="settings-search-target">
+          <SeasonAdminSection id="bolas-organizacion" title={tx("Bolas asignadas por la organización")} className="settings-search-target">
             <OrganizationBallsSettingsPanel
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
@@ -2393,39 +2398,39 @@ export default function AdminSeasonPage() {
               creatorPlayerId={registrationRecipientPlayerId}
               creatorPlayerName={registrationRecipientPlayer?.displayName ?? null}
             />
-          </div>
+          </SeasonAdminSection>
 
           <SeasonSectionIntro
             title={tx("Personas e inscripción")}
             description={tx("Revisa la cuota, las plazas y los nombres antes de iniciar la competición.")}
           />
-          <div id="inscripcion" data-tour="season-admin-people" className="settings-search-target">
+          <SeasonAdminSection id="inscripcion" title={tx("Inscripción de temporada")} data-tour="season-admin-people" className="settings-search-target">
             <RegistrationFeeSettingsPanel
               key={activeSeason.id}
               activeLeagueId={activeLeague.id}
               roundSettings={roundSettings}
               canToggleEnabled
             />
-          </div>
+          </SeasonAdminSection>
 
-          <div id="jugadores" data-tour="season-admin-people" className="settings-search-target">
+          <SeasonAdminSection id="jugadores" title={tx("Jugadores de temporada")} data-tour="season-admin-people" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
             />
-          </div>
+          </SeasonAdminSection>
 
           <SeasonSectionIntro
             title={tx("Zona sensible")}
             description={tx("Acciones que pueden eliminar la temporada o su calendario.")}
           />
-          <div id="zona-sensible" className="settings-search-target">
+          <SeasonAdminSection id="zona-sensible" title={tx("Zona de eliminación")} className="settings-search-target">
             <SeasonDangerZone
               activeLeagueId={activeLeague.id}
               activeSeasonId={activeSeason.id}
               totalRounds={activeSeason.totalRounds}
             />
-          </div>
+          </SeasonAdminSection>
         </>
       ) : hasCreatedLeagueSeason ? (
         <>
@@ -2440,13 +2445,13 @@ export default function AdminSeasonPage() {
             />
           </div>
 
-          <div id="jugadores" data-tour="season-admin-people" className="settings-search-target">
+          <SeasonAdminSection id="jugadores" title={tx("Jugadores de temporada")} data-tour="season-admin-people" className="settings-search-target">
             <SeasonPlayerNamesPanel
               activeLeagueId={activeLeague.id}
               players={players}
               readOnly={!isSuperuser}
             />
-          </div>
+          </SeasonAdminSection>
 
           <SeasonSectionIntro
             title={tx("Siguiente ciclo")}

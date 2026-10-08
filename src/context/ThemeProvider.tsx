@@ -13,6 +13,7 @@ import {
   DEFAULT_PALETTE,
   DEFAULT_VISUAL_STYLE,
   getCompetitionAccentColor,
+  getCompetitionContrastColor,
   LEGACY_PALETTE_STORAGE_KEY,
   LEGACY_THEME_STORAGE_KEY,
   migrateStoredAppearance,
@@ -125,7 +126,7 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   root.style.setProperty("--league-accent-contrast", getContrastColor(leagueAccent))
   root.style.setProperty("--app-accent", effectiveAccent)
   root.style.setProperty("--competition-accent", effectiveAccent)
-  root.style.setProperty("--competition-accent-contrast", getContrastColor(effectiveAccent))
+  root.style.setProperty("--competition-accent-contrast", getCompetitionContrastColor(effectiveAccent))
   root.style.colorScheme = resolvedTheme
 
   // Keep the browser/PWA status bar neutral. The league accent belongs to the

@@ -299,6 +299,9 @@ textarea {
 }
 
 .app-main[data-has-floating-top-controls="true"] .app-top-back-control {
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 600;
+  font-family: inherit;
   position: absolute;
   top: max(10px, calc(var(--app-safe-top) + 8px));
   left: 0.75rem;
@@ -2125,8 +2128,8 @@ html[data-visual-style="competition"] {
   --competition-border: #30343b;
   --competition-border-strong: #484e58;
   --competition-text: #f4f3ef;
-  --competition-text-muted: #a5a8af;
-  --competition-text-subtle: #737881;
+  --competition-text-muted: #b5b8bf;
+  --competition-text-subtle: #9a9fa8;
   --competition-accent: var(--league-accent, #d7a544);
   --competition-accent-contrast: var(--league-accent-contrast, #111111);
   --app-bottom-nav-safe-surface: var(--competition-bg);
@@ -2188,7 +2191,7 @@ html[data-visual-style="competition"] .type-panel-title {
   letter-spacing: .035em;
 }
 
-html[data-visual-style="competition"] .type-page-title { text-transform: uppercase; }
+html[data-visual-style="competition"] .type-page-title { text-transform: none; }
 html[data-visual-style="competition"] .type-caption,
 html[data-visual-style="competition"] .text-neutral-500,
 html[data-visual-style="competition"] .text-neutral-400,
@@ -2791,4 +2794,107 @@ html[data-visual-style="competition"] .text-pink-800 {
 html[data-visual-style="competition"] .app-schedule-card {
   background: linear-gradient(145deg, rgb(48 52 59 / .46), rgb(20 21 24 / .16)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 18%, var(--competition-border)) !important;
+}
+
+/* Keep Competition controls readable, including unavailable actions. */
+html[data-visual-style="competition"] button.bg-\[var\(--app-accent\)\] {
+  color: var(--competition-accent-contrast) !important;
+}
+html[data-visual-style="competition"] button:disabled,
+html[data-visual-style="competition"] [data-tour="chat-composer"] .app-match-chat-send:disabled {
+  background: var(--competition-surface-muted) !important;
+  color: var(--competition-text-muted) !important;
+  border-color: var(--competition-border) !important;
+  box-shadow: none !important;
+  opacity: 1;
+  cursor: not-allowed;
+}
+html[data-visual-style="competition"] [data-floating-top-toolbar] .app-floating-control {
+  background: rgb(20 21 24 / .82) !important;
+  border-color: rgb(255 255 255 / .12) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 8px rgb(0 0 0 / .22);
+}
+html[data-visual-style="competition"] .app-match-actions {
+  position: relative !important;
+  right: auto !important;
+  bottom: auto !important;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+html[data-visual-style="competition"] .app-match-actions-menu {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+/* Neutral information panels leave the accent for selection and actions. */
+html[data-visual-style="competition"] .app-card,
+html[data-visual-style="competition"] .app-stat-card,
+html[data-visual-style="competition"] .app-ranking-list,
+html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack,
+html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack .app-card {
+  border-color: var(--competition-border) !important;
+}
+html[data-visual-style="competition"] [data-route="/profile"] .app-card,
+html[data-visual-style="competition"] [data-route="/statistics"] .grid > .app-card {
+  border-top: 1px solid var(--competition-border) !important;
+}
+html[data-visual-style="competition"] .app-card-explicit-accent {
+  background: var(--competition-surface) !important;
+}
+html[data-visual-style="competition"] .season-admin-section {
+  border: 1px solid var(--competition-border);
+  border-radius: .85rem;
+  background: var(--competition-surface);
+  scroll-margin-top: 64px;
+}
+html[data-visual-style="competition"] .season-admin-section > summary {
+  color: var(--competition-text);
+  min-height: 48px;
+}
+html[data-visual-style="competition"] .season-admin-section[open] > summary {
+  border-bottom: 1px solid var(--competition-border);
+  margin-bottom: 8px;
+}
+html[data-visual-style="competition"] .season-admin-section-content > .app-card {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+html[data-visual-style="competition"] .season-admin-section summary:focus-visible {
+  outline: 2px solid var(--competition-accent);
+  outline-offset: 2px;
+  border-radius: .75rem;
+}
+html[data-visual-style="competition"] .season-admin-section:target {
+  background: var(--competition-surface) !important;
+  border-color: var(--competition-border-strong) !important;
+  box-shadow: none !important;
+}
+html[data-visual-style="competition"] .season-review-list > li + li {
+  border-color: var(--competition-border);
+}
+html[data-visual-style="competition"] .app-match-player-name {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  line-height: 1.25;
+}
+html[data-visual-style="competition"] .app-match-header-row {
+  flex-wrap: wrap;
+}
+html[data-visual-style="competition"] .app-match-header-row > .type-page-title {
+  flex: 1 1 12rem;
+}
+html[data-visual-style="competition"] .app-match-header-row > div {
+  margin-left: auto;
+}
+html[data-visual-style="competition"] [data-tour="statistics-highlights"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+html[data-visual-style="competition"] .app-chat-date-option[aria-pressed="true"] > span:nth-child(-n+2) {
+  color: var(--competition-accent-contrast) !important;
 }

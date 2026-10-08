@@ -294,7 +294,7 @@ export default function AppearancePage() {
       <AppearanceSection
         id="theme-mode"
         title={t.settings.themeModeTitle}
-        description={t.settings.themeModeDescription}
+        description={visualStyle === "competition" ? t.settings.visualStyleColorfulDescription : t.settings.themeModeDescription}
       >
         <div className="grid grid-cols-3 gap-2">
           {themeOptions.map((option) => {

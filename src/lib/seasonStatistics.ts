@@ -232,6 +232,12 @@ function isValidCountedMatch(match: MatchData) {
   )
 }
 
+export function getSeasonReviewMatches(matches: MatchData[], seasonId: string) {
+  return matches
+    .filter((match) => match.seasonId === seasonId && !isValidCountedMatch(match))
+    .sort((left, right) => left.round - right.round)
+}
+
 function excludeInvalidStatisticsResults(matches: MatchData[]) {
   return matches.map((match) =>
     match.status === "finished" &&

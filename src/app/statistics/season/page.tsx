@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import Link from "next/link"
 import { SeasonShareExportsCard } from "@/components/statistics/SeasonShareExportsCard"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { AppCard } from "@/components/ui/AppCard"
@@ -11,6 +12,7 @@ import type { RankingPlayer } from "@/lib/ranking"
 import {
   calculateSeasonStatistics,
   getRankingPosition,
+  getSeasonReviewMatches,
 } from "@/lib/seasonStatistics"
 import type {
   SeasonSummaryHeroPanel,
@@ -285,7 +287,11 @@ export default function StatisticsSeasonPage() {
         description={
           isLeagueWide
             ? tx("Vista histórica de todas las temporadas y campeones de la liga.")
-            : tx("Comparte el calendario y la clasificación durante toda la temporada. La descarga del resumen final aparecerá cuando termine.")
+            : selectedSeason.status === "finished"
+              ? summaryIsComplete
+                ? tx("El calendario, la clasificación y el resumen final están disponibles para compartir o guardar.")
+                : tx(exportBlockedReason)
+              : tx("Comparte el calendario y la clasificación durante toda la temporada. La descarga del resumen final aparecerá cuando termine.")
         }
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
@@ -295,6 +301,25 @@ export default function StatisticsSeasonPage() {
             : undefined
         }
       />
+
+      {!isLeagueWide && selectedSeason.status === "finished" && !summaryIsComplete ? (
+        <AppCard>
+          <details>
+            <summary className="cursor-pointer text-sm font-black">{tx("Partidos")} · {tx("Datos incompletos")}</summary>
+            <ul className="season-review-list mt-3 divide-y divide-neutral-200">
+              {getSeasonReviewMatches(countedMatches, selectedSeason.id).map((match) => (
+                <li key={match.id}>
+                  <Link href={`/match/${match.id}`} className="block rounded-lg py-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2">
+                    <span className="flex justify-between gap-2 font-black">{tx(`Jornada ${match.round}`)}<span aria-hidden="true">→</span></span>
+                    <span className="mt-1 block break-words">{getFriendlyMatchSummary(match, playersById).matchup}</span>
+                    <span className="mt-1 block text-xs text-neutral-500">{tx(match.status !== "finished" ? "Pendiente de resultado" : "Datos incompletos")}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </AppCard>
+      ) : null}
 
       {!isLeagueWide ? (
         <section id="compartir-resumen-temporada" className="scroll-mt-24">

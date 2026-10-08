@@ -5,6 +5,8 @@ import {
   DEFAULT_PALETTE,
   DEFAULT_VISUAL_STYLE,
   getCompetitionAccentColor,
+  getCompetitionContrastColor,
+  COMPETITION_ACCENT_COLORS,
   isCompetitionAvailable,
   migrateStoredAppearance,
   normalizeAccentColor,
@@ -14,6 +16,19 @@ import {
 } from "@/lib/visualStyle"
 
 describe("Competition visual style", () => {
+  it("keeps normal-size action text above 4.5:1 for every curated accent and custom midtones", () => {
+    function luminance(hex: string) {
+      const channels = hex.match(/[a-f\d]{2}/gi)!.map(pair => {
+        const value = parseInt(pair, 16) / 255
+        return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+      })
+      return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
+    }
+    for (const background of [...Object.values(COMPETITION_ACCENT_COLORS), "#777777", "#000000", "#FFFFFF"]) {
+      const values = [luminance(background), luminance(getCompetitionContrastColor(background))].sort((a, b) => a - b)
+      expect((values[1] + 0.05) / (values[0] + 0.05)).toBeGreaterThanOrEqual(4.5)
+    }
+  })
   it("uses Classic as the safe default", () => {
     expect(DEFAULT_VISUAL_STYLE).toBe("classic")
     expect(DEFAULT_PALETTE).toBe("classic")

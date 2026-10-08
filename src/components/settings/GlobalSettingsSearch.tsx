@@ -297,10 +297,11 @@ export function GlobalSettingsSearch({
             role="dialog"
             aria-modal="true"
             aria-label={copy.title}
-            className="fixed z-40 flex w-[min(360px,calc(100vw-28px))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
+            className="app-search-dialog fixed z-40 flex w-[min(360px,calc(100vw-28px))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
             style={{
               top: "max(64px, calc(var(--app-safe-top) + 58px))",
-              right: "max(14px, calc((100vw - 448px) / 2 + 14px))",
+              left: "50%",
+              transform: "translateX(-50%)",
               maxHeight:
                 "min(560px, calc(100svh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 150px))",
             }}

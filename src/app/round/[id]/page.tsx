@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MatchDetailPairingPanel } from "@/components/match/MatchDetailPairingPanel"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
@@ -125,6 +125,7 @@ function MvpPlayers({
 export default function RoundSummaryPage() {
   const { tx, t, locale } = useI18n()
   const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
   const round = Number(params.id)
   const { votes } = useMvp()
   const { playerProfiles, seasonPlayers } = useSeasonSettings()
@@ -135,7 +136,7 @@ export default function RoundSummaryPage() {
     rounds,
     matches,
     players,
-  } = useCurrentLeagueData()
+  } = useCurrentLeagueData(searchParams.get("season"))
 
   const roundData = rounds.find((item) => item.round === round) ?? null
   const roundMatches = matches

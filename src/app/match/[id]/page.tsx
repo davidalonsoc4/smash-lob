@@ -48,6 +48,7 @@ export default function MatchDetailPage() {
     resultConfirmations,
     setMatchResultLocked,
     setMatchResultConfirmation,
+    matches: storedMatches,
   } = useMatchData()
   const { votes, clearVotesForMatch } = useMvp()
   const params = useParams<{ id: string }>()
@@ -61,7 +62,7 @@ export default function MatchDetailPage() {
     players,
     rankingPlayers,
     matches,
-  } = useCurrentLeagueData()
+  } = useCurrentLeagueData(storedMatches.find((item) => item.id === params.id)?.seasonId)
   const [isEditingResult, setIsEditingResult] = useState(false)
   const [isClearingResult, setIsClearingResult] = useState(false)
   const [isUpdatingResultLock, setIsUpdatingResultLock] = useState(false)
@@ -358,7 +359,7 @@ export default function MatchDetailPage() {
       backLabel={t.common.back}
       title={
         <Link
-          href={`/round/${match.round}`}
+          href={`/round/${match.round}?season=${activeSeason.id}`}
           aria-label={tx(`Abrir resumen de la jornada ${match.round}`)}
           className="inline-flex rounded-lg transition active:opacity-60"
         >

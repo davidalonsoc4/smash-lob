@@ -67,6 +67,7 @@ export default function LeaguesPage() {
     <div className="space-y-4">
       <header className="app-page-header">
         <button type="button" onClick={() => router.refresh()} className="app-top-back-control text-sm font-semibold text-neutral-500">
+          <span aria-hidden="true" className="mr-1 inline-block">↻</span>
           {t.common.refreshApp}
         </button>
 
