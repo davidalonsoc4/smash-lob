@@ -28,6 +28,7 @@ import {
   SEASON_SELECTION_CHANGED_EVENT,
 } from "@/lib/seasonSelection"
 import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
+import { CompetitionLaunchNotice } from "@/components/announcements/CompetitionLaunchNotice"
 import { BottomNav } from "./BottomNav"
 
 type AppShellProps = {
@@ -495,7 +496,7 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           ) : (
             <>
-              {pathname === "/" ? <PendingAccessIntentNotice /> : null}
+              {pathname === "/" ? <><PendingAccessIntentNotice /><CompetitionLaunchNotice /></> : null}
               {children}
             </>
           )}

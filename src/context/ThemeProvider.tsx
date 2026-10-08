@@ -136,14 +136,14 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, status: sessionStatus } = useSession()
+  const { status: sessionStatus } = useSession()
   const pathname = usePathname()
   const initialAppearance = readStoredAppearance()
   const hadStoredAppearancePreference = useState(readHadStoredAppearancePreference)[0]
-  const canUseCompetition = isCompetitionAvailable(session?.user?.email)
+  const canUseCompetition = isCompetitionAvailable()
   const [themeMode, setThemeModeState] = useState<ThemeMode>(initialAppearance.baseTheme)
   // Do not discard a persisted Competition choice while Auth.js is still
-  // loading the session. The allowlist is enforced once the session resolves.
+  // loading the session. Competition is available to every user.
   const [visualStyle, setVisualStyleState] = useState<VisualStyle>(initialAppearance.visualStyle)
   const [palette, setPaletteState] = useState<Palette>(initialAppearance.palette)
   const [leagueAccent, setLeagueAccentState] = useState(DEFAULT_LEAGUE_ACCENT)

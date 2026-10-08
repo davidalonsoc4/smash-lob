@@ -60,11 +60,11 @@ describe("Competition visual style", () => {
     expect(getCompetitionAccentColor("league", "#123456")).toBe("#123456")
   })
 
-  it("allows Competition outside local development only for the configured email", () => {
-    vi.stubEnv("NEXT_PUBLIC_COMPETITION_STYLE_ENABLED", "true")
+  it("opens Competition to everyone even with legacy restrictions configured", () => {
+    vi.stubEnv("NEXT_PUBLIC_COMPETITION_STYLE_ENABLED", "false")
     vi.stubEnv("NEXT_PUBLIC_COMPETITION_STYLE_ALLOWED_EMAILS", "davidalonsoc4@gmail.com")
-    expect(isCompetitionAvailable("DAVIDALONSOc4@GMAIL.COM")).toBe(true)
-    expect(isCompetitionAvailable("other@example.com")).toBe(false)
+    expect(isCompetitionAvailable()).toBe(true)
+    expect(isCompetitionAvailable()).toBe(true)
     vi.unstubAllEnvs()
   })
 

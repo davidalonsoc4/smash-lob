@@ -27,7 +27,6 @@ export const DEFAULT_VISUAL_STYLE: VisualStyle = "classic"
 export const DEFAULT_PALETTE: Palette = "classic"
 export const DEFAULT_LEAGUE_ACCENT = "#D7A544"
 export const DEFAULT_COMPETITION_ACCENT: CompetitionAccent = "league"
-export const DEFAULT_COMPETITION_STYLE_ALLOWED_EMAILS = ["davidalonsoc4@gmail.com"] as const
 
 export const COMPETITION_ACCENT_COLORS: Record<Exclude<CompetitionAccent, "league">, string> = {
   gold: "#D7A544",
@@ -137,20 +136,7 @@ export function getCompetitionContrastColor(value: string) {
   return whiteContrast >= 4.5 ? "#FFFFFF" : "#000000"
 }
 
-function getCompetitionStyleAllowedEmails() {
-  const configured = process.env.NEXT_PUBLIC_COMPETITION_STYLE_ALLOWED_EMAILS
-    ?.split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean)
-
-  return configured?.length ? configured : [...DEFAULT_COMPETITION_STYLE_ALLOWED_EMAILS]
-}
-
-export function isCompetitionAvailable(email?: string | null) {
-  if (process.env.NEXT_PUBLIC_COMPETITION_STYLE_ENABLED === "false") return false
-  const normalizedEmail = email?.trim().toLowerCase()
-  return Boolean(normalizedEmail && getCompetitionStyleAllowedEmails().includes(normalizedEmail))
-}
+export function isCompetitionAvailable() { return true }
 
 export function migrateStoredAppearance(input: {
   baseTheme: string | null
