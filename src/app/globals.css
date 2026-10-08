@@ -2816,17 +2816,6 @@ html[data-visual-style="competition"] [data-floating-top-toolbar] .app-floating-
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 2px 8px rgb(0 0 0 / .22);
 }
-html[data-visual-style="competition"] .app-match-actions {
-  position: relative !important;
-  right: auto !important;
-  bottom: auto !important;
-  flex-direction: row;
-  justify-content: flex-end;
-}
-html[data-visual-style="competition"] .app-match-actions-menu {
-  top: calc(100% + 8px);
-  bottom: auto;
-}
 
 /* Neutral information panels leave the accent for selection and actions. */
 html[data-visual-style="competition"] .app-card,
@@ -2883,13 +2872,13 @@ html[data-visual-style="competition"] .app-match-player-name {
   text-overflow: clip;
   line-height: 1.25;
 }
-html[data-visual-style="competition"] .app-match-header-row {
+.app-match-header-row {
   flex-wrap: wrap;
 }
-html[data-visual-style="competition"] .app-match-header-row > .type-page-title {
+.app-match-header-row > .type-page-title {
   flex: 1 1 12rem;
 }
-html[data-visual-style="competition"] .app-match-header-row > div {
+.app-match-header-row > div {
   margin-left: auto;
 }
 html[data-visual-style="competition"] [data-tour="statistics-highlights"] {

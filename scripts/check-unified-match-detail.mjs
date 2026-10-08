@@ -47,7 +47,7 @@ const [
 
 assert(leaguePage.includes("<MatchDetailView"), "La ruta de liga debe usar MatchDetailView")
 assert(
-  leaguePage.includes('href={`/round/${match.round}`}') &&
+  leaguePage.includes('href={`/round/${match.round}?season=${activeSeason.id}`}') &&
     leaguePage.includes("{t.matches.round} {match.round}"),
   "El partido de liga debe usar Jornada X como título principal enlazado al resumen",
 )

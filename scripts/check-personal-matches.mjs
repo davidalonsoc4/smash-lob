@@ -166,7 +166,7 @@ assert((personalPage.includes('aria-label="Crear nuevo encuentro"') || personalP
 assert(detailPage.includes("<MatchDetailView"), "El detalle personal debe usar la pantalla compartida de partido")
 assert(matchDetailView.includes("<MatchDetailPairingPanel"), "La pantalla compartida debe ser dueña del emparejamiento")
 assert(!detailPage.includes("<MatchScoreboard"), "El detalle personal no debe reutilizar el marcador compacto")
-assert(matchDetailView.includes("items-start justify-between"), "El detalle compartido debe reservar la esquina derecha para estado y acciones")
+assert(matchDetailView.includes("items-center justify-between"), "El detalle compartido debe reservar la esquina derecha para estado y acciones")
 assert(!detailPage.includes('tracking-[0.12em] text-slate-700'), "El detalle amistoso no debe mostrar una etiqueta Amistoso separada")
 assert(detailPage.includes("buildPersonalMatchDetailModel"), "El amistoso debe normalizar jugadores y avatares mediante el modelo compartido")
 assert(detailPage.includes("<PersonalMatchParticipantsPanel"), "El detalle amistoso debe permitir editar pareja y contrincantes")

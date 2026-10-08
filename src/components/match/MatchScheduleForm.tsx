@@ -704,7 +704,7 @@ export function MatchScheduleForm({
                     href={directionsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex flex-1 rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99] items-center justify-center"
+                    className="inline-flex flex-1 rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-semibold text-white transition active:scale-[0.99] items-center justify-center"
                   >
                     {t.matchDetail.directionsButton}
                   </a>

@@ -235,3 +235,11 @@ export function markCourtBookingTransferPaid({
     isPaid: true,
   })
 }
+export function getBookingPaymentSummary(booking: CourtBooking, playerId: string, isParticipant = true) {
+  const pending = booking.transfers.filter((transfer) => !transfer.isPaid)
+  const cents = (amount: number) => Math.round(amount * 100)
+  const toPay = pending.filter((transfer) => transfer.fromPlayerId === playerId).reduce((sum, transfer) => sum + cents(transfer.amount), 0) / 100
+  const toReceive = pending.filter((transfer) => transfer.toPlayerId === playerId).reduce((sum, transfer) => sum + cents(transfer.amount), 0) / 100
+  const state = !booking.isReserved ? "incomplete" : toPay > 0 && toReceive > 0 ? "both" : toPay > 0 ? "pay" : toReceive > 0 ? "receive" : pending.length === 0 ? "settled" : isParticipant ? "personal-settled" : "others-pending"
+  return { state, toPay, toReceive }
+}

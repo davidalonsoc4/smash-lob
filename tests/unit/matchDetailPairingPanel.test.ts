@@ -103,7 +103,7 @@ describe("match detail pairing panel", () => {
     expect(personalDetailModel).toContain("avatarUrl: participant.avatarUrl ?? null")
     expect(personalDetailModel).toContain("preferredSide: participant.preferredSide ?? null")
     expect(personalDetailModel).toContain("dominantHand: participant.dominantHand ?? null")
-    expect(sharedView).toContain("items-start justify-between")
+    expect(sharedView).toContain("items-center justify-between")
     expect(sharedView).toContain("<MatchStatusBadge")
     expect(personalPage).not.toContain("<MatchScoreboard")
 

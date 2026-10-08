@@ -7,7 +7,7 @@ describe("v1.9.6 compact round highlights and round navigation", () => {
   it("links Jornada X in PARTIDO to the round summary", async () => {
     const page = await read("src/app/match/[id]/page.tsx")
 
-    expect(page).toContain('href={`/round/${match.round}`}')
+    expect(page).toContain('href={`/round/${match.round}?season=${activeSeason.id}`}')
     expect(page).toContain('aria-label={tx(`Abrir resumen de la jornada ${match.round}`)}')
     expect(page).toContain("{t.matches.round} {match.round}")
   })

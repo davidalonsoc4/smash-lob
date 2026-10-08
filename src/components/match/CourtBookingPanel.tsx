@@ -7,10 +7,10 @@ import {
   type CourtBookingReservation,
   useMatchData,
 } from "@/context/MatchDataProvider"
-import { formatMoney } from "@/lib/courtBooking"
+import { formatMoney, getBookingPaymentSummary } from "@/lib/courtBooking"
 import {
-  getBookingStatusBadgeClassName,
-  getPaymentStatusBadgeClassName,
+  getBadgeClassName,
+  getStatusToneClassName,
 } from "@/lib/statusStyles"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { PlayerProfile } from "@/data/fakeData"
@@ -281,6 +281,9 @@ export function CourtBookingPanel({
   const pendingTransfersCount = booking.transfers.filter(
     (transfer) => !transfer.isPaid
   ).length
+  const paymentSummary = getBookingPaymentSummary(booking, currentUserId, participantIds.includes(currentUserId))
+  const paymentTone = paymentSummary.state === "pay" || paymentSummary.state === "both" || paymentSummary.state === "receive" ? "blue" : paymentSummary.state === "settled" || paymentSummary.state === "personal-settled" ? "green" : "neutral"
+  const paymentLabel = paymentSummary.state === "incomplete" ? tx("Por completar") : paymentSummary.state === "pay" ? `${tx("Pendiente de pagar")} · ${formatMoney(paymentSummary.toPay)}` : paymentSummary.state === "receive" ? `${tx("Pendiente de cobrar")} · ${formatMoney(paymentSummary.toReceive)}` : paymentSummary.state === "both" ? `${tx("Pagar")} ${formatMoney(paymentSummary.toPay)} · ${tx("Cobrar")} ${formatMoney(paymentSummary.toReceive)}` : paymentSummary.state === "settled" ? tx("Todo saldado") : paymentSummary.state === "personal-settled" ? tx("Tu parte saldada") : tx("Pagos pendientes")
   const savedPayerNames = booking.reservations
     .map((reservation) => getPlayerName(reservation.playerId, players))
     .join(", ")
@@ -504,22 +507,19 @@ export function CourtBookingPanel({
   return (
     <div ref={panelRef} className="scroll-mt-4">
       <AppCard className="p-2">
-      <div className="flex items-start justify-between gap-2.5">
+      <div className="flex items-center justify-between gap-2.5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <p className="type-panel-title text-neutral-950">{tx("Pagos y reservas")}</p>
-            {booking.isReserved ? (
-              <span className={getBookingStatusBadgeClassName(true)}>
-                {tx("Guardado")}
-              </span>
-            ) : (
-              <span className={getBookingStatusBadgeClassName(false)}>
-                {tx("Pendiente")}{" "}</span>
-            )}
+
           </div>
 
-          <p className="mt-0.5 type-caption font-semibold leading-4 text-neutral-500">
-            {tx("Indica quién pagó pista y bolas. La app calcula las transferencias.")}{" "}</p>
+        </div>
+
+        <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
+            {paymentSummary.toPay > 0 ? <span className={getBadgeClassName("blue")} title={tx("Pendiente de pagar")} aria-label={`${tx("Pendiente de pagar")} · ${formatMoney(paymentSummary.toPay)}`}>{tx("Pendiente")} - {formatMoney(paymentSummary.toPay)}</span> : null}
+            {paymentSummary.toReceive > 0 ? <span className={getBadgeClassName("blue")} title={tx("Pendiente de cobrar")} aria-label={`${tx("Pendiente de cobrar")} · ${formatMoney(paymentSummary.toReceive)}`}>{tx("Pendiente")} - {formatMoney(paymentSummary.toReceive)}</span> : null}
+            {paymentSummary.toPay === 0 && paymentSummary.toReceive === 0 ? <span className={`${getBadgeClassName(paymentTone)} !whitespace-normal !leading-snug`} role="status">{paymentLabel}</span> : null}
         </div>
 
         <button
@@ -546,6 +546,8 @@ export function CourtBookingPanel({
           </svg>
         </button>
       </div>
+
+      {isExpanded ? <p className="mt-3 type-caption font-semibold leading-4 text-neutral-500">{tx("Indica quién pagó pista y bolas. La app calcula las transferencias.")}</p> : null}
 
       <div className="mt-1.5 grid grid-cols-3 divide-x divide-neutral-200 overflow-hidden rounded-lg bg-neutral-100 text-center">
         <div className="px-2 py-1">
@@ -583,11 +585,11 @@ export function CourtBookingPanel({
                 {savedPayerNames || tx("Sin pagador informado")}
               </span>
             </p>
-            {!ballPurchasesDisabled ? (
+            {!ballPurchasesDisabled && savedBallBuyerName ? (
               <p className="text-xs font-semibold leading-5 text-neutral-700">
                 <span className="font-black text-neutral-950">{tx("Bolas compradas por:")}</span>{" "}
                 <span className="font-bold">
-                  {savedBallBuyerName || tx("Sin comprador informado")}
+                  {savedBallBuyerName}
                 </span>
               </p>
             ) : null}
@@ -595,10 +597,8 @@ export function CourtBookingPanel({
 
           {booking.transfers.length > 0 ? (
             <div className="space-y-1.5">
-              <p className="text-xs font-black uppercase tracking-wide text-neutral-500">
-                {tx("Transferencias")}
-              </p>
-              {booking.transfers.map((transfer) => {
+              {[false, true].map((paid) => { const transfers = booking.transfers.filter((transfer) => transfer.isPaid === paid).sort((a, b) => Number(b.fromPlayerId === currentUserId && !b.isPaid) - Number(a.fromPlayerId === currentUserId && !a.isPaid)); return transfers.length ? <div key={String(paid)} className="space-y-1.5"><p className="text-xs font-black uppercase tracking-wide text-neutral-500">{paid ? tx("Transferencias pagadas") : tx("Transferencias pendientes")}</p>
+              {transfers.map((transfer) => {
                 const isCurrentUserTransfer = transfer.fromPlayerId === currentUserId
                 const isCurrentUserPayer = transfer.toPlayerId === currentUserId
                 const canCurrentUserMarkOwnDebtPaid =
@@ -608,22 +608,19 @@ export function CourtBookingPanel({
                 return (
                   <div
                     key={transfer.id}
-                    className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs"
+                    className={`rounded-lg border px-2.5 py-1.5 text-xs ${isCurrentUserTransfer && !transfer.isPaid ? `${getStatusToneClassName("blue")} border-sky-200` : "border-neutral-200"}`}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-bold leading-snug text-neutral-900">
-                          {getPlayerName(transfer.fromPlayerId, players)} → {getPlayerName(transfer.toPlayerId, players)}
-                        </p>
-                        <p className="mt-0.5 text-xs font-semibold text-neutral-500">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2 leading-snug text-neutral-900"><span className="font-semibold text-neutral-500">{tx("Paga")}</span><span className="break-words font-bold">{getPlayerName(transfer.fromPlayerId, players)}</span></p>
+                        <p className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2 leading-snug text-neutral-900"><span className="font-semibold text-neutral-500">{tx("Recibe")}</span><span className="break-words font-bold">{getPlayerName(transfer.toPlayerId, players)}</span></p>
+                      </div>
+                      <div className="shrink-0 space-y-1.5 text-right">
+                        <p className="text-lg font-black text-neutral-950">
                           {formatMoney(transfer.amount)}
                         </p>
-                      </div>
 
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <span className={getPaymentStatusBadgeClassName(transfer.isPaid)}>
-                          {transfer.isPaid ? "Pagado" : tx("Pendiente")}
-                        </span>
 
                         {canPayerManageTransfer ? (
                           <button
@@ -635,7 +632,7 @@ export function CourtBookingPanel({
                               )
                             }
                             disabled={isSaving}
-                            className={`whitespace-nowrap rounded-md border px-2 py-1 type-caption font-black transition disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-300 ${
+                            className={`ml-auto block w-fit rounded-md border px-2 py-1.5 type-caption font-black transition disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-300 ${
                               transfer.isPaid
                                 ? "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
                                 : "border-emerald-200 bg-emerald-50 text-emerald-800 active:bg-emerald-100"
@@ -654,6 +651,7 @@ export function CourtBookingPanel({
                           </button>
                         ) : null}
                       </div>
+                      </div>
                     </div>
 
                     {canCurrentUserMarkOwnDebtPaid ? (
@@ -663,14 +661,14 @@ export function CourtBookingPanel({
                           handleUpdatePaymentStatus(transfer.id, true)
                         }
                         disabled={isSaving}
-                        className="flex mt-1.5 w-full rounded-lg bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
+                        className="ml-auto mt-1.5 flex w-fit rounded-md bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
                       >
-                        {isSaving ? "Guardando..." : "✓ Marcar como pagado"}
+                        {isSaving ? "Guardando..." : "✓ Marcar pagado"}
                       </button>
                     ) : null}
                   </div>
                 )
-              })}
+              })}</div> : null })}
             </div>
           ) : (
             <div className="rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-900">
