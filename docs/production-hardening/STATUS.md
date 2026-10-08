@@ -1,3 +1,14 @@
+# Heartbeat Supabase PROD — 2026-10-08 (validado localmente; activación remota pendiente)
+
+- Auditoría PRE/PROD (2026-10-08): tras `git fetch origin`, main y staging coinciden en `f4ec3eb24bef652401e1e214fae63ee3e59d7e46` (0 commits exclusivos y diff vacío). Inspección de aliases y API Vercel confirma PRE `dpl_4jkYGgBRLbnYDHFRKnuxqBr78kJS` y PROD `dpl_2j865oCwRux48wMgRL7SdnSLZEGM`, ambos READY y con ese mismo githubCommitSha. Health autenticado devuelve v1.15.4/pre y v1.15.4/prod; distributedRateLimit y observabilityWebhook son false en ambos. No hay promoción de código pendiente entre estos entornos. Esta auditoría no compara los esquemas/migraciones remotos de Supabase ni todos los valores de entorno.
+
+- H00–H23 del PLAN están DONE; esta tarea adicional queda limitada al workflow solicitado y su documentación.
+- Añadido heartbeat diario/manual sin checkout: GET `public.leagues`, columna `id`, máximo una fila; sin escrituras ni migraciones.
+- Secrets exclusivos `SUPABASE_PROD_URL` / `SUPABASE_PROD_SERVICE_ROLE_KEY`; validación del identificador PROD antes de enviar credenciales, sin reutilizar PRE ni el enlace CLI.
+- Respuesta y diagnósticos descartados, errores HTTP y de red fallan, timeout de petición 30 s y job 2 min, permisos GitHub vacíos.
+- Validación local correcta: parseo YAML con js-yaml existente, cron diario de cinco campos, declaración workflow_dispatch y `bash -n`. Paso ejecutado contra servidor HTTP local mediante wrapper de transporte con credenciales ficticias: 200 pasa; 401/403/404/500/503 y 302 fallan; método GET, ruta, select/limit y headers comprobados. Secrets ausentes y PRE/hosts ajenos fallan antes de consultar. Clave y cuerpo ficticios ausentes de logs. `npm run secrets:check` y `git diff --check` correctos.
+- El usuario autorizó publicar este cambio en main el 2026-10-08. GitHub API confirma main como rama predeterminada y cero Secrets de Actions configurados. Publicación en curso desde una rama exclusiva del heartbeat; pendiente configurar los dos Secrets PROD y verificar workflow_dispatch real. No se consultaron datos reales de PROD/PRE durante las pruebas ni se modificaron staging, migraciones o el tag v1.0.0.
+
 # Publicación Welcome Pack — 2026-09-14 (en curso)
 
 # v1.15.4 — Saneamiento y hardening (2026-09-19, en curso)

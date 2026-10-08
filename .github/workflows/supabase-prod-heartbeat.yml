@@ -1,0 +1,54 @@
+name: Supabase PROD heartbeat
+
+on:
+  schedule:
+    - cron: "37 5 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  heartbeat:
+    if: github.repository == 'davidalonsoc4/smash-lob'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Read at most one league ID from PROD
+        shell: bash
+        env:
+          SUPABASE_PROD_URL: ${{ secrets.SUPABASE_PROD_URL }}
+          SUPABASE_PROD_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_PROD_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$SUPABASE_PROD_URL" || -z "$SUPABASE_PROD_SERVICE_ROLE_KEY" ]]; then
+            echo "::error::Missing PROD heartbeat secrets."
+            exit 1
+          fi
+
+          # Public project identifier from the verified PROD inventory; never use the CLI link or PRE env.
+          prod_project_ref='szycbwdzestcmimziyey'
+          if [[ ! "$SUPABASE_PROD_URL" =~ ^https://([a-z0-9]+)\.supabase\.co/?$ ]]; then
+            echo "::error::Invalid PROD Supabase URL."
+            exit 1
+          fi
+          if [[ "${BASH_REMATCH[1]}" != "$prod_project_ref" ]]; then
+            echo "::error::Heartbeat URL does not match the PROD project."
+            exit 1
+          fi
+
+          # Discard both response data and curl diagnostics; log only a numeric HTTP status.
+          if ! status=$(curl --fail --silent --show-error \
+            --proto '=https' --connect-timeout 10 --max-time 30 \
+            --request GET --output /dev/null --write-out '%{http_code}' \
+            --header "apikey: $SUPABASE_PROD_SERVICE_ROLE_KEY" \
+            --header "Authorization: Bearer $SUPABASE_PROD_SERVICE_ROLE_KEY" \
+            --header 'Accept-Profile: public' \
+            "${SUPABASE_PROD_URL%/}/rest/v1/leagues?select=id&limit=1" 2>/dev/null); then
+            echo "::error::PROD database heartbeat failed (HTTP ${status:-000})."
+            exit 1
+          fi
+          if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
+            echo "::error::Unexpected heartbeat HTTP status ${status}."
+            exit 1
+          fi
+          echo 'PROD database heartbeat succeeded.'

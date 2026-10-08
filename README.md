@@ -28,6 +28,34 @@ Los secretos de Producción no deben usarse en PRE, CI ni desarrollo.
 
 ## Desarrollo y pruebas
 
+### Heartbeat de Supabase PROD
+
+`.github/workflows/supabase-prod-heartbeat.yml` ejecuta diariamente a las 05:37 UTC
+un GET PostgREST equivalente a `SELECT id FROM public.leagues LIMIT 1`, para generar
+actividad mínima de base de datos durante periodos sin usuarios. Descarta la respuesta,
+no escribe datos y rechaza cualquier URL que no corresponda al proyecto PROD inventariado.
+No usa la configuración de PRE ni el enlace local de Supabase.
+
+Configura `SUPABASE_PROD_URL` y `SUPABASE_PROD_SERVICE_ROLE_KEY` (clave legacy
+`service_role` de PROD) en GitHub → Settings → Secrets and variables → Actions →
+New repository secret. Nunca copies la clave a variables públicas ni a archivos:
+se requiere porque los grants actuales impiden esta lectura con anon/authenticated.
+Solo las personas de confianza deben poder modificar workflows con acceso a estos Secrets.
+
+Tras incorporar el workflow a la rama predeterminada mediante el proceso autorizado,
+abre Actions → Supabase PROD heartbeat → Run workflow para comprobarlo y verifica
+que el job termina correctamente. La declaración manual se valida localmente; una
+ejecución real requiere publicar el workflow y configurar los Secrets.
+No requiere checkout, dependencias, migraciones ni despliegue de la aplicación.
+Consume minutos del cupo de GitHub Actions; revisa su disponibilidad en repositorios privados.
+
+El cron puede retrasarse y GitHub desactiva los workflows programados de repositorios
+públicos tras 60 días sin actividad del repositorio. Supabase no publica un umbral
+que garantice que una consulta diaria evite la pausa; revisa avisos y ejecuciones fallidas.
+Un proyecto ya pausado necesita reactivación manual. Referencias:
+[GitHub](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
+y [Supabase](https://supabase.com/docs/guides/platform/free-project-pausing).
+
 ```powershell
 npm ci
 npm run dev
