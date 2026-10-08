@@ -7,11 +7,12 @@ const state = vi.hoisted(() => ({ status: "authenticated", style: "classic", app
 vi.mock("next-auth/react", () => ({ useSession: () => ({ status: state.status, data: { user: { email: "fixture@example.com" } } }) }))
 vi.mock("@/context/ThemeProvider", () => ({ useTheme: () => ({ visualStyle: state.style, setVisualStyle: state.apply }) }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ tx: (text: string) => text }) }))
-beforeEach(() => { localStorage.clear(); state.status = "authenticated"; state.style = "classic"; state.apply.mockClear() })
+beforeEach(() => { HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", "") }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open") }; localStorage.clear(); state.status = "authenticated"; state.style = "classic"; state.apply.mockClear() })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 describe("Competition launch notice", () => {
   it("requires explicit application and keeps reversal instructions visible", () => {
     render(<CompetitionLaunchNotice />)
+    expect(screen.getByRole("dialog", { name: "Nuevos temas disponibles" }).hasAttribute("open")).toBe(true)
     expect(state.apply).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole("button", { name: "HAZ CLICK PARA APLICAR" }))
     expect(state.apply).toHaveBeenCalledWith("competition")
@@ -23,7 +24,7 @@ describe("Competition launch notice", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cerrar aviso de temas" }))
     view.unmount()
     render(<CompetitionLaunchNotice />)
-    expect(screen.queryByRole("region")).toBeNull()
+    expect(screen.queryByRole("dialog")).toBeNull()
   })
   it("shows confirmation when Competition is already applied", () => {
     state.style = "competition"

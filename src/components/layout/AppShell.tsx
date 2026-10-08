@@ -496,7 +496,8 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           ) : (
             <>
-              {pathname === "/" ? <><PendingAccessIntentNotice /><CompetitionLaunchNotice /></> : null}
+              {pathname === "/" ? <PendingAccessIntentNotice /> : null}
+              <CompetitionLaunchNotice />
               {children}
             </>
           )}
