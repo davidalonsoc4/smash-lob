@@ -1,52 +1,7 @@
-"use client"
-
-import { useMemo } from "react"
-import { useI18n } from "@/i18n/I18nProvider"
-import { toCalendarFloatingDate } from "@/lib/matchScheduleTime"
-import {
-  getPersonalMatchTeamNames,
-  type PersonalMatchItem,
-} from "@/lib/personalMatches"
-
-const eventDurationMinutes = 120
-const calendarTimeZone = "Europe/Madrid"
-
-export function PersonalAddToCalendarButton({
-  match,
-  className,
-}: {
-  match: PersonalMatchItem
-  className?: string
-}) {
-  const { tx } = useI18n()
-  const calendarUrl = useMemo(() => {
-    if (!match.scheduledAt) return null
-    const start = new Date(match.scheduledAt)
-    if (Number.isNaN(start.getTime())) return null
-
-    const end = new Date(start.getTime() + eventDurationMinutes * 60 * 1000)
-    const teamA = getPersonalMatchTeamNames(match.participants, 1)
-    const teamB = getPersonalMatchTeamNames(match.participants, 2)
-    const params = new URLSearchParams({
-      action: "TEMPLATE",
-      text: `Amistoso: ${teamA} vs ${teamB}`,
-      dates: `${toCalendarFloatingDate(start)}/${toCalendarFloatingDate(end)}`,
-      ctz: calendarTimeZone,
-      details: `Amistoso registrado en Smash & Lob\n${teamA} vs ${teamB}`,
-    })
-
-    if (match.locationName) params.set("location", match.locationName)
-    return `https://calendar.google.com/calendar/render?${params.toString()}`
-  }, [match])
-
-  if (!calendarUrl) return null
-
-  return (
-    <a
-      href={calendarUrl}
-      target="_blank"
-      rel="noreferrer"
-      className={`inline-flex w-full rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-black text-white transition active:scale-[0.99] items-center justify-center ${className ?? ""}`}
-    >{tx("Añadir al calendario")}</a>
-  )
+import { CalendarEventButton } from "@/components/calendar/CalendarEventButton"
+import { getPersonalMatchTeamNames, type PersonalMatchItem } from "@/lib/personalMatches"
+export function PersonalAddToCalendarButton({ match, className }: { match: PersonalMatchItem; className?: string }) {
+  if (!match.scheduledAt) return null
+  const teamA = getPersonalMatchTeamNames(match.participants, 1), teamB = getPersonalMatchTeamNames(match.participants, 2)
+  return <CalendarEventButton className={`inline-flex w-full rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs !font-semibold text-white transition active:scale-[0.99] items-center justify-center ${className ?? ""}`} event={{ uid: match.id + "@smashandlob.com", title: "Amistoso: " + teamA + " vs " + teamB, description: "Amistoso registrado en Smash & Lob\n" + teamA + " vs " + teamB, start: match.scheduledAt, location: match.locationName }} />
 }

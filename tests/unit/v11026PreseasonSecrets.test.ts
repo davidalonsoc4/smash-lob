@@ -242,7 +242,7 @@ describe("v1.10.26 preseason secret phase", () => {
     expect(countdown).toContain('tx("¡NOVEDADES!")')
     expect(countdown).toContain('tx("DESCUBRIRÁS TODOS LOS EMPAREJAMIENTOS EN")')
     expect(countdown).not.toContain('tx("EMPAREJAMIENTOS SECRETOS")')
-    expect(calendar).toContain('text: `${tx("Jornada 1")} · ${leagueName}`')
+    expect(calendar).toContain('title: tx("Jornada 1") + " · " + leagueName')
     expect(calendar).not.toContain("teamA")
     expect(calendar).not.toContain("teamB")
     expect(calendar).not.toContain("player")
