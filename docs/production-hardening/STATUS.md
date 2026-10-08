@@ -1,3 +1,42 @@
+# Publicación v1.15.5 — 2026-10-08 (validación local cerrada)
+
+- Usuario autoriza promoción de todo lo pendiente a PRE y PROD. Origin verificado: PRE f4ec3eb2, PROD d4120627; diferencia únicamente heartbeat y documentación. Competition 90b4f0c9 más cambios locales de calendarios/pagos/chats pendientes. Sin migraciones nuevas. Validación aislada en worktree release-calendar-ui con credenciales ficticias, sin tocar servidor localhost.
+- Contratos estáticos de enlace de jornada, nombres completos, puntos de estado, alineación centrada y calendario común actualizados a comportamiento acordado. Auditoría bloqueó promoción: Next 16.3.5 crítico, sharp 0.35.4 y source-map-js altos. Preparados parches explícitos Next/eslint-config-next 16.3.8, sharp 0.35.5 y source-map-js 1.2.2; lockfile actualizado y auditoría runtime con 0 vulnerabilidades. Primera validación completa correcta: 813 tests en 211 archivos, lint, TypeScript, build 1095127 bytes gzip. Dependencias corregidas instaladas y auditoría runtime repetida con 0 vulnerabilidades; Validación parcheada: todos los controles estáticos/lint/TypeScript pasan; 811 tests correctos y dos cálculos con timeout bajo ejecución concurrente. Repetición aislada de esos 8 tests pasa (20/24 jugadores en 619/962 ms). E2E: 66 correctos, cuatro referencias de Calendario/Ranking cambian por selector compartido y entrada arriba sin autoscroll, cambios solicitados; referencias revisadas y actualizadas, las cuatro repeticiones correctas. Cobertura final 813 tests y 70 E2E sin fallos pendientes; build parcheado correcto. Rollback verificado: PRE dpl_4jkYGgBRLbnYDHFRKnuxqBr78kJS y PROD dpl_48ZT2EwiHoQkH4mi6DLUsNfm4ZBG, ambos Ready. No se ha publicado ni corregido Realtime.
+
+# Calendarios multiplataforma — 2026-10-08 (desarrollo local)
+
+- Chat: resumen fijado de programación también para partidos programados manualmente; retirada dependencia de courtBooking.isReserved, conservando condición de estado scheduled y fecha. 10 tests focalizados, ESLint, TypeScript y diff correctos. Sin navegador ni commit.
+
+- Chats: etiquetas sustituidas por puntos de estado con colores correspondientes; contador de mensajes separado. Botón accesible independiente del enlace del chat (sin controles interactivos anidados) muestra/oculta texto de estado al pulsar, válido para teclado y móvil. ESLint, TypeScript y diff correctos. Sin navegador ni commit.
+
+- Chats: separación entre fila Jornada/etiquetas y jugadores ampliada de mt-0.5 a mt-2 en las tarjetas compartidas por todos los temas. ESLint y diff correctos. Sin navegador ni commit.
+
+- Cómo llegar y Añadir al calendario unificados en seminegrita en programación de partidos y amistosos. Peso explícito en el botón de calendario para superar el font inherit global. ESLint y diff correctos. Sin navegador ni commit.
+
+- Transferencias pendientes propias ordenadas primero con sort estable sobre copia filtrada; tarjetas resaltadas mediante el mismo tono blue de la etiqueta. Pagadas sin resaltar, agrupación y permisos conservados. ESLint y diff correctos. Sin navegador ni commit.
+
+- Transferencias: importe y acción agrupados en una columna derecha junto a Paga/Recibe; eliminada fila inferior independiente. Permisos conservados. ESLint y diff correctos. Sin navegador ni commit.
+
+- Acciones de transferencia compactas, alineadas a la derecha debajo de nombres/importe: ✓ Marcar pagado para deudor o receptor autorizado, ↩ Marcar pendiente para receptor cuando ya está pagada. Permisos conservados. ESLint y diff correctos. Sin navegador ni commit.
+
+- Transferencias: importe a la derecha de Paga/Recibe, retiradas etiquetas de estado por tarjeta. Agrupación pendiente/pagada con títulos separados, conservando controles y permisos. ESLint, i18n y diff correctos; TypeScript y 6 tests correctos. Sin navegador ni commit.
+
+- Partido: fila título/estado centrada verticalmente; reglas de distribución app-match-header-row extendidas a todos los estilos. Panel de pagos ya compartido sin condiciones por tema: se oculta Bolas compradas por si no hay comprador y los importes de transferencia usan text-base/font-black. 13 tests focalizados, ESLint y typography:check correctos; TypeScript y diff correctos. Sin navegador ni commit.
+
+- Etiquetas de pagos alineadas a la derecha junto al chevron; cabecera centrada verticalmente. ESLint y diff correctos. Sin navegador ni commit.
+
+- Iteración etiqueta de pagos: vuelve junto al título; deudas propias y cobros pendientes muestran PENDIENTE - importe en azul. En caso mixto se conservan dos importes independientes, con title y nombre accesible que distinguen pagar/cobrar. Estados sin importe conservados. ESLint y diff correctos. Sin navegador ni commit.
+
+- Reorganización Pagos y reservas: estado personal debajo de las casillas de preview, visible contraído; tarjetas de transferencia con Paga/Recibe en filas independientes, nombres completos con ajuste de línea y columna flexible. Importe y estado debajo, acciones de pago en fila propia de ancho completo. Cálculos y permisos conservados. ESLint e i18n correctos; TypeScript, quality:source y diff correctos. Sin navegador ni commit.
+
+- Pagos y reservas: etiqueta de cabecera sustituye Guardado/Pendiente por estado económico personal: Por completar, Pendiente de pagar con importe (ámbar), Pendiente de cobrar con importe (azul), Pagar/Cobrar con importes independientes (ámbar), Tu parte saldada y Todo saldado (verde). Administradores ajenos al partido ven Pagos pendientes en lugar de una afirmación personal. Los importes se suman en céntimos y solo cuentan transferencias sin marcar pagadas. Preview Total/Pagan/Pend. conservada contraída; explicación solo expandida con mt-3 bajo cabecera. 16 tests de estados y flujos correctos, ESLint, TypeScript, i18n, quality:source y diff correctos. La primera pasada i18n detectó Pagar sin traducción, añadida y repetida correctamente. Sin navegador, commit ni publicación.
+
+- Ajuste solicitado: retirados Recordar mi elección, Elegir otro calendario y todo acceso a preferencias persistentes. Cada pulsación abre el selector, incluso si existe una preferencia antigua en localStorage. Retiradas las reglas CSS Competition que convertían app-match-actions en una fila relativa dentro de cabecera y abrían el menú hacia abajo; vuelve el fixed original con columna vertical, right responsive y bottom con safe-area. Esa recolocación procedía del pulido visual previo, no de la exportación de calendarios. 14 tests de selector/exportación/chat correctos, ESLint e i18n correctos; TypeScript, quality:source y diff finales correctos. Sin navegador ni commit.
+
+- Rama codex/calendar-provider-choice creada desde 90b4f0c9, manteniendo los cambios Competition ya publicados. Selector común Google Calendar / Apple Calendar y otros (.ics), preferencia opcional local y acceso para cambiarla. Integrados partido de liga, mensajes de reserva, tarjeta fijada clickable, amistosos y jornada de apertura. Sin OAuth adicional ni escritura automática en calendarios.
+- Exportación ICS con UTC, duración por defecto de 120 minutos para partidos y fin real en apertura, UID estable, escaping y plegado UTF-8 a 75 octetos. Google usa los mismos instantes UTC, evitando diferencias por zona del dispositivo. Los eventos exportados son copias; no se implementa sincronización de cambios posteriores.
+- 25 tests focalizados en 6 archivos correctos, incluyendo cambios de hora, caracteres especiales, identidad, preferencia, cancelación y descarga. i18n, quality:source y diff correctos. Contratos antiguos actualizados para la tarjeta clickable, manteniendo fijación sobre el historial y estilos en amistosos. TypeScript y ESLint finales correctos. Sin pruebas visuales ni navegador por petición del usuario; importación efectiva en Calendario de iPhone queda como comprobación manual en dispositivo. Sin commit ni publicación.
+
 # Correcciones Competition oscuro — 2026-10-08 (publicadas en rama)
 
 - Publicación autorizada por el usuario: commits 3dda9839 (visual y detalles históricos) y 5f583cc5 (selección compartida y orden cronológico) publicados en origin/codex/competition-dark-polish. SHA 5f583cc521a11b01ed17603525678908add555a3 confirmado con git ls-remote. Validación final: 52 tests en 10 archivos, TypeScript, ESLint sin errores (11 advertencias previas de Administración), i18n, secrets:check, quality:source y diff correctos. Documentación de revisión incluida a continuación; main, staging, PRE y PROD no promovidos. Las notas «sin commit» inferiores describen los checkpoints anteriores.
