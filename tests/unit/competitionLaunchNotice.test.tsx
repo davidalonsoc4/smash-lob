@@ -12,36 +12,36 @@ afterEach(() => { cleanup(); vi.restoreAllMocks() })
 describe("Competition launch notice", () => {
   it("requires explicit application and keeps reversal instructions visible", () => {
     render(<CompetitionLaunchNotice />)
-    expect(screen.getByRole("dialog", { name: "Nuevos temas disponibles" }).hasAttribute("open")).toBe(true)
+    expect(screen.getByRole("dialog", { name: "NUEVO TEMA OSCURO DISPONIBLE" }).hasAttribute("open")).toBe(true)
+    expect(screen.getByRole("link", { name: "Puedes cambiar de tema en Ajustes → Temas y apariencia." }).getAttribute("href")).toBe("/settings/appearance#visual-style")
     expect(state.apply).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole("button", { name: "HAZ CLICK PARA APLICAR" }))
+    fireEvent.click(screen.getByRole("button", { name: "APLICAR AHORA" }))
     expect(state.apply).toHaveBeenCalledWith("competition")
-    expect(screen.getByText(/solo en modo oscuro/)).toBeTruthy()
-    expect(screen.getByRole("link", { name: "Ir a Temas" }).getAttribute("href")).toBe("/settings/appearance#visual-style")
+    expect(screen.queryByRole("dialog")).toBeNull()
   })
   it("persists dismissal across remounts", () => {
     const view = render(<CompetitionLaunchNotice />)
-    fireEvent.click(screen.getByRole("button", { name: "Cerrar aviso de temas" }))
+    fireEvent.click(screen.getByRole("button", { name: "AHORA NO" }))
+    expect(state.apply).not.toHaveBeenCalled()
     view.unmount()
     render(<CompetitionLaunchNotice />)
     expect(screen.queryByRole("dialog")).toBeNull()
   })
-  it("shows confirmation when Competition is already applied", () => {
+  it("keeps both choices available when Competition is already applied", () => {
     state.style = "competition"
     render(<CompetitionLaunchNotice />)
-    expect(screen.getByRole("status").textContent).toBe("Competition aplicado")
-    expect(screen.queryByRole("button", { name: "HAZ CLICK PARA APLICAR" })).toBeNull()
-    expect(screen.getByRole("link", { name: "Ir a Temas" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "APLICAR AHORA" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "AHORA NO" })).toBeTruthy()
   })
   it("does not announce themes before authentication", () => {
     state.status = "unauthenticated"
     render(<CompetitionLaunchNotice />)
-    expect(screen.queryByRole("region")).toBeNull()
+    expect(screen.queryByRole("dialog")).toBeNull()
   })
   it("still closes when local storage cannot persist the dismissal", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Storage disabled") })
     render(<CompetitionLaunchNotice />)
-    fireEvent.click(screen.getByRole("button", { name: "Cerrar aviso de temas" }))
-    expect(screen.queryByRole("region")).toBeNull()
+    fireEvent.click(screen.getByRole("button", { name: "AHORA NO" }))
+    expect(screen.queryByRole("dialog")).toBeNull()
   })
 })
