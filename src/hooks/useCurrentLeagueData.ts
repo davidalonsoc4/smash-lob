@@ -12,10 +12,12 @@ import {
 } from "@/lib/leagues"
 import { buildSeasonRounds } from "@/lib/rounds"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
-import { readSelectedSeasonId } from "@/lib/seasonSelection"
+import { readSelectedSeasonId, subscribeSeasonSelection } from "@/lib/seasonSelection"
+import { useSyncExternalStore } from "react"
 
 export function useCurrentLeagueData(selectedSeasonId?: string | null) {
   const { activeLeagueId } = useActiveLeague()
+  const sharedSeasonId = useSyncExternalStore(subscribeSeasonSelection, () => readSelectedSeasonId(activeLeagueId), () => null)
   const {
     getMembershipForLeague,
     isLeagueAdmin,
@@ -60,7 +62,7 @@ export function useCurrentLeagueData(selectedSeasonId?: string | null) {
         .at(-1) ?? null
     : null
 
-  const requestedSeasonId = selectedSeasonId ?? readSelectedSeasonId(activeLeague.id)
+  const requestedSeasonId = selectedSeasonId ?? sharedSeasonId
   const requestedSeason = requestedSeasonId
     ? seasons.find(
         (season) =>

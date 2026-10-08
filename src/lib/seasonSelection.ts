@@ -1,5 +1,16 @@
+import type { Season } from "@/data/fakeData"
+// Legacy snapshots without timestamps retain their original creation order.
+export function getNewestLeagueSeasons(seasons: Season[], leagueId: string) {
+  return seasons.filter((season) => season.leagueId === leagueId).reverse().sort((a, b) =>
+    (Date.parse(b.createdAt ?? "") || 0) - (Date.parse(a.createdAt ?? "") || 0))
+}
 const seasonSelectionKeyPrefix = "smash-lob-selected-season:"
 export const SEASON_SELECTION_CHANGED_EVENT = "smash-lob-season-selection-changed"
+export function subscribeSeasonSelection(callback: () => void) {
+  window.addEventListener(SEASON_SELECTION_CHANGED_EVENT, callback)
+  window.addEventListener("storage", callback)
+  return () => { window.removeEventListener(SEASON_SELECTION_CHANGED_EVENT, callback); window.removeEventListener("storage", callback) }
+}
 
 export function getSeasonSelectionStorageKey(leagueId: string) {
   return `${seasonSelectionKeyPrefix}${leagueId}`

@@ -160,6 +160,7 @@ function mapSeason(row: {
   name: string
   status: unknown
   total_rounds: number
+  created_at?: string
   completed_rounds: number
 }): Season {
   return {
@@ -169,6 +170,7 @@ function mapSeason(row: {
     status: toSeasonStatus(row.status),
     totalRounds: row.total_rounds,
     completedRounds: row.completed_rounds,
+    createdAt: row.created_at,
   }
 }
 
@@ -482,7 +484,7 @@ export async function finishServerActiveSeason({
     })
     .eq("id", season.id)
     .eq("league_id", leagueId)
-    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
     .single()
 
   if (seasonError) {
@@ -535,7 +537,7 @@ export async function reopenServerFinishedSeason({
     .eq("id", seasonId)
     .eq("league_id", leagueId)
     .eq("status", "finished")
-    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
     .single()
 
   if (seasonError) {
@@ -858,7 +860,7 @@ export async function startServerExistingSeason({
       await Promise.all([
         supabase
           .from("seasons")
-          .select("id,league_id,name,status,total_rounds,completed_rounds")
+          .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
           .eq("id", seasonId)
           .eq("league_id", leagueId)
           .single(),
@@ -981,7 +983,7 @@ export async function startServerExistingSeason({
     .update({ status: "active" })
     .eq("id", seasonId)
     .eq("league_id", leagueId)
-    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
     .single()
 
   if (error) {
@@ -1057,7 +1059,7 @@ export async function deleteServerSeason({
 
   const { data: fallbackSeason, error: fallbackError } = await supabase
     .from("seasons")
-    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
     .eq("league_id", leagueId)
     .limit(1)
     .maybeSingle()
@@ -1576,7 +1578,7 @@ export async function createServerSeason({
         .from("seasons")
         .update({ status: "finished" })
         .eq("id", activeSeasonId)
-        .select("id,league_id,name,status,total_rounds,completed_rounds")
+        .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
         .maybeSingle()
     : { data: null, error: null }
 
@@ -1593,7 +1595,7 @@ export async function createServerSeason({
       total_rounds: targetRoundCount,
       completed_rounds: 0,
     })
-    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
     .single()
 
   if (seasonError) {

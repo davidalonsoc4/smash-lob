@@ -1,15 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
+import { SeasonContextLineSelector } from "@/components/layout/SeasonContextLine"
 import { RankingTable } from "@/components/ranking/RankingTable"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export default function RankingPage() {
+  const { seasons } = useSeasonSettings()
   const { tx } = useI18n()
 
   const { t } = useI18n()
@@ -22,17 +24,7 @@ export default function RankingPage() {
         <h1 className="type-page-title text-2xl font-black tracking-tight">
           {t.common.individualRanking}
         </h1>
-        <SeasonContextLine
-          seasonName={activeSeason.name}
-          statusLabel={
-            activeSeason.status === "finished"
-              ? t.common.finishedSeasonBadge
-              : activeSeason.status === "upcoming"
-                ? t.rounds.statusUpcoming
-                : t.rounds.statusActive
-          }
-          className="mt-0.5"
-        />
+        <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} />
       </header>
 
 

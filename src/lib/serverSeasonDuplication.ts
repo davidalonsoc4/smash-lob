@@ -31,6 +31,7 @@ type SeasonRow = {
   name: string
   status: string
   total_rounds: number
+  created_at?: string
   completed_rounds: number
 }
 
@@ -79,6 +80,7 @@ function mapSeason(row: SeasonRow): Season {
           : "active",
     totalRounds: row.total_rounds,
     completedRounds: row.completed_rounds,
+    createdAt: row.created_at,
   }
 }
 
@@ -131,7 +133,7 @@ export async function duplicateServerSeason({
   const [sourceResult, settingsResult, existingUpcomingResult] = await Promise.all([
     supabase
       .from("seasons")
-      .select("id,league_id,name,status,total_rounds,completed_rounds")
+      .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
       .eq("id", sourceSeasonId)
       .eq("league_id", leagueId)
       .maybeSingle(),
@@ -294,7 +296,7 @@ export async function duplicateServerSeason({
       total_rounds: totalRounds,
       completed_rounds: 0,
     })
-    .select("id,league_id,name,status,total_rounds,completed_rounds")
+    .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
     .single()
 
   if (seasonCreateError || !createdSeason) {

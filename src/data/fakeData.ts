@@ -27,6 +27,7 @@ export type League = {
 export type RosterMode = "fixed" | "self_registration"
 
 export type Season = {
+  createdAt?: string
   id: string
   leagueId: string
   name: string

@@ -1,8 +1,7 @@
 "use client"
-
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
+import { SeasonContextLineSelector, SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { PlayerSeasonScopeSelector } from "@/components/player/PlayerSeasonScopeSelector"
 import { PlayerStatsPanel } from "@/components/player/PlayerStatsPanel"
@@ -26,12 +25,10 @@ import {
   getVisiblePlayerSeasonScopes,
   shouldShowPlayerProfileSeasonSelector,
 } from "@/lib/playerProfileVisibility"
-
 type PlayerProfileScreenProps = {
   playerIdOrSlug?: string | null
   mode: "self" | "public"
 }
-
 export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScreenProps) {
   const { tx } = useI18n()
   const { t } = useI18n()
@@ -40,34 +37,30 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
   const { seasons, seasonPlayers, playerProfiles, seasonSettings } = useSeasonSettings()
   const { activeLeague, activeSeason } = useCurrentLeagueData()
   const { currentUserId } = useCurrentUser()
+  const isSelf = mode === "self"
   const latestSeason = useMemo(
     () =>
-      getLatestPlayerProfileSeason({
+      isSelf ? activeSeason : getLatestPlayerProfileSeason({
         leagueId: activeLeague.id,
         seasons,
         fallbackSeason: activeSeason,
       }),
-    [activeLeague.id, activeSeason, seasons],
+    [activeLeague.id, activeSeason, isSelf, seasons],
   )
   const [selectedScopeId, setSelectedScopeId] = useState(latestSeason.id)
-  const isSelf = mode === "self"
   const resolvedPlayerIdOrSlug = isSelf ? currentUserId : playerIdOrSlug
-
   const player = playerProfiles.find(
     (item) =>
       item.leagueId === activeLeague.id &&
       Boolean(resolvedPlayerIdOrSlug) &&
       (item.id === resolvedPlayerIdOrSlug || item.slug === resolvedPlayerIdOrSlug),
   )
-
   const leagueMatches = useMemo(
     () => allMatches.filter((match) => match.leagueId === activeLeague.id),
     [activeLeague.id, allMatches],
   )
-
   const seasonScopes = useMemo(() => {
     if (!player) return []
-
     return getPlayerSeasonScopes({
       leagueId: activeLeague.id,
       playerId: player.id,
@@ -77,18 +70,17 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
       matches: leagueMatches,
     })
   }, [activeLeague.id, latestSeason.id, leagueMatches, player, seasonPlayers, seasons])
-
   const visibleSeasonScopes = getVisiblePlayerSeasonScopes({
     scopes: seasonScopes,
     activeSeason: latestSeason,
-    showHistory: latestSeason.status === "finished",
+    showHistory: !isSelf && latestSeason.status === "finished",
   })
   const showSeasonSelector = shouldShowPlayerProfileSeasonSelector({
     latestSeason,
     scopes: visibleSeasonScopes,
   })
   const selectedScope =
-    visibleSeasonScopes.find((scope) => scope.id === selectedScopeId) ??
+    visibleSeasonScopes.find((scope) => scope.id === (isSelf ? activeSeason.id : selectedScopeId)) ??
     visibleSeasonScopes.find((scope) => scope.id === latestSeason.id) ??
     visibleSeasonScopes[0]
   const selectedSeasonIds = selectedScope?.seasonIds ?? [latestSeason.id]
@@ -119,14 +111,12 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
         (match) => match.teamA.includes(player.id) || match.teamB.includes(player.id),
       )
     : []
-
   const seasonStatusLabel =
     latestSeason.status === "finished"
       ? t.common.finishedSeasonBadge
       : latestSeason.status === "upcoming"
         ? t.rounds.statusUpcoming
         : t.rounds.statusActive
-
   if (!player || !selectedStats || !selectedScope) {
     return (
       <div className={isSelf ? "space-y-3" : "space-y-4"}>
@@ -145,11 +135,9 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
             </>
           ) : null}
         </header>
-
         <AppCard>
           <p className="font-bold">{isSelf ? t.profile.notFound : t.playerProfile.notFound}</p>
         </AppCard>
-
         {isSelf ? (
           <AppCard>
             <p className="font-bold">{t.profile.placeholderTitle}</p>
@@ -161,25 +149,21 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
       </div>
     )
   }
-
   const historyHref = isSelf
     ? "/personal-matches"
     : `/player/${player.slug ?? player.id}/matches?scope=${selectedScope.id}`
-
   return (
     <div className="space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref={isSelf ? "/" : "/ranking"} label={t.common.back} />
         <div className="flex items-start gap-3">
           <PlayerAvatar player={player} size="md" previewable />
-
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
               <h1 className="type-page-title min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
                 {player.displayName}
               </h1>
-
-              {showSeasonSelector && visibleSeasonScopes.length > 1 ? (
+              {!isSelf && showSeasonSelector && visibleSeasonScopes.length > 1 ? (
                 <PlayerSeasonScopeSelector
                   inline
                   title={t.playerProfile.scopeSelectorTitle}
@@ -190,12 +174,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
                 />
               ) : null}
             </div>
-
-            <SeasonContextLine
-              seasonName={latestSeason.name}
-              statusLabel={seasonStatusLabel}
-              className="mt-0.5"
-            />
+            {isSelf ? <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} onChange={setSelectedScopeId} /> : <SeasonContextLine seasonName={latestSeason.name} statusLabel={seasonStatusLabel} className="mt-0.5" />}
             {playerPositionLabel ? (
               <p className="mt-0.5 type-caption font-bold text-neutral-500">
                 {tx("Posición preferida ·")}{" "}{playerPositionLabel}
@@ -204,7 +183,6 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
           </div>
         </div>
       </header>
-
       <div className="grid grid-cols-2 gap-2">
         <AppCard accentStrip className="overflow-hidden !p-0">
           <div className="flex items-center justify-between gap-2 px-3 py-2">
@@ -216,7 +194,6 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
             </p>
           </div>
         </AppCard>
-
         <AppCard accentStrip className="overflow-hidden !p-0">
           <div className="flex items-center justify-between gap-2 px-3 py-2">
             <p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">
@@ -228,7 +205,6 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
           </div>
         </AppCard>
       </div>
-
       <PlayerStatsPanel
         playerId={player.id}
         leagueId={activeLeague.id}
@@ -241,7 +217,6 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
         votes={votes}
         mvpSystemBySeasonId={mvpSystemBySeasonId}
       />
-
       {isSelf && latestSeasonSettings?.availabilityRecommendationsEnabled ? (
         <Link href="/availability" className="block">
           <AppCard className="p-2.5 transition active:scale-[0.99]">
@@ -256,7 +231,6 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
           </AppCard>
         </Link>
       ) : null}
-
       <Link href={historyHref} className="block">
         <AppCard className="p-2.5 transition active:scale-[0.99]">
           <div className="flex items-center justify-between gap-3">

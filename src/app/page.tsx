@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
-import { SeasonContextLine } from "@/components/layout/SeasonContextLine";
+import { SeasonContextLineSelector } from "@/components/layout/SeasonContextLine";
 import { LeagueAnnouncementsCard } from "@/components/announcements/LeagueAnnouncementsCard";
 import { MatchCard } from "@/components/matches/MatchCard";
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
@@ -23,7 +23,6 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useActiveLeague } from "@/context/ActiveLeagueProvider";
 import { useMvp } from "@/context/MvpProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
-import { writeSelectedSeasonId } from "@/lib/seasonSelection";
 import { useMatchData, type MatchData } from "@/context/MatchDataProvider";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -454,7 +453,6 @@ export default function Home() {
   const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
   const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
   const [isLeaguePickerOpen, setIsLeaguePickerOpen] = useState(false);
-  const [isSeasonPickerOpen, setIsSeasonPickerOpen] = useState(false);
   const [selectedHomeSeasonId, setSelectedHomeSeasonId] = useState<string | null>(null);
   const { currentUserId, currentUser } = useCurrentUser();
   const { activeLeagueId, activateLeague } = useActiveLeague();
@@ -486,8 +484,6 @@ export default function Home() {
   const canManageSeason = isLeagueAdmin(activeLeague.id);
   const spectatorMode = isLeagueSpectator(activeLeague.id);
   const accessibleHomeLeagues = leagues.filter((league) => canAccessLeague(league.id) || isLeagueSpectator(league.id));
-  const selectableHomeSeasons = seasons.filter((season) => season.leagueId === activeLeague.id).slice().reverse();
-  const canSwitchHomeSeason = selectableHomeSeasons.length > 1;
   const canManageRegistration = canManageSeason;
   const isSeasonClosed = activeSeason.status === "finished";
   const isSeasonUpcoming = activeSeason.status === "upcoming";
@@ -875,38 +871,7 @@ export default function Home() {
                 <Link href="/personal-matches" role="menuitem" onClick={() => setIsLeaguePickerOpen(false)} className="flex items-center rounded-xl px-3 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800">{tx("MIS PARTIDOS")}</Link>
               </div> : null}
             </div>
-            <div className="relative mt-0.5">
-              {canSwitchHomeSeason ? (
-                <>
-                  <SeasonContextLine
-                    seasonName={activeSeason.name}
-                    statusLabel={activeSeason.status === "finished" ? t.common.finishedSeasonBadge : activeSeason.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}
-                    button={{
-                      ariaControls: "home-season-picker",
-                      ariaExpanded: isSeasonPickerOpen,
-                      dataTour: "home-season-switcher",
-                      onClick: () => setIsSeasonPickerOpen((open) => !open),
-                    }}
-                  />
-                  {isSeasonPickerOpen ? <button type="button" aria-label={tx("Cerrar selector de temporadas")} className="fixed inset-0 z-40 cursor-default" onClick={() => setIsSeasonPickerOpen(false)} /> : null}
-                  {isSeasonPickerOpen ? (
-                    <div id="home-season-picker" role="menu" aria-label={tx("Cambiar temporada")} className="absolute left-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
-                      {selectableHomeSeasons.map((season) => (
-                        <button key={season.id} type="button" role="menuitemradio" aria-checked={season.id === activeSeason.id} onClick={() => { writeSelectedSeasonId(activeLeague.id, season.id); setSelectedHomeSeasonId(season.id); setIsSeasonPickerOpen(false); }} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-black transition ${season.id === activeSeason.id ? "bg-neutral-100 text-neutral-950 dark:bg-neutral-800 dark:text-white" : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"}`}>
-                          <span className="min-w-0"><span className="block truncate">{season.name}</span><span className="mt-0.5 block type-caption font-semibold text-neutral-500">{season.status === "finished" ? t.common.finishedSeasonBadge : season.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}</span></span>
-                          {season.id === activeSeason.id ? <span aria-hidden="true">✓</span> : null}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </>
-              ) : (
-                <SeasonContextLine
-                  seasonName={activeSeason.name}
-                  statusLabel={activeSeason.status === "finished" ? t.common.finishedSeasonBadge : activeSeason.status === "upcoming" ? t.rounds.statusUpcoming : t.rounds.statusActive}
-                />
-              )}
-            </div>
+            <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} onChange={setSelectedHomeSeasonId} dataTour="home-season-switcher" />
           </div>
         </div>
       </header>

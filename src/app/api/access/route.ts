@@ -238,7 +238,8 @@ export async function GET(request: Request) {
   ] = await Promise.all([
     supabase
       .from("seasons")
-      .select("id,league_id,name,status,total_rounds,completed_rounds")
+      .select("id,league_id,name,status,total_rounds,completed_rounds,created_at")
+      .order("created_at", { ascending: true })
       .in("league_id", leagueIds),
     supabase
       .from("players")
@@ -341,6 +342,7 @@ export async function GET(request: Request) {
   )
 
   const seasons: Season[] = (seasonsResult.data ?? []).map((season) => ({
+    createdAt: season.created_at,
     id: season.id,
     leagueId: season.league_id,
     name: season.name,

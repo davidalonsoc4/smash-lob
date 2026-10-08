@@ -23,7 +23,9 @@ describe("calendar screen usability", () => {
       'data-active-round={round.id === activeRoundId ? "true" : undefined}',
     )
     expect(source).toContain('activeRoundRef.current?.scrollIntoView({')
-    expect(source).toContain("}, [activeRoundId])")
+    expect(source).toContain('tx("Ir a jornada en curso")')
+    expect(source).toContain('onClick={() => activeRoundRef.current?.scrollIntoView({')
+    expect(source).not.toContain("requestAnimationFrame")
     expect(source).not.toContain("[activeRoundId, activeScope]")
     expect(source).not.toContain("Solo tus partidos en esta temporada.")
     expect(source).not.toContain("Todos los partidos de la liga.")

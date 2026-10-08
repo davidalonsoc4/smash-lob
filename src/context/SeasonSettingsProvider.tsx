@@ -889,6 +889,7 @@ export function SeasonSettingsProvider({
       .map((playerName) => playerName.trim())
       .filter(Boolean);
     const newSeason: Season = {
+      createdAt: new Date().toISOString(),
       id: seasonId,
       leagueId,
       name: seasonName,
@@ -1075,6 +1076,7 @@ export function SeasonSettingsProvider({
       .filter(Boolean);
     const totalPlayers = uniquePlayerIds.length + cleanNewPlayerNames.length;
     const newSeason: Season = {
+      createdAt: new Date().toISOString(),
       id: seasonId,
       leagueId,
       name,

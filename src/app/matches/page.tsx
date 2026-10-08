@@ -1,16 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useRef } from "react"
+import { useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { MatchCard } from "@/components/matches/MatchCard"
-import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
+import { SeasonContextLineSelector } from "@/components/layout/SeasonContextLine"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMvp } from "@/context/MvpProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getNextMatch } from "@/lib/leagues"
@@ -24,6 +25,7 @@ import {
 } from "@/lib/ballCustodianAssignment"
 
 export default function MatchesPage() {
+  const { seasons } = useSeasonSettings()
   const { tx, t, locale } = useI18n()
   const searchParams = useSearchParams()
   const { currentUserId } = useCurrentUser()
@@ -77,21 +79,6 @@ export default function MatchesPage() {
   const activeRoundId = getActiveCalendarRoundId(activeSeason.status, rounds)
   const activeRoundRef = useRef<HTMLElement | null>(null)
 
-  useEffect(() => {
-    if (!activeRoundId) {
-      return
-    }
-
-    const frame = window.requestAnimationFrame(() => {
-      activeRoundRef.current?.scrollIntoView({
-        behavior: "auto",
-        block: "start",
-      })
-    })
-
-    return () => window.cancelAnimationFrame(frame)
-  }, [activeRoundId])
-
   function getRoundWindowText(round: (typeof rounds)[number]) {
     if (!round.startsAt || !round.endsAt) {
       return null
@@ -117,20 +104,18 @@ export default function MatchesPage() {
     <div className="space-y-4">
       <header data-tour="matches-header" className="app-page-header">
         <BackButton fallbackHref="/" label={t.common.back} />
-        <h1 className="type-page-title text-2xl font-black tracking-tight">
-          {t.matches.subtitle}
-        </h1>
-        <SeasonContextLine
-          seasonName={activeSeason.name}
-          statusLabel={
-            activeSeason.status === "finished"
-              ? t.common.finishedSeasonBadge
-              : activeSeason.status === "upcoming"
-                ? t.rounds.statusUpcoming
-                : t.rounds.statusActive
-          }
-          className="mt-0.5"
-        />
+        <div className="relative pr-11">
+          <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">{t.matches.subtitle}</h1>
+          {activeRoundId && !isPlayerSeasonLocked ? (
+            <button type="button" aria-label={tx("Ir a jornada en curso")} title={tx("Ir a jornada en curso")} className="absolute right-0 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+              onClick={() => activeRoundRef.current?.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start",
+              })}>
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /></svg>
+            </button>
+          ) : null}
+        </div>
+        <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} />
       </header>
 
       <AppCard data-tour="matches-scope" className="p-2">
