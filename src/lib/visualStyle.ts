@@ -159,3 +159,16 @@ export function migrateStoredAppearance(input: {
     palette,
   } satisfies { baseTheme: BaseTheme; visualStyle: VisualStyle; palette: Palette }
 }
+
+/** Keep accent text readable on light surfaces without changing filled controls. */
+export function getCompetitionTextAccent(value: string, dark: boolean) {
+  const accent = normalizeAccentColor(value)
+  if (dark) return accent
+  const channels = [1, 3, 5].map(start => Number.parseInt(accent.slice(start, start + 2), 16))
+  for (let factor = 1; factor >= 0; factor -= .02) {
+    const rgb = channels.map(channel => Math.round(channel * Math.max(0, factor)))
+    const linear = rgb.map(channel => channel / 255 <= .04045 ? channel / 255 / 12.92 : ((channel / 255 + .055) / 1.055) ** 2.4)
+    if (linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722 <= .12) return "#" + rgb.map(channel => channel.toString(16).padStart(2, "0")).join("")
+  }
+  return "#000000"
+}

@@ -795,7 +795,7 @@ export const en = {
     visualStylePlain: "Classic",
     visualStylePlainDescription: "Neutral, discreet and based on the familiar application design.",
     visualStyleColorful: "Competition · Experimental",
-    visualStyleColorfulDescription: "Dark competition mode with high contrast and a league accent.",
+    visualStyleColorfulDescription: "Light or dark competition style with high contrast and a league accent.",
     appearanceLight: "Light",
     appearanceLightDescription: "Clean and bright.",
     appearanceDark: "Dark",

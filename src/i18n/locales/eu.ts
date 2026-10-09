@@ -804,7 +804,7 @@ export const eu = {
     visualStylePlain: "Klasikoa",
     visualStylePlainDescription: "Neutroa, diskretua eta aplikazioaren ohiko diseinuarekin.",
     visualStyleColorful: "Competition · Esperimentala",
-    visualStyleColorfulDescription: "Kontraste handiko iluneko lehiaketa modua, ligaren azentuarekin.",
+    visualStyleColorfulDescription: "Lehiaketa estilo argia edo iluna, kontraste handikoa eta ligaren azentuarekin.",
     appearanceLight: "Argia",
     appearanceLightDescription: "Garbia eta argitsua.",
     appearanceDark: "Iluna",

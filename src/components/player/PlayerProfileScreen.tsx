@@ -210,7 +210,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
         leagueId={activeLeague.id}
         seasonId={selectedSeasonIds[0] ?? latestSeason.id}
         seasonIds={selectedSeasonIds}
-        scopeLabel={selectedScope.label}
+        scopeLabel={isSelf ? undefined : selectedScope.label}
         players={selectedPlayers}
         matches={playerMatches}
         seasonMatches={selectedMatches}

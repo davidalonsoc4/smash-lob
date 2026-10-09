@@ -294,7 +294,7 @@ export default function AppearancePage() {
       <AppearanceSection
         id="theme-mode"
         title={t.settings.themeModeTitle}
-        description={visualStyle === "competition" ? t.settings.visualStyleColorfulDescription : t.settings.themeModeDescription}
+        description={t.settings.themeModeDescription}
       >
         <div className="grid grid-cols-3 gap-2">
           {themeOptions.map((option) => {
@@ -305,12 +305,11 @@ export default function AppearancePage() {
                 type="button"
                 aria-pressed={selected}
                 onClick={() => setThemeMode(option.value)}
-                disabled={visualStyle === "competition" && option.value !== "dark"}
                 className={`appearance-compact-option rounded-xl border p-2 text-left transition active:scale-[0.98] ${
                   selected
                     ? "border-neutral-950 bg-white shadow-sm ring-1 ring-neutral-950/10"
                     : "border-neutral-200 bg-neutral-50"
-                } ${visualStyle === "competition" && option.value !== "dark" ? "cursor-not-allowed opacity-45" : ""}`}
+                }`}
               >
                 <ThemeModePreview mode={option.value} />
                 <span className="mt-1.5 flex items-center justify-between gap-1">

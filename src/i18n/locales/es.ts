@@ -809,7 +809,7 @@ export const es = {
     visualStylePlain: "Clásico",
     visualStylePlainDescription: "Neutro, discreto y con el diseño habitual de la aplicación.",
     visualStyleColorful: "Competition · Experimental",
-    visualStyleColorfulDescription: "Modo oscuro de competición con alto contraste y acento de liga.",
+    visualStyleColorfulDescription: "Estilo de competición claro u oscuro, con alto contraste y acento de liga.",
     appearanceLight: "Claro",
     appearanceLightDescription: "Limpio y luminoso.",
     appearanceDark: "Oscuro",

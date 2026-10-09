@@ -2029,3 +2029,32 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Las variantes Tailwind con opacidad `bg-neutral-50/70`, `bg-neutral-50/80` y `bg-neutral-100/70` reciben ahora la superficie elevada y el color de texto de Competition.
 - Esto corrige `EVITAR SPOILERS` y mantiene coherentes los paneles equivalentes de ampliación y reglas de temporada sin modificar Classic.
 - Validación local: 11 tests de Competition, ESLint del test y `git diff --check` correctos. No se ha hecho push ni despliegue.
+
+## Competition claro (local, 2026-10-09)
+
+- Desarrollo solicitado expresamente tras el cierre de H00–H23, en `codex/competition-light`; sin publicar ni modificar main/Production.
+- Competition permite Claro, Oscuro y Sistema, conserva la elección al cambiar de estilo y responde a cambios del sistema. El arranque previo a React respeta la misma preferencia también fuera de localhost.
+- Paleta clara completa mediante colores semánticos compartidos: paneles, navegación, formularios, calendario, ranking, estadísticas, perfiles, chats, reservas, pagos, notificaciones y estados conservan la estructura del oscuro. Los acentos de texto se oscurecen en claro independientemente del color de los botones.
+- La configuración y las traducciones reflejan ambos modos. El aviso existente de nuevo tema oscuro sigue aplicando explícitamente oscuro. Los enlaces públicos mantienen su apariencia canónica Classic/Sistema.
+- Validación focalizada: 35 tests correctos; `npm run validate` completo correcto en worktree aislado con dependencias del lockfile, entorno placeholder, 213 archivos/824 tests, TypeScript, ESLint, controles estáticos y build dentro del presupuesto. Recompilación final de bordes/foco de formularios y `quality:build` correctos (1.096.380 bytes gzip, 99 chunks JS). Pruebas focalizadas finales: 35 correctas; `git diff --check` correcto. Cambios locales listos para revisión, sin commit ni push. Sin pruebas visuales en navegador por la preferencia previa del usuario.
+
+### Revisión visual solicitada (2026-10-09)
+
+- Revisión interactiva en el navegador local de Competition claro y oscuro, autorizada expresamente. Sin enviar mensajes ni guardar resultados, reservas o pagos.
+- Se detectó un solapamiento compartido en el perfil: el subtítulo del rendimiento forzaba una sola línea y quedaba debajo del indicador de victorias. Se permite ahora el salto de línea en `PlayerStatsPanel`, para todos los estilos. Corrección verificada visualmente en Competition claro y oscuro.
+
+- Recorridos revisados: Mis ligas, HOME (temporadas activa y terminada), Ranking, Calendario, detalle de partido, pagos/transferencias, chat y mensaje fijado, Mi perfil, Estadísticas/resumen, Apariencia y buscador de Ajustes. Se probaron navegación, temporadas sincronizadas, salto a jornada activa, cambio claro/oscuro, acento violeta y diálogos de calendario.
+- Tamaños comprobados: viewport móvil original y 1280×800 para disposición y centrado de diálogo; override retirado al terminar. No se detectaron regresiones nuevas en oscuro en estos recorridos. La consulta de errores de consola al comprobar el perfil oscuro no devolvió errores.
+- Se actualizó en ES/EN/EU el texto antiguo del buscador de apariencia (Colorido → Competition) y se añadió Competition como término de búsqueda; comprobado también en navegador.
+- Validación tras ajustes: 51 tests relacionados correctos (perfil y búsqueda), ESLint, tipografía, i18n y `git diff --check` correctos. Capturas de perfil claro/oscuro conservadas fuera del repositorio.
+- Navegador devuelto a Ajustes, Competition claro, acento de liga y temporada 3 originales. Sin commit ni push. La comprobación funcional no incluyó guardar operaciones de negocio ni enviar mensajes.
+
+### Simplificación de Mi perfil (local, 2026-10-09)
+
+- Se elimina el nombre de temporada repetido bajo Rendimiento de temporada en Mi perfil; la selección permanece en la cabecera. Se aplica a todos los temas y también al panel sin resultados.
+- Validación: ESLint del componente y git diff --check correctos. Sin commit ni publicación.
+
+### Guardado en rama (2026-10-09)
+
+- Por solicitud del usuario, se agrupan Competition claro, los ajustes de revisión visual y la simplificación de Mi perfil en un commit local de `codex/competition-light`.
+- Se conservan las validaciones anteriores y se verifica de nuevo `git diff --check` antes del commit. Sin push, despliegue ni cambios en base de datos.

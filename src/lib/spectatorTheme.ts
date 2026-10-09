@@ -5,7 +5,7 @@ import {
   DEFAULT_LEAGUE_ACCENT,
   DEFAULT_PALETTE,
   DEFAULT_VISUAL_STYLE,
-  getCompetitionAccentColor,
+  getCompetitionAccentColor, getCompetitionContrastColor, getCompetitionTextAccent,
   getContrastColor,
   normalizeAccentColor,
   normalizeCompetitionAccent,
@@ -68,9 +68,7 @@ export function applySpectatorInviteAppearance(input: Partial<SpectatorInviteApp
   if (typeof document === "undefined") return
 
   const appearance = normalizeSpectatorInviteAppearance(input)
-  const dark = appearance.visualStyle === "competition"
-    ? true
-    : appearance.baseTheme === "dark" || (appearance.baseTheme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  const dark = appearance.baseTheme === "dark" || (appearance.baseTheme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
   const effectiveAccent = appearance.visualStyle === "competition"
     ? getCompetitionAccentColor(appearance.competitionAccent, appearance.accentColor)
     : resolveClassicAccent(appearance.palette, appearance.baseTheme)
@@ -82,7 +80,7 @@ export function applySpectatorInviteAppearance(input: Partial<SpectatorInviteApp
   root.classList.toggle("colorful", appearance.visualStyle === "classic" && appearance.palette !== "classic")
   root.classList.toggle("competition", appearance.visualStyle === "competition")
   root.dataset.theme = resolvedTheme
-  root.dataset.baseTheme = appearance.visualStyle === "competition" ? "dark" : appearance.baseTheme
+  root.dataset.baseTheme = appearance.baseTheme
   root.dataset.style = appearance.visualStyle
   root.dataset.visualStyle = appearance.visualStyle
   root.dataset.palette = effectivePalette
@@ -91,7 +89,8 @@ export function applySpectatorInviteAppearance(input: Partial<SpectatorInviteApp
   root.style.setProperty("--league-accent-contrast", getContrastColor(appearance.accentColor))
   root.style.setProperty("--app-accent", effectiveAccent)
   root.style.setProperty("--competition-accent", effectiveAccent)
-  root.style.setProperty("--competition-accent-contrast", getContrastColor(effectiveAccent))
+  root.style.setProperty("--competition-accent-contrast", getCompetitionContrastColor(effectiveAccent))
+  root.style.setProperty("--competition-accent-text", getCompetitionTextAccent(effectiveAccent, dark))
   root.style.colorScheme = resolvedTheme
-  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", appearance.visualStyle === "competition" ? "#0a0a0a" : dark ? "#0b1119" : "#0a0a0a")
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", appearance.visualStyle === "competition" ? (dark ? "#0b0c0e" : "#f3f5f8") : dark ? "#0b1119" : "#0a0a0a")
 }

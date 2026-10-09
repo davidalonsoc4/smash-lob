@@ -351,7 +351,7 @@ export function PlayerStatsPanel({
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.title}
           </p>
-          <p className="mt-0.5 whitespace-nowrap type-panel-title">
+          <p className="mt-0.5 break-words type-panel-title">
             {t.playerStats.subtitle}
           </p>
           {scopeLabel ? (
