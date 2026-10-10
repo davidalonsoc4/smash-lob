@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import { useMemo, useState } from "react"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import type { MatchData } from "@/context/MatchDataProvider"
@@ -330,12 +332,12 @@ export function MatchIncidentPanel({
       <div className="flex items-center justify-between gap-2">
         <p className="type-panel-title">{tx("Incidencia")}</p>
         {isOpen ? (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase text-amber-800">
-            {tx("Pendiente")}{" "}</span>
+          <StatusHelp kind="incident" status="pending" className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase text-amber-800">
+            {tx("Pendiente")}{" "}</StatusHelp>
         ) : isResolved ? (
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase text-emerald-700">
+          <StatusHelp kind="incident" status="resolved" className="rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase text-emerald-700">
             {tx("Resuelta")}
-          </span>
+          </StatusHelp>
         ) : null}
       </div>
 

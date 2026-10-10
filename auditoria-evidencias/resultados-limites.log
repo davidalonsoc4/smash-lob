@@ -1,0 +1,9 @@
+
+ RUN  v3.2.7 C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob
+
+ ✓ auditoria-evidencias/resultados-limites.test.ts (3 tests) 6ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  13:44:45
+   Duration  824ms (transform 402ms, setup 0ms, collect 483ms, tests 6ms, environment 0ms, prepare 121ms)

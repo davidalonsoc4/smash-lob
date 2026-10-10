@@ -166,6 +166,8 @@ export function calculateSeasonRanking({
     .forEach((match) => {
       const pointsA = getTeamSetPoints(match, "A")
       const pointsB = getTeamSetPoints(match, "B")
+      // Legacy tied/empty results are not valid completed matches, as in statistics.
+      if (!match.sets.length || pointsA === pointsB) return
       const gamesA = getTeamGames(match.sets, "A")
       const gamesB = getTeamGames(match.sets, "B")
 

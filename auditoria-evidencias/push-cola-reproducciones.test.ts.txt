@@ -1,0 +1,17 @@
+import { afterEach, expect, it, vi } from "vitest"
+import { processPushRetryQueue } from "@/lib/serverPushRetry"
+const mocks=vi.hoisted(()=>({send:vi.fn(async()=>undefined)}))
+vi.mock("web-push",()=>({setVapidDetails:vi.fn(),sendNotification:mocks.send}))
+afterEach(()=>{vi.unstubAllEnvs();vi.clearAllMocks()})
+it("BUG-033: cola informa envio exitoso ignorando error de persistencia y lo repite",async()=>{
+ vi.stubEnv("VAPID_SUBJECT","mailto:qa@example.test");vi.stubEnv("NEXT_PUBLIC_VAPID_PUBLIC_KEY","qa-public");vi.stubEnv("VAPID_PRIVATE_KEY","qa-placeholder")
+ const row={id:"qa-queue",endpoint:"https://push.example.test/qa",p256dh:"qa",auth:"qa",payload:{title:"QA"},attempts:0}
+ const db={from:()=>{let update=false;const q:any={select:()=>q,eq:()=>q,lte:()=>q,order:()=>q,limit:()=>q,update:()=>{update=true;return q},then:(resolve:any)=>Promise.resolve(update?{error:{message:"QA persistence failure"}}:{data:[row],error:null}).then(resolve)};return q}}
+ expect((await processPushRetryQueue(db)).sent).toBe(1)
+ expect((await processPushRetryQueue(db)).sent).toBe(1)
+ expect(mocks.send).toHaveBeenCalledTimes(2)
+})
+it("BUG-033: error consultando cola se presenta como cero tareas",async()=>{
+ const db={from:()=>{const q:any={select:()=>q,eq:()=>q,lte:()=>q,order:()=>q,limit:()=>q,then:(resolve:any)=>Promise.resolve({data:null,error:{message:"QA query failure"}}).then(resolve)};return q}}
+ expect(await processPushRetryQueue(db)).toEqual({attempted:0,sent:0,discarded:0})
+})

@@ -1,0 +1,22 @@
+{
+  "milestone": "C01",
+  "finding": "BUG-040",
+  "status": "complete locally",
+  "branch": "codex/audit-corrections",
+  "base": "6fa8c72ed0d6be3077e5285f7a987a3e3a5369ea",
+  "fullAuditExit": 0,
+  "runtimeAuditExit": 0,
+  "auditVulnerabilities": 0,
+  "validateExit": 0,
+  "testFiles": 220,
+  "tests": 861,
+  "compatibilityTests": 3,
+  "e2eExit": 0,
+  "e2eTests": 76,
+  "validationCheckout": "C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob",
+  "realDataUsed": false,
+  "existingLocalServerChanged": false,
+  "published": false,
+  "packageJsonSha256": "B452F30297477F1DE1F74C9D5A6F0FCC5D7BF809E0DA5F77FC4D03167D0E3D83",
+  "packageLockSha256": "E9CB555F19A0B6593D863026E311E124729727E921AD0E76D546D15F5482898C"
+}

@@ -76,7 +76,7 @@ describe("Competition visual style", () => {
     expect(css).toContain('background-image: none !important;')
     expect(css).toContain('html[data-visual-style="competition"] .app-shell-frame::before {')
     expect(css).toContain('border-left: .25rem solid var(--competition-accent);')
-    expect(css).toContain('background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72));')
+    expect(css).toContain('background: linear-gradient(110deg, rgb(var(--competition-rgb-surface) / .96), rgb(var(--competition-rgb-surface) / .72));')
     expect(css).toContain('text-transform: none;')
     expect(css).toContain('[data-route="/"] [data-season-start-countdown="hero"]')
     expect(css).toContain('min-height: calc(100dvh - 16rem) !important;')
@@ -149,8 +149,8 @@ describe("Competition visual style", () => {
     expect(css).toContain('html[data-visual-style="competition"] [data-personal-match-origin] {')
     expect(css).toContain('[data-personal-match-origin="league"]')
     expect(css).toContain('[data-personal-match-origin="friendly"]')
-    expect(css).toContain('color: var(--competition-accent) !important;')
-    expect(css).toContain('color: #c9e4fb !important;')
+    expect(css).toContain('color: var(--competition-accent-text, var(--competition-accent)) !important;')
+    expect(css).toContain('color: var(--competition-tone-friendly-text) !important;')
   })
 
   it("keeps the match scope label and payment badge legible on Competition accents", async () => {

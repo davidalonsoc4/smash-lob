@@ -5,6 +5,8 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { StatusHelp } from "@/components/ui/StatusHelp"
+import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import {
   CHAT_UNREAD_LOCAL_REFRESH_EVENT,
   subscribeChatRealtime,
@@ -42,7 +44,8 @@ function formatChatDate(value: string | null) {
 }
 
 function firstName(value: string) {
-  return value.trim().split(/\s+/)[0] || ""
+  const [name, surname] = value.trim().split(/\s+/)
+  return name ? `${name}${surname ? ` ${Array.from(surname)[0].toLocaleUpperCase("es-ES")}.` : ""}` : ""
 }
 
 function participantLabel(chat: PersonalChatOverviewItem) {
@@ -58,7 +61,8 @@ function chatBadge(chat: PersonalChatOverviewItem) {
   if (chat.expired) return "Historial eliminado"
   if (chat.readOnly) return "Solo lectura"
   if (chat.status === "finished") return "Abierto 24 h"
-  return "Programado"
+  const status = getMatchDisplayStatus(chat)
+  return status === "result_pending" ? "Pendiente de resultado" : status === "in_progress" ? "En juego" : "Programado"
 }
 
 function errorMessage(error: string | null) {
@@ -184,7 +188,7 @@ export default function PersonalMatchChatsPage() {
                 <AppCard
                   className={`app-card-explicit-accent !overflow-hidden !p-0 !shadow-none transition active:scale-[0.99] ${radius} ${chat.unread ? "chat-list-card-unread" : ""}`}
                 >
-                  <div className="min-w-0 px-4 py-3">
+                  <div className="relative min-w-0 px-4 py-3">
                     <div className="flex min-w-0 items-center gap-1.5">
                       <p className="type-panel-title min-w-0 flex-1 truncate font-black">
                         Amistoso
@@ -197,12 +201,12 @@ export default function PersonalMatchChatsPage() {
                           {chat.unread > 99 ? "99+" : chat.unread}
                         </span>
                       ) : null}
-                      <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
-                        {chatBadge(chat)}
-                      </span>
+                      <StatusHelp kind={chat.expired || chat.readOnly ? "chat" : "match-participant"} status={chat.expired || chat.readOnly ? "readonly" : getMatchDisplayStatus(chat)} label={tx(chatBadge(chat))} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+                        <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${chat.expired || chat.readOnly ? "bg-neutral-400" : getMatchDisplayStatus(chat) === "result_pending" ? "bg-amber-500" : getMatchDisplayStatus(chat) === "in_progress" ? "bg-emerald-500" : "bg-sky-500"}`} />
+                      </StatusHelp>
                     </div>
 
-                    <p className="mt-0.5 truncate type-small font-semibold text-neutral-600">
+                    <p className="mt-2 break-words type-small font-semibold text-neutral-600" title={[chat.partner, ...chat.rivals].join(" · ")}>
                       {participantLabel(chat)}
                     </p>
 

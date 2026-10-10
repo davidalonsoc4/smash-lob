@@ -12,6 +12,7 @@ import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { broadcastMatchChatRefresh } from "@/lib/serverChatRealtime"
 import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
+import { hasMatchResultWinner } from "@/lib/matchResultValidity"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -175,6 +176,7 @@ export async function PUT(
     resultConfirmationMode !== "none" && access.actor.match.resultLocked
 
   if (
+    !hasMatchResultWinner(sets) ||
     (requiresThreeSets && sets.length !== 3) ||
     (!requiresThreeSets && (sets.length < 1 || sets.length > 3))
   ) {

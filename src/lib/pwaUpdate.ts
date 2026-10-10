@@ -6,16 +6,18 @@ export function isPwaUpdateSafe({
   isVisible,
   hasFocus,
   isEditing,
+  hasEditedInput = false,
   hasOpenDialog,
   idleMs,
 }: {
   isVisible: boolean
   hasFocus: boolean
   isEditing: boolean
+  hasEditedInput?: boolean
   hasOpenDialog: boolean
   idleMs: number
 }) {
-  return isVisible && hasFocus && !isEditing && !hasOpenDialog && idleMs >= PWA_UPDATE_IDLE_MS
+  return isVisible && hasFocus && !isEditing && !hasEditedInput && !hasOpenDialog && idleMs >= PWA_UPDATE_IDLE_MS
 }
 
 type WaitingServiceWorker = Pick<ServiceWorker, "postMessage">

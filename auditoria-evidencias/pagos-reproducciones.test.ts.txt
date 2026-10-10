@@ -1,0 +1,24 @@
+import { expect, it, vi } from "vitest"
+import { buildCourtBooking } from "@/lib/courtBooking"
+const mocks=vi.hoisted(()=>({gate:vi.fn()}))
+vi.mock("@/lib/serverMatchAccess",()=>({getServerMatchActor:mocks.gate}))
+vi.mock("@/lib/serverActivityWrite",()=>({recordServerActorActivity:async()=>null}))
+it("BUG-028: dos pagos concurrentes sobrescriben el estado del otro",async()=>{
+ const matchId="11111111-1111-4111-8111-111111111111"
+ const booking=buildCourtBooking({participantIds:["a","b","c","d"],reservations:[{playerId:"a",amount:40}],ballPurchases:[]})
+ let persisted:any
+ const supabase={from:()=>{let update:any;const q:any={update:(value:any)=>{update=value;return q},eq:()=>q,select:()=>q,single:async()=>{persisted=structuredClone(update);return {data:{id:matchId,team_a:["a","b"],team_b:["c","d"],...update},error:null}}};return q}}
+ mocks.gate.mockImplementation(async()=>({ok:true,actor:{supabase,user:{id:"qa-admin"},isAdmin:true,participantPlayerId:null,match:{courtBooking:structuredClone(booking)}}}))
+ const {PUT}=await import("@/app/api/matches/[matchId]/court-booking/transfers/[transferId]/route")
+ const responses=await Promise.all(booking.transfers.slice(0,2).map(transfer=>PUT(new Request("http://audit.invalid/pay",{method:"PUT",body:JSON.stringify({isPaid:true})}),{params:Promise.resolve({matchId,transferId:transfer.id})})))
+ expect(responses.map(r=>r.status)).toEqual([200,200])
+ expect(persisted.booking_transfers.filter((t:any)=>t.isPaid)).toHaveLength(1)
+})
+it("BUG-029: reparto de centimos puede dejar diferencia de dos centimos entre jugadores",()=>{
+ const ids=["a","b","c","d"]
+ const booking=buildCourtBooking({participantIds:ids,reservations:[{playerId:"a",amount:22.06}],ballPurchases:[]})
+ const costs=new Map(ids.map(id=>[id,id==="a"?2206:0]))
+ for(const t of booking.transfers){costs.set(t.fromPlayerId,costs.get(t.fromPlayerId)!+Math.round(t.amount*100));costs.set(t.toPlayerId,costs.get(t.toPlayerId)!-Math.round(t.amount*100))}
+ const values=[...costs.values()];expect(values.reduce((a,b)=>a+b,0)).toBe(2206)
+ expect(Math.max(...values)-Math.min(...values)).toBe(2)
+})

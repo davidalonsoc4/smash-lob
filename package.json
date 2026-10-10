@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.15.8",
+  "version": "1.15.10",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -24,8 +24,8 @@
     "public-urls:check": "node scripts/check-public-app-urls.mjs",
     "migrations:check": "node scripts/check-identity-migrations.mjs",
     "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
-    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.15.8 pre",
-    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.15.8 prod",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.15.10 pre",
+    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.15.10 prod",
     "api-security:check": "node scripts/check-api-security-inventory.mjs",
     "api-security:update": "node scripts/check-api-security-inventory.mjs --write",
     "quality:source": "node scripts/check-source-budgets.mjs",
@@ -74,14 +74,17 @@
     "postcss": "8.5.24",
     "tailwindcss": "4.3.3",
     "typescript": "^5",
-    "vitest": "^3.2.7"
+    "vitest": "4.1.11"
   },
   "overrides": {
+    "@next/eslint-plugin-next": {
+      "fast-glob": "file:../../../tools/next-eslint-glob"
+    },
     "postcss": "8.5.24",
     "sharp": "0.35.5",
     "@auth/core": "0.41.3",
-    "brace-expansion@^1.1.0": "1.1.18",
-    "brace-expansion@^5.0.0": "5.0.9",
+    "brace-expansion@^1.1.0": "1.1.21",
+    "brace-expansion@^5.0.0": "5.0.12",
     "nanoid": "3.3.18",
     "source-map-js": "1.2.2"
   },

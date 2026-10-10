@@ -422,13 +422,13 @@ export function SeasonShareExportsCard({
           {tx("Imágenes de la temporada")}
         </p>
         <p className="mt-1 type-panel-title text-neutral-950">{tx("Compartir temporada")}</p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+        <details className="mt-2 text-sm text-neutral-600"><summary className="cursor-pointer font-semibold">{tx("Detalles")}</summary><p className="mt-1 leading-5">
           {seasonFinished && summaryExport?.visible && !summaryExport.canExport
             ? tx(summaryExport.blockedReason ?? "No hay resultados suficientes.")
             : seasonFinished
             ? tx("El calendario, la clasificación y el resumen final están disponibles para compartir o guardar.")
             : tx("El calendario actual, los enfrentamientos y la clasificación están disponibles durante toda la temporada. Cuando termine, aparecerá también la descarga del resumen final.")}
-        </p>
+        </p></details>
       </div>
 
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
@@ -457,7 +457,7 @@ export function SeasonShareExportsCard({
         <p className="mb-2 type-caption font-black uppercase tracking-[.16em] text-neutral-600">
           {tx("Vista previa")}
         </p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {exportOptions.map((option) => (
             <ExportSelector
               key={option.kind}

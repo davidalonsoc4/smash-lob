@@ -1,0 +1,32 @@
+import { expect, it } from "vitest"
+import { writeFileSync } from "node:fs"
+import { generateBalancedCalendar, getSeasonMaxRoundCount } from "@/lib/calendar"
+import { getSeasonBaseRoundCount } from "@/lib/seasonPlayerCount"
+it("M05: invariantes independientes en 8–24 jugadores y duraciones de borde",()=>{
+  const results:any[]=[]
+  for(let n=8;n<=24;n++){
+    const ids=Array.from({length:n},(_,i)=>`qa-p-${i}`),base=getSeasonBaseRoundCount(n),max=getSeasonMaxRoundCount(n)
+    const cases:["single"|"double"|"extended",number][]=[["single",base],["double",base*2],...[...new Set([1,base-1,base+1,max-1])].map(rounds=>["extended",rounds] as ["extended",number])]
+    for(const [mode,target] of cases){
+      const start=performance.now(),errors:string[]=[]
+      try{
+        const matches=generateBalancedCalendar({leagueId:"qa",seasonId:`qa-${n}-${mode}-${target}`,playerIds:ids,scheduleMode:mode,targetRoundCount:target})
+        if(matches.length!==Math.floor(n/4)*target)errors.push("match_count")
+        const roundPlayers=new Map<number,string[]>(),appearances=new Map(ids.map(id=>[id,0]))
+        for(const match of matches){
+          const four=[...match.teamA,...match.teamB]
+          if(four.length!==4||new Set(four).size!==4||four.some(id=>!ids.includes(id)))errors.push("invalid_players")
+          roundPlayers.set(match.round,[...(roundPlayers.get(match.round)??[]),...four])
+          for(const id of four)appearances.set(id,(appearances.get(id)??0)+1)
+        }
+        if(roundPlayers.size!==target)errors.push("round_count")
+        for(const row of roundPlayers.values())if(new Set(row).size!==row.length)errors.push("same_player_twice_in_round")
+        const counts=[...appearances.values()]
+        if(Math.max(...counts)-Math.min(...counts)>1)errors.push("unequal_appearances")
+      }catch(error){errors.push(error instanceof Error?error.message:String(error))}
+      results.push({players:n,mode,targetRoundCount:target,elapsedMs:Math.round(performance.now()-start),errors:[...new Set(errors)]})
+    }
+  }
+  writeFileSync("C:/DEVELOP/smash-lob/auditoria-evidencias/calendario-barrido.json",JSON.stringify({scope:"Pure functions; no database/network",cases:results.length,failures:results.filter(row=>row.errors.length),results},null,2))
+  expect(results.filter(row=>row.errors.length)).toEqual([])
+},120000)

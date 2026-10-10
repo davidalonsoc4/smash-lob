@@ -1,0 +1,27 @@
+import { expect, it } from "vitest"
+import { updateServerSeasonRoundOrder } from "@/lib/serverSeasonMutations"
+function memory(failId?:string){
+ const rows=[{id:"qa-a",round:1},{id:"qa-b",round:2}]
+ const supabase={from:()=>{
+  let payload:any,filter:string|undefined
+  const q:any={select:()=>q,update:(value:any)=>{payload=value;return q},eq:(field:string,value:string)=>{if(field==="id")filter=value;return q},
+   then:(resolve:any)=>{if(payload){if(filter===failId)return Promise.resolve({error:{message:"QA failure"}}).then(resolve);const row=rows.find(r=>r.id===filter);if(row)row.round=payload.round;return Promise.resolve({error:null}).then(resolve)}return Promise.resolve({data:rows.map(r=>({...r})),error:null}).then(resolve)}}
+  return q
+ }}
+ return {rows,supabase}
+}
+it("BUG-021: una lista parcial mezcla dos jornadas al no exigir permutacion completa",async()=>{
+ const {rows,supabase}=memory()
+ await updateServerSeasonRoundOrder({supabase:supabase as any,seasonId:"qa-season",roundOrder:[2]})
+ expect(rows.map(r=>r.round)).toEqual([1,1])
+})
+it("BUG-022: un fallo intermedio de reordenacion deja dos jornadas mezcladas",async()=>{
+ const {rows,supabase}=memory("qa-b")
+ await expect(updateServerSeasonRoundOrder({supabase:supabase as any,seasonId:"qa-season",roundOrder:[2,1]})).rejects.toMatchObject({code:"season_round_order_update_failed"})
+ expect(rows.map(r=>r.round)).toEqual([2,2])
+})
+it("control: permutacion completa sin error conserva jornadas distintas",async()=>{
+ const {rows,supabase}=memory()
+ await updateServerSeasonRoundOrder({supabase:supabase as any,seasonId:"qa-season",roundOrder:[2,1]})
+ expect(rows.map(r=>r.round)).toEqual([2,1])
+})

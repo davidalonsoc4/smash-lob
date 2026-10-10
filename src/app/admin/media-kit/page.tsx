@@ -1,5 +1,7 @@
 "use client"
 
+import { MediaKitWorkspaceControls } from "@/components/media-kit/MediaKitWorkspaceShell"
+
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { BackButton } from "@/components/ui/BackButton"
@@ -717,10 +719,11 @@ export default function MediaKitPage() {
   return (
     <div className="space-y-3">
       <header className="app-page-header"><BackButton fallbackHref="/admin" label={tx("Volver")} /><h1 className="type-page-title">{tx("Centro de difusión")}</h1></header>
+      <MediaKitWorkspaceControls />
       {roundSettings.scheduledStartAt ? <SeasonStartCountdown scheduledStartAt={roundSettings.scheduledStartAt} compact /> : null}
 
       <AppCard className="overflow-hidden rounded-[28px] border-neutral-200 p-0 shadow-[0_20px_60px_rgba(15,23,42,.08)]">
-        <section className="bg-neutral-950 px-4 pb-4 pt-3.5 text-white">
+        <section className="app-accent-surface bg-neutral-950 px-4 pb-4 pt-3.5 text-white">
           <div className="mb-3 flex items-end justify-between gap-3"><div><p className="type-caption font-black uppercase tracking-[.2em] text-amber-300">{tx("Biblioteca")}</p><h2 className="mt-0.5 text-base font-black">{tx("Elige un preset")}</h2></div><span className="rounded-full border border-white/15 px-2.5 py-1 type-caption font-black uppercase tracking-wide text-neutral-300">{presets.length} {tx("presets")}</span></div>
           <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {presets.map(({ kind, data, disabled }) => {

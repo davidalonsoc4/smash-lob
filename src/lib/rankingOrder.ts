@@ -19,6 +19,7 @@ export function getRankingDisplayPosition<T extends RankingOrderRow>(
   players: T[],
   playerId: string,
 ) {
-  const index = sortRankingRows(players).findIndex((player) => player.id === playerId)
-  return index >= 0 ? index + 1 : null
+  const sorted = sortRankingRows(players)
+  const player = sorted.find((row) => row.id === playerId)
+  return player ? sorted.findIndex((row) => compareRankingOrder(row, player) === 0) + 1 : null
 }

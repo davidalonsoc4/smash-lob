@@ -1,0 +1,10 @@
+{
+  "copied": [
+    "src/components/admin/season/BalancedCalendarAuditPanel.tsx",
+    "src/components/admin/season/OrganizationBallsSettingsPanel.tsx",
+    "src/components/admin/season/SeasonRulesSettings.tsx",
+    "supabase/tests/database/schema_security.test.sql"
+  ],
+  "scope": "Copia temporal existente exclusivamente; checkout auditado sin modificaciones funcionales",
+  "phase": "Antes de unitarias/build; validar salida completa sobre esta copia"
+}

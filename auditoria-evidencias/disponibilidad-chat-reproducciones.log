@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob
+
+ ✓ auditoria-evidencias/disponibilidad-chat-reproducciones.test.ts (2 tests) 378ms
+   ✓ BUG-027: el chat olvida coordinacion aprobada al quedar fuera de sus 60 mensajes  350ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  18:48:06
+   Duration  1.24s (transform 544ms, setup 0ms, collect 495ms, tests 378ms, environment 0ms, prepare 122ms)

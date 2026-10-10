@@ -11,6 +11,8 @@ export default function StatisticsComparePage() {
   const { tx } = useI18n()
   const {
     selectedSeason,
+    seasonOptions,
+    selectSeason,
     buildStatisticsHref,
     statistics,
     statisticsMatches,
@@ -60,6 +62,8 @@ export default function StatisticsComparePage() {
             ? tx("Compara su rendimiento histórico, las rachas, los duelos directos y los resultados ante rivales comunes de todas las temporadas.")
             : tx("Compara su rendimiento general, la forma reciente, los duelos directos y los resultados ante rivales comunes.")
         }
+        seasons={seasonOptions}
+        onSeasonChange={selectSeason}
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />

@@ -100,11 +100,12 @@ function SharedAccentControls() {
   )
 }
 
-function MediaKitWorkspaceContent({ children }: { children: ReactNode }) {
-  return <div className="space-y-3"><SharedAccentControls /><MediaKitSectionNav />{children}</div>
+export function MediaKitWorkspaceControls() {
+  const { tx } = useI18n()
+  return <div className="space-y-3"><MediaKitSectionNav /><details><summary className="cursor-pointer rounded-xl border border-neutral-200 px-3 py-3 text-sm font-semibold">{tx("Identidad visual")}</summary><SharedAccentControls /></details></div>
 }
 
 export function MediaKitWorkspaceShell({ children }: { children: ReactNode }) {
   const { activeLeague } = useCurrentLeagueData()
-  return <MediaKitSettingsProvider key={activeLeague.id} initialAccentColor={activeLeague.accentColor}><MediaKitWorkspaceContent>{children}</MediaKitWorkspaceContent></MediaKitSettingsProvider>
+  return <MediaKitSettingsProvider key={activeLeague.id} initialAccentColor={activeLeague.accentColor}>{children}</MediaKitSettingsProvider>
 }

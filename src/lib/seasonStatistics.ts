@@ -8,6 +8,7 @@ export type StatisticsMatchData = MatchData & {
 }
 import type { PlayerProfile, SeasonPlayer } from "@/data/fakeData"
 import { calculateSeasonRanking, type RankingPlayer } from "@/lib/ranking"
+import { getRankingDisplayPosition } from "@/lib/rankingOrder"
 
 export type PlayerStreak = {
   playerId: string
@@ -288,14 +289,7 @@ function rankingRowsAreTied(first: RankingPlayer, second: RankingPlayer) {
 }
 
 export function getRankingPosition(ranking: RankingPlayer[], playerId: string) {
-  const index = ranking.findIndex((player) => player.id === playerId)
-  if (index < 0) return null
-
-  const player = ranking[index]
-  const firstTiedIndex = ranking.findIndex((candidate) =>
-    rankingRowsAreTied(candidate, player),
-  )
-  return firstTiedIndex + 1
+  return getRankingDisplayPosition(ranking, playerId)
 }
 
 export function getLeadingPlayers(ranking: RankingPlayer[]) {
@@ -1108,7 +1102,7 @@ export function calculateSeasonStatistics({
     })(),
     hasCountedResults: countedMatches.length > 0,
   }
-  const leaders = getLeadingPlayers(ranking)
+  const leaders = countedMatches.length > 0 ? getLeadingPlayers(ranking) : []
 
   return {
     ranking,

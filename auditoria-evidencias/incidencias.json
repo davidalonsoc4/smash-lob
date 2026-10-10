@@ -1,0 +1,592 @@
+[
+  {
+    "id": "BUG-001",
+    "title": "El guard de autenticación puede restaurar privilegios o datos de perfil revocados concurrentemente",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Seguridad / carrera de datos.\n- Gravedad: **P1**. Confirmación: CONFIRMADO en reproducción aislada; no probado contra datos reales.\n- Origen: Nuevo. Módulo: M01/M02.\n- Ruta/pantalla: Cualquier API autenticada que invoca requireAuthenticatedAppUser.\n- Archivos: `src/lib/serverAuth.ts:54`, `src/lib/serverAuth.ts:86`.\n\nCada petición lee app_users y hace upsert de numerosos campos, incluidos is_superuser y can_create_leagues. Una revocación o cambio de perfil posterior a esa lectura puede ser sobrescrito por el snapshot anterior.\n\n**Reproducción segura:**\n\n1. Mock de auth con cuenta ficticia y cliente Supabase en memoria.\n2. maybeSingle devuelve copia con is_superuser=true; inmediatamente la operación administrativa simulada revoca el rol.\n3. Ejecutar el helper real requireAuthenticatedAppUser.\n4. El upsert vuelve a persistir is_superuser=true.\n\n**Esperado:** La lectura autenticada no revierte una modificación administrativa concurrente.\n\n**Observado:** Se restaura el privilegio previo y el actor autenticado lo recibe.\n\n**Evidencia:** cuenta-reproducciones.test.ts.txt, caso BUG-001; cuenta-reproducciones.log (4/4).\n\n**Causa:** Demostrada: patrón lectura + upsert de snapshot sin bloqueo/compare-and-swap.\n\n**Solución propuesta, NO implementada:** Separar creación/sincronización mínima de cuenta del acceso; nunca reescribir privilegios en el guard. Actualizaciones de identidad explícitas/atómicas.\n\n**Dependencias:** Transversal; afecta coherencia de M01/M02 y a cualquier endpoint protegido.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M01",
+      "M02"
+    ],
+    "routeOrScreen": "Cualquier API autenticada que invoca requireAuthenticatedAppUser."
+  },
+  {
+    "id": "BUG-002",
+    "title": "La exportación personal omite membresías y temporadas al confundir ID de cuenta e ID de jugador",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / privacidad / exportación.\n- Gravedad: **P2**. Confirmación: CONFIRMADO con handler real y datos aislados.\n- Origen: Nuevo. Módulo: M01/M15.\n- Ruta/pantalla: /settings, GET /api/account/export.\n- Archivos: `src/app/api/account/export/route.ts:17`.\n\nleague_memberships se filtra por player_id=user.id, aunque user_id es el vínculo de cuenta y player_id pertenece a players. season_players repite la confusión y tampoco resuelve los IDs de jugador vinculados.\n\n**Reproducción segura:**\n\n1. Simular user.id=user-qa y membresía {user_id:user-qa,player_id:player-qa}.\n2. Ejecutar GET real con cliente falso que aplica el filtro recibido.\n3. Inspeccionar exportación y consultas.\n\n**Esperado:** Se exportan las membresías propias y los season_players asociados a sus IDs de jugador.\n\n**Observado:** Respuesta 200 con memberships vacío; consulta player_id=user-qa. La inspección demuestra el mismo filtro incorrecto en season_players.\n\n**Evidencia:** cuenta-reproducciones.test.ts.txt, BUG-002; cuenta-reproducciones.log.\n\n**Causa:** Demostrada: columna/identificador incorrectos; ownRows oculta además fallos de consulta devolviendo [].\n\n**Solución propuesta, NO implementada:** Filtrar membresías por user_id; resolver jugadores propios antes de consultar temporadas; distinguir error y ausencia de registros.\n\n**Dependencias:** No depende de BUG-001 para reproducirse.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M01",
+      "M15"
+    ],
+    "routeOrScreen": "/settings, GET /api/account/export."
+  },
+  {
+    "id": "BUG-003",
+    "title": "Eliminar cuenta declara anonimización completa aunque conserva identidad asociada o fallen borrados auxiliares",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Histórico",
+    "detailsMarkdown": "- Categoría: Privacidad / integridad de operación.\n- Gravedad: **P1**. Confirmación: CONFIRMADO en handler aislado para borrados fallidos y tablas omitidas; alcance de identidad retenida demostrado por código, sin inspeccionar cuentas reales.\n- Origen: Histórico: compromiso de borrado integral de auditoría v1.15.4 no satisfecho. Módulo: M01/M02/M14.\n- Ruta/pantalla: /settings, POST /api/account/delete.\n- Archivos: `src/app/api/account/delete/route.ts:17`, `src/app/settings/page.tsx:280`, `docs/production-hardening/V1_15_4_HARDENING_AUDIT.md`.\n\nLa operación borra tres tablas y cambia parcialmente app_users. Ignora los errores de Promise.all, no anonimiza players/instantáneas históricas ni chats, no elimina membresías o gestiona propiedad de ligas, no exige reautenticación reciente y deja la sesión al usuario. No se afirma infracción legal; se documenta la discrepancia con el mensaje y contrato del producto.\n\n**Reproducción segura:**\n\n1. Dobles de las tres operaciones delete devuelven error; actualización app_users tiene éxito.\n2. Invocar POST real con confirmación en castellano.\n3. Registrar tablas tocadas y respuesta.\n\n**Esperado:** La operación informa del fallo parcial y solo declara completado el alcance realmente anonimizado; cuenta con un flujo coherente para vínculos y sesión.\n\n**Observado:** 200 {ok:true} aunque fallan los borrados; solo se tocan push_subscriptions, notification_preferences, notification_reads y app_users. La UI anuncia cuenta anonimizada.\n\n**Evidencia:** cuenta-reproducciones.test.ts.txt, BUG-003; log; lista de escrituras del handler y contrato histórico.\n\n**Causa:** Demostrada: resultados auxiliares ignorados y operación no transaccional/incompleta. La explotación de sesión o reidentificación en datos reales NO se ha intentado.\n\n**Solución propuesta, NO implementada:** Definir anonimización integral e idempotente en transacción, comprobar errores y propiedad de ligas, reautenticar y terminar sesión. Verificar snapshots y participantes preservando resultados deportivos.\n\n**Dependencias:** Puede interactuar con BUG-001 si otra petición autenticada está en vuelo; no se necesita esa carrera para observar éxito falso.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M01",
+      "M02",
+      "M14"
+    ],
+    "routeOrScreen": "/settings, POST /api/account/delete."
+  },
+  {
+    "id": "BUG-004",
+    "title": "La confirmación de eliminación en inglés/euskera se rechaza silenciosamente",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / i18n.\n- Gravedad: **P2**. Confirmación: CONFIRMADO por evaluación de condición y traducciones actuales; pendiente captura UI.\n- Origen: Nuevo. Módulo: M01/M17.\n- Ruta/pantalla: /settings → Mis datos → Eliminar mi cuenta.\n- Archivos: `src/app/settings/page.tsx:269`, `src/i18n/leagueText.ts:4025`, `src/i18n/leagueText.ts:4913`.\n\nEl prompt pide DELETE MY ACCOUNT o KONTUA EZABATU; el callback solo acepta ELIMINAR MI CUENTA y retorna sin aviso. El servidor también exige esa clave en castellano.\n\n**Reproducción segura:**\n\n1. Seleccionar EN o EU.\n2. Pulsar eliminar y escribir el texto indicado por el prompt.\n3. La condición fija compara un valor diferente y retorna antes de fetch.\n\n**Esperado:** La confirmación indicada por la interfaz se acepta y se envía una clave interna normalizada.\n\n**Observado:** La frase indicada en EN/EU siempre falla la comparación y no inicia la operación.\n\n**Evidencia:** cuenta-reproducciones.test.ts.txt, BUG-004; traducciones y callback real; no se envió petición de borrado.\n\n**Causa:** Demostrada: localización del prompt sin localización/normalización de su validación.\n\n**Solución propuesta, NO implementada:** Separar texto visible localizado de confirmación interna, mostrar validación explícita y probar los tres idiomas.\n\n**Dependencias:** El fallo impide alcanzar BUG-003 en EN/EU siguiendo las instrucciones visibles.\n\n### Evidencia adicional de esquema para BUG-002 y BUG-003\n\nLa migración base `supabase/migrations/20260714155912_initial_remote_schema.sql:279` define `notification_preferences.user_email`; `:322` define `push_subscriptions.user_email`. Ninguna de estas tablas tiene `user_id` en las migraciones del repositorio. Los handlers de exportación y eliminación usan precisamente esa columna inexistente. Por tanto, además de los IDs de jugador incorrectos en la exportación, las consultas de preferencias y suscripciones fallan y se convierten silenciosamente en listas vacías. La eliminación ignora los errores de esos dos borrados y puede devolver éxito después de actualizar `app_users`.\n\nEsta conclusión contrasta código y esquema versionado; no se han consultado ni modificado filas reales. La comprobación de divergencias del esquema desplegado queda fuera de esta demostración. No se ha probado la entrega de Push posterior al borrado ni se afirma que haya ocurrido.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M01",
+      "M17"
+    ],
+    "routeOrScreen": "/settings → Mis datos → Eliminar mi cuenta."
+  },
+  {
+    "id": "BUG-005",
+    "title": "Suscripciones Push aceptan destinos HTTPS internos arbitrarios",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Seguridad / destino de petición servidor.\n- Gravedad: **P1**. Confirmación: CONFIRMADO el almacenamiento y la construcción de petición al destino; PROBABLE alcance SSRF, pendiente comprobar restricciones de red.\n- Origen: Nuevo. Módulo: M02/M14.\n- Ruta: POST /api/notifications/subscribe; despacho y reintento Push.\n- Archivos: `src/app/api/notifications/subscribe/route.ts:19`, `src/lib/serverPushRetry.ts:99`, `src/lib/serverPushDispatch.ts`; implementación instalada de web-push `src/web-push-lib.js:348`.\n\nUn miembro autenticado puede registrar como endpoint cualquier cadena no vacía. No se valida esquema, host, IP privada ni proveedor Push. El dispatcher utiliza ese endpoint como destino de web-push; la dependencia copia hostname/port/path de la URL a https.request.\n\n**Reproducción segura:** invocar el handler real con Supabase en memoria, una suscripción criptográficamente válida generada para la prueba y endpoint `https://127.0.0.1:9443/audit-no-request`. Respuesta 200 y endpoint conservado. `webPush.generateRequestDetails` prepara un POST al mismo destino sin efectuar red.\n\n**Esperado:** rechazar destinos incompatibles con la política de servicios Push antes de almacenarlos; impedir acceso a direcciones internas durante el envío.\n\n**Observado:** destino de loopback aceptado y petición construida. No se ha enviado esa petición, provocado un evento real ni probado acceso a metadatos/red interna. Autenticación de miembro limita el actor; no es un endpoint anónimo.\n\n**Evidencia:** `seguridad-reproducciones.test.ts.txt` y `seguridad-reproducciones.log` (1/1), handler y dependencia instalada. No se imprime material criptográfico de prueba.\n\n**Causa:** validación limitada a presencia de cadenas; despacho confía en el destino almacenado. Restricciones de red de Vercel y comportamiento de TLS no comprobados; limitan el alcance potencial.\n\n**Solución propuesta, NO aplicada:** validar URL y proveedores/destinos permitidos, excluir IPs internas y resolver de forma segura al enviar; limitar registro/envío y probar errores de suscripción.\n\n**Dependencias:** requiere miembro y una ocasión de despacho. Revisión de reintentos y eventos continúa en M14. No depende de BUG-001.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M02",
+      "M14"
+    ],
+    "routeOrScreen": "POST /api/notifications/subscribe; despacho y reintento Push."
+  },
+  {
+    "id": "BUG-006",
+    "title": "La lista de espera muestra posición 1 a cualquier jugador",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / información de inscripción. Gravedad: **P2**. Estado: **CONFIRMADO**, nuevo; M04.\n- Ruta: GET /api/leagues/[id]/seasons/[seasonId]/waitlist; sala de espera de temporada.\n- Archivos: `src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/route.ts:18`, `src/components/season/SeasonRosterWaitingRoom.tsx:300`.\n- Explicación: para un jugador se filtran las filas por su user_id antes de calcular el índice en la cola. Su única fila tiene índice cero aunque el orden global sea tercero, cuarto, etc. La UI consume payload.position, no la posición de la fila.\n- Reproducción: handler real con tres usuarios ficticios en posiciones 1, 2 y 3; actuar como el tercero, sin admin. La respuesta contiene items[0].position=3 y position=1.\n- Esperado: posición real entre las entradas waiting, sin revelar identidades ajenas. Observado: posición 1.\n- Evidencia: `ligas-espera-reproducciones.test.ts.txt` y log, caso BUG-006. Causa demostrada: findIndex posterior al filtro de identidad.\n- Propuesta, no aplicada: calcular rango/count seguro antes de filtrar la proyección privada; probar altas, bajas y reordenación.\n- Dependencias: contrato FIFO/posición visible de auditoría v1.15.4; no altera por sí mismo el orden de promoción.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04"
+    ],
+    "routeOrScreen": "GET /api/leagues/[id]/seasons/[seasonId]/waitlist; sala de espera de temporada."
+  },
+  {
+    "id": "BUG-007",
+    "title": "Salir de la lista de espera impide volver a entrar",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / persistencia de inscripción. Gravedad: **P2**. Estado: **CONFIRMADO en reproducción aislada y esquema**, nuevo; M04.\n- Rutas: POST y DELETE /api/leagues/[id]/seasons/[seasonId]/waitlist.\n- Archivos: `src/lib/serverSeasonWaitlist.ts:57`, `supabase/migrations/20260919123000_add_season_waitlist.sql:10`, `src/components/season/SeasonRosterWaitingRoom.tsx:174`.\n- Explicación: salir conserva la fila con status=cancelled; el siguiente alta hace upsert con ignoreDuplicates=true sobre UNIQUE(season_id,user_id). El conflicto se ignora y no reactiva la fila. La API puede devolver ok con entry=null y la UI mostrar éxito temporal.\n- Reproducción: una fila ficticia cancelled y un cliente que reproduce ON CONFLICT DO NOTHING; ejecutar joinSeasonWaitlist real. No cambia el estado y devuelve null sin error.\n- Esperado: permitir reincorporación al final de la cola o informar explícitamente de una prohibición. Observado: permanece cancelled, aunque no se informa fallo.\n- Evidencia: `ligas-espera-reproducciones.test.ts.txt`/log, BUG-007; esquema UNIQUE y controles de salir/entrar. La semántica de conflicto se simuló, no se ejecutó PostgreSQL local.\n- Causa demostrada: cancelación lógica combinada con ignoreDuplicates. Propuesta, no aplicada: transición atómica condicionada cancelled→waiting con nueva posición; alta ya waiting idempotente y promoción protegida.\n- Dependencias: cola y promoción M04/M14; también puede afectar a solicitudes que hayan expirado y queden cancelled.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04",
+      "M14"
+    ],
+    "routeOrScreen": "POST y DELETE /api/leagues/[id]/seasons/[seasonId]/waitlist."
+  },
+  {
+    "id": "BUG-008",
+    "title": "Un código de invitación incorrecto permite leer una liga con su UUID",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Seguridad / autorización de lectura. Gravedad: **P1**. Estado: **CONFIRMADO con handler real aislado**, nuevo; M02/M03.\n- Ruta: GET /api/invites/WRONG-CODE?leagueId=<uuid de liga>.\n- Archivo: `src/app/api/invites/[code]/route.ts`, función fetchLeagueByInviteCode, retorno final hintedLeague.\n- Explicación: después de comprobar que el código no coincide ni existe invitación activa, la función devuelve igualmente la liga consultada por leagueId. El endpoint público no exige sesión. El UUID sustituye en la práctica la comprobación del código.\n- Reproducción: base en memoria con una liga privada y código VALID-CODE, sin filas invites; llamar al GET real con WRONG-CODE y leagueId correcto. No se invoca autenticación y se obtiene 200 con snapshot, partidos, pagos y notas de incidencia ficticios.\n- Esperado: 404/snapshot null para código incorrecto o revocado. Observado: snapshot completo de liga ajena.\n- Evidencia: `ligas-espera-reproducciones.test.ts.txt`/log, BUG-008/009. No se han enumerado UUIDs ni consultado ligas reales.\n- Causa demostrada: fallback a hintedLeague tras agotar todas las validaciones negativas. Propuesta, no aplicada: denegar cuando no exista coincidencia activa y probar código erróneo/revocado con hint válido.\n- Dependencias: alcance agravado por BUG-009. Corregir solo el DTO no restablece la validación del código.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M02",
+      "M03"
+    ],
+    "routeOrScreen": "GET /api/invites/WRONG-CODE?leagueId=<uuid de liga>."
+  },
+  {
+    "id": "BUG-009",
+    "title": "La previsualización pública de invitación incluye pagos y notas de incidencias",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Privacidad / minimización de respuesta. Gravedad: **P2**. Estado: **CONFIRMADA la exposición**, alcance deseado del producto pendiente; nuevo; M03/M07/M11.\n- Ruta: GET /api/invites/[code], incluso con código válido y sin sesión.\n- Archivos: `src/app/api/invites/[code]/route.ts:210`, `src/lib/supabaseMatches.ts:14`, mapSupabaseMatch.\n- Explicación: se devuelve la colección completa de matches de todas las temporadas mediante el mapper interno. Incluye incidentReason/incidentNotes y courtBooking con pagadores, importes y transferencias; seasonSettings incorpora registrationFee. No es la proyección limitada del espectador público.\n- Reproducción: GET real con VALID-CODE y datos ficticios con nota QA-private-note y reserva 24; ambos aparecen en el JSON sin sesión.\n- Esperado propuesto: previsualización de invitación limitada a identidad de liga y plazas/requisitos necesarios para incorporarse; confirmar con producto cualquier dato adicional deliberadamente público. Observado: información operativa privada antes de aceptar/iniciar sesión.\n- Evidencia: reproducción BUG-008/009 en `ligas-espera-reproducciones.test.ts.txt` y log; datos exclusivamente ficticios. No se afirma exposición real de datos médicos ni obligación legal concreta.\n- Causa demostrada: reutilización de matchSelect/mapper interno sin DTO de invitación. Propuesta, no aplicada: DTO mínimo y pruebas negativas de campos; revisar temporadas progresivas y cuota por jugador.\n- Dependencias: existe también con código válido, por lo que sobrevive a corregir BUG-008. Política exacta de datos de invitación requiere decisión del usuario.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M03",
+      "M07",
+      "M11"
+    ],
+    "routeOrScreen": "GET /api/invites/[code], incluso con código válido y sin sesión."
+  },
+  {
+    "id": "BUG-010",
+    "title": "La promoción de lista de espera no se reconoce en la sala de espera",
+    "severity": "P2",
+    "confirmation": "PROBABLE",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / identificación de usuario. Gravedad: **P2**. Estado: **PROBABLE por trazado de contratos; pendiente reproducción visual**, nuevo; M04.\n- Pantalla: sala de espera → confirmar plaza ofrecida.\n- Archivos: `src/app/api/access/route.ts:592`, `src/components/season/SeasonRosterWaitingRoom.tsx:120`, API waitlist GET.\n- Explicación: access serializa el userId de la membresía propia como email; waitlist devuelve user_id UUID. El componente busca item.user_id === membership.userId. La entrada promovida no coincide, setIsPromoted(false) y no aparece el bloque de confirmar, aunque el servidor ofrece una plaza.\n- Reproducción prevista: miembro realista ficticio con membership.userId=qa@example.test y fila promoted user_id=UUID; cargar respuesta y observar bloque. Contratos y comparación comprobados; ejecución de la UI adicional bloqueada por arranque aislado rechazado.\n- Esperado: mostrar la promoción propia y permitir confirmar dentro de las 48 h. Observado por código: igualdad UUID/email imposible; pendiente captura, no se hizo promoción real.\n- Evidencia: fuentes citadas y `M01-M02-revision.md` para bloqueo visual. Causa probable: mezcla de identificadores de cuenta entre API y contexto cliente.\n- Propuesta, no aplicada: devolver ownEntry/isOwn o identificador de cuenta estable, y probar los estados waiting/promoted/cancelled con contrato realista.\n- Dependencias: BUG-006 afecta al mismo componente, pero la promoción tiene position=null y no se resuelve corrigiendo solo el cálculo de posición.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04",
+      "M01",
+      "M02"
+    ],
+    "routeOrScreen": "sala de espera → confirmar plaza ofrecida."
+  },
+  {
+    "id": "BUG-011",
+    "title": "Una plaza ofrecida en lista de espera puede ser ocupada por otra inscripción",
+    "severity": "P2",
+    "confirmation": "PROBABLE",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / concurrencia de aforo. Gravedad: **P2**. Estado: **PROBABLE; pendiente validación PostgreSQL aislada**, nuevo; M04.\n- Ruta: baja de plantilla → promoción; registro ordinario y confirmación de promoción.\n- Archivos: API registration DELETE/POST; `src/lib/serverSelfRegistration.ts`; última definición de server_join_self_registration_season_v2 en migración `20260803160000_add_league_avatars_and_restore_unlinked_identity.sql:177`.\n- Explicación: la baja marca una entrada promoted y da 48 horas, pero no ocupa/reserva aforo. La RPC de inscripción ordinaria cuenta season_players activos y no consulta promociones. Otra cuenta puede llenar esa plaza antes de la confirmación.\n- Reproducción prevista: liberar una plaza con A esperando, promover A, registrar B antes de que A confirme; A encuentra roster_full. Trazado de código/SQL hecho, no se ejecutó el escenario en una base.\n- Esperado propuesto: proteger la prioridad ofrecida durante su plazo o aclarar expresamente que no reserva plaza. Observado por código: no existe comprobación de promociones en la RPC vigente. Política exacta de reserva requiere confirmación de producto.\n- Evidencia: API registration:188–206; RPC indicada: conteo de activos y condición v_count >= player_capacity. PostgreSQL local bloqueado por Docker/instalación no disponible en este alcance.\n- Causa probable: promoción y aforo administrados por procesos distintos sin reserva. Propuesta, no aplicada: reserva transaccional con caducidad y control de acceso al cupo.\n- Dependencias: BUG-010 puede ocultar el ofrecimiento; no demuestra que este escenario haya ocurrido en PRE.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04"
+    ],
+    "routeOrScreen": "baja de plantilla → promoción; registro ordinario y confirmación de promoción."
+  },
+  {
+    "id": "BUG-012",
+    "title": "La caducidad de una promoción no hace avanzar automáticamente la cola",
+    "severity": "P2",
+    "confirmation": "PROBABLE",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / ciclo de lista de espera. Gravedad: **P2**. Estado: **PROBABLE por revisión de todos los consumidores; pendiente escenario temporal**, nuevo; M04/M14.\n- Rutas: waitlist/confirm, registration DELETE y cron de notificaciones.\n- Archivos: API waitlist/confirm:22; búsquedas de season_waitlist/confirmation_expires_at en src y migraciones.\n- Explicación: la fecha de 48 h solo se evalúa cuando el propio usuario intenta confirmar. Ese camino cancela la entrada y retorna 409, sin promover al siguiente. No se encontró un procesador de expiraciones en el cron ni en otro consumidor.\n- Reproducción prevista: dejar caducar una promoción con otra persona waiting; ejecutar el ciclo programado en entorno aislado y comprobar avance. No se adelantó reloj ni ejecutó cron real. En el código, cancelación al confirmar no contiene una promoción posterior.\n- Esperado propuesto: al vencer una oferta, liberar y ofrecer al siguiente según FIFO; verificar decisión de producto sobre automatización. Observado: no hay avance identificado y la oferta puede permanecer promoted indefinidamente si nadie confirma.\n- Evidencia: trazado completo de referencias season_waitlist en src, handler de confirmación y cola. Ausencia en búsquedas complementa la revisión, no certifica automatizaciones externas no versionadas.\n- Causa probable: ciclo temporal incompleto. Propuesta, no aplicada: procesador idempotente de caducidades/promociones y pruebas de reloj.\n- Dependencias: M14; revisar junto a BUG-007/010/011 sin confundir posición visible con orden real.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04",
+      "M14"
+    ],
+    "routeOrScreen": "waitlist/confirm, registration DELETE y cron de notificaciones."
+  },
+  {
+    "id": "BUG-013",
+    "title": "Un fallo al crear la membresía deja una liga creada tras responder error",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Integridad / creación parcial. Gravedad: **P2**. Estado: **CONFIRMADO con handler aislado**, nuevo; M03.\n- Ruta: POST /api/leagues.\n- Archivo: `src/app/api/leagues/route.ts:190`.\n- Explicación: se inserta leagues antes de league_memberships e invites. Si falla uno de los pasos posteriores, catch responde 500 sin transacción ni compensación. Para un creador ordinario puede quedar una liga sin su acceso de creador.\n- Reproducción: handler real, cuenta ficticia canCreateLeagues=true, persistencia en memoria de leagues y error simulado al insertar membresía. Responde 500 y conserva la liga.\n- Esperado: creación íntegra o ningún recurso persistido; error recuperable sin duplicados al reintentar. Observado: fila de liga conservada y membresía ausente.\n- Evidencia: `alta-liga-reproducciones.test.ts.txt` y log (1/1). No se creó una liga real.\n- Causa demostrada: secuencia de escrituras independientes sin rollback. Propuesta, no aplicada: RPC transaccional de alta o compensación verificada e idempotencia.\n- Dependencias: creación de ubicaciones globales también precede a la liga; no se atribuye corrupción de esas ubicaciones sin prueba.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M03"
+    ],
+    "routeOrScreen": "POST /api/leagues."
+  },
+  {
+    "id": "BUG-014",
+    "title": "El borrado de una temporada puede perder partidos y dejar la temporada intacta",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Integridad / eliminación parcial. Gravedad: **P1**. Estado: **CONFIRMADO con helper aislado**, nuevo; M04/M06.\n- Ruta: DELETE /api/leagues/[id]/seasons/[seasonId].\n- Archivo: `src/lib/serverSeasonMutations.ts:1014`, deleteServerSeason.\n- Explicación: borra matches, season_players, settings y seasons en peticiones independientes. Un error en el segundo paso deja partidos borrados y el resto conservado. El endpoint informa error, pero no restaura los datos anteriores.\n- Reproducción: helper real con almacenamiento en memoria; borrado de matches correcto y error al borrar season_players. Se lanza season_delete_players_failed y matches permanece vacío.\n- Esperado: atomicidad del borrado de competición; fallo sin pérdida parcial. Observado: temporada/plantilla conservadas sin sus partidos.\n- Evidencia: `ciclo-temporada-reproducciones.test.ts.txt` y log (2/2). No se borraron datos reales ni se ejecutó DELETE sobre PRE.\n- Causa demostrada: ausencia de transacción/compensación. Propuesta, no aplicada: una operación SQL transaccional con validación de liga/temporada y verificación de claves dependientes.\n- Dependencias: autorización previa sí valida admin y temporada mutable; el defecto es consistencia tras error, no permiso anónimo.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04",
+      "M06"
+    ],
+    "routeOrScreen": "DELETE /api/leagues/[id]/seasons/[seasonId]."
+  },
+  {
+    "id": "BUG-015",
+    "title": "Borrar una temporada cambia la temporada activa aunque se elimine otra",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / selección y estado de liga. Gravedad: **P2**. Estado: **CONFIRMADO con helper aislado**, nuevo; M04.\n- Ruta: DELETE temporada, incluida una upcoming mientras existe otra active.\n- Archivo: `src/lib/serverSeasonMutations.ts:1058`, deleteServerSeason.\n- Explicación: al terminar siempre selecciona una temporada con limit(1) sin orden y sobrescribe leagues.active_season_id, sin comprobar si apuntaba a la eliminada. Puede elegir una finished antigua y desplazar a la active que permanece.\n- Reproducción: liga con active_season_id=qa-active; eliminar una tercera temporada. Cliente en memoria devuelve como primer fallback qa-old-finished. El helper actualiza la liga a esa temporada antigua.\n- Esperado: conservar la activa si no se elimina; si se elimina, resolver fallback determinista según reglas. Observado: selección antigua impuesta y devuelta al cliente.\n- Evidencia: `ciclo-temporada-reproducciones.test.ts.txt`/log, BUG-015. La elección concreta del primer registro de PostgreSQL no está garantizada; esa falta de orden forma parte del problema.\n- Causa demostrada: actualización incondicional y selección sin orden. Propuesta, no aplicada: actualizar solo si la liga apunta a la eliminada y priorizar estado/fecha de forma explícita.\n- Dependencias: distinto de BUG-014; se reproduce con todos los borrados exitosos.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04"
+    ],
+    "routeOrScreen": "DELETE temporada, incluida una upcoming mientras existe otra active."
+  },
+  {
+    "id": "BUG-016",
+    "title": "Un fallo al iniciar una temporada deja cerrada la anterior",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Integridad / ciclo de temporada. Gravedad: **P1**. Estado: **CONFIRMADO con helper aislado**, nuevo; M04.\n- Ruta: inicio de temporada; archivo src/lib/serverSeasonMutations.ts, startServerExistingSeason.\n- Descripción: en plantilla fija se finalizan las temporadas activas antes de activar la solicitada; son escrituras independientes.\n- Reproducción: helper real con cliente en memoria; cierre anterior exitoso y error al activar la nueva. Lanza season_start_failed y la anterior sigue finished.\n- Esperado: transición íntegra o conservación del estado previo. Observado: ninguna de las dos queda activa tras el fallo simulado.\n- Evidencia: ciclo-temporada-reproducciones.test.ts.txt y log (3/3). Sin escrituras reales.\n- Causa: ausencia de transacción. Propuesta no aplicada: transición SQL atómica con validación del estado y actualización de active_season_id.\n- Dependencias: distinta acción de BUG-014; comprobar también el inicio programado en M14.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04",
+      "M14"
+    ],
+    "routeOrScreen": "inicio de temporada; archivo src/lib/serverSeasonMutations.ts, startServerExistingSeason."
+  },
+  {
+    "id": "BUG-017",
+    "title": "Duplicar una temporada pierde su duración personalizada",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / duplicación. Gravedad: **P2**. Estado: **CONFIRMADO con helper aislado**, nuevo; M04/M05.\n- Ruta: duplicación; archivo src/lib/serverSeasonDuplication.ts:285, duplicateServerSeason.\n- Descripción: se lee total_rounds de origen, pero el cálculo y generación nuevos omiten targetRoundCount y aplican el valor predeterminado del modo.\n- Reproducción: duplicar con helper real una temporada extended finalizada de 14 jugadores y 10 jornadas. La nueva tiene 28 jornadas.\n- Esperado: conservar la duración de la temporada duplicada o solicitar explícitamente otra. Observado: cambio silencioso a 28.\n- Evidencia: duplicacion-reproducciones.test.ts.txt, caso 1; log 3/3. Persistencia ficticia en memoria.\n- Causa: omisión del parámetro de duración. Propuesta no aplicada: trasladar y validar la duración de origen en cálculo/generación.\n- Dependencias: calendario de duración flexible; no modifica resultados históricos.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04",
+      "M05"
+    ],
+    "routeOrScreen": "duplicación; archivo src/lib/serverSeasonDuplication.ts:285, duplicateServerSeason."
+  },
+  {
+    "id": "BUG-018",
+    "title": "Dos duplicaciones concurrentes pueden crear dos próximas temporadas",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Concurrencia / integridad. Gravedad: **P2**. Estado: **CONFIRMADO en memoria; concurrencia PostgreSQL pendiente**, nuevo; M04.\n- Ruta y archivo: duplicación, src/lib/serverSeasonDuplication.ts.\n- Descripción: comprobar que no hay upcoming e insertarla son operaciones separadas; no se encontró una restricción equivalente en las migraciones versionadas.\n- Reproducción: dos llamadas reales concurrentes con Promise.all, origen finalizado y 8 jugadores, cliente compartido en memoria. Ambas terminan y persisten dos upcoming.\n- Esperado: una creación y un rechazo upcoming_season_already_exists, coherente con el control secuencial existente. Observado: dos éxitos.\n- Evidencia: duplicacion-reproducciones.test.ts.txt, caso 2; log 3/3. No demuestra frecuencia en producción ni ejecuta una carrera en una base real.\n- Causa probable: comprobación y creación sin exclusión atómica. Propuesta no aplicada: transacción y restricción de unicidad si se confirma la regla de una sola upcoming.\n- Dependencias: regla de producto ya expresada por el rechazo del helper; validar concurrencia PostgreSQL en entorno autorizado.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04"
+    ],
+    "routeOrScreen": "duplicación, src/lib/serverSeasonDuplication.ts."
+  },
+  {
+    "id": "BUG-019",
+    "title": "La compensación fallida de duplicación deja una temporada incompleta",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Recuperación / integridad. Gravedad: **P2**. Estado: **CONFIRMADO con helper aislado**, nuevo; M04.\n- Ruta y archivo: duplicación, src/lib/serverSeasonDuplication.ts:106, cleanupDuplicatedSeason.\n- Descripción: tras crear la temporada falla la inserción de jugadores; se intenta borrar la temporada, pero se ignora el error devuelto por el borrado.\n- Reproducción: helper real con fallo de season_players y fallo de compensación. Se lanza season_duplicate_players_failed, pero queda la nueva upcoming sin plantilla.\n- Esperado: rollback íntegro o estado parcial explícito y recuperable. Observado: recurso incompleto conservado, capaz de bloquear posteriores duplicaciones.\n- Evidencia: duplicacion-reproducciones.test.ts.txt, caso 3; log 3/3, solo memoria.\n- Causa: compensación no verificada. Propuesta no aplicada: transacción o compensación comprobada, recuperable e instrumentada.\n- Dependencias: distinto de BUG-013; aquí existe compensación, pero no se comprueba su éxito.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04"
+    ],
+    "routeOrScreen": "duplicación, src/lib/serverSeasonDuplication.ts:106, cleanupDuplicatedSeason."
+  },
+  {
+    "id": "BUG-020",
+    "title": "Cuatro duraciones aceptadas fallan al generar el calendario",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / límites de calendario. Gravedad: **P2**. Estado: **CONFIRMADO con funciones reales puras**, nuevo; M05.\n- Ruta: configuración de duración y generación; archivo src/lib/calendar.ts, isValidSeasonScheduleTarget y generateExtendedBalancedCalendar.\n- Reproducción: modo extended con jugadores ficticios qa-p-i: 17 jugadores/152 jornadas, 18/197, 22/241 y 24/206. Los cuatro valores están por debajo del máximo anunciado (153, 198, 242 y 207).\n- Esperado: generar una duración admitida o rechazarla coherentemente antes de ofrecerla. Observado: error «La duración solicitada supera el máximo equilibrado para N jugadores» después de aceptar el valor.\n- Evidencia: calendario-barrido.test.ts.txt, calendario-barrido.json y log: 102 casos, 98 correctos, 4 fallidos; exit 1 conservado. Se comprueban número de partidos/jornadas, cuatro jugadores distintos, ausencia de doble participación por jornada y reparto de apariciones.\n- Causa probable: máximo precalculado y construcción de secuencias compatibles no coinciden para estos datos; el desempate utiliza firmas de jugadores. No se atribuye todavía una causa única ni independencia de los identificadores.\n- Propuesta no aplicada: coherencia entre rango ofrecido y calendario construible; investigar búsqueda/desempates y añadir cobertura de longitudes próximas al máximo.\n- Dependencias: los 98 casos correctos no certifican optimalidad de todos los emparejamientos. No se corrige código ni se rebaja la prueba fallida.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M05"
+    ],
+    "routeOrScreen": "configuración de duración y generación; archivo src/lib/calendar.ts, isValidSeasonScheduleTarget y generateExtendedBalancedCalendar."
+  },
+  {
+    "id": "BUG-021",
+    "title": "Una reordenación parcial mezcla partidos de jornadas diferentes",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Validación / integridad de calendario. Gravedad: **P2**. Estado: **CONFIRMADO con helper real**, nuevo; M05.\n- Ruta: PUT /api/leagues/[id]/seasons/[seasonId]/round-order. Archivos: handler correspondiente y src/lib/serverSeasonMutations.ts:1114.\n- Descripción: la API exige enteros positivos únicos, pero no una permutación completa de las jornadas existentes. El helper solo modifica las jornadas incluidas.\n- Reproducción: dos partidos en jornadas 1 y 2; roundOrder=[2]. El helper convierte la jornada 2 en 1 y deja la original 1 intacta.\n- Esperado: rechazar la lista incompleta sin cambios. Observado: ambos partidos en jornada 1, sin error. El caso de control [2,1] produce correctamente [2,1].\n- Evidencia: orden-jornadas-reproducciones.test.ts.txt y log 3/3, solo memoria; el parseo permisivo se verifica por lectura del handler. No se invoca la API real.\n- Causa: validación insuficiente del conjunto. Propuesta no aplicada: comparar con las jornadas reales antes de persistir y exigir una permutación completa.\n- Dependencias: requiere administrador y temporada mutable; no es un acceso no autorizado. Riesgo también para clientes antiguos o peticiones administrativas defectuosas.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M05"
+    ],
+    "routeOrScreen": "PUT /api/leagues/[id]/seasons/[seasonId]/round-order. Archivos: handler correspondiente y src/lib/serverSeasonMutations.ts:1114."
+  },
+  {
+    "id": "BUG-022",
+    "title": "Un error durante la reordenación deja cambios parciales de jornadas",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Integridad / recuperación. Gravedad: **P2**. Estado: **CONFIRMADO con helper real**, nuevo; M05.\n- Ruta y archivo: misma operación que BUG-021, updateServerSeasonRoundOrder.\n- Descripción: cada partido se actualiza por separado. Fallar tras el primer cambio deja una reordenación incompleta.\n- Reproducción: jornadas [1,2], permutación válida [2,1]; primera actualización exitosa y segunda con error. Lanza season_round_order_update_failed y quedan [2,2].\n- Esperado: ambas actualizaciones o ninguna. Observado: partidas mezcladas tras responder error.\n- Evidencia: orden-jornadas-reproducciones.test.ts.txt, caso 2 y control exitoso; log 3/3. No se modifica una base real.\n- Causa: persistencia no transaccional. Propuesta no aplicada: operación SQL atómica con validación de permutación y pertenencia de todos los partidos a la temporada.\n- Dependencias: distinto de BUG-021; ocurre incluso con entrada completa y válida.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M05"
+    ],
+    "routeOrScreen": "misma operación que BUG-021, updateServerSeasonRoundOrder."
+  },
+  {
+    "id": "BUG-023",
+    "title": "Un resultado modificado puede conservar confirmaciones del resultado anterior",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Integridad / validación de resultados. Gravedad: **P1**. Estado: **CONFIRMADO con handler y derivación reales aislados**, nuevo; M06/M12.\n- Ruta: PUT /api/matches/[matchId]/result. Archivos: handler (actualización de matches seguida de borrado de confirmaciones) y src/lib/resultConfirmations.ts.\n- Descripción: guardar el resultado y eliminar sus confirmaciones son dos escrituras. Si falla la segunda, el resultado nuevo queda persistido con las confirmaciones anteriores. La derivación no comprueba que updatedAt corresponda a resultRecordedAt ni a una versión del marcador.\n- Reproducción: reportador participante modifica un resultado terminado; actualización exitosa, borrado de confirmaciones con error simulado. API responde 500, marcador nuevo 3-0 persistido y las tres confirmaciones anteriores siguen presentes. getMatchResultConfirmationState devuelve validated inmediatamente para el nuevo resultado.\n- Esperado: cambio y reinicio de confirmaciones atómicos; ningún resultado nuevo validado por aceptación de otro marcador. Observado: estado validated con confirmaciones de una fecha anterior a la modificación.\n- Evidencia: resultados-reproducciones.test.ts.txt y log (1/1), handler real y derivación real, almacenamiento ficticio sin red. No se altera ningún resultado real.\n- Causa: persistencia no atómica y confirmaciones sin versión de resultado. Propuesta no aplicada: transacción y vínculo de confirmación con versión; rechazar confirmaciones obsoletas.\n- Dependencias: ranking requerido y MVP usan la derivación; concurrencia entre confirmar y editar merece prueba PostgreSQL adicional.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M06",
+      "M12"
+    ],
+    "routeOrScreen": "PUT /api/matches/[matchId]/result. Archivos: handler (actualización de matches seguida de borrado de confirmaciones) y src/lib/resultConfirmations.ts."
+  },
+  {
+    "id": "BUG-024",
+    "title": "El guard SQL de regeneración puede competir con un resultado concurrente",
+    "severity": "P1",
+    "confirmation": "PROBABLE",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Concurrencia / riesgo de pérdida de datos. Gravedad: **P1**. Estado: **PROBABLE por SQL y flujo de escritura; pendiente reproducción PostgreSQL**, nuevo; M05/M06.\n- Rutas: repair-calendar con reroll y PUT result. Archivos: migraciones 20260825151500_allow_reroll_without_results.sql y 20260826002000_resize_balanced_season_calendar.sql; API result.\n- Descripción: la RPC comprueba que no hay resultados y después actualiza/borran partidos. Reroll no bloquea esas filas antes del EXISTS; resize bloquea seasons, pero la escritura del resultado actualiza matches y no adquiere ese bloqueo de temporada. Estar dentro de una transacción no basta por sí solo para excluir una escritura concurrente entre comprobación y sustitución.\n- Reproducción pendiente: dos transacciones controladas; pausar regeneración después del guard, guardar resultado en la otra, continuar regeneración. Comprobar si sobrescribe/elimina el resultado recién confirmado. No se ejecuta en PRE ni se afirma que ya haya sucedido.\n- Esperado: serialización común entre resultado y regeneración, con rechazo si aparece un resultado. Observado por código: guard separado de las escrituras; UPDATE de reroll borra points, sets y result_recorded_at sin condición adicional de ausencia de resultado.\n- Evidencia: lectura de SQL completo y API; PostgreSQL aislado no disponible dentro del alcance actual. Las RPC sí proporcionan rollback ante errores y validación del conjunto, lo que no resuelve necesariamente esta carrera.\n- Causa probable: falta de un bloqueo común o predicado atómico. Propuesta no aplicada: bloqueo coherente de partidos/temporada en ambos caminos y prueba determinista de concurrencia.\n- Dependencias: investigar aislamiento y triggers del despliegue antes de elevar a confirmado; no se modifican migraciones aplicadas.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M05",
+      "M06"
+    ],
+    "routeOrScreen": "repair-calendar con reroll y PUT result. Archivos: migraciones 20260825151500_allow_reroll_without_results.sql y 20260826002000_resize_balanced_season_calendar.sql; API result."
+  },
+  {
+    "id": "BUG-025",
+    "title": "Resolver una incidencia informa éxito aunque falle la limpieza de votos y confirmaciones",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Recuperación / consistencia de resultado y MVP. Gravedad: **P2**. Estado: **CONFIRMADO con handler aislado**, nuevo; M07/M06/M12.\n- Ruta: PUT /api/matches/[matchId]/incident. Archivo: handler, Promise.all posterior a actualizar matches.\n- Descripción: los borrados de match_result_confirmations y mvp_votes devuelven error, pero la respuesta no se comprueba. La incidencia queda resuelta y la API responde 200 pese a conservar estado dependiente del marcador anterior.\n- Reproducción: administrador ficticio resuelve con reset_result; actualización de partido exitosa y ambos borrados retornan error. Handler real responde 200 con incidencia resuelta y marcador vacío.\n- Esperado: transición íntegra o error explícito con recuperación, sin anunciar limpieza completa. Observado: éxito falso ante ambos errores simulados.\n- Evidencia: incidencias-reproducciones.test.ts.txt y log (1/1); no se resuelve ninguna incidencia real. La prueba verifica error devuelto por clientes y éxito de respuesta, no frecuencia de fallo en Supabase.\n- Causa: se espera Promise.all pero se ignoran sus resultados; los errores normales del cliente no rechazan la promesa. Propuesta no aplicada: transacción de resolución y limpieza, verificar errores y versionar confirmaciones/votos cuando corresponda.\n- Dependencias: BUG-023 muestra impacto de confirmaciones obsoletas; revisar cada resolución sin asumir que un marcador vacío puntúa por sí mismo.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M07",
+      "M06",
+      "M12"
+    ],
+    "routeOrScreen": "PUT /api/matches/[matchId]/incident. Archivo: handler, Promise.all posterior a actualizar matches."
+  },
+  {
+    "id": "BUG-026",
+    "title": "Las recomendaciones no convierten la disponibilidad entre zonas horarias",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / fecha y hora. Gravedad: **P2**. Estado: **CONFIRMADO con función real pura**, nuevo; M08.\n- Pantalla: disponibilidad/recomendaciones de programación. Archivos: src/lib/playerAvailability.ts, buildAvailabilityRecommendations; serverPlayerAvailability.ts.\n- Descripción: se guarda la zona del navegador por jugador, pero el cálculo compara start/end como minutos locales idénticos y nunca usa availability.timezone.\n- Reproducción: cuatro jugadores disponibles 18:00–20:00, dos Europe/Madrid y dos Atlantic/Canary; solicitar partido de 120 minutos. Función recomienda 18:00 con coverage=4 aunque el solapamiento real es solo una hora.\n- Esperado: convertir a una zona común y no ofrecer cobertura completa de dos horas. Observado: franja completa ficticia.\n- Evidencia: disponibilidad-chat-reproducciones.test.ts.txt/log (2/2), sin red ni datos reales. Escenario futuro fijo; no depende del día actual.\n- Causa: timezone es metadato sin uso en el algoritmo. Propuesta no aplicada: conversiones IANA/DST por fecha a zona de la liga y presentación explícita de zona.\n- Dependencias: acordar si los horarios se introducen en hora del jugador o de la liga; la implementación guarda actualmente la zona del jugador sin explicitar una zona única.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M08"
+    ],
+    "routeOrScreen": "disponibilidad/recomendaciones de programación. Archivos: src/lib/playerAvailability.ts, buildAvailabilityRecommendations; serverPlayerAvailability.ts."
+  },
+  {
+    "id": "BUG-027",
+    "title": "El límite de mensajes hace desaparecer propuestas aprobadas y su estado",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Funcional / historial y coordinación. Gravedad: **P2**. Estado: **CONFIRMADO con handler real aislado**, nuevo; M09/M10.\n- Rutas: GET /api/matches/[matchId]/chat y pantalla chat; API colectiva /api/chats. Archivo: chat/route.ts, limit(60) seguido de buildMatchChatCoordination.\n- Reproducción: propuesta de fecha aprobada por cuatro jugadores y 60 textos posteriores. GET devuelve 60 textos y coordinación unscheduled; con todos los mensajes la derivación real devuelve awaiting_booking.\n- Esperado: propuestas vigentes y estado de coordinación independientes de la ventana de mensajes; historial accesible por paginación. Observado: aprobación desaparece del snapshot del chat, aunque la API coordination consulta todas las propuestas.\n- Evidencia: disponibilidad-chat-reproducciones.test.ts.txt/log; markRead=0, persistencia ficticia. Lectura de UI no identifica carga de mensajes anteriores. Chat amistoso comparte limit(60), aunque no propuestas.\n- Causa: se deriva estado de negocio de una ventana truncada. La vista colectiva también limita globalmente a 1200 mensajes, con riesgo de conteos/preview incompletos en chats antiguos (no reproducido aquí).\n- Propuesta no aplicada: consultar propuestas vigentes aparte y paginar historial; agregados por chat para resumen/no leídos.\n- Dependencias: no significa borrado físico de mensajes de liga; separar de expiración deliberada del chat amistoso.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M09",
+      "M10"
+    ],
+    "routeOrScreen": "GET /api/matches/[matchId]/chat y pantalla chat; API colectiva /api/chats. Archivo: chat/route.ts, limit(60) seguido de buildMatchChatCoordination."
+  },
+  {
+    "id": "BUG-028",
+    "title": "Dos pagos simultáneos pueden sobrescribirse pese a responder éxito",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Concurrencia / pagos. Gravedad: **P2**. Estado: **CONFIRMADO con handler real en memoria; PostgreSQL pendiente**, nuevo; M11.\n- Ruta: PUT /api/matches/[matchId]/court-booking/transfers/[transferId]. Archivos: handler, courtBooking.ts y patrón equivalente serverPersonalMatchBooking.ts.\n- Reproducción: dos transferencias distintas del mismo partido, snapshot inicial compartido, dos llamadas concurrentes a marcar pagado. Ambas responden 200 y la persistencia final conserva solo una pagada.\n- Esperado: conservar ambos cambios independientes. Observado: el último array completo reemplaza el anterior.\n- Evidencia: pagos-reproducciones.test.ts.txt/log (2/2), solo memoria. La actualización amistosa también sustituye el JSON completo sin versión, pero no se ejecutó su carrera separadamente.\n- Causa: lectura-modificación-escritura de todo booking_transfers sin bloqueo ni versión. Propuesta no aplicada: actualizar transferencia atómicamente bajo lock, o control optimista de versión con reintento.\n- Dependencias: cambios simultáneos de importes/reserva pueden producir el mismo patrón; no se afirma que haya ocurrido con pagos reales.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M11"
+    ],
+    "routeOrScreen": "PUT /api/matches/[matchId]/court-booking/transfers/[transferId]. Archivos: handler, courtBooking.ts y patrón equivalente serverPersonalMatchBooking.ts."
+  },
+  {
+    "id": "BUG-029",
+    "title": "El reparto redondeado puede diferir dos céntimos entre jugadores",
+    "severity": "P3",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Cálculo / precisión monetaria. Gravedad: **P3**. Estado: **CONFIRMADO con helper real puro**, nuevo; M11.\n- Pantallas: pagos de liga y amistosos, componente compartido. Archivo: src/lib/courtBooking.ts, buildCourtBooking.\n- Reproducción: cuatro jugadores, único pagador de 22,06 €. Tras liquidar las transferencias calculadas, las cargas netas son 5,52/5,52/5,52/5,50 €.\n- Esperado: reparto equitativo en céntimos (dos cuotas de 5,52 y dos de 5,51), diferencia máxima un céntimo. Observado: diferencia de dos céntimos, aunque la suma total sí se conserva.\n- Evidencia: pagos-reproducciones.test.ts.txt/log, cálculo independiente en céntimos de coste neto tras transferencias.\n- Causa: redondear una cuota uniforme antes de equilibrar saldos concentra el residuo. Propuesta no aplicada: repartir cociente y resto de céntimos explícitamente y de forma determinista.\n- Dependencias: incidencia de precisión pequeña; no confundir con pérdida de dinero ni transferencias bancarias ejecutadas por la app.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M11"
+    ],
+    "routeOrScreen": "pagos de liga y amistosos, componente compartido. Archivo: src/lib/courtBooking.ts, buildCourtBooking."
+  },
+  {
+    "id": "BUG-030",
+    "title": "Un empate permitido se trata de forma distinta en ranking y estadísticas",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Datos / coherencia funcional. Gravedad: **P2**. Estado: **CONFIRMADO con derivaciones reales; aceptación por UI/API revisada en código**, nuevo; M06/M12/M13.\n- Pantallas: registrar resultado, Ranking y Estadísticas. Archivos: MatchResultForm.tsx:125, API result, ranking.ts y seasonStatistics.ts.\n- Reproducción: requires_three_sets=false, sets 6-0 y 0-6. UI y API permiten dos sets sin exigir ganador. Ranking cuenta un partido, un punto y una derrota para cada jugador; estadísticas considera el resultado inválido y lo excluye de su ranking.\n- Esperado: regla coherente: impedir finalizar empatado o admitir empate con cálculo uniforme. Observado: cuatro derrotas y dos clasificaciones distintas para los mismos datos.\n- Evidencia: ranking-reproducciones.test.ts.txt/log (2/2), funciones reales y revisión de canSave/parseo. No se guarda resultado real ni se afirma prueba visual del formulario.\n- Causa: contrato de validación de resultado y filtros estadísticos distintos. Propuesta no aplicada: decidir regla de empate, compartir validador/derivación y cubrir formulario/API/ranking/estadísticas.\n- Dependencias: amistosos ya exigen ganador; no se extiende este defecto a su alta.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M06",
+      "M12",
+      "M13"
+    ],
+    "routeOrScreen": "registrar resultado, Ranking y Estadísticas. Archivos: MatchResultForm.tsx:125, API result, ranking.ts y seasonStatistics.ts."
+  },
+  {
+    "id": "BUG-031",
+    "title": "Las posiciones de empate difieren entre detalle del partido y estadísticas",
+    "severity": "P3",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Presentación / coherencia. Gravedad: **P3**. Estado: **CONFIRMADO con helpers reales**, nuevo; M12/M13/M15.\n- Pantallas: detalle de Partido y estadísticas/exportación. Archivos: rankingOrder.ts, seasonStatistics.ts y csvExport.ts.\n- Reproducción: dos jugadores con mismos puntos, diferencia y juegos a favor. getRankingDisplayPosition devuelve 2 para el segundo; getRankingPosition devuelve 1 para ambos. CSV usa index+1, igual que el ordinal.\n- Esperado: una convención de puesto compartida o indicar explícitamente ordinal frente a empate. Observado: posición distinta sin esa explicación.\n- Evidencia: ranking-reproducciones.test.ts.txt/log; usos rastreados en detalle del partido y exportación estadística.\n- Causa: helpers duplicados con reglas diferentes. Propuesta no aplicada: centralizar regla de empate y distinguir orden visual cuando sea necesario.\n- Dependencias: no modifica los puntos ni impide ordenar establemente los nombres empatados.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M12",
+      "M13",
+      "M15"
+    ],
+    "routeOrScreen": "detalle de Partido y estadísticas/exportación. Archivos: rankingOrder.ts, seasonStatistics.ts y csvExport.ts."
+  },
+  {
+    "id": "BUG-032",
+    "title": "Editar participantes de un amistoso deja pagos ligados a identificadores antiguos",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Integridad / amistosos y pagos. Gravedad: **P2**. Estado: **CONFIRMADO con helper real en memoria**, nuevo; M10/M11.\n- Ruta: PATCH /api/personal-matches/[id], action=participants. Archivo: serverPersonalMatches.ts, replacePersonalMatchParticipants.\n- Descripción: borra las cuatro filas de participantes e inserta otras sin conservar id; reservas y transferencias almacenan esos IDs en JSON y no se remapean. Incluso jugadores conservados reciben IDs nuevos.\n- Reproducción: amistoso con cuatro participantes y reserva/transferencia a old-0/old-1; ejecutar helper de reemplazo válido. Persisten cuatro IDs nuevos y el pago sigue referenciando los antiguos.\n- Esperado: conservar identidad de participantes existentes o migrar de forma íntegra referencias económicas. Observado: ningún participante actual coincide con los IDs del pago.\n- Evidencia: amistosos-reproducciones.test.ts.txt/log (1/1); RPC de creación no se invoca y no hay red. Booking del escenario permanece sin modificación, tal como el helper no accede a esa tabla.\n- Causa: reemplazo por delete/insert con identidad nueva y referencias JSON independientes. Propuesta no aplicada: actualización transaccional que conserve IDs/remapee pagos; bloquear cambios incompatibles si hay liquidaciones.\n- Dependencias: también la compensación de inserción fallida reconstruye filas sin id. Revisar pagos ya liquidados antes de proponer una limpieza automática.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M10",
+      "M11"
+    ],
+    "routeOrScreen": "PATCH /api/personal-matches/[id], action=participants. Archivo: serverPersonalMatches.ts, replacePersonalMatchParticipants."
+  },
+  {
+    "id": "BUG-033",
+    "title": "La cola Push oculta errores de almacenamiento y puede repetir envíos",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Fiabilidad / observabilidad. Gravedad: **P2**. Estado: **CONFIRMADO con helper real y transporte simulado**, nuevo; M14/M21.\n- Ruta: tarea scheduled-check, proceso de reintentos. Archivo: src/lib/serverPushRetry.ts.\n- Reproducción: sendNotification simulado exitoso, actualización de estado sent devuelve error. El helper informa sent=1, conserva pendiente en el doble y en la siguiente llamada vuelve a enviar. Una consulta fallida se presenta como attempted=0 sin error.\n- Esperado: distinguir cola vacía de fallo de consulta y reconocer fallo de confirmación de envío; recuperación/idempotencia que minimice duplicados. Observado: contadores de éxito y duplicación simulada pese a error de persistencia.\n- Evidencia: push-cola-reproducciones.test.ts.txt/log (2/2). web-push completamente simulado y claves placeholder, sin envío de notificaciones reales.\n- Causa: el tipo de consulta omite error y no se inspecciona en select/update/upsert. Propuesta no aplicada: comprobar errores, claim atómico con lease y estrategia de idempotencia; métricas de fallos separadas.\n- Dependencias: no atribuir una garantía de entrega exactamente una vez a Web Push. Unsubscribe sí elimina cola por FK ON DELETE CASCADE; se descartó ese falso positivo tras leer la migración.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M14",
+      "M21"
+    ],
+    "routeOrScreen": "tarea scheduled-check, proceso de reintentos. Archivo: src/lib/serverPushRetry.ts."
+  },
+  {
+    "id": "BUG-034",
+    "title": "El idioma del documento permanece en español al elegir inglés o euskera",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Accesibilidad / i18n. Gravedad: **P2**. Estado: **CONFIRMADO en DOM aislado**, nuevo; M16/M17.\n- Ruta/pantalla: Todas las pantallas al cambiar idioma en Ajustes.\n- Archivos: src/app/layout.tsx:53; src/i18n/I18nProvider.tsx.\n- Descripción: html tiene lang=\"es\" y el proveedor cambia traducciones/localStorage sin actualizar ese atributo.\n- Reproducción: montar el proveedor real con html español; pulsar el control de prueba que llama setLocale(\"en\"); comprobar idioma mostrado y document.documentElement.lang. Repetir conceptualmente con eu utiliza el mismo callback.\n- Esperado: el idioma principal del documento corresponde al contenido elegido. Observado: el contenido cambia a en y html sigue es. No se ha probado pronunciación con lector de pantalla físico.\n- Evidencia: cierre-ui-reproducciones.test.ts.txt; cierre-reproducciones.log, 4/4 incluyendo otros casos.\n- Causa demostrada: atributo fijo y ausencia de sincronización en el proveedor.\n- Propuesta no aplicada: sincronizar lang con locale al hidratar/cambiar preferencia y probar navegación y lectores de pantalla.\n- Dependencias: independiente de BUG-004. Axe en fixtures españoles no detecta esta discrepancia.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M16",
+      "M17"
+    ],
+    "routeOrScreen": "Todas las pantallas al cambiar idioma en Ajustes."
+  },
+  {
+    "id": "BUG-035",
+    "title": "La actualización automática puede recargar formularios con cambios sin guardar",
+    "severity": "P2",
+    "confirmation": "PROBABLE",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: PWA / riesgo de pérdida de borradores. Gravedad: **P2**. Estado: **PROBABLE; guard demostrado, pérdida completa pendiente de navegador/PWA**, nuevo; M18.\n- Ruta/pantalla: Formularios de partido, administración o chat con contenido no persistido y SW nuevo esperando.\n- Archivos: src/components/layout/PwaUpdatePrompt.tsx; src/lib/pwaUpdate.ts.\n- Descripción: transcurridos 60 s sin interacción, sin foco editable ni diálogo, la actualización se considera segura. No se consulta si existen cambios sin guardar. Un formulario editado y después desenfocado cumple esa condición.\n- Reproducción pendiente de extremo a extremo: editar sin guardar; sacar el foco del campo; dejar SW en waiting y esperar 60 s. La reproducción aislada invoca el guard real con exactamente esos indicadores y devuelve true.\n- Esperado: conservar borrador o posponer/consultar antes de recargar. Observado: guard permite activación y el componente programa location.reload; no se afirma haber perdido un formulario real durante esta auditoría.\n- Evidencia: cierre-ui-reproducciones.test.ts.txt y cierre-reproducciones.log; lectura completa del componente y de requestPwaUpdate.\n- Causa probable: inactividad/foco usados como sustituto del estado dirty del formulario.\n- Propuesta no aplicada: registro común de operaciones/ediciones pendientes, recuperación de borradores y gate explícito antes de recargar.\n- Dependencias: no confundir con fallo offline; las pruebas offline existentes pasan. Precisa worker controlado y formulario real aislado para confirmar el impacto.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M18"
+    ],
+    "routeOrScreen": "Formularios de partido, administración o chat con contenido no persistido y SW nuevo esperando."
+  },
+  {
+    "id": "BUG-036",
+    "title": "La guía modal permite que el teclado vuelva a controles del fondo",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Accesibilidad / navegación. Gravedad: **P2**. Estado: **CONFIRMADO en DOM aislado**, nuevo; M16/M17.\n- Ruta/pantalla: Ayuda de esta pantalla / tours.\n- Archivos: src/components/onboarding/GuidedTourOverlay.tsx; features/onboarding/OnboardingProvider.tsx.\n- Descripción: el portal se anuncia role=dialog aria-modal=true, pero no mueve/contiene el foco ni vuelve inerte el resto de la página. Escape y flechas sí tienen handlers.\n- Reproducción: montar overlay real con proveedor de tour simulado y un botón de fondo; conservar foco de ese botón; desde el último control del diálogo pulsar Tab hasta completar vuelta. El foco alcanza el botón de fondo.\n- Esperado: foco inicial dentro, Tab/Shift+Tab contenidos y restauración al cerrar. Observado: foco fuera y recorrido hacia fondo; no se atribuye una prueba con lector físico.\n- Evidencia: cierre-ui-reproducciones.test.ts.txt; cierre-reproducciones.log, interacción user-event con DOM real simulado, sin datos/red.\n- Causa demostrada: falta gestión de foco y aislamiento modal en el componente y proveedor revisados.\n- Propuesta no aplicada: diálogo nativo o gestión completa de foco/inert/restauración, con pruebas de teclado.\n- Dependencias: las pruebas existentes verifican apertura del tour y Escape; no cubren contención de Tab.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M16",
+      "M17"
+    ],
+    "routeOrScreen": "Ayuda de esta pantalla / tours."
+  },
+  {
+    "id": "BUG-037",
+    "title": "Crear una temporada puede cerrar la anterior aunque falle el alta",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Integridad / ciclo de temporada. Gravedad: **P1**. Estado: **CONFIRMADO con helper real en memoria**, nuevo; M04.\n- Ruta/pantalla: Administración → Nueva temporada, POST /api/leagues/[id]/seasons.\n- Archivos: src/lib/serverSeasonMutations.ts:1449, createServerSeason.\n- Descripción: se marca finished la temporada indicada antes de insertar la nueva. Un fallo del insert devuelve error, sin restaurar estado. Fallos posteriores pueden además dejar temporadas, jugadores o calendarios parciales.\n- Reproducción: actor ficticio, ocho nombres nuevos válidos, modo single/7 jornadas y temporada anterior activa; doble devuelve éxito al cerrar y error al insertar; ejecutar helper real.\n- Esperado: alta y transición atómicas, o anterior conservada si no se crea nueva. Observado: season_create_failed y anterior finished.\n- Evidencia: alta-temporada-reproducciones.test.ts.txt; cierre-reproducciones.log (prueba 1/1).\n- Causa demostrada: secuencia de escrituras independientes sin compensación/transacción.\n- Propuesta no aplicada: validar/generar primero y agrupar alta/vínculos/ajustes/transición en transacción idempotente; probar cada fallo intermedio.\n- Dependencias: mismo patrón de atomicidad que BUG-013/014/016, pero operación distinta: crear, frente a iniciar una temporada ya existente.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M04"
+    ],
+    "routeOrScreen": "Administración → Nueva temporada, POST /api/leagues/[id]/seasons."
+  },
+  {
+    "id": "BUG-038",
+    "title": "README identifica una versión estable antigua como actual",
+    "severity": "P3",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Histórico",
+    "detailsMarkdown": "- Categoría: Documentación / mantenimiento. Gravedad: **P3**. Estado: **CONFIRMADO por archivos actuales**, histórico; M21.\n- Ruta/pantalla: README del repositorio, sección Entornos.\n- Archivos: README.md:14; package.json; src/lib/appVersion.ts; docs/production-hardening/V1_15_4_HARDENING_AUDIT.md.\n- Descripción: sigue anunciando v1.1.0 como versión estable actual, antecedente señalado expresamente en v1.15.4. El árbol auditado declara v1.15.9. No se infiere que Producción haya sido comprobada en vivo.\n- Reproducción: comparar la afirmación del README con los archivos de versión del checkout y el informe histórico.\n- Esperado: documentación precisa por entorno/versión o enlace a fuente vigente. Observado: afirmación antigua no fechada como histórica.\n- Evidencia: lectura de los archivos indicados; version:check pasa porque no valida ese texto.\n- Causa: actualización de release sin alinear esa documentación.\n- Propuesta no aplicada: distinguir versión del checkout, PRE y release estable con fecha/fuente; evitar duplicación manual.\n- Dependencias: no es fallo de UI ni demuestra versión incorrecta desplegada.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M21"
+    ],
+    "routeOrScreen": "README del repositorio, sección Entornos."
+  },
+  {
+    "id": "BUG-039",
+    "title": "La paginación de actividad omite eventos empatados en fecha",
+    "severity": "P2",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Histórico",
+    "detailsMarkdown": "- Categoría: Funcional / datos / historial. Gravedad: **P2**. Estado: **CONFIRMADO con helper real en memoria**, histórico; M14/M21.\n- Ruta/pantalla: Actividad y consumidores de GET /api/leagues/[id]/activity.\n- Archivos: src/app/api/leagues/[id]/activity/route.ts; src/lib/serverActivity.ts:431; docs/production-hardening/V1_15_4_HARDENING_AUDIT.md.\n- Descripción: se añadió nextCursor, pero contiene solo createdAt. La página siguiente usa created_at < cursor y ordena solo por fecha, sin ID de desempate. El contrato histórico pedía cursor compuesto.\n- Reproducción: tres eventos ficticios con exactamente el mismo timestamp; consultar limit=2 y después createdAtBefore=fecha del último recibido. Ejecutar fetchServerActivityEvents real con doble que aplica los filtros de consulta.\n- Esperado: las páginas permiten alcanzar los tres registros una vez. Observado: primera página dos, segunda cero; tercero inaccesible por ese cursor. No se borran filas de BD.\n- Evidencia: actividad-cursor-reproducciones.test.ts.txt/log (1/1). El test existente v1154HardeningCleanup comprueba presencia textual de cursor, no este borde.\n- Causa demostrada: cursor/orden no únicos y límite estricto por fecha.\n- Propuesta no aplicada: ordenar por created_at e id y codificar ambos, aplicando continuación lexicográfica; paginar antes/después de filtros de visibilidad de forma coherente.\n- Dependencias: diferente del recorte de propuestas BUG-027; no requiere chat ni cambios deportivos.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M14",
+      "M21"
+    ],
+    "routeOrScreen": "Actividad y consumidores de GET /api/leagues/[id]/activity."
+  },
+  {
+    "id": "BUG-040",
+    "title": "Dependencias de desarrollo con avisos de seguridad, incluidos críticos en la cadena de pruebas",
+    "severity": "P1",
+    "confirmation": "CONFIRMADO EN ALCANCE INDICADO",
+    "origin": "Nuevo",
+    "detailsMarkdown": "- Categoría: Seguridad / cadena de herramientas. Gravedad del proyecto: **P1**. Estado: **CONFIRMADO el árbol afectado y avisos oficiales; explotación del proyecto NO demostrada**, nuevo; M21.\n- Ruta/pantalla: Desarrollo/CI, npm audit completo. No se identifica un endpoint público vulnerable mediante esta comprobación.\n- Archivos: package.json; package-lock.json; configuración Vitest/ESLint. No modificados.\n- Descripción: npm audit completo devuelve exit 1 y 13 paquetes afectados (2 critical, 10 high, 1 moderate). Son paquetes y dependencias propagadas, no 13 ataques independientes. npm audit --omit=dev devuelve exit 0, cero avisos. Lockfile: Vitest 3.2.7, tinypool 1.1.1, @vitest/mocker 3.2.7, ESLint 9.39.4, braces 3.0.3 y brace-expansion 1.1.18/5.0.9, marcados dev.\n- Reproducción segura: consultar npm audit --json y --omit=dev --json en copia existente con lockfile idéntico; contrastar versiones/rangos y avisos oficiales. No se ejecuta payload ni se instala/actualiza nada.\n- Esperado: gates distinguen runtime de herramientas y disponen los avisos relevantes antes de publicar/continuar ejecución sensible. Observado: gate runtime verde no refleja árbol de pruebas afectado; auditoría completa falla.\n- Evidencia: auditoria-evidencias/npm-audit-completo.json y npm-audit-runtime.json; avisos contrastados en GitHub el 10/10/2026: [Tinypool worker options](https://github.com/advisories/GHSA-5gmw-xhrv-c9v3), [Tinypool run options](https://github.com/advisories/GHSA-85c8-ppgw-ccpr), [Vitest mock redirect](https://github.com/advisories/GHSA-82fw-gwwq-j7x9), [brace-expansion](https://github.com/advisories/GHSA-qhr7-859c-m2p7).\n- Causa/alcance: avisos de Tinypool describen gadgets que requieren una primitiva previa de contaminación de prototipos/opciones; no se ha demostrado esa entrada en Smash & Lob. El de Vitest depende del servidor de mocks/contexto correspondiente. No se declara RCE pública, compromiso de CI ni P0 por copiar la severidad del paquete.\n- Propuesta no aplicada: evaluar actualizaciones compatibles y avisos por dependencia, comprobar overrides antiguos, repetir gates tras autorización. No ejecutar npm audit fix --force ni aceptar automáticamente la sugerencia de downgrade de eslint-config-next.\n- Dependencias: fallo nuevo respecto a la consulta anterior de solo runtime; no invalida retrospectivamente los resultados funcionales, pero detiene nuevas ejecuciones de pruebas/publicación hasta disposición. Desde el hallazgo solo se realizan lecturas y documentación.",
+    "source": "AUDITORIA_GENERAL.md",
+    "auditOnly": true,
+    "modules": [
+      "M21"
+    ],
+    "routeOrScreen": "Desarrollo/CI, npm audit completo. No se identifica un endpoint público vulnerable mediante esta comprobación."
+  }
+]

@@ -73,7 +73,7 @@ export default function AdminIncidentsPage() {
       {openIncidents.length === 0 ? (
         <AppCard className="border-emerald-200 bg-emerald-50">
           <p className="font-black text-emerald-900">{tx("No hay incidencias pendientes")}</p>
-          <p className="mt-1 text-xs font-semibold text-emerald-800/70">
+          <p className="mt-1 text-sm font-medium text-emerald-800">
             {tx("Cuando un jugador comunique una incidencia aparecerá aquí y recibirás una notificación si la tienes activada.")}{" "}</p>
         </AppCard>
       ) : (

@@ -7,6 +7,7 @@ import { AppCard } from "@/components/ui/AppCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
@@ -671,6 +672,8 @@ function NotificationCard({
   onOpen: () => void;
 }) {
   const { tx, locale } = useI18n();
+  const { seasons } = useSeasonSettings();
+  const seasonName = seasons.find(season => season.id === event.seasonId)?.name;
   const href = getNotificationUrl(event);
 
   return (
@@ -685,6 +688,7 @@ function NotificationCard({
           </p>
         </div>
 
+        {seasonName ? <p className="mt-1 type-caption font-semibold text-neutral-500">{seasonName}</p> : null}
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
           {tx(getNotificationBody({ event, currentUserId, players, locale }))}
         </p>
@@ -694,7 +698,7 @@ function NotificationCard({
 }
 
 export default function NotificationsPage() {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const { t } = useI18n();
   const { data: session } = useSession();
   const { currentUserId } = useCurrentUser();
@@ -854,15 +858,16 @@ export default function NotificationsPage() {
 
       {notifications.length > 0 ? (
         <div className="space-y-2">
-          {notifications.map((event) => (
+          {notifications.map((event, index) => (
+            <div key={event.id} className="space-y-2">
+            {index === 0 || new Date(event.createdAt).toDateString() !== new Date(notifications[index - 1].createdAt).toDateString() ? <h2 className="pt-2 text-sm font-semibold text-neutral-500">{new Date(event.createdAt).toLocaleDateString(getIntlLocale(locale), { day: "numeric", month: "long", year: "numeric" })}</h2> : null}
             <NotificationCard
-              key={event.id}
               event={event}
               currentUserId={currentUserId}
               players={players}
               isRead={readIds.has(event.id)}
               onOpen={() => markRead(event.id)}
-            />
+            /></div>
           ))}
         </div>
       ) : null}

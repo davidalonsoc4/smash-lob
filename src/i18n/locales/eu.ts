@@ -98,7 +98,7 @@ export const eu = {
     settingsTitle: "Ikusgai dagoen izena",
     settingsDescription: "Aldaketa liga guztietako lotutako jokalariei aplikatuko zaie, estatistikak eta emaitzak aldatu gabe.",
     changeConfirm: "Izen hau zure liga guztietan gorde?",
-    saveChanges: "Izena gorde",
+    saveChanges: "Aldaketak gorde",
     saved: "Izena zure liga guztietan eguneratu da.",
   },
 
@@ -803,8 +803,8 @@ export const eu = {
     visualStyleDescription: "Mantendu interfazea neutro edo gehitu koloretako gainazalak eta azentuak.",
     visualStylePlain: "Klasikoa",
     visualStylePlainDescription: "Neutroa, diskretua eta aplikazioaren ohiko diseinuarekin.",
-    visualStyleColorful: "Competition · Esperimentala",
-    visualStyleColorfulDescription: "Kontraste handiko iluneko lehiaketa modua, ligaren azentuarekin.",
+    visualStyleColorful: "Competition",
+    visualStyleColorfulDescription: "Lehiaketa estilo argia edo iluna, kontraste handikoa eta ligaren azentuarekin.",
     appearanceLight: "Argia",
     appearanceLightDescription: "Garbia eta argitsua.",
     appearanceDark: "Iluna",
@@ -1324,7 +1324,7 @@ export const eu = {
     supportUnsupported:
       "Nabigatzaile honek ez ditu web push jakinarazpenak onartzen. iPhonean PWA hasierako pantailan instalatu behar duzu.",
     supportMissingPublicKey:
-      "NEXT_PUBLIC_VAPID_PUBLIC_KEY konfiguratu gabe dago eta ezin da push baimena aktibatu. Lehentasunak hala ere gorde ditzakezu.",
+      "Push jakinarazpenak ez daude erabilgarri une honetan. Hala ere, hobespenak gorde ditzakezu.",
     supportPermissionDenied:
       "Jakinarazpenak blokeatuta daude nabigatzailean. Sistemaren edo nabigatzailearen ezarpenetan baimendu behar dituzu.",
     supportReady:

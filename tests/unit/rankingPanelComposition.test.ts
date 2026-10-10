@@ -5,7 +5,7 @@ describe("ranking panel composition", () => {
   it("keeps the Home ranking title inside the same card as its rows", async () => {
     const home = await readFile("src/app/page.tsx", "utf8")
 
-    expect(home).toContain('<AppCard className="overflow-hidden p-0">\n            <div className="px-3 pt-3">\n              <SectionHeader\n                title={t.dashboard.rankingTitle}')
+    expect(home).toContain('<AppCard className="overflow-hidden p-0">\n            <div className="px-3 pt-3">\n              <SectionHeader\n                title={currentUserRankingIndex >= 0 ? tx("Tu posición") : t.dashboard.rankingTitle}')
     expect(home).toContain('className="space-y-3 border-t border-neutral-100 px-3 py-2.5"')
   })
 
@@ -28,10 +28,10 @@ describe("ranking panel composition", () => {
     expect(table).toContain('className="flex min-w-0 items-center gap-3"')
     expect(table).toContain('app-ranking-position w-7 shrink-0 text-center')
     expect(table).not.toContain('app-ranking-position flex h-7 w-7')
-    expect(globals).toContain('.app-ranking-list .app-ranking-row:nth-child(1) { --ranking-row-accent: #d4a017; }')
-    expect(globals).toContain('.app-ranking-list .app-ranking-row:nth-child(2) { --ranking-row-accent: #a8adb5; }')
-    expect(globals).toContain('.app-ranking-list .app-ranking-row:nth-child(3) { --ranking-row-accent: #b87333; }')
-    expect(globals).toContain('.app-ranking-list .app-ranking-row:nth-child(-n + 3)::before')
+    expect(globals).toContain('.app-ranking-list .app-ranking-row[data-ranking-position="1"] { --ranking-row-accent: #d4a017; }')
+    expect(globals).toContain('.app-ranking-list .app-ranking-row[data-ranking-position="2"] { --ranking-row-accent: #a8adb5; }')
+    expect(globals).toContain('.app-ranking-list .app-ranking-row[data-ranking-position="3"] { --ranking-row-accent: #b87333; }')
+    expect(globals).toContain('.app-ranking-list .app-ranking-row:is([data-ranking-position="1"], [data-ranking-position="2"], [data-ranking-position="3"])::before')
     expect(globals).not.toContain('--ranking-row-accent: #dfe3e8;')
     expect(globals).not.toContain('--ranking-row-accent: #48515c;')
     expect(globals).not.toContain('--ranking-row-accent-opacity')

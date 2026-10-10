@@ -1,0 +1,31 @@
+import { expect, it, vi } from "vitest"
+import { buildAvailabilityRecommendations, createEmptyWeeklyAvailability } from "@/lib/playerAvailability"
+import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
+const mocks=vi.hoisted(()=>({gate:vi.fn()}))
+vi.mock("@/lib/serverMatchAccess",()=>({getServerMatchActor:mocks.gate}))
+vi.mock("@/lib/serverChatRealtime",()=>({getMatchChatRealtimeTopic:()=>null,broadcastMatchChatRefresh:async()=>null}))
+it("BUG-026: disponibilidad considera simultaneas franjas locales de zonas distintas",()=>{
+ const availabilities=["a","b","c","d"].map((playerId,i)=>{
+  const weeklySlots=createEmptyWeeklyAvailability();for(const key of Object.keys(weeklySlots))weeklySlots[key as keyof typeof weeklySlots]=[{start:"18:00",end:"20:00"}]
+  return {leagueId:"qa",seasonId:"qa",playerId,timezone:i<2?"Europe/Madrid":"Atlantic/Canary",weeklySlots,dateOverrides:{}}
+ })
+ const result=buildAvailabilityRecommendations({playerIds:["a","b","c","d"],availabilities,startsAt:"2099-01-05",endsAt:"2099-01-05",slotDurationMinutes:120})
+ expect(result.length).toBeGreaterThan(0)
+ expect(result[0].coverage).toBe(4)
+ expect(result[0].start).toBe("18:00")
+})
+it("BUG-027: el chat olvida coordinacion aprobada al quedar fuera de sus 60 mensajes",async()=>{
+ const matchId="11111111-1111-4111-8111-111111111111"
+ const participants=["a","b","c","d"].map(id=>({id,userId:`user-${id}`}))
+ const proposal={id:"22222222-2222-4222-8222-222222222222",kind:"date_proposal",payload:{options:[{key:"date-1",startsAt:"2099-01-05T18:00:00Z"}]},created_at:"2026-10-01T00:00:00Z",sender_user_id:"user-a"}
+ const responses=participants.map(p=>({message_id:proposal.id,user_id:p.userId,option_key:"date-1",response:"available"}))
+ const textMessages=Array.from({length:60},(_,i)=>({id:`qa-text-${i}`,kind:"text",body:"QA",payload:{},created_at:`2026-10-02T00:00:${String(i).padStart(2,"0")}Z`,sender_user_id:"user-a"}))
+ const tables:any={players:participants.map(p=>({id:p.id,display_name:p.id})),league_memberships:participants.map(p=>({player_id:p.id,user_id:p.userId})),app_users:[],seasons:{status:"active"},match_chat_messages:[...textMessages].reverse().concat(proposal as any),match_chat_proposal_responses:responses,match_chat_reads:[]}
+ const db={from:(table:string)=>{let limit=Infinity;const q:any={select:()=>q,eq:()=>q,in:()=>q,order:()=>q,limit:(n:number)=>{limit=n;return q},maybeSingle:async()=>({data:tables[table],error:null}),then:(resolve:any)=>Promise.resolve({data:Array.isArray(tables[table])?tables[table].slice(0,limit):tables[table],error:null}).then(resolve)};return q}}
+ mocks.gate.mockResolvedValue({ok:true,actor:{supabase:db,user:{id:"user-a",isSuperuser:false},participantPlayerId:"a",isAdmin:false,match:{id:matchId,leagueId:"qa",seasonId:"qa",participantIds:["a","b","c","d"],status:"scheduling",round:1,resultRecordedAt:null}}})
+ const {GET}=await import("@/app/api/matches/[matchId]/chat/route")
+ const response=await GET(new Request("http://audit.invalid/chat?markRead=0"),{params:Promise.resolve({matchId})})
+ expect(response.status).toBe(200)
+ const payload=await response.json();expect(payload.messages).toHaveLength(60);expect(payload.coordination.status).toBe("unscheduled")
+ expect(buildMatchChatCoordination({matchStatus:"scheduling",participants,messages:[{...proposal,responses:participants.map(p=>({userId:p.userId,optionKey:"date-1",response:"available"}))}]}).status).toBe("awaiting_booking")
+})

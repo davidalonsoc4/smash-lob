@@ -1,5 +1,7 @@
 "use client";
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import { useState } from "react";
 import { AppCard } from "@/components/ui/AppCard";
 import {
@@ -120,11 +122,9 @@ export function MatchResultConfirmationCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <p className="type-panel-title">{tx("Confirmar resultado")}</p>
-            <span
+            <StatusHelp kind="confirmation" status={canRespond && !currentConfirmation ? "action_pending" : validation.state === "pending" && mode !== "required" ? "optional" : validation.state}
               className={`shrink-0 rounded-full px-1.5 py-0.5 type-caption font-black ${status.className}`}
-            >
-              {status.label}
-            </span>
+            >{status.label}</StatusHelp>
           </div>
 
           {detail ? (

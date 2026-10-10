@@ -23,8 +23,8 @@ export function PublicSiteLayout({
   return (
     <main className="min-h-screen bg-neutral-100 px-4 py-6 text-neutral-950 sm:py-10">
       <div className="mx-auto max-w-3xl">
-        <header className="rounded-[2rem] bg-neutral-950 p-5 text-white shadow-sm sm:p-7">
-          <div className="mb-4 [&_.app-top-back-control]:!text-white">
+        <header className="public-site-hero app-accent-surface rounded-[2rem] bg-neutral-950 p-5 text-white shadow-sm sm:p-7">
+          <div className="mb-4">
             <BackButton fallbackHref="/" label="Volver" />
           </div>
           <div className="flex items-center gap-3">

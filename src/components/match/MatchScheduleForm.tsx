@@ -694,7 +694,7 @@ export function MatchScheduleForm({
               {formatMatchScheduleLongLabel(scheduledAt, locale) ?? capitalizeFirstLetter(dateLabel, locale) ?? t.matches.pendingDate}
             </p>
             <p className="mt-0.5 text-xs font-semibold text-neutral-600">
-              {displayedLocationText ?? t.matches.missingSchedule}
+              {displayedLocationText ?? tx("Lugar pendiente")}
             </p>
 
             {!isFinished && (directionsUrl || calendarAction) ? (

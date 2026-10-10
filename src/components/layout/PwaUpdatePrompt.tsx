@@ -34,6 +34,9 @@ export function PwaUpdatePrompt() {
   const waitingWorkerRef = useRef<ServiceWorker | null>(null)
   const updateRequestedRef = useRef(false)
   const reloadPendingRef = useRef(false)
+  // Generic controls cannot prove that their asynchronous save succeeded.
+  // Once edited, leave activation to a later clean app session.
+  const hasEditedInputRef = useRef(false)
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return
@@ -46,6 +49,7 @@ export function PwaUpdatePrompt() {
       isVisible: document.visibilityState === "visible",
       hasFocus: document.hasFocus(),
       isEditing: hasEditableFocus(),
+      hasEditedInput: hasEditedInputRef.current,
       hasOpenDialog: hasOpenDialog(),
       idleMs: Date.now() - lastActivityAtRef.current,
     })
@@ -101,7 +105,7 @@ export function PwaUpdatePrompt() {
         PWA_UPDATE_IDLE_MS - (Date.now() - lastActivityAtRef.current),
       )
       const pageCanBeChecked = document.visibilityState === "visible" &&
-        document.hasFocus() && !hasEditableFocus() && !hasOpenDialog()
+        document.hasFocus() && !hasEditableFocus() && !hasEditedInputRef.current && !hasOpenDialog()
       const delay = pageCanBeChecked
         ? Math.max(1, idleRemaining)
         : PWA_UPDATE_RECHECK_MS
@@ -118,7 +122,10 @@ export function PwaUpdatePrompt() {
       scheduleUpdateCheck()
     }
 
-    const handleActivity = () => {
+    const handleActivity = (event: Event) => {
+      if ((event.type === "input" || event.type === "change") && event.target instanceof HTMLElement && event.target.matches('input, textarea, select, [contenteditable], [role="textbox"]')) {
+        hasEditedInputRef.current = true
+      }
       lastActivityAtRef.current = Date.now()
       if (reloadPendingRef.current) scheduleSafeReload(PWA_UPDATE_IDLE_MS)
       if (waitingWorkerRef.current) scheduleUpdateCheck()

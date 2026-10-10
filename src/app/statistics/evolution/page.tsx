@@ -1,5 +1,6 @@
 "use client"
 
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { AllPlayersProgressChart } from "@/components/statistics/AllPlayersProgressChart"
 import { StatisticsPageHeader } from "@/components/statistics/StatisticsNavigation"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
@@ -9,11 +10,14 @@ export default function StatisticsEvolutionPage() {
   const { tx } = useI18n()
   const {
     selectedSeason,
+    seasonOptions,
+    selectSeason,
     buildStatisticsHref,
     statistics,
     isLeagueWide,
   } = useStatisticsWorkspace()
 
+  const { currentUserId } = useCurrentUser()
   const series = statistics.ranking.map((player) => ({
     playerId: player.id,
     displayName: player.displayName,
@@ -29,11 +33,13 @@ export default function StatisticsEvolutionPage() {
             ? tx("Compara a todos los jugadores a través de cada temporada, separando los periodos y reiniciando sus métricas.")
             : tx("Compara en un único gráfico la posición, los puntos y la diferencia de juegos de todos los jugadores.")
         }
+        seasons={seasonOptions}
+        onSeasonChange={selectSeason}
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
 
-      <AllPlayersProgressChart series={series} />
+      <AllPlayersProgressChart key={series.map(player => player.playerId).join("|")} series={series} preferredPlayerId={currentUserId} />
     </div>
   )
 }

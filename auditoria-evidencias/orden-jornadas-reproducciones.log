@@ -1,0 +1,9 @@
+
+ RUN  v3.2.7 C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob
+
+ ✓ auditoria-evidencias/orden-jornadas-reproducciones.test.ts (3 tests) 7ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  13:40:58
+   Duration  979ms (transform 471ms, setup 0ms, collect 589ms, tests 7ms, environment 0ms, prepare 130ms)

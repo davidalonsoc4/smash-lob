@@ -1,0 +1,31 @@
+import { expect, it, vi } from "vitest"
+import { createECDH, randomBytes } from "node:crypto"
+import webPush from "web-push"
+
+const gate = vi.hoisted(() => vi.fn())
+vi.mock("@/lib/serverLeagueAccess", () => ({ getServerLeagueActor: gate }))
+
+it("BUG-005: acepta endpoint HTTPS de loopback y web-push prepara esa dirección sin red", async () => {
+  const leagueId = "11111111-1111-4111-8111-111111111111"
+  const endpoint = "https://127.0.0.1:9443/audit-no-request"
+  const ecdh = createECDH("prime256v1")
+  ecdh.generateKeys()
+  const keys = { p256dh: ecdh.getPublicKey().toString("base64url"), auth: randomBytes(16).toString("base64url") }
+  let stored: any
+  const supabase = { from: () => ({
+    upsert: async (value: any) => { stored = value; return { error: null } },
+    select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: "qa-preferences" }, error: null }) }) }) }),
+  }) }
+  gate.mockResolvedValue({ ok: true, actor: { supabase, user: { email: "qa@example.test" }, membership: { playerId: "qa-player" } } })
+  const { POST } = await import("@/app/api/notifications/subscribe/route")
+  const response = await POST(new Request("http://audit.invalid/api/notifications/subscribe", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ leagueId, subscription: { endpoint, keys } }),
+  }))
+  expect(response.status).toBe(200)
+  expect(stored.endpoint).toBe(endpoint)
+  // generateRequestDetails cifra y construye una petición, pero NO hace ninguna llamada HTTP.
+  const details = webPush.generateRequestDetails({ endpoint, keys }, "audit-only", { vapidDetails: null })
+  expect(details.endpoint).toBe(endpoint)
+  expect(details.method).toBe("POST")
+})

@@ -1,0 +1,386 @@
+[
+  {
+    "id": "V01-01",
+    "antecedent": "Estados vacíos/incidencias sin semántica",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Tokens Competition y tests competitionLight/competitionVisualStyle correctos; no implica contraste de todas las combinaciones."
+  },
+  {
+    "id": "V01-02",
+    "antecedent": "Tinta/CTA Media Kit/Welcome Pack",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Normalizador mediaKitTheme y sus pruebas pasan; reproducción visual ampliada de esas pantallas bloqueada."
+  },
+  {
+    "id": "V01-03",
+    "antecedent": "Estado amistoso diferente entre vistas",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "personalMatchDetailModel compartido, unitarias y E2E de amistosos; no se reabre un bug de estado por recorte del historial de chat."
+  },
+  {
+    "id": "V01-04",
+    "antecedent": "Enlace a partido en otra liga/contexto",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Resolución de contexto y guards actuales conservados; tests de acceso/selección correctos. Recorrido real anterior se identifica como histórico."
+  },
+  {
+    "id": "V01-05",
+    "antecedent": "Fecha sin lugar sin explicación",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Modelo y componentes mantienen Lugar pendiente; pruebas de reserva ausente pasan."
+  },
+  {
+    "id": "V01-06",
+    "antecedent": "Nombres cortados/ambiguos",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Abreviatura con detección de colisiones y fallback completo; tests chatProposalVoters y compactos, baseline de tarjetas. No garantiza cero homónimos completos."
+  },
+  {
+    "id": "V01-07",
+    "antecedent": "Metadatos demasiado pequeños",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "globals.css conserva caption 12/micro 10; referencias nuevas coinciden y muestras abiertas son legibles. Texto secundario tenue sigue observación, no contraste universal."
+  },
+  {
+    "id": "V01-08",
+    "antecedent": "Forma reciente V/D poco contrastada",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Implementación semántica presente; no se volvió a renderizar perfil completo en todos los temas."
+  },
+  {
+    "id": "V01-09",
+    "antecedent": "Indicadores y nombres de Chats incoherentes",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Indicador compartido/ayuda y nombres compactos conservados; pruebas statusHelp y chatProposalVoters pasan."
+  },
+  {
+    "id": "V01-10",
+    "antecedent": "Cabecera chat amistoso desequilibrada",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Cabecera compartida y seis capturas nuevas de chat/selector; no hay solapamiento en muestras examinadas."
+  },
+  {
+    "id": "V01-11",
+    "antecedent": "Carga/vacío en chat cerrado invita a escribir",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Rama de carga/solo lectura actual y pruebas de amistosos conservadas; no confundir estado de carga con error persistente."
+  },
+  {
+    "id": "V01-12",
+    "antecedent": "Deuda propia perdida entre otras",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Orden y resumen personal en componentes compartidos, bookingPaymentSummary; nuevos bugs de concurrencia e IDs 028/032 son distintos."
+  },
+  {
+    "id": "V01-13",
+    "antecedent": "Guardar cambios sin traducir",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Traducción/gate ES/EN/EU actual correcto para ese texto; BUG-004 trata otra confirmación."
+  },
+  {
+    "id": "V01-14",
+    "antecedent": "Notificaciones muestra detalle de configuración",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Copy actual sin variable técnica; activación/dispositivo no revisado de nuevo."
+  },
+  {
+    "id": "V01-15",
+    "antecedent": "Temporadas no ordenadas por creación",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "seasonSelection/getNewestLeagueSeasons y seasonSelectionOrder; no depende del nombre de temporada."
+  },
+  {
+    "id": "V01-16",
+    "antecedent": "Temporada repetida bajo rendimiento",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Fuente actual de perfil y playerProfileSeasonSelector; título duplicado eliminado. Captura global de perfil pendiente."
+  },
+  {
+    "id": "V01-17",
+    "antecedent": "Plurales para una victoria/derrota",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Formateo/copy actual singulariza; tests i18n actuales pasan. No extrapolar a páginas excluidas del gate."
+  },
+  {
+    "id": "V01-18",
+    "antecedent": "Campeones con cero resultados válidos",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "seasonStatistics excluye ausencia de ganador; pruebas y resumen baseline Sin campeón calculado. BUG-030 es inconsistencia distinta con ranking."
+  },
+  {
+    "id": "V01-19",
+    "antecedent": "Cierre sin avisar de partidos históricos pendientes",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Aviso está implementado; no se repite cierre real con esa plantilla."
+  },
+  {
+    "id": "V01-20",
+    "antecedent": "Sustitución en temporada cerrada",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Guard requireMutable y SQL de sustitución/reemplazo revisados; excepción superusuario deliberada. PostgreSQL fresco bloqueado."
+  },
+  {
+    "id": "V01-21",
+    "antecedent": "Administración global 404",
+    "state": "OBSOLETO",
+    "evidenceAndLimits": "Es restricción deliberada de permisos, no defecto que deba eliminarse. Guards actuales presentes."
+  },
+  {
+    "id": "V01-22",
+    "antecedent": "Totales/carga antes de hidratar",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Playwright nuevo con respuesta access retrasada y caché, snapshotHydration; contenido espera respuesta inicial."
+  },
+  {
+    "id": "V01-23",
+    "antecedent": "Home llama Ranking a recorte personal",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Baseline Home abierta muestra Tu posición."
+  },
+  {
+    "id": "V01-24",
+    "antecedent": "Nombres largos en Mis ligas",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Wrapping está en código; no captura nueva de esa pantalla con nombres largos."
+  },
+  {
+    "id": "V01-25",
+    "antecedent": "Jornada repetida en tarjetas",
+    "state": "OBSOLETO",
+    "evidenceAndLimits": "Decisión deliberada de identificar tarjeta fuera del grupo; no error funcional."
+  },
+  {
+    "id": "V01-26",
+    "antecedent": "Leyenda/cifras secundarias",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Tipografía común conserva mejora; gráfica completa no reabierta en esta pasada."
+  },
+  {
+    "id": "V01-27",
+    "antecedent": "MVP demasiado dominante/mayúsculas",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Reglas y copy conservados; conjunto visual de todas sus variantes no inspeccionado de nuevo."
+  },
+  {
+    "id": "V01-28",
+    "antecedent": "Composición de rendimiento/contexto repetido",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Eliminación de duplicado comprobada en V01-16; composición completa del perfil requiere captura aislada adicional."
+  },
+  {
+    "id": "V01-29",
+    "antecedent": "Filtros de historial pequeños",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Altura mínima presente y gates correctos; revisión táctil/renderizada ampliada pendiente."
+  },
+  {
+    "id": "V01-30",
+    "antecedent": "Empates recortados y +N ambiguo",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Resumen expandible con número/lista y tests vigentes; no se cambia la regla deportiva. Numeración inconsistente es BUG-031 separado."
+  },
+  {
+    "id": "V01-31",
+    "antecedent": "Comparación con nombres cortados",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Apilado/controles presentes; no nueva captura cara a cara con nombres largos."
+  },
+  {
+    "id": "V01-32",
+    "antecedent": "Gráfica demasiado poblada inicialmente",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Selección inicial acotada a tres y leyenda táctil presentes; render completo y orientaciones pendientes."
+  },
+  {
+    "id": "V01-33",
+    "antecedent": "Récords parecen enlaces",
+    "state": "OBSOLETO",
+    "evidenceAndLimits": "Se mantienen tarjetas informativas por decisión explícita; no hay navegación prometida incumplida."
+  },
+  {
+    "id": "V01-34",
+    "antecedent": "Detalles sin explicación/columnas estrechas",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Baseline resumen móvil abierta, explicación y una columna; desktop usa espacio común ampliado."
+  },
+  {
+    "id": "V01-35",
+    "antecedent": "Actividad/notificaciones poco contextualizadas",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Agrupación/copy presentes; historial real no recorrido; BUG-039 confirmado en cursor, distinto al estilo."
+  },
+  {
+    "id": "V01-36",
+    "antecedent": "Competition marcado Experimental/solo oscuro",
+    "state": "OBSOLETO",
+    "evidenceAndLimits": "Tema claro ya implementado; tests actuales competitionLight y selector nuevo claro/oscuro pasan."
+  },
+  {
+    "id": "V01-37",
+    "antecedent": "Disponibilidad desactivada sin salida",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Salida Chats presente, editor habilitado no renderizado con fixture adicional; BUG-026 prueba cálculo, no todo editor."
+  },
+  {
+    "id": "V01-38",
+    "antecedent": "Selector manual de amistosos demasiado largo",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Flujo simplificado con búsqueda conservado; E2E personal-matches actual correcto."
+  },
+  {
+    "id": "V01-39",
+    "antecedent": "Estado/importe desconocido en partido",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Modelo y layout compartidos, estados económicos con —, tests de booking; capturas amistoso no muestran desplazamiento del selector."
+  },
+  {
+    "id": "V01-40",
+    "antecedent": "Personas/totales/nombres largos",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Source/guards revisados, carga protegida; no nueva interacción de admin global con volumen/nombres largos."
+  },
+  {
+    "id": "V01-41",
+    "antecedent": "Jugadores casi duplicados en PRE",
+    "state": "OBSOLETO",
+    "evidenceAndLimits": "Datos de prueba, no regla de producto demostrada; no fusionar ni borrar cuentas."
+  },
+  {
+    "id": "V01-42",
+    "antecedent": "Media Kit jerarquía/identidad/contraste",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Estructura y mediaKitTheme conservados; visual ampliado de workspace pendiente."
+  },
+  {
+    "id": "V01-43",
+    "antecedent": "Excel demasiado protagonista",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Ayuda secundaria conservada; importación/visual completo de exportación pendiente."
+  },
+  {
+    "id": "V01-44",
+    "antecedent": "Ayuda difícil de encontrar",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Búsqueda/tours actuales, E2E abre/repite ayuda. BUG-036 identifica accesibilidad modal independiente."
+  },
+  {
+    "id": "V01-45",
+    "antecedent": "Héroes públicos excesivos en móvil",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Gates públicos pasan; nueva revisión manual de about/legal completos y variantes pendiente."
+  },
+  {
+    "id": "V01-46",
+    "antecedent": "Laboratorio estados/aviso poco legibles",
+    "state": "PENDIENTE",
+    "evidenceAndLimits": "Aislamiento/carga comprobados por código/tests; snapshots de Ajustes excluyen lab deliberadamente, no prueba visual de lab."
+  },
+  {
+    "id": "V01-47",
+    "antecedent": "Ancho desktop y flotantes incoherentes",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "CSS 640 y referencias estadísticas/ajustes desktop abiertas; no certifica todos los flotantes en cada scroll."
+  },
+  {
+    "id": "V02-01",
+    "antecedent": "Hidratación/reglas guardadas inicialmente incorrectas",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "seasonSnapshotHydration y Playwright con respuesta retrasada; reglas desde primer snapshot."
+  },
+  {
+    "id": "V02-02",
+    "antecedent": "Duplicación parcial borra datos históricos cliente",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Merge parcial y reemplazo total diferenciados, pruebas actuales. BUG-017/018/019 del servidor no anulan esta corrección cliente, pero impiden aceptación global de duplicación."
+  },
+  {
+    "id": "V02-03",
+    "antecedent": "Voto optimista perdido/error invisible",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Playwright nuevo: retraso, Guardando, un envío, recarga, error/reintento. Realtime externo sigue pendiente."
+  },
+  {
+    "id": "V02-04",
+    "antecedent": "Reserva fijada/calendario ausentes en chat amistoso",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Pruebas actuales y cuatro capturas nuevas Competition, descarga ICS. Importación física pendiente."
+  },
+  {
+    "id": "V02-05",
+    "antecedent": "Nombre e inicial todavía ambiguos si coinciden",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Fallback a nombre completo con colisión, prueba vigente; homónimo completo no resuelto mágicamente."
+  },
+  {
+    "id": "V02-06",
+    "antecedent": "Confirmación nativa bloquea herramienta",
+    "state": "OBSOLETO",
+    "evidenceAndLimits": "Límite de automatización/mejora opcional; no se registra como fallo de servidor. No se reemplazó confirm nativo."
+  },
+  {
+    "id": "H-01",
+    "antecedent": "Amistosos excluidos de i18n",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Ya no excluye personal-matches/components/personal; gate actual pasa. Legales/lab/PWA continúan exclusiones expresas."
+  },
+  {
+    "id": "H-02",
+    "antecedent": "Notificaciones sin lectura persistida",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Tabla notification_reads y API own user/onConflict, fuente y pruebas. Sin dos dispositivos reales nuevos."
+  },
+  {
+    "id": "H-03",
+    "antecedent": "Actividad sin cursor compuesto",
+    "state": "PERSISTENTE",
+    "evidenceAndLimits": "Existe cursor solo fecha; BUG-039 reproduce omisión al empatar fechas. No resuelto por test textual de nextCursor."
+  },
+  {
+    "id": "H-04",
+    "antecedent": "Auditoría administrativa mezclada con actividad",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Almacenamiento/helper application-admin separado; gates correctos. Atomicidad del log auxiliar queda recomendación de fiabilidad."
+  },
+  {
+    "id": "H-05",
+    "antecedent": "Buscador sin contexto real/anchors",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "settingsSearch filtra capacidades/estado y destinos; tests actuales correctos. No todos los hashes probados manualmente."
+  },
+  {
+    "id": "H-06",
+    "antecedent": "Crear liga depende de experiencia activa",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "canCreateLeaguesInCurrentView=canCreateLeagues; test actual comprueba separación; permiso servidor sigue obligatorio."
+  },
+  {
+    "id": "H-07",
+    "antecedent": "Push sin cola/reintentos",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Cola existe, límite/reintento/unique por evento-suscripción. BUG-033 es defecto nuevo de manejo de errores, no ausencia de la funcionalidad. Entrega física pendiente."
+  },
+  {
+    "id": "H-08",
+    "antecedent": "Lista de espera inexistente",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Tabla/API/orden/confirmación y UI existen. BUG-006..012 demuestran o señalan fallos actuales; resuelta solo ausencia inicial, no aceptación funcional de toda cola."
+  },
+  {
+    "id": "H-09",
+    "antecedent": "Exportación/eliminación integral ausentes",
+    "state": "PERSISTENTE",
+    "evidenceAndLimits": "APIs existen, pero contratos incompletos: BUG-002/003, con reproducciones aisladas. No declarar anonimización integral."
+  },
+  {
+    "id": "H-10",
+    "antecedent": "Administración de temporada monolítica",
+    "state": "RESUELTO",
+    "evidenceAndLimits": "Extractos/components actuales y 2.040 líneas no vacías frente a 6.308 históricas. Deuda técnica residual se trata como recomendación, no prueba de error."
+  },
+  {
+    "id": "H-11",
+    "antecedent": "README anuncia v1.1.0 como actual",
+    "state": "PERSISTENTE",
+    "evidenceAndLimits": "BUG-038 por texto actual. No se cambia documentación funcional fuera de auditoría."
+  }
+]

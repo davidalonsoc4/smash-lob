@@ -1,0 +1,30 @@
+import { expect, it, vi } from "vitest"
+import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
+const mocks=vi.hoisted(()=>({gate:vi.fn()}))
+vi.mock("@/lib/serverMatchAccess",()=>({getServerMatchActor:mocks.gate}))
+vi.mock("@/lib/serverChatRealtime",()=>({broadcastMatchChatRefresh:vi.fn()}))
+const matchId="11111111-1111-4111-8111-111111111111"
+it("BUG-023: resultado cambia pero fallo borrando confirmaciones mantiene validacion anterior",async()=>{
+ const previousConfirmations=["b","c","d"].map(playerId=>({matchId,playerId,status:"confirmed" as const,updatedAt:"2026-10-01T12:00:00Z"}))
+ let saved:any
+ const supabase={from:(table:string)=>{
+  const q:any={select:()=>q,eq:()=>q,update:(value:any)=>{saved=value;return q},delete:()=>q,
+    maybeSingle:async()=>({data:{requires_three_sets:true,result_confirmation_mode:"required"},error:null}),
+    single:async()=>({data:{id:matchId,...saved},error:null}),
+    then:(resolve:any)=>Promise.resolve({error:table==="match_result_confirmations"?{message:"QA delete failure"}:null}).then(resolve)}
+  return q
+ }}
+ mocks.gate.mockResolvedValue({ok:true,actor:{supabase,isAdmin:true,participantPlayerId:"a",match:{status:"finished",reporterPlayerId:"a",resultLocked:false,leagueId:"qa-league",seasonId:"qa-season",incidentStatus:null,resolutionType:"played"}}})
+ const {PUT}=await import("@/app/api/matches/[matchId]/result/route")
+ const response=await PUT(new Request("http://audit.invalid/api/matches/qa/result",{method:"PUT",body:JSON.stringify({sets:[{a:6,b:0},{a:6,b:0},{a:6,b:0}]})}),{params:Promise.resolve({matchId})})
+ expect(response.status).toBe(500)
+ expect((await response.json()).error).toBe("match_result_confirmation_delete_failed")
+ expect(saved.points_a).toBe(3)
+ const state=getMatchResultConfirmationState({matchId,participantIds:["a","b","c","d"],reporterPlayerId:saved.result_reported_by_player_id,resultRecordedAt:saved.result_recorded_at,resultLocked:false,confirmations:previousConfirmations,mode:"required",now:new Date(saved.result_recorded_at)})
+ // El participante que reporto el resultado registra el cambio;
+ // las tres confirmaciones previas validan la nueva version pese a ser anteriores.
+ expect(state.confirmedCount).toBe(3)
+ expect(state.state).toBe("validated")
+ const priorReporterState=getMatchResultConfirmationState({matchId,participantIds:["a","b","c","d"],reporterPlayerId:"a",resultRecordedAt:saved.result_recorded_at,resultLocked:false,confirmations:previousConfirmations,mode:"required",now:new Date(saved.result_recorded_at)})
+ expect(priorReporterState.state).toBe("validated")
+})

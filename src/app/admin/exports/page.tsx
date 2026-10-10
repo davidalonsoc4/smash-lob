@@ -11,6 +11,7 @@ import { exportRankingCsv, exportResultsCsv } from "@/lib/csvExport"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { calculateSeasonStatistics } from "@/lib/seasonStatistics"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getNewestLeagueSeasons } from "@/lib/seasonSelection"
 
 function SpreadsheetIcon() {
   return (
@@ -131,7 +132,7 @@ export default function AdminExportsPage() {
     [getSeasonRoundSettings, matches, resultConfirmations],
   )
   const leagueSeasons = useMemo(
-    () => seasons.filter((season) => season.leagueId === activeLeague.id),
+    () => getNewestLeagueSeasons(seasons, activeLeague.id),
     [activeLeague.id, seasons],
   )
   const leaguePlayers = useMemo(
@@ -211,18 +212,18 @@ export default function AdminExportsPage() {
 
       <section aria-labelledby="excel-export-title">
         <AppCard className="overflow-hidden border-neutral-200 bg-white p-0 shadow-sm">
-          <div className="bg-[linear-gradient(135deg,#19211b_0%,#334239_100%)] px-4 py-5 text-white">
+          <div className="border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-neutral-950">
             <div className="flex items-start gap-3">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/12">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white">
                 <SpreadsheetIcon />
               </span>
               <div className="min-w-0">
-                <p className="type-caption font-black uppercase tracking-[0.18em] text-white/65">
+                <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-500">
                   {tx("Opción recomendada")}{" "}</p>
                 <h2 id="excel-export-title" className="mt-1 text-lg font-black">
                   {tx("Libro Excel completo")}
                 </h2>
-                <p className="mt-1 text-xs font-semibold leading-5 text-white/75">
+                <p className="mt-1 text-xs font-semibold leading-5 text-neutral-600">
                   {tx("Un único archivo .xlsx preparado para Excel con toda la información de la temporada separada en hojas.")}{" "}</p>
               </div>
             </div>

@@ -304,7 +304,7 @@ assert(playerNameIndex >= 0 && seasonLineIndex > playerNameIndex, "El perfil com
 
 assert(homePage.includes('badge="🏆"') && homePage.includes('tone="winner"') && homePage.includes('tone="mvp"'), "El resumen de temporada debe dar protagonismo visual a Ganador y MVP")
 assert(homePage.includes('</AppCard>\n\n          {canManageSeason ? ('), "Crear nueva temporada debe quedar como botón independiente debajo del resumen")
-assert(homePage.includes('<AppCard className="overflow-hidden p-0">\n            <div className="px-3 pt-3">\n              <SectionHeader\n                title={t.dashboard.rankingTitle}'), "Clasificación de Inicio debe llevar su título dentro del panel")
+assert(homePage.includes('<AppCard className="overflow-hidden p-0">\n            <div className="px-3 pt-3">\n              <SectionHeader\n                title={currentUserRankingIndex >= 0 ? tx("Tu posición") : t.dashboard.rankingTitle}'), "Clasificación de Inicio debe llevar su título dentro del panel")
 assert(ranking.includes('border-b border-neutral-100'), "Ranking Individual debe integrar las cabeceras de columnas dentro del panel con separador")
 assert(ranking.includes('border-t border-neutral-100 px-3 py-2.5'), "Ranking Individual debe integrar la leyenda inferior dentro del panel con separador")
 assert(!ranking.includes('<div className="space-y-2">'), "Ranking Individual no debe volver a separar cabeceras o leyenda fuera del panel")

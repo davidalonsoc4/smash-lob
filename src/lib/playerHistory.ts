@@ -1,5 +1,6 @@
 import type { MatchData } from "@/context/MatchDataProvider";
 import type { PlayerProfile, Season, SeasonPlayer } from "@/data/fakeData";
+import { getNewestLeagueSeasons } from "@/lib/seasonSelection";
 
 export const TOTAL_HISTORY_SCOPE_ID = "total-history";
 
@@ -78,13 +79,11 @@ function seasonHasPlayer({
 export function getPlayerSeasonScopes({
   leagueId,
   playerId,
-  activeSeasonId,
   seasons,
   seasonPlayers,
   matches,
 }: PlayerSeasonScopeInput): PlayerSeasonScope[] {
-  const playerSeasons = seasons
-    .filter((season) => season.leagueId === leagueId)
+  const playerSeasons = getNewestLeagueSeasons(seasons, leagueId)
     .filter((season) =>
       seasonHasPlayer({
         seasonId: season.id,
@@ -92,14 +91,7 @@ export function getPlayerSeasonScopes({
         seasonPlayers,
         matches,
       }),
-    )
-    .sort((firstSeason, secondSeason) => {
-      if (firstSeason.id === activeSeasonId) return -1;
-      if (secondSeason.id === activeSeasonId) return 1;
-      return secondSeason.name.localeCompare(firstSeason.name, "es", {
-        numeric: true,
-      });
-    });
+    );
 
   if (playerSeasons.length <= 1) {
     return playerSeasons.map((season) => ({

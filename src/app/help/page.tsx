@@ -1,5 +1,6 @@
 "use client"
 
+import { createContext, useContext, useState } from "react"
 import { GuidedTourLibrary } from "@/components/onboarding/GuidedTourLibrary"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -28,7 +29,11 @@ type SummaryItemProps = {
   description: string
 }
 
+const HelpSearchContext = createContext("")
+
 function HelpBlock({ eyebrow, title, children }: HelpBlockProps) {
+  const search = useContext(HelpSearchContext)
+  if (search && ![title, eyebrow].filter(Boolean).join(" ").toLocaleLowerCase().includes(search.toLocaleLowerCase())) return null
   return (
     <details className="group overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_1px_8px_rgba(15,23,42,0.045)]">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5">
@@ -89,7 +94,8 @@ function RuleRow({ label, value }: { label: string; value: string }) {
 }
 
 export default function HelpPage() {
-  const { locale, t } = useI18n()
+  const { locale, t, tx } = useI18n()
+  const [search, setSearch] = useState("")
   const { activeSeason, roundSettings } = useCurrentLeagueData()
   const guideSettings = { ...roundSettings, seasonStatus: activeSeason.status }
   const requiresThreeSets = roundSettings.requiresThreeSets
@@ -122,7 +128,7 @@ export default function HelpPage() {
   )
 
   return (
-    <div className="compact-page space-y-3">
+    <HelpSearchContext.Provider value={search.trim()}><div className="compact-page space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
 
@@ -160,6 +166,8 @@ export default function HelpPage() {
           />
         </div>
       </AppCard>
+
+      <label className="block text-sm font-semibold">{tx("Buscar")}<input type="search" value={search} onChange={event => setSearch(event.target.value)} className="mt-1 min-h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm" /></label>
 
       <HelpBlock title={guideHeadings.currentSeasonTitle}>
         <p>{guideHeadings.currentSeasonDescription}</p>
@@ -417,6 +425,6 @@ export default function HelpPage() {
 
 
       <GuidedTourLibrary />
-    </div>
+    </div></HelpSearchContext.Provider>
   )
 }

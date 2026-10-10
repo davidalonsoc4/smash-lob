@@ -187,7 +187,7 @@ export function GlobalLeagueSearch() {
       <div
         className="fixed z-40"
         style={{
-          right: "max(14px, calc((100vw - 448px) / 2 + 14px))",
+          right: "max(14px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 14px))",
           bottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
         }}
       >

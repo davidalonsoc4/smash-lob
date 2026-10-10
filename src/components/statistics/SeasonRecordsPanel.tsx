@@ -177,7 +177,7 @@ export function PlayerSeasonRecordsPanel({
         eyebrow="Mejor racha personal"
         headline={
           detail.bestWinStreak > 0
-            ? `${detail.bestWinStreak} victorias seguidas`
+            ? `${detail.bestWinStreak} ${tx(detail.bestWinStreak === 1 ? "victoria" : "victorias")}`
             : tx("Sin racha de victorias")
         }
         description={tx(`Mayor número de triunfos consecutivos ${isLeagueWide ? "en una misma temporada" : "durante la temporada"}.`)}
@@ -187,7 +187,7 @@ export function PlayerSeasonRecordsPanel({
         headline={detail.mostBeatenOpponent?.displayName ?? tx("Sin datos")}
         description={
           detail.mostBeatenOpponent
-            ? tx(`${detail.mostBeatenOpponent.wins} victorias en ${detail.mostBeatenOpponent.matchesPlayed} enfrentamientos · Dif. ${formatSigned(detail.mostBeatenOpponent.gamesDiff)} juegos.`)
+            ? `${detail.mostBeatenOpponent.wins} ${tx(detail.mostBeatenOpponent.wins === 1 ? "victoria" : "victorias")} · ${detail.mostBeatenOpponent.matchesPlayed} ${tx(detail.mostBeatenOpponent.matchesPlayed === 1 ? "partido" : "partidos")} · ${tx("Dif. juegos")} ${formatSigned(detail.mostBeatenOpponent.gamesDiff)}`
             : tx("Todavía no ha ganado a ningún rival.")
         }
       />
@@ -196,7 +196,7 @@ export function PlayerSeasonRecordsPanel({
         headline={detail.mostLostOpponent?.displayName ?? tx("Sin datos")}
         description={
           detail.mostLostOpponent
-            ? tx(`${detail.mostLostOpponent.losses} derrotas en ${detail.mostLostOpponent.matchesPlayed} enfrentamientos.`)
+            ? `${detail.mostLostOpponent.losses} ${tx(detail.mostLostOpponent.losses === 1 ? "derrota" : "derrotas")} · ${detail.mostLostOpponent.matchesPlayed} ${tx(detail.mostLostOpponent.matchesPlayed === 1 ? "partido" : "partidos")}`
             : tx("Todavía no ha perdido contra ningún rival.")
         }
       />

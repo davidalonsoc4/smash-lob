@@ -45,6 +45,8 @@ export default function StatisticsSeasonPage() {
   const {
     activeLeague,
     selectedSeason,
+    seasonOptions,
+    selectSeason,
     leagueSeasons,
     buildStatisticsHref,
     statistics,
@@ -293,6 +295,8 @@ export default function StatisticsSeasonPage() {
                 : tx(exportBlockedReason)
               : tx("Comparte el calendario y la clasificación durante toda la temporada. La descarga del resumen final aparecerá cuando termine.")
         }
+        seasons={seasonOptions}
+        onSeasonChange={selectSeason}
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
         statusBadge={

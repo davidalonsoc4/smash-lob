@@ -351,7 +351,7 @@ export function PlayerStatsPanel({
           <p className="text-xs font-semibold text-neutral-500">
             {t.playerStats.title}
           </p>
-          <p className="mt-0.5 whitespace-nowrap type-panel-title">
+          <p className="mt-0.5 break-words type-panel-title">
             {t.playerStats.subtitle}
           </p>
           {scopeLabel ? (
@@ -467,7 +467,7 @@ export function PlayerStatsPanel({
           <div className="rounded-xl bg-neutral-50 p-2.5">
             <p className="text-xs font-semibold text-neutral-500">{tx("Mejor racha")}</p>
             <p className="mt-1 font-black">
-              {bestWinStreak > 0 ? `${bestWinStreak} victorias` : emptyValue}
+              {bestWinStreak > 0 ? `${bestWinStreak} ${tx(bestWinStreak === 1 ? "victoria" : "victorias")}` : emptyValue}
             </p>
             <p
               data-best-streak-round-range
@@ -478,25 +478,25 @@ export function PlayerStatsPanel({
           </div>
           <div className="rounded-xl bg-neutral-50 p-2.5">
             <p className="text-xs font-semibold text-neutral-500">{tx("Rival más vencido")}</p>
-            <p className="type-player-name mt-1 truncate">
+            <p className="type-player-name mt-1 break-words">
               {mostBeatenRival
                 ? getDisplayName(mostBeatenRival.playerId, players)
                 : emptyValue}
             </p>
             <p className="mt-1 text-xs text-neutral-500">
-              {mostBeatenRival ? `${mostBeatenRival.wins} victorias` : emptyValue}
+              {mostBeatenRival ? `${mostBeatenRival.wins} ${tx(mostBeatenRival.wins === 1 ? "victoria" : "victorias")}` : emptyValue}
             </p>
           </div>
           <div className="rounded-xl bg-neutral-50 p-2.5">
             <p className="text-xs font-semibold text-neutral-500">{tx("Rival con más derrotas")}</p>
-            <p className="type-player-name mt-1 truncate">
+            <p className="type-player-name mt-1 break-words">
               {mostLostRival
                 ? getDisplayName(mostLostRival.playerId, players)
                 : emptyValue}
             </p>
             <p className="mt-1 text-xs text-neutral-500">
               {mostLostRival
-                ? `${mostLostRival.matches - mostLostRival.wins} derrotas`
+                ? `${mostLostRival.matches - mostLostRival.wins} ${tx(mostLostRival.matches - mostLostRival.wins === 1 ? "derrota" : "derrotas")}`
                 : emptyValue}
             </p>
           </div>

@@ -1,6 +1,6 @@
-# Popup Competition simplificado — 2026-10-08 (local)
+# Popup Competition simplificado — 2026-10-08 (publicado en PRE y PROD)
 
-- Solo título NUEVO TEMA OSCURO DISPONIBLE, botones APLICAR AHORA / AHORA NO y línea enlazada a Temas y apariencia. Ambas acciones cierran el popup; solo Aplicar cambia el tema. Retirados descripción, confirmación y cierre extra. Traducciones EN/EU y pruebas adaptadas. 7 tests focalizados, ESLint, TypeScript, i18n, presupuesto de código y diff correctos; Título reducido a text-sm/seminegrita, como botones. Publicación PRE/PROD v1.15.8 autorizada; validación aislada completa correcta: 818 tests/212 archivos, todos los controles estáticos, lint, TypeScript, build 1096294 bytes gzip/99 chunks y auditoría runtime 0 vulnerabilidades. Sin navegador ni cambios de localhost.
+- Solo título NUEVO TEMA OSCURO DISPONIBLE, botones APLICAR AHORA / AHORA NO y línea enlazada a Temas y apariencia. Ambas acciones cierran el popup; solo Aplicar cambia el tema. Retirados descripción, confirmación y cierre extra. Traducciones EN/EU y pruebas adaptadas. 7 tests focalizados, ESLint, TypeScript, i18n, presupuesto de código y diff correctos; Título reducido a text-sm/seminegrita, como botones. Publicación PRE/PROD v1.15.8 autorizada; validación aislada completa correcta: 818 tests/212 archivos, todos los controles estáticos, lint, TypeScript, build 1096294 bytes gzip/99 chunks y auditoría runtime 0 vulnerabilidades. PRE dpl_Df7eKWyAZerwGmmaFqGBGoKJaWHg Ready; alias y health v1.15.8/pre verificados, portada/Avatar Lab 200 y API 401. Rama/staging 02c3c4a1, SHA remoto verificado. PROD dpl_GUPEGiXzsg49ymCjiqkZ2t1uc7ee Ready y dominio verificado, smoke:prod v1.15.8/prod correcto. Main/staging 02c3c4a1 coinciden. Evidencia posterior solo en rama de trabajo. Sin navegador ni cambios de localhost.
 
 # Aviso Competition en popup — 2026-10-08 (publicado en PRE y PROD)
 
@@ -473,6 +473,90 @@
 - Version advanced to v0.13.2 because the previously delivered v0.13.1 package did not pass TypeScript validation.
 
 # Production Hardening Status
+
+## 2026-10-10 - Audit corrections authorized
+
+- C15 final local gates PASS for v1.15.10: full validate (922 tests/237 files), 76/76 E2E with unchanged visual baselines, zero full/runtime vulnerabilities, version/source/secret checks and diff check. Build 1183262 gzip bytes / 102 JS chunks; source 132248 lines / 191 clients. All 64 candidate application/dependency/test files match the isolated validation checkout. Real OAuth/PRE/device acceptance remains manual. Final candidate push/CI and staging/PRE promotion next; no database migration required.
+
+- C15 release metadata prepared as v1.15.10 (package/lock/app label/service-worker cache/changelog/smoke expectations). Source gate caught the changelog at 2491 lines against 2490; compacted adjacent type fields without changing behavior or raising the budget. Re-run full local release validation before final candidate push. Prior version's four CI gates passed; no PRE promotion yet.
+
+- C14 COMPLETE using the identical script in worker-local disposable Supabase: run 38078565124/job 114290558197 SUCCESS, full migration replay, schema lint, two pgTAP files/38 tests (also rerun after upgrade), synthetic logical backup/restore and legacy identity upgrade all passed. Database artifact 11678588759 (SHA256 ceadcf558a289f07dc776b3b10d58f55658b746bb898dc1bb4a2c88ca73900e7). All four CI jobs SUCCESS. Workstation Docker still unavailable, but the prerequisite now has real-engine evidence; no PRE/Production data used. C15 starts PRE-only publication of the 23 existing corrections; 17 transaction findings remain OPEN.
+
+- Candidate committed in domain groups fe9f9383 (toolchain), 15658bd3 (application corrections) and adeb3c90 (audit evidence), pushed and remote SHA verified. Draft PR #20 targets staging: https://github.com/davidalonsoc4/smash-lob/pull/20. Release-quality run 38078565124: code/build, browser/accessibility/PWA and Lighthouse SUCCESS; database gate still running. GitHub integration automatically built a READY branch preview smash-cc95wblvi-davidalonsoc4-8740s-projects.vercel.app; this is not PRE alias promotion. No staging merge, PRE alias change or database write. C14 remains incomplete until its database result is verified.
+
+- C14 recovery: user delegated the next steps and connected Supabase. Read-only MCP verified PRE ACTIVE_HEALTHY and its 62 registered migration versions match the repository; no migration is pending. The plugin does not provide the missing workstation Docker runtime. Existing release-quality CI runs the identical database quality script in a disposable Ubuntu Docker stack with synthetic fixtures. Prepare a candidate PR to staging to execute C14 there; no merge/deployment or subsequent database correction before verified success. This repairs the validation prerequisite rather than accepting a failed gate. Production/main/tag remain untouched; no remote database writes.
+
+- PRE publication requested by user after C13/C14 results. Read-only remote verification: staging b6212a007cac7ae1f7a0b809b9953e561836edc0, main 02c3c4a15ab8f74fc7f351f0a1e06ba4d8be2f46; audit corrections branch is local/uncommitted and has not been published. C14 remains the first incomplete milestone; Docker still absent from PATH. Requested an explicit exception to the AGENTS critical-validation stop rule if user wants only the 23 validated non-migration corrections promoted now. PRE publication authorization is recorded; exception pending. No push, commit or deployment performed in this follow-up.
+
+- C14 BLOCKED: `npm run database:quality` exited 1 while starting isolated local Supabase (`LegacyDbBootstrapError: failed to inspect service`), before replay/pgTAP/schema/restore/upgrade could run. Docker/psql/pg_ctl/Supabase executables absent from PATH; Docker Desktop/CLI, PostgreSQL and Podman absent from standard installation paths. No database transaction correction accepted or migration created. Per AGENTS, stopped after this critical validation failure. Resume ONLY C14 after a local disposable Supabase engine (normally Docker Desktop) is installed/running; rerun `npm run database:quality` in C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob. Do not substitute PRE/Production or mocks for this gate. Exact low-level bootstrap cause beyond unavailable runtime not established. Evidence C14-database-quality.log; 23 locally corrected findings / 17 OPEN in AUDIT_CORRECTIONS.md, including six P1. No commit, push, deployment or real-data writes.
+
+- C13 COMPLETE: full validate, 922 tests/237 files, 76/76 isolated browser tests (including visual snapshots, accessibility and PWA), full/runtime audits zero, diff check pass. No visual baselines changed. Placeholder OAuth logs include expected UntrustedHost errors; real OAuth/PRE remain untested manual gates. C14 starts the required local database quality prerequisite before implementing the 17 transactional findings.
+
+- C13 full validate PASS: all static checks, lint (four pre-existing warnings), TypeScript, 922/922 tests in 237 files, production-mode build and budgets (1183261 gzip bytes / 102 JS chunks). Full and runtime dependency audits both zero. Isolated browser suite pending; no real data or existing localhost changes. Source budget preserved at 132248 lines / 191 clients.
+
+- C13 first validation stopped at the source budget: 132314 lines/192 client files exceed existing limits (132250/191). No limits raised. Removed duplicate server activity type declarations by using shared exported types and kept the focus hook local to its sole client component, removing the unnecessary extra client module. Re-running gates before advancing.
+
+- C12 COMPLETE: 29 tests in three files, including 85 arbitrary-ID boundary cases across 8–24 players plus existing advertised maximum tests; lint and TypeScript pass. BUG-020 resolved locally. C13 starts cumulative validation before the remaining database transaction corrections. Current tally: 23 findings corrected locally, 17 still open (not claiming completed audit remediation).
+
+- C11 COMPLETE: nine directed tests, lint and TypeScript pass. BUG-026 resolved locally with conservative rejection of ambiguous/nonexistent DST endpoints. C12 starts on BUG-020: greedy extended-leg tie-breaking currently depends on lexical real player IDs while advertised capacity was precomputed with canonical player-1…N IDs.
+
+- C11 implementation: saved intervals resolve using each player's zone and own local date (including adjacent dates), then compare real instants against browser-local recommendation candidates. DST-ambiguous/nonexistent endpoints and invalid zones fail closed; such exceptional slots are conservatively omitted rather than asserting false availability. Cross-zone and override regressions added; validation pending.
+
+- C10 COMPLETE: six PWA/draft tests, lint and TypeScript pass; fixed test cleanup order before acceptance. BUG-035 conservatively protected for the edited app session. C11 starts with actual-instant availability comparison (BUG-026).
+
+- C10 implementation: editing input/select/textarea/contenteditable blocks automatic activation and post-activation reload for the current app session, even after blur. Conservative session latch avoids assuming an asynchronous form save succeeded; clean sessions retain idle updates. No new manual update UI introduced. Tests/gates pending.
+
+- C09 COMPLETE: 32 tests in four files, lint and TypeScript pass. BUG-033 resolved locally for explicit database errors and durable-success reporting; delivery remains at-least-once. C10 starts with draft protection for idle PWA update (BUG-035).
+
+- C09 implementation: enqueue/lookup/update errors now fail explicitly; successful Push delivery followed by sent-state persistence failure is surfaced separately, never caught as a transport retry. Regression cases cover enqueue, lookup, sent update, transport retry update and invalid-endpoint discard. Validation pending; no real Push or database requests.
+
+- C08 COMPLETE: four regression tests, lint and TypeScript pass. BUG-017/021 resolved locally; custom duplication length retained, incomplete round permutations rejected without writes. C09 starts on ignored Push queue database errors (BUG-033).
+
+- C07 COMPLETE: nine tests, targeted lint and TypeScript pass after fixing the test typing. BUG-027/039 resolved locally. C08 begins on duplication length and round permutation validation; transactional failures remain open.
+
+- C07 implementation: coordination loaded independently from the recent 60 messages; activity keyset uses created_at/id, validates cursors and advances over filtered private pages. Nine directed tests pass; lint passes. TypeScript caught a possibly undefined response in the synthetic regression test, fixed before re-running the gate. Friendly chat has no structured proposals; its recent text window is unchanged.
+
+- C06 COMPLETE: nine tests in two files, targeted lint and TypeScript exit 0. BUG-006/007/010 resolved locally. C07 starts with chat history and activity pagination, BUG-027/039; no remote changes.
+
+- C06 implementation: queue position computed before filtering visible rows, and API supplies authenticated ownEntry to prevent email/player-ID mismatches in promotion UI. Cancelled entry reactivation is conditional on cancelled status, clears old promotion and moves to queue end; existing waiting/promoted joins are idempotent and lookup/write errors fail explicitly. Nine targeted tests in two files and lint pass; TypeScript running. BUG-011/012 capacity/expiry remain separate and open.
+
+- C05 COMPLETE: 10/10 targeted tests, lint, onboarding check and TypeScript exit 0. BUG-034/036/038 resolved locally. C06 is first incomplete, scoped to BUG-006/007/010; waitlist capacity/expiration races remain open for later database work.
+
+- C05 checkpoint: html lang follows the locale effect; guided tour uses a focused modal root with keyboard Tab/Shift+Tab containment, programmatic focus containment, background inert state preservation and focus restoration. Backdrop removed from the keyboard sequence. README points to package.json instead of claiming an old deployed version. 10 targeted tests pass, including jsdom focus/language regressions; targeted ESLint and onboarding check pass; TypeScript running.
+
+- C04 COMPLETE: 20 targeted tests, lint and TypeScript exit 0; medal row accents updated to use the shared rank rather than row index so exact ties get the same color. Six affected regression tests repeated successfully; typography gate passed. BUG-030/031 resolved locally. Final visual gate must review expected changed tie numbers/colors rather than silently update baselines. C05 is now first incomplete, scoped to BUG-034/036/038.
+
+- C04 checkpoint: league API and shared result form reject tied set totals; ranking ignores legacy tied/empty completed results consistently with statistics. Ranking uses shared competition positions (1,1,3) across Home, table, match detail, statistics, CSV/Excel rows and ranking images. Existing ordinal tie test updated to the corrected contract. 20 targeted tests in 6 files and targeted ESLint pass; TypeScript running. BUG-029 removed from this pure-code milestone after review found the SQL substitution booking rebuild shares the same old rounding algorithm; it remains open with the financial database work.
+
+- C03 COMPLETE: 13/13 targeted tests, targeted ESLint and TypeScript exit 0. BUG-002/004 resolved locally. C04 becomes first incomplete: money split, result winner validation and tied ranking positions (BUG-029/030/031).
+
+- C03 implementation: account export resolves memberships by user_id, season participation by the associated player IDs and Push/preferences by user_email; any failed query returns a controlled 500 instead of a misleading partial export, with private/no-store headers. Confirmation accepts the phrase displayed for ES/EN/EU and sends the stable API token; invalid input now gives feedback. 13 targeted tests pass in 3 files, targeted lint passes; TypeScript gate running. No account deletion executed, BUG-003 remains open.
+
+- C02 COMPLETE: full validate exit 0, 887/887 tests in 224 files, all static/lint/TypeScript/build gates pass; source/budget unchanged for UI. BUG-001/005/008/009 resolved locally; no actual Push sent. Provider allowlist also retains Microsoft's notify.windows.com channel domains (learn.microsoft.com/en-us/windows/apps/develop/notifications/push-notifications/wns-overview). C03 now first incomplete: BUG-002/004; destructive account lifecycle BUG-003 remains open for atomic database work.
+
+- C02 implementation checkpoint: existing-account auth is read-only; new accounts use ignoreDuplicates with no role fields and a suspension recheck. Invalid invite code fallback removed; match preview selects only public game data and fee preview strips payment/expense rows. Fixed Push provider allowlist enforced at registration, league/friendly sends and retry; unsafe retries discarded without network. 36 targeted tests pass in 5 files, including revocation/creation race, valid/invalid invite, private payload exclusion and internal Push no-send; installed audit zero. Full validate in progress. Provider references: web.dev/articles/codelab-notifications-push-server, developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers and blog.mozilla.org/services/2016/02/20/webpushs-new-requirement-ttl-header/ . No real sends or remote data used.
+
+- User authorizes completion of remaining audit corrections. C02 is the first incomplete milestone, scoped to BUG-001/005/008/009. Review confirms full stale auth upsert, wrong-code league fallback, private preview data, and unvalidated stored Push destinations. Implement locally with memory tests; preserve original audit evidence and existing server.
+
+- C01 COMPLETE / BUG-040 resolved locally: final installed full and runtime audits both exit 0 with zero advisories. Full validate exit 0: 220 files / 861 tests, lint and TypeScript passed, production build passed. Playwright exit 0: 76/76 (mobile, desktop, visual comparisons, accessibility and PWA) without snapshot updates. Evidence C01-audit-installed.json, C01-audit-installed-runtime.json, C01-validate.log and C01-e2e.log. E2E logs include UntrustedHost from the existing placeholder OAuth setup; real OAuth is not validated by this suite. Vite also reports a future native-config-loader compatibility warning; current loading works and was not suppressed.
+- Scope remains only C01: Vitest 4.1.11, brace-expansion patched overrides, and the scoped tinyglobby adapter plus its 3 compatibility regressions. Application source, existing lint rules and visual baselines unchanged. Existing localhost dependencies/server were not replaced; updated tools were installed and tested in the isolated checkout. No commit/push, PRE/Production promotion, data writes or migrations. Historical 40-item audit retained; 39 findings still open. Future functional work must define the next incomplete milestone before implementation.
+
+- C01 full validate PASSED in the isolated placeholder checkout: all static gates, ESLint (0 errors / 4 existing warnings), TypeScript, full Vitest suite and production build/budget (1,181,317 gzip bytes / 102 chunks). Evidence C01-validate.log; initial failed lint attempt retained separately. Browser gate now running via the existing Playwright configuration, without personal accounts or PRE data. Still incomplete pending E2E.
+
+- C01 full validation first attempt stopped at lint: the CommonJS adapter's required synchronous import triggered no-require-imports. Added a documented exception on that single import (no app rules or lint coverage removed). Four pre-existing unused-variable warnings remain. Restart validation after this correction; no functional milestones started.
+
+- C01 adapter installed from a clean npm ci in the isolated checkout: installed full-tree audit exit 0, zero advisories; compatibility regression 3/3 passed (wildcards/files, default/missing/brace/array/Windows roots, real Next navigation lint violation). Corrected the relative local-package override and regenerated stale lock entries; final installed dependency uses tools/next-eslint-glob. Tracked validation inputs match the working checkout by hash. Full validate now running with Playwright placeholder environment; localhost:3000 and personal/PRE data untouched.
+
+- C01 compatibility finding: direct tinyglobby alias returned child directories for a brace pattern, unlike fast-glob. Stopped the wider gates, replaced the alias with a scoped local adapter at tools/next-eslint-glob setting expandDirectories:false. Lockfile re-audit remains clean. Repeat compatibility tests before full validation. An initial copy attempt for MatchResultConfirmationCard.tsx encountered a Windows file lock; hashes confirmed both copies already identical, no source modification needed.
+
+- C01 resumed by the user: scoped npm alias replaces only @next/eslint-plugin-next's fast-glob with tinyglobby 0.2.17. Source review of plugin 16.3.8 shows one consumer: getRootDirs calls globSync(pattern, { onlyDirectories: true }); tinyglobby implements this API. No lint rules/configuration removed, no Next downgrade, no advisory exclusions. Lockfile audit now exits 0 with zero vulnerabilities. Compatibility regression tests and full isolated validation still required; milestone not yet complete.
+
+- Local branch `codex/audit-corrections`, based on `6fa8c72e`; original audit evidence retained. No remote changes authorized by this correction request.
+- First incomplete milestone C01: BUG-040. Updating Vitest to 4.1.11 (compatible with the current Node 24 and existing CI Node 22) removes the old tinypool chain; updating brace-expansion overrides within their existing major lines. Next.js/ESLint versions remain unchanged.
+- Registry and advisory review: braces 3.0.3 remains the latest published release and GHSA-vfj7-8cjw-p6xm lists no patched version. Re-audit the actual resolved tree before any further tests/build or functional changes. C01 is not complete.
+- C01 checkpoint: package.json/package-lock.json updated locally using `npm install --package-lock-only --ignore-scripts --no-audit --no-fund` (exit 0); node_modules and the existing localhost server were not updated/restarted. This is a prepared lockfile change, not an installed or functionally accepted toolchain.
+- New lockfile audit: `npm audit --package-lock-only --json` exit 1, 0 critical / 5 high / 0 moderate (previously 2 critical / 10 high / 1 moderate). Remaining chain is eslint-config-next -> @next/eslint-plugin-next -> fast-glob -> micromatch -> braces, a single unpatched root advisory. Runtime-only audit exit 0, no vulnerabilities. JSON evidence saved under `docs/production-hardening/correction-evidence/`.
+- C01 BLOCKED and incomplete: no tests/build/browser runs or subsequent functional corrections after the failed security gate, as required by AGENTS.md. Do not downgrade eslint-config-next to 14.2.35 (npm's suggested incompatible major) or hide the advisory. Next step requires a compatible upstream fix or a separately reviewed replacement of the affected lint dependency chain. All other audit findings remain open; no commits, push, deployment, migrations or database writes.
 
 Last updated: 2026-07-26 20:43:00 +02:00
 Current branch at status update: `feature/v0.16-colorful-design`
@@ -2029,3 +2113,161 @@ This is human acceptance evidence reported by the project owner. It was not repl
 - Las variantes Tailwind con opacidad `bg-neutral-50/70`, `bg-neutral-50/80` y `bg-neutral-100/70` reciben ahora la superficie elevada y el color de texto de Competition.
 - Esto corrige `EVITAR SPOILERS` y mantiene coherentes los paneles equivalentes de ampliación y reglas de temporada sin modificar Classic.
 - Validación local: 11 tests de Competition, ESLint del test y `git diff --check` correctos. No se ha hecho push ni despliegue.
+
+## Competition claro (local, 2026-10-09)
+
+- Desarrollo solicitado expresamente tras el cierre de H00–H23, en `codex/competition-light`; sin publicar ni modificar main/Production.
+- Competition permite Claro, Oscuro y Sistema, conserva la elección al cambiar de estilo y responde a cambios del sistema. El arranque previo a React respeta la misma preferencia también fuera de localhost.
+- Paleta clara completa mediante colores semánticos compartidos: paneles, navegación, formularios, calendario, ranking, estadísticas, perfiles, chats, reservas, pagos, notificaciones y estados conservan la estructura del oscuro. Los acentos de texto se oscurecen en claro independientemente del color de los botones.
+- La configuración y las traducciones reflejan ambos modos. El aviso existente de nuevo tema oscuro sigue aplicando explícitamente oscuro. Los enlaces públicos mantienen su apariencia canónica Classic/Sistema.
+- Validación focalizada: 35 tests correctos; `npm run validate` completo correcto en worktree aislado con dependencias del lockfile, entorno placeholder, 213 archivos/824 tests, TypeScript, ESLint, controles estáticos y build dentro del presupuesto. Recompilación final de bordes/foco de formularios y `quality:build` correctos (1.096.380 bytes gzip, 99 chunks JS). Pruebas focalizadas finales: 35 correctas; `git diff --check` correcto. Cambios locales listos para revisión, sin commit ni push. Sin pruebas visuales en navegador por la preferencia previa del usuario.
+
+### Revisión visual solicitada (2026-10-09)
+
+- Revisión interactiva en el navegador local de Competition claro y oscuro, autorizada expresamente. Sin enviar mensajes ni guardar resultados, reservas o pagos.
+- Se detectó un solapamiento compartido en el perfil: el subtítulo del rendimiento forzaba una sola línea y quedaba debajo del indicador de victorias. Se permite ahora el salto de línea en `PlayerStatsPanel`, para todos los estilos. Corrección verificada visualmente en Competition claro y oscuro.
+
+- Recorridos revisados: Mis ligas, HOME (temporadas activa y terminada), Ranking, Calendario, detalle de partido, pagos/transferencias, chat y mensaje fijado, Mi perfil, Estadísticas/resumen, Apariencia y buscador de Ajustes. Se probaron navegación, temporadas sincronizadas, salto a jornada activa, cambio claro/oscuro, acento violeta y diálogos de calendario.
+- Tamaños comprobados: viewport móvil original y 1280×800 para disposición y centrado de diálogo; override retirado al terminar. No se detectaron regresiones nuevas en oscuro en estos recorridos. La consulta de errores de consola al comprobar el perfil oscuro no devolvió errores.
+- Se actualizó en ES/EN/EU el texto antiguo del buscador de apariencia (Colorido → Competition) y se añadió Competition como término de búsqueda; comprobado también en navegador.
+- Validación tras ajustes: 51 tests relacionados correctos (perfil y búsqueda), ESLint, tipografía, i18n y `git diff --check` correctos. Capturas de perfil claro/oscuro conservadas fuera del repositorio.
+- Navegador devuelto a Ajustes, Competition claro, acento de liga y temporada 3 originales. Sin commit ni push. La comprobación funcional no incluyó guardar operaciones de negocio ni enviar mensajes.
+
+### Simplificación de Mi perfil (local, 2026-10-09)
+
+- Se elimina el nombre de temporada repetido bajo Rendimiento de temporada en Mi perfil; la selección permanece en la cabecera. Se aplica a todos los temas y también al panel sin resultados.
+- Validación: ESLint del componente y git diff --check correctos. Sin commit ni publicación.
+
+### Guardado en rama (2026-10-09)
+
+- Por solicitud del usuario, se agrupan Competition claro, los ajustes de revisión visual y la simplificación de Mi perfil en un commit local de `codex/competition-light`.
+- Se conservan las validaciones anteriores y se verifica de nuevo `git diff --check` antes del commit. Sin push, despliegue ni cambios en base de datos.
+
+### Datos de posición y mano en PRE (2026-10-09)
+
+- Por autorización expresa del usuario, se rellenaron aleatoriamente los campos vacíos `preferred_side` y `dominant_hand` de `app_users` únicamente en PRE, verificando el proyecto antes de escribir.
+- Dos usuarios actualizados, cuatro campos completados con valores válidos. Escrituras condicionadas a que cada campo siguiera vacío; los valores existentes se conservaron.
+- Lectura posterior verificada: ningún usuario sin posición o mano informada y todos los valores válidos. Sin modificar PROD, esquema ni migraciones.
+
+### Posición y mano ficticias para jugadores sin cuenta (local, 2026-10-09)
+
+- Por solicitud del usuario, el snapshot autenticado de liga añade posición y mano deterministas según el ID a jugadores sin cuenta vinculada, únicamente para localhost/PRE con la base de PRE. No se persisten ni se sustituyen datos de cuentas vinculadas.
+- La protección devuelve valores vacíos ante host desconocido, variante prod/production, base distinta de PRE o configuración inválida. El entorno local actual cumple las condiciones sin cambios de configuración.
+- Validación: 10 pruebas unitarias con configuración simulada (incluyendo exclusión de PROD), ESLint y `git diff --check` correctos. Sin commit, push ni despliegue; PRE recibirá el comportamiento cuando se publique.
+
+### Ayuda de estados por toque, ratón y teclado (local, 2026-10-09)
+
+- Componente compartido `StatusHelp`: muestra la explicación con un toque, hover de ratón o foco; admite Enter/Espacio, Escape, cierre al tocar fuera y al desplazar/redimensionar. Evita activar la tarjeta contenedora y usa portal con posición limitada al viewport para no quedar recortado.
+- Aplicado a estados de partidos y victoria/derrota (liga y personales), jornadas, temporadas de Mis ligas, pagos e inscripciones, incidencias, validación de resultados, estadísticas incompletas, vista pública y bolitas de Chats/solo lectura. Descripciones ES/EN/EU y colores semánticos compartidos por los temas.
+- La aserción estructural antigua del desplegable de Chats se actualizó al componente compartido; su interacción queda cubierta por pruebas de comportamiento. El gate i18n detectó una descripción inline, trasladada al catálogo común, y pasó después.
+- Validación: 8 pruebas del componente (toque, ratón, teclado, navegación de tarjeta, portal y traducciones), pruebas relacionadas de tarjetas/Chats/coordinación, TypeScript, ESLint, tipografía, i18n y `git diff --check` correctos. Sin pruebas visuales, commit, push ni despliegue.
+
+### Ayuda contextual para participantes y contraste de Coordinando (local, 2026-10-09)
+
+- La ayuda de partidos distingue al participante del observador en detalle, tarjetas de calendario, historial de perfil, partidos personales y Chats. Orienta a revisar propuestas, confirmar reservas, consultar la programación o registrar resultados según el contexto; no afirma que falte un voto personal sin datos que lo acrediten.
+- El detalle transmite el permiso real de registrar resultado. La validación solo pide revisar/confirmar a participantes habilitados que todavía no han respondido; los observadores conservan explicaciones informativas.
+- Competition aplica explícitamente la superficie, el texto y el borde violeta/índigo de los estados; se añaden las variantes violet-50 y los textos 800 que faltaban para evitar la etiqueta blanca y mantener contraste en claro/oscuro.
+- Validación: 10 pruebas de ayuda (incluidas diferencias participante/observador y permiso de resultado), pruebas de Chats y tarjetas personales, TypeScript, ESLint, tipografía, i18n y `git diff --check` correctos. Sin commit ni publicación.
+
+### Contraste de hora de envío en propuestas del chat (local, 2026-10-09)
+
+- Revisión visual solicitada: las propuestas propias mostraban la hora en gris claro sobre el acento dorado. Se aplica el mismo marcador semántico de metadatos de los mensajes normales y se retira la reducción de escala de esa hora.
+- Validación: ESLint, 3 pruebas de propuestas/timestamps y `git diff --check` correctos. Tras recargar el chat abierto, las horas de ambas propuestas se leen con contraste oscuro sobre dorado; captura conservada fuera del repositorio. Sin enviar mensajes ni votar, sin commit ni publicación.
+
+### Participantes sin cuenta en detalle de encuestas y paridad de amistosos (local, 2026-10-09)
+
+- El detalle de votos deja de filtrar jugadores sin cuenta: todos los participantes aparecen en sí/no/pendiente; los no vinculados figuran como pendientes, sin inventar respuestas ni alterar la regla de acuerdo unánime.
+- Auditoría de equivalentes: el chat amistoso usa los metadatos compartidos y no tiene propuestas/encuestas. Pagos y reservas utilizan CourtBookingPanel común. Se completó el paso del contexto de participante y permiso de registrar resultado en la cabecera del detalle amistoso.
+- Validación: 16 pruebas de agrupación, timestamps y componentes de ambos chats, ESLint, TypeScript y `git diff --check` correctos. En el chat abierto se verificaron visualmente los cuatro jugadores (dos votos y dos pendientes) sin votar ni enviar mensajes. Captura fuera del repositorio. Sin commit ni despliegue.
+
+### Identificación compacta de votantes (local, 2026-10-09)
+
+- El detalle de propuestas muestra nombre e inicial del apellido en lugar de solo nombre; si solo consta un nombre, se conserva. El nombre completo permanece accesible mediante el título y la etiqueta del enlace.
+- Verificado en el chat abierto: David A., David C., Julian A. y Gustavo F. ESLint y `git diff --check` correctos. Sin commit ni publicación.
+
+### Nombres compactos en tarjetas de Chats (local, 2026-10-09)
+
+- Las tarjetas de Chats muestran nombre e inicial del apellido para pareja y rivales, conservando los nombres únicos sin apellido.
+- Validación: 8 pruebas relacionadas de Chats, ESLint y `git diff --check` correctos. Sin commit ni publicación.
+
+### Iconos de Explorar estadísticas (local, 2026-10-09)
+
+- Eliminado el doble contenedor del icono que superponía superficies y un borde cuadrado en Competition. Ahora cada acceso tiene un único contenedor redondeado y centrado, con SVG de 20×20 y trazo uniforme; se equilibran las barras de clasificación y la base del trofeo.
+- Verificados visualmente los seis accesos tras recargar el navegador; mantienen centrado vertical con descripciones de varias líneas y respetan el acento del tema. ESLint, tipografía y `git diff --check` correctos. Sin commit ni publicación.
+
+### Correcciones de auditoría visual (local, 2026-10-09)
+
+- Rama codex/visual-audit-polish creada por petición del usuario, conservando los cambios locales anteriores. Plan resumible en docs/VISUAL_AUDIT_PLAN.md; V01 en curso, sin operaciones remotas.
+- Primer bloque: contraste del estado vacío e incidencias, ubicación pendiente precisa, nombres completos en perfiles, eliminación de temporada duplicada, singularización en rendimiento, exclusión de campeones sin resultados y prioridad de deudas propias en pagos. Validación pendiente; no marcado completo.
+- Segundo bloque: contexto de liga y temporada en enlaces autorizados, paridad de Chats amistosos, selectores de temporada en estadísticas y administración, cargas de usuarios, búsqueda de ayuda/usuarios, gráfica inicialmente reducida y pulido de exportación/perfiles. Se retiraron helpers administrativos sin uso para respetar el presupuesto de código, sin elevarlo.
+- Pruebas nuevas: no premiar campeones sin resultados válidos y resolver enlaces conocidos solo con acceso autorizado. TypeScript y pruebas dirigidas correctos; suite completa encontró una aserción antigua adicional del título de Inicio, ya corregida. Validación completa y segunda revisión visual todavía pendientes.
+- Segunda pasada visual en curso: fechas/temporadas de actividad y notificaciones, entrada compacta de amistosos, carga visible del chat, importe sin informar distinto de cero, pendientes históricos explícitos y controles de Media Kit debajo del título. Ancho de escritorio ampliado a 640 px, coordinando navegación y controles flotantes con la misma variable; móvil sin cambio de ancho.
+- Validación previa: 217 archivos / 850 pruebas correctos; build y presupuesto JS correctos en copia con dependencias propias del lockfile. Turbopack rechazó inicialmente el enlace de node_modules, sustituido por instalación aislada. Se repetirán gates tras los últimos ajustes visuales.
+- Reanudación: las dos pruebas de Welcome Pack pasan tras marcar como visto el anuncio de Competition en el usuario ficticio de Playwright. Se mantienen las pruebas unitarias del aviso; no se cambia el comportamiento para usuarios reales.
+- Segunda revisión: 88 visitas registradas / 72 rutas y variantes, con muestra adicional clara y escritorio. Enlace entre ligas autorizado verificado hasta cargar Jornada 4 / Temporada 2; pagos de amistosos muestran primero la deuda propia; perfil global comprobado tras completar la carga. Ancho de contenido y navegación de escritorio medido: 640 px. Tema oscuro, URL original y viewport normal restaurados.
+- Referencias visuales autenticadas revisadas individualmente en móvil/escritorio y regeneradas por cambios deliberados de tipografía, contenido y ancho; también revisadas las referencias públicas. La suite completa se repite sin actualizar referencias antes de declarar el gate correcto.
+- Playwright completo: 70/70 correctas sin actualización automática de referencias. Validación general detectó una aserción estructural antigua que imponía texto blanco al retorno público; actualizada para comprobar el marcador de acento y el blanco del estilo clásico en CSS. Sus tres pruebas pasan; se repite validate completo antes de cerrar.
+- V01 completado con disposiciones y límites explícitos en docs/VISUAL_AUDIT_RESULTS.md: validate completo correcto, 217 archivos / 850 pruebas, TypeScript y build correctos, 0 errores ESLint / 4 avisos. Presupuestos sin elevar: 132.184 líneas / 191 clientes / 50 páginas cliente y 1.178.599 bytes gzip / 102 chunks JS. Playwright final 70/70. Sin commit, push, despliegue ni escrituras de negocio durante la revisión.
+- V02 iniciado por autorización expresa del usuario: aceptación funcional manual en localhost/PRE con ligas y temporadas desechables. Conservar ligas existentes; verificar persistencia y limpieza. Sin usar cuentas personales/PRE en suites automatizadas, sin cambios de permisos, commit ni despliegue.
+- V02: entorno PRE/local y proceso del checkout verificados. Creada por UI la liga QA V02 desechable 2026-10-09 y QA ciclo inicial (8 jugadores/7 jornadas); persistencia tras recarga correcta, inscripciones ficticias 8/8 y desbloqueo de inicio correctos. Confirmación nativa de inicio bloquea el navegador integrado; resolución solicitada al usuario, sin asumir escritura exitosa. Registro y limpieza pendiente en docs/FUNCTIONAL_PRE_ACCEPTANCE.md.
+- V02 continúa: temporada activa, programación manual/reserva fijada, descarga ICS, mensaje persistente, validación de tres sets/ranking y disponibilidad L-V verificados. Detectados flashes de hidratación (UUIDs/función temporalmente no habilitada), sin corrupción persistente. Detalle en FUNCTIONAL_PRE_ACCEPTANCE; pagos, ciclo y limpieza pendientes.
+- V02: edición de resultados/ranking 2-1 y +5/-5, recomendaciones de horario, reparto económico multi/único pagador, deuda propia y liquidación persistente correctos. Propuesta de ubicación muestra los cuatro jugadores. Se documentan estados optimistas sin indicador visible; continúa aceptación.
+- V02: cierre y duplicación persistentes, orden de temporadas y contexto de Perfil correctos. Amistoso QA con resultado/pagos/chat persistentes; exportaciones CSV y estructura XLSX verificadas. Se registra ausencia de reserva fijada en chat amistoso y pérdida temporal de datos históricos en UI tras duplicar. Pendiente limpieza y balance final.
+- V02 reanudado 2026-10-10: exportaciones 8×10/14×12 y estructura XLSX correctas, descripción administrativa persistente, inicio programado/cuenta atrás persistentes y reversión manual probados. Limpieza bloqueada por confirmación nativa al eliminar amistoso; diálogo no expuesto y close también timeout. Recursos exactos y reanudación en FUNCTIONAL_PRE_ACCEPTANCE.md. V02 permanece EN CURSO, sin asumir eliminación ni validación total; sin cambios de aplicación/commit/remoto.
+- V02 2026-10-10: usuario resuelve confirmación. Limpieza verificada tras recarga: amistoso QA ausente, liga QA eliminada por UI y su partido desaparecido del historial. Restauradas estadísticas originales/temporada 2, oscuro y viewport normal. Ejecución manual cerrada con hallazgos; V02 no marcado DONE porque mejoras funcionales y límites siguen documentados. Sin cambios de aplicación, commit ni publicación.
+- V02 correcciones locales en nueva rama `codex/functional-audit-fixes`, conservando todo el trabajo anterior. La entrada espera el snapshot completo; ajustes de temporada se leen al inicializar; duplicación integra una respuesta parcial conservando plantilla/reglas históricas. Votos muestran Guardando y bloquean envíos concurrentes, sin confirmar visualmente antes del servidor. Chat amistoso incorpora reserva/calendario desde el detalle autorizado. Abreviaturas coincidentes vuelven al nombre completo en encuestas y Chats. TypeScript y 10 pruebas dirigidas correctos; presupuesto 132.189 líneas / 191 clientes / 50 páginas cliente. Validación completa y revisión posterior pendientes; sin commit ni operaciones remotas.
+- V02: corregidas seis aserciones estructurales que exigían el comportamiento sustituido; 39 pruebas relacionadas correctas. `validate` completo correcto: 219 archivos / 858 pruebas, TypeScript, 0 errores ESLint / 4 avisos previos, build 1.181.292 bytes gzip / 102 chunks. Playwright 76/76 sin regenerar referencias, incluyendo espera de acceso, votos con latencia/error/reintento/recarga y calendario amistoso Google/ICS en claro/oscuro, móvil/escritorio. Se revisaron sus seis capturas; revisión local de Inicio/Chats/propuestas correcta. Último pulido mantiene nombre/inicial y coma juntos; 20 pruebas y ESLint correctos, se repite validate sobre ese estado final antes del cierre. Sin escrituras de negocio adicionales, commit ni publicación.
+- V02 cerrado en su alcance documentado: validate final completo correcto (219 archivos / 858 pruebas, TypeScript, 0 errores ESLint / 4 avisos previos, 132.188 líneas / 191 clientes / 50 páginas cliente, build 1.181.317 bytes gzip / 102 chunks). 26 pruebas dirigidas y ESLint finales correctos; Playwright 76/76. Reserva amistosa y guardado revisados en capturas de móvil/escritorio, claro/oscuro; nombres comprobados en el navegador local. Límites y disposición del diálogo nativo en FUNCTIONAL_PRE_ACCEPTANCE. Rama codex/functional-audit-fixes lista para revisión local, sin commit ni push. Auto Resume comprobado activo, monitor ejecutándose y autoarranque registrado; no se cambió su configuración.
+- Evidencias y logs finales conservados fuera del repositorio. La app rechazó archivar la copia `functional-audit-check` por protección de chat/workspace fijado; se conserva íntegra y no se elude esa protección. El checkout principal y su servidor permanecen disponibles.
+
+### V03 — Publicación autorizada solo en PRE (2026-10-10)
+
+- Usuario autoriza subir todo lo pendiente a PRE. Se prepara v1.15.9 con Competition claro y auditorías V01/V02; main/Producción/v1.0.0 quedan fuera del alcance. staging remoto y main parten de 02c3c4a15ab8f74fc7f351f0a1e06ba4d8be2f46.
+- Gates locales previos: validate completo y 858 pruebas, Playwright 76/76; npm audit --omit=dev informa cero vulnerabilidades. Sin migraciones pendientes ni escrituras de negocio. Publicación todavía no ejecutada; se verificará SHA remoto, despliegue y smoke PRE.
+
+- Revisión previa de Actions detecta fallo heredado en pgTAP: la prueba prohibía cualquier política, incluida notification_reads_service_only (solo service_role). Se actualiza la aserción para rechazar toda política que no esté restringida exclusivamente a service_role; no se modifican permisos ni migraciones. Publicación detenida hasta comprobar el gate de base de datos en CI.
+- Inventario por diferencias de parches: pendientes Competition claro, auditorías acumuladas y tres commits antiguos de feature/welcome-pack-media-kit (impresión móvil y optimización del calendario). Resto de ramas funcionales ya integradas; competition-dark-polish solo aporta documentación. Se integrarán en orden y sin duplicar cambios.
+
+- Comparación de contenido de las ramas antiguas: los tres commits de Welcome Pack/calendario ya tienen sus cambios funcionales en la versión actual (incluidas páginas CSS A4, guía móvil, carrusel compacto y conteos reutilizados); los hashes difieren por integraciones posteriores. Se abortó limpiamente el cherry-pick de comprobación para no reinstalar diseños antiguos ni pruebas anteriores al refactor. No hay funcionalidad adicional pendiente en esa rama. Orden real de publicación: Competition claro, mejoras visuales y correcciones funcionales, ya acumulados en la rama de integración.
+
+- v1.15.9 validate final y Playwright 76/76 correctos. PR #19 abierta contra staging; ramas de origen verificadas remotamente. Se comprueba expresamente que la consulta pgTAP filtra roles exclusivos service_role antes de la nueva ejecución CI; despliegue PRE pendiente de gates.
+
+- V03 DONE: PR https://github.com/davidalonsoc4/smash-lob/pull/19 integrada en staging b6212a007cac7ae1f7a0b809b9953e561836edc0. Árbol desplegado idéntico al validado. Los cuatro jobs pasan antes y después del merge: Actions 38043501747 y 38043771776 (código/build, navegador/accesibilidad/PWA, migraciones/pgTAP/restore, Lighthouse).
+- PRE v1.15.9 verificado: Vercel dpl_8KAkFaac5UMBWyrDoTHaTKUFodge READY, alias pre.smashandlob.com en smash-hlsmrm25h-davidalonsoc4-8740s-projects.vercel.app. Smoke con transporte autenticado de Vercel: health 200/status ok/version 1.15.9/environment pre; portada 200; Avatar Lab 200; API Avatar 401 sin sesión de aplicación. El smoke anónimo recibe 302 de protección SSO de Vercel; se conserva protección sin cambios.
+- main remoto permanece 02c3c4a15ab8f74fc7f351f0a1e06ba4d8be2f46 y v1.0.0 e9152940ec51fdc34b785aa8ea0e054c110c4040 sin operaciones de escritura. No se desplegó Producción ni se modificaron datos/migraciones. Logs y prueba de publicación conservados fuera del repositorio; documentación final en rama de integración.
+
+### A01 — Auditoría integral exclusivamente documental (2026-10-10, CERRADA CON HALLAZGOS; detalle final al pie)
+
+- Nuevo encargo sustituye cualquier autorización de corrección/publicación para esta auditoría. Solo documentos y evidencias; inventario y progreso en AUDITORIA_GENERAL.md / AUDITORIA_PROGRESO.md. No commits ni operaciones remotas de escritura.
+- Se inicia A01 (inventario/antecedentes) antes de módulos. Fuente y pruebas fingerprintadas para verificar al finalizar que no cambian. Detectados efectos de escritura en autenticación/GET access: evitar navegación autenticada a PRE; preparar revisión aislada sin cuentas reales. Auto Resume activo comprobado en solo lectura.
+
+- A01 completado: inventario íntegro (70 páginas/96 API/21 módulos), índice de antecedentes y matriz de seguridad de scripts. A02 inicia M01/M02; solo lectura/análisis y reproducciones aisladas. No se ejecutan qa:pre, Docker/descargas npx, reglas remotas ni tareas de escritura.
+
+- A02 M01/M02: BUG-001..004 reproducidos/documentados en memoria (4 pruebas correctas): carrera que restaura privilegios en auth, IDs erróneos en exportación, anonimización parcial con éxito falso y confirmación traducida incompatible. No se corrige código ni se tocan cuentas reales. validate aislado en curso; fuente del checkout principal fingerprintada.
+
+- A02 checkpoint: validate aislado terminó con código 0, 219 archivos / 858 pruebas, TypeScript/build correctos, 0 errores ESLint / 4 avisos y 1.181.274 bytes gzip / 102 chunks. Pendiente lint dirigido de los componentes sincronizados durante el primer lint. Auto Resume consultado por invocación expresa: activo, monitor en ejecución, autoarranque registrado, 0 pendientes; sin cambios de configuración. Auditoría incompleta, solo documentos/evidencias modificados.
+
+- A02 M03/M04: Playwright nuevo 76/76, lint dirigido final correcto y seis capturas revisadas. BUG-005..015 documentados, once reproducciones en memoria correctas; principales nuevos hallazgos: GET invitación con código erróneo + leagueId devuelve datos, alta de liga parcial, borrado de temporada parcial y fallback activo incorrecto. Probables de promoción separados de confirmados. 924 archivos funcionales sin cambios. Arranque visual aislado rechazado por revisión automática, bloqueo documentado; se continúa por código/pruebas seguras, sin eludirlo ni usar cuentas reales. M04 y resto de módulos pendientes; no se marca auditoría completa.
+
+- A02 reanudado tras límite: BUG-016..020 incorporados con evidencia aislada (15 reproducciones correctas). Barrido adicional de calendario 102 casos: 98 correctos, cuatro fallos de generación de duraciones aceptadas; exit 1 documentado, sin continuar una publicación ni modificar el código. Continúa auditoría documental M04/M05; no equivale a aceptación global.
+
+- A02 M05: BUG-021/022 reproducidos con helper real en memoria: lista parcial y error intermedio mezclan jornadas. Tres pruebas correctas (dos reproducciones y control), sin datos reales ni correcciones. Reparación/reroll se sigue contrastando con SQL; no se da por finalizada la revisión.
+
+- A02 M06: BUG-023 confirmado en memoria: resultado modificado queda validado con confirmaciones anteriores si falla su borrado. Nueva prueba 1/1 correcta. BUG-024 separado como riesgo probable de concurrencia SQL reroll/resize frente a resultados, sin atribuir prueba PostgreSQL. Restricciones de reparación/validación de conjuntos revisadas; no se modifica código ni migraciones.
+
+- A02 M07: BUG-025 confirmado (1/1): resolución de incidencia responde 200 cuando falla la limpieza de confirmaciones y MVP. Tres controles puros adicionales de M06 pasan. Revisión de permisos, locks de sustitución y resultados documentada en M05-M07-revision.md. Continúan módulos; código funcional intacto.
+
+- A02 checkpoint resumible: 25 fichas, 23 pruebas adicionales correctas (19 reproducciones y 4 controles); barrido 102 casos / 4 fallos conservados. M04..M07 aún en curso, M08..M21 pendientes. Fingerprint 924 archivos: 0 cambios funcionales, HEAD inicial. Informe y progreso actualizados; sin aceptación global ni cierre del hito.
+
+- A02 M08..M11: BUG-026/027 reproducidos (2/2): zonas horarias ignoradas y propuesta aprobada fuera de los últimos 60 mensajes. BUG-028/029 reproducidos (2/2): pagos concurrentes sobrescritos y reparto con diferencia de dos céntimos. Solo memoria/funciones puras. Continúan revisión de módulos y antecedentes; ninguna corrección.
+
+- A02 M10..M14: BUG-030/031 ranking frente a estadísticas reproducidos (2/2); BUG-032 IDs de participantes amistosos/pagos reproducido (1/1); BUG-033 cola Push ignora errores reproducido con web-push simulado (2/2), sin envíos. Se descartó falso positivo de cola tras unsubscribe: FK ON DELETE CASCADE existe. Solo documentación/evidencias.
+
+- A02 cierre de revisión modular: alta de temporada, manuales, sustitución/desasignación SQL, economía, automatizaciones, exportaciones, PWA, idiomas, administración y logs contrastados. BUG-034/036 DOM y BUG-037 alta reproducidos; BUG-035 riesgo de borrador separado como probable; BUG-038 README histórico confirmado; BUG-039 cursor histórico reproducido. Cinco pruebas adicionales correctas (total 37); sin red ni cambios funcionales. Pendiente consolidación documental de cobertura y antecedentes antes de cerrar A02/A03.
+
+- A02 COMPLETADO dentro del alcance seguro: 21/21 módulos examinados con límites explícitos; evidencias M08-M15 y M16-M21 añadidas. Gates ejecutados conservados: validate, lint dirigido, Playwright 76/76, reproducciones adicionales 37/37; barrido 102 con cuatro fallos reales documentados. Comienza A03 exclusivamente documental: matriz de antecedentes, cruces, balance y verificación de integridad; quedan bloqueos externos/visuales, no aceptación total del producto.
+
+- A03 gate adicional npm audit: runtime 0 avisos/exit 0; árbol completo 13 paquetes afectados (2 critical,10 high,1 moderate), exit 1. BUG-040 P1 documenta dependencia dev confirmada y explotación no demostrada, avisos oficiales contrastados. Se detienen nuevas ejecuciones de pruebas/build y cualquier publicación; solo cierre documental/lectura. No npm audit fix, actualización, instalación o cambios de umbrales.
+
+
+- A03 CERRADO: AUDITORIA_GENERAL.md, AUDITORIA_PROGRESO.md, índice de 40 fichas y matriz de 64 antecedentes finalizados. Balance P0 0/P1 10/P2 27/P3 3; 35 confirmados en alcance, cinco probables; 21 módulos examinados con límites. Antecedentes: 37 resueltos en alcance, tres persistentes,18 pendientes,seis obsoletos. Evidencia cierre-validacion.json. Bloqueos visuales/dispositivos/PostgreSQL/servicios reales explícitos; no aceptación de release. Último gate completo de dependencias falla y se conserva sin eludirlo. Integridad 924 archivos, cero diferencias, HEAD inicial 6fa8c72; solo documentación/evidencias, ningún commit/push, instalación, despliegue, escritura real o corrección. Detener auditoría y esperar decisión del usuario antes de corregir.

@@ -96,6 +96,8 @@ export default function PersonalMatchDetailPage() {
       backLabel="Mis partidos"
       title={tx("Partido")}
       status={item.status}
+      isParticipant={item.participants.some(participant => participant.isCurrentUser)}
+      canRecordResult={item.status === "scheduled" && item.canManage}
       scheduledAt={item.scheduledAt}
       resultRecordedAt={item.resultRecordedAt}
       headerActions={

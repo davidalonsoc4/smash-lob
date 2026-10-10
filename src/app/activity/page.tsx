@@ -8,6 +8,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { SectionHeader } from "@/components/ui/SectionHeader"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -346,6 +347,8 @@ function ActivityEventCard({
   showMetadata?: boolean
 }) {
   const { t, tx, locale } = useI18n()
+  const { seasons } = useSeasonSettings()
+  const seasonName = seasons.find(season => season.id === event.seasonId)?.name
   const description = getActivityDescription({
     event,
     roundLabel: t.activity.round,
@@ -371,7 +374,7 @@ function ActivityEventCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate type-small font-black text-neutral-950">
+              <p className="break-words type-small font-black text-neutral-950">
                 {tx(event.title)}
               </p>
               <p className="mt-0.5 type-caption font-semibold text-neutral-500">
@@ -384,6 +387,7 @@ function ActivityEventCard({
             </p>
           </div>
 
+          {seasonName ? <p className="mt-1 type-caption font-semibold text-neutral-500">{seasonName}</p> : null}
           {description ? (
             <p className="mt-2 whitespace-pre-line text-xs leading-snug text-neutral-600">
               {tx(description)}
@@ -410,7 +414,7 @@ function ActivityEventCard({
 }
 
 function ActivityPageContent() {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const { t } = useI18n()
   const { currentUserId } = useCurrentUser()
   const { isLeagueAdmin } = useLeagueAccess()
@@ -924,12 +928,13 @@ function ActivityPageContent() {
 
           {hasEvents ? (
             <div className="space-y-3">
-              {visibleEvents.map((event) => (
+              {visibleEvents.map((event, index) => (
+                <div key={event.id} className="space-y-2">
+                {index === 0 || new Date(event.createdAt).toDateString() !== new Date(visibleEvents[index - 1].createdAt).toDateString() ? <h2 className="pt-2 text-sm font-semibold text-neutral-500">{new Date(event.createdAt).toLocaleDateString(getIntlLocale(locale), { day: "numeric", month: "long", year: "numeric" })}</h2> : null}
                 <ActivityEventCard
-                  key={event.id}
                   event={event}
                   leagueLogoUrl={activeLeague.logoUrl}
-                />
+                /></div>
               ))}
             </div>
           ) : null}

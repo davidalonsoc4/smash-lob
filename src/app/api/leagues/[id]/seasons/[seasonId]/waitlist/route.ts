@@ -14,18 +14,19 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const access = await getServerLeagueActor(leagueId, { requireMember: true })
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
   const isAdmin = access.actor.membership?.role === "creator" || access.actor.membership?.role === "admin" || access.actor.user.isSuperuser
-  let query = access.actor.supabase.from("season_waitlist").select("id,user_id,status,created_at,promoted_at,confirmation_expires_at,position").eq("league_id", leagueId).eq("season_id", seasonId).in("status", isAdmin ? ["waiting", "promoted"] : ["waiting", "promoted"]).order("position", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }).order("id", { ascending: true })
-  if (!isAdmin) query = query.eq("user_id", access.actor.user.id)
+  const query = access.actor.supabase.from("season_waitlist").select("id,user_id,status,created_at,promoted_at,confirmation_expires_at,position").eq("league_id", leagueId).eq("season_id", seasonId).in("status", ["waiting", "promoted"]).order("position", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }).order("id", { ascending: true })
   const { data, error } = await query
   if (error) return NextResponse.json({ error: "waitlist_lookup_failed" }, { status: 500 })
   const waiting = (data ?? []).filter((row: { status: string }) => row.status === "waiting")
   const position = waiting.findIndex((row: { user_id: string }) => row.user_id === access.actor.user.id)
-  const userIds = (data ?? []).map((row: { user_id: string }) => row.user_id)
+  const ownEntry = (data ?? []).find((row: { user_id: string }) => row.user_id === access.actor.user.id) ?? null
+  const visibleRows = isAdmin ? data ?? [] : ownEntry ? [ownEntry] : []
+  const userIds = visibleRows.map((row: { user_id: string }) => row.user_id)
   const { data: users } = userIds.length
     ? await access.actor.supabase.from("app_users").select("id,display_name").in("id", userIds)
     : { data: [] }
   const names = new Map((users ?? []).map((user: { id: string; display_name: string | null }) => [user.id, user.display_name ?? "Jugador"]))
-  return NextResponse.json({ items: (data ?? []).map((row: { user_id: string }) => ({ ...row, display_name: names.get(row.user_id) ?? "Jugador" })), position: position < 0 ? null : position + 1 })
+  return NextResponse.json({ items: visibleRows.map((row: { user_id: string }) => ({ ...row, display_name: names.get(row.user_id) ?? "Jugador" })), ownEntry, position: position < 0 ? null : position + 1 })
 }
 
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string; seasonId: string }> }) {

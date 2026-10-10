@@ -112,11 +112,11 @@ export function SeasonRosterWaitingRoom({
   useEffect(() => {
     let cancelled = false
     void fetch(`/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/waitlist`, { cache: "no-store" })
-      .then((response) => response.ok ? response.json() as Promise<{ position: number | null; items?: Array<{ user_id: string; status: string; display_name?: string }> }> : null)
+      .then((response) => response.ok ? response.json() as Promise<{ position: number | null; ownEntry?: { status: string } | null; items?: Array<{ user_id: string; status: string; display_name?: string }> }> : null)
       .then((payload) => {
         if (cancelled || !payload) return
         setWaitlistPosition(payload.position)
-        const own = payload.items?.find((item) => item.user_id === membership?.userId)
+        const own = payload.ownEntry
         setIsPromoted(own?.status === "promoted")
         setIsWaitlisted(own?.status === "waiting" || payload.position !== null)
         if (canManage) setAdminWaitlist(payload.items?.filter((item) => item.status === "waiting") ?? [])

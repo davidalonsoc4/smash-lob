@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import Link from "next/link"
 import { useRef } from "react"
 import { useSearchParams } from "next/navigation"
@@ -222,9 +224,9 @@ export default function MatchesPage() {
                   <div className="flex items-center justify-between gap-3">
                     <h2 className="type-section-title">{round.name}</h2>
                     {roundStatusText ? (
-                      <span className={getRoundStatusBadgeClassName(round.status)}>
+                      <StatusHelp kind="round" status={round.status} className={getRoundStatusBadgeClassName(round.status)}>
                         {roundStatusText}
-                      </span>
+                      </StatusHelp>
                     ) : null}
                   </div>
                   {roundWindowText ? (
@@ -240,9 +242,9 @@ export default function MatchesPage() {
                   <div className="flex items-center justify-between gap-3">
                     <h2 className="type-section-title">{round.name}</h2>
                     {roundStatusText ? (
-                      <span className={getRoundStatusBadgeClassName(round.status)}>
+                      <StatusHelp kind="round" status={round.status} className={getRoundStatusBadgeClassName(round.status)}>
                         {roundStatusText}
-                      </span>
+                      </StatusHelp>
                     ) : null}
                   </div>
                   {roundWindowText ? (

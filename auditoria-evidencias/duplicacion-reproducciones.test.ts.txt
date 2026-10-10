@@ -1,0 +1,53 @@
+import { expect, it } from "vitest"
+import { duplicateServerSeason } from "@/lib/serverSeasonDuplication"
+const leagueId="qa-league", sourceSeasonId="qa-finished"
+function fixture(playerCount:number,scheduleMode="single",totalRounds=7,failCleanup=false){
+  let sequence=0
+  const players=Array.from({length:playerCount},(_,i)=>({id:`qa-player-${i}`,league_id:leagueId,slug:`qa-${i}`,display_name:`QA ${i}`,avatar_initials:"QA"}))
+  const rows:Record<string,any[]>={
+    seasons:[{id:sourceSeasonId,league_id:leagueId,name:"QA origen",status:"finished",total_rounds:totalRounds,completed_rounds:totalRounds}],
+    season_settings:[{season_id:sourceSeasonId,league_id:leagueId,round_window_mode:"none",requires_three_sets:false,mvp_system:"none",result_confirmation_mode:"none",registration_fee:{enabled:false},schedule_mode:scheduleMode}],
+    season_players:players.map(p=>({season_id:sourceSeasonId,player_id:p.id,status:"active"})),players,
+  }
+  const supabase={from:(table:string)=>{
+    let operation="select",values:any,executed:any
+    const filters:((row:any)=>boolean)[]=[]
+    async function execute(){
+      if(executed)return executed
+      if(operation==="insert"){
+        if(failCleanup&&table==="season_players")return {data:null,error:{message:"QA insert failure"}}
+        const inserted=(Array.isArray(values)?values:[values]).map(value=>({...value,id:value.id??`qa-inserted-${++sequence}`}))
+        rows[table]=[...(rows[table]??[]),...inserted];return executed={data:inserted,error:null}
+      }
+      if(operation==="delete"){
+        if(failCleanup)return {data:null,error:{message:"QA cleanup failure"}}
+        rows[table]=(rows[table]??[]).filter(row=>!filters.every(fn=>fn(row)));return executed={data:[],error:null}
+      }
+      if(operation==="update")return executed={data:[],error:null}
+      return executed={data:(rows[table]??[]).filter(row=>filters.every(fn=>fn(row))),error:null}
+    }
+    const query:any={select:()=>query,limit:()=>query,
+      eq:(key:string,value:any)=>{filters.push(row=>row[key]===value);return query},
+      in:(key:string,value:any[])=>{filters.push(row=>value.includes(row[key]));return query},
+      insert:(value:any)=>{operation="insert";values=value;return query},update:(value:any)=>{operation="update";values=value;return query},delete:()=>{operation="delete";return query},
+      single:async()=>{const r=await execute();return {...r,data:r.data?.[0]??null}},maybeSingle:async()=>{const r=await execute();return {...r,data:r.data?.[0]??null}},then:(resolve:any)=>execute().then(resolve)}
+    return query
+  }}
+  return {rows,actor:{supabase,user:{id:"qa-user",isSuperuser:false}} as any}
+}
+it("BUG-017: duplicar duración personalizada de 10 jornadas genera 28",async()=>{
+  const {actor}=fixture(14,"extended",10)
+  const result=await duplicateServerSeason({actor,leagueId,sourceSeasonId,name:"QA duplicada"})
+  expect(result.sourceSeason.totalRounds).toBe(10)
+  expect(result.duplicatedSeason.totalRounds).toBe(28)
+})
+it("BUG-018: dos duplicaciones concurrentes crean dos upcoming",async()=>{
+  const {actor,rows}=fixture(8)
+  await Promise.all(["A","B"].map(name=>duplicateServerSeason({actor,leagueId,sourceSeasonId,name:`QA ${name}`})))
+  expect(rows.seasons.filter(row=>row.status==="upcoming")).toHaveLength(2)
+})
+it("BUG-019: error de compensación deja upcoming huérfana sin informar cleanup",async()=>{
+  const {actor,rows}=fixture(8,"single",7,true)
+  await expect(duplicateServerSeason({actor,leagueId,sourceSeasonId,name:"QA incompleta"})).rejects.toMatchObject({code:"season_duplicate_players_failed"})
+  expect(rows.seasons.filter(row=>row.status==="upcoming")).toHaveLength(1)
+})

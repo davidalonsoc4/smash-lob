@@ -98,7 +98,7 @@ export const en = {
     settingsTitle: "Visible name",
     settingsDescription: "The change will update your linked players in every league without altering statistics or results.",
     changeConfirm: "Save this name in all your leagues?",
-    saveChanges: "Save name",
+    saveChanges: "Save changes",
     saved: "Name updated in all your leagues.",
   },
 
@@ -794,8 +794,8 @@ export const en = {
     visualStyleDescription: "Keep the interface neutral or add coloured surfaces and accents.",
     visualStylePlain: "Classic",
     visualStylePlainDescription: "Neutral, discreet and based on the familiar application design.",
-    visualStyleColorful: "Competition · Experimental",
-    visualStyleColorfulDescription: "Dark competition mode with high contrast and a league accent.",
+    visualStyleColorful: "Competition",
+    visualStyleColorfulDescription: "Light or dark competition style with high contrast and a league accent.",
     appearanceLight: "Light",
     appearanceLightDescription: "Clean and bright.",
     appearanceDark: "Dark",
@@ -1315,7 +1315,7 @@ export const en = {
     supportUnsupported:
       "This browser does not support web push notifications. On iPhone, install the PWA on the Home Screen first.",
     supportMissingPublicKey:
-      "NEXT_PUBLIC_VAPID_PUBLIC_KEY is not configured, so push permission cannot be enabled. You can still save preferences.",
+      "Push notifications are temporarily unavailable. You can still save your preferences.",
     supportPermissionDenied:
       "Notifications are blocked in the browser. Allow them from the system or browser settings.",
     supportReady:

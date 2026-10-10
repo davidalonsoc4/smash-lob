@@ -44,14 +44,25 @@ export async function joinSeasonWaitlist({
   seasonId: string
   userId: string
 }) {
-  const { data: last } = await supabase.from("season_waitlist").select("position").eq("season_id", seasonId).eq("status", "waiting").order("position", { ascending: false }).limit(1).maybeSingle()
+  const ownEntry = () => supabase.from("season_waitlist").select("id,created_at,status").eq("league_id", leagueId).eq("season_id", seasonId).eq("user_id", userId).maybeSingle()
+  const existing = await ownEntry()
+  if (existing.error) throw new Error("waitlist_join_failed")
+  if (existing.data && existing.data.status !== "cancelled") return existing.data
+  const { data: last, error: lastError } = await supabase.from("season_waitlist").select("position").eq("season_id", seasonId).eq("status", "waiting").order("position", { ascending: false }).limit(1).maybeSingle()
+  if (lastError) throw new Error("waitlist_join_failed")
   const nextPosition = typeof last?.position === "number" ? last.position + 1 : 1
-  const { data, error } = await supabase.from("season_waitlist").upsert(
+  const mutation = existing.data
+    ? supabase.from("season_waitlist").update({ status: "waiting", position: nextPosition, created_at: new Date().toISOString(), promoted_at: null, confirmation_expires_at: null }).eq("id", existing.data.id).eq("status", "cancelled")
+    : supabase.from("season_waitlist").upsert(
     { league_id: leagueId, season_id: seasonId, user_id: userId, status: "waiting", position: nextPosition },
     { onConflict: "season_id,user_id", ignoreDuplicates: true },
-  ).select("id,created_at,status").maybeSingle()
+  )
+  const { data, error } = await mutation.select("id,created_at,status").maybeSingle()
   if (error) throw new Error("waitlist_join_failed")
-  return data
+  if (data) return data
+  const concurrent = await ownEntry()
+  if (concurrent.error || !concurrent.data || concurrent.data.status === "cancelled") throw new Error("waitlist_join_failed")
+  return concurrent.data
 }
 
 export async function leaveSeasonWaitlist({

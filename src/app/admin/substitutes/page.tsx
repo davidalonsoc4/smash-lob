@@ -179,6 +179,7 @@ export default function AdminSubstitutesPage() {
 
   async function createReplacement(event: FormEvent) {
     event.preventDefault()
+    if (activeSeason.status === "finished") return
     if (isSaving || !outgoingPlayerId || (!incomingPlayerId && replacementName.trim().length < 2)) return
     const confirmed = window.confirm(tx(`El reemplazo será permanente desde la jornada ${fromRound}. Los partidos terminados no se modificarán. ¿Continuar?`))
     if (!confirmed) return
@@ -251,12 +252,15 @@ export default function AdminSubstitutesPage() {
       <AppCard>
         <p className="font-black">{tx("Reemplazo permanente")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("El saliente conserva sus puntos y queda como baja. El entrante pasa a ser titular desde cero y ocupa únicamente los partidos futuros.")}</p>
+        {activeSeason.status === "finished" ? <p className="mt-3 text-sm font-medium text-neutral-600">{tx("Temporada terminada")}</p> : null}
         <form onSubmit={createReplacement} className="mt-3 space-y-3">
+          <fieldset disabled={activeSeason.status === "finished"} className="space-y-3 disabled:opacity-60">
           <label className="block text-xs font-black text-neutral-600">{tx("Titular que causa baja")}<select value={outgoingPlayerId} onChange={(event) => setOutgoingPlayerId(event.target.value)} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"><option value="">{tx("Selecciona titular")}</option>{rankingPlayers.filter((player) => player.seasonPlayerStatus !== "withdrawn" && !payload.replacements.some((replacement) => replacement.outgoing_player_id === player.id)).map((player) => <option key={player.id} value={player.id}>{player.displayName}</option>)}</select></label>
           <label className="block text-xs font-black text-neutral-600">{tx("Jugador entrante")}<select value={incomingPlayerId} onChange={(event) => setIncomingPlayerId(event.target.value)} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold"><option value="">{tx("Añadir un jugador nuevo")}</option>{activePool.map((item) => { const profile = getPoolProfile(item); return <option key={item.id} value={item.player_id}>{profile?.display_name ?? tx("Suplente")}</option> })}</select></label>
           {!incomingPlayerId ? <input value={replacementName} onChange={(event) => setReplacementName(event.target.value)} placeholder={tx("Nombre del nuevo titular")} maxLength={80} className="w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" /> : null}
           <label className="block text-xs font-black text-neutral-600">{tx("Desde la jornada")}<input type="number" min={1} max={activeSeason.totalRounds} value={fromRound} onChange={(event) => setFromRound(Number(event.target.value))} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-bold" /></label>
           <button disabled={isSaving || !outgoingPlayerId || (!incomingPlayerId && replacementName.trim().length < 2)} className="flex w-full rounded-2xl bg-red-600 px-3 py-2.5 text-sm font-black text-white disabled:bg-red-200 items-center justify-center text-center">{tx("Aplicar reemplazo permanente")}</button>
+          </fieldset>
         </form>
 
         {payload.replacements.length > 0 ? (

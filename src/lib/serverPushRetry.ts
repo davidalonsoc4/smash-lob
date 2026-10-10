@@ -1,10 +1,11 @@
 import "server-only"
+import { isTrustedPushEndpoint } from "@/lib/pushEndpoint"
 
 type QueueClient = {
   from: (table: string) => unknown
 }
 
-type QueueQuery = PromiseLike<{ data?: unknown[] }> & {
+type QueueQuery = PromiseLike<{ data?: unknown[]; error?: unknown }> & {
   upsert: (values: Record<string, unknown>, options?: Record<string, unknown>) => QueueQuery
   select: (columns: string) => QueueQuery
   eq: (column: string, value: unknown) => QueueQuery
@@ -44,7 +45,7 @@ export async function enqueuePushRetry({
   subscription: { id: string; endpoint: string; p256dh: string; auth: string }
   payload: Record<string, unknown>
 }) {
-  await query(supabase, "push_delivery_queue").upsert(
+  const { error } = await query(supabase, "push_delivery_queue").upsert(
     {
       event_id: eventId,
       subscription_id: subscription.id,
@@ -58,15 +59,17 @@ export async function enqueuePushRetry({
     },
     { onConflict: "event_id,subscription_id", ignoreDuplicates: true },
   )
+  if (error) throw new Error("push_retry_enqueue_failed")
 }
 
 export async function processPushRetryQueue(supabase: QueueClient) {
-  const { data } = await query(supabase, "push_delivery_queue")
+  const { data, error } = await query(supabase, "push_delivery_queue")
     .select("id,endpoint,p256dh,auth,payload,attempts")
     .eq("status", "pending")
     .lte("next_attempt_at", new Date().toISOString())
     .order("next_attempt_at", { ascending: true })
     .limit(50)
+  if (error) throw new Error("push_retry_lookup_failed")
   const rows = (data ?? []) as QueueRow[]
 
   if (!rows?.length) return { attempted: 0, sent: 0, discarded: 0 }
@@ -81,25 +84,36 @@ export async function processPushRetryQueue(supabase: QueueClient) {
   let discarded = 0
   for (const row of rows) {
     const attempts = Number(row.attempts ?? 0) + 1
+    if (!isTrustedPushEndpoint(row.endpoint)) {
+      const { error } = await query(supabase, "push_delivery_queue").update({ status: "discarded", last_error: "invalid_push_endpoint", updated_at: new Date().toISOString() }).eq("id", row.id)
+      if (error) throw new Error("push_retry_update_failed")
+      discarded += 1
+      continue
+    }
     try {
       await webPush.sendNotification(
         { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } },
         JSON.stringify(row.payload),
       )
-      await query(supabase, "push_delivery_queue").update({ status: "sent", attempts, updated_at: new Date().toISOString() }).eq("id", row.id)
-      sent += 1
     } catch (error) {
       const statusCode = typeof error === "object" && error !== null && "statusCode" in error ? Number((error as { statusCode?: unknown }).statusCode) : null
       const discard = statusCode === 404 || statusCode === 410 || attempts >= MAX_ATTEMPTS
-      await query(supabase, "push_delivery_queue").update({
+      const { error: updateError } = await query(supabase, "push_delivery_queue").update({
         status: discard ? "discarded" : "pending",
         attempts,
         next_attempt_at: new Date(Date.now() + backoffMinutes(attempts) * 60_000).toISOString(),
         last_error: statusCode ? `push_${statusCode}` : "push_delivery_failed",
         updated_at: new Date().toISOString(),
       }).eq("id", row.id)
+      if (updateError) throw new Error("push_retry_update_failed")
       if (discard) discarded += 1
+      continue
     }
+    // A successful transport followed by a failed database write must surface
+    // as a persistence error, never as a new transport retry or false success.
+    const { error: sentError } = await query(supabase, "push_delivery_queue").update({ status: "sent", attempts, updated_at: new Date().toISOString() }).eq("id", row.id)
+    if (sentError) throw new Error("push_retry_sent_update_failed")
+    sent += 1
   }
   return { attempted: rows.length, sent, discarded }
 }

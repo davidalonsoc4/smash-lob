@@ -2,6 +2,7 @@ import type { MatchData } from "@/context/MatchDataProvider"
 import type { PlayerProfile } from "@/data/fakeData"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import type { RankingPlayer } from "@/lib/ranking"
+import { getRankingDisplayPosition } from "@/lib/rankingOrder"
 import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
 import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
@@ -1271,7 +1272,7 @@ export async function createSeasonRankingImage({
         context,
         player,
         playerImage: avatarImages.get(player.id) ?? null,
-        position: index + 1,
+        position: getRankingDisplayPosition(ranking, player.id) ?? index + 1,
         x: PADDING + index * (podiumWidth + podiumGap),
         y: CONTENT_TOP,
         width: podiumWidth,
@@ -1338,7 +1339,7 @@ export async function createSeasonRankingImage({
       context.fillRect(PADDING + 24, rowY, CONTENT_WIDTH - 48, 1)
     }
 
-    drawText(context, String(index + 1), PADDING + 46, rowCenterY, {
+    drawText(context, String(getRankingDisplayPosition(ranking, player.id)), PADDING + 46, rowCenterY, {
       size: 23,
       weight: 900,
       align: "center",

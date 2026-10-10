@@ -2,11 +2,11 @@ import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 describe("v1.8.1 chats list and compact match-chat UX", () => {
-  it("keeps active chats first without a separate active heading and uses complete participant names", async () => {
+  it("keeps active chats first without a separate active heading and uses identifiable participant names", async () => {
     const page = await readFile("src/app/chats/page.tsx", "utf8")
     expect(page).not.toContain(">Chats activos<")
     expect(page).toContain('{tx("Chats finalizados")}<')
-    expect(page).toContain("function participantName")
+    expect(page).toContain("compactParticipantName(name, names)")
     expect(page).toContain('return `${tx("con")} ${participantName(chat.partner)')
     expect(page.indexOf('<ChatCards chats={activeChats} />')).toBeGreaterThanOrEqual(0)
     expect(page.indexOf('<ChatCards chats={activeChats} />')).toBeLessThan(page.indexOf("<ChatCards chats={finishedChats} />"))

@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import type { ReactNode } from "react"
 import Link from "next/link"
 import { BackButton } from "@/components/ui/BackButton"
@@ -40,12 +42,12 @@ export function StatisticsSectionIcon({
   name: StatisticsSectionIconName
 }) {
   const commonProps = {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 2,
+    strokeWidth: 1.75,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true,
@@ -54,10 +56,9 @@ export function StatisticsSectionIcon({
   const paths: Record<StatisticsSectionIconName, ReactNode> = {
     standings: (
       <>
-        <path d="M4 19V9" />
-        <path d="M10 19V5" />
-        <path d="M16 19v-7" />
-        <path d="M22 19V3" />
+        <path d="M5 20V11" />
+        <path d="M12 20V4" />
+        <path d="M19 20V8" />
       </>
     ),
     compare: (
@@ -87,7 +88,7 @@ export function StatisticsSectionIcon({
         <path d="M16 5h4v2a4 4 0 0 1-4 4" />
         <path d="M12 12v5" />
         <path d="M8 21h8" />
-        <path d="M9 17h6" />
+        <path d="M10 17h4l1 4H9l1-4Z" />
       </>
     ),
     season: (
@@ -104,8 +105,8 @@ export function StatisticsSectionIcon({
   }
 
   return (
-    <span className="grid h-8 w-8 place-items-center rounded-xl bg-neutral-100 text-neutral-700">
-      <svg {...commonProps}>{paths[name]}</svg>
+    <span className="statistics-section-icon inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700">
+      <svg {...commonProps} className="block shrink-0">{paths[name]}</svg>
     </span>
   )
 }
@@ -148,11 +149,9 @@ export function StatisticsPageHeader({
             </span>
           ) : null}
           {statusBadge ? (
-            <span
+            <StatusHelp kind="statistics" status="incomplete"
               className={`rounded-full px-2.5 py-1 type-caption font-black ${getStatusBadgeClassName(statusBadge.tone)}`}
-            >
-              {statusBadge.label}
-            </span>
+            >{statusBadge.label}</StatusHelp>
           ) : null}
         </div>
         <p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">
@@ -208,9 +207,7 @@ export function StatisticsSectionLink({
       href={href}
       className="statistics-section-link grid grid-cols-[2rem_minmax(0,1fr)_2rem] items-center gap-2.5 px-3 py-3 transition active:bg-neutral-50"
     >
-      <span className="grid h-8 w-8 place-items-center">
-        {leading ?? null}
-      </span>
+      {leading ?? <span className="h-8 w-8" aria-hidden="true" />}
       <span className="min-w-0">
         <span className="block text-sm font-black text-neutral-950">{title}</span>
         <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">

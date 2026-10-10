@@ -380,7 +380,7 @@ export function SeasonFinanceScreen() {
         <AppCard>
           <p className="font-black">{tx("Sin inscripción")}</p>
           <p className="mt-1 text-sm font-semibold text-neutral-600">
-            {tx(
+            {activeSeason.status === "finished" ? tx("Temporada terminada") : tx(
               "Activa una inscripción en Ajustes de temporada para registrar ingresos y gastos.",
             )}
           </p>

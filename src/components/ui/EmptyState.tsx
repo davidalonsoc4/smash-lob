@@ -61,7 +61,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={`rounded-3xl border border-dashed border-neutral-200 bg-white/70 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900/70 ${
+      className={`app-empty-state rounded-3xl border border-dashed border-neutral-200 bg-white/70 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900/70 ${
         compact ? "px-3 py-4" : "px-5 py-6"
       } ${className}`}
     >
