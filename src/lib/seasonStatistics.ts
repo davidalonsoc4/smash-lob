@@ -1108,7 +1108,7 @@ export function calculateSeasonStatistics({
     })(),
     hasCountedResults: countedMatches.length > 0,
   }
-  const leaders = getLeadingPlayers(ranking)
+  const leaders = countedMatches.length > 0 ? getLeadingPlayers(ranking) : []
 
   return {
     ranking,

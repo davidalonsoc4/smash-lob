@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import Link from "next/link"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useRouter } from "next/navigation"
@@ -47,7 +49,7 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
         </span>
 
         {isFinished ? (
-          <span
+          <StatusHelp kind="match" status={outcome === "win" ? "victory" : outcome === "loss" ? "defeat" : "finished"}
             className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 type-caption font-black uppercase tracking-wide leading-none ${
               outcome === "win"
                 ? "bg-green-100 text-green-800"
@@ -61,15 +63,15 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
               : outcome === "loss"
                 ? "Derrota"
                 : "Finalizado"}
-          </span>
+          </StatusHelp>
         ) : (
-          <span className={getMatchStatusBadgeClassName(displayStatus)}>
+          <StatusHelp kind={match.participants.some(participant => participant.isCurrentUser) ? "match-participant" : "match"} status={displayStatus} className={getMatchStatusBadgeClassName(displayStatus)}>
             {displayStatus === "in_progress"
               ? "En juego"
               : displayStatus === "result_pending"
                 ? tx("Pendiente de resultado")
                 : "Programado"}
-          </span>
+          </StatusHelp>
         )}
       </div>
 

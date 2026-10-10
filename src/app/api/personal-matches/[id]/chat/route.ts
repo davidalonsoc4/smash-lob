@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
+import { loadPersonalMatch } from "@/lib/serverPersonalMatches"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { isPersonalMatchChatSchemaMissingError } from "@/lib/personalMatchChatSchema"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
@@ -64,6 +65,7 @@ async function getPersonalChatActor(matchId: string) {
   }
 
   return {
+    actor: authResult.actor,
     db,
     user,
     match: {
@@ -223,6 +225,7 @@ export async function GET(request: Request, { params }: Ctx) {
     })
 
     return NextResponse.json({
+      match: await loadPersonalMatch(gate.actor, match.id),
       messages: ordered,
       participants: participants.map((item) => ({
         ...item,

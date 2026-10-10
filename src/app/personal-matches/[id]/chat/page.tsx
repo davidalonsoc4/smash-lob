@@ -3,6 +3,9 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useParams } from "next/navigation"
+import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
+import type { PersonalMatchItem } from "@/lib/personalMatches"
+import { getIntlLocale } from "@/i18n/leagueText"
 import {
   MatchChatComposer,
   MatchChatReadOnlyBar,
@@ -27,6 +30,7 @@ type PersonalChatParticipant = MatchChatParticipant & {
 }
 
 type PersonalChatSnapshot = {
+  match: PersonalMatchItem | null
   messages: PersonalChatMessage[]
   participants: PersonalChatParticipant[]
   currentUserId: string
@@ -62,6 +66,7 @@ function mapSnapshot(value: unknown): PersonalChatSnapshot {
       : {}
 
   return {
+    match: source.match && typeof source.match === "object" ? source.match as PersonalMatchItem : null,
     messages: Array.isArray(source.messages)
       ? (source.messages as PersonalChatMessage[])
       : [],
@@ -80,7 +85,7 @@ function mapSnapshot(value: unknown): PersonalChatSnapshot {
 }
 
 export default function PersonalMatchChatPage() {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const id = String(useParams<{ id: string }>().id ?? "")
   const [snapshot, setSnapshot] = useState<PersonalChatSnapshot | null>(null)
   const [body, setBody] = useState("")
@@ -262,6 +267,11 @@ export default function PersonalMatchChatPage() {
 
   const topContent = (
     <>
+      {snapshot?.match?.courtBooking?.isReserved && snapshot.match.scheduledAt && !Number.isNaN(Date.parse(snapshot.match.scheduledAt)) ? (
+        <PersonalAddToCalendarButton match={snapshot.match} triggerClassName="app-match-reservation-banner flex w-full shrink-0 items-center gap-2 border-b border-blue-100 bg-blue-50 px-3 py-2 text-left text-blue-900">
+          <span className="min-w-0 flex-1"><span className="app-match-reservation-label block type-caption font-black uppercase tracking-[0.12em]">{tx("Reserva")} · {tx("Guardar en calendario")}</span><span className="app-match-reservation-detail block type-small font-semibold">{new Intl.DateTimeFormat(getIntlLocale(locale), { dateStyle: "medium", timeStyle: "short" }).format(new Date(snapshot.match.scheduledAt))}{snapshot.match.locationName ? ` · ${snapshot.match.locationName}` : ""}</span></span>
+        </PersonalAddToCalendarButton>
+      ) : null}
       {snapshot && !snapshot.readOnly && snapshot.writeUntil ? (
         <MatchChatWriteWindowBanner writeUntil={snapshot.writeUntil} />
       ) : null}
@@ -324,7 +334,7 @@ export default function PersonalMatchChatPage() {
     <MatchChatScreen
       viewportRef={viewportRef}
       backHref={`/personal-matches/${id}`}
-      title={tx("Chat · Amistoso")}
+      title={tx("Amistoso")}
       titleHref={`/personal-matches/${id}`}
       messagesRef={messagesRef}
       loading={loading}

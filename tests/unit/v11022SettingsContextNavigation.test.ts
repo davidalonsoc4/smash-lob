@@ -36,7 +36,8 @@ describe("v1.10.22 settings context navigation", () => {
 
     const publicLayout = source("src/components/legal/PublicSiteLayout.tsx")
     expect(publicLayout).toContain('<BackButton fallbackHref="/" label="Volver" />')
-    expect(publicLayout).toContain("[&_.app-top-back-control]:!text-white")
+    expect(publicLayout).toContain("public-site-hero app-accent-surface")
+    expect(source("src/app/globals.css")).toContain(".public-site-hero .app-top-back-control { color: #fff; }")
   })
 
   it("keeps back controls in the settings descendants that already had them", () => {

@@ -24,6 +24,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
+import { useMatchLeagueContext } from "@/hooks/useMatchLeagueContext"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getRoundMvpPlayerIds } from "@/lib/mvp"
 import { getRankingDisplayPosition } from "@/lib/rankingOrder"
@@ -52,6 +53,7 @@ export default function MatchDetailPage() {
   } = useMatchData()
   const { votes, clearVotesForMatch } = useMvp()
   const params = useParams<{ id: string }>()
+  const isResolvingLeague = useMatchLeagueContext(params.id)
   const searchParams = useSearchParams()
   const {
     activeLeague,
@@ -173,10 +175,12 @@ export default function MatchDetailPage() {
       <div className="space-y-4">
         <header className="app-page-header">
           <BackButton fallbackHref="/matches" label={t.common.back} />
+          <h1 className="type-page-title">{tx("Partido")}</h1>
         </header>
 
         <AppCard>
-          <p className="font-bold">{t.matchDetail.notFound}</p>
+          <p className="font-bold" role="status">{isResolvingLeague ? tx("Cargando...") : t.matchDetail.notFound}</p>
+          {!isResolvingLeague ? <Link href="/leagues" className="mt-3 inline-flex min-h-10 items-center underline underline-offset-4">{tx("Ver mis ligas")}</Link> : null}
         </AppCard>
       </div>
     )
@@ -348,10 +352,6 @@ export default function MatchDetailPage() {
     !hasOpenIncident &&
     !isExceptionalResolution &&
     match.rankingCounts !== false
-  const hasContextualMatchActions =
-    canReportIncident ||
-    canManageSubstitutions ||
-    Boolean(match.incidentStatus)
 
   return (
     <MatchDetailView
@@ -380,6 +380,8 @@ export default function MatchDetailPage() {
         />
       }
       status={match.status}
+      isParticipant={isMatchParticipant}
+      canRecordResult={canEnterResult}
       scheduledAt={match.scheduledAt}
       resultRecordedAt={match.resultRecordedAt}
       coordinationStatus={loadedCoordinationMatchId === matchId && coordination
@@ -404,9 +406,7 @@ export default function MatchDetailPage() {
       }
       beforePairing={
         <>
-          {hasContextualMatchActions ? (
-            <></>
-          ) : null}
+          {activeSeason.status === "finished" && match.status !== "finished" ? <p className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-600">{tx("Los partidos pendientes se conservan como histórico de la temporada terminada.")}</p> : null}
 
           {isPlayerSeasonLocked ? (
             <AppCard>

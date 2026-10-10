@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --app-shell-width: 448px;
   --background: #f5f5f4;
   --app-bottom-nav-safe-surface: #ffffff;
   --app-match-chat-safe-surface: #ffffff;
@@ -61,13 +62,13 @@ textarea {
    Same visual role = same typography. All sizes use rem so the
    appearance control can scale the whole app through --app-font-size-adjust. */
 .type-caption {
-  font-size: 0.6875rem;
-  line-height: 1.25;
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .type-micro {
-  font-size: 0.5625rem;
-  line-height: 1;
+  font-size: 0.625rem;
+  line-height: 1.2;
 }
 
 .type-small {
@@ -2220,7 +2221,9 @@ html[data-visual-style="competition"] .bg-neutral-100\/70 {
 }
 html[data-visual-style="competition"] .bg-neutral-950 { background: var(--competition-accent) !important; color: var(--competition-accent-contrast) !important; }
 html[data-visual-style="competition"] .bg-neutral-950 .text-white,
-html[data-visual-style="competition"] .bg-neutral-950 .text-neutral-300 { color: var(--competition-accent-contrast) !important; }
+html[data-visual-style="competition"] .bg-neutral-950 .text-neutral-300,
+html[data-visual-style="competition"] .bg-neutral-950 .text-neutral-400,
+html[data-visual-style="competition"] .bg-neutral-950 .text-amber-300 { color: var(--competition-accent-contrast) !important; }
 html[data-visual-style="competition"] .border-neutral-100,
 html[data-visual-style="competition"] .border-neutral-200,
 html[data-visual-style="competition"] .border-neutral-300,
@@ -2484,7 +2487,8 @@ html[data-visual-style="competition"] .text-sky-700,
 html[data-visual-style="competition"] .text-sky-800 { color: var(--competition-tone-blue) !important; }
 html[data-visual-style="competition"] .text-amber-700,
 html[data-visual-style="competition"] .text-amber-800,
-html[data-visual-style="competition"] .text-amber-900 { color: var(--competition-tone-amber) !important; }
+html[data-visual-style="competition"] .text-amber-900,
+html[data-visual-style="competition"] .text-amber-950 { color: var(--competition-tone-amber) !important; }
 html[data-visual-style="competition"] .text-red-600,
 html[data-visual-style="competition"] .text-red-700,
 html[data-visual-style="competition"] .text-red-800 { color: var(--competition-tone-red) !important; }
@@ -2739,10 +2743,16 @@ html[data-visual-style="competition"] .text-green-900 {
 }
 
 html[data-visual-style="competition"] .bg-indigo-50,
+html[data-visual-style="competition"] .bg-violet-50,
 html[data-visual-style="competition"] .bg-indigo-100,
 html[data-visual-style="competition"] .bg-violet-100,
 html[data-visual-style="competition"] .bg-violet-200 {
   background: rgb(var(--competition-rgb-violet) / .22) !important;
+}
+html[data-visual-style="competition"] :is(.status-tone-violet, .status-tone-indigo) {
+  background: rgb(var(--competition-rgb-violet) / .22) !important;
+  color: var(--competition-tone-violet) !important;
+  --tw-ring-color: rgb(var(--competition-rgb-violet) / .55) !important;
 }
 html[data-visual-style="competition"] .border-indigo-200,
 html[data-visual-style="competition"] .border-indigo-400,
@@ -2750,6 +2760,8 @@ html[data-visual-style="competition"] .border-violet-200 {
   border-color: rgb(129 140 248 / .46) !important;
 }
 html[data-visual-style="competition"] .text-indigo-600,
+html[data-visual-style="competition"] .text-indigo-800,
+html[data-visual-style="competition"] .text-violet-800,
 html[data-visual-style="competition"] .text-indigo-700,
 html[data-visual-style="competition"] .text-violet-700,
 html[data-visual-style="competition"] .text-violet-900 {
@@ -2878,7 +2890,7 @@ html[data-visual-style="competition"] .app-match-player-name {
   flex-wrap: wrap;
 }
 .app-match-header-row > .type-page-title {
-  flex: 1 1 12rem;
+  flex: 1 1 8rem;
 }
 .app-match-header-row > div {
   margin-left: auto;
@@ -2995,3 +3007,38 @@ html[data-visual-style="competition"][data-theme="light"] :is(button, a, input, 
   outline: 2px solid var(--competition-accent-text) !important;
   outline-offset: 3px;
 }
+
+/* Audit: semantic surfaces, independent of the selected Competition base. */
+html[data-visual-style="competition"] .app-empty-state {
+  background: var(--competition-surface-raised) !important;
+  border-color: var(--competition-border-strong) !important;
+  color: var(--competition-text) !important;
+}
+html[data-visual-style="competition"] .app-empty-state > p:first-of-type { color: var(--competition-text) !important; }
+html[data-visual-style="competition"] .app-empty-state > p:last-of-type { color: var(--competition-text-muted) !important; }
+html[data-visual-style="competition"] .app-accent-surface,
+html[data-visual-style="competition"] .app-accent-surface :is(p, h1, h2, h3, span, a) {
+  color: var(--competition-accent-contrast) !important;
+}
+html[data-visual-style="competition"] .app-accent-surface .app-top-back-control { color: var(--competition-accent-contrast) !important; }
+html[data-visual-style="competition"] .personal-form-result {
+  background: var(--competition-surface) !important;
+  border: 1px solid var(--competition-border-strong);
+}
+.public-site-hero { padding-block: 1.25rem; }
+.public-site-hero h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
+.public-site-hero > p { margin-top: .75rem; }
+.statistics-history-row :is(p, span) { overflow-wrap: anywhere; }
+.statistics-history-row p { white-space: normal; }
+[data-route^="/statistics"] select { min-height: 2.5rem; }
+[data-route^="/profile"] select,
+[data-route^="/player/"] select { min-height: 2.5rem; max-width: 100%; }
+[data-route^="/statistics"] .type-player-name { overflow-wrap: anywhere; }
+
+@media (min-width: 1024px) {
+  :root { --app-shell-width: 640px; }
+  .app-shell-frame, .app-bottom-nav { max-width: var(--app-shell-width); }
+}
+
+.public-site-hero .app-top-back-control { color: #fff; }
+html[data-visual-style="competition"] .app-accent-surface a.bg-white { color: var(--competition-text) !important; }

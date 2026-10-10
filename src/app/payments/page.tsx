@@ -227,7 +227,7 @@ function PaymentLedgerList({
 
   return (
     <div className="space-y-2">
-      {items.map((item) => {
+      {[...items].sort((a, b) => Number(!b.isPaid && b.direction === "owe") - Number(!a.isPaid && a.direction === "owe")).map((item) => {
         const description =
           item.direction === "owe"
             ? `${tx("Debes pagar a")} ${item.toName}`
@@ -250,7 +250,7 @@ function PaymentLedgerList({
               </div>
 
               <div className="shrink-0 text-right">
-                <p className="text-sm font-black text-neutral-950">
+                <p className="text-lg font-black text-neutral-950">
                   {formatMoney(item.amount)}
                 </p>
                 <p
@@ -275,7 +275,7 @@ function PaymentLedgerList({
                   type="button"
                   onClick={() => onSetPaidStatus(item, true)}
                   disabled={updatingTransferId === itemKey}
-                  className="flex rounded-2xl bg-neutral-950 px-3 py-2 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
+                  className="flex rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-950 disabled:text-neutral-400 items-center justify-center text-center"
                 >
                   {updatingTransferId === itemKey
                     ? tx("Guardando...")

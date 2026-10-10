@@ -51,11 +51,79 @@ test("welcome pack selects sticker designs and prints them together on one A4 sh
   await popup.close()
 })
 
+test("cached league access waits until the initial snapshot request finishes", async ({ page }) => {
+  let release: () => void = () => {}
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route("**/api/access*", async route => { await pending; await route.fulfill({ status: 401, json: { error: "unauthorized" } }) })
+  await page.goto("/matches")
+  await expect(page.getByRole("status", { name: "Cargando Smash & Lob" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Calendario de liga" })).not.toBeVisible()
+  release()
+  await expect(page.getByRole("heading", { name: "Calendario de liga" })).toBeVisible()
+})
+
+test("proposal votes wait for confirmation, prevent duplicate writes and survive reload", async ({ page }, testInfo) => {
+  let release: () => void = () => {}
+  let writes = 0, voted = false, failNext = false
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route("**/api/matches/season-2-round-4-match-1/chat*", async route => {
+    if (route.request().method() === "PATCH") {
+      writes++; await pending
+      if (failNext) { failNext = false; await route.fulfill({ status: 503, json: { error: "No se ha podido guardar el voto QA." } }); return }
+      voted = !voted
+      await route.fulfill({ json: { ok: true } }); return
+    }
+    await route.fulfill({ json: { currentUserId: "qa-user", round: 4, readOnly: false, participants: [{ playerId: "davo", userId: "qa-user", displayName: "QA v1.1", handle: "qa", avatarUrl: null }], messages: [{ id: "proposal-qa", sender_user_id: "other", sender_display_name: "QA Rival", body: "", kind: "location_proposal", payload: { key: "location", name: "Pista QA" }, created_at: "2026-08-10T08:00:00Z", responses: voted ? [{ userId: "qa-user", optionKey: "location", response: "available" }] : [] }] } })
+  })
+  await page.goto("/match/season-2-round-4-match-1/chat")
+  const yes = page.getByRole("button", { name: "Me viene bien · 0 votos" })
+  await yes.click()
+  await expect(page.getByRole("status").filter({ hasText: "Guardando" })).toBeVisible()
+  await expect(yes).toBeDisabled()
+  await expect(page.getByRole("button", { name: "No puedo · 0 votos" })).toBeDisabled()
+  await expect.poll(() => writes).toBe(1)
+  await page.screenshot({ path: testInfo.outputPath("vote-saving.png"), fullPage: true })
+  release()
+  await expect(page.getByRole("button", { name: "Quitar mi voto favorable · 1 votos" })).toHaveAttribute("aria-pressed", "true")
+  await page.reload()
+  await expect(page.getByRole("button", { name: "Quitar mi voto favorable · 1 votos" })).toHaveAttribute("aria-pressed", "true")
+  failNext = true
+  await page.getByRole("button", { name: "Quitar mi voto favorable · 1 votos" }).click()
+  await expect(page.getByText("No se ha podido guardar el voto QA.", { exact: true })).toBeVisible()
+  await expect(page.getByRole("button", { name: "Quitar mi voto favorable · 1 votos" })).toBeEnabled()
+  await page.getByRole("button", { name: "Quitar mi voto favorable · 1 votos" }).click()
+  await expect(page.getByRole("button", { name: "Me viene bien · 0 votos" })).toHaveAttribute("aria-pressed", "false")
+  expect(writes).toBe(3)
+})
+
 test("calendar view selector fits without horizontal scrolling", async ({ page }) => {
   await page.goto("/matches")
   const selector = page.locator('[data-tour="matches-scope"] > div')
   await expect(selector).toBeVisible()
   expect(await selector.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+})
+
+test("friendly chat reservation opens calendar options in both Competition modes", async ({ page }, testInfo) => {
+  await page.route("**/api/personal-matches/qa-friendly/chat*", async route => {
+    await route.fulfill({ json: { currentUserId: "qa-user", messages: [], participants: [], readOnly: false, match: { id: "qa-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2026-08-12T17:00:00Z", locationName: "Pista QA", participants: [{ team: 1, slot: 1, displayName: "Ana QA" }, { team: 2, slot: 1, displayName: "Rival QA" }], courtBooking: { isReserved: true } } } })
+  })
+  for (const mode of ["light", "dark"]) {
+    await page.addInitScript(mode => { localStorage.setItem("smash-lob-visual-style", "competition"); localStorage.setItem("smash-lob-theme-mode", mode) }, mode)
+    await page.goto("/personal-matches/qa-friendly/chat")
+    const trigger = page.getByRole("button", { name: /Reserva.*Guardar en calendario/ })
+    await expect(trigger).toBeVisible()
+    await expect(trigger).toContainText("Pista QA")
+    expect(await trigger.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
+    await trigger.click()
+    const dialog = page.getByRole("dialog", { name: "Añadir al calendario" })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole("button", { name: "Google Calendar" })).toBeVisible()
+    await page.screenshot({ path: testInfo.outputPath("friendly-calendar-" + mode + ".png"), fullPage: true })
+    const download = page.waitForEvent("download")
+    await dialog.getByRole("button", { name: "Apple Calendar / otros (.ics)" }).click()
+    expect((await download).suggestedFilename()).toBe("smash-lob.ics")
+    await expect(dialog).not.toBeVisible()
+  }
 })
 
 test("league spectator share shows a downloadable QR and shares the league link", async ({ page }) => {
@@ -121,6 +189,7 @@ test.beforeEach(async ({ page }) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) })
   })
   await page.addInitScript(() => {
+    window.localStorage.setItem("smash-lob:competition-launch-popup-v2:qa-v1-1@example.test", "dismissed")
     window.localStorage.setItem("smash-lob-theme-mode", "light")
     window.localStorage.setItem("smash-lob-visual-style", "plain")
     window.localStorage.setItem(

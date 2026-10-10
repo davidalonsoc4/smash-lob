@@ -39,8 +39,8 @@ describe("v1.7.0 match chat viewport polish", () => {
 
   it("centers the shared chat title independently from the back button", async () => {
     const shared = await readFile("src/components/match/chat/MatchChatShared.tsx", "utf8")
-    expect(shared).toContain('className="relative flex min-h-10 items-center"')
-    expect(shared).toContain('absolute left-1/2 max-w-[65%] -translate-x-1/2 truncate')
+    expect(shared).toContain('className="grid min-h-10 grid-cols-[5rem_minmax(0,1fr)_5rem] items-center"')
+    expect(shared).toContain('min-w-0 px-1 text-center')
   })
 
   it("keeps the shared composer attached to the visible viewport and avoids iOS input zoom", async () => {

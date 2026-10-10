@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import Link from "next/link"
 import { useParams, useSearchParams } from "next/navigation"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
@@ -405,7 +407,7 @@ export default function RoundSummaryPage() {
                 </p>
               ) : null}
             </div>
-            <span className={getRoundStatusBadgeClassName(roundData.status)}>{statusLabel}</span>
+            <StatusHelp kind="round" status={roundData.status} className={getRoundStatusBadgeClassName(roundData.status)}>{statusLabel}</StatusHelp>
           </div>
 
           <div className="mt-3 grid grid-cols-3 gap-2">
@@ -427,6 +429,7 @@ export default function RoundSummaryPage() {
         </div>
       </AppCard>
 
+      {activeSeason.status === "finished" && !isCompleted ? <p className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-600">{tx("Los partidos pendientes se conservan como histórico de la temporada terminada.")}</p> : null}
       <section className="space-y-2.5">
         <h2 className="type-section-title">{tx("Resultados")}</h2>
         <div className="space-y-2.5">
@@ -459,7 +462,7 @@ export default function RoundSummaryPage() {
                 const selection = getMatchMvpSelection({ votes, match })
                 return (
                   <AppCard key={match.id}>
-                    <p className="type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
+                    <p className="type-caption font-semibold text-neutral-500">
                       {teamName(match.teamA, players)} {tx("vs")}{" "}{teamName(match.teamB, players)}
                     </p>
                     <div className="mt-2">

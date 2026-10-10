@@ -38,13 +38,13 @@ describe("v1.8.21 pending booking flow", () => {
     expect(coordination.approvedDates).toHaveLength(0)
   })
 
-  it("toggles the same proposal vote off in both API and optimistic chat UI", async () => {
+  it("toggles votes on the server and presents the confirmed response", async () => {
     const route = await readFile("src/app/api/matches/[matchId]/chat/route.ts", "utf8")
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
     expect(route).toContain("const removingVote = existingResponse?.response === response")
     expect(route).toContain('db.from("match_chat_proposal_responses").delete()')
     expect(route).toContain("response: removingVote ? null : response")
-    expect(page).toContain("const removingVote = original?.response === responseValue")
+    expect(page).toContain("await loadFromServer(match)")
     expect(page).toContain('aria-pressed={mine === "available"}')
     expect(page).toContain('mine === "available" ? "Quitar voto"')
   })

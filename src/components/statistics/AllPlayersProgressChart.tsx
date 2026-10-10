@@ -45,14 +45,15 @@ function formatSigned(value: number) {
 }
 
 export function AllPlayersProgressChart({
-  series,
+  series, preferredPlayerId,
 }: {
+  preferredPlayerId?: string | null
   series: LeagueProgressSeries[]
 }) {
   const { tx } = useI18n()
   const [mode, setMode] = useState<ChartMode>("position")
   const [hiddenPlayerIds, setHiddenPlayerIds] = useState<Set<string>>(
-    () => new Set(),
+    () => new Set(series.filter(player => player.playerId !== preferredPlayerId).slice(preferredPlayerId && series.some(player => player.playerId === preferredPlayerId) ? 2 : 3).map(player => player.playerId)),
   )
 
   const spansMultipleSeasons =
@@ -346,7 +347,7 @@ export function AllPlayersProgressChart({
               type="button"
               onClick={() => togglePlayer(player.playerId)}
               aria-pressed={!hidden}
-              className={`flex max-w-full min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 type-caption font-black transition ${
+              className={`flex min-h-10 max-w-full min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 type-caption font-black transition ${
                 hidden
                   ? "border-neutral-200 bg-neutral-50 text-neutral-400"
                   : "border-neutral-200 bg-white text-neutral-800"

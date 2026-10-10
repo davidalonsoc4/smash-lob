@@ -159,8 +159,8 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
         <div className="flex items-start gap-3">
           <PlayerAvatar player={player} size="md" previewable />
           <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-center gap-2">
-              <h1 className="type-page-title min-w-0 flex-1 truncate text-2xl font-black tracking-tight">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h1 className="type-page-title min-w-0 w-full break-words text-2xl font-black tracking-tight">
                 {player.displayName}
               </h1>
               {!isSelf && showSeasonSelector && visibleSeasonScopes.length > 1 ? (
@@ -210,7 +210,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
         leagueId={activeLeague.id}
         seasonId={selectedSeasonIds[0] ?? latestSeason.id}
         seasonIds={selectedSeasonIds}
-        scopeLabel={isSelf ? undefined : selectedScope.label}
+        scopeLabel={undefined}
         players={selectedPlayers}
         matches={playerMatches}
         seasonMatches={selectedMatches}

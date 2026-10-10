@@ -26,7 +26,7 @@ export function AvatarLabClient() {
       </header>
 
       <AppCard className="border-amber-200 bg-amber-50">
-        <p className="text-xs font-black text-amber-950">
+        <p className="text-xs font-black text-amber-800">
           Función experimental en PRE
         </p>
         <p className="mt-1 type-caption font-semibold leading-5 text-amber-800">

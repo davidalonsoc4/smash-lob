@@ -52,7 +52,7 @@ describe("v1.8.2 chat reservation flow", () => {
     expect(confirm).toContain("getLeagueLocationCourts")
     expect(detail).toContain("coordinationStatus")
     expect(detail).toContain("coordinationAction")
-    expect(status).toContain('awaiting_booking: "Pendiente de reserva"')
+    expect(status).toContain('awaiting_booking: tx("Pendiente de reserva")')
   })
 
   it("keeps API compatibility while direct proposal selection caps at four times", async () => {

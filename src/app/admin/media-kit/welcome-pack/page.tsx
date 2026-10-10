@@ -1,4 +1,6 @@
 "use client"
+
+import { MediaKitWorkspaceControls } from "@/components/media-kit/MediaKitWorkspaceShell"
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { OvergripBandPreview } from "@/components/media-kit/OvergripBandPreview"
@@ -12,6 +14,7 @@ import { useMediaKitSettings } from "@/context/MediaKitSettingsProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
+import { getNewestLeagueSeasons } from "@/lib/seasonSelection"
 import { isSafeImageUrl, normalizeImageUrl } from "@/lib/imageUrl"
 import {
   WELCOME_PACK_BAG_SEAL,
@@ -195,7 +198,7 @@ export default function WelcomePackMediaKitPage() {
   const { seasons } = useSeasonSettings()
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null)
   const { activeLeague, activeSeason, players } = useCurrentLeagueData(selectedSeasonId)
-  const leagueSeasons = seasons.filter((season) => season.leagueId === activeLeague.id)
+  const leagueSeasons = getNewestLeagueSeasons(seasons, activeLeague.id)
   const sortedPlayers = useMemo(
     () => [...players].sort((a, b) => a.displayName.localeCompare(b.displayName, "es", { sensitivity: "base" })),
     [players],
@@ -274,8 +277,9 @@ export default function WelcomePackMediaKitPage() {
           <h1 className="type-page-title">Welcome Pack</h1>
         </div>
       </header>
+      <MediaKitWorkspaceControls />
       <AppCard className="overflow-hidden !p-0">
-        <div className="bg-neutral-950 px-4 py-4 text-white">
+        <div className="app-accent-surface bg-neutral-950 px-4 py-4 text-white">
           <p className="type-caption font-black uppercase tracking-[.18em] text-amber-300">{tx("Producción física")}</p>
           <h2 className="mt-1 text-lg font-black">Welcome Pack · {activeLeague.name}</h2>
           <p className="mt-1 text-xs font-medium leading-5 text-neutral-300">

@@ -1,11 +1,11 @@
-export type ChangelogCategory = "new" | "improvement" | "fix" | "foundation"; export type ChangelogRelease = { version: string; date?: string; dateRange?: string
-  firstDate?: string
+export type ChangelogCategory = "new" | "improvement" | "fix" | "foundation"; export type ChangelogRelease = { version: string; date?: string; dateRange?: string; firstDate?: string
   latestDate?: string
   title: string
   summary: string
   category: ChangelogCategory
   changes: string[]
 }; export const CHANGELOG_RELEASES: ChangelogRelease[] = [
+  { version: "v1.15.9", date: "10 de octubre de 2026", title: "Competition claro y mejoras de uso", summary: "Competition incorpora modo claro y la aplicación mejora su legibilidad y navegación.", category: "improvement", changes: ["Mejoras compartidas de títulos, paneles, estados, pagos, perfiles y estadísticas en móvil y escritorio.", "Los estados explican su significado y las acciones disponibles; los nombres de Chats y encuestas se identifican con mayor claridad.", "Los votos indican cuándo se están guardando y los chats amistosos muestran la reserva y permiten añadirla al calendario.", "La selección de temporada y la carga de datos históricos mantienen su contexto al navegar y duplicar temporadas."] },
   { version: "v1.15.8", date: "8 de octubre de 2026", title: "Aviso de tema más discreto", summary: "El popup del nuevo tema oscuro presenta solo las acciones esenciales.", category: "improvement", changes: ["Título más pequeño, botones Aplicar ahora y Ahora no, y una única línea para cambiar de tema desde Ajustes."] },
   { version: "v1.15.7", date: "8 de octubre de 2026", title: "Aviso de Competition al entrar", summary: "Los nuevos temas se anuncian en un popup al entrar en la aplicación.", category: "improvement", changes: ["El aviso aparece también al abrir directamente un chat u otra pantalla, con aplicación voluntaria de Competition.", "Incluye instrucciones y un enlace para volver a Clásico desde Temas y apariencia; puedes cerrarlo para que no se repita en este dispositivo."] },
   { version: "v1.15.6", date: "8 de octubre de 2026", title: "Competition para todos", summary: "El estilo Competition ya está disponible para todos los usuarios en modo oscuro.", category: "new", changes: ["Inicio muestra un aviso que permite aplicar Competition con un clic, sin cambiar automáticamente tu tema.", "El aviso explica cómo volver a Clásico desde Ajustes y enlaza directamente con Temas y apariencia.", "Puedes cerrar el aviso; tu elección se recuerda en este dispositivo para tu cuenta."] },

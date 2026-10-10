@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
 import { normalizeDominantHand, normalizePreferredPlayerSide } from "@/lib/accountProfile"
+import { getPlayerPreviewTraits } from "@/lib/playerPreviewTraits"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
@@ -358,6 +359,7 @@ export async function GET(request: Request) {
   const playerProfiles: PlayerProfile[] = (playersResult.data ?? []).map(
     (player) => {
       const membership = membershipByPlayerId.get(player.id)
+      const previewTraits = getPlayerPreviewTraits(player.id, membership?.user_id)
 
       return {
         id: player.id,
@@ -366,8 +368,8 @@ export async function GET(request: Request) {
         displayName: player.display_name,
         avatarInitials: player.avatar_initials,
         userId: membership?.user_id ?? null,
-        preferredSide: membership?.user_id ? preferredSideByUserId.get(membership.user_id) ?? null : null,
-        dominantHand: membership?.user_id ? dominantHandByUserId.get(membership.user_id) ?? null : null,
+        preferredSide: membership?.user_id ? preferredSideByUserId.get(membership.user_id) ?? null : previewTraits.preferredSide,
+        dominantHand: membership?.user_id ? dominantHandByUserId.get(membership.user_id) ?? null : previewTraits.dominantHand,
         avatarUrl: resolvePlayerAvatarUrl({
           competitiveAvatarUrl:
             typeof player.competitive_avatar_url === "string"

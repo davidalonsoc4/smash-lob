@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
+import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { TeamPlayers } from "@/components/player/TeamPlayers";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
@@ -64,6 +65,7 @@ export function PlayerMatchesList({
   mvpSystemBySeasonId = {},
 }: PlayerMatchesListProps) {
   const { t } = useI18n();
+  const { currentUserId } = useCurrentUser();
 
   const playerMatches = matches.filter(
     (match) => match.teamA.includes(playerId) || match.teamB.includes(playerId),
@@ -131,6 +133,7 @@ export function PlayerMatchesList({
 
                   <MatchStatusBadge
                     status={match.status}
+                    isParticipant={!!currentUserId && [...match.teamA, ...match.teamB].includes(currentUserId)}
                     scheduledAt={match.scheduledAt ?? null}
                     resultRecordedAt={match.resultRecordedAt ?? null}
                   />

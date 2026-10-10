@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import {
@@ -517,9 +519,9 @@ export function CourtBookingPanel({
         </div>
 
         <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
-            {paymentSummary.toPay > 0 ? <span className={getBadgeClassName("blue")} title={tx("Pendiente de pagar")} aria-label={`${tx("Pendiente de pagar")} · ${formatMoney(paymentSummary.toPay)}`}>{tx("Pendiente")} - {formatMoney(paymentSummary.toPay)}</span> : null}
-            {paymentSummary.toReceive > 0 ? <span className={getBadgeClassName("blue")} title={tx("Pendiente de cobrar")} aria-label={`${tx("Pendiente de cobrar")} · ${formatMoney(paymentSummary.toReceive)}`}>{tx("Pendiente")} - {formatMoney(paymentSummary.toReceive)}</span> : null}
-            {paymentSummary.toPay === 0 && paymentSummary.toReceive === 0 ? <span className={`${getBadgeClassName(paymentTone)} !whitespace-normal !leading-snug`} role="status">{paymentLabel}</span> : null}
+            {paymentSummary.toPay > 0 ? <StatusHelp kind="payment" status="pay" className={getBadgeClassName("blue")} label={`${tx("Pendiente de pagar")} · ${formatMoney(paymentSummary.toPay)}`}>{tx("Pendiente")} - {formatMoney(paymentSummary.toPay)}</StatusHelp> : null}
+            {paymentSummary.toReceive > 0 ? <StatusHelp kind="payment" status="receive" className={getBadgeClassName("blue")} label={`${tx("Pendiente de cobrar")} · ${formatMoney(paymentSummary.toReceive)}`}>{tx("Pendiente")} - {formatMoney(paymentSummary.toReceive)}</StatusHelp> : null}
+            {paymentSummary.toPay === 0 && paymentSummary.toReceive === 0 ? <StatusHelp kind="payment" status={paymentSummary.state === "none" ? "pending" : paymentSummary.state} className={`${getBadgeClassName(paymentTone)} !whitespace-normal !leading-snug`}>{paymentLabel}</StatusHelp> : null}
         </div>
 
         <button
@@ -555,7 +557,7 @@ export function CourtBookingPanel({
             {tx("Total")}
           </p>
           <p className="text-xs font-black text-neutral-950">
-            {formatMoney(booking.isReserved ? totalReservedAmount : totalAmount)}
+            {(booking.isReserved ? totalReservedAmount : totalAmount) > 0 ? formatMoney(booking.isReserved ? totalReservedAmount : totalAmount) : "—"}
           </p>
         </div>
         <div className="px-2 py-1">

@@ -22,6 +22,8 @@ export default function StatisticsStandingsPage() {
   const {
     activeLeague,
     selectedSeason,
+    seasonOptions,
+    selectSeason,
     buildStatisticsHref,
     statistics,
     isLeagueWide,
@@ -36,6 +38,8 @@ export default function StatisticsStandingsPage() {
             ? tx("Puntos, victorias y balance acumulados en todas las temporadas de la liga.")
             : tx("Posiciones, puntos y balance completo de la temporada seleccionada.")
         }
+        seasons={seasonOptions}
+        onSeasonChange={selectSeason}
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />
@@ -69,7 +73,7 @@ export default function StatisticsStandingsPage() {
           <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
             {isLeagueWide ? tx("Liderato histórico") : tx("Liderato")}
           </p>
-          <p className="mt-1 truncate text-base font-black">
+          <p className="mt-1 break-words text-base font-black">
             {statistics.leaders.length > 0
               ? statistics.leaders.map((player) => player.displayName).join(" / ")
               : "—"}

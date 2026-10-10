@@ -542,16 +542,11 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const [hydratedAccessUserId, setHydratedAccessUserId] = useState<string | null>(
     null,
   );
-  // Local state is already validated by the server on every protected request.
-  // Use it to render the last known league immediately while the fresh snapshot
-  // is revalidated in the background, instead of blocking the whole shell.
-  const hasCachedAccessForUser =
-    Boolean(userId) &&
-    memberships.some((membership) => membership.userId === userId);
+  // Cached access alone cannot guarantee that names, settings and matches are ready.
   const isAccessHydrated =
     sessionStatus === "unauthenticated" ||
     (Boolean(userId) &&
-      (hydratedAccessUserId === userId || hasCachedAccessForUser));
+      hydratedAccessUserId === userId);
 
   function persistLeagues(nextLeaguesInput: League[]) {
     const nextLeagues = uniqueLeaguesById(nextLeaguesInput);

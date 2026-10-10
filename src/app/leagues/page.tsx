@@ -1,5 +1,7 @@
 "use client";
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
@@ -160,8 +162,8 @@ export default function LeaguesPage() {
               <div className="flex items-start gap-3">
                 <LeagueLogo league={league} size="lg" previewable />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-lg font-black text-neutral-950">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="break-words text-lg font-black text-neutral-950">
                       {league.name}
                     </p>
                     {isActive ? (
@@ -173,14 +175,14 @@ export default function LeaguesPage() {
                     {league.description || tx("Sin descripción")}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span
+                    <StatusHelp kind="season" status={season.totalRounds === 0 ? "none" : season.status}
                       className={getSeasonStatusBadgeClassName(
                         season.status,
                         season.totalRounds,
                       )}
                     >
                       {getSeasonStatusLabel(season)}
-                    </span>
+                    </StatusHelp>
                     {isAdmin ? (
                       <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-amber-800">
                         {tx("Admin")}{" "}</span>

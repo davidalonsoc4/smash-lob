@@ -91,7 +91,7 @@ function NotificationsIcon() {
 }
 
 function getFloatingRight(offsetPx: number) {
-  return `max(${offsetPx}px, calc((100vw - 448px) / 2 + ${offsetPx}px))`
+  return `max(${offsetPx}px, calc((100vw - var(--app-shell-width, 448px)) / 2 + ${offsetPx}px))`
 }
 
 function getFloatingTop() {
@@ -99,7 +99,7 @@ function getFloatingTop() {
 }
 
 function getPreproductionBadgeLeft() {
-  return "max(4px, calc((100vw - 448px) / 2 + 4px))"
+  return "max(4px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 4px))"
 }
 
 function InviteFloatingControls() {

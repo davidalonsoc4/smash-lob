@@ -98,7 +98,7 @@ export const es = {
     settingsTitle: "Nombre visible",
     settingsDescription: "El cambio se aplicará a tus jugadores vinculados en todas las ligas sin alterar estadísticas ni resultados.",
     changeConfirm: "¿Guardar este nombre en todas tus ligas?",
-    saveChanges: "Guardar nombre",
+    saveChanges: "Guardar cambios",
     saved: "Nombre actualizado en todas tus ligas.",
   },
 
@@ -808,7 +808,7 @@ export const es = {
     visualStyleDescription: "Decide si la interfaz se mantiene neutra o utiliza superficies y acentos de color.",
     visualStylePlain: "Clásico",
     visualStylePlainDescription: "Neutro, discreto y con el diseño habitual de la aplicación.",
-    visualStyleColorful: "Competition · Experimental",
+    visualStyleColorful: "Competition",
     visualStyleColorfulDescription: "Estilo de competición claro u oscuro, con alto contraste y acento de liga.",
     appearanceLight: "Claro",
     appearanceLightDescription: "Limpio y luminoso.",
@@ -1331,7 +1331,7 @@ export const es = {
     supportUnsupported:
       "Este navegador no permite notificaciones push web. En iPhone necesitas instalar la PWA en la pantalla de inicio.",
     supportMissingPublicKey:
-      "Falta configurar NEXT_PUBLIC_VAPID_PUBLIC_KEY para activar el permiso push. Puedes guardar preferencias igualmente.",
+      "Las notificaciones push no están disponibles temporalmente. Puedes guardar tus preferencias igualmente.",
     supportPermissionDenied:
       "Las notificaciones están bloqueadas en el navegador. Tendrás que permitirlas desde los ajustes del sistema o del navegador.",
     supportReady:

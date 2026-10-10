@@ -1150,7 +1150,7 @@ export default function Home() {
           <AppCard className="overflow-hidden p-0">
             <div className="px-3 pt-3">
               <SectionHeader
-                title={t.dashboard.rankingTitle}
+                title={currentUserRankingIndex >= 0 ? tx("Tu posición") : t.dashboard.rankingTitle}
                 action={
                   <Link
                     href="/ranking"

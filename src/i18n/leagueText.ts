@@ -7,6 +7,13 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+    "Los partidos pendientes se conservan como histórico de la temporada terminada.": "Pending matches remain in the finished season’s history.",
+    "Tu posición": "Your position",
+    "Buscar": "Search",
+    "Detalles": "Details",
+    "Lugar pendiente": "Venue pending",
+    "Temporada terminada": "Season finished",
+    "Guardar nombre": "Save name",
     "Transferencias pendientes": "Pending transfers",
     "Transferencias pagadas": "Paid transfers",
     "Recibe": "Receives",
@@ -834,6 +841,13 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "Los partidos pendientes se conservan como histórico de la temporada terminada.": "Amaitutako denboraldiko historian gordetzen dira jokatu gabeko partidak.",
+    "Tu posición": "Zure postua",
+    "Buscar": "Bilatu",
+    "Detalles": "Xehetasunak",
+    "Lugar pendiente": "Lekua zehazteke",
+    "Temporada terminada": "Denboraldia amaituta",
+    "Guardar nombre": "Izena gorde",
     "Transferencias pendientes": "Egiteke dauden transferentziak",
     "Transferencias pagadas": "Ordaindutako transferentziak",
     "Recibe": "Jasotzen du",
