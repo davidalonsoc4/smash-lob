@@ -1129,6 +1129,11 @@ export async function updateServerSeasonRoundOrder({
     throw new SeasonMutationError(500, "season_round_order_lookup_failed")
   }
 
+  const existingRounds = new Set((matches ?? []).map((match) => match.round))
+  if (roundOrder.length === 0 || roundOrder.length !== existingRounds.size || new Set(roundOrder).size !== roundOrder.length || roundOrder.some((round) => !Number.isInteger(round) || round < 1 || !existingRounds.has(round))) {
+    throw new SeasonMutationError(400, "invalid_round_order")
+  }
+
   const updates = (matches ?? [])
     .map((match) => ({
       id: match.id,

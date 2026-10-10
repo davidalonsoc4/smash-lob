@@ -22,6 +22,7 @@ import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { formatMoney } from "@/lib/courtBooking"
 import { fetchPaymentLedger, getPaymentLedgerPendingSummary } from "@/lib/paymentLedger"
+import { accountDeletionApiConfirmation, isAccountDeletionConfirmation } from "@/lib/accountDeletionConfirmation"
 const settingsVersionLabel = `Smash & Lob · ${APP_VERSION_LABEL}`
 type SettingsSectionProps = {
   title: string
@@ -239,7 +240,7 @@ function SessionSection() {
 }
 
 function AccountDataSection() {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const [busy, setBusy] = useState<"export" | "delete" | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -267,14 +268,18 @@ function AccountDataSection() {
 
   async function deleteAccount() {
     const confirmation = window.prompt(tx("Para confirmar, escribe ELIMINAR MI CUENTA."))
-    if (confirmation !== "ELIMINAR MI CUENTA") return
+    if (confirmation === null) return
+    if (!isAccountDeletionConfirmation(confirmation, locale)) {
+      setMessage(tx("No se ha podido completar la eliminación de la cuenta."))
+      return
+    }
     setBusy("delete")
     setMessage(null)
     try {
       const response = await fetch("/api/account/delete", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ confirmation }),
+        body: JSON.stringify({ confirmation: accountDeletionApiConfirmation }),
       })
       if (!response.ok) throw new Error("delete_failed")
       setMessage(tx("Tu cuenta se ha anonimizado. Cierra sesión para terminar."))

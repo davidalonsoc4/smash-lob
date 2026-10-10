@@ -1,5 +1,6 @@
 import { getIntlLocale } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
+import { createAvailabilityInstantResolver } from "@/lib/availabilityInstants"
 export type WeekdayId =
   | "monday"
   | "tuesday"
@@ -408,22 +409,6 @@ function getAvailabilitySlotsForDate({
   return normalizeAvailabilitySlots(availability.weeklySlots[weekdayId]);
 }
 
-function isSlotCovered({
-  slots,
-  startMinutes,
-  endMinutes,
-}: {
-  slots: AvailabilitySlot[];
-  startMinutes: number;
-  endMinutes: number;
-}) {
-  return slots.some(
-    (slot) =>
-      timeToMinutes(slot.start) <= startMinutes &&
-      timeToMinutes(slot.end) >= endMinutes,
-  );
-}
-
 function isFutureCandidate(dateTimeLocalValue: string) {
   const candidate = new Date(dateTimeLocalValue);
   const now = new Date();
@@ -431,50 +416,6 @@ function isFutureCandidate(dateTimeLocalValue: string) {
   return candidate.getTime() > now.getTime() + 30 * 60 * 1000;
 }
 
-
-function getAlignedCandidateStartMinutes(slotStart: number, stepMinutes: number) {
-  if (stepMinutes <= 0) {
-    return slotStart;
-  }
-
-  return Math.ceil(slotStart / stepMinutes) * stepMinutes;
-}
-
-function getCandidateStartMinutesFromSlots({
-  slots,
-  slotDurationMinutes,
-  stepMinutes,
-}: {
-  slots: AvailabilitySlot[];
-  slotDurationMinutes: number;
-  stepMinutes: number;
-}) {
-  const candidateStartMinutes = new Set<number>();
-
-  slots.forEach((slot) => {
-    const slotStart = timeToMinutes(slot.start);
-    const slotEnd = timeToMinutes(slot.end);
-    const latestStart = slotEnd - slotDurationMinutes;
-    const firstCandidateStart = getAlignedCandidateStartMinutes(
-      slotStart,
-      stepMinutes,
-    );
-
-    if (latestStart < firstCandidateStart) {
-      return;
-    }
-
-    for (
-      let startMinutes = firstCandidateStart;
-      startMinutes <= latestStart;
-      startMinutes += stepMinutes
-    ) {
-      candidateStartMinutes.add(startMinutes);
-    }
-  });
-
-  return [...candidateStartMinutes].sort((a, b) => a - b);
-}
 
 
 function formatRecommendationDateLabel(date: Date, locale: Locale = "es") {
@@ -505,10 +446,6 @@ function isUnrestrictedAvailability(
   availability: PlayerAvailability | null | undefined,
 ) {
   return !availability || !hasAnyAvailabilitySlot(availability);
-}
-
-function getUnrestrictedAvailabilitySlots(): AvailabilitySlot[] {
-  return [{ start: "00:00", end: "23:59" }];
 }
 
 function getRecommendedDefaultCandidate(
@@ -578,34 +515,35 @@ export function buildAvailabilityRecommendations({
 
   const dates = getDateRange({ startsAt, endsAt });
   const recommendations: AvailabilityRecommendation[] = [];
+  if (!Number.isFinite(stepMinutes) || stepMinutes <= 0 || !Number.isFinite(slotDurationMinutes) || slotDurationMinutes <= 0) return [];
+  const resolvers = new Map(availabilities.map((availability) => [availability.playerId, createAvailabilityInstantResolver(availability.timezone)]));
 
   dates.forEach((date) => {
     const dateValue = formatDateValue(date);
-    const playerSlots = uniquePlayerIds.map((playerId) => ({
-      playerId,
-      slots: isUnrestrictedAvailability(availabilityByPlayerId.get(playerId))
-        ? getUnrestrictedAvailabilitySlots()
-        : getAvailabilitySlotsForDate({
-            availability: availabilityByPlayerId.get(playerId),
-            date: dateValue,
-          }),
-    }));
-    const candidateStartMinutes = [
-      ...new Set(
-        playerSlots.flatMap(({ slots }) =>
-          getCandidateStartMinutesFromSlots({
-            slots,
-            slotDurationMinutes,
-            stepMinutes,
-          }),
-        ),
-      ),
-    ].sort((a, b) => a - b);
+    const playerIntervals = uniquePlayerIds.map((playerId) => {
+      const availability = availabilityByPlayerId.get(playerId);
+      if (isUnrestrictedAvailability(availability)) return { playerId, intervals: [[-Infinity, Infinity]] };
+      const resolve = resolvers.get(playerId)!;
+      const intervals: number[][] = [];
+      for (let offset = -2; offset <= 2; offset++) {
+        const ownDate = formatDateValue(addDays(date, offset));
+        for (const slot of getAvailabilitySlotsForDate({ availability, date: ownDate })) {
+          const start = resolve(ownDate, slot.start), end = resolve(ownDate, slot.end);
+          if (start !== null && end !== null && end > start) intervals.push([start, end]);
+        }
+      }
+      return { playerId, intervals };
+    });
+    const candidateStartMinutes: number[] = [];
+    for (let minute = 0; minute + slotDurationMinutes <= 1439; minute += stepMinutes) candidateStartMinutes.push(minute);
 
     candidateStartMinutes.forEach((startMinutes) => {
       const endMinutes = startMinutes + slotDurationMinutes;
-      const availablePlayerIds = playerSlots
-        .filter(({ slots }) => isSlotCovered({ slots, startMinutes, endMinutes }))
+      const instantStart = new Date(`${dateValue}T${minutesToTime(startMinutes)}`).getTime();
+      const instantEnd = new Date(`${dateValue}T${minutesToTime(endMinutes)}`).getTime();
+      if (instantEnd - instantStart !== slotDurationMinutes * 60_000) return;
+      const availablePlayerIds = playerIntervals
+        .filter(({ intervals }) => intervals.some(([start, end]) => start <= instantStart && end >= instantEnd))
         .map(({ playerId }) => playerId);
       const isCommonForConfiguredPlayers =
         configuredPlayerIds.length === 0 ||

@@ -9,10 +9,10 @@ describe("ranking display order", () => {
     { id: "p4", points: 5, gamesDiff: 2, gamesFor: 19 },
   ]
 
-  it("uses the same sequential positions shown in the ranking list, including ties", () => {
+  it("shares positions for exact ties and keeps competition gaps", () => {
     expect(sortRankingRows(players).map((player) => player.id)).toEqual(["p1", "p2", "p3", "p4"])
     expect(getRankingDisplayPosition(players, "p1")).toBe(1)
-    expect(getRankingDisplayPosition(players, "p2")).toBe(2)
+    expect(getRankingDisplayPosition(players, "p2")).toBe(1)
     expect(getRankingDisplayPosition(players, "p3")).toBe(3)
     expect(getRankingDisplayPosition(players, "p4")).toBe(4)
   })

@@ -39,6 +39,10 @@ export function I18nProvider({ children }: I18nProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(defaultLocale)
 
   useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
+
+  useEffect(() => {
     const savedLocale = window.localStorage.getItem("smash-lob-locale")
 
     if (isValidLocale(savedLocale) && savedLocale !== defaultLocale) {

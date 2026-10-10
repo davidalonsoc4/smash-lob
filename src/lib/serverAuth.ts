@@ -46,9 +46,10 @@ export async function requireAuthenticatedAppUser(): Promise<
     return { ok: false, status: 501, error: "missing_service_role" }
   }
 
+  const userSelect = "id,email,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,preferred_side,dominant_hand,is_superuser,can_create_leagues,suspended_at,suspension_reason"
   const { data: existingUser, error: existingUserError } = await supabase
     .from("app_users")
-    .select("id,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,preferred_side,dominant_hand,is_superuser,can_create_leagues,suspended_at,suspension_reason")
+    .select(userSelect)
     .eq("email", email)
     .maybeSingle()
 
@@ -60,50 +61,24 @@ export async function requireAuthenticatedAppUser(): Promise<
     return { ok: false, status: 403, error: "account_suspended" }
   }
 
-  const googleName = splitGoogleDisplayName(session?.user?.name)
-  const hasCompletedProfile = Boolean(existingUser?.profile_completed_at)
-  const storedFirstName = existingUser?.first_name?.trim() || null
-  const storedLastName = existingUser?.last_name?.trim() || null
-  const firstName = storedFirstName || googleName.firstName || null
-  const lastName = storedLastName || googleName.lastName || null
-  const completedDisplayName =
-    existingUser?.display_name ??
-    ([firstName, lastName].filter(Boolean).join(" ") || null)
-  const displayName = hasCompletedProfile
-    ? completedDisplayName
-    : session?.user?.name?.trim() || existingUser?.display_name || null
-
-  const { data: user, error: userError } = await supabase
-    .from("app_users")
-    .upsert(
-      {
-        email,
-        display_name: displayName,
-        first_name: firstName,
-        last_name: lastName,
-        profile_completed_at: existingUser?.profile_completed_at ?? null,
-        availability_completed_at: existingUser?.availability_completed_at ?? null,
-        standard_availability_timezone:
-          existingUser?.standard_availability_timezone ?? "Europe/Madrid",
-        standard_availability_weekly_slots:
-          existingUser?.standard_availability_weekly_slots ?? {},
-        preferred_side: normalizePreferredPlayerSide(existingUser?.preferred_side),
-        dominant_hand: normalizeDominantHand(existingUser?.dominant_hand),
-        avatar_url:
-          normalizeStoredImageUrl(existingUser?.avatar_url) ??
-          normalizeStoredImageUrl(session?.user?.image) ??
-          null,
-        is_superuser: Boolean(existingUser?.is_superuser),
-        can_create_leagues: Boolean(existingUser?.can_create_leagues),
-      },
-      { onConflict: "email" }
-    )
-    .select("id,email,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,preferred_side,dominant_hand,is_superuser,can_create_leagues")
-    .single()
-
-  if (userError) {
-    return { ok: false, status: 500, error: "app_user_upsert_failed" }
+  // Authentication must never write a stale profile or authorization snapshot.
+  let user = existingUser
+  if (!user) {
+    const googleName = splitGoogleDisplayName(session?.user?.name)
+    const { error: createError } = await supabase.from("app_users").upsert({
+      email,
+      display_name: session?.user?.name?.trim() || null,
+      first_name: googleName.firstName || null,
+      last_name: googleName.lastName || null,
+      avatar_url: normalizeStoredImageUrl(session?.user?.image) ?? null,
+    }, { onConflict: "email", ignoreDuplicates: true })
+    if (createError) return { ok: false, status: 500, error: "app_user_upsert_failed" }
+    // Another sign-in may have created/suspended the account in the meantime.
+    const created = await supabase.from("app_users").select(userSelect).eq("email", email).maybeSingle()
+    if (created.error || !created.data) return { ok: false, status: 500, error: "app_user_lookup_failed" }
+    user = created.data
   }
+  if (user.suspended_at) return { ok: false, status: 403, error: "account_suspended" }
 
   return {
     ok: true,

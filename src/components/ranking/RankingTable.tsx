@@ -4,7 +4,7 @@ import Link from "next/link"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
-import { sortRankingRows } from "@/lib/rankingOrder"
+import { getRankingDisplayPosition, sortRankingRows } from "@/lib/rankingOrder"
 
 type RankingPlayer = {
   id: string
@@ -30,8 +30,8 @@ function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
 }
 
-function getPositionLabel(index: number) {
-  return `${index + 1}º`
+function getPositionLabel(position: number | null) {
+  return `${position}º`
 }
 
 export function RankingTable({ players, showAvatars = true }: RankingTableProps) {
@@ -53,11 +53,12 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
       </div>
 
       <div>
-        {sortedPlayers.map((player, index) => (
+        {sortedPlayers.map((player) => (
           <Link
             key={player.id}
+            data-ranking-position={getRankingDisplayPosition(sortedPlayers, player.id)}
             href={`/player/${player.slug}`}
-            aria-label={`${getPositionLabel(index)} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
+            aria-label={`${getPositionLabel(getRankingDisplayPosition(sortedPlayers, player.id))} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
             className="app-ranking-row grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 py-2 transition active:bg-neutral-50"
           >
             <div className="flex min-w-0 items-center gap-3">
@@ -65,7 +66,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
                 className="app-ranking-position w-7 shrink-0 text-center text-sm font-black tabular-nums text-neutral-700"
                 aria-hidden="true"
               >
-                {index + 1}
+                {getRankingDisplayPosition(sortedPlayers, player.id)}
               </span>
 
               {showAvatars ? <PlayerAvatar player={player} size="sm" /> : null}

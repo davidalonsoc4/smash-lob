@@ -3,73 +3,13 @@ import "server-only"
 import type { ServerLeagueViewer } from "@/lib/serverLeagueAccess"
 import {
   isTargetedCustodianActivityVisibleToPlayer,
+  type ActivityEvent,
+  type ActivityEventType,
 } from "@/lib/activity"
 import { shouldSuppressSeasonMatchNotifications } from "@/lib/preseasonSecrets"
+import { buildActivityCursor, parseActivityCursor } from "@/lib/activityCursor"
 
 type SupabaseClient = ServerLeagueViewer["supabase"]
-
-type ActivityEventType =
-  | "match_scheduled"
-  | "match_schedule_updated"
-  | "match_postponed"
-  | "match_incident_reported"
-  | "match_incident_resolved"
-  | "match_incident_cleared"
-  | "match_result_saved"
-  | "match_result_updated"
-  | "match_result_disputed"
-  | "match_result_cleared"
-  | "match_result_missing_reminder"
-  | "match_result_confirmation_reminder"
-  | "match_mvp_vote_reminder"
-  | "match_mvp_awarded"
-  | "match_upcoming_reminder"
-  | "match_ball_custodian_assigned"
-  | "match_ball_custodian_reminder"
-  | "round_in_play"
-  | "round_pairings_revealed"
-  | "round_mvp_awarded"
-  | "court_booking_updated"
-  | "court_booking_cleared"
-  | "court_booking_payment_paid"
-  | "court_booking_payment_reminder"
-  | "season_registration_payment_reminder"
-  | "league_created"
-  | "league_updated"
-  | "league_logo_updated"
-  | "league_locations_updated"
-  | "league_invite_regenerated"
-  | "league_announcement_published"
-  | "league_announcement_deleted"
-  | "season_finished"
-  | "season_created"
-  | "season_duplicated"
-  | "season_started"
-  | "season_opening_announced"
-  | "season_player_joined"
-  | "season_player_left"
-  | "player_name_updated"
-  | "player_avatar_updated"
-  | "player_role_updated"
-  | "player_unlinked"
-  | "user_updated"
-
-type ActivityEvent = {
-  id: string
-  leagueId: string
-  seasonId: string | null
-  matchId: string | null
-  actorUserId: string | null
-  actorEmail: string
-  actorDisplayName: string | null
-  actorAvatarUrl: string | null
-  actorAvatarInitials: string | null
-  type: ActivityEventType
-  title: string
-  description: string | null
-  metadata: Record<string, unknown>
-  createdAt: string
-}
 
 type LeagueActorProfile = {
   displayName: string | null
@@ -428,7 +368,7 @@ function resolveEffectiveCreatedAtFrom({
   return effectiveCreatedAtFrom
 }
 
-export async function fetchServerActivityEvents({
+export async function fetchServerActivityPage({
   viewer,
   leagueId,
   limit = 50,
@@ -458,11 +398,15 @@ export async function fetchServerActivityEvents({
   }
 
   if (createdAtBefore) {
-    query = query.lt("created_at", createdAtBefore)
+    const cursor = parseActivityCursor(createdAtBefore)!
+    query = cursor.id
+      ? query.or(`created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`)
+      : query.lt("created_at", cursor.createdAt)
   }
 
   const { data, error } = await query
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(limit)
 
   if (error) {
@@ -472,6 +416,9 @@ export async function fetchServerActivityEvents({
   let events = (data ?? []).map((item) =>
     mapActivityEvent(item as Record<string, unknown>)
   )
+  // Advance over the database page even when visibility rules hide its events.
+  const lastEvent = events.at(-1)
+  const nextCursor = events.length === limit && lastEvent ? buildActivityCursor(lastEvent) : null
 
   {
     const matchSeasonIds = Array.from(
@@ -596,7 +543,7 @@ export async function fetchServerActivityEvents({
     }),
   ])
 
-  return events.map((event) => {
+  const items = events.map((event) => {
     const actorUserId =
       event.actorUserId ??
       usersByEmail.get(normalizeEmail(event.actorEmail)) ??
@@ -616,4 +563,5 @@ export async function fetchServerActivityEvents({
       actorUserId ? (leagueProfilesByUserId.get(actorUserId) ?? null) : null
     )
   })
+  return { items, nextCursor }
 }

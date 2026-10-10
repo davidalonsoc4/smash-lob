@@ -2,7 +2,7 @@ import "server-only"
 
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
 import { calculateBallCustodianAssignment } from "@/lib/ballCustodianAssignment"
-import { generateBalancedCalendar, getSeasonScheduleRoundCount } from "@/lib/calendar"
+import { generateBalancedCalendar, isValidSeasonScheduleTarget } from "@/lib/calendar"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type {
   SeasonRoundSettings,
@@ -283,10 +283,14 @@ export async function duplicateServerSeason({
     sourceSettings.schedule_mode === "extended"
       ? sourceSettings.schedule_mode
       : "single"
-  const totalRounds = getSeasonScheduleRoundCount({
+  const totalRounds = sourceSeason.total_rounds
+  if (!isValidSeasonScheduleTarget({
     playerCount: playerIds.length,
     mode: scheduleMode,
-  })
+    targetRoundCount: totalRounds,
+  })) {
+    throw new SeasonDuplicationError(409, "season_duplicate_length_invalid")
+  }
   const { data: createdSeason, error: seasonCreateError } = await supabase
     .from("seasons")
     .insert({
@@ -332,6 +336,7 @@ export async function duplicateServerSeason({
     seasonId: duplicatedSeason.id,
     playerIds,
     scheduleMode,
+    targetRoundCount: totalRounds,
   })
   if (
     sourceSettings.organization_balls_assigned === true &&

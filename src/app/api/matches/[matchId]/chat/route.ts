@@ -4,7 +4,6 @@ import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { insertServerActivityEvent } from "@/lib/serverActivityWrite"
 import type { ServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { broadcastMatchChatRefresh, getMatchChatRealtimeTopic } from "@/lib/serverChatRealtime"
-import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import { getServerMatchChatCoordination } from "@/lib/serverMatchChatCoordination"
 import { getMatchChatWriteUntil, isMatchChatReadOnly } from "@/lib/matchChatWindow"
@@ -105,7 +104,8 @@ export async function GET(request: Request, { params }: Ctx) {
     for (const row of responsesResult.data ?? []) { const messageId = String(row.message_id), participant = participantByUser.get(String(row.user_id)), list = responsesByMessage.get(messageId) ?? []; list.push({ userId: String(row.user_id), playerId: participant?.playerId ?? null, displayName: participant?.displayName ?? "Jugador", optionKey: String(row.option_key), response: String(row.response), updatedAt: String(row.updated_at) }); responsesByMessage.set(messageId, list) }
     const messages = ordered.map((message) => ({ ...message, responses: responsesByMessage.get(String(message.id)) ?? [] })), readByUser = new Map<string, string>((readsResult.data ?? []).map((row) => [String(row.user_id), String(row.last_read_at)])), latestIncoming = [...ordered].reverse().find((message) => String(message.sender_user_id) !== user.id)
     if (markRead && latestIncoming && (!readByUser.get(user.id) || Date.parse(readByUser.get(user.id) as string) < Date.parse(String(latestIncoming.created_at)))) { const lastReadAt = new Date().toISOString(), write = await db.from("match_chat_reads").upsert({ match_id: matchId, user_id: user.id, last_read_at: lastReadAt }, { onConflict: "match_id,user_id" }); if (!write.error) { readByUser.set(user.id, lastReadAt); await broadcastMatchChatRefresh({ matchId, leagueId: match.leagueId, seasonId: match.seasonId, includeOverview: false }).catch(() => null) } }
-    const participantsWithReads = participants.map((item) => ({ ...item, lastReadAt: item.userId ? readByUser.get(item.userId) ?? null : null })), coordination = buildMatchChatCoordination({ matchStatus: match.status, participants: participantsWithReads, messages })
+    const participantsWithReads = participants.map((item) => ({ ...item, lastReadAt: item.userId ? readByUser.get(item.userId) ?? null : null }))
+    const coordination = await getServerMatchChatCoordination({ db, match })
     const reservationSummary = match.status === "scheduled" && match.scheduledAt ? { scheduledAt: match.scheduledAt, locationText: getScheduleLocationDisplayText(match.location) ?? "Pista reservada" } : null
     return NextResponse.json({ messages, participants: participantsWithReads, currentUserId: user.id, round: match.round, readOnly: isMatchChatReadOnly(match) || seasonReadOnly, writeUntil: getMatchChatWriteUntil(match)?.toISOString() ?? null, coordination, reservationSummary, realtimeTopic: getMatchChatRealtimeTopic(matchId) })
   } catch (error) { return dbError(error instanceof Error ? error.message : "match_chat_lookup_failed") }
