@@ -134,9 +134,6 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   // app surfaces, not to the operating-system chrome above the viewport.
   const themeColor = visualStyle === "competition" ? (dark ? "#0b0c0e" : "#f3f5f8") : dark ? "#0b1119" : "#0a0a0a"
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", themeColor)
-  // Chromium on Android also consults this legacy navigation-bar hint for the
-  // gesture inset in an installed PWA. Keep it in sync with theme-color so the
-  // system gesture area never falls back to white in dark mode.
   document.querySelector<HTMLMetaElement>('meta[name="msapplication-navbutton-color"]')?.setAttribute("content", themeColor)
 }
 
