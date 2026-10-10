@@ -53,4 +53,3 @@ Open work: atomic account deletion; waitlist capacity/expiry; league creation co
 
 
 Resume: execute C14 with the existing release-quality GitHub Actions job, which runs the same database quality script against a worker-local disposable Docker stack and synthetic fixtures. C14 passed; C15 prepares a coherent release and requires all final gates before PRE promotion. The workstation alternative is installing/starting Docker Desktop and rerunning npm run database:quality in the isolated checkout recorded in STATUS.md. No migrations have been modified or added in this correction phase.
-

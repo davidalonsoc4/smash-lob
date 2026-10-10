@@ -93,4 +93,3 @@ Estado actual: 6fa8c72, no nuevas correcciones. RESUELTO se limita al contrato d
 - Conversaciones antiguas: solo historial suministrado por el usuario y documentos recuperados; no se simula acceso a conversaciones no consultadas ni evidencia de pantallas no abiertas.
 
 La tabla canónica tiene 64 elementos (47 + 6 + 11). Los bloques anteriores de checklists/duplicados no se suman como bugs ni como nuevas correcciones. Los estados PENDIENTE son límites explícitos de revalidación, no defectos confirmados.
-

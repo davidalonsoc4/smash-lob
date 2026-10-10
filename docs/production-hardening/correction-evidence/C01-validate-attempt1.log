@@ -179,4 +179,3 @@ C:\Users\USER\.codex\worktrees\functional-audit-check\smash-lob\tools\next-eslin
   3:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
 
 ✖ 5 problems (1 error, 4 warnings)
-

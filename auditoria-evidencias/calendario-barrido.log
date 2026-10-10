@@ -63,4 +63,3 @@ AssertionError: expected [ { players: 17, …(4) }, …(3) ] to deeply equal []
       Tests  1 failed (1)
    Start at  12:49:01
    Duration  14.69s (transform 114ms, setup 0ms, collect 138ms, tests 14.19s, environment 0ms, prepare 109ms)
-

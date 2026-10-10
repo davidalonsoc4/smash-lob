@@ -28,4 +28,3 @@ it("BUG-023: resultado cambia pero fallo borrando confirmaciones mantiene valida
  const priorReporterState=getMatchResultConfirmationState({matchId,participantIds:["a","b","c","d"],reporterPlayerId:"a",resultRecordedAt:saved.result_recorded_at,resultLocked:false,confirmations:previousConfirmations,mode:"required",now:new Date(saved.result_recorded_at)})
  expect(priorReporterState.state).toBe("validated")
 })
-

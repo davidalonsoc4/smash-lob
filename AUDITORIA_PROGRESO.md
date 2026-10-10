@@ -119,5 +119,3 @@ M06: controles de 24 h/120 min, confirmaciones ajenas y modos pasan (3/3). M07 i
 25 fichas documentadas (BUG-001..025), separando confirmadas/probables. Pruebas adicionales: 23/23 (19 reproducciones + 4 controles); barrido calendario 102 casos con 4 fallos conservados. No se declara aceptación global ni cierre A02. Próximo: completar M04 alta/ajustes y M05 manuales; M06 concurrencia y M07 desasignación/reemplazo; continuar M08 disponibilidad y M09 chats. Ya leídos parcialmente chatRealtimeClient, serverChatRealtime, API coordination y availability de jugador (GET/PUT), aún sin declarar revisión de esos módulos. M08..M21 siguen pendientes.
 
 Integridad revalidada: 924 archivos funcionales sin diferencias, HEAD inicial conservado. Ningún commit/push, despliegue, escritura de datos ni modificación de migraciones. Restricción visual aislada persiste; usar evidencia segura y documentar cobertura real.
-
-
