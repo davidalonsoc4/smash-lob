@@ -1,0 +1,18 @@
+{
+  "candidateSha": "adeb3c900aa8107ea355d52bdfccf28f34897533",
+  "run": 38078565124,
+  "job": 114290558197,
+  "databaseConclusion": "success",
+  "allFourJobs": "success",
+  "pgTapFiles": 2,
+  "pgTapTests": 38,
+  "migrationReplay": true,
+  "schemaLint": true,
+  "logicalRestore": true,
+  "legacyUpgrade": true,
+  "syntheticDataOnly": true,
+  "artifact": 11678588759,
+  "artifactSha256": "ceadcf558a289f07dc776b3b10d58f55658b746bb898dc1bb4a2c88ca73900e7",
+  "workstationDockerAvailable": false,
+  "prePromoted": false
+}

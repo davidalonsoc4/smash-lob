@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { defaultNotificationPreferences } from "@/lib/notificationSettings"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { isTrustedPushEndpoint } from "@/lib/pushEndpoint"
 
 export const runtime = "nodejs"
 
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_league" }, { status: 400 })
   }
 
-  if (!endpoint || !keys.p256dh || !keys.auth) {
+  if (!isTrustedPushEndpoint(endpoint) || !keys.p256dh || !keys.auth) {
     return NextResponse.json({ error: "invalid_subscription" }, { status: 400 })
   }
 

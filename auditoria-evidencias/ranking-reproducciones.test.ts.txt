@@ -1,0 +1,20 @@
+import { expect, it } from "vitest"
+import { calculateSeasonRanking } from "@/lib/ranking"
+import { calculateSeasonStatistics, getRankingPosition } from "@/lib/seasonStatistics"
+import { getRankingDisplayPosition } from "@/lib/rankingOrder"
+const playerProfiles=["a","b","c","d"].map(id=>({id,name:id,displayName:id,leagueId:"qa"})) as any
+const seasonPlayers=playerProfiles.map((p:any)=>({id:p.id,playerId:p.id,seasonId:"qa-season",status:"active"})) as any
+const match:any={id:"qa-match",leagueId:"qa",seasonId:"qa-season",round:1,status:"finished",teamA:["a","b"],teamB:["c","d"],pointsA:1,pointsB:1,sets:[{a:6,b:0},{a:0,b:6}],resultCounts:true,resultRecordedAt:"2026-10-10T12:00:00Z",scheduledAt:null,location:null}
+it("BUG-030: empate permitido se cuenta como derrota para todos en ranking y se excluye en estadisticas",()=>{
+ const input={seasonId:"qa-season",playerProfiles,seasonPlayers,matches:[match]}
+ const ranking=calculateSeasonRanking(input)
+ expect(ranking.every(p=>p.matchesPlayed===1&&p.losses===1&&p.points===1)).toBe(true)
+ const stats=calculateSeasonStatistics({...input,includeProgress:false})
+ expect(stats.countedMatches).toBe(0)
+ expect(stats.ranking.every(p=>p.matchesPlayed===0&&p.points===0)).toBe(true)
+})
+it("BUG-031: posiciones de empate difieren entre partido y estadisticas",()=>{
+ const rows=[{id:"a",points:10,gamesDiff:4,gamesFor:20},{id:"b",points:10,gamesDiff:4,gamesFor:20}]
+ expect(getRankingDisplayPosition(rows,"b")).toBe(2)
+ expect(getRankingPosition(rows as any,"b")).toBe(1)
+})

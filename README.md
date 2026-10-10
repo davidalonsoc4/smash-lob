@@ -10,8 +10,9 @@ exportaciones.
 - PRE: `https://pre.smashandlob.com` desde `staging`.
 - Desarrollo: `http://localhost:3000`.
 
-La versión estable actual es `v1.1.0`. Las ramas de funcionalidad se validan
-primero en PRE antes de promoverse a Producción.
+La versión de este checkout se declara en `package.json`.
+Esto no acredita la versión desplegada: cada publicación se verifica por separado.
+Las ramas de funcionalidad se validan primero en PRE antes de promoverse a Producción.
 
 ## Configuración
 

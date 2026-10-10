@@ -3,6 +3,7 @@ import type { PlayerProfile } from "@/data/fakeData"
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import { matchIncidentTypeLabels } from "@/lib/matchIncidents"
 import type { RankingPlayer } from "@/lib/ranking"
+import { getRankingDisplayPosition } from "@/lib/rankingOrder"
 
 export type ExportCell = string | number | boolean | null | undefined
 export type ExportRows = ExportCell[][]
@@ -70,8 +71,8 @@ export function buildRankingExportRows(ranking: RankingPlayer[]): ExportRows {
       "Diferencia de juegos",
       "Estado",
     ],
-    ...ranking.map((player, index) => [
-      index + 1,
+    ...ranking.map((player) => [
+      getRankingDisplayPosition(ranking, player.id),
       player.displayName,
       player.points,
       player.matchesPlayed,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerLeagueViewer } from "@/lib/serverLeagueAccess"
-import { fetchServerActivityEvents } from "@/lib/serverActivity"
+import { fetchServerActivityPage } from "@/lib/serverActivity"
+import { parseActivityCursor } from "@/lib/activityCursor"
 import { validateUuid } from "@/lib/serverRequest"
 
 export const runtime = "nodejs"
@@ -64,9 +65,14 @@ export async function GET(
   if (limit === null) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
   }
+  try {
+    parseActivityCursor(parseOptionalCreatedAtBefore(url.searchParams.get("createdAtBefore")))
+  } catch {
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 })
+  }
 
   try {
-    const items = await fetchServerActivityEvents({
+    const page = await fetchServerActivityPage({
         viewer: access.actor,
         leagueId,
         limit,
@@ -80,10 +86,7 @@ export async function GET(
           url.searchParams.get("clampToViewerJoinDate")
         ),
       })
-    return NextResponse.json({
-      items,
-      nextCursor: items.length === limit ? items[items.length - 1]?.createdAt ?? null : null,
-    })
+    return NextResponse.json({ items: page.items, nextCursor: page.nextCursor })
   } catch {
     return NextResponse.json(
       { error: "activity_lookup_failed" },

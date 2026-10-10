@@ -1,11 +1,47 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePathname } from "next/navigation"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getOnboardingCopy } from "@/features/onboarding/types"
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider"
+
+function useModalFocus(enabled: boolean) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const dialog = ref.current
+    if (!enabled || !dialog) return
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const siblings = Array.from(document.body.children).filter((element) => element !== dialog && !element.contains(dialog))
+    const inertState = siblings.map((element) => ({ element, inert: element.getAttribute("inert") }))
+    siblings.forEach((element) => element.setAttribute("inert", ""))
+    const controls = () => Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]'))
+      .filter((element) => element.tabIndex >= 0 && !element.closest('[hidden], [aria-hidden="true"]'))
+    const focusFirst = () => (controls()[0] ?? dialog).focus({ preventScroll: true })
+    const handleFocus = (event: FocusEvent) => {
+      if (event.target instanceof Node && !dialog.contains(event.target)) focusFirst()
+    }
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return
+      const elements = controls(), first = elements[0], last = elements.at(-1)
+      if (!first || !dialog.contains(document.activeElement) || (!event.shiftKey && document.activeElement === last) || (event.shiftKey && document.activeElement === first)) {
+        event.preventDefault()
+        ;(event.shiftKey ? last ?? dialog : first ?? dialog).focus({ preventScroll: true })
+      }
+    }
+    document.addEventListener("focusin", handleFocus)
+    document.addEventListener("keydown", handleKey, true)
+    focusFirst()
+    return () => {
+      document.removeEventListener("focusin", handleFocus)
+      document.removeEventListener("keydown", handleKey, true)
+      inertState.forEach(({ element, inert }) => inert === null ? element.removeAttribute("inert") : element.setAttribute("inert", inert))
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true })
+    }
+  }, [enabled])
+  return ref
+}
 
 type TargetRect = {
   top: number
@@ -38,6 +74,7 @@ export function GuidedTourOverlay() {
     closeTour,
   } = useOnboarding()
   const step = activeTour?.steps[currentStepIndex]
+  const modalRef = useModalFocus(Boolean(activeTour && step))
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null)
   useEffect(() => {
     if (!step) return
@@ -95,10 +132,11 @@ export function GuidedTourOverlay() {
   const isLast = currentStepIndex === activeTour.steps.length - 1
 
   return createPortal(
-    <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label={activeTour.title}>
+    <div ref={modalRef} tabIndex={-1} className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label={activeTour.title}>
       <button
         type="button"
         aria-label={copy.close}
+        tabIndex={-1}
         onClick={closeTour}
         className="absolute inset-0 cursor-default"
       />

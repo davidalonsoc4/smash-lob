@@ -1,0 +1,78 @@
+import { beforeEach, describe, expect, it, vi } from "vitest"
+import { readFileSync } from "node:fs"
+
+// Evidencia de auditoría: todas las escrituras terminan en dobles en memoria.
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), client: vi.fn(), gate: vi.fn() }))
+vi.mock("@/auth", () => ({ auth: mocks.auth }))
+vi.mock("@/lib/supabaseServer", () => ({ createSupabaseServiceClient: mocks.client }))
+vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.gate }))
+
+beforeEach(() => vi.clearAllMocks())
+
+describe("Reproducciones aisladas de auditoría; no llamadas externas", () => {
+  it("BUG-001: una lectura autenticada restaura un privilegio revocado concurrentemente", async () => {
+    const db = { id: "user-qa", email: "qa@example.test", display_name: "QA Persona", first_name: "QA", last_name: "Persona", profile_completed_at: "2026-01-01", is_superuser: true, can_create_leagues: true }
+    const query: any = {
+      select: () => query, eq: () => query,
+      maybeSingle: async () => {
+        const staleSnapshot = { ...db }
+        db.is_superuser = false // Otra operación administrativa ha revocado el rol.
+        return { data: staleSnapshot, error: null }
+      },
+      upsert: (payload: any) => { Object.assign(db, payload); return query },
+      single: async () => ({ data: { ...db }, error: null }),
+    }
+    mocks.auth.mockResolvedValue({ user: { email: db.email, name: "QA Persona" } })
+    mocks.client.mockReturnValue({ from: () => query })
+    const actual = await vi.importActual<typeof import("@/lib/serverAuth")>("@/lib/serverAuth")
+    const result = await actual.requireAuthenticatedAppUser()
+    expect(result.ok).toBe(true)
+    expect(db.is_superuser).toBe(true) // Revocación perdida, demostrada con el helper real.
+  })
+
+  it("BUG-002: exportar consulta player_id con el ID de cuenta y pierde membresías propias", async () => {
+    const queries: string[][] = []
+    const supabase = { from: (table: string) => ({ select: () => ({ eq: async (key: string, value: string) => {
+      queries.push([table, key, value])
+      const membership = { user_id: "user-qa", player_id: "player-qa", league_id: "league-qa" }
+      return { data: table === "league_memberships" && (membership as any)[key] === value ? [membership] : [], error: null }
+    } }) }) }
+    mocks.gate.mockResolvedValue({ ok: true, actor: { supabase, user: { id: "user-qa", email: "qa@example.test" } } })
+    const { GET } = await import("@/app/api/account/export/route")
+    const response = await GET()
+    const body = await response.json()
+    expect(response.status).toBe(200)
+    expect(queries).toContainEqual(["league_memberships", "player_id", "user-qa"])
+    expect(body.memberships).toEqual([])
+  })
+
+  it("BUG-003: eliminación declara éxito aunque fallen los borrados de preferencias y Push", async () => {
+    const touched: string[] = []
+    let anonymized: any
+    const supabase = { from: (table: string) => {
+      touched.push(table)
+      return {
+        delete: () => ({ eq: async () => ({ error: { message: "simulated write failure" } }) }),
+        update: (payload: any) => { anonymized = payload; return { eq: async () => ({ error: null }) } },
+      }
+    } }
+    mocks.gate.mockResolvedValue({ ok: true, actor: { supabase, user: { id: "user-qa" } } })
+    const { POST } = await import("@/app/api/account/delete/route")
+    const response = await POST(new Request("http://audit.invalid/api/account/delete", { method: "POST", body: JSON.stringify({ confirmation: "ELIMINAR MI CUENTA" }) }))
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ ok: true })
+    expect(touched).toEqual(["push_subscriptions", "notification_preferences", "notification_reads", "app_users"])
+    expect(anonymized).not.toHaveProperty("is_superuser")
+    expect(touched).not.toContain("players")
+    expect(touched).not.toContain("league_memberships")
+  })
+
+  it("BUG-004: confirmación traducida no cumple la comparación fija en castellano", () => {
+    const source = readFileSync("src/app/settings/page.tsx", "utf8")
+    const translations = readFileSync("src/i18n/leagueText.ts", "utf8")
+    expect(source).toContain('if (confirmation !== "ELIMINAR MI CUENTA") return')
+    expect(translations).toContain('"To confirm, type DELETE MY ACCOUNT."')
+    expect(translations).toContain('"Berresteko, idatzi KONTUA EZABATU."')
+    for (const supplied of ["DELETE MY ACCOUNT", "KONTUA EZABATU"]) expect(supplied === "ELIMINAR MI CUENTA").toBe(false)
+  })
+})

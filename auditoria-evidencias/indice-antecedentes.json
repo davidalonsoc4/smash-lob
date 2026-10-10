@@ -1,0 +1,217 @@
+[
+  {
+    "file": "docs/FUNCTIONAL_PRE_ACCEPTANCE.md",
+    "headings": [
+      "# V02 — Aceptación funcional manual PRE, 2026-10-09",
+      "## Entorno y recursos creados",
+      "## Comprobaciones realizadas",
+      "## Incidencia de herramienta al iniciar (histórica)",
+      "## Continuación verificada",
+      "## Ciclo, amistosos y exportación",
+      "## Reanudación del 10 de octubre",
+      "## Incidencia de limpieza (resuelta posteriormente)",
+      "## Mejoras observadas / límites",
+      "## Limpieza resuelta — 10 de octubre",
+      "## Correcciones locales — 10 de octubre",
+      "### Cambios por pantalla y validación posterior",
+      "## Cierre local — listo para revisión, sin commit"
+    ],
+    "mentions": [
+      "- Inicio bloqueado mientras hay inscripciones pendientes; registrar siete pagos",
+      "- Resultado incompleto bloqueado; tres sets 6-2/6-3/6-4 guardados y persistentes. Ranking: ganadores 3 puntos/+9 juegos, perdedores 0/-9.",
+      "- Limitación de herramienta: fill de campos nativos time/datetime-local no cambia el valor efectivo; no se atribuye por sí solo a defecto de la app.",
+      "- Evidencias 02–05 en carpeta functional fuera del repositorio. Limpieza y otros flujos todavía pendientes.",
+      "- Pagos: varios pagadores, edición a único pagador, reparto 20 € en cuatro partes, deuda propia 5 € primero, liquidación ficticia y recarga muestran Tu parte saldada y dos deudas ajenas pendientes. Sin movimientos reales de dinero.",
+      "- Amistoso QA creado: bd49b671-ad14-4114-b0b9-b0c2d4e8f48a. Tres participantes manuales ficticios. Un set 6-4 válido, reserva 24 €, reparto tres transferencias de 6 €, marcar pagado y volver pendiente correctos. Resultado y reserva persisten tras recarga.",
+      "Recursos desechables pendientes de comprobar/eliminar:",
+      "pendiente. Recuperada la UI, comprobar primero si existe; después eliminar solo",
+      "3. Votos: indicar guardado pendiente y evitar que navegación inmediata descarte la operación optimista.",
+      "6. Confirmaciones nativas: limitan esta herramienta; su sustitución por diálogo accesible sería una mejora de UX/testabilidad, no se da por defecto funcional del servidor.",
+      "No verificados exhaustivamente: realtime entre dos cuentas/dispositivos, Google OAuth,",
+      "V02 permanece pendiente de resolver o disponer explícitamente las mejoras",
+      "funcionales listadas; ya no está bloqueado por limpieza. Las limitaciones de dos",
+      "histórico, indicador de voto pendiente con bloqueo concurrente, reserva/calendario",
+      "pendientes. Las confirmaciones nativas y los límites externos siguen documentados;",
+      "| Chat de liga / encuestas | Guardando visible, controles bloqueados durante la escritura, respuesta confirmada desde servidor y petición keepalive. | Playwright móvil/escritorio: demora, un único envío, recarga, error sin voto falso y reintento para retirar el voto. |",
+      "estáticos, ESLint sin errores (4 avisos previos) y build dentro del presupuesto.",
+      "TypeScript y controles estáticos correctos, 0 errores ESLint / 4 avisos previos."
+    ]
+  },
+  {
+    "file": "docs/V1_1_ACCEPTANCE_CHECKLIST.md",
+    "headings": [
+      "# Checklist de aceptación v1.1",
+      "## Local automatizado",
+      "## Contratos cubiertos",
+      "## Validación manual y externa en PRE",
+      "## Riesgo residual aceptado"
+    ],
+    "mentions": [
+      "## Riesgo residual aceptado",
+      "por diez pruebas automatizadas y no bloquea la publicación de `v1.1.0`. El riesgo",
+      "Con la prueba offline física superada y este riesgo documentado, la candidata"
+    ]
+  },
+  {
+    "file": "docs/V1_RELEASE_CHECKLIST.md",
+    "headings": [
+      "# Checklist de aceptación para Smash & Lob v1.0",
+      "## 1. Identidad de entorno y acceso",
+      "## 2. Invitaciones y espectadores",
+      "## 3. Liga y permisos",
+      "## 4. Temporadas y jugadores",
+      "## 5. Calendario, programación y resultados",
+      "## 6. Estadísticas, imágenes y datos",
+      "## 7. PWA, móvil y navegación",
+      "## 8. Validación técnica y publicación"
+    ],
+    "mentions": [
+      "- Ejecutar `npm run validate` sin errores ni warnings propios del proyecto.",
+      "- Confirmar que no hay migraciones pendientes inesperadas en PRE ni PROD.",
+      "- Revisar logs de Vercel después de las pruebas y descartar errores 500 o excepciones repetidas."
+    ]
+  },
+  {
+    "file": "docs/VISUAL_AUDIT_PLAN.md",
+    "headings": [
+      "# Visual audit corrections — 2026-10-09",
+      "## V01 — Shared correctness and legibility (DONE)",
+      "## V02 — Functional acceptance on disposable PRE fixtures (DONE within documented scope)",
+      "## V03 — Publish audited pending changes to PRE (DONE)"
+    ],
+    "mentions": [
+      "statistics, and relevant admin saves as permissions allow. Record observed errors"
+    ]
+  },
+  {
+    "file": "docs/VISUAL_AUDIT_RESULTS.md",
+    "headings": [
+      "# Segunda revisión visual — 9 de octubre de 2026",
+      "## Cobertura y evidencia",
+      "## Disposición de los 47 hallazgos",
+      "## Límites de la revisión",
+      "## Validación"
+    ],
+    "mentions": [
+      "Las capturas de carga no se consideran evidencia de un fallo permanente.",
+      "| 5 | Fecha/hora informadas sin ubicación muestra Lugar pendiente. |",
+      "| 16 | Eliminada temporada duplicada en rendimiento; selector de contexto en análisis. El perfil público conserva su selector de ámbito independiente. |",
+      "| 19 | Aviso explícito de pendientes históricos al cerrar temporada. No se alteraron reglas deportivas ni datos. |",
+      "| 20 | Sustitución bloqueada en temporada cerrada; ayudas de MVP/finanzas distinguen cierre. |",
+      "| 33 | Jerarquía y nombres de récords mejorados; se conservan tarjetas informativas sin prometer enlaces que no existen. |",
+      "| 37 | Disponibilidad desactivada ofrece salida a Chats. Editor habilitado pendiente de acceso de prueba. |",
+      "  operaciones requieren aceptación funcional independiente.",
+      "- ESLint: 0 errores y 4 advertencias de código sin uso."
+    ]
+  },
+  {
+    "file": "docs/preproduction/V0.14.5_REACT_EFFECT_VALIDATION.md",
+    "headings": [
+      "# v0.14.5 - React effect validation",
+      "## Scope",
+      "## Changes",
+      "## Behaviour preserved",
+      "## Validation"
+    ],
+    "mentions": [
+      "This patch resolves the three `react-hooks/set-state-in-effect` errors reported by the local ESLint validation after v0.14.4."
+    ]
+  },
+  {
+    "file": "docs/preproduction/V1_15_4_PRE_MANUAL_QA.md",
+    "headings": [
+      "# PRE manual QA — v1.15.4",
+      "## Access and QR spectator",
+      "## Notifications",
+      "## Account data",
+      "## Personal matches and language",
+      "## Welcome Pack and QR UI",
+      "## Core regression smoke"
+    ],
+    "mentions": [
+      "3. Confirm titles, empty states, buttons, errors, placeholders and accessible labels change language without Spanish-only visible copy."
+    ]
+  },
+  {
+    "file": "docs/prepublication/V1_2_11_RELEASE_CHECKLIST.md",
+    "headings": [
+      "# Smash & Lob v1.2.11 — comprobación de publicación",
+      "## Validación local",
+      "## Base de datos",
+      "## PRE",
+      "## PROD antes de comunicar la publicación"
+    ],
+    "mentions": [
+      "- `https://pre.smashandlob.com/api/experimental/avatar-lab/dicebear-big-smile` sin sesión devuelve error de autenticación y no contenido público.",
+      "- No hay errores nuevos en logs de Vercel ni Supabase."
+    ]
+  },
+  {
+    "file": "docs/prepublication/identity-audit.sql",
+    "headings": [],
+    "mentions": []
+  },
+  {
+    "file": "docs/production-hardening/COMPETITION_DARK_VISUAL_REVIEW.md",
+    "headings": [
+      "# Competition oscuro: revisión visual — 2026-10-08",
+      "## Correcciones prioritarias observadas",
+      "## Mejoras de diseño propuestas",
+      "## Alcance pendiente antes de afirmar cobertura completa",
+      "## Implementación y segunda revisión",
+      "## Tercera revisión y finalización de propuestas"
+    ],
+    "mentions": [
+      "4. **Avatares rotos en Ranking.** Se observa el icono de imagen rota en varios jugadores, además de avatares genéricos correctos en otros. Aplicar fallback también cuando falla la descarga, no solo cuando falta URL. No se ha determinado la causa de las imágenes fallidas.",
+      "7. **Resumen de temporada: explicación contradictoria.** Al abrir Temporada 2 terminada, la pantalla dice que la descarga aparecerá cuando termine, pero el estado es «Datos incompletos» y el resumen está bloqueado por diez partidos pendientes/excluidos/no válidos. Mostrar la causa real y ofrecer acceso a su revisión.",
+      "## Alcance pendiente antes de afirmar cobertura completa",
+      "Otros acentos Competition, texto grande, teclado/foco, escritorio amplio, dispositivos físicos, permisos de jugador puro, chat con propuestas y mensajes largos, resultados completos, errores y estados de carga. La revisión inicial no ejecutó pruebas automáticas ni modificó datos.",
+      "Rama local `codex/competition-dark-polish`, sin commit ni publicación. Se implementaron las siete correcciones prioritarias, incluido el acceso a revisión de partidos incompletos. Además, se simplificó el perfil sin resultados, se mejoraron los textos secundarios y la reserva del chat, y se aclaró la descripción del tema oscuro. El contexto de Volver ya tiene lógica de retorno en el componente compartido; el href de respaldo observado no demuestra un fallo, por lo que no se cambió.",
+      "Revisadas vistas a 1280×900, 375×812 y ancho original, texto grande y todos los acentos disponibles. La revisión encontró y corrigió contraste de azul, nombres recortados, solapamiento de cabecera estrecha, estadísticas con cuatro columnas dentro de un panel estrecho y estados deshabilitados/seleccionados en el chat. El nuevo test de contraste verifica al menos 4,5:1 para los seis acentos y colores personalizados de prueba. Se comprobaron teclado/foco en desplegables, apertura por enlace, estados de carga/vacíos y propuesta de fecha sin enviar. Tandas adicionales de 41 y 17 tests correctas, junto a TypeScript, i18n, presupuesto y diff; ESLint sin errores y 11 advertencias preexistentes en Administración.",
+      "Preferencias restauradas a texto normal y color de liga; viewport temporal retirado. No se modificaron datos ni se enviaron mensajes. No quedan propuestas de código de esta revisión pendientes. La cobertura no incluye dispositivos físicos, otras cuentas/permisos ni todos los errores posibles: requieren un entorno de prueba dedicado. Evidencia local: C:/Users/USER/.codex/visualizations/2026/10/08/01a11af9-6fc8-7e02-a8f7-85ee6222e399/competition-admin-complete.png."
+    ]
+  },
+  {
+    "file": "docs/production-hardening/V1_15_4_HARDENING_AUDIT.md",
+    "headings": [
+      "# Auditoría v1.15.4: saneamiento y deuda técnica",
+      "## Estado confirmado",
+      "## Decisiones de producto fijadas",
+      "## Orden de implementación"
+    ],
+    "mentions": [
+      "- `/activity` y el backend limitan la consulta a ventanas finitas; no existe cursor compuesto para recorrer todo el histórico.",
+      "- No existe una tabla ni API de lista de espera para temporadas llenas.",
+      "- No existe un flujo autoservicio completo para exportar o eliminar/anonymizar la cuenta.",
+      "- Exportación de datos en JSON, limitada a los datos propios."
+    ]
+  },
+  {
+    "file": "docs/production-hardening/VALIDATION.md",
+    "headings": [
+      "# Validation Log"
+    ],
+    "mentions": [
+      "| diff whitespace | `git diff --check` | local repo | 2026-07-14 22:47:16 +02:00 | PASS_WITH_WARNING | `8405e27` | no whitespace errors; CRLF normalization warning on one file | yes |",
+      "| diff whitespace after H01 refactor | `git diff --check` | local repo | 2026-07-14 22:55:09 +02:00 | PASS_WITH_WARNING | `8405e27` | no whitespace errors; same CRLF normalization warning remains | yes |",
+      "| diff whitespace after spectator refactor | `git diff --check` | local repo | 2026-07-14 22:59:09 +02:00 | PASS_WITH_WARNING | `8405e27` | no whitespace errors; same CRLF normalization warning remains | yes |",
+      "| build after H04 user/membership refactor | `npm run build` | local repo | 2026-07-14 23:27:50 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`; elevated rerun completed successfully and included `/api/app-user`, `/api/access`, and new membership routes in the build output | yes |",
+      "| build after H05 availability refactor | `npm run build` | local repo | 2026-07-14 23:38:20 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`; elevated rerun completed successfully and listed both new availability endpoints | yes |",
+      "| build after H06 confirmation refactor | `npm run build` | local repo | 2026-07-15 00:00:15 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`; elevated rerun completed successfully and listed both result-confirmation endpoints | yes |",
+      "| build after H07 detail refactor | `npm run build` | local repo | 2026-07-15 00:07:35 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`; elevated rerun completed successfully and listed the new `/api/matches/[matchId]/schedule`, `/postpone`, `/result`, `/result-lock`, and court-booking routes | yes |",
+      "| server-only import audit after season-admin route refactor | `Get-ChildItem src -Recurse -File | Select-String 'supabaseServer','createSupabaseServiceClient','SUPABASE_SERVICE_ROLE_KEY' -SimpleMatch` | local repo | 2026-07-15 23:13:41 +02:00 | PASS_WITH_REVIEW | `8405e27` | `supabaseServer` / service-role usage remains confined to API and server files plus localized error strings; no client component currently imports `supabaseServer.ts` | yes |",
+      "| build after season-admin route refactor | `npm run build` | local repo | 2026-07-15 23:13:41 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`, then PASS after elevated rerun; build output listed the new `/api/leagues/[id]/seasons/[seasonId]/finish`, `/start`, and `/settings` routes | yes |",
+      "| Supabase CLI presence after season-admin route refactor | `npx supabase --version` | local repo | 2026-07-15 23:13:41 +02:00 | PASS | `8405e27` | sandbox run failed with `ENOTCACHED`, then elevated rerun confirmed local Supabase CLI `2.109.1` | yes |",
+      "| Supabase local lint after invite helper fix | `npx supabase db lint --local --schema public --level warning --fail-on none` | local repo | 2026-07-15 23:13:41 +02:00 | PASS | `8405e27` | lint rerun reported `No schema errors found` after the forward SQL fix | yes |",
+      "| build after H09 MVP refactor | `npm run build` | local repo | 2026-07-15 23:37:03 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`, then elevated rerun completed successfully and listed the new `/api/mvp`, `/api/matches/[matchId]/mvp-vote`, `/api/matches/[matchId]/mvp-votes`, and `/api/leagues/[id]/seasons/[seasonId]/mvp-selection` routes | yes |",
+      "| Supabase local lint after MVP migration | `npx supabase db lint --local --schema public --level warning --fail-on none` | local repo | 2026-07-15 23:37:03 +02:00 | PASS | `8405e27` | lint reported `No schema errors found` after the MVP lock-down migration | yes |",
+      "| build after H10 activity read/settings slice | `npm run build` | local repo | 2026-07-15 23:50:37 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`, then elevated rerun completed successfully and listed `/api/leagues/[id]/activity` and `/api/leagues/[id]/activity-settings` | yes |",
+      "| build after H10 activity write migration | `npm run build` | local repo | 2026-07-16 00:28:30 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`, then elevated rerun completed successfully and listed `/api/leagues/[id]/seasons/[seasonId]/registration-reminder` plus `/api/matches/[matchId]/court-booking/payment-reminder` | yes |",
+      "| build after H11 notification hardening | `npm run build` | local repo | 2026-07-16 00:50:10 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`, then elevated rerun completed successfully and kept `/api/notifications/*` plus the existing activity/reminder routes in the build output | yes |",
+      "| Supabase local lint after H11 notification migration | `npx supabase db lint --local --schema public --level warning --fail-on none` | local repo | 2026-07-16 00:50:10 +02:00 | PASS | `8405e27` | lint reported `No schema errors found` after the notification-table migration and per-league endpoint constraint change | yes |",
+      "| build after H12 QA/file hardening | `npm run build` | local repo | 2026-07-16 01:06:05 +02:00 | PASS | `8405e27` | sandbox run failed with Windows `spawn EPERM`, then elevated rerun completed successfully and kept `/api/qa` plus the league/player admin routes in the production build output | yes |",
+      "| Supabase local lint after H13 grants/RLS migration | `npx supabase db lint --local --schema public --level warning --fail-on none` | local repo | 2026-07-16 01:25:33 +02:00 | PASS | `8405e27` | lint reported `No schema errors found` after the H13 migration | yes |",
+      "| Supabase local lint after H13 function-default forward fix | `npx supabase db lint --local --schema public --level warning --fail-on none` | local repo | 2026-07-16 10:18:51 +02:00 | PASS | `8405e27` | lint again reported `No schema errors found` after the new forward migration | yes |"
+    ]
+  }
+]

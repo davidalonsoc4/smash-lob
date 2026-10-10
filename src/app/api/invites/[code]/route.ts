@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
 import { isActiveStoredLeagueInvite } from "@/lib/inviteValidity"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
-import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+import { mapSupabaseMatch } from "@/lib/supabaseMatches"
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { validateInviteCode, validateUuid } from "@/lib/serverRequest"
 import { applyPrivateNoStore } from "@/lib/serverResponse"
@@ -192,7 +192,7 @@ async function fetchLeagueByInviteCode(
     return fetchLeagueById(supabase, invite.league_id)
   }
 
-  return hintedLeague
+  return null
 }
 
 async function fetchSeasonSettings(supabase: SupabaseClient, leagueId: string) {
@@ -211,7 +211,7 @@ async function fetchSeasonSettings(supabase: SupabaseClient, leagueId: string) {
 async function fetchMatches(supabase: SupabaseClient, leagueId: string) {
   const { data, error } = await supabase
     .from("matches")
-    .select(matchSelect)
+    .select("id,league_id,season_id,round,status,team_a,team_b,points_a,points_b,sets,scheduled_at,date_label,location,result_locked,ranking_counts")
     .eq("league_id", leagueId)
 
   if (error) {
@@ -427,9 +427,7 @@ async function buildInviteResponse(
           (round: unknown): round is number => typeof round === "number"
         )
       : [],
-    registrationFee: normalizeSeasonRegistrationFee(
-      "registration_fee" in settings ? settings.registration_fee : undefined,
-    ),
+    registrationFee: { ...normalizeSeasonRegistrationFee(settings.registration_fee), payments: [], expenses: [] },
     rosterMode:
       settings.roster_mode === "self_registration"
         ? "self_registration"

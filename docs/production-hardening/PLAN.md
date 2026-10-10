@@ -1,6 +1,114 @@
 # Production Hardening Plan
 
+## C01 - Audit correction: validation toolchain (BUG-040)
+- Status: DONE (2026-10-10; BUG-040 fixed in the local correction branch and validated in isolation)
+- Objective: Remove vulnerable test dependencies and obsolete overrides before executing further code or advancing to functional corrections.
+- Acceptance: complete dependency audit has no high/critical findings; compatible tools retain existing validation coverage.
+- Validation: `npm audit --json`, `npm audit --omit=dev --json`, then (only if the security gate passes) `npm run validate` and `npm run test:e2e` in the isolated placeholder checkout.
+- Remote changes allowed: package registry reads/downloads only; no push, deployment or database operations.
+- Stop condition: an unresolved high/critical finding keeps this milestone incomplete and blocks subsequent milestones. Do not silence advisories or downgrade the Next.js lint configuration to bypass them.
+- Depends on: completed documentary audit A03.
+
 Last updated: 2026-07-16 23:31:46 +02:00
+
+## C02 - Auth, invitation and Push trust boundaries (BUG-001/005/008/009)
+- Status: DONE (2026-10-10; full validate passed, 887 tests / 224 files)
+- Acceptance: auth reads cannot overwrite profile/privileges; wrong invitation codes fail closed; public invitation previews exclude financial/private incident information; only supported Push providers can be stored or sent to, including stored/retry endpoints.
+- Validation: installed full dependency audit; targeted in-memory auth/invite/Push regressions; `npm run validate` in the isolated placeholder checkout. No real network Push or user data.
+- Remote changes allowed: documentation/registry reads only; no push, deploy or data writes.
+- Depends on: C01.
+
+## C03 - Account export and localized confirmation (BUG-002/004)
+- Status: DONE (2026-10-10; 13 targeted tests, lint and TypeScript passed)
+- Acceptance: export uses account IDs, player IDs and email columns correctly; query errors fail explicitly; localized confirmation matches the displayed instruction while sending a stable API token.
+- Validation: in-memory account export and localized confirmation regression tests, targeted ESLint and TypeScript in the isolated checkout.
+- Remote changes allowed: none.
+- Depends on: C02. Account deletion transaction/privacy lifecycle (BUG-003) is a separate database milestone, not claimed resolved here.
+
+## C04 - Score and ranking consistency (BUG-030/031)
+- Status: DONE (2026-10-10; targeted tests, lint, TypeScript and typography passed; final visual regression gate will review changed tie labels)
+- Acceptance: completed results have a winner across supported formats; tied ranking positions are consistent in UI/export. Cent allocation (BUG-029) must also update the existing SQL booking rebuild and belongs to the later financial database milestone.
+- Validation: targeted arithmetic/result/ranking regression suites, targeted ESLint, TypeScript and relevant source checks in isolation.
+- Remote changes allowed: none.
+- Depends on: C03.
+
+## C05 - Document language, modal keyboard focus and version docs (BUG-034/036/038)
+- Status: DONE (2026-10-10; 10 targeted tests, lint, onboarding check and TypeScript passed)
+- Acceptance: document lang follows selected locale; guided tour traps focus and restores it on close; README does not describe an obsolete release as current.
+- Validation: jsdom language/focus regressions, existing onboarding tests/check, targeted lint and TypeScript.
+- Remote changes allowed: none.
+- Depends on: C04.
+
+## C06 - Waitlist membership and position (BUG-006/007/010)
+- Status: DONE (2026-10-10; nine targeted tests, lint and TypeScript passed)
+- Acceptance: own queue position is derived from the full waiting order without exposing other users; cancelled entries can rejoin at the end; own promotion identified by authenticated account ID rather than player ID.
+- Validation: waitlist API/helper regressions with in-memory data, targeted lint, TypeScript.
+- Remote changes allowed: none.
+- Depends on: C05. Capacity reservation and promotion expiration (BUG-011/012) remain separate atomic database work.
+
+## C07 - Chat coordination history and activity pagination (BUG-027/039)
+- Status: DONE (2026-10-10; nine targeted tests, lint and TypeScript passed)
+- Acceptance: chat coordination does not depend on the recent text window; equal activity timestamps do not skip records between pages and visibility filtering does not terminate pagination prematurely.
+- Validation: API/helper regression tests with synthetic data, targeted lint and TypeScript.
+- Remote changes allowed: none.
+- Depends on: C06.
+
+## C08 - Season duplication length and round order input (BUG-017/021)
+- Status: DONE (2026-10-10; four targeted tests, lint and TypeScript passed)
+- Acceptance: duplication retains valid custom schedule length; partial/invalid round permutations fail before writing any match.
+- Validation: duplication and round order regression tests, targeted lint and TypeScript.
+- Remote changes allowed: none.
+- Depends on: C07. Atomic duplication/round mutation failures remain separate database work (BUG-018/019/022).
+
+## C09 - Push retry persistence errors (BUG-033)
+- Status: DONE (2026-10-10; 32 directed tests, lint and TypeScript passed)
+- Acceptance: queue reads/writes cannot silently fail; a delivery persistence error is not handled as a transport failure or counted as durable success.
+- Validation: synthetic error injection for queue operations, existing Push regressions, lint and TypeScript.
+- Remote changes allowed: none.
+- Depends on: C08. Push transport remains at-least-once; this milestone does not claim exactly-once delivery.
+
+## C10 - Protect edited drafts from idle PWA updates (BUG-035)
+- Status: DONE (2026-10-10; six directed tests, lint and TypeScript passed)
+- Acceptance: blurring an edited field and waiting cannot silently reload the app; clean sessions still update automatically. A generic edited control is conservatively protected for the rest of the app session because it cannot prove successful persistence.
+- Validation: idle update/draft regressions, targeted lint and TypeScript.
+- Remote changes allowed: none.
+- Depends on: C09.
+
+## C11 - Availability time zone comparisons (BUG-026)
+- Status: DONE (2026-10-10; nine targeted tests, lint and TypeScript passed)
+- Acceptance: availability intervals refer to actual instants in each player's saved time zone; date overrides and daylight saving transitions do not produce false full coverage.
+- Validation: cross-zone/date override/DST recommendations and existing availability suites, targeted lint and TypeScript.
+- Remote changes allowed: none.
+- Depends on: C10.
+
+## C12 - Extended calendar capacity independent of player IDs (BUG-020)
+- Status: DONE (2026-10-10; 29 targeted tests including 85 boundary cases, lint and TypeScript passed)
+- Acceptance: advertised custom duration boundaries work with arbitrary real IDs, not only the names used to precompute maximums; all existing calendar invariants remain enforced.
+- Validation: 8–24-player boundary sweep with arbitrary IDs, existing flexible duration and calendar suites, lint and TypeScript.
+- Remote changes allowed: none.
+- Depends on: C11.
+
+## C13 - Cumulative local regression gate
+- Status: DONE (2026-10-10; validate, 922 tests, 76 E2E, full/runtime audits and diff check passed)
+- Acceptance: all local non-database corrections pass complete validation and isolated browser regressions; changed visuals are reviewed before accepting any baseline updates.
+- Validation: `npm run validate`, `npm run test:e2e`, full and runtime dependency audits, `git diff --check` in the isolated placeholder checkout.
+- Remote changes allowed: registry reads only; no push, deployments, user data or PRE/Production writes.
+- Depends on: C12.
+
+## C14 - Database transaction validation prerequisite
+- Status: DONE (2026-10-10; identical database quality script passed in worker-local disposable Supabase, GitHub Actions 38078565124/job 114290558197; workstation Docker remains unavailable)
+- Acceptance: an isolated disposable local Supabase/PostgreSQL engine can replay migrations, run pgTAP/schema lint and verify restore/upgrade before transactional corrections are accepted.
+- Validation: `npm run database:quality` in the isolated checkout, using synthetic data only.
+- Remote changes allowed: following the user's PRE publication request and delegated judgment, push the validated correction candidate and open a PR to staging solely to run the existing isolated GitHub Actions database gate. No remote database writes or deployment before that gate passes. The worker-local disposable Supabase stack uses synthetic data only.
+- Stop condition: missing local engine or failed database gate blocks transactional implementation/acceptance; preserve the 17 open findings and do not bypass the database gate with mocks.
+- Depends on: C13. Following domains: account lifecycle BUG-003; league/season transactions BUG-013/014/015/016/018/019/037; result/calendar/incident atomicity BUG-022/023/024/025; financial/participant consistency BUG-028/029/032; waitlist reservation/expiration BUG-011/012.
+
+## C15 - Publish validated audit corrections to PRE
+- Status: IN PROGRESS (2026-10-10; user authorized PRE publication; C14 prerequisite and all four candidate CI jobs passed)
+- Acceptance: coherent new app/PWA version, all local release gates pass, final candidate CI passes, staging merge and PRE deployment/alias/health are explicitly verified. No unresolved transactional finding is represented as fixed.
+- Validation: version/source/secret checks, npm run validate, npm run test:e2e, dependency audits; existing four release-quality jobs; authenticated PRE smoke and remote SHA verification.
+- Remote changes allowed: candidate branch/PR, staging merge and PRE deployment only. No remote database writes; main, Production and v1.0.0 untouched.
+- Depends on: C14. Seventeen database transaction findings remain OPEN for separately scoped correction milestones.
 
 ## H00 - Inventory and initial diff review
 - Status: DONE

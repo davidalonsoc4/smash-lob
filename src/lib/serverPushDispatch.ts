@@ -1,4 +1,5 @@
 import "server-only";
+import { isTrustedPushEndpoint } from "@/lib/pushEndpoint";
 
 import { createSupabaseServiceClient } from "@/lib/supabaseServer";
 import {
@@ -1295,6 +1296,7 @@ export async function dispatchPushForActivityEvent(
         chatStateTransition,
       });
 
+      if (!isTrustedPushEndpoint(subscription.endpoint)) return;
       try {
         await webPush.sendNotification(
           {

@@ -1,4 +1,5 @@
 import "server-only"
+import { isTrustedPushEndpoint } from "@/lib/pushEndpoint"
 
 import { createSupabaseServiceClient } from "@/lib/supabaseServer"
 import { removeExpiredPushSubscription } from "@/lib/serverPushDispatch"
@@ -146,6 +147,7 @@ export async function dispatchPersonalMatchPush({
 
   await Promise.all(
     uniqueSubscriptions.map(async (subscription) => {
+      if (!isTrustedPushEndpoint(subscription.endpoint)) return
       try {
         await webPush.sendNotification(
           {

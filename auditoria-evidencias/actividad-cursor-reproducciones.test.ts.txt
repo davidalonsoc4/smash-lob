@@ -1,0 +1,13 @@
+import { expect,it } from "vitest"
+import { fetchServerActivityEvents } from "@/lib/serverActivity"
+it("BUG-039: paginar por fecha omite eventos con la misma fecha que el ultimo de la pagina",async()=>{
+ const timestamp="2099-01-01T10:00:00.000Z"
+ const rows=[1,2,3].map(id=>({id:`qa-${id}`,league_id:"qa-league",type:"league_created",created_at:timestamp,actor_email:""}))
+ const supabase={from:()=>{let before:string|null=null,limit=50;const q:any={select:()=>q,eq:()=>q,lt:(_key:string,value:string)=>{before=value;return q},order:()=>q,limit:(value:number)=>{limit=value;return q},then:(resolve:any)=>Promise.resolve({data:rows.filter(row=>!before||row.created_at<before).slice(0,limit),error:null}).then(resolve)};return q}}
+ const viewer={supabase,isCompetitionAdmin:true} as any
+ const first=await fetchServerActivityEvents({viewer,leagueId:"qa-league",limit:2})
+ const second=await fetchServerActivityEvents({viewer,leagueId:"qa-league",limit:2,createdAtBefore:first.at(-1)!.createdAt})
+ expect(first).toHaveLength(2)
+ expect(second).toHaveLength(0)
+ expect(rows).toHaveLength(3)
+})

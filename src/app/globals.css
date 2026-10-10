@@ -1563,16 +1563,16 @@ html.colorful .grid > .app-stat-card:nth-child(4n + 4)::after { background: rgb(
 
 /* Ranking uses a left rail only for the podium. Gold, silver and bronze
    stay identical in every theme; rows from fourth place onward have no rail. */
-.app-ranking-list .app-ranking-row:nth-child(1) { --ranking-row-accent: #d4a017; }
-.app-ranking-list .app-ranking-row:nth-child(2) { --ranking-row-accent: #a8adb5; }
-.app-ranking-list .app-ranking-row:nth-child(3) { --ranking-row-accent: #b87333; }
+.app-ranking-list .app-ranking-row[data-ranking-position="1"] { --ranking-row-accent: #d4a017; }
+.app-ranking-list .app-ranking-row[data-ranking-position="2"] { --ranking-row-accent: #a8adb5; }
+.app-ranking-list .app-ranking-row[data-ranking-position="3"] { --ranking-row-accent: #b87333; }
 
 .app-ranking-list .app-ranking-row {
   position: relative;
   overflow: hidden;
 }
 
-.app-ranking-list .app-ranking-row:nth-child(-n + 3)::before {
+.app-ranking-list .app-ranking-row:is([data-ranking-position="1"], [data-ranking-position="2"], [data-ranking-position="3"])::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;

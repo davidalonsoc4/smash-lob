@@ -5,6 +5,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { showActionFeedback } from "@/lib/actionFeedback"
+import { hasMatchResultWinner } from "@/lib/matchResultValidity"
 
 type MatchResultFormProps = {
   matchId: string
@@ -124,6 +125,7 @@ export function MatchResultForm({
   )
   const canSave =
     !isSaving &&
+    hasMatchResultWinner(completedSets.map((set) => ({ a: Number(set.a), b: Number(set.b) }))) &&
     (requiresThreeSets
       ? setWinners.every(Boolean)
       : completedSets.length > 0 && !hasInvalidTouchedSet)

@@ -1,0 +1,11 @@
+import { expect, it } from "vitest"
+import { replacePersonalMatchParticipants } from "@/lib/serverPersonalMatches"
+it("BUG-032: cambiar participantes regenera IDs y deja pagos referenciando IDs antiguos",async()=>{
+ let rows:any[]=Array.from({length:4},(_,i)=>({id:`old-${i}`,team:i<2?1:2,slot:i%2+1,user_id:i===0?"qa-self":null,display_name:`QA ${i}`}))
+ const booking={reservations:[{playerId:"old-0",amount:40}],transfers:[{fromPlayerId:"old-1",toPlayerId:"old-0",amount:10}]}
+ const supabase={from:(table:string)=>{let operation="select",payload:any;const q:any={select:()=>q,eq:()=>q,delete:()=>{operation="delete";return q},insert:(value:any)=>{operation="insert";payload=value;return q},then:(resolve:any)=>{let data:any=[];if(table==="personal_match_participants"){if(operation==="select")data=structuredClone(rows);if(operation==="delete")rows=[];if(operation==="insert")rows=payload.map((r:any,i:number)=>({...r,id:`new-${i}`}))}return Promise.resolve({data,error:null}).then(resolve)}};return q}}
+ await replacePersonalMatchParticipants({supabase,user:{id:"qa-self",email:"qa@example.test",displayName:"QA Self",avatarUrl:null}} as any,"qa-match",[{team:1,slot:1,personKey:"user:qa-self",displayName:"QA Self"},{team:1,slot:2,personKey:null,displayName:"QA B"},{team:2,slot:1,personKey:null,displayName:"QA C"},{team:2,slot:2,personKey:null,displayName:"QA D"}])
+ expect(rows).toHaveLength(4)
+ expect(rows.some(r=>r.id===booking.reservations[0].playerId)).toBe(false)
+ expect(rows.some(r=>r.id===booking.transfers[0].fromPlayerId)).toBe(false)
+})

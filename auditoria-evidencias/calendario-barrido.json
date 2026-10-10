@@ -1,0 +1,766 @@
+{
+  "scope": "Pure functions; no database/network",
+  "cases": 102,
+  "failures": [
+    {
+      "players": 17,
+      "mode": "extended",
+      "targetRoundCount": 152,
+      "elapsedMs": 388,
+      "errors": [
+        "La duración solicitada supera el máximo equilibrado para 17 jugadores."
+      ]
+    },
+    {
+      "players": 18,
+      "mode": "extended",
+      "targetRoundCount": 197,
+      "elapsedMs": 333,
+      "errors": [
+        "La duración solicitada supera el máximo equilibrado para 18 jugadores."
+      ]
+    },
+    {
+      "players": 22,
+      "mode": "extended",
+      "targetRoundCount": 241,
+      "elapsedMs": 720,
+      "errors": [
+        "La duración solicitada supera el máximo equilibrado para 22 jugadores."
+      ]
+    },
+    {
+      "players": 24,
+      "mode": "extended",
+      "targetRoundCount": 206,
+      "elapsedMs": 1073,
+      "errors": [
+        "La duración solicitada supera el máximo equilibrado para 24 jugadores."
+      ]
+    }
+  ],
+  "results": [
+    {
+      "players": 8,
+      "mode": "single",
+      "targetRoundCount": 7,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 8,
+      "mode": "double",
+      "targetRoundCount": 14,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 8,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 4,
+      "errors": []
+    },
+    {
+      "players": 8,
+      "mode": "extended",
+      "targetRoundCount": 6,
+      "elapsedMs": 4,
+      "errors": []
+    },
+    {
+      "players": 8,
+      "mode": "extended",
+      "targetRoundCount": 8,
+      "elapsedMs": 65,
+      "errors": []
+    },
+    {
+      "players": 8,
+      "mode": "extended",
+      "targetRoundCount": 34,
+      "elapsedMs": 64,
+      "errors": []
+    },
+    {
+      "players": 9,
+      "mode": "single",
+      "targetRoundCount": 9,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 9,
+      "mode": "double",
+      "targetRoundCount": 18,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 9,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 9,
+      "mode": "extended",
+      "targetRoundCount": 8,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 9,
+      "mode": "extended",
+      "targetRoundCount": 10,
+      "elapsedMs": 59,
+      "errors": []
+    },
+    {
+      "players": 9,
+      "mode": "extended",
+      "targetRoundCount": 62,
+      "elapsedMs": 71,
+      "errors": []
+    },
+    {
+      "players": 10,
+      "mode": "single",
+      "targetRoundCount": 10,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 10,
+      "mode": "double",
+      "targetRoundCount": 20,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 10,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 10,
+      "mode": "extended",
+      "targetRoundCount": 9,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 10,
+      "mode": "extended",
+      "targetRoundCount": 11,
+      "elapsedMs": 67,
+      "errors": []
+    },
+    {
+      "players": 10,
+      "mode": "extended",
+      "targetRoundCount": 69,
+      "elapsedMs": 90,
+      "errors": []
+    },
+    {
+      "players": 11,
+      "mode": "single",
+      "targetRoundCount": 11,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 11,
+      "mode": "double",
+      "targetRoundCount": 22,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 11,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 11,
+      "mode": "extended",
+      "targetRoundCount": 10,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 11,
+      "mode": "extended",
+      "targetRoundCount": 12,
+      "elapsedMs": 88,
+      "errors": []
+    },
+    {
+      "players": 11,
+      "mode": "extended",
+      "targetRoundCount": 87,
+      "elapsedMs": 122,
+      "errors": []
+    },
+    {
+      "players": 12,
+      "mode": "single",
+      "targetRoundCount": 11,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 12,
+      "mode": "double",
+      "targetRoundCount": 22,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 12,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 12,
+      "mode": "extended",
+      "targetRoundCount": 10,
+      "elapsedMs": 6,
+      "errors": []
+    },
+    {
+      "players": 12,
+      "mode": "extended",
+      "targetRoundCount": 12,
+      "elapsedMs": 124,
+      "errors": []
+    },
+    {
+      "players": 12,
+      "mode": "extended",
+      "targetRoundCount": 76,
+      "elapsedMs": 131,
+      "errors": []
+    },
+    {
+      "players": 13,
+      "mode": "single",
+      "targetRoundCount": 13,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 13,
+      "mode": "double",
+      "targetRoundCount": 26,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 13,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 13,
+      "mode": "extended",
+      "targetRoundCount": 12,
+      "elapsedMs": 5,
+      "errors": []
+    },
+    {
+      "players": 13,
+      "mode": "extended",
+      "targetRoundCount": 14,
+      "elapsedMs": 164,
+      "errors": []
+    },
+    {
+      "players": 13,
+      "mode": "extended",
+      "targetRoundCount": 77,
+      "elapsedMs": 175,
+      "errors": []
+    },
+    {
+      "players": 14,
+      "mode": "single",
+      "targetRoundCount": 14,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 14,
+      "mode": "double",
+      "targetRoundCount": 28,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 14,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 14,
+      "mode": "extended",
+      "targetRoundCount": 13,
+      "elapsedMs": 6,
+      "errors": []
+    },
+    {
+      "players": 14,
+      "mode": "extended",
+      "targetRoundCount": 15,
+      "elapsedMs": 151,
+      "errors": []
+    },
+    {
+      "players": 14,
+      "mode": "extended",
+      "targetRoundCount": 97,
+      "elapsedMs": 199,
+      "errors": []
+    },
+    {
+      "players": 15,
+      "mode": "single",
+      "targetRoundCount": 15,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 15,
+      "mode": "double",
+      "targetRoundCount": 30,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 15,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 15,
+      "mode": "extended",
+      "targetRoundCount": 14,
+      "elapsedMs": 9,
+      "errors": []
+    },
+    {
+      "players": 15,
+      "mode": "extended",
+      "targetRoundCount": 16,
+      "elapsedMs": 178,
+      "errors": []
+    },
+    {
+      "players": 15,
+      "mode": "extended",
+      "targetRoundCount": 149,
+      "elapsedMs": 263,
+      "errors": []
+    },
+    {
+      "players": 16,
+      "mode": "single",
+      "targetRoundCount": 15,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 16,
+      "mode": "double",
+      "targetRoundCount": 30,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 16,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 16,
+      "mode": "extended",
+      "targetRoundCount": 14,
+      "elapsedMs": 9,
+      "errors": []
+    },
+    {
+      "players": 16,
+      "mode": "extended",
+      "targetRoundCount": 16,
+      "elapsedMs": 287,
+      "errors": []
+    },
+    {
+      "players": 16,
+      "mode": "extended",
+      "targetRoundCount": 119,
+      "elapsedMs": 363,
+      "errors": []
+    },
+    {
+      "players": 17,
+      "mode": "single",
+      "targetRoundCount": 17,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 17,
+      "mode": "double",
+      "targetRoundCount": 34,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 17,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 4,
+      "errors": []
+    },
+    {
+      "players": 17,
+      "mode": "extended",
+      "targetRoundCount": 16,
+      "elapsedMs": 13,
+      "errors": []
+    },
+    {
+      "players": 17,
+      "mode": "extended",
+      "targetRoundCount": 18,
+      "elapsedMs": 366,
+      "errors": []
+    },
+    {
+      "players": 17,
+      "mode": "extended",
+      "targetRoundCount": 152,
+      "elapsedMs": 388,
+      "errors": [
+        "La duración solicitada supera el máximo equilibrado para 17 jugadores."
+      ]
+    },
+    {
+      "players": 18,
+      "mode": "single",
+      "targetRoundCount": 18,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 18,
+      "mode": "double",
+      "targetRoundCount": 36,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 18,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 18,
+      "mode": "extended",
+      "targetRoundCount": 17,
+      "elapsedMs": 16,
+      "errors": []
+    },
+    {
+      "players": 18,
+      "mode": "extended",
+      "targetRoundCount": 19,
+      "elapsedMs": 323,
+      "errors": []
+    },
+    {
+      "players": 18,
+      "mode": "extended",
+      "targetRoundCount": 197,
+      "elapsedMs": 333,
+      "errors": [
+        "La duración solicitada supera el máximo equilibrado para 18 jugadores."
+      ]
+    },
+    {
+      "players": 19,
+      "mode": "single",
+      "targetRoundCount": 19,
+      "elapsedMs": 1,
+      "errors": []
+    },
+    {
+      "players": 19,
+      "mode": "double",
+      "targetRoundCount": 38,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 19,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 5,
+      "errors": []
+    },
+    {
+      "players": 19,
+      "mode": "extended",
+      "targetRoundCount": 18,
+      "elapsedMs": 16,
+      "errors": []
+    },
+    {
+      "players": 19,
+      "mode": "extended",
+      "targetRoundCount": 20,
+      "elapsedMs": 478,
+      "errors": []
+    },
+    {
+      "players": 19,
+      "mode": "extended",
+      "targetRoundCount": 170,
+      "elapsedMs": 636,
+      "errors": []
+    },
+    {
+      "players": 20,
+      "mode": "single",
+      "targetRoundCount": 19,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 20,
+      "mode": "double",
+      "targetRoundCount": 38,
+      "elapsedMs": 4,
+      "errors": []
+    },
+    {
+      "players": 20,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 4,
+      "errors": []
+    },
+    {
+      "players": 20,
+      "mode": "extended",
+      "targetRoundCount": 18,
+      "elapsedMs": 20,
+      "errors": []
+    },
+    {
+      "players": 20,
+      "mode": "extended",
+      "targetRoundCount": 20,
+      "elapsedMs": 589,
+      "errors": []
+    },
+    {
+      "players": 20,
+      "mode": "extended",
+      "targetRoundCount": 170,
+      "elapsedMs": 761,
+      "errors": []
+    },
+    {
+      "players": 21,
+      "mode": "single",
+      "targetRoundCount": 21,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 21,
+      "mode": "double",
+      "targetRoundCount": 42,
+      "elapsedMs": 4,
+      "errors": []
+    },
+    {
+      "players": 21,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 5,
+      "errors": []
+    },
+    {
+      "players": 21,
+      "mode": "extended",
+      "targetRoundCount": 20,
+      "elapsedMs": 23,
+      "errors": []
+    },
+    {
+      "players": 21,
+      "mode": "extended",
+      "targetRoundCount": 22,
+      "elapsedMs": 636,
+      "errors": []
+    },
+    {
+      "players": 21,
+      "mode": "extended",
+      "targetRoundCount": 188,
+      "elapsedMs": 872,
+      "errors": []
+    },
+    {
+      "players": 22,
+      "mode": "single",
+      "targetRoundCount": 22,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 22,
+      "mode": "double",
+      "targetRoundCount": 44,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 22,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 6,
+      "errors": []
+    },
+    {
+      "players": 22,
+      "mode": "extended",
+      "targetRoundCount": 21,
+      "elapsedMs": 27,
+      "errors": []
+    },
+    {
+      "players": 22,
+      "mode": "extended",
+      "targetRoundCount": 23,
+      "elapsedMs": 681,
+      "errors": []
+    },
+    {
+      "players": 22,
+      "mode": "extended",
+      "targetRoundCount": 241,
+      "elapsedMs": 720,
+      "errors": [
+        "La duración solicitada supera el máximo equilibrado para 22 jugadores."
+      ]
+    },
+    {
+      "players": 23,
+      "mode": "single",
+      "targetRoundCount": 23,
+      "elapsedMs": 2,
+      "errors": []
+    },
+    {
+      "players": 23,
+      "mode": "double",
+      "targetRoundCount": 46,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 23,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 5,
+      "errors": []
+    },
+    {
+      "players": 23,
+      "mode": "extended",
+      "targetRoundCount": 22,
+      "elapsedMs": 29,
+      "errors": []
+    },
+    {
+      "players": 23,
+      "mode": "extended",
+      "targetRoundCount": 24,
+      "elapsedMs": 966,
+      "errors": []
+    },
+    {
+      "players": 23,
+      "mode": "extended",
+      "targetRoundCount": 275,
+      "elapsedMs": 1310,
+      "errors": []
+    },
+    {
+      "players": 24,
+      "mode": "single",
+      "targetRoundCount": 23,
+      "elapsedMs": 3,
+      "errors": []
+    },
+    {
+      "players": 24,
+      "mode": "double",
+      "targetRoundCount": 46,
+      "elapsedMs": 5,
+      "errors": []
+    },
+    {
+      "players": 24,
+      "mode": "extended",
+      "targetRoundCount": 1,
+      "elapsedMs": 6,
+      "errors": []
+    },
+    {
+      "players": 24,
+      "mode": "extended",
+      "targetRoundCount": 22,
+      "elapsedMs": 34,
+      "errors": []
+    },
+    {
+      "players": 24,
+      "mode": "extended",
+      "targetRoundCount": 24,
+      "elapsedMs": 1038,
+      "errors": []
+    },
+    {
+      "players": 24,
+      "mode": "extended",
+      "targetRoundCount": 206,
+      "elapsedMs": 1073,
+      "errors": [
+        "La duración solicitada supera el máximo equilibrado para 24 jugadores."
+      ]
+    }
+  ]
+}

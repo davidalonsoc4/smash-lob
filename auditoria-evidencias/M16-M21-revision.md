@@ -1,0 +1,31 @@
+# Revisión M16–M21 — 10/10/2026
+
+Mismo checkout 6fa8c72 y límites de solo documentación. No se modificó código, configuración o servidor del usuario.
+
+| Módulo | Examinado | Resultado | Comprobación pendiente |
+|---|---|---|---|
+| M16 Temas/accesibilidad | ThemeProvider, script inicial, tokens/CSS Competition claro/oscuro y clásico, texto, safe areas, ancho común, ayuda de estados, focos y reducción de movimiento; regresiones visuales/Axe. | Seis capturas nuevas revisadas y diez referencias contrastadas por suite nueva/revisadas manualmente. Selector de calendario centrado móvil/escritorio, guardado legible. BUG-034 idioma HTML y BUG-036 foco modal. | Recorrido visual nuevo de todas las pantallas/estados/acentos/idiomas, 375/390 y orientaciones; lectores físicos. No se declara contraste universal. |
+| M17 Idiomas/ajustes/ayuda | I18nProvider, traducciones y gate, buscador contextual, ayuda y tour, locales ES/EN/EU, selección de temporada y fuente de datos. | BUG-004 confirmación traducida incompatible; 034 lang; 036 Tab modal. Búsqueda por capacidades y tours abren en Playwright; no extrapolar a toda cadena excluida por gate. | Recorrido EN/EU completo; ayuda legal/global y prompt PWA excluidos explícitamente del gate de liga. |
+| M18 PWA | sw.js completo, caché shell mismo origen, red/offline, instalación, actualización idle, foco/diálogo, worker esperando, Push/click/URL. | Offline en navegador nuevo correcto; BUG-035 riesgo probable de borrador tras desenfoque. No hay caché deliberada de APIs privadas. | Instalación/actualización física iOS/Android, offline tras cambio de cuenta y recuperación de borradores no verificadas en dispositivo. |
+| M19 Admin global/ubicaciones/sugerencias | API usuarios/acciones, superusuario, no autosuspender/proteger superusuario, reset perfil/disponibilidad/Push; auditoría; ubicación global/histórica y cambios futuro; transferencia de propiedad; sugerencias/cooldown/status. | Guards y validaciones revisados, errores explícitos en operaciones principales. Cambios de ubicación bloquean terminados/pasados y preservan snapshots históricos al borrar catálogo. | Pruebas de escritura bloqueadas; volumen/paginación y fallos intermedios múltiples pendientes. Registro auxiliar de auditoría no es transaccional con acción; recomendación de fiabilidad, sin afirmar pérdida real. |
+| M20 Público/legal/experimental | About/privacy/terms y enlaces, metadatos/orígenes, error auth/invite/spectator; Avatar Lab host/PRE/auth/rate, upstream fijo, timeout, escape SVG/CSP, modelos. | Baselines públicas/Axe y tests de aislamiento laboratorio correctos. Competition claro existe; la antigua advertencia solo oscuro es obsoleta. No se aplica avatar al perfil desde lab. | OAuth/servicios upstream reales, privacidad integral y disponibilidad en hosts desplegados actuales sin nueva inspección remota. No dictamen legal ni declaración de cumplimiento normativo. |
+| M21 Rendimiento/infraestructura | Scripts antes de ejecutar, lint/tsc/build/gzip/fuente; guards API, cabeceras/CSP, rate limit Redis/fallback memoria, logs y webhook acotado, esquema/migraciones/RLS por código y CI histórica. | validate nuevo correcto, 4 avisos heredados; 76 E2E; 924 archivos fingerprintados. BUG-038 README, BUG-039 cursor, BUG-033 errores cola. Sin cambio de umbrales ni snapshots. | PostgreSQL/Lighthouse frescos requieren Docker/instalación no autorizizada; datos remotos/ACL reales, carga/volumen y observabilidad desplegada no certificados. |
+
+## Visual: procedencia exacta
+
+- Nuevas capturas: auditoria-evidencias/visual, seis: reserva amistosa/selector en Competition claro/oscuro y dos anchuras; propuesta Guardando en clásico, dos anchuras.
+- Referencias existentes que la ejecución nueva comparó sin regenerar y que se abrieron manualmente: Home móvil, estadísticas móvil/escritorio, ranking móvil, calendario móvil, ajustes móvil/escritorio, invitación móvil, resumen móvil y administración de temporada móvil. Archivos tests/e2e/authenticated-screens.spec.ts-snapshots. No son diez capturas manuales nuevas del servidor del usuario.
+- Administración fullPage se reduce mucho al mostrarla; no equivale a inspección legible de todos sus controles. Barra fija sobre un punto del fullPage es efecto de captura; no se registra como superposición permanente. Versión v1.2.1 en baseline es normalización explícita de test, no bug de release.
+- Antecedente de 9/10: 88 visitas/72 rutas o variantes, Competition oscuro principal a 390×844, muestras claras/1280×900/640. Conservado como histórico, no sumado a cobertura nueva. Fuente docs/VISUAL_AUDIT_RESULTS.md y carpeta externa referenciada allí.
+- No se usó la cuenta personal de localhost: GET auth/access tiene escrituras y PRE no cumple aislamiento. Dos arranques visuales adicionales rechazados por revisión automática; no se eludió bloqueo ni se inició el proxy preparado. Suite existente sí pudo ejecutarse por su flujo autorizado con placeholders.
+
+## Observaciones sin ficha de bug confirmada
+
+1. Texto secundario de chat clásico parece tenue en captura; falta medir contraste por estilo calculado. No se convierte apreciación en incumplimiento WCAG.
+2. Límites sin cursor en listados globales/automatizaciones pueden omitir volumen alto; no se conocen límites efectivos de PostgREST desplegado. Probar con carga sintética y paginación estable.
+3. Rate limit de memoria no se comparte entre instancias cuando Redis falla/no está configurado; limitación de arquitectura explícita, no prueba de abuso.
+4. Exportaciones con imágenes externas pueden esperar red indefinida; probar timeout/fallback y memoria en datasets grandes, sin saturar servicios reales.
+5. Verificar operaciones multietapa de catálogo/ubicación y claims de recordatorios con fallos inyectados. Compartir atomicidad/reintentos de liga y amistosos, sin prometer entrega exactamente una vez.
+6. Administración se ha reducido respecto al monolito histórico (2.040 líneas no vacías en esta revisión), pero sigue concentrando mucha coordinación; mejora técnica, no bug funcional por número de líneas.
+
+Estas observaciones no inflan las 39 fichas. La cobertura por módulos es análisis, no porcentaje de archivos leídos línea por línea ni certificación integral de UX.

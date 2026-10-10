@@ -1,0 +1,38 @@
+// @vitest-environment jsdom
+import React from "react"
+import { afterEach, expect, it, vi } from "vitest"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { I18nProvider, useI18n } from "@/i18n/I18nProvider"
+import { isPwaUpdateSafe } from "@/lib/pwaUpdate"
+import { GuidedTourOverlay } from "@/components/onboarding/GuidedTourOverlay"
+vi.mock("next/navigation",()=>({usePathname:()=>"/"}))
+vi.mock("@/features/onboarding/OnboardingProvider",()=>({useOnboarding:()=>({activeTour:{title:"QA",steps:[{title:"Paso",description:"Prueba",side:"center"}]},currentStepIndex:0,nextStep:vi.fn(),previousStep:vi.fn(),skipTour:vi.fn(),closeTour:vi.fn()})}))
+vi.stubGlobal("React",React)
+afterEach(()=>{cleanup();localStorage.clear();document.documentElement.lang="es"})
+function LocaleProbe(){const {locale,setLocale}=useI18n();return React.createElement("button",{onClick:()=>setLocale("en")},locale)}
+it("BUG-034: cambiar el idioma no actualiza html lang",()=>{
+  document.documentElement.lang="es"
+  render(React.createElement(I18nProvider,null,React.createElement(LocaleProbe)))
+  fireEvent.click(screen.getByRole("button",{name:"es"}))
+  expect(screen.getByRole("button",{name:"en"})).toBeTruthy()
+  expect(document.documentElement.lang).toBe("es")
+})
+it("BUG-035: el guard de actualizacion admite una pantalla inactiva aunque tenga borrador sin guardar",()=>{
+  // El componente invoca exactamente estos indicadores; no incluye estado dirty.
+  expect(isPwaUpdateSafe({isVisible:true,hasFocus:true,isEditing:false,hasOpenDialog:false,idleMs:60_001})).toBe(true)
+})
+it("BUG-036: abrir la guia modal conserva foco en la pagina y Tab llega al fondo",async()=>{
+  const interaction=userEvent.setup()
+  render(React.createElement(I18nProvider,null,React.createElement("button",null,"Fondo"),React.createElement(GuidedTourOverlay)))
+  const background=screen.getByRole("button",{name:"Fondo"})
+  // Estado equivalente al control que abre el tour; no hay efecto de autofocus.
+  background.focus()
+  const dialog=screen.getByRole("dialog")
+  expect(dialog.contains(document.activeElement)).toBe(false)
+  const buttons=dialog.querySelectorAll("button")
+  ;(buttons[buttons.length-1] as HTMLButtonElement).focus()
+  await interaction.tab()
+  await interaction.tab()
+  expect(document.activeElement).toBe(background)
+})

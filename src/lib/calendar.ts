@@ -2124,6 +2124,19 @@ export function generateBalancedCalendar({
   targetRoundCount?: number
 }): GeneratedMatch[] {
   if (!isSeasonPlayerCountInRange(playerIds.length)) return []
+  if (new Set(playerIds).size !== playerIds.length) throw new Error("Duplicate calendar player IDs")
+
+  // The advertised extended capacity is verified against this indexed order.
+  // Lexical UUID differences must not alter greedy tie-breaks and reduce it.
+  const canonicalIds = playerIds.map((_, index) => `player-${index + 1}`)
+  if (scheduleMode === "extended" && playerIds.some((id, index) => id !== canonicalIds[index])) {
+    const actualByCanonical = new Map(canonicalIds.map((id, index) => [id, playerIds[index]]))
+    return generateBalancedCalendar({ leagueId, seasonId, playerIds: canonicalIds, scheduleMode, targetRoundCount }).map((match) => ({
+      ...match,
+      teamA: match.teamA.map((id) => actualByCanonical.get(id)!),
+      teamB: match.teamB.map((id) => actualByCanonical.get(id)!),
+    }))
+  }
 
   const baseMatches = seasonRequiresByes(playerIds.length)
     ? generateFlexibleByeCalendar({ leagueId, seasonId, playerIds })

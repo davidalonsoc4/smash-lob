@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { getRankingDisplayPosition } from "@/lib/rankingOrder";
 import { useSession } from "next-auth/react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { LeagueLogo } from "@/components/league/LeagueLogo";
@@ -1163,7 +1164,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-3 border-t border-neutral-100 px-3 py-2.5">
-              {rankingPreviewPlayers.map((player, index) => (
+              {rankingPreviewPlayers.map((player) => (
                 <div
                   key={player.id}
                   className={`flex items-center justify-between gap-3 rounded-xl py-1.5 pl-2 pr-3 ${
@@ -1175,7 +1176,7 @@ export default function Home() {
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-black text-neutral-950"
                       aria-hidden="true"
                     >
-                      {rankingPreviewStart + index + 1}
+                      {getRankingDisplayPosition(rankingPlayers, player.id)}
                     </div>
 
                     {activeLeague.showRankingAvatars !== false ? (

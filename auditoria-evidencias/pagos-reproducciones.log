@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob
+
+ ✓ auditoria-evidencias/pagos-reproducciones.test.ts (2 tests) 469ms
+   ✓ BUG-028: dos pagos concurrentes sobrescriben el estado del otro  467ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  18:49:31
+   Duration  849ms (transform 387ms, setup 0ms, collect 70ms, tests 469ms, environment 0ms, prepare 108ms)

@@ -1,0 +1,23 @@
+{
+  "branch": "codex/audit-corrections",
+  "correctedLocally": 23,
+  "open": 17,
+  "openP1": 6,
+  "fullValidationExit": 0,
+  "testFiles": 237,
+  "tests": 922,
+  "e2e": 76,
+  "e2eExit": 0,
+  "snapshotsUpdated": false,
+  "fullAuditVulnerabilities": 0,
+  "runtimeAuditVulnerabilities": 0,
+  "databaseValidationExit": 1,
+  "databaseGate": "BLOCKED: LegacyDbBootstrapError: failed to inspect service",
+  "databaseChecksExecuted": false,
+  "sourceMatchesValidatedCheckout": true,
+  "migrationsChanged": false,
+  "realDataUsed": false,
+  "published": false,
+  "committed": false,
+  "validationCheckout": "C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob"
+}
