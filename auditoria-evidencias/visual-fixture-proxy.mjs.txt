@@ -1,0 +1,43 @@
+// Harness temporal de auditoría. No forma parte del código de la aplicación.
+// Solo reenvía GET de HTML/assets al servidor aislado. Ninguna API llega al backend.
+import http from "node:http";
+const email = "qa-v1-1@example.test";
+const profile = { firstName: "QA", lastName: "v1.1", displayName: "QA v1.1", profileCompletedAt: "2026-08-03T00:00:00Z", availabilityCompletedAt: "2026-08-03T00:00:00Z", standardAvailabilityTimezone: "Europe/Madrid", standardAvailabilityWeeklySlots: {}, preferredSide: "reves", dominantHand: "right", isComplete: true, isSuperuser: true };
+const boot = `<script>
+(()=>{
+const q = new URLSearchParams(location.search);
+const seed=(key,value)=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value)};
+seed('smash-lob:competition-launch-popup-v2:${email}','dismissed');
+seed('smash-lob-theme-mode','light');seed('smash-lob-visual-style','plain');
+seed('smash-lob-user-league-memberships',JSON.stringify([{userId:'${email}',leagueId:'league-smash-lob',playerId:'davo',role:'admin'}]));
+const tours={};for(const [tourKey,tourVersion] of Object.entries({'app-introduction':1,home:7,matches:2,ranking:2,statistics:2,'season-admin':3,settings:4}))tours[tourKey]={tourKey,tourVersion,status:'completed',completedAt:'2026-08-06T00:00:00Z',skippedAt:null};
+seed('smash-lob-guided-onboarding-v1',JSON.stringify(tours));
+const OriginalDate=Date;const fixed=Date.parse('2026-08-10T08:00:00Z');window.Date=class extends OriginalDate{constructor(...args){super(...(args.length?args:[fixed]))}static now(){return fixed}};
+})();
+</script>`;
+function json(res,status,value){res.writeHead(status,{"content-type":"application/json","cache-control":"no-store"});res.end(JSON.stringify(value))}
+const server=http.createServer(async(req,res)=>{
+  const url=new URL(req.url,"http://127.0.0.1:3101");
+  if(url.pathname.startsWith('/api/')){
+    if(req.method!=='GET')return json(res,405,{error:'audit_fixture_write_blocked'});
+    if(url.pathname==='/api/auth/session')return json(res,200,{user:{name:'QA v1.1',email,image:null},expires:'2099-01-01T00:00:00Z'});
+    if(url.pathname==='/api/account/profile')return json(res,200,{profile});
+    if(url.pathname==='/api/onboarding/progress')return json(res,200,{items:[]});
+    if(url.pathname==='/api/access')return json(res,401,{error:'audit_demo_fallback'});
+    if(url.pathname==='/api/personal-matches')return json(res,200,{matches:[]});
+    if(/^\/api\/matches\/[^/]+\/chat$/.test(url.pathname))return json(res,200,{currentUserId:'qa-user',round:4,readOnly:false,participants:[{playerId:'davo',userId:'qa-user',displayName:'QA v1.1',handle:'qa',avatarUrl:null},{playerId:'rival',userId:'qa-rival',displayName:'Alejandra Fernández de los Ríos',handle:'rival',avatarUrl:null}],messages:[{id:'proposal-qa',sender_user_id:'qa-rival',sender_display_name:'Alejandra Fernández de los Ríos',body:'',kind:'location_proposal',payload:{key:'location',name:'Pista QA'},created_at:'2026-08-10T08:00:00Z',responses:[]}]});
+    return json(res,501,{error:'audit_fixture_not_defined',path:url.pathname});
+  }
+  if(req.method!=='GET'&&req.method!=='HEAD')return json(res,405,{error:'audit_fixture_write_blocked'});
+  const upstream=http.request({hostname:'127.0.0.1',port:3100,path:req.url,method:req.method,headers:{...req.headers,host:'127.0.0.1:3100','accept-encoding':'identity'}},response=>{
+    const chunks=[];response.on('data',chunk=>chunks.push(chunk));response.on('end',()=>{
+      let body=Buffer.concat(chunks);const headers={...response.headers};delete headers['content-length'];delete headers['transfer-encoding'];delete headers['set-cookie'];
+      if(String(headers['content-type']).includes('text/html'))body=Buffer.from(body.toString().replace('<head>','<head>'+boot));
+      // Aislamiento adicional: no conexiones cliente a Supabase, OAuth ni otros servicios.
+      if(headers['content-security-policy'])headers['content-security-policy']=String(headers['content-security-policy']).replace(/connect-src[^;]+/,"connect-src 'self'");
+      res.writeHead(response.statusCode??502,headers);res.end(body);
+    });
+  });
+  upstream.on('error',()=>json(res,502,{error:'audit_upstream_unavailable'}));upstream.end();
+});
+server.listen(3101,'127.0.0.1',()=>process.stdout.write('AUDIT_FIXTURE_READY 127.0.0.1:3101; APIs isolated; writes blocked\n'));

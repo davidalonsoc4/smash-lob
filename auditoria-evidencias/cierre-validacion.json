@@ -1,0 +1,62 @@
+{
+  "closedAt": "2026-10-10T19:15:34.5739482+02:00",
+  "status": "DOCUMENTARY_AUDIT_CLOSED_WITH_FINDINGS_AND_BLOCKERS",
+  "head": "6fa8c72ed0d6be3077e5285f7a987a3e3a5369ea",
+  "modulesExamined": 21,
+  "moduleInventory": 21,
+  "moduleCoverageMeaning": "Flow/code/evidence review, not complete interactive or code coverage",
+  "issues": 40,
+  "severity": {
+    "P3": 3,
+    "P2": 27,
+    "P1": 10,
+    "P0": 0
+  },
+  "confirmation": {
+    "probable": 5,
+    "confirmedWithinStatedScope": 35
+  },
+  "history": {
+    "resolvedWithinScope": 37,
+    "obsolete": 6,
+    "persistent": 3,
+    "pending": 18,
+    "items": 64
+  },
+  "newIssues": 37,
+  "historicalIssues": 3,
+  "tests": {
+    "baselinePassing": 858,
+    "calendarFailures": 4,
+    "calendarCases": 102,
+    "playwrightPassing": 76,
+    "additionalPassing": 37
+  },
+  "dependencies": {
+    "moderate": 1,
+    "newExecutionsStoppedAfterFullAudit": true,
+    "runtimeAffected": 0,
+    "high": 10,
+    "fullAffectedPackages": 13,
+    "critical": 2,
+    "runtimeAuditExit": 0,
+    "fullAuditExit": 1
+  },
+  "integrity": {
+    "functionalFiles": 924,
+    "functionalDifferences": 0,
+    "sourceUnchanged": true
+  },
+  "visual": {
+    "newScreenshotsManuallyInspected": 6,
+    "historicalRouteVariants": 72,
+    "newFullAppWalkthrough": false,
+    "existingBaselinesOpened": 10
+  },
+  "noSourceFixes": true,
+  "noRealDataWrites": true,
+  "noInstalls": true,
+  "noCommitsOrPush": true,
+  "noDeployments": true,
+  "notAReleaseAcceptance": true
+}

@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob
+
+ ✓ auditoria-evidencias/seguridad-reproducciones.test.ts (1 test) 132ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  12:34:33
+   Duration  569ms (transform 83ms, setup 0ms, collect 84ms, tests 132ms, environment 0ms, prepare 117ms)
+

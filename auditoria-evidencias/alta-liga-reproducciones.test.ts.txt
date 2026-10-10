@@ -1,0 +1,20 @@
+import { expect, it, vi } from "vitest"
+const mocks = vi.hoisted(() => ({ gate: vi.fn() }))
+vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.gate }))
+vi.mock("@/lib/serverRateLimit", () => ({ enforceRequestRateLimit: async () => null }))
+vi.mock("@/lib/serverGlobalLocations", () => ({ saveGlobalLocations: async () => {} }))
+const leagueId = "11111111-1111-4111-8111-111111111111"
+it("BUG-013: falla la membresía inicial pero la liga ya insertada permanece", async () => {
+  const persisted: any[] = []
+  const supabase = { from: (table: string) => ({ insert: (value: any) => {
+    if(table === "league_memberships")return Promise.resolve({error:{code:"XXQA",message:"QA membership failure"}})
+    persisted.push({table,...value,id:leagueId})
+    return {select:()=>({single:async()=>({data:{...value,id:leagueId},error:null})})}
+  } }) }
+  mocks.gate.mockResolvedValue({ok:true,actor:{supabase,user:{id:"qa-user",email:"qa@example.test",isSuperuser:false,canCreateLeagues:true}}})
+  const { POST } = await import("@/app/api/leagues/route")
+  const response = await POST(new Request("http://audit.invalid/api/leagues",{method:"POST",body:JSON.stringify({leagueName:"QA audit",leagueSlug:"qa-audit",inviteCode:"QA-AUDIT",locations:[]})}))
+  expect(response.status).toBe(500)
+  expect(persisted).toHaveLength(1)
+  expect(persisted[0].table).toBe("leagues")
+})

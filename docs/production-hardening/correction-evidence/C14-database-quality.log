@@ -1,0 +1,17 @@
+
+> smash-lob@1.15.9 database:quality
+> node scripts/run-database-quality.mjs
+
+
+==> start local Supabase database
+{"_tag":"Error","error":{"code":"LegacyDbBootstrapError","message":"failed to inspect service"}}
+file:///C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob/scripts/run-database-quality.mjs:42
+    throw new Error(`${options.label ?? command} failed with code ${result.status}`)
+          ^
+
+Error: start local Supabase database failed with code 1
+    at run (file:///C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob/scripts/run-database-quality.mjs:42:11)
+    at supabase (file:///C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob/scripts/run-database-quality.mjs:49:10)
+    at file:///C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob/scripts/run-database-quality.mjs:236:1
+
+Node.js v24.21.0

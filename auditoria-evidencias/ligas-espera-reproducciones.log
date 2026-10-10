@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob
+
+ ✓ auditoria-evidencias/ligas-espera-reproducciones.test.ts (3 tests) 585ms
+   ✓ BUG-008/009: código inválido con leagueId devuelve snapshot con incidencias y pagos sin sesión  455ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  12:40:09
+   Duration  978ms (transform 444ms, setup 0ms, collect 53ms, tests 585ms, environment 0ms, prepare 125ms)
+

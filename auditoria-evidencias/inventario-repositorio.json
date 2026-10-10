@@ -1,0 +1,1344 @@
+{
+  "date": "2026-10-10",
+  "sha": "6fa8c72ed0d6be3077e5285f7a987a3e3a5369ea",
+  "version": "1.15.9",
+  "pages": [
+    {
+      "file": "src/app/about/page.tsx",
+      "path": "/about"
+    },
+    {
+      "file": "src/app/activity/page.tsx",
+      "path": "/activity"
+    },
+    {
+      "file": "src/app/admin/announcements/page.tsx",
+      "path": "/admin/announcements"
+    },
+    {
+      "file": "src/app/admin/exports/page.tsx",
+      "path": "/admin/exports"
+    },
+    {
+      "file": "src/app/admin/incidents/page.tsx",
+      "path": "/admin/incidents"
+    },
+    {
+      "file": "src/app/admin/league/page.tsx",
+      "path": "/admin/league"
+    },
+    {
+      "file": "src/app/admin/media-kit/page.tsx",
+      "path": "/admin/media-kit"
+    },
+    {
+      "file": "src/app/admin/media-kit/welcome-pack/page.tsx",
+      "path": "/admin/media-kit/welcome-pack"
+    },
+    {
+      "file": "src/app/admin/mvp/page.tsx",
+      "path": "/admin/mvp"
+    },
+    {
+      "file": "src/app/admin/page.tsx",
+      "path": "/admin"
+    },
+    {
+      "file": "src/app/admin/qa/page.tsx",
+      "path": "/admin/qa"
+    },
+    {
+      "file": "src/app/admin/season/duplicate/page.tsx",
+      "path": "/admin/season/duplicate"
+    },
+    {
+      "file": "src/app/admin/season/finances/page.tsx",
+      "path": "/admin/season/finances"
+    },
+    {
+      "file": "src/app/admin/season/page.tsx",
+      "path": "/admin/season"
+    },
+    {
+      "file": "src/app/admin/substitutes/page.tsx",
+      "path": "/admin/substitutes"
+    },
+    {
+      "file": "src/app/admin/users/page.tsx",
+      "path": "/admin/users"
+    },
+    {
+      "file": "src/app/application-admin/locations/page.tsx",
+      "path": "/application-admin/locations"
+    },
+    {
+      "file": "src/app/application-admin/page.tsx",
+      "path": "/application-admin"
+    },
+    {
+      "file": "src/app/application-admin/suggestions/page.tsx",
+      "path": "/application-admin/suggestions"
+    },
+    {
+      "file": "src/app/application-admin/users/page.tsx",
+      "path": "/application-admin/users"
+    },
+    {
+      "file": "src/app/auth/error/page.tsx",
+      "path": "/auth/error"
+    },
+    {
+      "file": "src/app/availability/page.tsx",
+      "path": "/availability"
+    },
+    {
+      "file": "src/app/changelog/page.tsx",
+      "path": "/changelog"
+    },
+    {
+      "file": "src/app/chats/page.tsx",
+      "path": "/chats"
+    },
+    {
+      "file": "src/app/experimental/avatar-lab/big-smile/page.tsx",
+      "path": "/experimental/avatar-lab/big-smile"
+    },
+    {
+      "file": "src/app/experimental/avatar-lab/notion-avatar/page.tsx",
+      "path": "/experimental/avatar-lab/notion-avatar"
+    },
+    {
+      "file": "src/app/experimental/avatar-lab/page.tsx",
+      "path": "/experimental/avatar-lab"
+    },
+    {
+      "file": "src/app/help/page.tsx",
+      "path": "/help"
+    },
+    {
+      "file": "src/app/invite/[code]/page.tsx",
+      "path": "/invite/[code]"
+    },
+    {
+      "file": "src/app/invite/page.tsx",
+      "path": "/invite"
+    },
+    {
+      "file": "src/app/launch/page.tsx",
+      "path": "/launch"
+    },
+    {
+      "file": "src/app/league/new/page.tsx",
+      "path": "/league/new"
+    },
+    {
+      "file": "src/app/leagues/page.tsx",
+      "path": "/leagues"
+    },
+    {
+      "file": "src/app/match/[id]/chat/page.tsx",
+      "path": "/match/[id]/chat"
+    },
+    {
+      "file": "src/app/match/[id]/page.tsx",
+      "path": "/match/[id]"
+    },
+    {
+      "file": "src/app/matches/page.tsx",
+      "path": "/matches"
+    },
+    {
+      "file": "src/app/notifications/page.tsx",
+      "path": "/notifications"
+    },
+    {
+      "file": "src/app/offline/page.tsx",
+      "path": "/offline"
+    },
+    {
+      "file": "src/app/open/page.tsx",
+      "path": "/open"
+    },
+    {
+      "file": "src/app/page.tsx",
+      "path": "/"
+    },
+    {
+      "file": "src/app/payments/page.tsx",
+      "path": "/payments"
+    },
+    {
+      "file": "src/app/personal-matches/[id]/chat/page.tsx",
+      "path": "/personal-matches/[id]/chat"
+    },
+    {
+      "file": "src/app/personal-matches/[id]/page.tsx",
+      "path": "/personal-matches/[id]"
+    },
+    {
+      "file": "src/app/personal-matches/chats/page.tsx",
+      "path": "/personal-matches/chats"
+    },
+    {
+      "file": "src/app/personal-matches/new/page.tsx",
+      "path": "/personal-matches/new"
+    },
+    {
+      "file": "src/app/personal-matches/page.tsx",
+      "path": "/personal-matches"
+    },
+    {
+      "file": "src/app/personal-matches/profile/page.tsx",
+      "path": "/personal-matches/profile"
+    },
+    {
+      "file": "src/app/player/[id]/matches/page.tsx",
+      "path": "/player/[id]/matches"
+    },
+    {
+      "file": "src/app/player/[id]/mvp/page.tsx",
+      "path": "/player/[id]/mvp"
+    },
+    {
+      "file": "src/app/player/[id]/page.tsx",
+      "path": "/player/[id]"
+    },
+    {
+      "file": "src/app/privacy/page.tsx",
+      "path": "/privacy"
+    },
+    {
+      "file": "src/app/profile/matches/page.tsx",
+      "path": "/profile/matches"
+    },
+    {
+      "file": "src/app/profile/page.tsx",
+      "path": "/profile"
+    },
+    {
+      "file": "src/app/ranking/page.tsx",
+      "path": "/ranking"
+    },
+    {
+      "file": "src/app/round/[id]/page.tsx",
+      "path": "/round/[id]"
+    },
+    {
+      "file": "src/app/settings/appearance/page.tsx",
+      "path": "/settings/appearance"
+    },
+    {
+      "file": "src/app/settings/notifications/page.tsx",
+      "path": "/settings/notifications"
+    },
+    {
+      "file": "src/app/settings/page.tsx",
+      "path": "/settings"
+    },
+    {
+      "file": "src/app/settings/profile/page.tsx",
+      "path": "/settings/profile"
+    },
+    {
+      "file": "src/app/settings/suggestions/page.tsx",
+      "path": "/settings/suggestions"
+    },
+    {
+      "file": "src/app/spectate/[code]/page.tsx",
+      "path": "/spectate/[code]"
+    },
+    {
+      "file": "src/app/spectate/[code]/view/page.tsx",
+      "path": "/spectate/[code]/view"
+    },
+    {
+      "file": "src/app/statistics/compare/page.tsx",
+      "path": "/statistics/compare"
+    },
+    {
+      "file": "src/app/statistics/evolution/page.tsx",
+      "path": "/statistics/evolution"
+    },
+    {
+      "file": "src/app/statistics/page.tsx",
+      "path": "/statistics"
+    },
+    {
+      "file": "src/app/statistics/player/page.tsx",
+      "path": "/statistics/player"
+    },
+    {
+      "file": "src/app/statistics/records/page.tsx",
+      "path": "/statistics/records"
+    },
+    {
+      "file": "src/app/statistics/season/page.tsx",
+      "path": "/statistics/season"
+    },
+    {
+      "file": "src/app/statistics/standings/page.tsx",
+      "path": "/statistics/standings"
+    },
+    {
+      "file": "src/app/terms/page.tsx",
+      "path": "/terms"
+    }
+  ],
+  "apis": [
+    {
+      "file": "src/app/api/access-intent/route.ts",
+      "methods": [
+        "GET",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/access/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/account/delete/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/account/export/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/account/profile/route.ts",
+      "methods": [
+        "GET",
+        "PUT",
+        "PATCH"
+      ]
+    },
+    {
+      "file": "src/app/api/app-user/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/application-admin/leagues/[leagueId]/transfer/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/application-admin/locations/route.ts",
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/application-admin/players/[playerId]/avatar/route.ts",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "file": "src/app/api/application-admin/suggestions/route.ts",
+      "methods": [
+        "GET",
+        "PATCH"
+      ]
+    },
+    {
+      "file": "src/app/api/application-admin/users/[userId]/actions/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/application-admin/users/[userId]/route.ts",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/application-admin/users/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/auth/[...nextauth]/route.ts",
+      "methods": []
+    },
+    {
+      "file": "src/app/api/chats/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/experimental/avatar-lab/dicebear-big-smile/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/experimental/avatar-lab/notion-avatar/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/health/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/invites/[code]/claim/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/invites/[code]/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/activity-settings/route.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/activity/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/announcements/[announcementId]/route.ts",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/announcements/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/experience-mode/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/invite/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/matches/[matchId]/availability/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/members/[playerId]/route.ts",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/player-directory/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/players/[playerId]/availability/route.ts",
+      "methods": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/players/[playerId]/route.ts",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/route.ts",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/duplicate/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/expenses/route.ts",
+      "methods": [
+        "POST",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/finish/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/mvp-selection/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/registration-payment/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/registration-reminder/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/registration/route.ts",
+      "methods": [
+        "POST",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/repair-calendar/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/reveal-round/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/round-order/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/rounds/[round]/matches/route.ts",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/route.ts",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/settings/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/start/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/confirm/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/[seasonId]/waitlist/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/seasons/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/spectator-invite/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/spectator-self/route.ts",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/spectators/route.ts",
+      "methods": [
+        "GET",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/[id]/users/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/leagues/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/locations/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/chat/route.ts",
+      "methods": [
+        "GET",
+        "POST",
+        "PATCH"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/coordination/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/court-booking/payment-reminder/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/court-booking/route.ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/court-booking/transfers/[transferId]/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/incident/route.ts",
+      "methods": [
+        "POST",
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/mvp-vote/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/mvp-votes/route.ts",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/postpone/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/reservation-confirmation/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/result-lock/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/result/route.ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/schedule/route.ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/matches/[matchId]/substitution/route.ts",
+      "methods": [
+        "GET",
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/mvp/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/notifications/dispatch/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/notifications/preferences/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/notifications/read-state/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/notifications/scheduled-check/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/notifications/subscribe/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/notifications/unsubscribe/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/observability/client-error/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/onboarding/progress/route.ts",
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/payments/ledger/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/personal-matches/[id]/chat/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/personal-matches/[id]/court-booking/route.ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/personal-matches/[id]/court-booking/transfers/[transferId]/route.ts",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "file": "src/app/api/personal-matches/[id]/route.ts",
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/personal-matches/chats/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/personal-matches/people/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/personal-matches/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/public-spectator/[code]/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/qa/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/result-confirmations/[matchId]/route.ts",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/result-confirmations/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/seasons/[seasonId]/replacements/route.ts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/seasons/[seasonId]/substitutes/[substituteId]/route.ts",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "file": "src/app/api/seasons/[seasonId]/substitutes/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/spectator-access/route.ts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "file": "src/app/api/spectator-invites/[code]/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "file": "src/app/api/suggestions/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    }
+  ],
+  "libraries": [
+    "src/lib/accountProfile.ts",
+    "src/lib/actionFeedback.ts",
+    "src/lib/activity.ts",
+    "src/lib/activitySettings.ts",
+    "src/lib/announcements.ts",
+    "src/lib/appRefreshEvents.ts",
+    "src/lib/appUrl.ts",
+    "src/lib/appVariant.ts",
+    "src/lib/appVersion.ts",
+    "src/lib/authEnvironment.ts",
+    "src/lib/authRedirect.ts",
+    "src/lib/authUsers.ts",
+    "src/lib/authorizationPolicy.ts",
+    "src/lib/avatarLabAccess.ts",
+    "src/lib/avatarResolution.ts",
+    "src/lib/ballCustodianAssignment.ts",
+    "src/lib/calendar.ts",
+    "src/lib/calendarEvent.ts",
+    "src/lib/changelog.ts",
+    "src/lib/changelogGrouping.ts",
+    "src/lib/chatProposalVoters.ts",
+    "src/lib/chatRealtimeClient.ts",
+    "src/lib/clientImages.ts",
+    "src/lib/courtBooking.ts",
+    "src/lib/csvExport.ts",
+    "src/lib/excelExport.ts",
+    "src/lib/exportImageChrome.ts",
+    "src/lib/flexibleCalendar.ts",
+    "src/lib/fontSizePreference.ts",
+    "src/lib/imageUrl.ts",
+    "src/lib/inviteUrls.ts",
+    "src/lib/inviteValidity.ts",
+    "src/lib/leagueAccessCache.ts",
+    "src/lib/leagueGuide.ts",
+    "src/lib/leagueLocations.ts",
+    "src/lib/leagueMediaKitImage.ts",
+    "src/lib/leagueNavigation.ts",
+    "src/lib/leagues.ts",
+    "src/lib/localAppStorage.ts",
+    "src/lib/localDevAuth.ts",
+    "src/lib/logoAccentPalette.ts",
+    "src/lib/logoStickerPrint.ts",
+    "src/lib/matchChatCache.ts",
+    "src/lib/matchChatCoordination.ts",
+    "src/lib/matchChatWindow.ts",
+    "src/lib/matchIncidents.ts",
+    "src/lib/matchLifecycle.ts",
+    "src/lib/matchPresentation.ts",
+    "src/lib/matchScheduleTime.ts",
+    "src/lib/matchesCalendar.ts",
+    "src/lib/mediaKitIcons.ts",
+    "src/lib/mediaKitTheme.ts",
+    "src/lib/mediaKitWelcomeLetter.ts",
+    "src/lib/mediaKitWelcomePack.ts",
+    "src/lib/mvp.ts",
+    "src/lib/notificationSettings.ts",
+    "src/lib/organizationBallsAssignment.ts",
+    "src/lib/paymentLedger.ts",
+    "src/lib/pendingAccessIntent.ts",
+    "src/lib/pendingAccessIntentClient.ts",
+    "src/lib/personalMatchChatSchema.ts",
+    "src/lib/personalMatchDetailModel.ts",
+    "src/lib/personalMatchPeople.ts",
+    "src/lib/personalMatches.ts",
+    "src/lib/personalProfileStats.ts",
+    "src/lib/playerAvailability.ts",
+    "src/lib/playerHistory.ts",
+    "src/lib/playerPreviewTraits.ts",
+    "src/lib/playerProfileVisibility.ts",
+    "src/lib/playerStreak.ts",
+    "src/lib/players.ts",
+    "src/lib/preseasonSecrets.ts",
+    "src/lib/progressiveCalendar.ts",
+    "src/lib/publicChangelog.ts",
+    "src/lib/publicSpectator.ts",
+    "src/lib/pushClient.ts",
+    "src/lib/pwaUpdate.ts",
+    "src/lib/qaMode.ts",
+    "src/lib/qaTypes.ts",
+    "src/lib/ranking.ts",
+    "src/lib/rankingOrder.ts",
+    "src/lib/resultConfirmations.ts",
+    "src/lib/roundSummary.ts",
+    "src/lib/roundSummaryImage.ts",
+    "src/lib/rounds.ts",
+    "src/lib/seasonExportImages.ts",
+    "src/lib/seasonFinanceTransparency.ts",
+    "src/lib/seasonFinanceTransparencyImage.ts",
+    "src/lib/seasonPlayerCount.ts",
+    "src/lib/seasonRegistration.ts",
+    "src/lib/seasonScheduling.ts",
+    "src/lib/seasonSelection.ts",
+    "src/lib/seasonStatistics.ts",
+    "src/lib/seasonSummaryImage.ts",
+    "src/lib/selfRegistration.ts",
+    "src/lib/serverActivity.ts",
+    "src/lib/serverActivityDerivations.ts",
+    "src/lib/serverActivityWrite.ts",
+    "src/lib/serverApplicationAdminAudit.ts",
+    "src/lib/serverAuth.ts",
+    "src/lib/serverAvatarLabAccess.ts",
+    "src/lib/serverBallCustodianNotifications.ts",
+    "src/lib/serverChatRealtime.ts",
+    "src/lib/serverGlobalLocations.ts",
+    "src/lib/serverImageValidation.ts",
+    "src/lib/serverLeagueAccess.ts",
+    "src/lib/serverLocalDevAuth.ts",
+    "src/lib/serverLog.ts",
+    "src/lib/serverMatchAccess.ts",
+    "src/lib/serverMatchChatCoordination.ts",
+    "src/lib/serverMvp.ts",
+    "src/lib/serverObservability.ts",
+    "src/lib/serverPendingAccessIntent.ts",
+    "src/lib/serverPersonalLocationSchema.ts",
+    "src/lib/serverPersonalMatchAutomation.ts",
+    "src/lib/serverPersonalMatchBooking.ts",
+    "src/lib/serverPersonalMatchPush.ts",
+    "src/lib/serverPersonalMatchRequest.ts",
+    "src/lib/serverPersonalMatches.ts",
+    "src/lib/serverPlayerAvailability.ts",
+    "src/lib/serverProgressiveCalendarAutomation.ts",
+    "src/lib/serverPushDispatch.ts",
+    "src/lib/serverPushRetry.ts",
+    "src/lib/serverQa.ts",
+    "src/lib/serverRateLimit.ts",
+    "src/lib/serverRequest.ts",
+    "src/lib/serverResponse.ts",
+    "src/lib/serverScheduledSeason.ts",
+    "src/lib/serverScheduledSeasonAutomation.ts",
+    "src/lib/serverSeasonAccess.ts",
+    "src/lib/serverSeasonAwards.ts",
+    "src/lib/serverSeasonDuplication.ts",
+    "src/lib/serverSeasonMutations.ts",
+    "src/lib/serverSeasonWaitlist.ts",
+    "src/lib/serverSelfRegistration.ts",
+    "src/lib/serverSubstitutes.ts",
+    "src/lib/settingsSearch.ts",
+    "src/lib/spectatorInvites.ts",
+    "src/lib/spectatorTheme.ts",
+    "src/lib/statisticsPresentation.ts",
+    "src/lib/statusHelp.ts",
+    "src/lib/statusStyles.ts",
+    "src/lib/substitutes.ts",
+    "src/lib/supabase.ts",
+    "src/lib/supabaseAdminLeagues.ts",
+    "src/lib/supabaseAdminUsers.ts",
+    "src/lib/supabaseInvites.ts",
+    "src/lib/supabaseLeagues.ts",
+    "src/lib/supabaseMatchConfirmations.ts",
+    "src/lib/supabaseMatches.ts",
+    "src/lib/supabaseMvp.ts",
+    "src/lib/supabasePlayerAvailability.ts",
+    "src/lib/supabaseSeasons.ts",
+    "src/lib/supabaseServer.ts",
+    "src/lib/supabaseUsers.ts",
+    "src/lib/visualStyle.ts",
+    "src/lib/welcomePackStickers.ts"
+  ],
+  "contexts": [
+    "src/context/AccountProfileProvider.tsx",
+    "src/context/ActiveLeagueProvider.tsx",
+    "src/context/AuthSessionProvider.tsx",
+    "src/context/CurrentUserProvider.tsx",
+    "src/context/LeagueAccessProvider.tsx",
+    "src/context/LeagueSettingsProvider.tsx",
+    "src/context/MatchDataProvider.tsx",
+    "src/context/MediaKitSettingsProvider.tsx",
+    "src/context/MvpProvider.tsx",
+    "src/context/SeasonSettingsProvider.tsx",
+    "src/context/ThemeProvider.tsx"
+  ],
+  "tests": [
+    "tests/e2e/authenticated-screens.spec.ts",
+    "tests/e2e/public-access.spec.ts",
+    "tests/e2e/pwa-offline.spec.ts",
+    "tests/e2e/qa-pre.spec.ts",
+    "tests/integration/notificationUnsubscribe.test.ts",
+    "tests/integration/serverLeagueAccess.test.ts",
+    "tests/setup.ts",
+    "tests/stubs/server-only.ts",
+    "tests/unit/accessPayloadBudget.test.ts",
+    "tests/unit/accountAvatarStorage.test.ts",
+    "tests/unit/appUrl.test.ts",
+    "tests/unit/authEnvironment.test.ts",
+    "tests/unit/authRedirect.test.ts",
+    "tests/unit/authorizationPolicy.test.ts",
+    "tests/unit/avatarLabAccess.test.ts",
+    "tests/unit/avatarLabCleanup.test.ts",
+    "tests/unit/avatarLabIsolation.test.ts",
+    "tests/unit/avatarLabProxy.test.ts",
+    "tests/unit/avatarResolution.test.ts",
+    "tests/unit/ballCanSealPreview.test.ts",
+    "tests/unit/ballCustodianAssignment.test.ts",
+    "tests/unit/ballCustodianNotifications.test.ts",
+    "tests/unit/bigSmileUrl.test.ts",
+    "tests/unit/bookingPaymentSummary.test.ts",
+    "tests/unit/calendarEvent.test.ts",
+    "tests/unit/calendarMatchCardLayout.test.ts",
+    "tests/unit/calendarProviderChoice.test.tsx",
+    "tests/unit/changelogGrouping.test.ts",
+    "tests/unit/changelogVisibility.test.ts",
+    "tests/unit/chatProposalVoters.test.ts",
+    "tests/unit/competitionLaunchNotice.test.tsx",
+    "tests/unit/competitionLight.test.tsx",
+    "tests/unit/competitionVisualStyle.test.ts",
+    "tests/unit/csvExport.test.ts",
+    "tests/unit/deploymentSmoke.test.ts",
+    "tests/unit/finishedSeasonCalendarExports.test.ts",
+    "tests/unit/finishedSeasonHomeActions.test.ts",
+    "tests/unit/fontSizePreference.test.ts",
+    "tests/unit/globalLocations.test.ts",
+    "tests/unit/globalLocationsIntegration.test.ts",
+    "tests/unit/guidedOnboarding.test.ts",
+    "tests/unit/guidedOnboardingIntegration.test.ts",
+    "tests/unit/homeContextHierarchy.test.ts",
+    "tests/unit/imageCropDialogLayout.test.ts",
+    "tests/unit/inviteValidity.test.ts",
+    "tests/unit/leagueAvatarMigration.test.ts",
+    "tests/unit/leaguesNavigation.test.ts",
+    "tests/unit/localDevAuth.test.ts",
+    "tests/unit/logoAccentPalette.test.ts",
+    "tests/unit/logoStickerPrint.test.ts",
+    "tests/unit/matchDetailPairingPanel.test.ts",
+    "tests/unit/matchEventMeta.test.ts",
+    "tests/unit/matchLeagueContext.test.tsx",
+    "tests/unit/matchPresentation.test.ts",
+    "tests/unit/matchScheduleTime.test.ts",
+    "tests/unit/matchTeamsPanelLayout.test.ts",
+    "tests/unit/matchesCalendarUx.test.ts",
+    "tests/unit/mediaKitTheme.test.ts",
+    "tests/unit/mediaKitWelcomePack.test.ts",
+    "tests/unit/mvpAdvancedAutomatic.test.ts",
+    "tests/unit/notionAvatarModel.test.ts",
+    "tests/unit/notionAvatarUrl.test.ts",
+    "tests/unit/observabilityIntegration.test.ts",
+    "tests/unit/operationsPreparation.test.ts",
+    "tests/unit/organizationBallsAssignment.test.ts",
+    "tests/unit/pendingAccessIntent.test.ts",
+    "tests/unit/personalChatReservation.test.tsx",
+    "tests/unit/personalMatchCardLayout.test.ts",
+    "tests/unit/personalMatchOriginColors.test.ts",
+    "tests/unit/personalMatchPeople.test.ts",
+    "tests/unit/personalMatches.test.ts",
+    "tests/unit/personalMatchesIntegration.test.ts",
+    "tests/unit/personalMatchesNavigation.test.ts",
+    "tests/unit/personalMatchesUpcomingVisibility.test.ts",
+    "tests/unit/personalProfileAdvancedIntegration.test.ts",
+    "tests/unit/personalProfileStats.test.ts",
+    "tests/unit/playerHistory.test.ts",
+    "tests/unit/playerPreviewTraits.test.ts",
+    "tests/unit/playerProfileSeasonSelector.test.ts",
+    "tests/unit/profileHeaderLayout.test.ts",
+    "tests/unit/publicChangelog.test.ts",
+    "tests/unit/publicSpectator.test.ts",
+    "tests/unit/publicSpectatorRouteProxy.test.ts",
+    "tests/unit/pushSubscriptions.test.ts",
+    "tests/unit/pwa.test.ts",
+    "tests/unit/pwaSafeUpdate.test.ts",
+    "tests/unit/ranking.test.ts",
+    "tests/unit/rankingDisplayOrder.test.ts",
+    "tests/unit/rankingPanelComposition.test.ts",
+    "tests/unit/rateLimit.test.ts",
+    "tests/unit/releaseQualityBrowserQa.test.ts",
+    "tests/unit/seasonReviewMatches.test.ts",
+    "tests/unit/seasonSelectionOrder.test.ts",
+    "tests/unit/seasonSnapshotHydration.test.tsx",
+    "tests/unit/securityHeaders.test.ts",
+    "tests/unit/selfProfileSelectedSeason.test.tsx",
+    "tests/unit/serverLog.test.ts",
+    "tests/unit/serverRequest.test.ts",
+    "tests/unit/serverResponse.test.ts",
+    "tests/unit/settingsSearchAvatarLab.test.ts",
+    "tests/unit/spectatorInviteUrl.test.ts",
+    "tests/unit/statusHelp.test.tsx",
+    "tests/unit/topHeaderFunctionalRow.test.ts",
+    "tests/unit/typographySystem.test.ts",
+    "tests/unit/unifiedMatchDetail.test.ts",
+    "tests/unit/v1100HomeSeasonSwitcherFinances.test.ts",
+    "tests/unit/v1100MediaKit.test.ts",
+    "tests/unit/v1100ProfileImages.test.ts",
+    "tests/unit/v1100RegistrationSettings.test.ts",
+    "tests/unit/v1100ScheduledSeasons.test.ts",
+    "tests/unit/v1100SettingsSearchCoverage.test.ts",
+    "tests/unit/v11010UnifiedMatchAndPersonalChat.test.ts",
+    "tests/unit/v11011PersonalChatsScheduledAdminAndPayments.test.ts",
+    "tests/unit/v11012UnifiedChatComponents.test.ts",
+    "tests/unit/v11013ScheduledAdminHomeCountdown.test.ts",
+    "tests/unit/v11014AdminViewScheduledSeasonSimulation.test.ts",
+    "tests/unit/v11015ScheduledCalendarPreparation.test.ts",
+    "tests/unit/v11016LeagueI18nAndFloatingToolbar.test.ts",
+    "tests/unit/v11017SettingsContextAndPersonalSafeArea.test.ts",
+    "tests/unit/v11018SeasonLocationsAndPersonalDashboard.test.ts",
+    "tests/unit/v11019LocationResolution.test.ts",
+    "tests/unit/v1101MediaKitOpeningDayPremium.test.ts",
+    "tests/unit/v11020PersonalPayments.test.ts",
+    "tests/unit/v11021ExportAndPaymentsScopes.test.ts",
+    "tests/unit/v11022SettingsContextNavigation.test.ts",
+    "tests/unit/v11023PaymentReopen.test.ts",
+    "tests/unit/v11024ShareImagePreviews.test.ts",
+    "tests/unit/v11025ExportStyleHomogenization.test.ts",
+    "tests/unit/v11025SeasonPreviewAvailability.test.ts",
+    "tests/unit/v11026PreseasonSecrets.test.ts",
+    "tests/unit/v11027PreseasonHomeNotificationAndBack.test.ts",
+    "tests/unit/v11028AutomaticStatesAndFriendlies.test.ts",
+    "tests/unit/v11029SettingsPersonalStatusAndNotifications.test.ts",
+    "tests/unit/v1102MediaKitOpeningDayArtRework.test.ts",
+    "tests/unit/v1103MediaKitTypographyAndFooter.test.ts",
+    "tests/unit/v1103PostLoginLeagueEntry.test.ts",
+    "tests/unit/v1104MediaKitPresetCustomizer.test.ts",
+    "tests/unit/v1104ScheduledScopeHelpRules.test.ts",
+    "tests/unit/v1105SeasonAndRoundExportPolish.test.ts",
+    "tests/unit/v1106RoundSummaryExportFinePolish.test.ts",
+    "tests/unit/v1107RoundSummaryExportLayoutPolish.test.ts",
+    "tests/unit/v1108RoundSummaryShareButtons.test.ts",
+    "tests/unit/v1109ReservationPaymentsEconomy.test.ts",
+    "tests/unit/v1110FloatingImagePreviewModals.test.ts",
+    "tests/unit/v1110HomeSoftRefresh.test.ts",
+    "tests/unit/v1110OpeningScheduledStartSync.test.ts",
+    "tests/unit/v1110ProgressiveCalendarExperience.test.ts",
+    "tests/unit/v1110TypecheckIsolation.test.ts",
+    "tests/unit/v1111SeasonFinanceTransparencyReport.test.ts",
+    "tests/unit/v1111SharedExportChrome.test.ts",
+    "tests/unit/v1120FlexibleSeasonSize.test.ts",
+    "tests/unit/v1121FlexibleSeasonByes.test.ts",
+    "tests/unit/v1123FlexibleSeasonDuration.test.ts",
+    "tests/unit/v1124CustomCalendarAuditUx.test.ts",
+    "tests/unit/v1130MediaKitWelcomeLetter.test.ts",
+    "tests/unit/v1131WelcomeLetterTypography.test.ts",
+    "tests/unit/v1132WelcomeLetterSealAndSignature.test.ts",
+    "tests/unit/v1133WelcomeLetterPersonalisation.test.ts",
+    "tests/unit/v1134WelcomeLetterOrganicStamp.test.ts",
+    "tests/unit/v1135WelcomeLetterPremiumFinish.test.ts",
+    "tests/unit/v1154HardeningCleanup.test.ts",
+    "tests/unit/v1154Resiliency.test.ts",
+    "tests/unit/v1412PolishIntegration.test.ts",
+    "tests/unit/v161UiPolish.test.ts",
+    "tests/unit/v162HeaderPersonalMatches.test.ts",
+    "tests/unit/v163HomeLogoSize.test.ts",
+    "tests/unit/v165CenteredActionButtons.test.ts",
+    "tests/unit/v165HomeRefresh.test.ts",
+    "tests/unit/v165PanelActionTitleTypography.test.ts",
+    "tests/unit/v165PersonalModeBackCompactFilters.test.ts",
+    "tests/unit/v165ProfilePersonalMatchesNavigation.test.ts",
+    "tests/unit/v165SeasonSummaryThemeSeparation.test.ts",
+    "tests/unit/v166HomeLeagueSwitcher.test.ts",
+    "tests/unit/v166SmokeVersionContract.test.ts",
+    "tests/unit/v167ApplicationManagement.test.ts",
+    "tests/unit/v168ContextualTipsCleanup.test.ts",
+    "tests/unit/v168LeagueRecommendedLocations.test.ts",
+    "tests/unit/v169BestStreakDetailExactStyle.test.ts",
+    "tests/unit/v169HomeRoundAccentGradientScope.test.ts",
+    "tests/unit/v169HomeScheduleHintPermissions.test.ts",
+    "tests/unit/v169ProfileStreakAndHomeRoundAccent.test.ts",
+    "tests/unit/v170CompactMatchChat.test.ts",
+    "tests/unit/v170MatchChat.test.ts",
+    "tests/unit/v170MatchChatEffect.test.ts",
+    "tests/unit/v170MatchChatViewportPolish.test.ts",
+    "tests/unit/v170MatchDetailMobileUi.test.ts",
+    "tests/unit/v170TypeContracts.test.ts",
+    "tests/unit/v180ChatsAndPolish.test.ts",
+    "tests/unit/v180DatesAndNames.test.ts",
+    "tests/unit/v1810DirectDateProposalUx.test.ts",
+    "tests/unit/v1811ChatProposalListAndCompactChats.test.ts",
+    "tests/unit/v1812ChatsCompactPolish.test.ts",
+    "tests/unit/v1813PinnedReservationSummary.test.ts",
+    "tests/unit/v1814MatchDetailPlayerMetadataLayout.test.ts",
+    "tests/unit/v1815ChatImmersiveNotificationsSafeArea.test.ts",
+    "tests/unit/v1816ChatsNotificationsTheme.test.ts",
+    "tests/unit/v1817ChatRepliesSeasonLock.test.ts",
+    "tests/unit/v1818ChatHistoryVoteDetails.test.ts",
+    "tests/unit/v1819ChatOptionVoteAndTimestamp.test.ts",
+    "tests/unit/v181ChatComposerUx.test.ts",
+    "tests/unit/v181ChatListCompactUx.test.ts",
+    "tests/unit/v181RealtimeChat.test.ts",
+    "tests/unit/v1820ChatPlayerProfileLinks.test.ts",
+    "tests/unit/v1821PendingBookingFlow.test.ts",
+    "tests/unit/v1822ChatLocationAndChatsCleanup.test.ts",
+    "tests/unit/v1823ProposalInnerSurfaceContrast.test.ts",
+    "tests/unit/v182ChatReservationFlow.test.ts",
+    "tests/unit/v183ChatProposalUx.test.ts",
+    "tests/unit/v185ChatProposalVotingAndStatus.test.ts",
+    "tests/unit/v186HomeCalendarCoordinationStatus.test.ts",
+    "tests/unit/v187MatchDetailInitialCoordinationStatus.test.ts",
+    "tests/unit/v188OptimisticChatUx.test.ts",
+    "tests/unit/v189ChatIdentityReceiptsUnread.test.ts",
+    "tests/unit/v190RoundSummary.test.ts",
+    "tests/unit/v191RoundSummaryPolish.test.ts",
+    "tests/unit/v192RoundSummaryHighlights.test.ts",
+    "tests/unit/v193RoundSummaryHighlightComparisons.test.ts",
+    "tests/unit/v194RoundSummaryDecidingTieBreak.test.ts",
+    "tests/unit/v195MatchResultDeleteFocus.test.ts",
+    "tests/unit/v196RoundSummaryCompactHighlights.test.ts",
+    "tests/unit/v197RoundSummarySimpleHighlightLayout.test.ts",
+    "tests/unit/v198QuickPolish.test.ts",
+    "tests/unit/v199RoundSummaryImageExport.test.ts",
+    "tests/unit/welcomePackStickers.test.ts",
+    "tests/unit/welcomePackTranslations.test.ts"
+  ],
+  "scripts": [
+    "scripts/check-advanced-mvp.mjs",
+    "scripts/check-api-security-inventory.mjs",
+    "scripts/check-avatar-assets.mjs",
+    "scripts/check-build-budgets.mjs",
+    "scripts/check-external-readiness.mjs",
+    "scripts/check-global-locations.mjs",
+    "scripts/check-guided-onboarding.mjs",
+    "scripts/check-identity-migrations.mjs",
+    "scripts/check-league-i18n.mjs",
+    "scripts/check-local-dev-auth.mjs",
+    "scripts/check-personal-matches.mjs",
+    "scripts/check-public-app-urls.mjs",
+    "scripts/check-release-version.mjs",
+    "scripts/check-repository-secrets.mjs",
+    "scripts/check-required-env.mjs",
+    "scripts/check-security-baseline.mjs",
+    "scripts/check-source-budgets.mjs",
+    "scripts/check-typography-system.mjs",
+    "scripts/check-unified-match-detail.mjs",
+    "scripts/configure-github-rulesets.mjs",
+    "scripts/run-database-quality.mjs",
+    "scripts/smoke-deployment.mjs",
+    "scripts/verify-v1110-pre-schema.mjs",
+    "scripts/write-qa-storage-state.mjs"
+  ],
+  "historicalReports": [
+    "docs/FUNCTIONAL_PRE_ACCEPTANCE.md",
+    "docs/V1_1_ACCEPTANCE_CHECKLIST.md",
+    "docs/V1_RELEASE_CHECKLIST.md",
+    "docs/VISUAL_AUDIT_PLAN.md",
+    "docs/VISUAL_AUDIT_RESULTS.md",
+    "docs/preproduction/V0.14.5_REACT_EFFECT_VALIDATION.md",
+    "docs/preproduction/V1_15_4_PRE_MANUAL_QA.md",
+    "docs/prepublication/V1_2_11_RELEASE_CHECKLIST.md",
+    "docs/prepublication/identity-audit.sql",
+    "docs/production-hardening/COMPETITION_DARK_VISUAL_REVIEW.md",
+    "docs/production-hardening/V1_15_4_HARDENING_AUDIT.md",
+    "docs/production-hardening/VALIDATION.md"
+  ]
+}

@@ -1,0 +1,42 @@
+import { expect, it } from "vitest"
+import { deleteServerSeason, startServerExistingSeason } from "@/lib/serverSeasonMutations"
+const leagueId="11111111-1111-4111-8111-111111111111", seasonId="22222222-2222-4222-8222-222222222222"
+it("BUG-014: eliminar temporada pierde partidos antes de fallar al borrar jugadores", async()=>{
+  const rows={matches:[{season_id:seasonId}],season_players:[{season_id:seasonId}]}
+  const supabase={from:(table:string)=>({delete:()=>({eq:async()=>{
+    if(table==="season_players")return {error:{message:"QA failure"}}
+    if(table==="matches")rows.matches=[]
+    return {error:null}
+  }})})}
+  await expect(deleteServerSeason({supabase:supabase as any,leagueId,seasonId})).rejects.toMatchObject({code:"season_delete_players_failed"})
+  expect(rows.matches).toEqual([])
+  expect(rows.season_players).toHaveLength(1)
+})
+it("BUG-015: borrar una temporada distinta sustituye la temporada activa por fallback sin orden",async()=>{
+  let activeId="qa-active"
+  const touched:string[]=[]
+  const supabase={from:(table:string)=>{
+    const query:any={delete:()=>query,eq:()=>query,select:()=>query,limit:()=>query,
+      update:(value:any)=>{touched.push(table);activeId=value.active_season_id;return query},
+      maybeSingle:async()=>({data:{id:"qa-old-finished",league_id:leagueId,name:"QA antigua",status:"finished",total_rounds:7,completed_rounds:7},error:null}),
+      then:(resolve:any)=>Promise.resolve({error:null}).then(resolve)}
+    return query
+  }}
+  const result=await deleteServerSeason({supabase:supabase as any,leagueId,seasonId})
+  expect(activeId).toBe("qa-old-finished")
+  expect(result.activeSeasonIds[leagueId]).toBe("qa-old-finished")
+  expect(touched).toContain("leagues")
+})
+it("BUG-016: fallo al activar temporada nueva deja cerrada la anterior",async()=>{
+  let previousStatus="active", target:string|undefined
+  const supabase={from:(table:string)=>{
+    const query:any={select:()=>query,eq:()=>query,neq:()=>query,
+      maybeSingle:async()=>({data:{roster_mode:"fixed"},error:null}),
+      update:(value:any)=>{target=value.status;if(table==="seasons"&&target==="finished")previousStatus="finished";return query},
+      single:async()=>({data:null,error:{message:"QA activation failed"}}),
+      then:(resolve:any)=>Promise.resolve({error:null}).then(resolve)}
+    return query
+  }}
+  await expect(startServerExistingSeason({supabase:supabase as any,leagueId,seasonId,actorUserId:"qa-user",actorIsSuperuser:false})).rejects.toMatchObject({code:"season_start_failed"})
+  expect(previousStatus).toBe("finished")
+})

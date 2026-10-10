@@ -1,0 +1,23 @@
+import { expect, it, vi } from "vitest"
+const mocks=vi.hoisted(()=>({gate:vi.fn()}))
+vi.mock("@/lib/serverMatchAccess",()=>({getServerMatchActor:mocks.gate}))
+vi.mock("@/lib/serverActivityWrite",()=>({recordServerActorActivity:async()=>null}))
+vi.mock("@/lib/serverChatRealtime",()=>({broadcastMatchChatRefresh:async()=>true}))
+const matchId="11111111-1111-4111-8111-111111111111"
+it("BUG-025: resolver incidencia responde exito aunque no limpie confirmaciones ni votos",async()=>{
+ let saved:any
+ const failedCleanup:string[]=[]
+ const supabase={from:(table:string)=>{
+  const q:any={select:()=>q,eq:()=>q,update:(value:any)=>{saved=value;return q},delete:()=>{failedCleanup.push(table);return q},
+   single:async()=>({data:{id:matchId,league_id:"qa-league",season_id:"qa-season",round:1,team_a:["a","b"],team_b:["c","d"],...saved},error:null}),
+   then:(resolve:any)=>Promise.resolve({error:{message:"QA cleanup failed"}}).then(resolve)}
+  return q
+ }}
+ mocks.gate.mockResolvedValue({ok:true,actor:{supabase,user:{id:"qa-admin"},isAdmin:true,match:{incidentStatus:"open",status:"finished",scheduledAt:null}}})
+ const {PUT}=await import("@/app/api/matches/[matchId]/incident/route")
+ const response=await PUT(new Request("http://audit.invalid/api/matches/qa/incident",{method:"PUT",body:JSON.stringify({resolutionType:"reset_result",rankingCounts:false,sets:[]})}),{params:Promise.resolve({matchId})})
+ expect(response.status).toBe(200)
+ expect(saved.incident_status).toBe("resolved")
+ expect(saved.sets).toEqual([])
+ expect(failedCleanup.sort()).toEqual(["match_result_confirmations","mvp_votes"])
+})

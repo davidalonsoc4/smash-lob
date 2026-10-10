@@ -1,0 +1,16 @@
+import { expect, it } from "vitest"
+import { createServerSeason } from "@/lib/serverSeasonMutations"
+it("BUG-037: alta fallida de temporada ya ha cerrado la anterior",async()=>{
+  let oldStatus="active"
+  const supabase={from:(table:string)=>{
+    const q:any={select:()=>q,eq:()=>q,
+      update:(value:any)=>{if(table==="seasons")oldStatus=value.status;return q},
+      insert:()=>q,
+      maybeSingle:async()=>({data:{id:"qa-old"},error:null}),
+      single:async()=>({data:null,error:{message:"QA insert failed"}}),
+      then:(resolve:any)=>Promise.resolve({data:null,count:1,error:null}).then(resolve)}
+    return q
+  }}
+  await expect(createServerSeason({actor:{supabase,user:{id:"qa-user",isSuperuser:true},membership:null} as any,input:{leagueId:"qa-league",activeSeasonId:"qa-old",name:"QA",playerIds:[],appUserIds:[],newPlayerNames:Array.from({length:8},(_,i)=>`QA ${i}`),rosterMode:"fixed",scheduleMode:"single",targetRoundCount:7} as any})).rejects.toMatchObject({code:"season_create_failed"})
+  expect(oldStatus).toBe("finished")
+})

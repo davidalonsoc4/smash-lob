@@ -1,0 +1,637 @@
+
+> smash-lob@1.15.9 validate
+> npm run version:check && npm run env:check && npm run secrets:check && npm run security:check && npm run public-urls:check && npm run avatars:check && npm run migrations:check && npm run onboarding:check && npm run local-auth:check && npm run locations:check && npm run typography:check && npm run match-detail:check && npm run personal-matches:check && npm run mvp:check && npm run api-security:check && npm run i18n:check && npm run quality:source && npm run lint && npm run typecheck && npm run test && npm run build && npm run quality:build
+
+
+> smash-lob@1.15.9 version:check
+> node scripts/check-release-version.mjs
+
+Versión de lanzamiento coherente: v1.15.9
+- package.json y package-lock.json
+- versión visible y changelog
+- service worker
+- smoke tests PRE y PROD
+
+> smash-lob@1.15.9 env:check
+> node scripts/check-required-env.mjs
+
+Variables obligatorias presentes (valores ocultos):
+- AUTH_SECRET: presente
+- AUTH_GOOGLE_ID: presente
+- AUTH_GOOGLE_SECRET: presente
+- NEXT_PUBLIC_APP_URL: presente
+- NEXT_PUBLIC_SUPABASE_URL: presente
+- NEXT_PUBLIC_SUPABASE_ANON_KEY: presente
+- SUPABASE_SERVICE_ROLE_KEY: presente
+
+> smash-lob@1.15.9 secrets:check
+> node scripts/check-repository-secrets.mjs
+
+Comprobación de secretos correcta: no hay credenciales conocidas versionadas.
+
+> smash-lob@1.15.9 security:check
+> node scripts/check-security-baseline.mjs
+
+Línea base de seguridad correcta:
+- @auth/core 0.41.3
+- next-auth 5.0.0-beta.32
+- brace-expansion runtime 5.0.9
+- 6 copias 1.1.17+ limitadas a herramientas de lint
+- regexp.prototype.flags 1.5.4 con tarball válido
+- electron-to-chromium 1.5.393 con tarball fijado
+
+> smash-lob@1.15.9 public-urls:check
+> node scripts/check-public-app-urls.mjs
+
+URLs públicas correctas:
+- Producción: https://smashandlob.com
+- PRE: https://pre.smashandlob.com
+- Sin dominios .vercel.app en los archivos de ejecución
+
+> smash-lob@1.15.9 avatars:check
+> node scripts/check-avatar-assets.mjs
+
+Avatar Lab v1.15.9 correcto:
+- acceso autenticado y con rate limit para jugador y espectador
+- interfaz, busqueda y API limitadas al host real de PRE
+- solo DiceBear Big Smile y Notion Avatar
+- editor Notion compacto con preview y controles simultaneos
+- recetas locales sin Supabase ni cambios de perfil
+- dependencias y recursos descartados eliminados
+
+> smash-lob@1.15.9 migrations:check
+> node scripts/check-identity-migrations.mjs
+
+Migraciones de identidad correctas:
+- modelo global de imagen de cuenta
+- nombre e iniciales históricas preservadas al desvincular
+- avatar por liga retirado
+- auditoría SQL de datos preparada para PRE y PROD
+
+> smash-lob@1.15.9 onboarding:check
+> node scripts/check-guided-onboarding.mjs
+
+Tutoriales guiados correctos:
+- nueve recorridos contextuales; Chats y Chat explican estados, lectura, propuestas y no leídos
+- controles flotantes de Inicio emparejados por orden y texto en castellano, inglés y euskera
+- guía de Ajustes con perfil, apariencia, notificaciones, cambio Ligas/Mis partidos, sugerencias y buscador
+- ayuda flotante y biblioteca para repetir recorridos
+- progreso por cuenta con respaldo local y autoapertura única por recorrido
+- API autenticada, rate limit y tabla sin acceso desde navegador
+
+> smash-lob@1.15.9 local-auth:check
+> node scripts/check-local-dev-auth.mjs
+
+Autenticación local correcta:
+- sesión Auth.js real mediante Credentials solo en NODE_ENV=development
+- activación explícita limitada a localhost/loopback e IP privadas de la LAN
+- usuario configurable por email sin habilitar bypass en PRE/PROD
+
+> smash-lob@1.15.9 locations:check
+> node scripts/check-global-locations.mjs
+
+Ubicaciones globales v1.10.18 correctas:
+- catálogo maestro service-role con deduplicación; fallback legacy solo si la tabla aún no existe
+- la primera temporada y la administración buscan ubicaciones existentes o añaden nuevas
+- partidos de liga priorizan recomendaciones y fijan Añadir nueva ubicación fuera del scroll; amistosos reutilizan el catálogo global
+
+> smash-lob@1.15.9 typography:check
+> node scripts/check-typography-system.mjs
+
+Tipografía semántica v1.6.0 correcta:
+- títulos de pantalla, sección y panel con roles comunes
+- nombres equivalentes de jugador unificados en Ranking, Calendario y Perfil
+- nombres protagonistas separados de los nombres de listado
+- cabeceras sin descripciones genéricas bajo el título
+- sin tamaños text-[Npx] fijos en la aplicación
+- títulos de panel sin tamaños competidores y paneles principales de PARTIDO unificados
+- selector A− / A / A+ persistente sin modificar los botones de la NAVBAR
+- Inicio y pantallas principales con contexto de temporada compacto y sin identidad repetida
+- las 50 cabeceras con título usan título primero, contexto después y una geometría vertical común
+- Mi perfil y perfiles públicos comparten una única base visual y funcional
+- premios de temporada protagonistas y clasificaciones integradas dentro de sus paneles
+- margen superior ampliado globalmente y badge PRE fijo en la esquina superior izquierda
+
+> smash-lob@1.15.9 match-detail:check
+> node scripts/check-unified-match-detail.mjs
+
+Detalle de partido unificado v1.10.10 correcto:
+- Liga y Amistoso comparten MatchDetailView y MatchDetailPairingPanel
+- REVÉS/DRIVE y DIESTRO/ZURDO usan la misma ubicación y ciclo visual
+- Amistoso omite únicamente la posición de clasificación que no existe
+- programación, Pagos y reservas y resultado reutilizan componentes de Liga
+- solo el editor de participantes permanece específico por diferencia de negocio
+
+> smash-lob@1.15.9 personal-matches:check
+> node scripts/check-personal-matches.mjs
+
+Mis partidos v1.10.20 correcto:
+- historial agregado de liga + amistosos sin duplicar datos competitivos
+- historial paginado de 10 en 10 y todos los amistosos futuros en Próximos, sin partidos de Liga
+- liga y amistoso comparten MatchDetailView y una base común de CHAT
+- amistosos programados permiten editar pareja y contrincantes
+- origen por liga con color estable y metadatos ausentes ocultos de forma independiente
+- un único amistoso compartido por cuentas vinculadas y externos permitidos
+- perfil global con rendimiento, parejas, rivales, rankings y cara a cara filtrable
+- NAVBAR personal protegida frente a la barra de gestos y Ajustes con retorno de contexto
+- API autenticada, rate limit y persistencia service-role only
+
+> smash-lob@1.15.9 mvp:check
+> node scripts/check-advanced-mvp.mjs
+
+MVP automático avanzado v1.6.0 correcto:
+- modo adicional sin sustituir Automático ni Votación
+- pareja dominante de jornada como primera criba
+- Adjusted Plus-Minus regularizado por compañero y rivales
+- resultado 60%, sets 25% y juegos 15% en el rendimiento observado
+- solo usa partidos completados hasta la jornada evaluada
+- empate técnico compartido cuando la diferencia ajustada es <= 0,03
+- persistencia, API, premios y actividad compatibles con automatic_advanced
+
+> smash-lob@1.15.9 api-security:check
+> node scripts/check-api-security-inventory.mjs
+
+Inventario de API correcto: 96 rutas y 139 métodos.
+
+> smash-lob@1.15.9 i18n:check
+> node scripts/check-league-i18n.mjs
+
+League i18n/UI correcto: 1257 claves estructuradas por idioma, 1608 textos tx, 134 plantillas dinámicas y 388 mensajes estáticos y 58 mensajes dinámicos visibles cubiertos.
+
+> smash-lob@1.15.9 quality:source
+> node scripts/check-source-budgets.mjs
+
+Presupuestos de código correctos: 132188 líneas, 191 clientes, 50 páginas cliente.
+
+> smash-lob@1.15.9 lint
+> eslint
+
+
+C:\Users\USER\.codex\worktrees\functional-audit-check\smash-lob\src\app\admin\season\page.tsx
+   66:6   warning  'ManualCalendarRoundDraft' is defined but never used          @typescript-eslint/no-unused-vars
+  278:10  warning  'getMatchesPerRound' is defined but never used                @typescript-eslint/no-unused-vars
+  280:10  warning  'getManualCalendarDraftRoundCount' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\USER\.codex\worktrees\functional-audit-check\smash-lob\tests\unit\v1123FlexibleSeasonDuration.test.ts
+  133:11  warning  'adminSource' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 4 problems (0 errors, 4 warnings)
+
+
+> smash-lob@1.15.9 typecheck
+> next typegen && tsc --noEmit --incremental false -p tsconfig.build.json
+
+Generating route types...
+✓ Types generated successfully
+
+> smash-lob@1.15.9 test
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob
+
+ ✓ tests/unit/v1121FlexibleSeasonByes.test.ts (40 tests) 5086ms
+   ✓ v1.12.1 balanced seasons with byes > keeps double and extended schedules balanced for 17 players  464ms
+   ✓ v1.12.1 balanced seasons with byes > keeps double and extended schedules balanced for 18 players  367ms
+   ✓ v1.12.1 balanced seasons with byes > keeps double and extended schedules balanced for 19 players  568ms
+   ✓ v1.12.1 balanced seasons with byes > keeps double and extended schedules balanced for 21 players  729ms
+   ✓ v1.12.1 balanced seasons with byes > keeps double and extended schedules balanced for 22 players  789ms
+   ✓ v1.12.1 balanced seasons with byes > keeps double and extended schedules balanced for 23 players  1148ms
+ ✓ tests/unit/v1120FlexibleSeasonSize.test.ts (8 tests) 1980ms
+   ✓ v1.12.0 flexible season size > keeps double and extended calendars balanced for 20 players  756ms
+   ✓ v1.12.0 flexible season size > keeps double and extended calendars balanced for 24 players  1193ms
+ ✓ tests/unit/typographySystem.test.ts (6 tests) 376ms
+ ✓ tests/unit/v180DatesAndNames.test.ts (2 tests) 213ms
+ ✓ tests/unit/v1124CustomCalendarAuditUx.test.ts (2 tests) 133ms
+ ✓ tests/unit/v165CenteredActionButtons.test.ts (2 tests) 125ms
+ ✓ tests/unit/v1100SettingsSearchCoverage.test.ts (3 tests) 108ms
+ ✓ tests/unit/welcomePackStickers.test.ts (6 tests) 88ms
+ ✓ tests/unit/v1123FlexibleSeasonDuration.test.ts (24 tests) 11882ms
+   ✓ v1.12.3 flexible season duration > generates a fully balanced custom calendar for 14 players and 10 rounds  666ms
+   ✓ v1.12.3 flexible season duration > generates a fully balanced custom calendar for 10 players and 16 rounds  315ms
+   ✓ v1.12.3 flexible season duration > accepts a structurally optimal custom duration when perfect bye equality is not achievable by the selected partial leg  2447ms
+   ✓ v1.12.3 flexible season duration > generates a complete balanced calendar at every advertised maximum  8375ms
+ ✓ tests/unit/v1821PendingBookingFlow.test.ts (10 tests) 44ms
+ ✓ tests/unit/v1130MediaKitWelcomeLetter.test.ts (4 tests) 36ms
+ ✓ tests/unit/serverRequest.test.ts (4 tests) 37ms
+ ✓ tests/unit/matchEventMeta.test.ts (3 tests) 31ms
+ ✓ tests/unit/v180ChatsAndPolish.test.ts (20 tests) 31ms
+ ✓ tests/unit/pendingAccessIntent.test.ts (9 tests) 24ms
+ ✓ tests/unit/personalProfileStats.test.ts (4 tests) 23ms
+ ✓ tests/unit/ballCustodianAssignment.test.ts (8 tests) 25ms
+ ✓ tests/unit/mvpAdvancedAutomatic.test.ts (5 tests) 34ms
+ ✓ tests/unit/v1111SeasonFinanceTransparencyReport.test.ts (3 tests) 23ms
+stderr | tests/unit/rateLimit.test.ts > rate limiting > returns a comprehensible 429 response with Retry-After
+{"timestamp":"2026-10-10T10:23:34.692Z","level":"warn","environment":"test","version":"1.15.9","commitSha":null,"deploymentId":null,"region":null,"message":"request_rate_limited","requestId":"76c81434-bb07-4423-9c9d-74c40549ef43","route":"/api/suggestions","method":"POST","operation":"test-blocked-866c3a1f-ffc6-494e-90a1-d54e863c7b0e","outcome":"rate_limited","errorCode":"rate_limited"}
+
+stderr | tests/unit/rateLimit.test.ts > rate limiting > uses the distributed backend when both Upstash variables exist
+{"timestamp":"2026-10-10T10:23:34.703Z","level":"warn","environment":"test","version":"1.15.9","commitSha":null,"deploymentId":null,"region":null,"message":"request_rate_limited","requestId":"ac9cd8f6-6ef9-4ae5-b57d-ba8fd05dfd6c","route":"/api/suggestions","method":"POST","operation":"test-distributed-6ae26898-4fe3-4211-a2a9-166bdfe21aea","outcome":"rate_limited","errorCode":"rate_limited"}
+
+ ✓ tests/unit/rateLimit.test.ts (4 tests) 22ms
+ ✓ tests/unit/competitionVisualStyle.test.ts (13 tests) 18ms
+ ✓ tests/unit/v1100ScheduledSeasons.test.ts (9 tests) 21ms
+ ✓ tests/unit/v1110ProgressiveCalendarExperience.test.ts (6 tests) 17ms
+ ✓ tests/unit/avatarLabIsolation.test.ts (7 tests) 13ms
+ ✓ tests/unit/v11016LeagueI18nAndFloatingToolbar.test.ts (4 tests) 16ms
+ ✓ tests/unit/organizationBallsAssignment.test.ts (8 tests) 12ms
+ ✓ tests/unit/v1154Resiliency.test.ts (6 tests) 14ms
+ ✓ tests/unit/v1817ChatRepliesSeasonLock.test.ts (7 tests) 16ms
+ ✓ tests/unit/publicSpectator.test.ts (6 tests) 17ms
+ ✓ tests/unit/v11026PreseasonSecrets.test.ts (10 tests) 17ms
+ ✓ tests/unit/avatarLabCleanup.test.ts (4 tests) 15ms
+ ✓ tests/unit/welcomePackTranslations.test.ts (3 tests) 13ms
+ ✓ tests/unit/v11011PersonalChatsScheduledAdminAndPayments.test.ts (7 tests) 15ms
+ ✓ tests/unit/accountAvatarStorage.test.ts (5 tests) 13ms
+ ✓ tests/unit/v11010UnifiedMatchAndPersonalChat.test.ts (6 tests) 12ms
+ ✓ tests/unit/pwa.test.ts (4 tests) 13ms
+ ✓ tests/integration/notificationUnsubscribe.test.ts (2 tests) 14ms
+ ✓ tests/unit/observabilityIntegration.test.ts (2 tests) 9ms
+ ✓ tests/unit/v1100HomeSeasonSwitcherFinances.test.ts (4 tests) 12ms
+ ✓ tests/unit/v188OptimisticChatUx.test.ts (6 tests) 13ms
+ ✓ tests/unit/seasonReviewMatches.test.ts (3 tests) 8ms
+ ✓ tests/unit/changelogVisibility.test.ts (5 tests) 9ms
+ ✓ tests/unit/pushSubscriptions.test.ts (10 tests) 9ms
+ ✓ tests/unit/v1110OpeningScheduledStartSync.test.ts (2 tests) 13ms
+ ✓ tests/unit/v182ChatReservationFlow.test.ts (4 tests) 11ms
+ ✓ tests/unit/v183ChatProposalUx.test.ts (6 tests) 12ms
+ ✓ tests/unit/v11018SeasonLocationsAndPersonalDashboard.test.ts (6 tests) 13ms
+ ✓ tests/unit/v1104MediaKitPresetCustomizer.test.ts (6 tests) 12ms
+ ✓ tests/unit/v166HomeLeagueSwitcher.test.ts (4 tests) 11ms
+ ✓ tests/unit/v11023PaymentReopen.test.ts (3 tests) 11ms
+ ✓ tests/unit/v181RealtimeChat.test.ts (5 tests) 11ms
+ ✓ tests/unit/v191RoundSummaryPolish.test.ts (5 tests) 9ms
+ ✓ tests/unit/v11029SettingsPersonalStatusAndNotifications.test.ts (4 tests) 9ms
+ ✓ tests/unit/serverLog.test.ts (1 test) 8ms
+ ✓ tests/unit/guidedOnboarding.test.ts (5 tests) 12ms
+ ✓ tests/unit/v1101MediaKitOpeningDayPremium.test.ts (4 tests) 11ms
+ ✓ tests/unit/v1811ChatProposalListAndCompactChats.test.ts (5 tests) 11ms
+ ✓ tests/unit/v168ContextualTipsCleanup.test.ts (4 tests) 11ms
+ ✓ tests/unit/v11015ScheduledCalendarPreparation.test.ts (6 tests) 12ms
+ ✓ tests/integration/serverLeagueAccess.test.ts (7 tests) 12ms
+ ✓ tests/unit/guidedOnboardingIntegration.test.ts (3 tests) 13ms
+ ✓ tests/unit/v1110FloatingImagePreviewModals.test.ts (4 tests) 13ms
+ ✓ tests/unit/v170MatchChatViewportPolish.test.ts (5 tests) 17ms
+ ✓ tests/unit/avatarLabProxy.test.ts (2 tests) 18ms
+ ✓ tests/unit/v1816ChatsNotificationsTheme.test.ts (5 tests) 16ms
+ ✓ tests/unit/v1104ScheduledScopeHelpRules.test.ts (4 tests) 18ms
+ ✓ tests/unit/v1131WelcomeLetterTypography.test.ts (4 tests) 14ms
+ ✓ tests/unit/personalMatchesNavigation.test.ts (1 test) 8ms
+ ✓ tests/unit/v11019LocationResolution.test.ts (4 tests) 13ms
+ ✓ tests/unit/v170MatchDetailMobileUi.test.ts (3 tests) 10ms
+ ✓ tests/unit/v1100RegistrationSettings.test.ts (4 tests) 14ms
+ ✓ tests/unit/v1818ChatHistoryVoteDetails.test.ts (5 tests) 11ms
+ ✓ tests/unit/v170MatchChat.test.ts (4 tests) 12ms
+ ✓ tests/unit/v11020PersonalPayments.test.ts (3 tests) 8ms
+ ✓ tests/unit/v11024ShareImagePreviews.test.ts (4 tests) 10ms
+ ✓ tests/unit/v185ChatProposalVotingAndStatus.test.ts (4 tests) 8ms
+ ✓ tests/unit/homeContextHierarchy.test.ts (3 tests) 9ms
+ ✓ tests/unit/v165ProfilePersonalMatchesNavigation.test.ts (5 tests) 11ms
+ ✓ tests/unit/v167ApplicationManagement.test.ts (4 tests) 11ms
+ ✓ tests/unit/v198QuickPolish.test.ts (6 tests) 10ms
+ ✓ tests/unit/v11012UnifiedChatComponents.test.ts (5 tests) 13ms
+ ✓ tests/unit/v1412PolishIntegration.test.ts (4 tests) 11ms
+ ✓ tests/unit/v199RoundSummaryImageExport.test.ts (3 tests) 9ms
+ ✓ tests/unit/matchDetailPairingPanel.test.ts (1 test) 9ms
+ ✓ tests/unit/v11028AutomaticStatesAndFriendlies.test.ts (5 tests) 12ms
+ ✓ tests/unit/personalMatchesIntegration.test.ts (4 tests) 12ms
+ ✓ tests/unit/v1102MediaKitOpeningDayArtRework.test.ts (4 tests) 9ms
+ ✓ tests/unit/v1819ChatOptionVoteAndTimestamp.test.ts (3 tests) 9ms
+ ✓ tests/unit/operationsPreparation.test.ts (3 tests) 11ms
+ ✓ tests/unit/playerPreviewTraits.test.ts (10 tests) 11ms
+ ✓ tests/unit/v1815ChatImmersiveNotificationsSafeArea.test.ts (3 tests) 10ms
+ ✓ tests/unit/v1132WelcomeLetterSealAndSignature.test.ts (4 tests) 7ms
+ ✓ tests/unit/v11014AdminViewScheduledSeasonSimulation.test.ts (3 tests) 10ms
+ ✓ tests/unit/v1100MediaKit.test.ts (3 tests) 10ms
+ ✓ tests/unit/v1100ProfileImages.test.ts (4 tests) 10ms
+ ✓ tests/unit/v193RoundSummaryHighlightComparisons.test.ts (4 tests) 9ms
+ ✓ tests/unit/v189ChatIdentityReceiptsUnread.test.ts (4 tests) 10ms
+ ✓ tests/unit/leaguesNavigation.test.ts (1 test) 7ms
+ ✓ tests/unit/calendarEvent.test.ts (5 tests) 11ms
+ ✓ tests/unit/publicSpectatorRouteProxy.test.ts (1 test) 11ms
+ ✓ tests/unit/v1154HardeningCleanup.test.ts (5 tests) 12ms
+ ✓ tests/unit/v1822ChatLocationAndChatsCleanup.test.ts (2 tests) 7ms
+ ✓ tests/unit/v192RoundSummaryHighlights.test.ts (2 tests) 11ms
+ ✓ tests/unit/v181ChatListCompactUx.test.ts (3 tests) 8ms
+ ✓ tests/unit/v11021ExportAndPaymentsScopes.test.ts (3 tests) 9ms
+ ✓ tests/unit/v181ChatComposerUx.test.ts (3 tests) 10ms
+ ✓ tests/unit/v186HomeCalendarCoordinationStatus.test.ts (3 tests) 8ms
+ ✓ tests/unit/appUrl.test.ts (6 tests) 11ms
+ ✓ tests/unit/publicChangelog.test.ts (5 tests) 10ms
+ ✓ tests/unit/rankingPanelComposition.test.ts (2 tests) 8ms
+ ✓ tests/unit/v165PersonalModeBackCompactFilters.test.ts (3 tests) 9ms
+ ✓ tests/unit/v169ProfileStreakAndHomeRoundAccent.test.ts (4 tests) 12ms
+ ✓ tests/unit/v170CompactMatchChat.test.ts (2 tests) 8ms
+ ✓ tests/unit/v1107RoundSummaryExportLayoutPolish.test.ts (3 tests) 8ms
+ ✓ tests/unit/finishedSeasonHomeActions.test.ts (1 test) 9ms
+ ✓ tests/unit/topHeaderFunctionalRow.test.ts (1 test) 10ms
+ ✓ tests/unit/v190RoundSummary.test.ts (4 tests) 9ms
+ ✓ tests/unit/v1820ChatPlayerProfileLinks.test.ts (2 tests) 7ms
+ ✓ tests/unit/v165SeasonSummaryThemeSeparation.test.ts (2 tests) 9ms
+ ✓ tests/unit/personalProfileAdvancedIntegration.test.ts (2 tests) 9ms
+ ✓ tests/unit/v1103MediaKitTypographyAndFooter.test.ts (2 tests) 10ms
+ ✓ tests/unit/v1812ChatsCompactPolish.test.ts (3 tests) 9ms
+ ✓ tests/unit/v1823ProposalInnerSurfaceContrast.test.ts (3 tests) 8ms
+ ✓ tests/unit/chatProposalVoters.test.ts (4 tests) 8ms
+ ✓ tests/unit/logoAccentPalette.test.ts (2 tests) 6ms
+ ✓ tests/unit/v11017SettingsContextAndPersonalSafeArea.test.ts (3 tests) 10ms
+ ✓ tests/unit/v11027PreseasonHomeNotificationAndBack.test.ts (3 tests) 10ms
+ ✓ tests/unit/releaseQualityBrowserQa.test.ts (3 tests) 9ms
+ ✓ tests/unit/v1103PostLoginLeagueEntry.test.ts (3 tests) 7ms
+ ✓ tests/unit/notionAvatarUrl.test.ts (2 tests) 5ms
+ ✓ tests/unit/v165HomeRefresh.test.ts (3 tests) 8ms
+ ✓ tests/unit/v169HomeScheduleHintPermissions.test.ts (3 tests) 8ms
+ ✓ tests/unit/settingsSearchAvatarLab.test.ts (2 tests) 7ms
+ ✓ tests/unit/v168LeagueRecommendedLocations.test.ts (4 tests) 8ms
+ ✓ tests/unit/calendarMatchCardLayout.test.ts (1 test) 8ms
+ ✓ tests/unit/v1105SeasonAndRoundExportPolish.test.ts (2 tests) 9ms
+ ✓ tests/unit/unifiedMatchDetail.test.ts (1 test) 6ms
+ ✓ tests/unit/v11025ExportStyleHomogenization.test.ts (2 tests) 6ms
+ ✓ tests/unit/imageCropDialogLayout.test.ts (2 tests) 7ms
+ ✓ tests/unit/globalLocationsIntegration.test.ts (1 test) 7ms
+ ✓ tests/unit/v11022SettingsContextNavigation.test.ts (3 tests) 10ms
+ ✓ tests/unit/v1813PinnedReservationSummary.test.ts (3 tests) 8ms
+ ✓ tests/unit/v165PanelActionTitleTypography.test.ts (2 tests) 8ms
+ ✓ tests/unit/v1133WelcomeLetterPersonalisation.test.ts (5 tests) 7ms
+ ✓ tests/unit/v1110HomeSoftRefresh.test.ts (3 tests) 7ms
+ ✓ tests/unit/fontSizePreference.test.ts (2 tests) 7ms
+ ✓ tests/unit/v1810DirectDateProposalUx.test.ts (2 tests) 9ms
+ ✓ tests/unit/inviteValidity.test.ts (3 tests) 3ms
+ ✓ tests/unit/mediaKitWelcomePack.test.ts (6 tests) 7ms
+ ✓ tests/unit/v161UiPolish.test.ts (5 tests) 7ms
+ ✓ tests/unit/ranking.test.ts (2 tests) 5ms
+ ✓ tests/unit/v170TypeContracts.test.ts (2 tests) 9ms
+ ✓ tests/unit/ballCustodianNotifications.test.ts (5 tests) 6ms
+ ✓ tests/unit/v162HeaderPersonalMatches.test.ts (5 tests) 7ms
+ ✓ tests/unit/avatarLabAccess.test.ts (4 tests) 8ms
+ ✓ tests/unit/profileHeaderLayout.test.ts (2 tests) 8ms
+ ✓ tests/unit/v169BestStreakDetailExactStyle.test.ts (1 test) 6ms
+ ✓ tests/unit/v169HomeRoundAccentGradientScope.test.ts (2 tests) 7ms
+ ✓ tests/unit/v1814MatchDetailPlayerMetadataLayout.test.ts (1 test) 9ms
+ ✓ tests/unit/matchTeamsPanelLayout.test.ts (1 test) 6ms
+ ✓ tests/unit/v1108RoundSummaryShareButtons.test.ts (2 tests) 7ms
+ ✓ tests/unit/leagueAvatarMigration.test.ts (3 tests) 7ms
+ ✓ tests/unit/v194RoundSummaryDecidingTieBreak.test.ts (3 tests) 9ms
+ ✓ tests/unit/accessPayloadBudget.test.ts (1 test) 7ms
+ ✓ tests/unit/serverResponse.test.ts (1 test) 12ms
+ ✓ tests/unit/notionAvatarModel.test.ts (5 tests) 12ms
+ ✓ tests/unit/personalMatchCardLayout.test.ts (1 test) 12ms
+ ✓ tests/unit/v170MatchChatEffect.test.ts (1 test) 6ms
+ ✓ tests/unit/v187MatchDetailInitialCoordinationStatus.test.ts (2 tests) 8ms
+ ✓ tests/unit/v1106RoundSummaryExportFinePolish.test.ts (2 tests) 8ms
+ ✓ tests/unit/v1111SharedExportChrome.test.ts (1 test) 6ms
+ ✓ tests/unit/finishedSeasonCalendarExports.test.ts (1 test) 8ms
+ ✓ tests/unit/seasonSelectionOrder.test.ts (2 tests) 6ms
+ ✓ tests/unit/v1109ReservationPaymentsEconomy.test.ts (3 tests) 6ms
+ ✓ tests/unit/v196RoundSummaryCompactHighlights.test.ts (2 tests) 10ms
+ ✓ tests/unit/v197RoundSummarySimpleHighlightLayout.test.ts (2 tests) 10ms
+ ✓ tests/unit/personalMatchPeople.test.ts (2 tests) 8ms
+ ✓ tests/unit/changelogGrouping.test.ts (3 tests) 6ms
+ ✓ tests/unit/authorizationPolicy.test.ts (7 tests) 7ms
+ ✓ tests/unit/pwaSafeUpdate.test.ts (1 test) 7ms
+ ✓ tests/unit/deploymentSmoke.test.ts (2 tests) 8ms
+ ✓ tests/unit/spectatorInviteUrl.test.ts (3 tests) 6ms
+ ✓ tests/unit/v1110TypecheckIsolation.test.ts (3 tests) 9ms
+ ✓ tests/unit/csvExport.test.ts (11 tests) 10ms
+ ✓ tests/unit/bookingPaymentSummary.test.ts (6 tests) 6ms
+ ✓ tests/unit/bigSmileUrl.test.ts (2 tests) 5ms
+ ✓ tests/unit/v11013ScheduledAdminHomeCountdown.test.ts (1 test) 6ms
+ ✓ tests/unit/matchScheduleTime.test.ts (4 tests) 6ms
+ ✓ tests/unit/personalMatchesUpcomingVisibility.test.ts (1 test) 5ms
+ ✓ tests/unit/personalMatches.test.ts (5 tests) 6ms
+ ✓ tests/unit/authEnvironment.test.ts (2 tests) 4ms
+ ✓ tests/unit/localDevAuth.test.ts (1 test) 4ms
+ ✓ tests/unit/globalLocations.test.ts (2 tests) 6ms
+ ✓ tests/unit/ballCanSealPreview.test.ts (2 tests) 4ms
+ ✓ tests/unit/v163HomeLogoSize.test.ts (1 test) 7ms
+ ✓ tests/unit/matchesCalendarUx.test.ts (2 tests) 4ms
+ ✓ tests/unit/v195MatchResultDeleteFocus.test.ts (1 test) 5ms
+ ✓ tests/unit/v1134WelcomeLetterOrganicStamp.test.ts (2 tests) 4ms
+ ✓ tests/unit/playerProfileSeasonSelector.test.ts (3 tests) 5ms
+ ✓ tests/unit/personalMatchOriginColors.test.ts (1 test) 6ms
+ ✓ tests/unit/v11025SeasonPreviewAvailability.test.ts (1 test) 5ms
+ ✓ tests/unit/v166SmokeVersionContract.test.ts (1 test) 5ms
+ ✓ tests/unit/authRedirect.test.ts (7 tests) 4ms
+ ✓ tests/unit/logoStickerPrint.test.ts (2 tests) 6ms
+ ✓ tests/unit/matchPresentation.test.ts (3 tests) 5ms
+ ✓ tests/unit/v1135WelcomeLetterPremiumFinish.test.ts (2 tests) 5ms
+ ✓ tests/unit/mediaKitTheme.test.ts (2 tests) 4ms
+ ✓ tests/unit/rankingDisplayOrder.test.ts (1 test) 4ms
+ ✓ tests/unit/avatarResolution.test.ts (4 tests) 4ms
+ ✓ tests/unit/playerHistory.test.ts (1 test) 5ms
+ ✓ tests/unit/securityHeaders.test.ts (1 test) 4ms
+ ✓ tests/unit/selfProfileSelectedSeason.test.tsx (3 tests) 170ms
+ ✓ tests/unit/personalChatReservation.test.tsx (4 tests) 321ms
+ ✓ tests/unit/calendarProviderChoice.test.tsx (2 tests) 182ms
+ ✓ tests/unit/competitionLaunchNotice.test.tsx (5 tests) 186ms
+ ✓ tests/unit/competitionLight.test.tsx (6 tests) 93ms
+ ✓ tests/unit/statusHelp.test.tsx (10 tests) 197ms
+ ✓ tests/unit/seasonSnapshotHydration.test.tsx (2 tests) 38ms
+ ✓ tests/unit/matchLeagueContext.test.tsx (3 tests) 40ms
+
+ Test Files  219 passed (219)
+      Tests  858 passed (858)
+   Start at  12:23:19
+   Duration  74.15s (transform 3.75s, setup 29.27s, collect 10.45s, tests 23.30s, environment 6.23s, prepare 28.32s)
+
+
+> smash-lob@1.15.9 build
+> next build
+
+▲ Next.js 16.3.8 (Turbopack)
+✓ Running next.config.ts took 42ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.1s
+  Running TypeScript ...
+  Finished TypeScript in 10.5s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/66) ...
+  Generating static pages using 7 workers (16/66) 
+  Generating static pages using 7 workers (32/66) 
+  Generating static pages using 7 workers (49/66) 
+✓ Generating static pages using 7 workers (66/66) in 1440ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /activity
+├ ○ /admin
+├ ○ /admin/announcements
+├ ○ /admin/exports
+├ ○ /admin/incidents
+├ ○ /admin/league
+├ ○ /admin/media-kit
+├ ○ /admin/media-kit/welcome-pack
+├ ○ /admin/mvp
+├ ○ /admin/qa
+├ ○ /admin/season
+├ ○ /admin/season/duplicate
+├ ○ /admin/season/finances
+├ ○ /admin/substitutes
+├ ○ /admin/users
+├ ƒ /api/access
+├ ƒ /api/access-intent
+├ ƒ /api/account/delete
+├ ƒ /api/account/export
+├ ƒ /api/account/profile
+├ ƒ /api/app-user
+├ ƒ /api/application-admin/leagues/[leagueId]/transfer
+├ ƒ /api/application-admin/locations
+├ ƒ /api/application-admin/players/[playerId]/avatar
+├ ƒ /api/application-admin/suggestions
+├ ƒ /api/application-admin/users
+├ ƒ /api/application-admin/users/[userId]
+├ ƒ /api/application-admin/users/[userId]/actions
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/chats
+├ ƒ /api/experimental/avatar-lab/dicebear-big-smile
+├ ƒ /api/experimental/avatar-lab/notion-avatar
+├ ƒ /api/health
+├ ƒ /api/invites/[code]
+├ ƒ /api/invites/[code]/claim
+├ ƒ /api/leagues
+├ ƒ /api/leagues/[id]
+├ ƒ /api/leagues/[id]/activity
+├ ƒ /api/leagues/[id]/activity-settings
+├ ƒ /api/leagues/[id]/announcements
+├ ƒ /api/leagues/[id]/announcements/[announcementId]
+├ ƒ /api/leagues/[id]/experience-mode
+├ ƒ /api/leagues/[id]/invite
+├ ƒ /api/leagues/[id]/matches/[matchId]/availability
+├ ƒ /api/leagues/[id]/members/[playerId]
+├ ƒ /api/leagues/[id]/player-directory
+├ ƒ /api/leagues/[id]/players/[playerId]
+├ ƒ /api/leagues/[id]/players/[playerId]/availability
+├ ƒ /api/leagues/[id]/seasons
+├ ƒ /api/leagues/[id]/seasons/[seasonId]
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/duplicate
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/expenses
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/finish
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/mvp-selection
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/registration
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/registration-payment
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/registration-reminder
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/repair-calendar
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/reveal-round
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/round-order
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/rounds/[round]/matches
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/settings
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/start
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/waitlist
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/waitlist/confirm
+├ ƒ /api/leagues/[id]/spectator-invite
+├ ƒ /api/leagues/[id]/spectator-self
+├ ƒ /api/leagues/[id]/spectators
+├ ƒ /api/leagues/[id]/users
+├ ƒ /api/locations
+├ ƒ /api/matches/[matchId]/chat
+├ ƒ /api/matches/[matchId]/coordination
+├ ƒ /api/matches/[matchId]/court-booking
+├ ƒ /api/matches/[matchId]/court-booking/payment-reminder
+├ ƒ /api/matches/[matchId]/court-booking/transfers/[transferId]
+├ ƒ /api/matches/[matchId]/incident
+├ ƒ /api/matches/[matchId]/mvp-vote
+├ ƒ /api/matches/[matchId]/mvp-votes
+├ ƒ /api/matches/[matchId]/postpone
+├ ƒ /api/matches/[matchId]/reservation-confirmation
+├ ƒ /api/matches/[matchId]/result
+├ ƒ /api/matches/[matchId]/result-lock
+├ ƒ /api/matches/[matchId]/schedule
+├ ƒ /api/matches/[matchId]/substitution
+├ ƒ /api/mvp
+├ ƒ /api/notifications/dispatch
+├ ƒ /api/notifications/preferences
+├ ƒ /api/notifications/read-state
+├ ƒ /api/notifications/scheduled-check
+├ ƒ /api/notifications/subscribe
+├ ƒ /api/notifications/unsubscribe
+├ ƒ /api/observability/client-error
+├ ƒ /api/onboarding/progress
+├ ƒ /api/payments/ledger
+├ ƒ /api/personal-matches
+├ ƒ /api/personal-matches/[id]
+├ ƒ /api/personal-matches/[id]/chat
+├ ƒ /api/personal-matches/[id]/court-booking
+├ ƒ /api/personal-matches/[id]/court-booking/transfers/[transferId]
+├ ƒ /api/personal-matches/chats
+├ ƒ /api/personal-matches/people
+├ ƒ /api/public-spectator/[code]
+├ ƒ /api/qa
+├ ƒ /api/result-confirmations
+├ ƒ /api/result-confirmations/[matchId]
+├ ƒ /api/seasons/[seasonId]/replacements
+├ ƒ /api/seasons/[seasonId]/substitutes
+├ ƒ /api/seasons/[seasonId]/substitutes/[substituteId]
+├ ƒ /api/spectator-access
+├ ƒ /api/spectator-invites/[code]
+├ ƒ /api/suggestions
+├ ○ /apple-icon.png
+├ ƒ /application-admin
+├ ƒ /application-admin/locations
+├ ○ /application-admin/suggestions
+├ ƒ /application-admin/users
+├ ƒ /auth/error
+├ ○ /availability
+├ ƒ /changelog
+├ ○ /chats
+├ ƒ /experimental/avatar-lab
+├ ƒ /experimental/avatar-lab/big-smile
+├ ƒ /experimental/avatar-lab/notion-avatar
+├ ○ /help
+├ ○ /icon.png
+├ ○ /invite
+├ ƒ /invite/[code]
+├ ƒ /launch
+├ ○ /league/new
+├ ○ /leagues
+├ ○ /manifest.webmanifest
+├ ƒ /match/[id]
+├ ƒ /match/[id]/chat
+├ ○ /matches
+├ ○ /notifications
+├ ○ /offline
+├ ƒ /open
+├ ○ /payments
+├ ○ /personal-matches
+├ ƒ /personal-matches/[id]
+├ ƒ /personal-matches/[id]/chat
+├ ○ /personal-matches/chats
+├ ○ /personal-matches/new
+├ ○ /personal-matches/profile
+├ ƒ /player/[id]
+├ ƒ /player/[id]/matches
+├ ƒ /player/[id]/mvp
+├ ○ /privacy
+├ ○ /profile
+├ ○ /profile/matches
+├ ○ /ranking
+├ ƒ /round/[id]
+├ ○ /settings
+├ ○ /settings/appearance
+├ ○ /settings/notifications
+├ ○ /settings/profile
+├ ○ /settings/suggestions
+├ ƒ /spectate/[code]
+├ ƒ /spectate/[code]/view
+├ ○ /statistics
+├ ○ /statistics/compare
+├ ○ /statistics/evolution
+├ ○ /statistics/player
+├ ○ /statistics/records
+├ ○ /statistics/season
+├ ○ /statistics/standings
+└ ○ /terms
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+> smash-lob@1.15.9 quality:build
+> node scripts/check-build-budgets.mjs
+
+Build dentro de presupuesto: 1181274 bytes gzip en 102 chunks JS.

@@ -1,0 +1,403 @@
+
+> smash-lob@1.15.9 validate
+> npm run version:check && npm run env:check && npm run secrets:check && npm run security:check && npm run public-urls:check && npm run avatars:check && npm run migrations:check && npm run onboarding:check && npm run local-auth:check && npm run locations:check && npm run typography:check && npm run match-detail:check && npm run personal-matches:check && npm run mvp:check && npm run api-security:check && npm run i18n:check && npm run quality:source && npm run lint && npm run typecheck && npm run test && npm run build && npm run quality:build
+
+
+> smash-lob@1.15.9 version:check
+> node scripts/check-release-version.mjs
+
+Versión de lanzamiento coherente: v1.15.9
+- package.json y package-lock.json
+- versión visible y changelog
+- service worker
+- smoke tests PRE y PROD
+
+> smash-lob@1.15.9 env:check
+> node scripts/check-required-env.mjs
+
+Variables obligatorias presentes (valores ocultos):
+- AUTH_SECRET: presente
+- AUTH_GOOGLE_ID: presente
+- AUTH_GOOGLE_SECRET: presente
+- NEXT_PUBLIC_APP_URL: presente
+- NEXT_PUBLIC_SUPABASE_URL: presente
+- NEXT_PUBLIC_SUPABASE_ANON_KEY: presente
+- SUPABASE_SERVICE_ROLE_KEY: presente
+
+> smash-lob@1.15.9 secrets:check
+> node scripts/check-repository-secrets.mjs
+
+Comprobación de secretos correcta: no hay credenciales conocidas versionadas.
+
+> smash-lob@1.15.9 security:check
+> node scripts/check-security-baseline.mjs
+
+Línea base de seguridad correcta:
+- @auth/core 0.41.3
+- next-auth 5.0.0-beta.32
+- brace-expansion runtime 5.0.12
+- 6 copias 1.1.17+ limitadas a herramientas de lint
+- regexp.prototype.flags 1.5.4 con tarball válido
+- electron-to-chromium 1.5.393 con tarball fijado
+
+> smash-lob@1.15.9 public-urls:check
+> node scripts/check-public-app-urls.mjs
+
+URLs públicas correctas:
+- Producción: https://smashandlob.com
+- PRE: https://pre.smashandlob.com
+- Sin dominios .vercel.app en los archivos de ejecución
+
+> smash-lob@1.15.9 avatars:check
+> node scripts/check-avatar-assets.mjs
+
+Avatar Lab v1.15.9 correcto:
+- acceso autenticado y con rate limit para jugador y espectador
+- interfaz, busqueda y API limitadas al host real de PRE
+- solo DiceBear Big Smile y Notion Avatar
+- editor Notion compacto con preview y controles simultaneos
+- recetas locales sin Supabase ni cambios de perfil
+- dependencias y recursos descartados eliminados
+
+> smash-lob@1.15.9 migrations:check
+> node scripts/check-identity-migrations.mjs
+
+Migraciones de identidad correctas:
+- modelo global de imagen de cuenta
+- nombre e iniciales históricas preservadas al desvincular
+- avatar por liga retirado
+- auditoría SQL de datos preparada para PRE y PROD
+
+> smash-lob@1.15.9 onboarding:check
+> node scripts/check-guided-onboarding.mjs
+
+Tutoriales guiados correctos:
+- nueve recorridos contextuales; Chats y Chat explican estados, lectura, propuestas y no leídos
+- controles flotantes de Inicio emparejados por orden y texto en castellano, inglés y euskera
+- guía de Ajustes con perfil, apariencia, notificaciones, cambio Ligas/Mis partidos, sugerencias y buscador
+- ayuda flotante y biblioteca para repetir recorridos
+- progreso por cuenta con respaldo local y autoapertura única por recorrido
+- API autenticada, rate limit y tabla sin acceso desde navegador
+
+> smash-lob@1.15.9 local-auth:check
+> node scripts/check-local-dev-auth.mjs
+
+Autenticación local correcta:
+- sesión Auth.js real mediante Credentials solo en NODE_ENV=development
+- activación explícita limitada a localhost/loopback e IP privadas de la LAN
+- usuario configurable por email sin habilitar bypass en PRE/PROD
+
+> smash-lob@1.15.9 locations:check
+> node scripts/check-global-locations.mjs
+
+Ubicaciones globales v1.10.18 correctas:
+- catálogo maestro service-role con deduplicación; fallback legacy solo si la tabla aún no existe
+- la primera temporada y la administración buscan ubicaciones existentes o añaden nuevas
+- partidos de liga priorizan recomendaciones y fijan Añadir nueva ubicación fuera del scroll; amistosos reutilizan el catálogo global
+
+> smash-lob@1.15.9 typography:check
+> node scripts/check-typography-system.mjs
+
+Tipografía semántica v1.6.0 correcta:
+- títulos de pantalla, sección y panel con roles comunes
+- nombres equivalentes de jugador unificados en Ranking, Calendario y Perfil
+- nombres protagonistas separados de los nombres de listado
+- cabeceras sin descripciones genéricas bajo el título
+- sin tamaños text-[Npx] fijos en la aplicación
+- títulos de panel sin tamaños competidores y paneles principales de PARTIDO unificados
+- selector A− / A / A+ persistente sin modificar los botones de la NAVBAR
+- Inicio y pantallas principales con contexto de temporada compacto y sin identidad repetida
+- las 50 cabeceras con título usan título primero, contexto después y una geometría vertical común
+- Mi perfil y perfiles públicos comparten una única base visual y funcional
+- premios de temporada protagonistas y clasificaciones integradas dentro de sus paneles
+- margen superior ampliado globalmente y badge PRE fijo en la esquina superior izquierda
+
+> smash-lob@1.15.9 match-detail:check
+> node scripts/check-unified-match-detail.mjs
+
+Detalle de partido unificado v1.10.10 correcto:
+- Liga y Amistoso comparten MatchDetailView y MatchDetailPairingPanel
+- REVÉS/DRIVE y DIESTRO/ZURDO usan la misma ubicación y ciclo visual
+- Amistoso omite únicamente la posición de clasificación que no existe
+- programación, Pagos y reservas y resultado reutilizan componentes de Liga
+- solo el editor de participantes permanece específico por diferencia de negocio
+
+> smash-lob@1.15.9 personal-matches:check
+> node scripts/check-personal-matches.mjs
+
+Mis partidos v1.10.20 correcto:
+- historial agregado de liga + amistosos sin duplicar datos competitivos
+- historial paginado de 10 en 10 y todos los amistosos futuros en Próximos, sin partidos de Liga
+- liga y amistoso comparten MatchDetailView y una base común de CHAT
+- amistosos programados permiten editar pareja y contrincantes
+- origen por liga con color estable y metadatos ausentes ocultos de forma independiente
+- un único amistoso compartido por cuentas vinculadas y externos permitidos
+- perfil global con rendimiento, parejas, rivales, rankings y cara a cara filtrable
+- NAVBAR personal protegida frente a la barra de gestos y Ajustes con retorno de contexto
+- API autenticada, rate limit y persistencia service-role only
+
+> smash-lob@1.15.9 mvp:check
+> node scripts/check-advanced-mvp.mjs
+
+MVP automático avanzado v1.6.0 correcto:
+- modo adicional sin sustituir Automático ni Votación
+- pareja dominante de jornada como primera criba
+- Adjusted Plus-Minus regularizado por compañero y rivales
+- resultado 60%, sets 25% y juegos 15% en el rendimiento observado
+- solo usa partidos completados hasta la jornada evaluada
+- empate técnico compartido cuando la diferencia ajustada es <= 0,03
+- persistencia, API, premios y actividad compatibles con automatic_advanced
+
+> smash-lob@1.15.9 api-security:check
+> node scripts/check-api-security-inventory.mjs
+
+Inventario de API correcto: 96 rutas y 139 métodos.
+
+> smash-lob@1.15.9 i18n:check
+> node scripts/check-league-i18n.mjs
+
+League i18n/UI correcto: 1257 claves estructuradas por idioma, 1608 textos tx, 134 plantillas dinámicas y 388 mensajes estáticos y 58 mensajes dinámicos visibles cubiertos.
+
+> smash-lob@1.15.9 quality:source
+> node scripts/check-source-budgets.mjs
+
+Presupuestos de código correctos: 132188 líneas, 191 clientes, 50 páginas cliente.
+
+> smash-lob@1.15.9 lint
+> eslint
+
+
+C:\Users\USER\.codex\worktrees\functional-audit-check\smash-lob\src\app\admin\season\page.tsx
+   66:6   warning  'ManualCalendarRoundDraft' is defined but never used          @typescript-eslint/no-unused-vars
+  278:10  warning  'getMatchesPerRound' is defined but never used                @typescript-eslint/no-unused-vars
+  280:10  warning  'getManualCalendarDraftRoundCount' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\USER\.codex\worktrees\functional-audit-check\smash-lob\tests\unit\v1123FlexibleSeasonDuration.test.ts
+  133:11  warning  'adminSource' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 4 problems (0 errors, 4 warnings)
+
+
+> smash-lob@1.15.9 typecheck
+> next typegen && tsc --noEmit --incremental false -p tsconfig.build.json
+
+Generating route types...
+✓ Types generated successfully
+
+> smash-lob@1.15.9 test
+> vitest run
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 C:/Users/USER/.codex/worktrees/functional-audit-check/smash-lob
+
+
+ Test Files  220 passed (220)
+      Tests  861 passed (861)
+   Start at  19:51:34
+   Duration  68.21s (transform 4.10s, setup 30.45s, import 10.36s, tests 28.17s, environment 6.13s)
+
+
+> smash-lob@1.15.9 build
+> next build
+
+▲ Next.js 16.3.8 (Turbopack)
+✓ Running next.config.ts took 45ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.5s
+  Running TypeScript ...
+  Finished TypeScript in 28.0s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/66) ...
+  Generating static pages using 7 workers (16/66) 
+  Generating static pages using 7 workers (32/66) 
+  Generating static pages using 7 workers (49/66) 
+✓ Generating static pages using 7 workers (66/66) in 1505ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /activity
+├ ○ /admin
+├ ○ /admin/announcements
+├ ○ /admin/exports
+├ ○ /admin/incidents
+├ ○ /admin/league
+├ ○ /admin/media-kit
+├ ○ /admin/media-kit/welcome-pack
+├ ○ /admin/mvp
+├ ○ /admin/qa
+├ ○ /admin/season
+├ ○ /admin/season/duplicate
+├ ○ /admin/season/finances
+├ ○ /admin/substitutes
+├ ○ /admin/users
+├ ƒ /api/access
+├ ƒ /api/access-intent
+├ ƒ /api/account/delete
+├ ƒ /api/account/export
+├ ƒ /api/account/profile
+├ ƒ /api/app-user
+├ ƒ /api/application-admin/leagues/[leagueId]/transfer
+├ ƒ /api/application-admin/locations
+├ ƒ /api/application-admin/players/[playerId]/avatar
+├ ƒ /api/application-admin/suggestions
+├ ƒ /api/application-admin/users
+├ ƒ /api/application-admin/users/[userId]
+├ ƒ /api/application-admin/users/[userId]/actions
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/chats
+├ ƒ /api/experimental/avatar-lab/dicebear-big-smile
+├ ƒ /api/experimental/avatar-lab/notion-avatar
+├ ƒ /api/health
+├ ƒ /api/invites/[code]
+├ ƒ /api/invites/[code]/claim
+├ ƒ /api/leagues
+├ ƒ /api/leagues/[id]
+├ ƒ /api/leagues/[id]/activity
+├ ƒ /api/leagues/[id]/activity-settings
+├ ƒ /api/leagues/[id]/announcements
+├ ƒ /api/leagues/[id]/announcements/[announcementId]
+├ ƒ /api/leagues/[id]/experience-mode
+├ ƒ /api/leagues/[id]/invite
+├ ƒ /api/leagues/[id]/matches/[matchId]/availability
+├ ƒ /api/leagues/[id]/members/[playerId]
+├ ƒ /api/leagues/[id]/player-directory
+├ ƒ /api/leagues/[id]/players/[playerId]
+├ ƒ /api/leagues/[id]/players/[playerId]/availability
+├ ƒ /api/leagues/[id]/seasons
+├ ƒ /api/leagues/[id]/seasons/[seasonId]
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/duplicate
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/expenses
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/finish
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/mvp-selection
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/registration
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/registration-payment
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/registration-reminder
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/repair-calendar
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/reveal-round
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/round-order
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/rounds/[round]/matches
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/settings
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/start
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/waitlist
+├ ƒ /api/leagues/[id]/seasons/[seasonId]/waitlist/confirm
+├ ƒ /api/leagues/[id]/spectator-invite
+├ ƒ /api/leagues/[id]/spectator-self
+├ ƒ /api/leagues/[id]/spectators
+├ ƒ /api/leagues/[id]/users
+├ ƒ /api/locations
+├ ƒ /api/matches/[matchId]/chat
+├ ƒ /api/matches/[matchId]/coordination
+├ ƒ /api/matches/[matchId]/court-booking
+├ ƒ /api/matches/[matchId]/court-booking/payment-reminder
+├ ƒ /api/matches/[matchId]/court-booking/transfers/[transferId]
+├ ƒ /api/matches/[matchId]/incident
+├ ƒ /api/matches/[matchId]/mvp-vote
+├ ƒ /api/matches/[matchId]/mvp-votes
+├ ƒ /api/matches/[matchId]/postpone
+├ ƒ /api/matches/[matchId]/reservation-confirmation
+├ ƒ /api/matches/[matchId]/result
+├ ƒ /api/matches/[matchId]/result-lock
+├ ƒ /api/matches/[matchId]/schedule
+├ ƒ /api/matches/[matchId]/substitution
+├ ƒ /api/mvp
+├ ƒ /api/notifications/dispatch
+├ ƒ /api/notifications/preferences
+├ ƒ /api/notifications/read-state
+├ ƒ /api/notifications/scheduled-check
+├ ƒ /api/notifications/subscribe
+├ ƒ /api/notifications/unsubscribe
+├ ƒ /api/observability/client-error
+├ ƒ /api/onboarding/progress
+├ ƒ /api/payments/ledger
+├ ƒ /api/personal-matches
+├ ƒ /api/personal-matches/[id]
+├ ƒ /api/personal-matches/[id]/chat
+├ ƒ /api/personal-matches/[id]/court-booking
+├ ƒ /api/personal-matches/[id]/court-booking/transfers/[transferId]
+├ ƒ /api/personal-matches/chats
+├ ƒ /api/personal-matches/people
+├ ƒ /api/public-spectator/[code]
+├ ƒ /api/qa
+├ ƒ /api/result-confirmations
+├ ƒ /api/result-confirmations/[matchId]
+├ ƒ /api/seasons/[seasonId]/replacements
+├ ƒ /api/seasons/[seasonId]/substitutes
+├ ƒ /api/seasons/[seasonId]/substitutes/[substituteId]
+├ ƒ /api/spectator-access
+├ ƒ /api/spectator-invites/[code]
+├ ƒ /api/suggestions
+├ ○ /apple-icon.png
+├ ƒ /application-admin
+├ ƒ /application-admin/locations
+├ ○ /application-admin/suggestions
+├ ƒ /application-admin/users
+├ ƒ /auth/error
+├ ○ /availability
+├ ƒ /changelog
+├ ○ /chats
+├ ƒ /experimental/avatar-lab
+├ ƒ /experimental/avatar-lab/big-smile
+├ ƒ /experimental/avatar-lab/notion-avatar
+├ ○ /help
+├ ○ /icon.png
+├ ○ /invite
+├ ƒ /invite/[code]
+├ ƒ /launch
+├ ○ /league/new
+├ ○ /leagues
+├ ○ /manifest.webmanifest
+├ ƒ /match/[id]
+├ ƒ /match/[id]/chat
+├ ○ /matches
+├ ○ /notifications
+├ ○ /offline
+├ ƒ /open
+├ ○ /payments
+├ ○ /personal-matches
+├ ƒ /personal-matches/[id]
+├ ƒ /personal-matches/[id]/chat
+├ ○ /personal-matches/chats
+├ ○ /personal-matches/new
+├ ○ /personal-matches/profile
+├ ƒ /player/[id]
+├ ƒ /player/[id]/matches
+├ ƒ /player/[id]/mvp
+├ ○ /privacy
+├ ○ /profile
+├ ○ /profile/matches
+├ ○ /ranking
+├ ƒ /round/[id]
+├ ○ /settings
+├ ○ /settings/appearance
+├ ○ /settings/notifications
+├ ○ /settings/profile
+├ ○ /settings/suggestions
+├ ƒ /spectate/[code]
+├ ƒ /spectate/[code]/view
+├ ○ /statistics
+├ ○ /statistics/compare
+├ ○ /statistics/evolution
+├ ○ /statistics/player
+├ ○ /statistics/records
+├ ○ /statistics/season
+├ ○ /statistics/standings
+└ ○ /terms
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+> smash-lob@1.15.9 quality:build
+> node scripts/check-build-budgets.mjs
+
+Build dentro de presupuesto: 1181317 bytes gzip en 102 chunks JS.

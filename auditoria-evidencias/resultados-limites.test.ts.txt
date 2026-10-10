@@ -1,0 +1,34 @@
+import { expect, it } from "vitest"
+import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
+import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
+const start="2026-10-10T12:00:00Z"
+const base={matchId:"qa-match",participantIds:["a","b","c","d"],reporterPlayerId:"a",resultRecordedAt:start,resultLocked:false,confirmations:[],mode:"required" as const,now:new Date(start)}
+it("confirmaciones: limites de 24 horas, disputa, bloqueo y modos",()=>{
+ expect(getMatchResultConfirmationState(base).state).toBe("pending")
+ expect(getMatchResultConfirmationState({...base,now:new Date("2026-10-11T11:59:59.999Z")}).countsForRanking).toBe(false)
+ expect(getMatchResultConfirmationState({...base,now:new Date("2026-10-11T12:00:00Z")}).state).toBe("auto_validated")
+ const disputed={matchId:"qa-match",playerId:"b",status:"disputed" as const,updatedAt:start}
+ expect(getMatchResultConfirmationState({...base,confirmations:[disputed],now:new Date("2026-10-12T12:00:00Z")}).countsForRanking).toBe(false)
+ expect(getMatchResultConfirmationState({...base,confirmations:[disputed],resultLocked:true}).state).toBe("locked")
+ expect(getMatchResultConfirmationState({...base,mode:"none"}).state).toBe("disabled")
+ expect(getMatchResultConfirmationState({...base,mode:"optional"}).countsForRanking).toBe(true)
+})
+it("confirmaciones: excluye reportador, ajenos y otros partidos; exige todos los demas",()=>{
+ const confirmations=["a","b","c","outsider"].map(playerId=>({matchId:"qa-match",playerId,status:"confirmed" as const,updatedAt:start}))
+ let state=getMatchResultConfirmationState({...base,confirmations})
+ expect(state.requiredCount).toBe(3);expect(state.confirmedCount).toBe(2);expect(state.countsForRanking).toBe(false)
+ state=getMatchResultConfirmationState({...base,confirmations:[...confirmations,{matchId:"qa-other",playerId:"d",status:"confirmed",updatedAt:start}]})
+ expect(state.countsForRanking).toBe(false)
+ state=getMatchResultConfirmationState({...base,confirmations:[...confirmations,{matchId:"qa-match",playerId:"d",status:"confirmed",updatedAt:start}]})
+ expect(state.state).toBe("validated")
+})
+it("estado partido: inicio y limite exacto de 120 minutos, finalizado y aplazado",()=>{
+ const match={status:"scheduled",scheduledAt:start,resultRecordedAt:null}
+ expect(getMatchDisplayStatus({...match,now:new Date("2026-10-10T11:59:59.999Z")})).toBe("scheduled")
+ expect(getMatchDisplayStatus({...match,now:new Date(start)})).toBe("in_progress")
+ expect(getMatchDisplayStatus({...match,now:new Date("2026-10-10T13:59:59.999Z")})).toBe("in_progress")
+ expect(getMatchDisplayStatus({...match,now:new Date("2026-10-10T14:00:00Z")})).toBe("result_pending")
+ expect(getMatchDisplayStatus({...match,status:"finished"})).toBe("finished")
+ expect(getMatchDisplayStatus({...match,status:"postponed"})).toBe("postponed")
+ expect(getMatchDisplayStatus({...match,scheduledAt:"invalid"})).toBe("scheduled")
+})
