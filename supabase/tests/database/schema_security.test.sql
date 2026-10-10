@@ -136,6 +136,7 @@ select ok(
     select 1
     from pg_policies
     where schemaname = 'public'
+      and roles <> array['service_role']::name[]
   ),
   'public policies are restricted exclusively to service_role'
 );
