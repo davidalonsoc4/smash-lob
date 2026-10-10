@@ -3,11 +3,11 @@ import React from "react"
 import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { CompetitionLaunchNotice } from "@/components/announcements/CompetitionLaunchNotice"
-const state = vi.hoisted(() => ({ status: "authenticated", style: "classic", apply: vi.fn() }))
+const state = vi.hoisted(() => ({ status: "authenticated", style: "classic", apply: vi.fn(), mode: vi.fn() }))
 vi.mock("next-auth/react", () => ({ useSession: () => ({ status: state.status, data: { user: { email: "fixture@example.com" } } }) }))
-vi.mock("@/context/ThemeProvider", () => ({ useTheme: () => ({ visualStyle: state.style, setVisualStyle: state.apply }) }))
+vi.mock("@/context/ThemeProvider", () => ({ useTheme: () => ({ visualStyle: state.style, setVisualStyle: state.apply, setThemeMode: state.mode }) }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ tx: (text: string) => text }) }))
-beforeEach(() => { HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", "") }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open") }; localStorage.clear(); state.status = "authenticated"; state.style = "classic"; state.apply.mockClear() })
+beforeEach(() => { HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", "") }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open") }; localStorage.clear(); state.status = "authenticated"; state.style = "classic"; state.apply.mockClear(); state.mode.mockClear() })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 describe("Competition launch notice", () => {
   it("requires explicit application and keeps reversal instructions visible", () => {
@@ -17,6 +17,7 @@ describe("Competition launch notice", () => {
     expect(state.apply).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole("button", { name: "APLICAR AHORA" }))
     expect(state.apply).toHaveBeenCalledWith("competition")
+    expect(state.mode).toHaveBeenCalledWith("dark")
     expect(screen.queryByRole("dialog")).toBeNull()
   })
   it("persists dismissal across remounts", () => {

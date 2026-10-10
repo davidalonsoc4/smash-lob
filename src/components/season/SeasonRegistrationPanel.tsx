@@ -1,4 +1,6 @@
 "use client"
+
+import { StatusHelp } from "@/components/ui/StatusHelp"
 import { useMemo, useState } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
@@ -127,9 +129,9 @@ export function SeasonRegistrationPanel({
               · {formatMoney(registrationFee.amount)}{tx("/jugador")}{" "}</span>
           </p>
         </div>
-        <span className={getPaymentStatusBadgeClassName(paidCount === players.length)}>
+        <StatusHelp kind="payment" status={(paidCount === players.length) ? "paid" : "pending"} className={getPaymentStatusBadgeClassName(paidCount === players.length)}>
           {paidCount}/{players.length} {tx("pagadas")}
-        </span>
+        </StatusHelp>
       </div>
       {canManage ? (
         <div className="season-registration-summary mt-2 flex flex-wrap items-center justify-between gap-1.5 rounded-xl bg-white/75 px-2.5 py-1.5">
@@ -210,13 +212,13 @@ export function SeasonRegistrationPanel({
                     {player.displayName}
                   </p>
                   <div className="mt-0.5 flex items-center gap-1.5">
-                    <span className={getPaymentStatusBadgeClassName(isPaid)}>
+                    <StatusHelp kind="payment" status={(isPaid) ? "paid" : "pending"} className={getPaymentStatusBadgeClassName(isPaid)}>
                       {isAutomaticallySettled
                         ? "Destinatario"
                         : isPaid
                           ? "Pagada"
                           : tx("Pendiente")}
-                    </span>
+                    </StatusHelp>
                     {!isPaid ? (
                       <span className="type-caption font-semibold text-neutral-500">
                         {formatMoney(registrationFee.amount)}

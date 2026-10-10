@@ -136,8 +136,9 @@ select ok(
     select 1
     from pg_policies
     where schemaname = 'public'
+      and roles <> array['service_role']::name[]
   ),
-  'the browser roles cannot regain access through permissive policies'
+  'public policies are restricted exclusively to service_role'
 );
 
 

@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
@@ -51,9 +53,9 @@ function MatchCard({ match, tx }: { match: PublicSpectatorMatch; tx: (value: str
         <p className="type-caption font-black uppercase tracking-wide text-neutral-500">
           {tx("Jornada")} {match.round}
         </p>
-        <span className="rounded-full bg-neutral-100 px-2.5 py-1 type-micro font-bold text-neutral-600">
+        <StatusHelp kind="match" status={match.status} className="rounded-full bg-neutral-100 px-2.5 py-1 type-micro font-bold text-neutral-600">
           {statusLabel}
-        </span>
+        </StatusHelp>
       </div>
       {match.teams ? (
         <div className="mt-3 min-w-0 space-y-2">

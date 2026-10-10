@@ -157,8 +157,8 @@ export function PwaInstallPrompt() {
     <div
       className="fixed z-50 px-4"
       style={{
-        left: "max(0px, calc((100vw - 448px) / 2))",
-        right: "max(0px, calc((100vw - 448px) / 2))",
+        left: "max(0px, calc((100vw - var(--app-shell-width, 448px)) / 2))",
+        right: "max(0px, calc((100vw - var(--app-shell-width, 448px)) / 2))",
         bottom: "76px",
       }}
     >

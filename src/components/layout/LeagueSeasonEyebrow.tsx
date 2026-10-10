@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import type { Season } from "@/data/fakeData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
@@ -27,9 +29,9 @@ export function LeagueSeasonEyebrow({
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <p className={eyebrowClassName}>{seasonName}</p>
         {seasonStatus === "finished" ? (
-          <span className={getSeasonStatusBadgeClassName("finished")}>
+          <StatusHelp kind="season" status={"finished"} className={getSeasonStatusBadgeClassName("finished")}>
             {t.common.finishedSeasonBadge}
-          </span>
+          </StatusHelp>
         ) : null}
       </div>
     </div>

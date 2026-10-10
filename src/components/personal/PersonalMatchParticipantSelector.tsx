@@ -66,13 +66,13 @@ export function PersonalMatchParticipantSelector({
   }
 
   return (
-    <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-neutral-200 bg-white p-2.5">
+    <div className="relative min-w-0 max-w-full overflow-hidden rounded-xl border border-neutral-200 bg-white p-2.5">
       <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
         {participant.label}
       </p>
 
       {locked ? (
-        <p className="mt-1.5 truncate whitespace-nowrap text-sm font-black text-neutral-950">
+        <p className="mt-1.5 break-words text-sm font-black text-neutral-950">
           {participant.displayName}
         </p>
       ) : (
@@ -80,11 +80,12 @@ export function PersonalMatchParticipantSelector({
           <button
             type="button"
             onClick={() => setIsOpen(true)}
+            aria-label={tx(`Seleccionar ${participant.label.toLowerCase()}`)}
             aria-haspopup="dialog"
             aria-expanded={isOpen}
-            className="mt-1.5 flex w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-left outline-none focus:border-neutral-400"
+            className={!participant.personKey ? "absolute bottom-2.5 right-2.5 flex h-10 w-10 items-center justify-center rounded-lg text-neutral-500 outline-none focus-visible:ring-2" : "mt-1.5 flex w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-left outline-none focus:border-neutral-400"}
           >
-            <span className="min-w-0 flex-1">
+            <span className={!participant.personKey ? "sr-only" : "min-w-0 flex-1"}>
               <span className="block truncate text-sm font-black text-neutral-950">
                 {selectedPerson?.displayName ??
                   (participant.personKey
@@ -266,6 +267,7 @@ export function PersonalMatchParticipantSelector({
 
           {!participant.personKey ? (
             <input
+              aria-label={`${tx("Nombre del jugador")} · ${participant.label}`}
               value={participant.displayName}
               onChange={(event) =>
                 onChange({
@@ -274,7 +276,7 @@ export function PersonalMatchParticipantSelector({
                 })
               }
               placeholder={tx("Nombre del jugador")}
-              className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold outline-none focus:border-neutral-400"
+              className="mt-2 w-full rounded-lg border border-neutral-200 bg-white pl-2.5 pr-12 py-2 text-sm font-semibold outline-none focus:border-neutral-400"
             />
           ) : null}
         </>

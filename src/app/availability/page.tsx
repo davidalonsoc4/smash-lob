@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { AppCard } from "@/components/ui/AppCard";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
@@ -522,6 +523,7 @@ export default function AvailabilityPage() {
           <p className="font-black">{tx("No se usa en esta temporada")}</p>
           <p className="mt-1 text-sm font-semibold leading-6 text-neutral-500">
             {tx("La disponibilidad y las recomendaciones horarias están desactivadas. Puedes coordinar y proponer fechas desde el chat de cada partido.")}{" "}</p>
+          <Link href="/chats" className="mt-3 inline-flex min-h-10 items-center font-semibold underline underline-offset-4">{tx("Chats")}</Link>
         </AppCard>
       </div>
     );

@@ -15,9 +15,10 @@ function formatSigned(value: number) {
 }
 
 function HighlightNames({ names }: { names: string[] }) {
+  const { tx } = useI18n()
   if (names.length < 2) return <p className="mt-1 break-words text-base font-black">{names[0] ?? "—"}</p>
   return <details className="mt-1 text-base font-black">
-    <summary className="cursor-pointer break-words">{names[0]} <span className="whitespace-nowrap">+{names.length - 1}</span></summary>
+    <summary className="cursor-pointer break-words">{names[0]} <span className="block type-caption font-semibold text-neutral-500">{names.length} {tx("jugadores")}</span></summary>
     <ul className="mt-2 space-y-1 text-sm font-semibold">{names.map((name, index) => <li key={index}>{name}</li>)}</ul>
   </details>
 }
@@ -94,7 +95,7 @@ export default function StatisticsPage() {
               {tx("Más victorias")}{" "}</p>
             <HighlightNames names={mostWinsPlayers.map((player) => player.displayName)} />
             <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-              {maximumWins > 0 ? `${maximumWins} victorias` : tx("Sin victorias")}
+              {maximumWins > 0 ? `${maximumWins} ${tx(maximumWins === 1 ? "victoria" : "victorias")}` : tx("Sin victorias")}
             </p>
           </AppCard>
           <AppCard>
@@ -114,7 +115,7 @@ export default function StatisticsPage() {
             </p>
             <p className="mt-0.5 type-caption font-semibold text-neutral-500">
               {statistics.longestWinStreak
-                ? `${statistics.longestWinStreak.wins} victorias seguidas`
+                ? `${statistics.longestWinStreak.wins} ${tx(statistics.longestWinStreak.wins === 1 ? "victoria" : "victorias")}`
                 : tx("Sin racha registrada")}
             </p>
           </AppCard>

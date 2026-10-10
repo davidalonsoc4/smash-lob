@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --app-shell-width: 448px;
   --background: #f5f5f4;
   --app-bottom-nav-safe-surface: #ffffff;
   --app-match-chat-safe-surface: #ffffff;
@@ -61,13 +62,13 @@ textarea {
    Same visual role = same typography. All sizes use rem so the
    appearance control can scale the whole app through --app-font-size-adjust. */
 .type-caption {
-  font-size: 0.6875rem;
-  line-height: 1.25;
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .type-micro {
-  font-size: 0.5625rem;
-  line-height: 1;
+  font-size: 0.625rem;
+  line-height: 1.2;
 }
 
 .type-small {
@@ -2121,6 +2122,8 @@ html.colorful .chat-list-stack::before { background: linear-gradient(180deg,var(
 /* Experimental COMPETITION visual system. It is intentionally scoped to the
    data attribute so Classic keeps its existing rendering and tokens. */
 html[data-visual-style="competition"] {
+  --background: var(--competition-bg);
+  --foreground: var(--competition-text);
   --competition-bg: #0b0c0e;
   --competition-surface: #141518;
   --competition-surface-raised: #1b1d21;
@@ -2164,7 +2167,7 @@ html[data-visual-style="competition"] .app-shell-frame::before {
   z-index: -1;
   pointer-events: none;
   opacity: .14;
-  background-image: linear-gradient(135deg, transparent 0 48%, var(--competition-accent) 49% 49.25%, transparent 50%), linear-gradient(90deg, transparent 0 24px, rgb(255 255 255 / .05) 25px, transparent 26px);
+  background-image: linear-gradient(135deg, transparent 0 48%, var(--competition-accent) 49% 49.25%, transparent 50%), linear-gradient(90deg, transparent 0 24px, rgb(var(--competition-rgb-highlight) / .05) 25px, transparent 26px);
   background-size: 180px 180px, 52px 52px;
   mask-image: linear-gradient(to bottom, #000 0%, transparent 75%);
 }
@@ -2175,7 +2178,7 @@ html[data-visual-style="competition"] .app-ranking-list {
   background: var(--competition-surface) !important;
   border-color: var(--competition-border) !important;
   color: var(--competition-text) !important;
-  box-shadow: 0 14px 34px rgb(0 0 0 / .22) !important;
+  box-shadow: 0 14px 34px rgb(var(--competition-shadow-rgb) / calc(.22 * var(--competition-shadow-strength))) !important;
 }
 
 html[data-visual-style="competition"] .app-card::before,
@@ -2218,7 +2221,9 @@ html[data-visual-style="competition"] .bg-neutral-100\/70 {
 }
 html[data-visual-style="competition"] .bg-neutral-950 { background: var(--competition-accent) !important; color: var(--competition-accent-contrast) !important; }
 html[data-visual-style="competition"] .bg-neutral-950 .text-white,
-html[data-visual-style="competition"] .bg-neutral-950 .text-neutral-300 { color: var(--competition-accent-contrast) !important; }
+html[data-visual-style="competition"] .bg-neutral-950 .text-neutral-300,
+html[data-visual-style="competition"] .bg-neutral-950 .text-neutral-400,
+html[data-visual-style="competition"] .bg-neutral-950 .text-amber-300 { color: var(--competition-accent-contrast) !important; }
 html[data-visual-style="competition"] .border-neutral-100,
 html[data-visual-style="competition"] .border-neutral-200,
 html[data-visual-style="competition"] .border-neutral-300,
@@ -2240,10 +2245,10 @@ html[data-visual-style="competition"] textarea::placeholder { color: var(--compe
    Keep the Classic emerald/amber palette intact and remap only this panel
    when Competition is active. */
 html[data-visual-style="competition"] .season-registration-panel {
-  background: linear-gradient(145deg, rgb(20 21 24 / .96), rgb(27 29 33 / .86)) !important;
+  background: linear-gradient(145deg, rgb(var(--competition-rgb-surface) / .96), rgb(var(--competition-rgb-raised) / .86)) !important;
   border-color: var(--competition-border) !important;
   color: var(--competition-text) !important;
-  box-shadow: 0 14px 30px rgb(0 0 0 / .2) !important;
+  box-shadow: 0 14px 30px rgb(var(--competition-shadow-rgb) / calc(.2 * var(--competition-shadow-strength))) !important;
 }
 html[data-visual-style="competition"] .season-registration-title,
 html[data-visual-style="competition"] .season-registration-player-name {
@@ -2251,40 +2256,40 @@ html[data-visual-style="competition"] .season-registration-player-name {
 }
 html[data-visual-style="competition"] .season-registration-amount,
 html[data-visual-style="competition"] .season-registration-details summary {
-  color: var(--competition-accent) !important;
+  color: var(--competition-accent-text, var(--competition-accent)) !important;
 }
 html[data-visual-style="competition"] .season-registration-summary,
 html[data-visual-style="competition"] .season-registration-details,
 html[data-visual-style="competition"] .season-registration-manage-toggle,
 html[data-visual-style="competition"] .season-registration-player-row {
-  background: rgb(34 37 42 / .72) !important;
-  border: 1px solid rgb(72 78 88 / .72);
+  background: rgb(var(--competition-rgb-muted) / .72) !important;
+  border: 1px solid rgb(var(--competition-rgb-border-strong) / .72);
   color: var(--competition-text) !important;
 }
 html[data-visual-style="competition"] .season-registration-owed,
 html[data-visual-style="competition"] .season-registration-upcoming {
-  background: rgb(161 112 22 / .2) !important;
-  color: #f4c86b !important;
+  background: rgb(var(--competition-rgb-amber) / .2) !important;
+  color: var(--competition-tone-amber) !important;
 }
 html[data-visual-style="competition"] .season-registration-panel .bg-emerald-600 {
   background: var(--competition-accent) !important;
   color: var(--competition-accent-contrast) !important;
 }
 html[data-visual-style="competition"] .season-registration-panel .status-tone-green {
-  background: rgb(61 157 134 / .24) !important;
-  color: #9de4d2 !important;
-  --tw-ring-color: rgb(61 157 134 / .48) !important;
+  background: rgb(var(--competition-rgb-green) / .24) !important;
+  color: var(--competition-tone-green) !important;
+  --tw-ring-color: rgb(var(--competition-rgb-green) / .48) !important;
 }
 html[data-visual-style="competition"] .season-registration-panel .status-tone-amber {
-  background: rgb(161 112 22 / .24) !important;
-  color: #f4c86b !important;
-  --tw-ring-color: rgb(161 112 22 / .48) !important;
+  background: rgb(var(--competition-rgb-amber) / .24) !important;
+  color: var(--competition-tone-amber) !important;
+  --tw-ring-color: rgb(var(--competition-rgb-amber) / .48) !important;
 }
 
 html[data-visual-style="competition"] .app-bottom-nav,
 html[data-visual-style="competition"] .personal-matches-bottom-nav,
 html[data-visual-style="competition"] .app-floating-control {
-  background: rgb(20 21 24 / .94) !important;
+  background: rgb(var(--competition-rgb-surface) / .94) !important;
   border-color: var(--competition-border) !important;
   color: var(--competition-text) !important;
   backdrop-filter: blur(16px);
@@ -2305,8 +2310,8 @@ html[data-visual-style="competition"] .app-page-header {
   border: 1px solid var(--competition-border);
   border-left: .25rem solid var(--competition-accent);
   border-radius: .85rem;
-  background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72));
-  box-shadow: inset 0 -1px 0 rgb(255 255 255 / .03), 0 14px 30px rgb(0 0 0 / .14);
+  background: linear-gradient(110deg, rgb(var(--competition-rgb-surface) / .96), rgb(var(--competition-rgb-surface) / .72));
+  box-shadow: inset 0 -1px 0 rgb(var(--competition-rgb-highlight) / .03), 0 14px 30px rgb(var(--competition-shadow-rgb) / calc(.14 * var(--competition-shadow-strength)));
 }
 html[data-visual-style="competition"] .app-page-header .type-page-title {
   font-size: clamp(1.45rem, 6vw, 2rem);
@@ -2316,8 +2321,8 @@ html[data-visual-style="competition"] .app-page-header .type-page-title {
 html[data-visual-style="competition"] [data-route="/"] .app-page-header {
   padding: 1rem .9rem .85rem;
   border-radius: 1rem;
-  background: linear-gradient(135deg, rgb(20 21 24 / .98), rgb(20 21 24 / .72));
-  box-shadow: inset 0 -1px 0 var(--competition-border), 0 18px 40px rgb(0 0 0 / .16);
+  background: linear-gradient(135deg, rgb(var(--competition-rgb-surface) / .98), rgb(var(--competition-rgb-surface) / .72));
+  box-shadow: inset 0 -1px 0 var(--competition-border), 0 18px 40px rgb(var(--competition-shadow-rgb) / calc(.16 * var(--competition-shadow-strength)));
 }
 html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-page-title {
   font-size: clamp(1.7rem, 8vw, 2.35rem);
@@ -2362,7 +2367,7 @@ html[data-visual-style="competition"] [data-route="/"] .app-page-header .type-pa
 html[data-visual-style="competition"] [data-route="/"] .season-summary-panel {
   border: 1px solid var(--competition-border-strong) !important;
   background: linear-gradient(160deg, var(--competition-surface-raised), var(--competition-surface)) !important;
-  box-shadow: 0 18px 36px rgb(0 0 0 / .24) !important;
+  box-shadow: 0 18px 36px rgb(var(--competition-shadow-rgb) / calc(.24 * var(--competition-shadow-strength))) !important;
 }
 html[data-visual-style="competition"] [data-route="/"] .season-summary-title,
 html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid .text-xl {
@@ -2371,7 +2376,7 @@ html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid .
   text-transform: uppercase;
 }
 html[data-visual-style="competition"] [data-route="/"] .season-summary-actions {
-  background: rgb(11 12 14 / .4);
+  background: rgb(var(--competition-rgb-bg) / .4);
   border-color: var(--competition-border) !important;
 }
 html[data-visual-style="competition"] [data-route="/"] .season-summary-action-secondary,
@@ -2400,14 +2405,14 @@ html[data-visual-style="competition"] [data-route^="/round/"] .app-page-header {
   margin-inline: -.25rem;
   padding: .8rem .8rem .75rem;
   border-radius: .85rem;
-  background: linear-gradient(110deg, rgb(20 21 24 / .96), transparent);
+  background: linear-gradient(110deg, rgb(var(--competition-rgb-surface) / .96), transparent);
 }
 html[data-visual-style="competition"] [data-route="/ranking"] .app-ranking-list {
   border: 1px solid var(--competition-border-strong) !important;
 }
 html[data-visual-style="competition"] [data-route="/ranking"] .app-ranking-row {
   min-height: 3.55rem;
-  border-bottom: 1px solid rgb(48 52 59 / .65);
+  border-bottom: 1px solid rgb(var(--competition-rgb-border) / .65);
 }
 html[data-visual-style="competition"] [data-route="/ranking"] .app-ranking-row:last-child { border-bottom: 0; }
 html[data-visual-style="competition"] [data-route="/ranking"] .app-ranking-position {
@@ -2417,7 +2422,7 @@ html[data-visual-style="competition"] [data-route="/ranking"] .app-ranking-posit
   place-items: center;
   border: 1px solid var(--competition-border-strong);
   border-radius: .55rem;
-  color: var(--competition-accent) !important;
+  color: var(--competition-accent-text, var(--competition-accent)) !important;
 }
 html[data-visual-style="competition"] [data-route="/ranking"] .app-ranking-row:first-child .app-ranking-position {
   background: var(--competition-accent);
@@ -2433,7 +2438,7 @@ html[data-visual-style="competition"] [data-route="/statistics"] .statistics-sec
 html[data-visual-style="competition"] [data-route="/statistics"] .statistics-section-link:active { background: var(--competition-surface-raised) !important; }
 html[data-visual-style="competition"] [data-route="/statistics"] .statistics-section-link > span:first-child {
   background: rgb(215 165 68 / .12) !important;
-  color: var(--competition-accent) !important;
+  color: var(--competition-accent-text, var(--competition-accent)) !important;
   border: 1px solid rgb(215 165 68 / .28);
 }
 html[data-visual-style="competition"] [data-route="/statistics"] .grid > .app-card {
@@ -2458,13 +2463,13 @@ html[data-visual-style="competition"] [data-route="/notifications"] .app-page-he
   padding: .8rem .8rem .75rem;
   border-left: .25rem solid var(--competition-accent);
   border-radius: .85rem;
-  background: linear-gradient(110deg, rgb(20 21 24 / .96), transparent);
+  background: linear-gradient(110deg, rgb(var(--competition-rgb-surface) / .96), transparent);
 }
 html[data-visual-style="competition"] [data-route="/notifications"] .app-notification-card {
   border-color: var(--competition-border) !important;
   background: var(--competition-surface) !important;
   color: var(--competition-text) !important;
-  box-shadow: 0 12px 28px rgb(0 0 0 / .18) !important;
+  box-shadow: 0 12px 28px rgb(var(--competition-shadow-rgb) / calc(.18 * var(--competition-shadow-strength))) !important;
 }
 html[data-visual-style="competition"] [data-route="/notifications"] .app-notification-card:not(.opacity-70) {
   border-top: 2px solid var(--competition-accent) !important;
@@ -2479,19 +2484,20 @@ html[data-visual-style="competition"] :where(button, a):focus-visible {
   outline-offset: 3px;
 }
 html[data-visual-style="competition"] .text-sky-700,
-html[data-visual-style="competition"] .text-sky-800 { color: #8ecbff !important; }
+html[data-visual-style="competition"] .text-sky-800 { color: var(--competition-tone-blue) !important; }
 html[data-visual-style="competition"] .text-amber-700,
 html[data-visual-style="competition"] .text-amber-800,
-html[data-visual-style="competition"] .text-amber-900 { color: #f4c86b !important; }
+html[data-visual-style="competition"] .text-amber-900,
+html[data-visual-style="competition"] .text-amber-950 { color: var(--competition-tone-amber) !important; }
 html[data-visual-style="competition"] .text-red-600,
 html[data-visual-style="competition"] .text-red-700,
-html[data-visual-style="competition"] .text-red-800 { color: #ff9696 !important; }
+html[data-visual-style="competition"] .text-red-800 { color: var(--competition-tone-red) !important; }
 html[data-visual-style="competition"] .bg-amber-50,
-html[data-visual-style="competition"] .bg-amber-100 { background: rgb(161 112 22 / .22) !important; }
+html[data-visual-style="competition"] .bg-amber-100 { background: rgb(var(--competition-rgb-amber) / .22) !important; }
 html[data-visual-style="competition"] .bg-red-50,
-html[data-visual-style="competition"] .bg-red-100 { background: rgb(127 29 29 / .24) !important; }
+html[data-visual-style="competition"] .bg-red-100 { background: rgb(var(--competition-rgb-red) / .24) !important; }
 html[data-visual-style="competition"] .bg-sky-50,
-html[data-visual-style="competition"] .bg-sky-100 { background: rgb(14 116 144 / .22) !important; }
+html[data-visual-style="competition"] .bg-sky-100 { background: rgb(var(--competition-rgb-cyan) / .22) !important; }
 html[data-visual-style="competition"] .appearance-preview-competition {
   background: var(--competition-surface-raised) !important;
   box-shadow: inset 0 0 0 1px var(--competition-border-strong);
@@ -2505,17 +2511,17 @@ html[data-visual-style="competition"] .appearance-preview-competition .appearanc
 html[data-visual-style="competition"] .app-card,
 html[data-visual-style="competition"] .app-stat-card,
 html[data-visual-style="competition"] .app-ranking-list {
-  background: linear-gradient(145deg, rgb(48 52 59 / .46), rgb(20 21 24 / .16)) !important;
+  background: linear-gradient(145deg, rgb(var(--competition-rgb-border) / .46), rgb(var(--competition-rgb-surface) / .16)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 18%, var(--competition-border)) !important;
-  box-shadow: 0 18px 38px rgb(0 0 0 / .24), inset 0 1px 0 rgb(255 255 255 / .025) !important;
+  box-shadow: 0 18px 38px rgb(var(--competition-shadow-rgb) / calc(.24 * var(--competition-shadow-strength))), inset 0 1px 0 rgb(var(--competition-rgb-highlight) / .025) !important;
   backdrop-filter: blur(18px) saturate(1.15);
 }
 html[data-visual-style="competition"] .app-card-explicit-accent {
-  background: linear-gradient(145deg, color-mix(in srgb, var(--competition-accent) 15%, transparent), rgb(20 21 24 / .16)) !important;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--competition-accent) 15%, transparent), rgb(var(--competition-rgb-surface) / .16)) !important;
 }
 html[data-visual-style="competition"] .app-bottom-nav,
 html[data-visual-style="competition"] .personal-matches-bottom-nav {
-  box-shadow: 0 -16px 34px rgb(0 0 0 / .3), inset 0 1px 0 color-mix(in srgb, var(--competition-accent) 20%, transparent);
+  box-shadow: 0 -16px 34px rgb(var(--competition-shadow-rgb) / calc(.3 * var(--competition-shadow-strength))), inset 0 1px 0 color-mix(in srgb, var(--competition-accent) 20%, transparent);
 }
 html[data-visual-style="competition"] [data-route="/"] .home-leader-round-grid > :first-child {
   border-top: 2px solid color-mix(in srgb, var(--competition-accent) 80%, transparent) !important;
@@ -2547,15 +2553,15 @@ html[data-visual-style="competition"] [data-route="/settings"] .settings-payment
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack {
   border: 1px solid color-mix(in srgb, var(--competition-accent) 24%, var(--competition-border));
-  box-shadow: 0 18px 38px rgb(0 0 0 / .2);
+  box-shadow: 0 18px 38px rgb(var(--competition-shadow-rgb) / calc(.2 * var(--competition-shadow-strength)));
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack .app-card {
-  background: linear-gradient(145deg, rgb(48 52 59 / .46), rgb(20 21 24 / .16)) !important;
+  background: linear-gradient(145deg, rgb(var(--competition-rgb-border) / .46), rgb(var(--competition-rgb-surface) / .16)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 18%, var(--competition-border)) !important;
   backdrop-filter: blur(18px) saturate(1.15);
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-card-unread {
-  background: color-mix(in srgb, var(--competition-accent) 9%, rgb(20 21 24 / .18)) !important;
+  background: color-mix(in srgb, var(--competition-accent) 9%, rgb(var(--competition-rgb-surface) / .18)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 48%, var(--competition-border)) !important;
 }
 
@@ -2586,22 +2592,22 @@ html[data-visual-style="competition"] [data-personal-match-origin] {
   border-color: var(--competition-border-strong) !important;
   background: var(--competition-surface-raised) !important;
   color: var(--competition-text) !important;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / .035);
+  box-shadow: inset 0 0 0 1px rgb(var(--competition-rgb-highlight) / .035);
 }
 html[data-visual-style="competition"] [data-personal-match-origin="league"] {
   border-color: color-mix(in srgb, var(--competition-accent) 62%, var(--competition-border)) !important;
   background: color-mix(in srgb, var(--competition-accent) 15%, var(--competition-surface-raised)) !important;
-  color: var(--competition-accent) !important;
+  color: var(--competition-accent-text, var(--competition-accent)) !important;
 }
 html[data-visual-style="competition"] [data-personal-match-origin="friendly"] {
-  border-color: #527392 !important;
-  background: rgb(48 78 105 / .32) !important;
-  color: #c9e4fb !important;
+  border-color: var(--competition-tone-friendly-border) !important;
+  background: rgb(var(--competition-rgb-friendly) / .32) !important;
+  color: var(--competition-tone-friendly-text) !important;
 }
 
 /* Match chat follows the same surface language as the rest of Competition. */
 html[data-visual-style="competition"] .app-match-chat-header {
-  background: linear-gradient(110deg, rgb(20 21 24 / .96), rgb(20 21 24 / .72)) !important;
+  background: linear-gradient(110deg, rgb(var(--competition-rgb-surface) / .96), rgb(var(--competition-rgb-surface) / .72)) !important;
   border-color: var(--competition-border) !important;
   /* Chat is an immersive screen: the header joins the viewport instead of
      looking like a floating card with rounded corners. */
@@ -2622,7 +2628,7 @@ html[data-visual-style="competition"] [data-tour="chat-messages"] {
 }
 html[data-visual-style="competition"] .app-match-reservation-banner {
   border-color: color-mix(in srgb, #477bd1 40%, var(--competition-border)) !important;
-  background: linear-gradient(110deg, rgb(35 76 128 / .34), rgb(20 21 24 / .72)) !important;
+  background: linear-gradient(110deg, rgb(var(--competition-rgb-reservation) / .34), rgb(var(--competition-rgb-surface) / .72)) !important;
   color: var(--competition-text) !important;
 }
 html[data-visual-style="competition"] .app-match-reservation-icon {
@@ -2630,13 +2636,13 @@ html[data-visual-style="competition"] .app-match-reservation-icon {
   color: #f7fbff !important;
 }
 html[data-visual-style="competition"] .app-match-reservation-label {
-  color: #a8d2ff !important;
+  color: var(--competition-tone-reservation-text) !important;
 }
 html[data-visual-style="competition"] [data-tour="chat-composer"],
 html[data-visual-style="competition"] [data-tour="chat-read-only"] {
   box-sizing: border-box;
   width: 100%;
-  background: rgb(20 21 24 / .88) !important;
+  background: rgb(var(--competition-rgb-surface) / .88) !important;
   border-color: var(--competition-border) !important;
   color: var(--competition-text) !important;
   backdrop-filter: blur(18px);
@@ -2651,7 +2657,7 @@ html[data-visual-style="competition"] [data-tour="chat-composer"] textarea {
 html[data-visual-style="competition"] [data-tour="chat-composer"] .app-match-chat-send {
   background: var(--competition-accent) !important;
   color: var(--competition-accent-contrast) !important;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--competition-accent-contrast) 18%, transparent), 0 6px 14px rgb(0 0 0 / .24);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--competition-accent-contrast) 18%, transparent), 0 6px 14px rgb(var(--competition-shadow-rgb) / calc(.24 * var(--competition-shadow-strength)));
 }
 html[data-visual-style="competition"] .app-match-chat-metadata[data-mine="true"] {
   color: var(--competition-accent-contrast) !important;
@@ -2671,12 +2677,12 @@ html[data-visual-style="competition"] .app-match-chat-receipt[data-read="true"] 
   opacity: 1;
 }
 html[data-visual-style="competition"] .app-match-chat-receipt[data-read="false"] {
-  color: color-mix(in srgb, var(--competition-accent-contrast) 76%, var(--competition-accent)) !important;
+  color: color-mix(in srgb, var(--competition-accent-contrast) 76%, var(--competition-accent-text, var(--competition-accent))) !important;
   opacity: .9;
 }
 
 html[data-visual-style="competition"] .public-spectator-hero {
-  background: linear-gradient(145deg, rgb(48 52 59 / .52), rgb(20 21 24 / .26)) !important;
+  background: linear-gradient(145deg, rgb(var(--competition-rgb-border) / .52), rgb(var(--competition-rgb-surface) / .26)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 28%, var(--competition-border)) !important;
   color: var(--competition-text) !important;
 }
@@ -2688,7 +2694,7 @@ html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack::be
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-card-unread {
   border-top: 0 !important;
-  box-shadow: 0 12px 26px rgb(0 0 0 / .24) !important;
+  box-shadow: 0 12px 26px rgb(var(--competition-shadow-rgb) / calc(.24 * var(--competition-shadow-strength))) !important;
 }
 
 /* Keep embedded match states legible on the dark Competition surface. These
@@ -2696,7 +2702,7 @@ html[data-visual-style="competition"] [data-route="/chats"] .chat-list-card-unre
    light Classic fills must not leak into Competition panels. */
 html[data-visual-style="competition"] .bg-blue-50,
 html[data-visual-style="competition"] .bg-blue-100 {
-  background: rgb(14 116 144 / .22) !important;
+  background: rgb(var(--competition-rgb-cyan) / .22) !important;
 }
 html[data-visual-style="competition"] .border-blue-100,
 html[data-visual-style="competition"] .border-blue-200,
@@ -2708,14 +2714,14 @@ html[data-visual-style="competition"] .text-blue-700,
 html[data-visual-style="competition"] .text-blue-800,
 html[data-visual-style="competition"] .text-blue-900,
 html[data-visual-style="competition"] .text-blue-950 {
-  color: #a8d2ff !important;
+  color: var(--competition-tone-reservation-text) !important;
 }
 
 html[data-visual-style="competition"] .bg-emerald-50,
 html[data-visual-style="competition"] .bg-emerald-100,
 html[data-visual-style="competition"] .bg-green-50,
 html[data-visual-style="competition"] .bg-green-100 {
-  background: rgb(6 95 70 / .24) !important;
+  background: rgb(var(--competition-rgb-emerald) / .24) !important;
 }
 html[data-visual-style="competition"] .border-emerald-100,
 html[data-visual-style="competition"] .border-emerald-200,
@@ -2733,14 +2739,20 @@ html[data-visual-style="competition"] .text-green-600,
 html[data-visual-style="competition"] .text-green-700,
 html[data-visual-style="competition"] .text-green-800,
 html[data-visual-style="competition"] .text-green-900 {
-  color: #9de4d2 !important;
+  color: var(--competition-tone-green) !important;
 }
 
 html[data-visual-style="competition"] .bg-indigo-50,
+html[data-visual-style="competition"] .bg-violet-50,
 html[data-visual-style="competition"] .bg-indigo-100,
 html[data-visual-style="competition"] .bg-violet-100,
 html[data-visual-style="competition"] .bg-violet-200 {
-  background: rgb(67 56 202 / .22) !important;
+  background: rgb(var(--competition-rgb-violet) / .22) !important;
+}
+html[data-visual-style="competition"] :is(.status-tone-violet, .status-tone-indigo) {
+  background: rgb(var(--competition-rgb-violet) / .22) !important;
+  color: var(--competition-tone-violet) !important;
+  --tw-ring-color: rgb(var(--competition-rgb-violet) / .55) !important;
 }
 html[data-visual-style="competition"] .border-indigo-200,
 html[data-visual-style="competition"] .border-indigo-400,
@@ -2748,10 +2760,12 @@ html[data-visual-style="competition"] .border-violet-200 {
   border-color: rgb(129 140 248 / .46) !important;
 }
 html[data-visual-style="competition"] .text-indigo-600,
+html[data-visual-style="competition"] .text-indigo-800,
+html[data-visual-style="competition"] .text-violet-800,
 html[data-visual-style="competition"] .text-indigo-700,
 html[data-visual-style="competition"] .text-violet-700,
 html[data-visual-style="competition"] .text-violet-900 {
-  color: #c4c9ff !important;
+  color: var(--competition-tone-violet) !important;
 }
 
 html[data-visual-style="competition"] .bg-orange-50,
@@ -2759,7 +2773,7 @@ html[data-visual-style="competition"] .bg-orange-100,
 html[data-visual-style="competition"] .bg-yellow-50,
 html[data-visual-style="competition"] .bg-yellow-100,
 html[data-visual-style="competition"] .bg-lime-100 {
-  background: rgb(146 64 14 / .22) !important;
+  background: rgb(var(--competition-rgb-orange) / .22) !important;
 }
 html[data-visual-style="competition"] .border-orange-200,
 html[data-visual-style="competition"] .border-orange-300 {
@@ -2772,12 +2786,12 @@ html[data-visual-style="competition"] .text-orange-900,
 html[data-visual-style="competition"] .text-orange-950,
 html[data-visual-style="competition"] .text-lime-900,
 html[data-visual-style="competition"] .text-yellow-500 {
-  color: #ffd08a !important;
+  color: var(--competition-tone-orange) !important;
 }
 
 html[data-visual-style="competition"] .bg-rose-100,
 html[data-visual-style="competition"] .bg-pink-100 {
-  background: rgb(159 18 57 / .22) !important;
+  background: rgb(var(--competition-rgb-rose) / .22) !important;
 }
 html[data-visual-style="competition"] .border-rose-200,
 html[data-visual-style="competition"] .border-pink-200 {
@@ -2785,14 +2799,14 @@ html[data-visual-style="competition"] .border-pink-200 {
 }
 html[data-visual-style="competition"] .text-rose-800,
 html[data-visual-style="competition"] .text-pink-800 {
-  color: #ffb4c4 !important;
+  color: var(--competition-tone-rose) !important;
 }
 
 /* The scheduling card uses the accent-strip variant of AppCard. Its accent
    tint is useful for small controls but makes the whole panel brown in dark
    mode, so keep the surface neutral and retain the accent on the edge. */
 html[data-visual-style="competition"] .app-schedule-card {
-  background: linear-gradient(145deg, rgb(48 52 59 / .46), rgb(20 21 24 / .16)) !important;
+  background: linear-gradient(145deg, rgb(var(--competition-rgb-border) / .46), rgb(var(--competition-rgb-surface) / .16)) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 18%, var(--competition-border)) !important;
 }
 
@@ -2810,11 +2824,11 @@ html[data-visual-style="competition"] [data-tour="chat-composer"] .app-match-cha
   cursor: not-allowed;
 }
 html[data-visual-style="competition"] [data-floating-top-toolbar] .app-floating-control {
-  background: rgb(20 21 24 / .82) !important;
-  border-color: rgb(255 255 255 / .12) !important;
+  background: rgb(var(--competition-rgb-surface) / .82) !important;
+  border-color: rgb(var(--competition-rgb-highlight) / .12) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 2px 8px rgb(0 0 0 / .22);
+  box-shadow: 0 2px 8px rgb(var(--competition-shadow-rgb) / calc(.22 * var(--competition-shadow-strength)));
 }
 
 /* Neutral information panels leave the accent for selection and actions. */
@@ -2876,7 +2890,7 @@ html[data-visual-style="competition"] .app-match-player-name {
   flex-wrap: wrap;
 }
 .app-match-header-row > .type-page-title {
-  flex: 1 1 12rem;
+  flex: 1 1 8rem;
 }
 .app-match-header-row > div {
   margin-left: auto;
@@ -2887,3 +2901,144 @@ html[data-visual-style="competition"] [data-tour="statistics-highlights"] {
 html[data-visual-style="competition"] .app-chat-date-option[aria-pressed="true"] > span:nth-child(-n+2) {
   color: var(--competition-accent-contrast) !important;
 }
+
+/* Shared geometry and semantic colors keep both Competition modes aligned. */
+html[data-visual-style="competition"] {
+  --competition-shadow-rgb: 0 0 0;
+  --competition-shadow-strength: 1;
+  --competition-tone-amber: #f4c86b;
+  --competition-tone-green: #9de4d2;
+  --competition-tone-blue: #8ecbff;
+  --competition-tone-red: #ff9696;
+  --competition-tone-friendly-border: #527392;
+  --competition-tone-friendly-text: #c9e4fb;
+  --competition-tone-reservation-text: #a8d2ff;
+  --competition-tone-violet: #c4c9ff;
+  --competition-tone-orange: #ffd08a;
+  --competition-tone-rose: #ffb4c4;
+  --competition-rgb-surface: 20 21 24;
+  --competition-rgb-raised: 27 29 33;
+  --competition-rgb-muted: 34 37 42;
+  --competition-rgb-bg: 11 12 14;
+  --competition-rgb-border: 48 52 59;
+  --competition-rgb-border-strong: 72 78 88;
+  --competition-rgb-highlight: 255 255 255;
+  --competition-rgb-amber: 161 112 22;
+  --competition-rgb-green: 61 157 134;
+  --competition-rgb-red: 127 29 29;
+  --competition-rgb-cyan: 14 116 144;
+  --competition-rgb-friendly: 48 78 105;
+  --competition-rgb-reservation: 35 76 128;
+  --competition-rgb-emerald: 6 95 70;
+  --competition-rgb-violet: 67 56 202;
+  --competition-rgb-orange: 146 64 14;
+  --competition-rgb-rose: 159 18 57;
+}
+html[data-visual-style="competition"][data-theme="light"] {
+  --competition-shadow-rgb: 23 33 47;
+  --competition-shadow-strength: .35;
+  --competition-bg: #f3f5f8;
+  --competition-surface: #ffffff;
+  --competition-surface-raised: #f8fafc;
+  --competition-surface-muted: #e9edf3;
+  --competition-border: #d5dce5;
+  --competition-border-strong: #94a3b8;
+  --competition-text: #17212f;
+  --competition-text-muted: #475569;
+  --competition-text-subtle: #526175;
+  --competition-tone-amber: #805b12;
+  --competition-tone-green: #176b57;
+  --competition-tone-blue: #175b93;
+  --competition-tone-red: #b42332;
+  --competition-tone-friendly-border: #87a6c4;
+  --competition-tone-friendly-text: #175b93;
+  --competition-tone-reservation-text: #175b93;
+  --competition-tone-violet: #4338a2;
+  --competition-tone-orange: #8a4314;
+  --competition-tone-rose: #9f1239;
+  --competition-rgb-surface: 255 255 255;
+  --competition-rgb-raised: 248 250 252;
+  --competition-rgb-muted: 233 237 243;
+  --competition-rgb-bg: 243 245 248;
+  --competition-rgb-border: 213 220 229;
+  --competition-rgb-border-strong: 148 163 184;
+  --competition-rgb-highlight: 23 33 47;
+  --competition-rgb-amber: 225 194 130;
+  --competition-rgb-green: 151 212 191;
+  --competition-rgb-red: 240 165 165;
+  --competition-rgb-cyan: 149 205 219;
+  --competition-rgb-friendly: 155 189 218;
+  --competition-rgb-reservation: 170 201 236;
+  --competition-rgb-emerald: 151 212 191;
+  --competition-rgb-violet: 182 175 239;
+  --competition-rgb-orange: 245 194 150;
+  --competition-rgb-rose: 241 172 190;
+}
+html[data-visual-style="competition"][data-theme="light"] .appearance-preview-competition {
+  background: var(--competition-bg) !important;
+  --tw-ring-color: var(--competition-border) !important;
+}
+html[data-visual-style="competition"][data-theme="light"] .appearance-preview-competition .appearance-preview-card {
+  background: var(--competition-surface-muted) !important;
+}
+
+/* Preview remains visible before Competition itself is selected. */
+.appearance-preview-competition {
+  background: #141518 !important;
+  --tw-ring-color: #484e58 !important;
+}
+.appearance-preview-competition .appearance-preview-card,
+.appearance-preview-competition .appearance-preview-chip {
+  background: var(--competition-accent, #d7a544) !important;
+}
+html[data-theme="light"] .appearance-preview-competition {
+  background: #f3f5f8 !important;
+  --tw-ring-color: #d5dce5 !important;
+}
+html[data-theme="light"] .appearance-preview-competition .appearance-preview-card {
+  background: #e9edf3 !important;
+}
+
+/* Control edges and keyboard focus remain distinct on the light surface. */
+html[data-visual-style="competition"][data-theme="light"] :is(input, select, textarea) {
+  border-color: #7b8b9f !important;
+}
+html[data-visual-style="competition"][data-theme="light"] :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--competition-accent-text) !important;
+  outline-offset: 3px;
+}
+
+/* Audit: semantic surfaces, independent of the selected Competition base. */
+html[data-visual-style="competition"] .app-empty-state {
+  background: var(--competition-surface-raised) !important;
+  border-color: var(--competition-border-strong) !important;
+  color: var(--competition-text) !important;
+}
+html[data-visual-style="competition"] .app-empty-state > p:first-of-type { color: var(--competition-text) !important; }
+html[data-visual-style="competition"] .app-empty-state > p:last-of-type { color: var(--competition-text-muted) !important; }
+html[data-visual-style="competition"] .app-accent-surface,
+html[data-visual-style="competition"] .app-accent-surface :is(p, h1, h2, h3, span, a) {
+  color: var(--competition-accent-contrast) !important;
+}
+html[data-visual-style="competition"] .app-accent-surface .app-top-back-control { color: var(--competition-accent-contrast) !important; }
+html[data-visual-style="competition"] .personal-form-result {
+  background: var(--competition-surface) !important;
+  border: 1px solid var(--competition-border-strong);
+}
+.public-site-hero { padding-block: 1.25rem; }
+.public-site-hero h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
+.public-site-hero > p { margin-top: .75rem; }
+.statistics-history-row :is(p, span) { overflow-wrap: anywhere; }
+.statistics-history-row p { white-space: normal; }
+[data-route^="/statistics"] select { min-height: 2.5rem; }
+[data-route^="/profile"] select,
+[data-route^="/player/"] select { min-height: 2.5rem; max-width: 100%; }
+[data-route^="/statistics"] .type-player-name { overflow-wrap: anywhere; }
+
+@media (min-width: 1024px) {
+  :root { --app-shell-width: 640px; }
+  .app-shell-frame, .app-bottom-nav { max-width: var(--app-shell-width); }
+}
+
+.public-site-hero .app-top-back-control { color: #fff; }
+html[data-visual-style="competition"] .app-accent-surface a.bg-white { color: var(--competition-text) !important; }

@@ -9,6 +9,8 @@ export default function StatisticsRecordsPage() {
   const { tx } = useI18n()
   const {
     selectedSeason,
+    seasonOptions,
+    selectSeason,
     buildStatisticsHref,
     statistics,
     playersById,
@@ -24,6 +26,8 @@ export default function StatisticsRecordsPage() {
             ? tx("Las mejores rachas y los partidos más destacados de todo el historial de la liga.")
             : tx("Las mejores rachas y los partidos que marcaron la competición.")
         }
+        seasons={seasonOptions}
+        onSeasonChange={selectSeason}
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />

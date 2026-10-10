@@ -113,7 +113,7 @@ export default function AdminMvpPage() {
         <AppCard>
           <p className="font-bold">{tx("Sistema MVP desactivado")}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-            {tx("Puedes activarlo o cambiar su metodología desde Administración de temporada.")}{" "}</p>
+            {activeSeason.status === "finished" ? tx("Temporada terminada") : tx("Puedes activarlo o cambiar su metodología desde Administración de temporada.")}{" "}</p>
         </AppCard>
       </div>
     )

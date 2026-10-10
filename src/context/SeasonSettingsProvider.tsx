@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   useCallback,
-  useEffect,
   useState,
 } from "react";
 import {
@@ -105,7 +104,7 @@ type SeasonSettingsContextValue = {
     avatarUrl?: string | null;
     userId?: string | null;
   }) => void;
-  hydrateSeasonSnapshot: (snapshot: SeasonSnapshot) => void;
+  hydrateSeasonSnapshot: (snapshot: SeasonSnapshot, partial?: boolean) => void;
   finishActiveSeason: (leagueId: string) => void;
   finishSeason: (leagueId: string, seasonId: string) => void;
   startSeason: (leagueId: string, seasonId: string) => void;
@@ -630,21 +629,10 @@ function getInitials(name: string) {
 export function SeasonSettingsProvider({
   children,
 }: SeasonSettingsProviderProps) {
-  const [seasonSettings, setSeasonSettings] =
-    useState<SeasonRoundSettings[]>(getDefaultSettings);
+  const [seasonSettings, setSeasonSettings] = useState<SeasonRoundSettings[]>(() =>
+    (typeof window !== "undefined" ? parseStoredSettings(window.localStorage.getItem(storageKey)) : null) ?? getDefaultSettings(),
+  );
   const [seasonData, setSeasonData] = useState<SeasonDataState>(readSeasonData);
-
-  useEffect(() => {
-    const storedSettings = parseStoredSettings(
-      window.localStorage.getItem(storageKey),
-    );
-
-    if (storedSettings) {
-      window.setTimeout(() => {
-        setSeasonSettings(storedSettings);
-      }, 0);
-    }
-  }, []);
 
   function getSeasonRoundSettings(seasonId: string) {
     return (
@@ -1312,7 +1300,7 @@ export function SeasonSettingsProvider({
     [],
   );
 
-  const hydrateSeasonSnapshot = useCallback((snapshot: SeasonSnapshot) => {
+  const hydrateSeasonSnapshot = useCallback((snapshot: SeasonSnapshot, partial = false) => {
     const snapshotLeagueIds = new Set<string>([
       ...Object.keys(snapshot.activeSeasonIds),
       ...snapshot.seasons.map((season) => season.leagueId),
@@ -1330,7 +1318,7 @@ export function SeasonSettingsProvider({
       const managedSeasonIds = new Set<string>([
         ...snapshotSeasonIds,
         ...currentSeasonData.seasons
-          .filter((season) => snapshotLeagueIds.has(season.leagueId))
+          .filter((season) => !partial && snapshotLeagueIds.has(season.leagueId))
           .map((season) => season.id),
       ]);
       const nextActiveSeasonIds: Record<string, string> = {};
@@ -1354,19 +1342,19 @@ export function SeasonSettingsProvider({
       const nextSeasonData = {
         seasons: mergeById(
           currentSeasonData.seasons.filter(
-            (season) => !snapshotLeagueIds.has(season.leagueId),
+            (season) => partial || !snapshotLeagueIds.has(season.leagueId),
           ),
           snapshot.seasons,
         ),
         playerProfiles: mergeById(
           currentSeasonData.playerProfiles.filter(
-            (player) => !snapshotLeagueIds.has(player.leagueId),
+            (player) => partial || !snapshotLeagueIds.has(player.leagueId),
           ),
           snapshot.playerProfiles,
         ),
         seasonPlayers: mergeSeasonPlayers(
           currentSeasonData.seasonPlayers.filter(
-            (seasonPlayer) => !managedSeasonIds.has(seasonPlayer.seasonId),
+            (seasonPlayer) => partial ? !snapshot.seasonPlayers.some((item) => item.seasonId === seasonPlayer.seasonId) : !managedSeasonIds.has(seasonPlayer.seasonId),
           ),
           snapshot.seasonPlayers,
         ),
@@ -1381,7 +1369,7 @@ export function SeasonSettingsProvider({
     setSeasonSettings((currentSettings) => {
       const nextSettings = mergeSettings(
         currentSettings.filter(
-          (settings) => !snapshotLeagueIds.has(settings.leagueId),
+          (settings) => partial ? !snapshot.seasonSettings.some((item) => item.seasonId === settings.seasonId) : !snapshotLeagueIds.has(settings.leagueId),
         ),
         snapshot.seasonSettings,
       );

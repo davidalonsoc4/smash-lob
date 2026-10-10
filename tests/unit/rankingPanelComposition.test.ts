@@ -5,7 +5,7 @@ describe("ranking panel composition", () => {
   it("keeps the Home ranking title inside the same card as its rows", async () => {
     const home = await readFile("src/app/page.tsx", "utf8")
 
-    expect(home).toContain('<AppCard className="overflow-hidden p-0">\n            <div className="px-3 pt-3">\n              <SectionHeader\n                title={t.dashboard.rankingTitle}')
+    expect(home).toContain('<AppCard className="overflow-hidden p-0">\n            <div className="px-3 pt-3">\n              <SectionHeader\n                title={currentUserRankingIndex >= 0 ? tx("Tu posición") : t.dashboard.rankingTitle}')
     expect(home).toContain('className="space-y-3 border-t border-neutral-100 px-3 py-2.5"')
   })
 

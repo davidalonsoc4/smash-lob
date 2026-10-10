@@ -108,7 +108,7 @@ describe("v1.10.10 unified match detail and friendly chat", () => {
       read("src/lib/serverChatRealtime.ts"),
     ])
 
-    expect(page).toContain("Chat · Amistoso")
+    expect(page).toContain('title={tx("Amistoso")}')
     expect(page).toContain("subscribeChatRealtime")
     expect(page).toContain("<MatchChatComposer")
     expect(page).toContain("<MatchChatReadOnlyBar>")

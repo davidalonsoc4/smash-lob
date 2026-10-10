@@ -11,6 +11,7 @@ import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
 import { getPlayerMvpSummary } from "@/lib/mvp"
 import { calculatePlayerSeasonDetail } from "@/lib/seasonStatistics"
 import { useI18n } from "@/i18n/I18nProvider"
+import { useCurrentUser } from "@/context/CurrentUserProvider"
 
 function formatPercent(value: number) {
   return `${Math.round(value)}%`
@@ -22,9 +23,12 @@ function formatSigned(value: number) {
 
 export default function StatisticsPlayerPage() {
   const { tx } = useI18n()
+  const { currentUserId } = useCurrentUser()
   const {
     activeLeague,
     selectedSeason,
+    seasonOptions,
+    selectSeason,
     buildStatisticsHref,
     statistics,
     countedMatches,
@@ -41,6 +45,7 @@ export default function StatisticsPlayerPage() {
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const selectedPlayer =
     statistics.ranking.find((player) => player.id === selectedPlayerId) ??
+    statistics.ranking.find((player) => player.id === currentUserId) ??
     statistics.ranking[0] ??
     null
   const playerDetail = useMemo(
@@ -115,6 +120,8 @@ export default function StatisticsPlayerPage() {
             ? tx("Rendimiento histórico, rachas, compañero más fuerte, rivales y récords de un jugador en toda la liga.")
             : tx("Rendimiento, rachas, compañero más fuerte, rivales y récords de un jugador.")
         }
+        seasons={seasonOptions}
+        onSeasonChange={selectSeason}
         selectedSeason={selectedSeason}
         fallbackHref={buildStatisticsHref("/statistics")}
       />

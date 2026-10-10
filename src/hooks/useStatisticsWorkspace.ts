@@ -8,6 +8,7 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import type { Season, SeasonPlayer } from "@/data/fakeData"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
+import { getNewestLeagueSeasons } from "@/lib/seasonSelection"
 import {
   calculateSeasonStatistics,
   type PlayerRoundProgress,
@@ -288,10 +289,10 @@ export function useStatisticsWorkspace() {
               status: "finished" as const,
               isLeagueWide: true,
             },
-            ...leagueSeasons,
+            ...getNewestLeagueSeasons(leagueSeasons, activeLeague.id),
           ]
-        : leagueSeasons,
-    [canSelectLeagueWide, leagueSeasons],
+        : getNewestLeagueSeasons(leagueSeasons, activeLeague.id),
+    [activeLeague.id, canSelectLeagueWide, leagueSeasons],
   )
 
   const selectSeason = useCallback(

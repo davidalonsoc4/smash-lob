@@ -23,7 +23,7 @@ type PersonalProfileStatisticsProps = {
 
 function signed(value: number) {
   const rounded = Math.round(value * 10) / 10
-  return `${rounded > 0 ? "+" : ""}${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}`
+  return `${rounded > 0 ? "+" : ""}${Number.isInteger(rounded) ? rounded : new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 }).format(rounded)}`
 }
 
 function percentage(value: number) {
@@ -31,7 +31,7 @@ function percentage(value: number) {
 }
 
 function decimal(value: number) {
-  return (Math.round(value * 10) / 10).toFixed(1)
+  return new Intl.NumberFormat("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)
 }
 
 function countText(value: number, singular: string, plural: string) {
@@ -57,7 +57,8 @@ function FormDots({ form }: { form: Array<"win" | "loss"> }) {
       {form.map((result, index) => (
         <span
           key={`${result}-${index}`}
-          className={`inline-flex h-6 w-6 items-center justify-center rounded-full type-caption font-black ${
+          title={tx(result === "win" ? "Victoria" : "Derrota")}
+          className={`personal-form-result inline-flex h-7 w-7 items-center justify-center rounded-full type-caption font-black ${
             result === "win"
               ? "bg-emerald-100 text-emerald-800"
               : "bg-rose-100 text-rose-800"

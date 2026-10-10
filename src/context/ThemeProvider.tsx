@@ -13,7 +13,7 @@ import {
   DEFAULT_PALETTE,
   DEFAULT_VISUAL_STYLE,
   getCompetitionAccentColor,
-  getCompetitionContrastColor,
+  getCompetitionContrastColor, getCompetitionTextAccent,
   LEGACY_PALETTE_STORAGE_KEY,
   LEGACY_THEME_STORAGE_KEY,
   migrateStoredAppearance,
@@ -104,7 +104,7 @@ function getClassicAccentColor(palette: Palette, themeMode: ThemeMode) {
 }
 
 function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette: Palette, leagueAccent: string, competitionAccent: CompetitionAccent) {
-  const dark = visualStyle === "competition" ? true : resolveDark(themeMode)
+  const dark = resolveDark(themeMode)
   const resolvedTheme = dark ? "dark" : "light"
   const root = document.documentElement
   const effectivePalette = visualStyle === "competition" ? "league" : palette
@@ -117,7 +117,7 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   root.classList.toggle("colorful", colorful)
   root.classList.toggle("competition", visualStyle === "competition")
   root.dataset.theme = resolvedTheme
-  root.dataset.baseTheme = visualStyle === "competition" ? "dark" : themeMode
+  root.dataset.baseTheme = themeMode
   root.dataset.style = visualStyle
   root.dataset.visualStyle = visualStyle
   root.dataset.palette = effectivePalette
@@ -126,12 +126,13 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   root.style.setProperty("--league-accent-contrast", getContrastColor(leagueAccent))
   root.style.setProperty("--app-accent", effectiveAccent)
   root.style.setProperty("--competition-accent", effectiveAccent)
+  root.style.setProperty("--competition-accent-text", getCompetitionTextAccent(effectiveAccent, dark))
   root.style.setProperty("--competition-accent-contrast", getCompetitionContrastColor(effectiveAccent))
   root.style.colorScheme = resolvedTheme
 
   // Keep the browser/PWA status bar neutral. The league accent belongs to the
   // app surfaces, not to the operating-system chrome above the viewport.
-  const themeColor = visualStyle === "competition" ? "#0a0a0a" : dark ? "#0b1119" : "#0a0a0a"
+  const themeColor = visualStyle === "competition" ? (dark ? "#0b0c0e" : "#f3f5f8") : dark ? "#0b1119" : "#0a0a0a"
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", themeColor)
 }
 
@@ -172,7 +173,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.removeItem(LEGACY_PALETTE_STORAGE_KEY)
     applyAppearance(themeMode, effectiveStyle, palette, leagueAccent, competitionAccent)
 
-    if (themeMode !== "system" || effectiveStyle === "competition") return
+    if (themeMode !== "system") return
     const media = window.matchMedia("(prefers-color-scheme: dark)")
     const handleChange = () => applyAppearance(themeMode, effectiveStyle, palette, leagueAccent, competitionAccent)
     media.addEventListener("change", handleChange)
@@ -188,7 +189,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (nextVisualStyle === "competition" && !canUseCompetition && sessionStatus !== "loading") return
     window.localStorage.setItem(APPEARANCE_PREFERENCE_STORAGE_KEY, "1")
     setVisualStyleState(nextVisualStyle)
-    if (nextVisualStyle === "competition") setThemeModeState("dark")
   }, [canUseCompetition, sessionStatus])
 
   const setPalette = useCallback((nextPalette: Palette) => {

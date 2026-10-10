@@ -41,7 +41,7 @@ export function MatchChatFloatingAction({ href }: { href: string }) {
     <div
       className="fixed z-40 flex flex-col items-end gap-2"
       style={{
-        right: "max(14px, calc((100vw - 448px) / 2 + 14px))",
+        right: "max(14px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 14px))",
         bottom: "calc(84px + env(safe-area-inset-bottom, 0px))",
       }}
     >

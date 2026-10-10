@@ -69,7 +69,7 @@ function CommonOpponentSummary({
   const { tx } = useI18n()
   return (
     <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5">
-      <p className="type-player-name truncate">{playerName}</p>
+      <p className="type-player-name break-words">{playerName}</p>
       <p className="mt-1 text-lg font-black">
         {formatPercent(getWinRate(performance.wins, performance.matchesPlayed))}
       </p>
@@ -120,7 +120,7 @@ export function PlayerComparisonPanel({
   return (
     <div className="space-y-2">
       <FloatingStatisticsSelector>
-        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
+        <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           <label className="min-w-0">
             <span className="type-caption font-black uppercase tracking-wide text-neutral-500">
               {tx("Jugador 1")}{" "}</span>
@@ -180,7 +180,7 @@ export function PlayerComparisonPanel({
             ].map(({ player, position, form }) => (
               <AppCard key={player.id} className="min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="min-w-0 truncate font-black">{player.displayName}</p>
+                  <p className="min-w-0 break-words font-black">{player.displayName}</p>
                   <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black">
                     {position}º
                   </span>

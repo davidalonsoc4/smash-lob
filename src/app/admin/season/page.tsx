@@ -31,11 +31,8 @@ import {
   updateSupabaseSeasonRoundSettings,
 } from "@/lib/supabaseSeasons";
 import {
-  generateBalancedCalendar,
   getSeasonScheduleRoundCount,
-  getNewPlayerToken,
   isValidSeasonScheduleTarget,
-  type ManualCalendarMatchDraft,
   type SeasonScheduleMode,
 } from "@/lib/calendar";
 import type { MvpSystem } from "@/lib/mvp";
@@ -49,7 +46,6 @@ import { isSeasonRegistrationSettled } from "@/lib/seasonRegistration";
 import { buildSeasonRounds } from "@/lib/rounds";
 import { isScheduledSeasonPending } from "@/lib/seasonScheduling";
 import {
-  getDefaultSeasonPlayerCount,
   getSeasonBaseRoundCount,
   getSeasonMatchesPerRound,
 } from "@/lib/seasonPlayerCount";
@@ -67,8 +63,6 @@ type SeasonPlayerSummary = {
   avatarInitials?: string | null;
   avatarUrl?: string | null;
 };
-
-type ManualCalendarTeamKey = "teamA" | "teamB";
 type ManualCalendarRoundDraft = {
   round: number;
   matches: { teamA: string[]; teamB: string[] }[];
@@ -297,127 +291,6 @@ function getManualCalendarDraftRoundCount({
     : getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode, targetRoundCount });
 }
 
-function createEmptyManualCalendar({
-  playerCount,
-  scheduleMode,
-  targetRoundCount,
-}: {
-  playerCount: number;
-  scheduleMode: SeasonScheduleMode;
-  targetRoundCount?: number;
-}): ManualCalendarRoundDraft[] {
-  return Array.from(
-    { length: getManualCalendarDraftRoundCount({ playerCount, scheduleMode, targetRoundCount }) },
-    (_, roundIndex) => ({
-      round: roundIndex + 1,
-      matches: Array.from({ length: getMatchesPerRound(playerCount) }, () => ({
-        teamA: ["", ""],
-        teamB: ["", ""],
-      })),
-    }),
-  );
-}
-
-function getDraftPlayerValues({
-  selectedPlayerIds,
-  playerCount,
-}: {
-  selectedPlayerIds: string[];
-  playerCount: number;
-}) {
-  const selectedValues = selectedPlayerIds.slice(0, playerCount);
-  const missingSlots = Math.max(playerCount - selectedValues.length, 0);
-
-  return [
-    ...selectedValues,
-    ...Array.from({ length: missingSlots }, (_, index) =>
-      getNewPlayerToken(index),
-    ),
-  ];
-}
-
-function createBalancedManualCalendar(
-  playerValues: string[],
-  scheduleMode: SeasonScheduleMode = "single",
-  targetRoundCount?: number,
-): ManualCalendarRoundDraft[] {
-  const generationMode = scheduleMode === "double" ? "single" : scheduleMode;
-  const generationTarget = scheduleMode === "double"
-    ? getSeasonBaseRoundCount(playerValues.length)
-    : targetRoundCount;
-  const balancedMatches = generateBalancedCalendar({
-    leagueId: "manual-draft",
-    seasonId: "manual-draft-season",
-    playerIds: playerValues,
-    scheduleMode: generationMode,
-    targetRoundCount: generationTarget,
-  });
-
-  if (balancedMatches.length === 0) {
-    return createEmptyManualCalendar({
-      playerCount: playerValues.length,
-      scheduleMode,
-      targetRoundCount,
-    });
-  }
-
-  return Array.from(
-    {
-      length: getManualCalendarDraftRoundCount({
-        playerCount: playerValues.length,
-        scheduleMode,
-        targetRoundCount,
-      }),
-    },
-    (_, roundIndex) => {
-      const round = roundIndex + 1;
-      const roundMatches = balancedMatches.filter(
-        (match) => match.round === round,
-      );
-
-      return {
-        round,
-        matches: roundMatches.map((match) => ({
-          teamA: match.teamA,
-          teamB: match.teamB,
-        })),
-      };
-    },
-  );
-}
-
-function normalizeManualCalendarRoundOrder(
-  manualCalendar: ManualCalendarRoundDraft[],
-): ManualCalendarRoundDraft[] {
-  return manualCalendar.map((round, index) => ({
-    ...round,
-    round: index + 1,
-  }));
-}
-
-function moveManualCalendarRound({
-  manualCalendar,
-  roundIndex,
-  direction,
-}: {
-  manualCalendar: ManualCalendarRoundDraft[];
-  roundIndex: number;
-  direction: -1 | 1;
-}) {
-  const nextIndex = roundIndex + direction;
-
-  if (nextIndex < 0 || nextIndex >= manualCalendar.length) {
-    return manualCalendar;
-  }
-
-  const nextCalendar = [...manualCalendar];
-  const currentRound = nextCalendar[roundIndex];
-  nextCalendar[roundIndex] = nextCalendar[nextIndex];
-  nextCalendar[nextIndex] = currentRound;
-
-  return normalizeManualCalendarRoundOrder(nextCalendar);
-}
-
 function moveRoundOrderItem({
   roundOrder,
   index,
@@ -441,79 +314,6 @@ function moveRoundOrderItem({
   return nextRoundOrder;
 }
 
-function getManualCalendarMatches(
-  manualCalendar: ManualCalendarRoundDraft[],
-): ManualCalendarMatchDraft[] {
-  return manualCalendar.flatMap((round) =>
-    round.matches.map((match) => ({
-      round: round.round,
-      teamA: match.teamA,
-      teamB: match.teamB,
-    })),
-  );
-}
-
-function isManualCalendarComplete({
-  manualCalendar,
-  validPlayerValues,
-}: {
-  manualCalendar: ManualCalendarRoundDraft[];
-  validPlayerValues: Set<string>;
-}) {
-  return manualCalendar.every((round) => {
-    const roundPlayerIds = round.matches.flatMap((match) => [
-      ...match.teamA,
-      ...match.teamB,
-    ]);
-
-    return (
-      roundPlayerIds.length > 0 &&
-      roundPlayerIds.every(
-        (playerId) => playerId.length > 0 && validPlayerValues.has(playerId),
-      ) &&
-      new Set(roundPlayerIds).size === roundPlayerIds.length
-    );
-  });
-}
-
-function updateManualCalendarSlot({
-  manualCalendar,
-  roundIndex,
-  matchIndex,
-  teamKey,
-  playerIndex,
-  value,
-}: {
-  manualCalendar: ManualCalendarRoundDraft[];
-  roundIndex: number;
-  matchIndex: number;
-  teamKey: ManualCalendarTeamKey;
-  playerIndex: number;
-  value: string;
-}) {
-  return manualCalendar.map((round, currentRoundIndex) => {
-    if (currentRoundIndex !== roundIndex) {
-      return round;
-    }
-
-    return {
-      ...round,
-      matches: round.matches.map((match, currentMatchIndex) => {
-        if (currentMatchIndex !== matchIndex) {
-          return match;
-        }
-
-        return {
-          ...match,
-          [teamKey]: match[teamKey].map((playerId, currentPlayerIndex) =>
-            currentPlayerIndex === playerIndex ? value : playerId,
-          ),
-        };
-      }),
-    };
-  });
-}
-
 function isSupabaseBackedId(id: string) {
   return supabaseUuidPattern.test(id);
 }
@@ -532,21 +332,6 @@ function recordSupabaseError(action: string, error: unknown) {
       createdAt: new Date().toISOString(),
     }),
   );
-}
-
-function resizePlayerNames(currentNames: string[], nextCount: number) {
-  return Array.from(
-    { length: nextCount },
-    (_, index) => currentNames[index] ?? "",
-  );
-}
-
-function getNextPlayerCount(currentCount: number) {
-  return getDefaultSeasonPlayerCount(currentCount);
-}
-
-function getDefaultNewSeasonName({ seasonCount }: { seasonCount: number }) {
-  return `Temporada ${seasonCount + 1}`;
 }
 
 function getActorFromSession(session: ReturnType<typeof useSession>["data"]) {
@@ -663,45 +448,6 @@ const mvpSystemOptions: {
   },
 ];
 
-function MvpSystemOptions({
-  value,
-  onChange,
-}: {
-  value: MvpSystem;
-  onChange: (value: MvpSystem) => void;
-}) {
-  const { tx } = useI18n()
-  return (
-    <div className="mt-3 grid gap-2">
-      {mvpSystemOptions.map((option) => {
-        const selected = value === option.value;
-
-        return (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            className={`rounded-2xl border px-3 py-3 text-left ${
-              selected
-                ? "border-neutral-950 bg-neutral-950 text-white"
-                : "border-neutral-200 bg-white text-neutral-900"
-            }`}
-          >
-            <span className="block text-sm font-black">{tx(option.title)}</span>
-            <span
-              className={`mt-1 block text-xs font-semibold leading-5 ${
-                selected ? "text-neutral-300" : "text-neutral-500"
-              }`}
-            >
-              {tx(option.description)}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 
 const resultConfirmationOptions: {
   value: ResultConfirmationMode;
@@ -727,45 +473,6 @@ const resultConfirmationOptions: {
       "El jugador que informa el resultado queda validado implícitamente. El resultado suma cuando lo confirma el resto o, si nadie lo impugna, al cumplirse 24 horas.",
   },
 ];
-
-function ResultConfirmationOptions({
-  value,
-  onChange,
-}: {
-  value: ResultConfirmationMode;
-  onChange: (value: ResultConfirmationMode) => void;
-}) {
-  const { tx } = useI18n()
-  return (
-    <div className="mt-3 grid gap-2">
-      {resultConfirmationOptions.map((option) => {
-        const selected = value === option.value;
-
-        return (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            className={`rounded-2xl border px-3 py-3 text-left ${
-              selected
-                ? "border-neutral-950 bg-neutral-950 text-white"
-                : "border-neutral-200 bg-white text-neutral-900"
-            }`}
-          >
-            <span className="block text-sm font-black">{tx(option.title)}</span>
-            <span
-              className={`mt-1 block text-xs font-semibold leading-5 ${
-                selected ? "text-neutral-300" : "text-neutral-500"
-              }`}
-            >
-              {tx(option.description)}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 function getFinishedSeasonScheduleLabel({
   totalRounds,
@@ -2073,7 +1780,7 @@ export default function AdminSeasonPage() {
         seasonId: activeSeason.id,
         name: getSuggestedSeasonName(activeSeason.name),
       });
-      hydrateSeasonSnapshot(result.snapshot);
+      hydrateSeasonSnapshot(result.snapshot, true);
       const createdSeasonId = result.snapshot.activeSeasonIds[activeLeague.id];
       if (createdSeasonId) {
         replaceSeasonMatches(createdSeasonId, result.matches);

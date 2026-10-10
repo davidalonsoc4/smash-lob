@@ -210,7 +210,7 @@ function PlayerUserCard({
           />
 
           <div className="min-w-0">
-            <p className="truncate text-lg font-black">{item.displayName}</p>
+            <p className="break-words text-lg font-black">{item.displayName}</p>
             <p className="mt-1 text-xs font-semibold text-neutral-500">
             {item.linkedUserEmail
               ? item.linkedUserDisplayName
@@ -308,6 +308,7 @@ export function LeagueUsersManagementPanel({
   } = useLeagueAccess()
   const [items, setItems] = useState<LeagueUserManagementPlayer[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const linkedCount = useMemo(
@@ -377,11 +378,12 @@ export function LeagueUsersManagementPanel({
       <p className="font-bold">{tx("Jugadores y usuarios")}</p>
       <p className="mt-2 text-sm text-neutral-500">
         {tx("Gestiona los jugadores de la liga, sus cuentas vinculadas y los permisos de administración. Estos jugadores pertenecen a la liga; cada temporada decide cuáles participan.")}{" "}</p>
-      <p className="mt-3 text-xs font-semibold text-neutral-500">
+      <p className="mt-3 text-xs font-semibold text-neutral-500" hidden={isLoading}>
         {tx("Total:")} {items.length} {tx("· Vinculados:")} {linkedCount} {tx("· Sin vincular:")}{" "}
         {unlinkedCount}
       </p>
 
+      <label className="mt-3 block text-sm font-semibold">{tx("Buscar")}<input type="search" value={search} onChange={event => setSearch(event.target.value)} className="mt-1 min-h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm" /></label>
       <div className="mt-4 space-y-3">
         {isLoading ? (
           <div className="rounded-2xl bg-neutral-100 p-3">
@@ -397,7 +399,7 @@ export function LeagueUsersManagementPanel({
         ) : null}
 
         {!isLoading && items.length > 0
-          ? items.map((item) => (
+          ? items.filter(item => item.displayName.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map((item) => (
               <PlayerUserCard
                 key={`${item.playerId}:${item.displayName}:${item.linkedUserId ?? "free"}:${item.role ?? "none"}`}
                 leagueId={leagueId}

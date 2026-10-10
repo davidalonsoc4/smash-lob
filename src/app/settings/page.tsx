@@ -202,7 +202,7 @@ function AppearanceSettingsLink() {
   const description = colorful
     ? `${themeLabels[themeMode]} · ${t.settings.visualStylePlain} · ${paletteLabels[palette === "league" ? "classic" : palette]}`
     : visualStyle === "competition"
-      ? `${t.settings.appearanceDark} · ${t.settings.visualStyleColorful}`
+      ? `${themeLabels[themeMode]} · ${t.settings.visualStyleColorful}`
     : `${themeLabels[themeMode]} · ${t.settings.visualStylePlain}`
   return (
     <SettingsLinkRow
