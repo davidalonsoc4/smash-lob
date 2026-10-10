@@ -2069,8 +2069,6 @@ html.colorful .home-leader-round-grid > :nth-child(2) > .app-stat-card::before {
   );
 }
 
-/* Keep the mobile gesture/navigation area visually continuous with NAVBAR.
-   Some standalone browsers paint that system inset from the document root. */
 html.dark { --app-bottom-nav-safe-surface: #202023; }
 html.dark[data-style="plain"] { --app-bottom-nav-safe-surface: #121b26; }
 html.colorful { --app-bottom-nav-safe-surface: #ffffff; }
@@ -2090,6 +2088,7 @@ html[data-theme][data-bottom-nav-visible="true"] .app-bottom-nav,
 html[data-theme][data-bottom-nav-visible="true"] .personal-matches-bottom-nav {
   background: var(--app-bottom-nav-safe-surface) !important;
 }
+@media (display-mode: standalone) { body::after { content: ""; position: fixed; z-index: 49; inset: auto 0 0; height: max(env(safe-area-inset-bottom, 0px), 24px); background: var(--app-bottom-nav-safe-surface); pointer-events: none; } }
 /* Match chat owns the whole standalone viewport, including the mobile gesture area. */
 html.dark { --app-match-chat-safe-surface: #222225; }
 html.dark[data-style="plain"] { --app-match-chat-safe-surface: var(--classic-dark-surface); }
