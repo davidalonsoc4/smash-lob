@@ -1,0 +1,31 @@
+{
+  "requests": [
+    {
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/experimental/avatar-lab",
+      "status": 200
+    },
+    {
+      "path": "/api/experimental/avatar-lab/dicebear-big-smile?seed=release-smoke",
+      "status": 401
+    }
+  ],
+  "version": "1.15.10",
+  "deployment": "dpl_AcYktfsnzmj4UdgMJ3VurxHhFhQN",
+  "anonymousHealthStatus": "302",
+  "candidateCI": 38089047485,
+  "url": "https://pre.smashandlob.com",
+  "environment": "pre",
+  "stagingCI": 38089344659,
+  "databaseWrites": false,
+  "commit": "33604ceee9a44d662fe5e7868e025638d7bebeea",
+  "status": "ok",
+  "applicationSessionUsed": false
+}
