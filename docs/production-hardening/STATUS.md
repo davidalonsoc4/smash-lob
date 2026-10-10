@@ -2140,3 +2140,6 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 - Usuario autoriza subir todo lo pendiente a PRE. Se prepara v1.15.9 con Competition claro y auditorías V01/V02; main/Producción/v1.0.0 quedan fuera del alcance. staging remoto y main parten de 02c3c4a15ab8f74fc7f351f0a1e06ba4d8be2f46.
 - Gates locales previos: validate completo y 858 pruebas, Playwright 76/76; npm audit --omit=dev informa cero vulnerabilidades. Sin migraciones pendientes ni escrituras de negocio. Publicación todavía no ejecutada; se verificará SHA remoto, despliegue y smoke PRE.
+
+- Revisión previa de Actions detecta fallo heredado en pgTAP: la prueba prohibía cualquier política, incluida notification_reads_service_only (solo service_role). Se actualiza la aserción para rechazar toda política que no esté restringida exclusivamente a service_role; no se modifican permisos ni migraciones. Publicación detenida hasta comprobar el gate de base de datos en CI.
+- Inventario por diferencias de parches: pendientes Competition claro, auditorías acumuladas y tres commits antiguos de feature/welcome-pack-media-kit (impresión móvil y optimización del calendario). Resto de ramas funcionales ya integradas; competition-dark-polish solo aporta documentación. Se integrarán en orden y sin duplicar cambios.

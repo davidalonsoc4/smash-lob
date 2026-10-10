@@ -137,7 +137,7 @@ select ok(
     from pg_policies
     where schemaname = 'public'
   ),
-  'the browser roles cannot regain access through permissive policies'
+  'public policies are restricted exclusively to service_role'
 );
 
 
