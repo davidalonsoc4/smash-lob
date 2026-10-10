@@ -49,7 +49,7 @@ recorded in `FUNCTIONAL_PRE_ACCEPTANCE.md`. Final `npm run validate` passed:
 without regenerating visual references. Manual and captured visual checks passed.
 Changes remain uncommitted for user review; no deployment or remote operation.
 
-## V03 — Publish audited pending changes to PRE (IN PROGRESS)
+## V03 — Publish audited pending changes to PRE (DONE)
 
 Explicit user authorization on 2026-10-10: publish all pending work to PRE only.
 Includes Competition light and V01/V02 improvements. Preserve main, Production
@@ -57,3 +57,12 @@ and v1.0.0. Version 1.15.9; no migrations or business data changes.
 Validation: version/source checks, local validate and Playwright results, production
 dependency audit, verified remote staging SHA, Vercel READY deployment for that SHA,
 and smoke:pre against the PRE alias. Record remote CI outcomes separately.
+
+Completed 2026-10-10: PR #19 merged into staging at b6212a007cac7ae1f7a0b809b9953e561836edc0.
+All four CI jobs passed before and after merge (runs 38043501747 / 38043771776).
+Vercel deployment smash-hlsmrm25h is READY and serves pre.smashandlob.com.
+Authenticated Vercel smoke confirms version 1.15.9, environment pre, health/home
+200, Avatar Lab 200 and its API 401 without application authentication.
+Unauthenticated smoke receives Vercel SSO 302; protection was preserved.
+main stays at 02c3c4a15ab8f74fc7f351f0a1e06ba4d8be2f46; Production untouched.
+Verification documentation is recorded on the integration branch after deployment.
