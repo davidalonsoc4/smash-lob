@@ -96,12 +96,19 @@ Last updated: 2026-07-16 23:31:46 +02:00
 - Depends on: C12.
 
 ## C14 - Database transaction validation prerequisite
-- Status: BLOCKED (2026-10-10; database:quality exit 1, local Supabase bootstrap cannot inspect its service; Docker CLI/Desktop not available)
+- Status: DONE (2026-10-10; identical database quality script passed in worker-local disposable Supabase, GitHub Actions 38078565124/job 114290558197; workstation Docker remains unavailable)
 - Acceptance: an isolated disposable local Supabase/PostgreSQL engine can replay migrations, run pgTAP/schema lint and verify restore/upgrade before transactional corrections are accepted.
 - Validation: `npm run database:quality` in the isolated checkout, using synthetic data only.
 - Remote changes allowed: following the user's PRE publication request and delegated judgment, push the validated correction candidate and open a PR to staging solely to run the existing isolated GitHub Actions database gate. No remote database writes or deployment before that gate passes. The worker-local disposable Supabase stack uses synthetic data only.
 - Stop condition: missing local engine or failed database gate blocks transactional implementation/acceptance; preserve the 17 open findings and do not bypass the database gate with mocks.
 - Depends on: C13. Following domains: account lifecycle BUG-003; league/season transactions BUG-013/014/015/016/018/019/037; result/calendar/incident atomicity BUG-022/023/024/025; financial/participant consistency BUG-028/029/032; waitlist reservation/expiration BUG-011/012.
+
+## C15 - Publish validated audit corrections to PRE
+- Status: IN PROGRESS (2026-10-10; user authorized PRE publication; C14 prerequisite and all four candidate CI jobs passed)
+- Acceptance: coherent new app/PWA version, all local release gates pass, final candidate CI passes, staging merge and PRE deployment/alias/health are explicitly verified. No unresolved transactional finding is represented as fixed.
+- Validation: version/source/secret checks, npm run validate, npm run test:e2e, dependency audits; existing four release-quality jobs; authenticated PRE smoke and remote SHA verification.
+- Remote changes allowed: candidate branch/PR, staging merge and PRE deployment only. No remote database writes; main, Production and v1.0.0 untouched.
+- Depends on: C14. Seventeen database transaction findings remain OPEN for separately scoped correction milestones.
 
 ## H00 - Inventory and initial diff review
 - Status: DONE

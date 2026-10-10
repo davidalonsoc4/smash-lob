@@ -1,8 +1,8 @@
 # Audit correction tracking
 
-Branch: codex/audit-corrections. Local implementation only; no publication or real-data validation. Original audit findings remain unchanged as historical evidence.
+Branch: codex/audit-corrections; PR #20 targets staging. PRE publication in progress; no real-data validation. Original audit findings remain unchanged as historical evidence.
 
-23 corrected locally; 17 open. Cumulative gate C13 passed: 922 tests / 237 files, 76 E2E, build, static checks, lint, types and zero dependency vulnerabilities. C14 BLOCKED: local Supabase bootstrap failed (LegacyDbBootstrapError: failed to inspect service); Docker runtime unavailable. Database validation did not run. Seventeen findings, including six P1, remain open. Corrected means the targeted milestone tests passed; database-dependent cases require transaction and concurrency validation.
+23 corrected locally; 17 open. Cumulative gate C13 passed: 922 tests / 237 files, 76 E2E, build, static checks, lint, types and zero dependency vulnerabilities. C14 passed in worker-local disposable Supabase on GitHub Actions run 38078565124: migration replay, schema lint, 38 pgTAP tests, logical restore and upgrade. The workstation still lacks Docker. Seventeen findings, including six P1, remain open. Corrected means the targeted milestone tests passed; database-dependent cases require transaction and concurrency validation.
 
 | Finding | Severity | Status | Milestone | Original finding |
 | --- | --- | --- | --- | --- |
@@ -52,5 +52,5 @@ Limits: C09 Push delivery remains at-least-once. C10 edited app sessions conserv
 Open work: atomic account deletion; waitlist capacity/expiry; league creation compensation; season create/start/delete/duplicate/reorder transactions; result/incident/calendar concurrency; payment mutation concurrency, cent allocation and friendly participant identity preservation.
 
 
-Resume: execute C14 with the existing release-quality GitHub Actions job, which runs the same database quality script against a worker-local disposable Docker stack and synthetic fixtures. Work only C14 until that gate passes; no merge/deployment before verified success. The workstation alternative is installing/starting Docker Desktop and rerunning npm run database:quality in the isolated checkout recorded in STATUS.md. No migrations have been modified or added in this correction phase.
+Resume: execute C14 with the existing release-quality GitHub Actions job, which runs the same database quality script against a worker-local disposable Docker stack and synthetic fixtures. C14 passed; C15 prepares a coherent release and requires all final gates before PRE promotion. The workstation alternative is installing/starting Docker Desktop and rerunning npm run database:quality in the isolated checkout recorded in STATUS.md. No migrations have been modified or added in this correction phase.
 
