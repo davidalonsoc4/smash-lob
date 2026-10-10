@@ -134,6 +134,7 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   // app surfaces, not to the operating-system chrome above the viewport.
   const themeColor = visualStyle === "competition" ? (dark ? "#0b0c0e" : "#f3f5f8") : dark ? "#0b1119" : "#0a0a0a"
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", themeColor)
+  document.querySelector<HTMLMetaElement>('meta[name="msapplication-navbutton-color"]')?.setAttribute("content", themeColor)
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
