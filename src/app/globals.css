@@ -2088,7 +2088,6 @@ html[data-theme][data-bottom-nav-visible="true"] .app-bottom-nav,
 html[data-theme][data-bottom-nav-visible="true"] .personal-matches-bottom-nav {
   background: var(--app-bottom-nav-safe-surface) !important;
 }
-@media (display-mode: standalone) { body::after { content: ""; position: fixed; z-index: 49; inset: auto 0 0; height: max(env(safe-area-inset-bottom, 0px), 24px); background: var(--app-bottom-nav-safe-surface); pointer-events: none; } }
 /* Match chat owns the whole standalone viewport, including the mobile gesture area. */
 html.dark { --app-match-chat-safe-surface: #222225; }
 html.dark[data-style="plain"] { --app-match-chat-safe-surface: var(--classic-dark-surface); }
@@ -3042,3 +3041,4 @@ html[data-visual-style="competition"] .personal-form-result {
 
 .public-site-hero .app-top-back-control { color: #fff; }
 html[data-visual-style="competition"] .app-accent-surface a.bg-white { color: var(--competition-text) !important; }
+@media (display-mode: standalone) { html[data-theme], html[data-theme] body { background: var(--app-system-surface, #ffffff) !important; } }

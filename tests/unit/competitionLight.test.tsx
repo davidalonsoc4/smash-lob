@@ -38,7 +38,7 @@ describe("Competition light", () => {
     fireEvent.click(screen.getByText("Light"))
     expect(localStorage.getItem("smash-lob-theme-mode")).toBe("light")
     expect(localStorage.getItem("smash-lob-visual-style")).toBe("competition")
-    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute("content")).toBe("#f3f5f8")
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute("content")).toBe("#ffffff")
   })
   it("follows system changes in both directions and removes its listener on unmount", () => {
     localStorage.setItem("smash-lob-visual-style", "competition")
