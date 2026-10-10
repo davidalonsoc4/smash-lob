@@ -2058,3 +2058,85 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 - Por solicitud del usuario, se agrupan Competition claro, los ajustes de revisión visual y la simplificación de Mi perfil en un commit local de `codex/competition-light`.
 - Se conservan las validaciones anteriores y se verifica de nuevo `git diff --check` antes del commit. Sin push, despliegue ni cambios en base de datos.
+
+### Datos de posición y mano en PRE (2026-10-09)
+
+- Por autorización expresa del usuario, se rellenaron aleatoriamente los campos vacíos `preferred_side` y `dominant_hand` de `app_users` únicamente en PRE, verificando el proyecto antes de escribir.
+- Dos usuarios actualizados, cuatro campos completados con valores válidos. Escrituras condicionadas a que cada campo siguiera vacío; los valores existentes se conservaron.
+- Lectura posterior verificada: ningún usuario sin posición o mano informada y todos los valores válidos. Sin modificar PROD, esquema ni migraciones.
+
+### Posición y mano ficticias para jugadores sin cuenta (local, 2026-10-09)
+
+- Por solicitud del usuario, el snapshot autenticado de liga añade posición y mano deterministas según el ID a jugadores sin cuenta vinculada, únicamente para localhost/PRE con la base de PRE. No se persisten ni se sustituyen datos de cuentas vinculadas.
+- La protección devuelve valores vacíos ante host desconocido, variante prod/production, base distinta de PRE o configuración inválida. El entorno local actual cumple las condiciones sin cambios de configuración.
+- Validación: 10 pruebas unitarias con configuración simulada (incluyendo exclusión de PROD), ESLint y `git diff --check` correctos. Sin commit, push ni despliegue; PRE recibirá el comportamiento cuando se publique.
+
+### Ayuda de estados por toque, ratón y teclado (local, 2026-10-09)
+
+- Componente compartido `StatusHelp`: muestra la explicación con un toque, hover de ratón o foco; admite Enter/Espacio, Escape, cierre al tocar fuera y al desplazar/redimensionar. Evita activar la tarjeta contenedora y usa portal con posición limitada al viewport para no quedar recortado.
+- Aplicado a estados de partidos y victoria/derrota (liga y personales), jornadas, temporadas de Mis ligas, pagos e inscripciones, incidencias, validación de resultados, estadísticas incompletas, vista pública y bolitas de Chats/solo lectura. Descripciones ES/EN/EU y colores semánticos compartidos por los temas.
+- La aserción estructural antigua del desplegable de Chats se actualizó al componente compartido; su interacción queda cubierta por pruebas de comportamiento. El gate i18n detectó una descripción inline, trasladada al catálogo común, y pasó después.
+- Validación: 8 pruebas del componente (toque, ratón, teclado, navegación de tarjeta, portal y traducciones), pruebas relacionadas de tarjetas/Chats/coordinación, TypeScript, ESLint, tipografía, i18n y `git diff --check` correctos. Sin pruebas visuales, commit, push ni despliegue.
+
+### Ayuda contextual para participantes y contraste de Coordinando (local, 2026-10-09)
+
+- La ayuda de partidos distingue al participante del observador en detalle, tarjetas de calendario, historial de perfil, partidos personales y Chats. Orienta a revisar propuestas, confirmar reservas, consultar la programación o registrar resultados según el contexto; no afirma que falte un voto personal sin datos que lo acrediten.
+- El detalle transmite el permiso real de registrar resultado. La validación solo pide revisar/confirmar a participantes habilitados que todavía no han respondido; los observadores conservan explicaciones informativas.
+- Competition aplica explícitamente la superficie, el texto y el borde violeta/índigo de los estados; se añaden las variantes violet-50 y los textos 800 que faltaban para evitar la etiqueta blanca y mantener contraste en claro/oscuro.
+- Validación: 10 pruebas de ayuda (incluidas diferencias participante/observador y permiso de resultado), pruebas de Chats y tarjetas personales, TypeScript, ESLint, tipografía, i18n y `git diff --check` correctos. Sin commit ni publicación.
+
+### Contraste de hora de envío en propuestas del chat (local, 2026-10-09)
+
+- Revisión visual solicitada: las propuestas propias mostraban la hora en gris claro sobre el acento dorado. Se aplica el mismo marcador semántico de metadatos de los mensajes normales y se retira la reducción de escala de esa hora.
+- Validación: ESLint, 3 pruebas de propuestas/timestamps y `git diff --check` correctos. Tras recargar el chat abierto, las horas de ambas propuestas se leen con contraste oscuro sobre dorado; captura conservada fuera del repositorio. Sin enviar mensajes ni votar, sin commit ni publicación.
+
+### Participantes sin cuenta en detalle de encuestas y paridad de amistosos (local, 2026-10-09)
+
+- El detalle de votos deja de filtrar jugadores sin cuenta: todos los participantes aparecen en sí/no/pendiente; los no vinculados figuran como pendientes, sin inventar respuestas ni alterar la regla de acuerdo unánime.
+- Auditoría de equivalentes: el chat amistoso usa los metadatos compartidos y no tiene propuestas/encuestas. Pagos y reservas utilizan CourtBookingPanel común. Se completó el paso del contexto de participante y permiso de registrar resultado en la cabecera del detalle amistoso.
+- Validación: 16 pruebas de agrupación, timestamps y componentes de ambos chats, ESLint, TypeScript y `git diff --check` correctos. En el chat abierto se verificaron visualmente los cuatro jugadores (dos votos y dos pendientes) sin votar ni enviar mensajes. Captura fuera del repositorio. Sin commit ni despliegue.
+
+### Identificación compacta de votantes (local, 2026-10-09)
+
+- El detalle de propuestas muestra nombre e inicial del apellido en lugar de solo nombre; si solo consta un nombre, se conserva. El nombre completo permanece accesible mediante el título y la etiqueta del enlace.
+- Verificado en el chat abierto: David A., David C., Julian A. y Gustavo F. ESLint y `git diff --check` correctos. Sin commit ni publicación.
+
+### Nombres compactos en tarjetas de Chats (local, 2026-10-09)
+
+- Las tarjetas de Chats muestran nombre e inicial del apellido para pareja y rivales, conservando los nombres únicos sin apellido.
+- Validación: 8 pruebas relacionadas de Chats, ESLint y `git diff --check` correctos. Sin commit ni publicación.
+
+### Iconos de Explorar estadísticas (local, 2026-10-09)
+
+- Eliminado el doble contenedor del icono que superponía superficies y un borde cuadrado en Competition. Ahora cada acceso tiene un único contenedor redondeado y centrado, con SVG de 20×20 y trazo uniforme; se equilibran las barras de clasificación y la base del trofeo.
+- Verificados visualmente los seis accesos tras recargar el navegador; mantienen centrado vertical con descripciones de varias líneas y respetan el acento del tema. ESLint, tipografía y `git diff --check` correctos. Sin commit ni publicación.
+
+### Correcciones de auditoría visual (local, 2026-10-09)
+
+- Rama codex/visual-audit-polish creada por petición del usuario, conservando los cambios locales anteriores. Plan resumible en docs/VISUAL_AUDIT_PLAN.md; V01 en curso, sin operaciones remotas.
+- Primer bloque: contraste del estado vacío e incidencias, ubicación pendiente precisa, nombres completos en perfiles, eliminación de temporada duplicada, singularización en rendimiento, exclusión de campeones sin resultados y prioridad de deudas propias en pagos. Validación pendiente; no marcado completo.
+- Segundo bloque: contexto de liga y temporada en enlaces autorizados, paridad de Chats amistosos, selectores de temporada en estadísticas y administración, cargas de usuarios, búsqueda de ayuda/usuarios, gráfica inicialmente reducida y pulido de exportación/perfiles. Se retiraron helpers administrativos sin uso para respetar el presupuesto de código, sin elevarlo.
+- Pruebas nuevas: no premiar campeones sin resultados válidos y resolver enlaces conocidos solo con acceso autorizado. TypeScript y pruebas dirigidas correctos; suite completa encontró una aserción antigua adicional del título de Inicio, ya corregida. Validación completa y segunda revisión visual todavía pendientes.
+- Segunda pasada visual en curso: fechas/temporadas de actividad y notificaciones, entrada compacta de amistosos, carga visible del chat, importe sin informar distinto de cero, pendientes históricos explícitos y controles de Media Kit debajo del título. Ancho de escritorio ampliado a 640 px, coordinando navegación y controles flotantes con la misma variable; móvil sin cambio de ancho.
+- Validación previa: 217 archivos / 850 pruebas correctos; build y presupuesto JS correctos en copia con dependencias propias del lockfile. Turbopack rechazó inicialmente el enlace de node_modules, sustituido por instalación aislada. Se repetirán gates tras los últimos ajustes visuales.
+- Reanudación: las dos pruebas de Welcome Pack pasan tras marcar como visto el anuncio de Competition en el usuario ficticio de Playwright. Se mantienen las pruebas unitarias del aviso; no se cambia el comportamiento para usuarios reales.
+- Segunda revisión: 88 visitas registradas / 72 rutas y variantes, con muestra adicional clara y escritorio. Enlace entre ligas autorizado verificado hasta cargar Jornada 4 / Temporada 2; pagos de amistosos muestran primero la deuda propia; perfil global comprobado tras completar la carga. Ancho de contenido y navegación de escritorio medido: 640 px. Tema oscuro, URL original y viewport normal restaurados.
+- Referencias visuales autenticadas revisadas individualmente en móvil/escritorio y regeneradas por cambios deliberados de tipografía, contenido y ancho; también revisadas las referencias públicas. La suite completa se repite sin actualizar referencias antes de declarar el gate correcto.
+- Playwright completo: 70/70 correctas sin actualización automática de referencias. Validación general detectó una aserción estructural antigua que imponía texto blanco al retorno público; actualizada para comprobar el marcador de acento y el blanco del estilo clásico en CSS. Sus tres pruebas pasan; se repite validate completo antes de cerrar.
+- V01 completado con disposiciones y límites explícitos en docs/VISUAL_AUDIT_RESULTS.md: validate completo correcto, 217 archivos / 850 pruebas, TypeScript y build correctos, 0 errores ESLint / 4 avisos. Presupuestos sin elevar: 132.184 líneas / 191 clientes / 50 páginas cliente y 1.178.599 bytes gzip / 102 chunks JS. Playwright final 70/70. Sin commit, push, despliegue ni escrituras de negocio durante la revisión.
+- V02 iniciado por autorización expresa del usuario: aceptación funcional manual en localhost/PRE con ligas y temporadas desechables. Conservar ligas existentes; verificar persistencia y limpieza. Sin usar cuentas personales/PRE en suites automatizadas, sin cambios de permisos, commit ni despliegue.
+- V02: entorno PRE/local y proceso del checkout verificados. Creada por UI la liga QA V02 desechable 2026-10-09 y QA ciclo inicial (8 jugadores/7 jornadas); persistencia tras recarga correcta, inscripciones ficticias 8/8 y desbloqueo de inicio correctos. Confirmación nativa de inicio bloquea el navegador integrado; resolución solicitada al usuario, sin asumir escritura exitosa. Registro y limpieza pendiente en docs/FUNCTIONAL_PRE_ACCEPTANCE.md.
+- V02 continúa: temporada activa, programación manual/reserva fijada, descarga ICS, mensaje persistente, validación de tres sets/ranking y disponibilidad L-V verificados. Detectados flashes de hidratación (UUIDs/función temporalmente no habilitada), sin corrupción persistente. Detalle en FUNCTIONAL_PRE_ACCEPTANCE; pagos, ciclo y limpieza pendientes.
+- V02: edición de resultados/ranking 2-1 y +5/-5, recomendaciones de horario, reparto económico multi/único pagador, deuda propia y liquidación persistente correctos. Propuesta de ubicación muestra los cuatro jugadores. Se documentan estados optimistas sin indicador visible; continúa aceptación.
+- V02: cierre y duplicación persistentes, orden de temporadas y contexto de Perfil correctos. Amistoso QA con resultado/pagos/chat persistentes; exportaciones CSV y estructura XLSX verificadas. Se registra ausencia de reserva fijada en chat amistoso y pérdida temporal de datos históricos en UI tras duplicar. Pendiente limpieza y balance final.
+- V02 reanudado 2026-10-10: exportaciones 8×10/14×12 y estructura XLSX correctas, descripción administrativa persistente, inicio programado/cuenta atrás persistentes y reversión manual probados. Limpieza bloqueada por confirmación nativa al eliminar amistoso; diálogo no expuesto y close también timeout. Recursos exactos y reanudación en FUNCTIONAL_PRE_ACCEPTANCE.md. V02 permanece EN CURSO, sin asumir eliminación ni validación total; sin cambios de aplicación/commit/remoto.
+- V02 2026-10-10: usuario resuelve confirmación. Limpieza verificada tras recarga: amistoso QA ausente, liga QA eliminada por UI y su partido desaparecido del historial. Restauradas estadísticas originales/temporada 2, oscuro y viewport normal. Ejecución manual cerrada con hallazgos; V02 no marcado DONE porque mejoras funcionales y límites siguen documentados. Sin cambios de aplicación, commit ni publicación.
+- V02 correcciones locales en nueva rama `codex/functional-audit-fixes`, conservando todo el trabajo anterior. La entrada espera el snapshot completo; ajustes de temporada se leen al inicializar; duplicación integra una respuesta parcial conservando plantilla/reglas históricas. Votos muestran Guardando y bloquean envíos concurrentes, sin confirmar visualmente antes del servidor. Chat amistoso incorpora reserva/calendario desde el detalle autorizado. Abreviaturas coincidentes vuelven al nombre completo en encuestas y Chats. TypeScript y 10 pruebas dirigidas correctos; presupuesto 132.189 líneas / 191 clientes / 50 páginas cliente. Validación completa y revisión posterior pendientes; sin commit ni operaciones remotas.
+- V02: corregidas seis aserciones estructurales que exigían el comportamiento sustituido; 39 pruebas relacionadas correctas. `validate` completo correcto: 219 archivos / 858 pruebas, TypeScript, 0 errores ESLint / 4 avisos previos, build 1.181.292 bytes gzip / 102 chunks. Playwright 76/76 sin regenerar referencias, incluyendo espera de acceso, votos con latencia/error/reintento/recarga y calendario amistoso Google/ICS en claro/oscuro, móvil/escritorio. Se revisaron sus seis capturas; revisión local de Inicio/Chats/propuestas correcta. Último pulido mantiene nombre/inicial y coma juntos; 20 pruebas y ESLint correctos, se repite validate sobre ese estado final antes del cierre. Sin escrituras de negocio adicionales, commit ni publicación.
+- V02 cerrado en su alcance documentado: validate final completo correcto (219 archivos / 858 pruebas, TypeScript, 0 errores ESLint / 4 avisos previos, 132.188 líneas / 191 clientes / 50 páginas cliente, build 1.181.317 bytes gzip / 102 chunks). 26 pruebas dirigidas y ESLint finales correctos; Playwright 76/76. Reserva amistosa y guardado revisados en capturas de móvil/escritorio, claro/oscuro; nombres comprobados en el navegador local. Límites y disposición del diálogo nativo en FUNCTIONAL_PRE_ACCEPTANCE. Rama codex/functional-audit-fixes lista para revisión local, sin commit ni push. Auto Resume comprobado activo, monitor ejecutándose y autoarranque registrado; no se cambió su configuración.
+- Evidencias y logs finales conservados fuera del repositorio. La app rechazó archivar la copia `functional-audit-check` por protección de chat/workspace fijado; se conserva íntegra y no se elude esa protección. El checkout principal y su servidor permanecen disponibles.
+
+### V03 — Publicación autorizada solo en PRE (2026-10-10)
+
+- Usuario autoriza subir todo lo pendiente a PRE. Se prepara v1.15.9 con Competition claro y auditorías V01/V02; main/Producción/v1.0.0 quedan fuera del alcance. staging remoto y main parten de 02c3c4a15ab8f74fc7f351f0a1e06ba4d8be2f46.
+- Gates locales previos: validate completo y 858 pruebas, Playwright 76/76; npm audit --omit=dev informa cero vulnerabilidades. Sin migraciones pendientes ni escrituras de negocio. Publicación todavía no ejecutada; se verificará SHA remoto, despliegue y smoke PRE.
