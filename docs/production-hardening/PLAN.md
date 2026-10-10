@@ -110,6 +110,13 @@ Last updated: 2026-07-16 23:31:46 +02:00
 - Remote changes allowed: candidate branch/PR, staging merge and PRE deployment only. No remote database writes; main, Production and v1.0.0 untouched.
 - Depends on: C14. Seventeen database transaction findings remain OPEN for separately scoped correction milestones.
 
+## C16 - Correct installed app system surfaces
+- Status: IN PROGRESS
+- Acceptance: remove artificial bottom overlay; startup/runtime share black for dark and white for light; standalone canvas follows mode without extra space; new PWA cache version.
+- Validation: startup theme regressions, npm run validate in isolation; candidate CI; verified PRE deployment/version. Native Android/iOS rendering remains a physical device gate.
+- Remote changes allowed: candidate PR and PRE only, explicitly authorized by user. No Production or database changes.
+- Depends on: C15.
+
 ## H00 - Inventory and initial diff review
 - Status: DONE
 - Objective: Review the existing uncommitted hardening work and establish the exact starting point.

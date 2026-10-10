@@ -130,11 +130,9 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   root.style.setProperty("--competition-accent-contrast", getCompetitionContrastColor(effectiveAccent))
   root.style.colorScheme = resolvedTheme
 
-  // Keep the browser/PWA status bar neutral. The league accent belongs to the
-  // app surfaces, not to the operating-system chrome above the viewport.
-  const themeColor = visualStyle === "competition" ? (dark ? "#0b0c0e" : "#f3f5f8") : dark ? "#0b1119" : "#0a0a0a"
-  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", themeColor)
-  document.querySelector<HTMLMetaElement>('meta[name="msapplication-navbutton-color"]')?.setAttribute("content", themeColor)
+  const themeColor = dark ? "#000000" : "#ffffff"
+  root.style.setProperty("--app-system-surface", themeColor)
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", themeColor))
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
