@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs"
 import { act, cleanup, render } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { ThemeProvider, useTheme } from "@/context/ThemeProvider"
+import manifest from "@/app/manifest"
 
 vi.mock("next-auth/react", () => ({ useSession: () => ({ status: "unauthenticated" }) }))
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }))
@@ -15,6 +16,13 @@ function expectSurface(dark: boolean) {
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => expect(meta.getAttribute("content")).toBe(dark ? "#000000" : "#ffffff"))
 }
 describe("installed app system surfaces", () => {
+  it("does not bake a fixed light color into the Android installation", () => {
+    const installed = manifest()
+    expect(installed).not.toHaveProperty("theme_color")
+    expect(installed).not.toHaveProperty("background_color")
+    expect(installed.id).toBe("/")
+    expect(installed.display).toBe("standalone")
+  })
   it.each(["classic", "competition"])("keeps %s cold start and runtime aligned across mode changes", (style) => {
     document.head.innerHTML = '<meta name="theme-color" content="red"><meta name="theme-color" content="blue">'
     vi.stubGlobal("matchMedia", () => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
