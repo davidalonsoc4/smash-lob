@@ -25,14 +25,10 @@
 
 html {
   background: var(--background);
-  color-scheme: light;
   font-size: calc(16px + var(--app-font-size-adjust));
   -webkit-text-size-adjust: 100%;
 }
 
-html.dark {
-  color-scheme: dark;
-}
 
 body {
   min-height: 100vh;
