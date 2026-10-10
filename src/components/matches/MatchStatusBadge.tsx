@@ -1,5 +1,7 @@
 "use client"
 
+import { StatusHelp } from "@/components/ui/StatusHelp"
+
 import { useI18n } from "@/i18n/I18nProvider"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { getMatchStatusBadgeClassName } from "@/lib/statusStyles"
@@ -9,6 +11,8 @@ type MatchStatusBadgeProps = {
   scheduledAt?: string | null
   resultRecordedAt?: string | null
   coordinationStatus?: "coordinating" | "awaiting_booking" | null
+  isParticipant?: boolean
+  canRecordResult?: boolean
 }
 
 export function MatchStatusBadge({
@@ -16,8 +20,10 @@ export function MatchStatusBadge({
   scheduledAt,
   resultRecordedAt,
   coordinationStatus = null,
+  isParticipant = false,
+  canRecordResult = false,
 }: MatchStatusBadgeProps) {
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const baseStatus = getMatchDisplayStatus({
     status,
     scheduledAt,
@@ -35,13 +41,13 @@ export function MatchStatusBadge({
     postponed: t.matches.postponed,
     in_progress: t.matches.inProgress,
     result_pending: t.matches.resultPending,
-    coordinating: "Coordinando",
-    awaiting_booking: "Pendiente de reserva",
+    coordinating: tx("Coordinando"),
+    awaiting_booking: tx("Pendiente de reserva"),
   }
 
   return (
-    <p className={`${getMatchStatusBadgeClassName(displayStatus)} ml-auto text-right`}>
+    <StatusHelp kind={isParticipant ? "match-participant" : "match"} status={displayStatus === "result_pending" && isParticipant && canRecordResult ? "record_result" : displayStatus} className={`${getMatchStatusBadgeClassName(displayStatus)} ml-auto text-right`}>
       {labelByStatus[displayStatus] ?? displayStatus}
-    </p>
+    </StatusHelp>
   )
 }
