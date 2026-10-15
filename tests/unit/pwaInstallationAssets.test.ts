@@ -17,7 +17,7 @@ describe("installation assets behind PRE deployment protection", () => {
     ])
     expect(value).toMatchObject({ id: "/", start_url: "/launch?source=pwa", scope: "/" })
     expect(value.theme_color).toBe("#000000")
-    expect(value).not.toHaveProperty("background_color")
+    expect(value.background_color).toBe("#000000")
   })
 
   it("preserves Production branding and its same-origin asset paths", () => {

@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next"
 import { getAppBranding } from "@/lib/appVariant"
 import { PRODUCTION_APP_URL } from "@/lib/appUrl"
-
 export default function manifest(): MetadataRoute.Manifest {
   const branding = getAppBranding()
   const iconOrigin = branding.preproduction ? PRODUCTION_APP_URL : "" // Native icon downloads omit PRE access cookies.
@@ -15,6 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     orientation: "portrait",
     theme_color: "#000000",
+    background_color: "#000000",
     categories: ["sports", "productivity"],
     icons: [
       {
