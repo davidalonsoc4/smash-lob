@@ -1,7 +1,20 @@
 # Android: auditoría de la navegación por gestos
 
 Fecha: 2026-10-15. Hito: C16, **IN PROGRESS**. Base local: `5d96a617`, v1.15.19.
-No se declara resuelto. No hay validación física nueva en esta auditoría.
+No se declara resuelto. Captura física posterior `111744.jpg`: PRE v1.15.20 sigue
+mostrando franja blanca e indicador oscuro bajo la navegación de la app. Aceptación
+fallida: el cambio de canvas no resuelve el síntoma nativo. Lectura USB posterior
+autorizada confirma paquete PRE versionCode 3, actualizado el 11-oct, con
+themeColor/backgroundColor blancos (-1L) y colores dark vacíos. startUrl, scope y
+webManifestUrl pertenecen a PRE. La web v1.15.20 y la instalación nativa tienen
+colores distintos. Inspección de solo lectura; no se ha actualizado ni reinstalado el paquete.
+
+Publicación actual comprobada: PRE v1.15.20, staging `bb673e27`, deployment
+`dpl_3K3Gi2USXxqtmuznbEgVcWM1CmjC` READY y alias PRE verificado. Health,
+manifest negro, bootstrap, CSS del canvas negro y caché v1.15.20 comprobados
+mediante peticiones autenticadas al dominio. 945 pruebas, 88 E2E y cuatro jobs CI
+correctos; Lighthouse pasó una repetición sin cambios de código/umbrales tras TBT
+758 ms en la primera muestra. La barra Android real continúa pendiente de comprobar.
 
 Actualización posterior, candidata v1.15.20: se completa negro fijo para el canvas
 standalone, no solo manifest/meta. El CSS anterior permitía canvas blanco en claro
@@ -238,3 +251,16 @@ permite controlar ventana, contraste y dibujo bajo barras, con fondo negro nativ
 si se elige esa alternativa. En Android 16 debe diseñarse para edge-to-edge;
 setNavigationBarColor aislado no basta. Requiere evaluar distribución, autenticación,
 notificaciones, actualizaciones y safe areas con prueba física. No se migra ahora.
+
+## Reinstalación bloqueada por CSP (15-oct, Xiaomi conectado)
+
+Historia comprobada: menú Instalar de Chrome → lectura del manifest PRE → descarga de iconos públicos → generación de WebAPK. El primer límite roto observado es la carga de iconos, antes de instalar un paquete.
+
+- Tras autorización explícita se retiró solo el paquete PRE blanco. Inventario posterior: ningún paquete WebAPK nuevo; Chrome y Production se conservaron.
+- Captura `install-refusal.png` muestra Instalar deshabilitado y «Esta aplicación no se puede instalar», con icono genérico.
+- CDP devuelve manifest válido negro y `Page.getInstallabilityErrors: []`. Esto no prueba que el menú nativo permita instalar: la comprobación de recursos real falla.
+- Las cargas Image de icon-pre-192.png e icon-pre-512.png fallan en la página del Xiaomi. Un listener temporal `securitypolicyviolation` confirma `effectiveDirective=img-src` y el recurso https://smashandlob.com/icon-pre-512.png bloqueado. El listener se retira al finalizar.
+- Los cuatro PNG públicos responden 200/image/png con dimensiones correctas. El manifest usa ese origen desde v1.15.15 para evitar cookies de protección PRE, pero la CSP de Next solo permitía self y proveedores externos. Contradicción de implementación comprobada.
+- Registro de la comprobación WebAPK anterior: `Got Manifest: false`, `WebAPK upgrade needed: false`, razones vacías. Por ello Succeeded no acreditaba haber leído correctamente el manifest ni haber sustituido el APK blanco.
+
+v1.15.21 permite exclusivamente las cuatro rutas públicas de iconos PRE en img-src. No se retira la protección de PRE ni se amplían scripts/connect-src; no cambia el diseño ni la política negra. Prueba navegador con cabecera CSP real e iconos interceptados desde fixtures locales, sin solicitudes a Production. Gates y publicación pendientes al documentar este hallazgo. La carga de iconos es causa comprobada del bloqueo de recursos; instalación completa, nuevo APK negro y resultado de la barra quedan pendientes y no se infieren de esta corrección.
