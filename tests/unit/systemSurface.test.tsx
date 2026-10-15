@@ -5,6 +5,7 @@ import { act, cleanup, render } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { ThemeProvider, useTheme } from "@/context/ThemeProvider"
 import manifest from "@/app/manifest"
+import { applySpectatorInviteAppearance } from "@/lib/spectatorTheme"
 
 vi.mock("next-auth/react", () => ({ useSession: () => ({ status: "unauthenticated" }) }))
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }))
@@ -12,7 +13,7 @@ afterEach(() => { cleanup(); localStorage.clear(); document.documentElement.remo
 const bootstrap = readFileSync("src/app/layout.tsx", "utf8").match(/__html: `([^`]+)`/)![1]
 function expectSurface(dark: boolean, standalone = false) {
   expect(document.documentElement.style.colorScheme).toBe(dark ? "dark" : "light")
-  expect(document.documentElement.style.getPropertyValue("--app-system-surface")).toBe(dark ? "#000000" : "#ffffff")
+  expect(document.documentElement.style.getPropertyValue("--app-system-surface")).toBe(standalone || dark ? "#000000" : "#ffffff")
   const expectedThemeColor = standalone || dark ? "#000000" : "#ffffff"
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => expect(meta.getAttribute("content")).toBe(expectedThemeColor))
 }
@@ -43,10 +44,10 @@ describe("installed app system surfaces", () => {
     act(() => theme.setThemeMode("system"))
     expectSurface(true)
   })
-  it("keeps the installed-app theme color black while the light content remains light", () => {
+  it.each(["classic", "competition"] as const)("keeps the installed %s canvas and metadata black while preserving the content color scheme", (style) => {
     document.head.innerHTML = '<meta name="theme-color" content="#000000">'
     vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("display-mode: standalone"), addEventListener: vi.fn(), removeEventListener: vi.fn() }))
-    localStorage.setItem("smash-lob-visual-style", "classic")
+    localStorage.setItem("smash-lob-visual-style", style)
     localStorage.setItem("smash-lob-theme-mode", "light")
     window.eval(bootstrap)
     expectSurface(false, true)
@@ -56,6 +57,10 @@ describe("installed app system surfaces", () => {
     expectSurface(false, true)
     act(() => theme.setThemeMode("dark"))
     expectSurface(true, true)
+    act(() => theme.setThemeMode("light"))
+    expectSurface(false, true)
+    applySpectatorInviteAppearance({ visualStyle: style, baseTheme: "light" })
+    expectSurface(false, true)
   })
   it("does not cover the bottom of the viewport with an artificial overlay", () => {
     const css = readFileSync("src/app/globals.css", "utf8")

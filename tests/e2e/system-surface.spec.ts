@@ -28,13 +28,24 @@ for (const style of ["classic", "competition"]) {
         meta: [...document.querySelectorAll('meta[name="theme-color"]')].map((meta) => meta.getAttribute("content")),
         root: getComputedStyle(document.documentElement).backgroundColor,
         body: getComputedStyle(document.body).backgroundColor,
+        scheme: getComputedStyle(document.documentElement).colorScheme,
         overlay: getComputedStyle(document.body, "::after").content,
       }))
       expect(surface.meta.length).toBeGreaterThan(0)
       expect(surface.meta.every((color) => color === "#000000")).toBe(true)
       expect(surface.overlay).toBe("none")
-      expect(surface.root).toBe(mode === "dark" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)")
+      expect(surface.root).toBe("rgb(0, 0, 0)")
       expect(surface.body).toBe(surface.root)
+      expect(surface.scheme).toBe(mode)
+      for (const routeState of ["bottomNavVisible", "matchChatActive"]) {
+        const routeBody = await page.evaluate((key) => {
+          document.documentElement.dataset[key] = "true"
+          const color = getComputedStyle(document.body).backgroundColor
+          delete document.documentElement.dataset[key]
+          return color
+        }, routeState)
+        expect(routeBody).toBe("rgb(0, 0, 0)")
+      }
     })
   }
 }
