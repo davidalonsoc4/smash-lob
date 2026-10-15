@@ -63,7 +63,7 @@ test("keeps an authenticated session behind the offline fallback until a full re
     return (await fetch("/manifest.webmanifest")).json()
   })
   expect(freshManifest.id).toBe("/")
-  expect(freshManifest.theme_color).toBe("#000000")
+  expect(freshManifest).toMatchObject({ theme_color: "#000000", background_color: "#000000" })
   await expect(
     page.getByRole("link", { name: "Inicio", exact: true }),
   ).toBeVisible()
@@ -71,7 +71,7 @@ test("keeps an authenticated session behind the offline fallback until a full re
   await context.setOffline(true)
   const offlineManifest = await page.evaluate(async () => (await fetch("/manifest.webmanifest")).json())
   expect(offlineManifest.id).toBe("/")
-  expect(offlineManifest.theme_color).toBe("#000000")
+  expect(offlineManifest).toMatchObject({ theme_color: "#000000", background_color: "#000000" })
   await page.evaluate(() => {
     window.dispatchEvent(new Event("offline"))
   })

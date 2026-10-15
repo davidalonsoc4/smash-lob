@@ -20,7 +20,7 @@ describe("installed app system surfaces", () => {
   it("uses a black native navigation-bar fallback while retaining runtime page colors", () => {
     const installed = manifest()
     expect(installed.theme_color).toBe("#000000")
-    expect(installed).not.toHaveProperty("background_color")
+    expect(installed.background_color).toBe("#000000")
     expect(installed.id).toBe("/")
     expect(installed.display).toBe("standalone")
   })
