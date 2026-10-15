@@ -18,13 +18,6 @@ const publicMethods = new Map([
 
 const guardDetectors = [
   {
-    level: "pre-diagnostic",
-    evidence: "PRE/local gate + rate limit + sanitized technical fields",
-    test: (source, route) => route === "/api/observability/pwa-diagnostic" &&
-      source.includes("!isAvatarLabEnabled() || !isAvatarLabRequest(request)") &&
-      source.includes("enforceRequestRateLimit") && source.includes("sanitizePwaDiagnostic"),
-  },
-  {
     level: "application-admin",
     evidence: "requireAuthenticatedAppUser + isSuperuser",
     test: (source, route) =>
@@ -130,7 +123,7 @@ function renderInventory(rows) {
     "## Reglas",
     "",
     "- Solo las combinaciones ruta/método de la allowlist pueden ser públicas.",
-    "- Las demás deben utilizar autenticación, política de liga/partido/temporada, superusuario, secreto de cron o la guarda PRE/local específica del diagnóstico técnico.",
+    "- Las demás deben utilizar autenticación, política de liga/partido/temporada, superusuario o secreto de cron.",
     "- La validación es deliberadamente conservadora: además de esta comprobación estática, la matriz de autorización y las pruebas E2E validan comportamiento.",
     "",
   )

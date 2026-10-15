@@ -112,7 +112,6 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/notifications/subscribe` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/notifications/unsubscribe` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/observability/client-error` | POST | Público explícito | Allowlist revisada |
-| `/api/observability/pwa-diagnostic` | POST | Protegido | PRE/local gate + rate limit + sanitized technical fields |
 | `/api/onboarding/progress` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/onboarding/progress` | PATCH | Protegido | requireAuthenticatedAppUser |
 | `/api/onboarding/progress` | DELETE | Protegido | requireAuthenticatedAppUser |
@@ -148,6 +147,6 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 ## Reglas
 
 - Solo las combinaciones ruta/método de la allowlist pueden ser públicas.
-- Las demás deben utilizar autenticación, política de liga/partido/temporada, superusuario, secreto de cron o la guarda PRE/local específica del diagnóstico técnico.
+- Las demás deben utilizar autenticación, política de liga/partido/temporada, superusuario o secreto de cron.
 - La validación es deliberadamente conservadora: además de esta comprobación estática, la matriz de autorización y las pruebas E2E validan comportamiento.
 

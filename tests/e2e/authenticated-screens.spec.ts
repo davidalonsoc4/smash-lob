@@ -2,7 +2,6 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import jsQR from "jsqr"
 import sharp from "sharp"
-import { readFile } from "node:fs/promises"
 
 const screens = [
   { name: "home", path: "/" },
@@ -254,35 +253,6 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
-for (const mode of ["light", "dark"] as const) {
-  test(`PRE appearance diagnostics send technical data and retain offline export in ${mode}`, async ({ page }, testInfo) => {
-    await page.emulateMedia({ colorScheme: mode })
-    await page.addInitScript((mode) => { localStorage.setItem("smash-lob-theme-mode", mode); localStorage.setItem("smash-lob-visual-style", "competition") }, mode)
-    await page.goto("/settings")
-    const panel = page.getByRole("region", { name: "Diagnóstico de apariencia y PWA" })
-    const resultPromise = page.waitForResponse((response) => response.url().endsWith("/api/observability/pwa-diagnostic"))
-    await panel.getByRole("button", { name: "Enviar diagnóstico" }).click()
-    const response = await resultPromise
-    expect(response.status()).toBe(202)
-    const result = await response.json()
-    await expect(panel.getByRole("status")).toContainText(result.incidenceCode)
-    const sent = response.request().postDataJSON()
-    expect(sent.values.theme).toBe(mode)
-    expect(sent.values.systemDark).toBe(mode === "dark")
-    expect(JSON.stringify(sent)).not.toMatch(/qa-v1-1|league-smash-lob|userId|email|token/)
-    await panel.screenshot({ path: testInfo.outputPath(`pwa-diagnostic-${mode}.png`) })
-    await page.route("**/api/observability/pwa-diagnostic", (route) => route.abort())
-    await panel.getByRole("button", { name: "Enviar diagnóstico" }).click()
-    await expect(panel.getByRole("alert")).toBeVisible()
-    await expect(panel.getByRole("status")).toHaveCount(0)
-    const downloadPromise = page.waitForEvent("download")
-    await panel.getByRole("button", { name: "Descargar diagnóstico JSON" }).click()
-    const download = await downloadPromise
-    const exported = JSON.parse(await readFile((await download.path())!, "utf8"))
-    expect(exported.values.theme).toBe(mode)
-    expect(exported.incidenceCode).toBeNull()
-  })
-}
 for (const screen of screens) {
   test(`@a11y authenticated ${screen.name} has no serious Axe violations`, async ({
     page,
