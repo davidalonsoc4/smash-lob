@@ -94,5 +94,5 @@ export function applySpectatorInviteAppearance(input: Partial<SpectatorInviteApp
   root.style.colorScheme = resolvedTheme
   const themeColor = dark ? "#000000" : "#ffffff"
   root.style.setProperty("--app-system-surface", themeColor)
-  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", themeColor))
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true ? "#000000" : themeColor))
 }
