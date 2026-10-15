@@ -56,11 +56,22 @@ test("keeps an authenticated session behind the offline fallback until a full re
     await navigator.serviceWorker.ready
   })
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller))
+  const freshManifest = await page.evaluate(async () => {
+    const key = (await caches.keys()).find((name) => name.startsWith("smash-lob-v"))!
+    const cache = await caches.open(key)
+    await cache.put("/manifest.webmanifest", new Response('{"id":"/outdated","theme_color":"#ffffff"}', { headers: { "content-type": "application/manifest+json" } }))
+    return (await fetch("/manifest.webmanifest")).json()
+  })
+  expect(freshManifest.id).toBe("/")
+  expect(freshManifest).not.toHaveProperty("theme_color")
   await expect(
     page.getByRole("link", { name: "Inicio", exact: true }),
   ).toBeVisible()
 
   await context.setOffline(true)
+  const offlineManifest = await page.evaluate(async () => (await fetch("/manifest.webmanifest")).json())
+  expect(offlineManifest.id).toBe("/")
+  expect(offlineManifest).not.toHaveProperty("theme_color")
   await page.evaluate(() => {
     window.dispatchEvent(new Event("offline"))
   })
