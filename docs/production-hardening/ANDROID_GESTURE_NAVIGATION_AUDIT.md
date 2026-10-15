@@ -7,9 +7,10 @@ fallida: el cambio de canvas no resuelve el síntoma nativo. Lectura USB posteri
 autorizada confirma paquete PRE versionCode 3, actualizado el 11-oct, con
 themeColor/backgroundColor blancos (-1L) y colores dark vacíos. startUrl, scope y
 webManifestUrl pertenecen a PRE. La web v1.15.20 y la instalación nativa tienen
-colores distintos. Inspección de solo lectura; no se ha actualizado ni reinstalado el paquete.
+colores distintos. Después se retiró únicamente PRE con autorización explícita;
+la reinstalación se detuvo por CSP y se retoma tras la corrección v1.15.21.
 
-Publicación actual comprobada: PRE v1.15.20, staging `bb673e27`, deployment
+Publicación anterior comprobada: PRE v1.15.20, staging `bb673e27`, deployment
 `dpl_3K3Gi2USXxqtmuznbEgVcWM1CmjC` READY y alias PRE verificado. Health,
 manifest negro, bootstrap, CSS del canvas negro y caché v1.15.20 comprobados
 mediante peticiones autenticadas al dominio. 945 pruebas, 88 E2E y cuatro jobs CI
@@ -264,3 +265,9 @@ Historia comprobada: menú Instalar de Chrome → lectura del manifest PRE → d
 - Registro de la comprobación WebAPK anterior: `Got Manifest: false`, `WebAPK upgrade needed: false`, razones vacías. Por ello Succeeded no acreditaba haber leído correctamente el manifest ni haber sustituido el APK blanco.
 
 v1.15.21 permite exclusivamente las cuatro rutas públicas de iconos PRE en img-src. No se retira la protección de PRE ni se amplían scripts/connect-src; no cambia el diseño ni la política negra. Prueba navegador con cabecera CSP real e iconos interceptados desde fixtures locales, sin solicitudes a Production. Gates y publicación pendientes al documentar este hallazgo. La carga de iconos es causa comprobada del bloqueo de recursos; instalación completa, nuevo APK negro y resultado de la barra quedan pendientes y no se infieren de esta corrección.
+
+### Publicación y prueba física de recursos v1.15.21
+
+PR #38 integrada después de cuatro jobs CI success sin repetir ni rebajar gates. PRE READY `dpl_HwWQ5NaP1MZKaCsniehib4Fsn4w6`, staging `128bd4482a7306020dc9f799481ceea7bbc69895`, alias comprobado. Health 200/ok/1.15.21/pre, manifest 200 negro, SW 200/caché v1.15.21 y CSP con las cuatro rutas exactas verificados. Gates locales: 945 pruebas, 90 E2E, build/presupuesto, TypeScript, lint 0 errores/4 avisos previos, auditoría 0.
+
+La primera recarga remota con el teléfono inactivo dejó un documento de error sin manifest; no se tomó como validación. Tras el usuario desbloquear y abrir PRE, CDP en el Xiaomi confirma manifest válido negro, los cuatro PNG cargados con anchuras 192/512 correctas y cero eventos securitypolicyviolation. El bloqueo de recursos por CSP queda corregido y verificado físicamente. Se pide repetir menú Instalar. Instalación efectiva del WebAPK y barra nativa negra siguen pendientes; C16 continúa abierto.
