@@ -1,4 +1,4 @@
-const CACHE_VERSION = "smash-lob-v1.15.10"
+const CACHE_VERSION = "smash-lob-v1.15.22"
 const APP_SHELL = [
   "/offline",
   "/manifest.webmanifest",
@@ -54,6 +54,25 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request).catch(() => Response.redirect("/offline", 302)),
     )
+    return
+  }
+
+  if (url.pathname === "/manifest.webmanifest") {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: "no-cache" })
+        if (response.ok && !response.redirected && response.headers.get("content-type")?.includes("json")) {
+          try {
+            const cache = await caches.open(CACHE_VERSION)
+            await cache.put(request, response.clone())
+          } catch { /* A storage failure must not replace fresh network metadata. */ }
+          return response
+        }
+        return (await caches.match(request)) || response
+      } catch {
+        return (await caches.match(request)) || Response.error()
+      }
+    })())
     return
   }
 

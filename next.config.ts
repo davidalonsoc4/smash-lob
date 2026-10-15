@@ -11,7 +11,8 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://accounts.google.com https://maps.googleapis.com https://maps.gstatic.com`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.gstatic.com https://*.googleapis.com",
+  // PRE's manifest uses these public copies because native downloads omit PRE cookies.
+  "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.gstatic.com https://*.googleapis.com https://smashandlob.com/icon-pre-192.png https://smashandlob.com/icon-pre-512.png https://smashandlob.com/icon-maskable-pre-192.png https://smashandlob.com/icon-maskable-pre-512.png",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://*.googleapis.com",
   "frame-src https://accounts.google.com",
 ].join("; ");
