@@ -112,6 +112,7 @@ Last updated: 2026-07-16 23:31:46 +02:00
 
 ## C16 - Correct installed app system surfaces
 - Status: IN PROGRESS
+- Diagnostic support delivered in PRE v1.15.14: explicit technical report with server whitelist, Production denial, incidence code and JSON fallback. Native bar acceptance remains open.
 - Acceptance: remove artificial bottom overlay and fixed white installation colors; startup/runtime share black for dark and white for light; standalone canvas follows mode without extra space; new PWA cache version. Native navigation falls back to the platform; physical confirmation required.
 - Validation: startup theme regressions, npm run validate in isolation; candidate CI; verified PRE deployment/version. Native Android/iOS rendering remains a physical device gate.
 - Remote changes allowed: candidate PR and PRE only, explicitly authorized by user. No Production or database changes.
