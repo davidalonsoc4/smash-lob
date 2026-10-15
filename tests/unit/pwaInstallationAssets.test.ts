@@ -16,7 +16,7 @@ describe("installation assets behind PRE deployment protection", () => {
       `${PRODUCTION_APP_URL}/icon-maskable-pre-512.png`,
     ])
     expect(value).toMatchObject({ id: "/", start_url: "/launch?source=pwa", scope: "/" })
-    expect(value).not.toHaveProperty("theme_color")
+    expect(value.theme_color).toBe("#ffffff")
     expect(value).not.toHaveProperty("background_color")
   })
 
@@ -28,5 +28,6 @@ describe("installation assets behind PRE deployment protection", () => {
       "/icon-192.png", "/icon-maskable-192.png", "/icon-512.png", "/icon-maskable-512.png",
     ])
     expect(value).toMatchObject({ id: "/", start_url: "/launch?source=pwa", scope: "/" })
+    expect(value.theme_color).toBe("#ffffff")
   })
 })
