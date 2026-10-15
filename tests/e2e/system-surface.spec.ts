@@ -31,7 +31,7 @@ for (const style of ["classic", "competition"]) {
         overlay: getComputedStyle(document.body, "::after").content,
       }))
       expect(surface.meta.length).toBeGreaterThan(0)
-      expect(surface.meta.every((color) => color === (mode === "dark" ? "#000000" : "#ffffff"))).toBe(true)
+      expect(surface.meta.every((color) => color === "#000000")).toBe(true)
       expect(surface.overlay).toBe("none")
       expect(surface.root).toBe(mode === "dark" ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)")
       expect(surface.body).toBe(surface.root)

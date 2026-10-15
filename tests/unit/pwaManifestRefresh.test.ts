@@ -24,11 +24,11 @@ describe("automatic installed-app manifest refresh", () => {
   it("replaces old installation colors from the network and keeps the latest manifest offline", async () => {
     const w = worker()
     w.cached.set("https://app.example.test/manifest.webmanifest", manifest('{"theme_color":"#ffffff"}'))
-    w.fetch.mockResolvedValueOnce(manifest('{"id":"/","display":"standalone"}'))
-    expect(await (await w.request())!.json()).toEqual({ id: "/", display: "standalone" })
+    w.fetch.mockResolvedValueOnce(manifest('{"id":"/","display":"standalone","theme_color":"#000000"}'))
+    expect(await (await w.request())!.json()).toEqual({ id: "/", display: "standalone", theme_color: "#000000" })
     expect(w.fetch).toHaveBeenCalledOnce()
     w.fetch.mockRejectedValueOnce(new Error("offline"))
-    expect(await (await w.request())!.json()).toEqual({ id: "/", display: "standalone" })
+    expect(await (await w.request())!.json()).toEqual({ id: "/", display: "standalone", theme_color: "#000000" })
   })
   it("returns fresh metadata even if device storage is full", async () => {
     const w = worker()
