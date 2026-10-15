@@ -14,7 +14,6 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    theme_color: "#ffffff",
     categories: ["sports", "productivity"],
     icons: [
       {
