@@ -7,6 +7,12 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+    "Diagnóstico de apariencia y PWA": "Appearance and PWA diagnostics",
+    "Datos técnicos sin información de cuenta. El informe no puede leer el color de la barra de Android.": "Technical data without account information. The report cannot read the Android navigation bar color.",
+    "Enviar diagnóstico": "Send diagnostics",
+    "Código de diagnóstico": "Diagnostic code",
+    "No se ha podido enviar el diagnóstico.": "The diagnostic report could not be sent.",
+    "Descargar diagnóstico JSON": "Download diagnostic JSON",
     "Los partidos pendientes se conservan como histórico de la temporada terminada.": "Pending matches remain in the finished season’s history.",
     "Tu posición": "Your position",
     "Buscar": "Search",
@@ -841,6 +847,12 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "Diagnóstico de apariencia y PWA": "Itxuraren eta PWAren diagnostikoa",
+    "Datos técnicos sin información de cuenta. El informe no puede leer el color de la barra de Android.": "Datu teknikoak, kontuaren informaziorik gabe. Txostenak ezin du Android nabigazio-barraren kolorea irakurri.",
+    "Enviar diagnóstico": "Bidali diagnostikoa",
+    "Código de diagnóstico": "Diagnostiko-kodea",
+    "No se ha podido enviar el diagnóstico.": "Ezin izan da diagnostikoa bidali.",
+    "Descargar diagnóstico JSON": "Deskargatu diagnostikoa JSON formatuan",
     "Los partidos pendientes se conservan como histórico de la temporada terminada.": "Amaitutako denboraldiko historian gordetzen dira jokatu gabeko partidak.",
     "Tu posición": "Zure postua",
     "Buscar": "Bilatu",
