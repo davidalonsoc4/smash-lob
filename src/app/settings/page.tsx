@@ -20,6 +20,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
+import { PwaDiagnosticPanel } from "@/components/settings/PwaDiagnosticPanel"
 import { formatMoney } from "@/lib/courtBooking"
 import { fetchPaymentLedger, getPaymentLedgerPendingSummary } from "@/lib/paymentLedger"
 import { accountDeletionApiConfirmation, isAccountDeletionConfirmation } from "@/lib/accountDeletionConfirmation"
@@ -374,6 +375,7 @@ function SpectatorSettingsPage() {
           title={tx("Laboratorio")}
           description={tx("Funciones experimentales disponibles solo en PRE.")}
         >
+          <PwaDiagnosticPanel />
           <SettingsLinkRow
             href="/experimental/avatar-lab"
             id="avatar-lab"
@@ -777,6 +779,7 @@ function PlayerSettingsPage() {
           title={tx("Laboratorio")}
           description={tx("Funciones experimentales disponibles solo en PRE.")}
         >
+          <PwaDiagnosticPanel />
           <SettingsLinkRow
             href="/experimental/avatar-lab"
             id="avatar-lab"
