@@ -16,9 +16,9 @@ function expectSurface(dark: boolean) {
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => expect(meta.getAttribute("content")).toBe(dark ? "#000000" : "#ffffff"))
 }
 describe("installed app system surfaces", () => {
-  it("does not bake a fixed light color into the Android installation", () => {
+  it("declares the light fallback needed to enable native navigation-bar theming", () => {
     const installed = manifest()
-    expect(installed).not.toHaveProperty("theme_color")
+    expect(installed.theme_color).toBe("#ffffff")
     expect(installed).not.toHaveProperty("background_color")
     expect(installed.id).toBe("/")
     expect(installed.display).toBe("standalone")
