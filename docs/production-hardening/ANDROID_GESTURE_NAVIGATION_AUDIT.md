@@ -1,15 +1,17 @@
 # Android: auditoría de la navegación por gestos
 
-Fecha: 2026-10-15. Hito: C16, **IN PROGRESS**. Base local: `5d96a617`, v1.15.19.
-No se declara resuelto. Captura física posterior `111744.jpg`: PRE v1.15.20 sigue
+Fecha: 2026-10-15. Hito: C16, **DONE: alternativa negra verificada** en PRE v1.15.21.
+El informe conserva el diagnóstico histórico; el resultado final está al final.
+Captura física anterior `111744.jpg`: PRE v1.15.20 sigue
 mostrando franja blanca e indicador oscuro bajo la navegación de la app. Aceptación
 fallida: el cambio de canvas no resuelve el síntoma nativo. Lectura USB posterior
 autorizada confirma paquete PRE versionCode 3, actualizado el 11-oct, con
 themeColor/backgroundColor blancos (-1L) y colores dark vacíos. startUrl, scope y
 webManifestUrl pertenecen a PRE. La web v1.15.20 y la instalación nativa tienen
-colores distintos. Inspección de solo lectura; no se ha actualizado ni reinstalado el paquete.
+colores distintos. Después se retiró únicamente PRE con autorización explícita;
+la reinstalación se detuvo por CSP y se retoma tras la corrección v1.15.21.
 
-Publicación actual comprobada: PRE v1.15.20, staging `bb673e27`, deployment
+Publicación anterior comprobada: PRE v1.15.20, staging `bb673e27`, deployment
 `dpl_3K3Gi2USXxqtmuznbEgVcWM1CmjC` READY y alias PRE verificado. Health,
 manifest negro, bootstrap, CSS del canvas negro y caché v1.15.20 comprobados
 mediante peticiones autenticadas al dominio. 945 pruebas, 88 E2E y cuatro jobs CI
@@ -264,3 +266,44 @@ Historia comprobada: menú Instalar de Chrome → lectura del manifest PRE → d
 - Registro de la comprobación WebAPK anterior: `Got Manifest: false`, `WebAPK upgrade needed: false`, razones vacías. Por ello Succeeded no acreditaba haber leído correctamente el manifest ni haber sustituido el APK blanco.
 
 v1.15.21 permite exclusivamente las cuatro rutas públicas de iconos PRE en img-src. No se retira la protección de PRE ni se amplían scripts/connect-src; no cambia el diseño ni la política negra. Prueba navegador con cabecera CSP real e iconos interceptados desde fixtures locales, sin solicitudes a Production. Gates y publicación pendientes al documentar este hallazgo. La carga de iconos es causa comprobada del bloqueo de recursos; instalación completa, nuevo APK negro y resultado de la barra quedan pendientes y no se infieren de esta corrección.
+
+### Publicación y prueba física de recursos v1.15.21
+
+PR #38 integrada después de cuatro jobs CI success sin repetir ni rebajar gates. PRE READY `dpl_HwWQ5NaP1MZKaCsniehib4Fsn4w6`, staging `128bd4482a7306020dc9f799481ceea7bbc69895`, alias comprobado. Health 200/ok/1.15.21/pre, manifest 200 negro, SW 200/caché v1.15.21 y CSP con las cuatro rutas exactas verificados. Gates locales: 945 pruebas, 90 E2E, build/presupuesto, TypeScript, lint 0 errores/4 avisos previos, auditoría 0.
+
+La primera recarga remota con el teléfono inactivo dejó un documento de error sin manifest; no se tomó como validación. Tras el usuario desbloquear y abrir PRE, CDP en el Xiaomi confirma manifest válido negro, los cuatro PNG cargados con anchuras 192/512 correctas y cero eventos securitypolicyviolation. El bloqueo de recursos por CSP queda corregido y verificado físicamente. Se pide repetir menú Instalar. Instalación efectiva del WebAPK y barra nativa negra siguen pendientes; C16 continúa abierto.
+
+## Informe del resultado físico v1.15.21
+
+1. **Diagnóstico.** La web negra y el WebAPK blanco coexistían: APK anterior versionCode3/11-oct con themeColor/backgroundColor #FFFFFFFF. La comprobación de actualización no sustituía ese paquete; registro Got Manifest:false y upgrade:false pese a Succeeded. Se identificó además una contradicción introducida al servir los iconos PRE desde el dominio público sin permitirlos en CSP: descarga bloqueada en el Xiaomi y menú Instalar deshabilitado. Tras corregir CSP, el usuario pudo instalar, el APK nuevo contiene #FF000000 y la región nativa se ve negra. Es evidencia antes/después del paquete; no se atribuye el fallo a HyperOS ni se demuestra que todos los intentos anteriores tuvieran una única causa.
+2. **Transparencia.** La investigación de fuentes oficiales del tag Chrome155.0.8059.39 distingue el viewport web de la ventana nativa y documenta WebAppShortEdgesCutoutMode desactivada por defecto. No se dispone de mecanismo web estable que garantice ese edge-to-edge en esta instalación. No se activaron flags ni se implementó una falsa transparencia. Por decisión posterior explícita del usuario se eligió negro fijo.
+3. **Alternativa negra.** Se mantiene manifest con theme_color/background_color #000000, meta y canvas standalone negros. En el paquete nuevo org.chromium.webapk.a974c1e7b43fd1154_v2 (code1, instalado 15-oct21:42:06) ambos colores son -16777216L. El usuario confirma «Ahora aparece negra. por fin». Screenshot ADB pre-native-black.png, ventana SameTaskWebApkActivity y standalone=true acreditan PWA instalada real. Análisis del PNG original: laterales inferiores de 300x50px íntegramente RGB0/0/0; indicador central RGB166/166/166. Negro e indicador nativo con contraste verificados en este Xiaomi/Chrome, sin garantía universal sobre otras versiones/dispositivos.
+4. **Cambios de esta entrega.** next.config.ts permite exclusivamente cuatro paths PNG PRE en img-src, conservando el resto de la CSP y protección Vercel. tests/e2e/manifest-icon-csp.spec.ts carga fixtures interceptadas con CSP real, sin contactar Production. package.json/package-lock.json, appVersion.ts, changelog.ts y sw.js actualizan versión/cache/smoke a1.15.21. PLAN, STATUS y este informe conservan evidencia y límites. No más cambios CSS ni de temas; no overlay, migración nativa, datos ni Production.
+5. **Validaciones.** Validate completo: 945 pruebas/243 archivos, TypeScript, lint0errores/4avisos previos, build y presupuesto1186013gzip/102chunks; auditoría0. E2E90/90 y cuatro jobs CI success. Despliegue READY/alias/SHA, health, manifest, SW y cabecera verificados. En Xiaomi: recursos bloqueados antes y cargados después, APK blanco antes/negro después, arranque desde icono y barra negra real. Restauración/reapertura, temas y teclado se solicitan como comprobación manual adicional; no se afirman todavía todos los escenarios ni ausencia de flashes durante transiciones. El flujo de ligas/cuenta no se automatizó sobre datos reales.
+6. **Siguientes pasos.** El usuario está comprobando minimizar/restaurar, cerrar/reabrir, claro/oscuro en ambos estilos y teclado sin enviar mensajes. No hace falta otra reinstalación, borrar datos, activar flags o migrar a TWA/Capacitor mientras este resultado se conserve. No se solicita actualizar Chrome:155.0.8059.39 ya produce negro. PRE1.15.21 está publicada; Production no se toca. Futuras actualizaciones WebAPK deben verificarse por paquete nativo, no solo APP_VERSION o Succeeded. C16 queda pendiente de la última comprobación manual, con resultado negro principal ya acreditado.
+
+### Cierre de aceptación negra
+
+El usuario responde: «Parece que se mantiene bien la barra haciendo cambios de temas y cerrando y abriendo la app». Unido al negro físico ya confirmado, screenshot/PNG y manifest nativo negro, se acepta el resultado alternativo y se cierra C16. No se avanza a otro hito. La respuesta confirma cambios de tema y reapertura; no se atribuye a ella una comprobación independiente del teclado, restauración explícita de segundo plano, todas las pantallas o vídeo de arranque sin un solo frame blanco. Esa cobertura residual queda manual, sin ocultarla ni impedir el resultado negro comprobado. No se garantiza el comportamiento universal en otras versiones de Chrome/HyperOS.
+
+## Prueba de actualización conservando instalación (segundo Android)
+
+El usuario autorizó comprobar una PRE antigua antes de decidir instrucciones para Production. Segundo móvil M2012K11AG/alioth, Android13/Chrome153.0.8010.52, Wi-Fi y carga. Dos PRE antiguas identificadas sin abrir: a07ee66248c8a6a96_v2 code2/21-sep y a55effbd4e5cd5498_v2 code1/15-ago; ambas tenían colores rojo/rosa. Se registraron APKs/AndroidManifest/fechas antes.
+
+El icono habitual abrió a55 y cargó web1.15.21. La barra ya era negra en ese Android13 aun con APK antiguo: no se confundió el resultado visual con una actualización. Navegación propia llega exactamente al borde del viewport y paddingBottom=0; la región negra alta está fuera del viewport web. No se añadió CSS para ocultarla.
+
+Log nativo de apertura automática: Got Manifest:true, upgrade needed:true. La ficha mostraba Failed; fuente oficial del tag153 confirma que ese estado se escribe preventivamente al preparar actualización, y que la programación normal usa ventana1–23h con red sin medición/carga. Para completar el experimento durante la sesión se pulsó Update solo en la ficha exacta a55, verificó Pending, reabrió mismo icono y cerró únicamente la nueva ventana standalone. No se cerraron pestañas preexistentes, borraron datos ni desinstaló nada.
+
+**Actualización del paquete comprobada:** a55 mantiene packageId y firstInstallTime2026-08-15 10:10:31; versionCode1→2 y lastUpdateTime2026-10-15 22:16:29. APK posterior contiene ambos colores #FF000000 frente a rojo/rosa anteriores, scope/manifest PRE y startUrl actualizado. Log Update now. Evidencias ignoradas en .quality-artifacts/android-existing-pre-20261015.
+
+**Límites:** esto demuestra actualización sin reinstalación en Android13/Chrome153, acelerada por herramienta manual de Chrome. No demuestra una API web para forzar actualizaciones, ni finalización sin intervención siguiendo calendario automático, ni actualización in-place en Android16. Se solicita abrir el mismo icono para confirmar sesión y barra tras actualizar. No se modifica Production ni el manifest para fabricar una diferencia artificial.
+
+### Sesión conservada y reserva adicional en Android13
+
+Tras abrir el icono actualizado, el usuario confirma entrada normal sin login y persistencia del hueco. Quedan comprobadas actualización in-place y conservación de sesión. La región inferior se ha medido con más precisión: navegación nativa de44px (y2356–2400), gestos obligatorios132px (y2268–2400), viewport web termina en2268. Hay88px adicionales por encima de la barra real, ya presentes antes de actualizar el APK. La ventana Chrome ocupa1080x2400 completa; el contenido web queda limitado dentro de ella, con safeBottom0 y sin padding de navegación propio añadido. No se trata todo ese espacio como la barra nativa: la coincidencia con mandatorySystemGestures es evidencia, la selección exacta de inset por Chrome/MIUI sigue sin atribución definitiva. No hay cambio CSS justificado que pueda extender contenido fuera del viewport. Se consulta actualización disponible de Chrome153 para repetir medidas sin reinstalar PRE. Este problema de altura se distingue del cambio nativo de color y de la actualización de paquete ya demostrados.
+
+### Comparación con Chrome155: resultado negativo sobre altura
+
+El usuario actualiza Chrome desde PlayStore. ADB verifica155.0.8059.39; el mismo WebAPK a55 mantiene code2 y fecha original de agosto. Tras arranque y carga estable (se descarta captura inicial skeleton), el viewport sigue795.636CSSpx/dpr2.75 y los insets44/132px son idénticos. Chrome155 no elimina los88px adicionales en este Android13. El área coincide con la reserva mandatory gestures, pero no se ha identificado con certeza la función nativa responsable ni si MIUI modifica su aplicación; no se atribuye automáticamente a un bug concreto de Chromium encontrado en búsquedas.
+
+Resultado de esta continuación: **actualizar sin reinstalar y conservar sesión está demostrado**, acelerando manualmente mediante herramienta interna de Chrome; **calendario completamente automático no verificado**. La franja blanca del Xiaomi se corrigió y su barra negra está aceptada. El hueco de altura del segundo Android13 sigue pendiente y no se declara resuelto por actualizar Chrome o por compilar. No se cambia CSS porque el límite está fuera del viewport; no se simula barra ni se altera sistema/flags. Production permanece intacta y una reinstalación general de usuarios no queda justificada por esta evidencia.

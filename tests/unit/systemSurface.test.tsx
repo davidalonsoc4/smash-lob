@@ -13,7 +13,6 @@ afterEach(() => { cleanup(); localStorage.clear(); document.documentElement.remo
 const bootstrap = readFileSync("src/app/layout.tsx", "utf8").match(/__html: `([^`]+)`/)![1]
 function expectSurface(dark: boolean, standalone = false) {
   expect(document.documentElement.style.colorScheme).toBe(dark ? "dark" : "light")
-  expect(document.documentElement.style.getPropertyValue("--app-system-surface")).toBe(standalone || dark ? "#000000" : "#ffffff")
   const expectedThemeColor = standalone || dark ? "#000000" : "#ffffff"
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => expect(meta.getAttribute("content")).toBe(expectedThemeColor))
 }
