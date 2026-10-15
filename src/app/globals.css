@@ -3041,4 +3041,4 @@ html[data-visual-style="competition"] .personal-form-result {
 
 .public-site-hero .app-top-back-control { color: #fff; }
 html[data-visual-style="competition"] .app-accent-surface a.bg-white { color: var(--competition-text) !important; }
-@media (display-mode: standalone) { html[data-theme], html[data-theme] body { background: var(--app-system-surface, #ffffff) !important; } }
+@media (display-mode: standalone) { html, body, html[data-theme][data-style], html[data-theme][data-style] body { background: #000000 !important; } }

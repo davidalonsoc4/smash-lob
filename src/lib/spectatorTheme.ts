@@ -92,7 +92,7 @@ export function applySpectatorInviteAppearance(input: Partial<SpectatorInviteApp
   root.style.setProperty("--competition-accent-contrast", getCompetitionContrastColor(effectiveAccent))
   root.style.setProperty("--competition-accent-text", getCompetitionTextAccent(effectiveAccent, dark))
   root.style.colorScheme = resolvedTheme
-  const themeColor = dark ? "#000000" : "#ffffff"
+  const themeColor = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true || dark ? "#000000" : "#ffffff"
   root.style.setProperty("--app-system-surface", themeColor)
-  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true ? "#000000" : themeColor))
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", themeColor))
 }

@@ -130,9 +130,9 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   root.style.setProperty("--competition-accent-contrast", getCompetitionContrastColor(effectiveAccent))
   root.style.colorScheme = resolvedTheme
 
-  const themeColor = dark ? "#000000" : "#ffffff"
+  const themeColor = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true || dark ? "#000000" : "#ffffff"
   root.style.setProperty("--app-system-surface", themeColor)
-  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true ? "#000000" : themeColor))
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => meta.setAttribute("content", themeColor))
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
