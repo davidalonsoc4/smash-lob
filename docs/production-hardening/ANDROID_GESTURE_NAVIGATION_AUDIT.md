@@ -3,6 +3,13 @@
 Fecha: 2026-10-15. Hito: C16, **IN PROGRESS**. Base local: `5d96a617`, v1.15.19.
 No se declara resuelto. No hay validación física nueva en esta auditoría.
 
+Publicación actual comprobada: PRE v1.15.20, staging `bb673e27`, deployment
+`dpl_3K3Gi2USXxqtmuznbEgVcWM1CmjC` READY y alias PRE verificado. Health,
+manifest negro, bootstrap, CSS del canvas negro y caché v1.15.20 comprobados
+mediante peticiones autenticadas al dominio. 945 pruebas, 88 E2E y cuatro jobs CI
+correctos; Lighthouse pasó una repetición sin cambios de código/umbrales tras TBT
+758 ms en la primera muestra. La barra Android real continúa pendiente de comprobar.
+
 Actualización posterior, candidata v1.15.20: se completa negro fijo para el canvas
 standalone, no solo manifest/meta. El CSS anterior permitía canvas blanco en claro
 y reglas más específicas de navegación/chat podían prevalecer. Bootstrap,
