@@ -50,10 +50,10 @@ const COPY: Record<Locale, GuideCopy> = {
       "Estas son las funciones disponibles para organizar la liga y seguir tu participación.",
     scheduledSeasonTitle: "Temporadas programadas",
     scheduledSeasonDescription:
-      "Antes de la activación, la HOME muestra la cuenta atrás y solo queda cerrada la competición de esa liga: clasificación, calendario, chats y vistas competitivas. Ajustes, Ayuda, Notificaciones, Mis ligas y Mis partidos siguen disponibles. Los administradores con VISTA ADMIN activa pueden continuar preparando la liga.",
-    leagueScopeTitle: "Mis ligas y ámbito personal",
+      "Antes de la activación, la HOME muestra la cuenta atrás y solo queda cerrada la competición de esa liga: clasificación, calendario, chats y vistas competitivas. Ajustes, Ayuda, Notificaciones, Mis Competiciones y Mis partidos siguen disponibles. Los administradores con VISTA ADMIN activa pueden continuar preparando la liga.",
+    leagueScopeTitle: "Mis Competiciones y ámbito personal",
     leagueScopeDescription:
-      "Mis ligas sirve para cambiar de competición y Mis partidos reúne tus encuentros de liga y amistosos. Ambas áreas son personales y siguen disponibles aunque una de tus ligas tenga una temporada programada o todavía no haya comenzado.",
+      "Mis Competiciones sirve para cambiar de competición y Mis partidos reúne tus encuentros de liga y amistosos. Ambas áreas son personales y siguen disponibles aunque una de tus ligas tenga una temporada programada o todavía no haya comenzado.",
     rosterFixedTitle: "Plantilla preparada por la organización",
     rosterFixedDescription: (capacity) =>
       capacity
@@ -165,7 +165,7 @@ const COPY: Record<Locale, GuideCopy> = {
         : "Al continuar se creará tu plaza con los datos de tu perfil y sumarás puntos individualmente aunque juegues por parejas.",
     inviteScheduledStartTitle: "Inicio programado",
     inviteScheduledStartDescription:
-      "Puedes completar tu acceso antes de que empiece la temporada. Hasta su activación, la competición de esta liga permanece cerrada para jugadores, pero Mis ligas y Mis partidos siguen disponibles.",
+      "Puedes completar tu acceso antes de que empiece la temporada. Hasta su activación, la competición de esta liga permanece cerrada para jugadores, pero Mis Competiciones y Mis partidos siguen disponibles.",
     inviteCalendarTitle: "Calendario de la temporada",
     inviteResultsTitle: "Resultados, confirmaciones y MVP",
     inviteResultsDescription: (confirmation, mvp) =>
@@ -196,10 +196,10 @@ const COPY: Record<Locale, GuideCopy> = {
       "These features are available to organise the league and follow your participation.",
     scheduledSeasonTitle: "Scheduled seasons",
     scheduledSeasonDescription:
-      "Before activation, Home shows the countdown and only that league's competitive areas stay closed: standings, calendar, chats and competitive views. Settings, Help, Notifications, My leagues and My matches remain available. Administrators with ADMIN VIEW enabled can keep preparing the league.",
-    leagueScopeTitle: "My leagues and personal scope",
+      "Before activation, Home shows the countdown and only that league's competitive areas stay closed: standings, calendar, chats and competitive views. Settings, Help, Notifications, My Competitions and My matches remain available. Administrators with ADMIN VIEW enabled can keep preparing the league.",
+    leagueScopeTitle: "My Competitions and personal scope",
     leagueScopeDescription:
-      "My leagues lets you switch competitions and My matches brings together your league matches and friendlies. Both are personal areas and remain available even when one of your leagues has a scheduled season or has not started yet.",
+      "My Competitions lets you switch competitions and My matches brings together your league matches and friendlies. Both are personal areas and remain available even when one of your leagues has a scheduled season or has not started yet.",
     rosterFixedTitle: "Roster prepared by the organisers",
     rosterFixedDescription: (capacity) =>
       capacity
@@ -309,7 +309,7 @@ const COPY: Record<Locale, GuideCopy> = {
         : "Continuing will create your player place using your profile details, and you will earn individual points although matches are played in pairs.",
     inviteScheduledStartTitle: "Scheduled start",
     inviteScheduledStartDescription:
-      "You can complete access before the season starts. Until activation, this league's competition stays closed to players, while My leagues and My matches remain available.",
+      "You can complete access before the season starts. Until activation, this league's competition stays closed to players, while My Competitions and My matches remain available.",
     inviteCalendarTitle: "Season calendar",
     inviteResultsTitle: "Results, confirmations and MVP",
     inviteResultsDescription: (confirmation, mvp) =>
@@ -340,10 +340,10 @@ const COPY: Record<Locale, GuideCopy> = {
       "Funtzio hauek liga antolatzeko eta zure parte-hartzea jarraitzeko daude erabilgarri.",
     scheduledSeasonTitle: "Programatutako denboraldiak",
     scheduledSeasonDescription:
-      "Aktibatu aurretik, Hasierak atzerako kontaketa erakusten du eta liga horretako lehiaketa-eremuak bakarrik daude itxita: sailkapena, egutegia, txatak eta ikuspegi lehiakorrak. Ezarpenak, Laguntza, Jakinarazpenak, Nire ligak eta Nire partidak erabilgarri jarraitzen dute. ADMIN IKUSPEGIA aktibatuta duten administratzaileek liga prestatzen jarrai dezakete.",
-    leagueScopeTitle: "Nire ligak eta eremu pertsonala",
+      "Aktibatu aurretik, Hasierak atzerako kontaketa erakusten du eta liga horretako lehiaketa-eremuak bakarrik daude itxita: sailkapena, egutegia, txatak eta ikuspegi lehiakorrak. Ezarpenak, Laguntza, Jakinarazpenak, Nire lehiaketak eta Nire partidak erabilgarri jarraitzen dute. ADMIN IKUSPEGIA aktibatuta duten administratzaileek liga prestatzen jarrai dezakete.",
+    leagueScopeTitle: "Nire lehiaketak eta eremu pertsonala",
     leagueScopeDescription:
-      "Nire ligak ataletik lehiaketa alda dezakezu, eta Nire partidak atalak ligako partidak eta lagunartekoak biltzen ditu. Bi eremuak pertsonalak dira eta erabilgarri jarraitzen dute zure liga batek denboraldia programatuta izan edo oraindik hasi ez bada ere.",
+      "Nire lehiaketak ataletik lehiaketa alda dezakezu, eta Nire partidak atalak ligako partidak eta lagunartekoak biltzen ditu. Bi eremuak pertsonalak dira eta erabilgarri jarraitzen dute zure liga batek denboraldia programatuta izan edo oraindik hasi ez bada ere.",
     rosterFixedTitle: "Antolakuntzak prestatutako taldea",
     rosterFixedDescription: (capacity) =>
       capacity
@@ -453,7 +453,7 @@ const COPY: Record<Locale, GuideCopy> = {
         : "Jarraitzean zure jokalari-plaza sortuko da profileko datuekin eta puntuak banaka pilatuko dituzu, partidak bikoteka jokatu arren.",
     inviteScheduledStartTitle: "Programatutako hasiera",
     inviteScheduledStartDescription:
-      "Denboraldia hasi aurretik sarbidea osa dezakezu. Aktibatu arte, liga honetako lehiaketa itxita dago jokalarientzat, baina Nire ligak eta Nire partidak erabilgarri jarraitzen dute.",
+      "Denboraldia hasi aurretik sarbidea osa dezakezu. Aktibatu arte, liga honetako lehiaketa itxita dago jokalarientzat, baina Nire lehiaketak eta Nire partidak erabilgarri jarraitzen dute.",
     inviteCalendarTitle: "Denboraldiko egutegia",
     inviteResultsTitle: "Emaitzak, baieztapenak eta MVP",
     inviteResultsDescription: (confirmation, mvp) =>

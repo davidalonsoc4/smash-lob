@@ -16,6 +16,6 @@ describe("HOME league logo geometry", () => {
     expect(home).toContain('scale-[1.3]"} data-home-league-logo-scale')
     expect(home).toContain('visualStyle === "competition"')
     expect(home).toContain('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">')
-    expect(home).toContain('{tx("Mis ligas")}')
+    expect(home).toContain('{tx("Mis Competiciones")}')
   })
 })

@@ -30,6 +30,7 @@ import {
 import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
 import { CompetitionLaunchNotice } from "@/components/announcements/CompetitionLaunchNotice"
 import { BottomNav } from "./BottomNav"
+import { TournamentNav } from "@/components/tournament/TournamentNav"
 
 type AppShellProps = {
   children: ReactNode
@@ -202,6 +203,9 @@ export function AppShell({ children }: AppShellProps) {
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectateRoute = pathname.startsWith("/spectate/")
   const isLeagueNavigationRoute = pathname === "/open"
+  const isTournamentRoute = pathname === "/tournaments" || pathname.startsWith("/tournaments/")
+  const tournamentNavMatch = pathname.match(/^\/tournaments\/([^/]+)/)
+  const tournamentNavId = tournamentNavMatch?.[1] && tournamentNavMatch[1] !== "new" ? tournamentNavMatch[1] : null
   const isPersonalMatchesRoute =
     pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
   const isSettingsRoute =
@@ -289,6 +293,7 @@ export function AppShell({ children }: AppShellProps) {
   )
   const isScheduledSeasonUtilityRoute =
     pathname === "/" ||
+    isTournamentRoute ||
     isSettingsContextRoute ||
     isPersonalMatchesRoute ||
     isPublicAccessRoute ||
@@ -333,21 +338,25 @@ export function AppShell({ children }: AppShellProps) {
     : []
   const shouldShowSettingsButton =
     !isMatchChatRoute &&
+    !isTournamentRoute &&
     !isSettingsRoute &&
     !isInitialSeasonSetupRoute &&
     !isPublicAccessRoute
   const shouldShowHelpButton =
     !isMatchChatRoute &&
+    !isTournamentRoute &&
     !isInitialSeasonSetupRoute &&
     !isPublicAccessRoute &&
     !isPersonalMatchesRoute
   const shouldShowNotificationsButton =
     !isMatchChatRoute &&
+    !isTournamentRoute &&
     !isInitialSeasonSetupRoute &&
     !isPublicAccessRoute &&
     !isPersonalMatchesRoute &&
     !spectatorMode
   const shouldShowBottomNav =
+    !isTournamentRoute &&
     !isMatchChatRoute &&
     !isSettingsContextRoute &&
     !isPublicAccessRoute &&
@@ -356,7 +365,9 @@ export function AppShell({ children }: AppShellProps) {
     !isPersonalMatchesRoute
   const shouldShowPersonalMatchesNav =
     isPersonalMatchesRoute && !isMatchChatRoute && !isPublicAccessRoute
+  const shouldShowTournamentNav = Boolean(tournamentNavId) && !isMatchChatRoute
   const shouldShowPlayerInviteButton =
+    !isTournamentRoute &&
     !isMatchChatRoute &&
     !isPublicAccessRoute &&
     !isNewLeagueRoute &&
@@ -379,13 +390,13 @@ export function AppShell({ children }: AppShellProps) {
   const transitioningLeague = transitioningLeagueId
     ? leagues.find((league) => league.id === transitioningLeagueId)
     : null
-  const statusColorsEnabled = activeLeague?.statusColorsEnabled !== false
+  const statusColorsEnabled = isTournamentRoute || activeLeague?.statusColorsEnabled !== false
 
   useEffect(() => {
-    setLeagueAccent(activeLeague?.accentColor)
-  }, [activeLeague?.accentColor, setLeagueAccent])
+    setLeagueAccent(isTournamentRoute ? null : activeLeague?.accentColor)
+  }, [activeLeague?.accentColor, isTournamentRoute, setLeagueAccent])
 
-  if (isLeagueTransitioning) {
+  if (isLeagueTransitioning && !isTournamentRoute) {
     const leagueName = transitioningLeague?.name ?? t.common.privateLeague
     return <LeagueTransitionSkeleton leagueName={leagueName} />
   }
@@ -479,7 +490,7 @@ export function AppShell({ children }: AppShellProps) {
                 ? "0px"
                 : isLeagueNavigationRoute
                   ? "env(safe-area-inset-bottom, 0px)"
-                  : shouldShowBottomNav || shouldShowPersonalMatchesNav ? "96px" : "32px",
+                  : shouldShowBottomNav || shouldShowPersonalMatchesNav || shouldShowTournamentNav ? "96px" : "32px",
             } as CSSProperties
           }
         >
@@ -497,7 +508,7 @@ export function AppShell({ children }: AppShellProps) {
           ) : (
             <>
               {pathname === "/" ? <PendingAccessIntentNotice /> : null}
-              <CompetitionLaunchNotice />
+              {!isTournamentRoute ? <CompetitionLaunchNotice /> : null}
               {children}
             </>
           )}
@@ -513,10 +524,11 @@ export function AppShell({ children }: AppShellProps) {
 
         {shouldShowLeagueSearch ? <GlobalLeagueSearch /> : null}
 
-        <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav || shouldShowPersonalMatchesNav} />
+        <ActionFeedbackCenter hasBottomNav={shouldShowBottomNav || shouldShowPersonalMatchesNav || shouldShowTournamentNav} />
 
         {shouldShowBottomNav ? <BottomNav homeOnlyLocked={scheduledSeasonHomeOnly} /> : null}
         {shouldShowPersonalMatchesNav ? <PersonalMatchesNav /> : null}
+        {shouldShowTournamentNav && tournamentNavId ? <TournamentNav tournamentId={tournamentNavId} /> : null}
       </div>
     </div>
   )

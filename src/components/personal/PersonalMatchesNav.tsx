@@ -1,5 +1,3 @@
-"use client"
-
 import Link from "next/link"
 import { useI18n } from "@/i18n/I18nProvider"
 import { usePathname } from "next/navigation"
@@ -82,7 +80,7 @@ export function PersonalMatchesNav() {
   const items = [
     {
       href: "/leagues",
-      label: "Mis ligas",
+      label: "Mis Competiciones",
       icon: "leagues" as const,
       active: false,
     },
@@ -128,7 +126,7 @@ export function PersonalMatchesNav() {
             }
           >
             <PersonalNavIcon icon={item.icon} />
-            <span className="leading-none">{item.label}</span>
+            <span className="text-balance leading-tight">{tx(item.label)}</span>
           </Link>
         ))}
       </div>

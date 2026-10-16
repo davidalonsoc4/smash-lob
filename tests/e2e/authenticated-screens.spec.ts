@@ -437,7 +437,7 @@ test("personal matches use a separate simplified mode", async ({ page }) => {
   await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
   await expect(page.getByRole("navigation", { name: "Navegación de Mis partidos" })).toBeVisible()
   await expect(page.getByRole("link", { name: "Mis partidos", exact: true })).toBeVisible()
-  await expect(page.getByRole("link", { name: "Mis ligas", exact: true })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Mis Competiciones", exact: true })).toBeVisible()
   await expect(page.getByRole("link", { name: "Mi perfil", exact: true })).toBeVisible()
   await expect(page.getByRole("link", { name: "+ Partido", exact: true })).toHaveCount(0)
   await expect(page.locator('[data-tour="floating-settings"]')).toHaveCount(1)
