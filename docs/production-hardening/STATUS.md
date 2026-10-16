@@ -1,4 +1,10 @@
-# T01PRE — Publicación de competiciones/torneos en PRE (2026-10-17, IN_PROGRESS)
+# T01PRE — Publicación de competiciones/torneos en PRE (2026-10-17, DONE)
+
+Publicación confirmada: staging fc51efce7a5a283934c49c5c1fefae0bad5647ff, Vercel PRE dpl_7vkBsRohkgGTrsAUyeCupa52C523 READY/preview y alias pre.smashandlob.com apuntando a ese ID. GET protegido mediante Vercel CLI: health200/version1.15.23/environment pre; sw.js cache smash-lob-v1.15.23; manifest Smash & Lob PRE/start_url launch; creación /tournaments/new200 y APIs listado/detalle401 sin sesión Google. Production permanece en dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz; main9578fe00/tagv1.0.0e9152940 verificados intactos. Sin reaplicar migraciones ni modificar datos remotos. CI PR41 completa success (cuatro jobs); árbol integrado idéntico a candidata validada. La comprobación física de Google OAuth, actualización de la PWA, voz/volumen y bloqueo en móvil la realiza el usuario; no se afirma automatizada. La evidencia y estos registros finales quedan en la rama de trabajo sin provocar una nueva publicación de staging.
+
+CI373/38978349217 completada success en sus cuatro jobs: código/build, navegador/PWA, migraciones/pgTAP/restauración y Lighthouse. PR41 integrada tras verificar base/head/mergeable: staging fc51efce7a5a283934c49c5c1fefae0bad5647ff. Vercel confirma ProductionBranch main y dominio PRE ligado a staging. Pendiente READY/alias/health del despliegue nuevo; sin promoción Production.
+
+Push verificado por ls-remote: codex/mis-competiciones 9911d5fe. PR41 hacia staging creada/adjunta; CI release quality373/38978349217 en cola. Main9578fe00/tagv1.0.0e9152940 intactos. No se considera el preview de rama una publicación de PRE; falta CI, merge y READY/alias/health de staging. Evidencia local copiada a .quality-artifacts/torneos-pre-release-20261017.
 
 Gates locales completos en copia exacta: npm run validate correcto (960 pruebas/245 archivos, TypeScript, lint 0 errores/4 avisos, build 1207758 bytes gzip/102 chunks); npm run test:e2e 96/96, incluidas visuales/Axe, americanas claro/oscuro, ligas/amistosos y PWA offline. Auditorías completa/runtime 0 vulnerabilidades. Se prepara push y PR a staging; ninguna promoción a main/Production.
 

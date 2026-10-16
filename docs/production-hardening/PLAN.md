@@ -1,7 +1,7 @@
 # Production Hardening Plan
 
 ## T01PRE - Publicar Mis Competiciones y torneos en PRE
-- Status: IN_PROGRESS (2026-10-17)
+- Status: DONE (2026-10-17; gates locales/CI correctos y PRE1.15.23 READY/alias/health/SW verificados)
 - Objective: Registrar rama, preparar v1.15.23, validar con lockfile exacto en copia aislada y publicar staging/PRE para pruebas físicas de PWA.
 - Validation: npm run validate, npm run test:e2e y auditoría runtime; verificar SHA remoto, Vercel READY/rama/alias, health/version/PRE, SW y autenticación de API. OAuth, audio y bloqueo físicos quedan manuales.
 - Remote changes allowed: commits y push de codex/mis-competiciones y staging, despliegue/alias exclusivamente PRE. Migraciones de torneos ya aplicadas: solo comprobar registro. Main, Production y v1.0.0 intactos.
