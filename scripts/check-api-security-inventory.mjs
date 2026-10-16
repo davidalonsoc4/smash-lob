@@ -18,6 +18,11 @@ const publicMethods = new Map([
 
 const guardDetectors = [
   {
+    level: "tournament-owner",
+    evidence: "requireRapidTournamentCreator (authenticated creator)",
+    test: (source, route) => route.startsWith("/api/tournaments/") && source.includes('from "@/lib/serverRapidTournaments"') && source.includes("await requireRapidTournamentCreator("),
+  },
+  {
     level: "application-admin",
     evidence: "requireAuthenticatedAppUser + isSuperuser",
     test: (source, route) =>

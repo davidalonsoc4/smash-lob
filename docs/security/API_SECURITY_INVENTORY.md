@@ -143,6 +143,13 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/spectator-invites/[code]` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/suggestions` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/suggestions` | POST | Protegido | requireAuthenticatedAppUser |
+| `/api/tournaments` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/tournaments` | POST | Protegido | requireAuthenticatedAppUser |
+| `/api/tournaments/[id]` | GET | Protegido | requireRapidTournamentCreator (authenticated creator) |
+| `/api/tournaments/[id]/draw` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
+| `/api/tournaments/[id]/finish` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
+| `/api/tournaments/[id]/matches/[matchId]/result` | PUT | Protegido | requireRapidTournamentCreator (authenticated creator) |
+| `/api/tournaments/[id]/start` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
 
 ## Reglas
 

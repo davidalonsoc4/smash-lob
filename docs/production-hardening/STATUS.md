@@ -1,6 +1,6 @@
 # T01PRE — Publicación de competiciones/torneos en PRE (2026-10-17, IN_PROGRESS)
 
-Usuario autoriza subida de rama y cambios a PRE para pruebas PWA. Proyecto Vercel smash-lob/prj_KKbbsbzdVsZQNvNfU1ZNvAbqwPvM verificado; credenciales PRE ligadas a staging. Rama codex/mis-competiciones sin commits funcionales aún; staging remoto cb86dc76 solo difiere documentalmente de la base. Preparación v1.15.23 para actualización PWA. Dependencias locales desactualizadas respecto al lock (Next16.3.5/Vitest3.2.7); validación de publicación usará instalación exacta aislada, conservando localhost. Adjuntos privados excluidos. Sin escritura remota todavía.
+Usuario autoriza subida de rama y cambios a PRE para pruebas PWA. Proyecto Vercel smash-lob/prj_KKbbsbzdVsZQNvNfU1ZNvAbqwPvM verificado; credenciales PRE ligadas a staging. v1.15.23 registrada en 4fec1443, base staging integrada en bd340c38. Copia aislada gestionada tournaments-pre-validation: npm ci exacto en curso, conservando localhost (dependencias antiguas). Migraciones 20261016091645/20261016091719 verificadas ya aplicadas en PRE, sin reaplicarlas. Inventario API detectó la nueva guarda no reconocida: se registra requireRapidTournamentCreator como guarda exclusiva de propietario autenticado, sin añadir rutas públicas; inventario regenerado antes de gates. Rollback PRE dpl_6fiDVFPEcnW5vjWYG2Bu6L9KrBnK; Production dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz intacta. Adjuntos privados excluidos. Sin push aún.
 
 # T01H — Cabeceras compactas de torneos (2026-10-16, DONE)
 
