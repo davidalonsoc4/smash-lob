@@ -1,5 +1,9 @@
 # T01PRE — Publicación de competiciones/torneos en PRE (2026-10-17, IN_PROGRESS)
 
+Gates locales completos en copia exacta: npm run validate correcto (960 pruebas/245 archivos, TypeScript, lint 0 errores/4 avisos, build 1207758 bytes gzip/102 chunks); npm run test:e2e 96/96, incluidas visuales/Axe, americanas claro/oscuro, ligas/amistosos y PWA offline. Auditorías completa/runtime 0 vulnerabilidades. Se prepara push y PR a staging; ninguna promoción a main/Production.
+
+Dependencias exactas instaladas en copia aislada (Next16.3.8/Vitest4.1.11), auditorías completa/runtime con cero vulnerabilidades. Guards/inventario corregidos en 93ebef70; fixture pgTAP corregida en 5388d2e8 para iniciar antes de guardar resultados y ampliada a 28 aserciones de estados/propietario. No se altera SQL de migraciones. Lint completo pasa con cuatro avisos existentes; validación integral y E2E en curso. Sin push ni publicación todavía.
+
 Usuario autoriza subida de rama y cambios a PRE para pruebas PWA. Proyecto Vercel smash-lob/prj_KKbbsbzdVsZQNvNfU1ZNvAbqwPvM verificado; credenciales PRE ligadas a staging. v1.15.23 registrada en 4fec1443, base staging integrada en bd340c38. Copia aislada gestionada tournaments-pre-validation: npm ci exacto en curso, conservando localhost (dependencias antiguas). Migraciones 20261016091645/20261016091719 verificadas ya aplicadas en PRE, sin reaplicarlas. Inventario API detectó la nueva guarda no reconocida: se registra requireRapidTournamentCreator como guarda exclusiva de propietario autenticado, sin añadir rutas públicas; inventario regenerado antes de gates. Rollback PRE dpl_6fiDVFPEcnW5vjWYG2Bu6L9KrBnK; Production dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz intacta. Adjuntos privados excluidos. Sin push aún.
 
 # T01H — Cabeceras compactas de torneos (2026-10-16, DONE)
