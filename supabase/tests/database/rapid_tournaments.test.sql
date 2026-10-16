@@ -1,6 +1,6 @@
 begin;
 
-select plan(20);
+select plan(28);
 
 select ok((select relrowsecurity from pg_class where oid = 'public.rapid_tournaments'::regclass), 'tournaments enable RLS');
 select ok((select relrowsecurity from pg_class where oid = 'public.rapid_tournament_players'::regclass), 'players enable RLS');
@@ -31,6 +31,15 @@ select public.create_rapid_tournament(
 select is((select count(*)::integer from public.rapid_tournament_players p join rapid_tournament_test_fixture t using (tournament_id)), 12, 'creation persists exactly twelve manual players');
 select is((select count(*)::integer from public.rapid_tournament_rounds r join rapid_tournament_test_fixture t using (tournament_id)), 6, 'creation persists six scheduled rounds');
 select is((select count(*)::integer from public.rapid_tournament_matches m join rapid_tournament_test_fixture t using (tournament_id)), 12, 'creation persists twelve matches');
+
+select ok(not public.record_rapid_tournament_result((select tournament_id from rapid_tournament_test_fixture), (select id from public.rapid_tournament_matches where tournament_id = (select tournament_id from rapid_tournament_test_fixture) limit 1), '10000000-0000-0000-0000-000000000012', 16, 12), 'draft scores are rejected');
+select ok(not public.start_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000013'), 'another creator cannot start');
+select ok(public.start_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012'), 'creator starts before recording results');
+select ok((select started_at is not null from public.rapid_tournaments where id = (select tournament_id from rapid_tournament_test_fixture)), 'actual start is persisted');
+select ok(not public.start_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012'), 'start cannot be repeated');
+select ok(not public.record_rapid_tournament_result((select tournament_id from rapid_tournament_test_fixture), (select id from public.rapid_tournament_matches where tournament_id = (select tournament_id from rapid_tournament_test_fixture) limit 1), '10000000-0000-0000-0000-000000000013', 16, 12), 'another creator cannot record scores');
+select ok(not public.reroll_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012', array['A test','B test','C test','D test','E test','F test','G test','H test','I test','J test','K test','L test']), 'draw is locked after start');
+select ok(not public.finish_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012'), 'cannot finish without all scores');
 
 do $$
 declare
