@@ -180,7 +180,7 @@ export default function MatchDetailPage() {
 
         <AppCard>
           <p className="font-bold" role="status">{isResolvingLeague ? tx("Cargando...") : t.matchDetail.notFound}</p>
-          {!isResolvingLeague ? <Link href="/leagues" className="mt-3 inline-flex min-h-10 items-center underline underline-offset-4">{tx("Ver mis ligas")}</Link> : null}
+          {!isResolvingLeague ? <Link href="/leagues" className="mt-3 inline-flex min-h-10 items-center underline underline-offset-4">{tx("Ver mis competiciones")}</Link> : null}
         </AppCard>
       </div>
     )

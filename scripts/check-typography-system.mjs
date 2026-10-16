@@ -228,11 +228,11 @@ const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Prom
 ])
 assert(
   topHomePage.includes('size="md"') && topHomePage.includes('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">'),
-  "Inicio debe usar un logo normal junto al título y Mis ligas en la fila funcional",
+  "Inicio debe usar un logo normal junto al título y Mis Competiciones en la fila funcional",
 )
 assert(
-  topHomePage.includes('{tx("Mis ligas")}') && !topHomePage.includes("refreshApp()"),
-  "Mis ligas debe abrir la pantalla de ligas sin conservar el refresco manual de HOME",
+  topHomePage.includes('{tx("Mis Competiciones")}') && !topHomePage.includes("refreshApp()"),
+  "Mis Competiciones debe abrir la pantalla de ligas sin conservar el refresco manual de HOME",
 )
 for (const [label, source] of [
   ["Clasificación", topRankingPage],

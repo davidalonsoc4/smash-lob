@@ -121,8 +121,8 @@ assert(detailRoute.includes("export async function PATCH"), "El amistoso debe ad
 assert(listRoute.includes("personal_match_requires_current_user"), "El creador debe formar parte del partido")
 assert(listRoute.includes("p_status: status"), "La creación debe persistir el estado programado/finalizado")
 
-assert(leaguesPage.includes('href="/personal-matches"'), "Mis ligas debe enlazar a Mis partidos")
-assert(leaguesPage.includes("partidos de liga") && leaguesPage.includes("amistosos"), "Mis ligas debe explicar el historial agregado")
+assert(leaguesPage.includes('href="/personal-matches"'), "Mis Competiciones debe enlazar a Mis partidos")
+assert(leaguesPage.includes("partidos de liga") && leaguesPage.includes("amistosos"), "Mis Competiciones debe explicar el historial agregado")
 assert(personalPage.includes("const pageSize = 10"), "El historial debe paginar diez partidos cada vez")
 assert(personalPage.includes("Cargar 10 más"), "Debe existir carga incremental de diez partidos")
 assert(personalPage.includes("dashboard.upcoming.length > 0"), "Próximos partidos debe ocultarse por completo cuando no hay amistosos futuros")
@@ -224,11 +224,11 @@ assert(appShell.includes("!isPersonalMatchesRoute"), "El modo personal debe ocul
 assert(appShell.includes("shouldShowPersonalMatchesNav"), "El shell debe activar la navegación compacta del modo personal")
 assert(appShell.includes("<PersonalMatchesNav"), "El shell debe renderizar la navegación compacta de Mis partidos")
 assert(personalNav.includes('aria-label="Navegación de Mis partidos"') || personalNav.includes('tx("Navegación de Mis partidos")'), "La navegación personal debe ser accesible")
-for (const label of ["Mis ligas", "Mis partidos", "Chats", "Mi perfil"]) {
+for (const label of ["Mis Competiciones", "Mis partidos", "Chats", "Mi perfil"]) {
   assert(personalNav.includes(label), `Falta el destino ${label} en la navegación personal`)
 }
 assert(!personalNav.includes('label: "+ Partido"'), "La navegación personal no debe incluir + Partido")
-assert(personalNav.includes('href: "/leagues"'), "La navegación personal debe enlazar a Mis ligas")
+assert(personalNav.includes('href: "/leagues"'), "La navegación personal debe enlazar a Mis Competiciones")
 assert(personalNav.includes('href: "/personal-matches/chats"'), "La navegación personal debe enlazar a todos los chats de amistosos")
 assert(personalNav.includes('href: "/personal-matches/profile"'), "La navegación personal debe enlazar al perfil global")
 assert(personalNav.includes("grid-cols-4"), "La navegación personal debe repartir cuatro destinos")
@@ -264,7 +264,7 @@ for (const forbiddenColor of ["red-", "rose-", "green-", "emerald-", "lime-", "t
 assert(personalMatchesLib.includes("friendlyBadgeStyle"), "Amistoso debe tener un color propio estable")
 assert(personalMatchesLib.includes("stableStringHash"), "El color de cada liga debe ser estable entre cargas")
 assert(leagueGate.includes("isPersonalMatchesRoute"), "La puerta de liga debe permitir el historial personal")
-assert(settingsPage.includes('tour="settings-context-switcher"'), "Ajustes debe señalar el acceso Mis ligas/Mis partidos")
+assert(settingsPage.includes('tour="settings-context-switcher"'), "Ajustes debe señalar el acceso Mis Competiciones/Mis partidos")
 assert(tours.includes("Tus ligas y Mis partidos"), "El tutorial de Ajustes debe explicar ambos contextos")
 assert(tours.includes("version: 3"), "La guía de Ajustes debe incrementar versión para volver a mostrarse")
 assert(!(baseMigration + extensionMigration).toLowerCase().includes("pretemporada"), "El modelo personal no debe introducir pretemporada")

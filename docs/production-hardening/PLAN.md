@@ -1,5 +1,64 @@
 # Production Hardening Plan
 
+## T01PRE - Publicar Mis Competiciones y torneos en PRE
+- Status: IN_PROGRESS (2026-10-17)
+- Objective: Registrar rama, preparar v1.15.23, validar con lockfile exacto en copia aislada y publicar staging/PRE para pruebas físicas de PWA.
+- Validation: npm run validate, npm run test:e2e y auditoría runtime; verificar SHA remoto, Vercel READY/rama/alias, health/version/PRE, SW y autenticación de API. OAuth, audio y bloqueo físicos quedan manuales.
+- Remote changes allowed: commits y push de codex/mis-competiciones y staging, despliegue/alias exclusivamente PRE. Migraciones de torneos ya aplicadas: solo comprobar registro. Main, Production y v1.0.0 intactos.
+- Stop condition: fallo crítico de validación; no publicar hasta resolverlo.
+
+## T01H - Cabeceras compactas de torneos
+- Status: DONE (2026-10-16, local; dos happy paths móviles y gates correctos)
+- Objective: Compactar creación y cabecera compartida de las cinco vistas siguiendo la identidad/tipografía de Home de ligas; nombre con ancho completo, contexto breve y sin filas redundantes.
+- Validation: ESLint, TypeScript, tipografía/i18n/presupuesto y happy paths móviles claro/oscuro con capturas 393×852.
+- Remote changes allowed: none. Sin datos, migraciones, commits ni despliegue.
+
+## T01L - Seguimiento desde inicio real con avisos
+- Status: DONE (2026-10-16, local; 36 pruebas focalizadas, cinco recorridos móviles y build correctos)
+- Objective: Reutilizar started_at para preparación de 2 min, seis rondas/pausas automáticas, calendario coherente, avisos de inicio/dos minutos/fin y Wake Lock opcional; actualización local ligera y recuperación tras recargar.
+- Validation: límites temporales y avisos unitarios, integración de horarios, TypeScript/ESLint/i18n/presupuesto/build y happy path E2E móvil con reloj simulado, sonido/Wake Lock simulados y capturas 393×852. Sonido audible y bloqueo físico son comprobaciones manuales en dispositivo.
+- Remote changes allowed: none. Sin migraciones, datos remotos, commits ni despliegue.
+
+## T01N - Corregir la vuelta a Mis Competiciones con torneos
+- Status: DONE (2026-10-16; 8 pruebas focalizadas y dos recorridos móviles completos correctos)
+- Objective: Evitar el error Intl al renderizar fechas de torneos en el hub. Reproducido con listado no vacío en ES/EN/EU.
+- Validation: pruebas del hub, ESLint/TypeScript/i18n y happy path móvil con vuelta al hub en borrador y finalizado.
+- Remote changes allowed: none. Sin DB, commits ni publicación.
+
+## T01VC - Compactar el calendario para móvil
+- Status: DONE (2026-10-16; seguimiento CSS de descansos en línea validado en los dos happy paths móviles)
+- Objective: Cabeceras y parejas compactas, ubicación única bajo la fecha, sin etiquetas Pareja 1/2 ni acceso rápido a rondas; fuentes y radios coherentes con AppCard/Mis Partidos.
+- Validation: ESLint, TypeScript, i18n/tipografía/presupuesto, happy path E2E mobile claro/oscuro y capturas completas 393×852 a escala CSS; mantener prueba estrecha 320 px y accesibilidad.
+- Remote changes allowed: none. Sin DB, commits ni publicación.
+
+## T01V - Pulido visual de creación y calendario de torneos
+- Status: DONE (2026-10-16, local; 11 pruebas focalizadas, 4 happy paths y 6 regresiones E2E correctos)
+- Objective: Mejorar jerarquía del formulario, claridad de rondas/pistas/parejas y evitar solapamientos en la Navbar del torneo, conservando el happy path y las opciones futuras bloqueadas.
+- Validation: ESLint selectivo, TypeScript, i18n, quality:source, pruebas focalizadas de torneos y E2E mobile/escritorio con fixtures; revisar capturas claro/oscuro, 320 px y navegación sin desbordamientos.
+- Remote changes allowed: none. Sin DB, commits, despliegue ni pruebas automatizadas con cuentas reales.
+
+## T01 - Torneo rápido Americana 12 jugadores (happy path)
+- Status: DONE (2026-10-16, rama local `codex/mis-competiciones`; PRE validado con fixtures sintéticos)
+- Objective: Implementar creación privada por el organizador, plantilla fija Americana 12/2/120, sorteo antes de iniciar, seis rondas persistidas, resultados, clasificación individual y finalización dentro de la PWA.
+- Scope: Una única modalidad y configuración fija según la solicitud Smash & Lob Torneos Rápidos V1. Nuevas rutas `/tournaments/*`, API autenticada, tablas propias con RLS y una migración aditiva. No modificar ligas/amistosos/tema ni funcionalidades futuras.
+- Validation: 953 pruebas en 244 archivos; cuatro E2E mobile (hub claro/oscuro, historial y torneo crear→finalizar); TypeScript, traducciones, presupuesto, ESLint de todos los archivos tocados y build correctos. PRE confirmó tablas, RLS/grants y flujo transaccional completo con cuenta sintética eliminada al terminar. El comando global `npm run lint` se dejó tras más de cuatro minutos sin salida; ESLint selectivo pasa. Docker/pgTAP no disponible localmente/en PRE; las verificaciones DB se ejecutaron en PRE por SQL transaccional. No hay datos de usuarios de prueba persistidos. Presupuesto total ampliado de forma acotada a 133500; resto sin cambios.
+- Remote changes allowed: Aplicar y verificar exclusivamente la nueva migración en el PRE identificado. Sin push, merge, despliegue, escritura de torneos de usuarios ni cambios de PROD.
+- Stop condition: Un fallo crítico de seguridad, datos, migración o gates detiene este hito; conservar archivos y datos locales para reanudar.
+
+## MC01P - Aligerar la actividad personal del hub
+- Status: DONE (2026-10-16; 10 pruebas focalizadas, lint/tipos/presupuesto y seis recorridos Playwright correctos; capturas móvil/escritorio revisadas)
+- Objective: Ocultar fecha/lugar solo en la tarjeta del último encuentro del resumen y mover Ver Mis partidos a su cabecera. Conservar metadatos en detalle, historial y próximos partidos.
+- Validation: pruebas focalizadas de hub/tarjeta/navegación, lint de archivos afectados, TypeScript y recorridos Playwright del hub con fixtures; revisar capturas y `git diff --check`.
+- Remote changes allowed: none. Sin commits, instalaciones, DB ni publicación.
+
+## MC01 - Mis Competiciones: hub existente
+- Status: DONE (2026-10-16; primera versión local, 943 pruebas, 90 E2E y cuatro recorridos finales del hub correctos; revisión visual móvil/escritorio claro/oscuro)
+- Objective: Convertir `/leagues` en Mis Competiciones con vistas Resumen/Ligas/Torneos/Amistosos según petición del 2026-10-16: resumen con hasta dos ligas y encuentro propio destacado, listado completo con finalizadas plegadas. Conservar rutas, permisos, tema y Navbars. Torneos solo como aviso sin destino.
+- Scope: primera tarea de `docs/torneos-auditoria-navegacion.md`; rama local `codex/mis-competiciones`, descendiente de staging, sin commits ni publicación.
+- Validation: pruebas focalizadas existentes de navegación/idiomas, `npm run validate`, `npm run test:e2e` con entorno ficticio y `git diff --check`. Revisar cualquier diferencia visual antes de aceptar baselines.
+- Remote changes allowed: lectura de referencias Git; no push, merge, despliegue ni operaciones DB.
+- Stop condition: una validación crítica fallida impide cerrar el hito o avanzar a las tareas 2/3 de la auditoría.
+
 ## C01 - Audit correction: validation toolchain (BUG-040)
 - Status: DONE (2026-10-10; BUG-040 fixed in the local correction branch and validated in isolation)
 - Objective: Remove vulnerable test dependencies and obsolete overrides before executing further code or advancing to functional corrections.
@@ -111,7 +170,8 @@ Last updated: 2026-07-16 23:31:46 +02:00
 - Depends on: C14. Seventeen database transaction findings remain OPEN for separately scoped correction milestones.
 
 ## C16 - Correct installed app system surfaces
-- Status: IN PROGRESS (2026-10-15; user accepts the pre-existing inset/appearance and authorizes reviewed PRE-to-Production release; cleanup and final publication gates in progress)
+- Status: DONE (2026-10-15; native black verified on Android, pre-existing inset/appearance accepted by the user; reviewed v1.15.22 published and verified on PRE and Production)
+- Final checkpoint: PR39/staging cb86dc76 and PR40/main 9578fe00 published after successful CI368/369. PRE dpl_6fiDVFPEcnW5vjWYG2Bu6L9KrBnK and Production dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz READY with correct SHA/aliases. Production smoke and public manifest/SW/HTML/removed-diagnostic checks passed. Temporary diagnostic code and unused CSS variable removed. Height was accepted, not corrected; no transparency, automatic native-update timing or new physical Production validation claimed. Historical checkpoints below retain their original status at the time of observation.
 - Additional acceptance verified on Android13/Chrome153: same PRE package updated code1→2, firstInstallTime15-Aug preserved, native colors become black, and user confirms session retained without login. Calendar was accelerated manually through chrome://webapks; automatic completion and Android16 in-place are not claimed. Native black remains accepted on the original Xiaomi. Follow-up remains open for a measured extra88px outside the web viewport above Android13's44px navigation bar, coinciding with mandatory gesture insets. User updated Chrome153→155.0.8059.39; stable loaded PRE retains exactly the same viewport/insets, so that update does not fix the gap. No justified CSS workaround has been found. No reinstall, data clear, manifest marker experiment or Production action.
 - PRE v1.15.21 passed local/CI gates and is deployed/verified. Physical CSP violation fixed for four public PRE icons. Authorized fresh installation produced a native PRE WebAPK with #FF000000 theme/background colors; ADB screenshot confirms pure black gesture region and a contrasting native indicator. User confirms black and persistence across theme changes and closing/reopening. Keyboard, explicit background restoration and frame-by-frame cold-start flash checks remain residual manual coverage, not claimed verified. No transparency, flags, wrapper migration or Production changes.
 - Diagnostic support delivered in PRE v1.15.14: explicit technical report with server whitelist, Production denial, incidence code and JSON fallback. Native bar acceptance remains open.

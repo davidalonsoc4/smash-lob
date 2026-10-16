@@ -26,7 +26,11 @@ La rama de trabajo habitual conserva node_modules antiguo; los gates se ejecutan
 
 ## Publicación y comprobación
 
-Pendientes PR/CI y verificación PRE1.15.22 antes de promoción a main. Tras publicar Production se verificarán SHA/rama/deployment/alias, health versión/entorno, manifest negro e iconos, SW/cache y ausencia de endpoint/panel temporal. No se considera publicado por un mero acuse de merge.
+Publicación completada y verificada: candidata de69b2aa, PR39 integrada en staging cb86dc76db6c28a4fe103cb01b43b1fa46c81dcc y PR40 integrada en main 9578fe006063108cfcab93956fe23e1eb402f37c. CI368/38807938784 y CI369/38807942251 completados correctamente con los cuatro jobs en cada propuesta. PRE dpl_6fiDVFPEcnW5vjWYG2Bu6L9KrBnK y Production dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz READY, con SHA/rama y alias verificados. Los árboles de main y staging son idénticos.
+
+PRE: GET autenticados health200/1.15.22/pre, manifiesto negro con cuatro iconos públicos, SWcache1.15.22, HTMLmeta negro y diagnóstico404. Production: npm run smoke:prod correcto (health/versión/entorno, portada, Avatar Lab bloqueado); GET públicos manifiesto200 con nombre/iconos Production y colores negros, SW200/cache1.15.22, HTML200/meta negro/viewport-fit=cover y diagnóstico404. No acceso automatizado a cuentas ni escrituras de datos de Production. El tagv1.0.0 sigue e9152940ec51fdc34b785aa8ea0e054c110c4040.
+
+No se ha repetido en el teléfono una validación física de esta publicación Production. La evidencia física corresponde a las correcciones PRE conservadas: negro Android16 y actualización in-place con sesión Android13. La altura histórica permanece aceptada; esta publicación no añade transparencia ni modifica esa geometría. Dependabot22/23 quedan fuera de alcance. Los registros finales se conservan en la rama de entrega; no introducen cambios ejecutables posteriores a los gates.
 
 Rollback de aplicación identificable: deploymentProduction anterior dpl_FwhBkHmaqFhbP2td2bPyGzZQRSi3/main2461429d; sin migraciones de datos en esta entrega. No se promete actualización instantánea del WebAPK de todos los usuarios ni se prescribe reinstalación general: Chrome gestiona el calendario nativo.
 E2E final:86/86 correcto, incluidas referencias visuales, Axe, estilos/modos, PWA/offline y manifest/iconos. APIsecurity final96rutas/139métodos y ESLint específico correctos. Sin actualización de baselines. Lista React revisada: ningún hook/flujo de datos nuevo, bootstrap/metadata coherentes y eliminación de imports/estado innecesarios.

@@ -24,7 +24,9 @@ import {
 
 const showPersonalMatchChevron = false
 
-function MatchCardContent({ match }: { match: PersonalMatchItem }) {
+type PersonalMatchCardProps = { match: PersonalMatchItem; hideEventMeta?: boolean }
+
+function MatchCardContent({ match, hideEventMeta = false }: PersonalMatchCardProps) {
   const { tx } = useI18n()
   const teamA = getPersonalMatchTeamPlayers(match.participants, 1)
   const teamB = getPersonalMatchTeamPlayers(match.participants, 2)
@@ -185,17 +187,17 @@ function MatchCardContent({ match }: { match: PersonalMatchItem }) {
         {showPersonalMatchChevron ? <ClickableChevron className="shrink-0" /> : null}
       </div>
 
-      <MatchEventMeta
+      {!hideEventMeta ? <MatchEventMeta
         eventAt={match.scheduledAt}
         locationText={match.locationName}
         locationFallback={null}
         hideMissingRows
-      />
+      /> : null}
     </AppCard>
   )
 }
 
-export function PersonalMatchCard({ match }: { match: PersonalMatchItem }) {
+export function PersonalMatchCard({ match, hideEventMeta = false }: PersonalMatchCardProps) {
   const { tx } = useI18n()
   const router = useRouter()
   const { activateLeague } = useActiveLeague()
@@ -203,7 +205,7 @@ export function PersonalMatchCard({ match }: { match: PersonalMatchItem }) {
   if (match.origin === "friendly") {
     return (
       <Link href={`/personal-matches/${encodeURIComponent(match.id)}`} className="block">
-        <MatchCardContent match={match} />
+        <MatchCardContent match={match} hideEventMeta={hideEventMeta} />
       </Link>
     )
   }
@@ -218,7 +220,7 @@ export function PersonalMatchCard({ match }: { match: PersonalMatchItem }) {
       }}
       aria-label={tx(`Abrir partido de ${match.leagueName ?? tx("liga")}`)}
     >
-      <MatchCardContent match={match} />
+      <MatchCardContent match={match} hideEventMeta={hideEventMeta} />
     </button>
   )
 }

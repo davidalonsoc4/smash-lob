@@ -357,14 +357,14 @@ function SpectatorSettingsPage() {
         <AppearanceSettingsLink />
       </SettingsSection>
       <SettingsSection
-        title={tx("Mis ligas")}
+        title={tx("Mis Competiciones")}
         description={tx("Accede a las competiciones que sigues o en las que participas.")}
       >
         <SettingsLinkRow
           href="/leagues"
           id="leagues"
           tour="settings-context-switcher"
-          title={tx("Mis ligas")}
+          title={tx("Mis Competiciones")}
           description={tx("Cambia entre ligas donde eres jugador o espectador.")}
           icon="leagues"
         />
@@ -585,7 +585,7 @@ function PlayerSettingsPage() {
         ) : null}
       </SettingsSection>
       <SettingsSection
-        title={tx("Mis ligas")}
+        title={tx("Mis Competiciones")}
         description={tx("Cambia de competición, entra en otra liga o crea una nueva.")}
       >
         {hasLeagues ? (
@@ -593,7 +593,7 @@ function PlayerSettingsPage() {
             href="/leagues"
             id="leagues"
             tour="settings-context-switcher"
-            title={tx("Mis ligas")}
+            title={tx("Mis Competiciones")}
             description={tx(`Liga activa: ${activeLeague.name}. Consulta y cambia de competición.`)}
             icon="leagues"
           />

@@ -6,7 +6,7 @@ describe("v1.11.0 HOME soft refresh", () => {
     const home = await readFile("src/app/page.tsx", "utf8")
 
     expect(home).toContain('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">')
-    expect(home).toContain('{tx("Mis ligas")}')
+    expect(home).toContain('{tx("Mis Competiciones")}')
   })
 
   it("refreshes MVP state on demand instead of only on provider mount", async () => {
@@ -21,6 +21,6 @@ describe("v1.11.0 HOME soft refresh", () => {
     const home = await readFile("src/app/page.tsx", "utf8")
 
     expect(home).toContain('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">')
-    expect(home).toContain('{tx("Mis ligas")}')
+    expect(home).toContain('{tx("Mis Competiciones")}')
   })
 })
