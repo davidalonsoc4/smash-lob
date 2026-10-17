@@ -1,38 +1,88 @@
-let context: AudioContext | null = null
-let enabledFor: string | null = null
+import { loadRapidAudio, type RapidAudioSettings } from "./rapidAudioSettings"
+export type RapidSpeech = Record<string, string>
+let context: AudioContext | null = null, enabledFor: string | null = null, generation = 0
+const timers = new Set<ReturnType<typeof setTimeout>>(), sources = new Set<AudioScheduledSourceNode>(), samples = new Map<string, AudioBuffer>()
+let loading: Promise<void> | null = null
 export function rapidAudioEnabled(id: string) { return enabledFor === id }
+function later(callback: () => void, delay: number) { const timer = setTimeout(() => { timers.delete(timer); callback() }, delay); timers.add(timer) }
+export function cancelRapidPlayback() { generation++; timers.forEach(clearTimeout); timers.clear(); sources.forEach((source) => { try { source.stop() } catch {} }); sources.clear(); window.speechSynthesis?.cancel() }
 export async function enableRapidAudio(id: string) {
   try {
     const Constructor = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!Constructor) return false
-    if (!context || context.state === "closed") context = new Constructor()
+    if (!context || context.state === "closed") { context = new Constructor(); samples.clear(); loading = null }
     await context.resume()
     if (context.state !== "running") return false
     enabledFor = id
+    if (!loading) {
+      const decoder = context
+      loading = Promise.all(["en", "es"].flatMap((lang) => [1, 2, 3].map(async (number) => {
+        const key = `${lang}-${number}`, response = await fetch(`/audio/tournament/${key}.wav`)
+        if (!response.ok) throw new Error("sample_unavailable")
+        const buffer = await decoder.decodeAudioData(await response.arrayBuffer())
+        if (context === decoder) samples.set(key, buffer)
+      }))).then(() => {}).catch(() => { loading = null })
+    }
     return true
   } catch { return false }
 }
-export function suspendRapidAudio() {
-  void context?.suspend().catch(() => {})
-  window.speechSynthesis?.cancel()
-}
+export function suspendRapidAudio() { cancelRapidPlayback(); void context?.suspend().catch(() => {}) }
 export function disableRapidAudio() { enabledFor = null; suspendRapidAudio() }
-export function playRapidAudio(id: string, text: string, locale: string, warning = false) {
-  if (enabledFor !== id || !context || context.state !== "running" || document.hidden) return
+function audible(id: string) { return enabledFor === id && context?.state === "running" && !document.hidden }
+function level(settings: RapidAudioSettings) { return settings.intensity === "loud" ? .95 : settings.intensity === "normal" ? .4 : .18 }
+function track(source: AudioScheduledSourceNode, gain: GainNode) { sources.add(source); source.onended = () => { sources.delete(source); source.disconnect(); gain.disconnect() } }
+function tone(settings: RapidAudioSettings, warning = false, countdown = false) {
+  if (!context) return
+  const now = context.currentTime
+  const notes = settings.sound === "beep" ? (countdown ? [0] : [0, .16, .32]).map((offset) => [warning ? 660 : 880, offset, .1, .9]) : settings.sound === "bell" ? [[1046, 0, .9, .65], [1568, 0, .7, .25]] : settings.sound === "whistle" ? [[2400, 0, .55, .8]] : [[220, 0, 1.2, .6], [440, 0, .9, .25]]
+  for (const [frequency, offset, duration, strength] of notes) {
+    const oscillator = context.createOscillator(), gain = context.createGain(), start = now + offset
+    oscillator.frequency.value = frequency
+    gain.gain.setValueAtTime(0, start); gain.gain.linearRampToValueAtTime(level(settings) * strength, start + .015); gain.gain.linearRampToValueAtTime(0, start + duration)
+    oscillator.connect(gain); gain.connect(context.destination); track(oscillator, gain); oscillator.start(start); oscillator.stop(start + duration + .02)
+  }
+}
+function languages(settings: RapidAudioSettings, locale: string) { return settings.language === "both" ? ["en", "es"] : [settings.language === "app" ? locale : settings.language] }
+function speak(id: string, text: RapidSpeech, locale: string, settings: RapidAudioSettings, token: number) {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return
+  const langs = languages(settings, locale)
+  const next = (index: number) => {
+    if (token !== generation || !audible(id) || index >= langs.length) return
+    const lang = langs[index], utterance = new SpeechSynthesisUtterance(text[lang] ?? text.es)
+    utterance.lang = lang === "eu" ? "eu-ES" : lang === "en" ? "en-GB" : "es-ES"
+    const voices = window.speechSynthesis.getVoices(), preferred = lang === "en" ? settings.voiceEn : lang === "es" ? settings.voiceEs : ""
+    utterance.voice = voices.find((voice) => voice.voiceURI === preferred && voice.lang.toLowerCase().startsWith(lang)) ?? voices.find((voice) => voice.lang.toLowerCase().startsWith(lang) && voice.localService) ?? voices.find((voice) => voice.lang.toLowerCase().startsWith(lang)) ?? null
+    if (utterance.voice) utterance.lang = utterance.voice.lang
+    utterance.volume = settings.intensity === "soft" ? .5 : settings.intensity === "normal" ? .8 : 1
+    let advanced = false
+    const done = () => { if (!advanced && token === generation) { advanced = true; if (index + 1 < langs.length) later(() => next(index + 1), 600) } }
+    utterance.onend = done; utterance.onerror = done
+    try { window.speechSynthesis.speak(utterance) } catch { done() }
+  }
+  next(0)
+}
+export function playRapidAudio(id: string, text: RapidSpeech, locale: string, warning = false, settings = loadRapidAudio()) {
+  if (!audible(id)) return
+  cancelRapidPlayback()
   try {
-    const oscillator = context.createOscillator(), gain = context.createGain(), time = context.currentTime
-    oscillator.frequency.value = warning ? 660 : 880
-    gain.gain.setValueAtTime(0, time)
-    gain.gain.linearRampToValueAtTime(.18, time + .02)
-    gain.gain.linearRampToValueAtTime(0, time + .35)
-    oscillator.connect(gain); gain.connect(context.destination)
-    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect() }
-    oscillator.start(time); oscillator.stop(time + .4)
-    if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES"
-      window.speechSynthesis.speak(utterance)
-    }
-  } catch { /* Keep the visual timer running if the device rejects audio. */ }
+    if (settings.mode !== "voice") tone(settings, warning)
+    if (settings.mode !== "tone") { const token = generation; later(() => speak(id, text, locale, settings, token), settings.mode === "both" ? 500 : 0) }
+  } catch { /* A device audio failure must not affect the tournament clock. */ }
+}
+export function playRapidCountdown(id: string, number: number, locale: string, settings = loadRapidAudio()) {
+  if (!audible(id) || !settings.countdown || !context) return
+  cancelRapidPlayback()
+  try {
+    const language = languages(settings, locale)[0], buffer = samples.get(`${language === "es" ? "es" : "en"}-${number}`)
+    if (settings.mode === "tone" || !buffer) { tone({ ...settings, sound: "beep" }, false, true); return }
+    const source = context.createBufferSource(), gain = context.createGain()
+    source.buffer = buffer; gain.gain.setValueAtTime(level(settings), context.currentTime); source.connect(gain); gain.connect(context.destination); track(source, gain); source.start()
+  } catch { /* Countdown is optional; the anchored clock keeps running. */ }
+}
+export function previewRapidAudio(id: string, text: RapidSpeech, locale: string, settings: RapidAudioSettings) {
+  if (!audible(id)) return
+  cancelRapidPlayback()
+  if (!settings.countdown) { playRapidAudio(id, text, locale, true, settings); return }
+  playRapidCountdown(id, 3, locale, settings)
+  later(() => { playRapidCountdown(id, 2, locale, settings); later(() => { playRapidCountdown(id, 1, locale, settings); later(() => playRapidAudio(id, text, locale, true, settings), 1000) }, 1000) }, 1000)
 }

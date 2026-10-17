@@ -25,6 +25,10 @@
 .sectionBody { display: grid; gap: .75rem; padding-top: .75rem; }
 .help { color: var(--t-muted); font-size: .75rem; line-height: 1.6; }
 .help > summary { cursor: pointer; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.audioSettings { border-top: 1px solid var(--t-border); border-bottom: 1px solid var(--t-border); padding-block: .25rem; }
+.audioSettings > summary::after { content: "⌄"; margin-left: auto; }
+.audioSettings[open] { padding-bottom: .75rem; }
+.audioSettings[open] > summary::after { transform: rotate(180deg); }
 .help[open] > summary { margin-bottom: .5rem; }
 .optionRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem .75rem; padding: .7rem 0; border-bottom: 1px solid var(--t-border); }
 .optionRow:last-child { border-bottom: 0; }

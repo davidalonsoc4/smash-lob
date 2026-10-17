@@ -34,4 +34,16 @@ describe("rapid tournament actual-start clock", () => {
     }
     expect(cues.find((cue) => cue.id === "two-1")?.at).toBe(start + 16 * 60_000)
   })
+  it("counts down each round start and end without changing the original schedule or replaying old numbers", () => {
+    const cues = buildRapidCues(anchor, true), base = buildRapidCues(anchor)
+    expect(cues).toHaveLength(55)
+    expect(cues.filter((cue) => cue.kind !== "countdown")).toEqual(base)
+    for (const boundary of base.filter((cue) => ["start", "end", "finished"].includes(cue.kind))) {
+      const countdown = cues.filter((cue) => cue.id.startsWith(`count-${boundary.id}-`))
+      expect(countdown.map((cue) => cue.count)).toEqual([3, 2, 1])
+      expect(countdown.map((cue) => boundary.at - cue.at)).toEqual([3000, 2000, 1000])
+    }
+    const target = start + 120_000
+    expect(getDueRapidCues(cues, target - 4000, target).map((cue) => cue.id)).toEqual(["start-1"])
+  })
 })
