@@ -30,15 +30,16 @@ describe("rapid tournament audio preferences and sequencing", () => {
   afterEach(() => { audio.disableRapidAudio(); vi.useRealTimers(); vi.unstubAllGlobals() })
   it("validates stored choices and recovers from corrupt or unavailable storage", () => {
     expect(parseRapidAudio({ sound: "invalid", intensity: 99, countdown: "true" })).toEqual(DEFAULT_RAPID_AUDIO)
-    saveRapidAudio({ ...DEFAULT_RAPID_AUDIO, language: "both", sound: "gong", voiceEs: "es-test", countdown: false })
-    expect(loadRapidAudio()).toMatchObject({ language: "both", sound: "gong", voiceEs: "es-test", countdown: false })
+    saveRapidAudio({ ...DEFAULT_RAPID_AUDIO, language: "both", sound: "gong", countdown: false })
+    expect(loadRapidAudio()).toMatchObject({ language: "both", sound: "gong", countdown: false })
+    expect(parseRapidAudio({ sound: "sonar", voiceEs: "old-device-voice", voiceEn: "old-voice" })).toEqual({ ...DEFAULT_RAPID_AUDIO, sound: "sonar" })
     localStorage.setItem("smash-lob:rapid-audio:v1", "{")
     expect(loadRapidAudio()).toEqual(DEFAULT_RAPID_AUDIO)
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw Error("blocked") })
     expect(loadRapidAudio()).toEqual(DEFAULT_RAPID_AUDIO)
   })
-  it("speaks English then Spanish after completion and a 600 ms pause, using each selected voice", async () => {
-    const settings = { ...DEFAULT_RAPID_AUDIO, mode: "voice" as const, language: "both" as const, voiceEn: "en-test", voiceEs: "es-test" }
+  it("speaks English then Spanish after completion and a 600 ms pause, using automatic device voices", async () => {
+    const settings = { ...DEFAULT_RAPID_AUDIO, mode: "voice" as const, language: "both" as const }
     audio.playRapidAudio("tournament", { en: "Round three starts", es: "Comienza la ronda tres" }, "es", false, settings)
     await vi.advanceTimersByTimeAsync(0)
     expect(spoken).toHaveLength(1); expect(spoken[0]).toMatchObject({ lang: "en-GB", voice: voices[1], volume: 1 })
@@ -60,14 +61,14 @@ describe("rapid tournament audio preferences and sequencing", () => {
       expect(spoken.map((item) => item.text)).not.toContain("Second")
     }
   })
-  it("supports all four sounds, stronger bounded gain, tone-only and voice-only modes", async () => {
-    for (const sound of ["beep", "bell", "whistle", "gong"] as const) {
+  it("supports all eight sounds, stronger bounded gain, tone-only and voice-only modes", async () => {
+    for (const sound of ["beep", "bell", "whistle", "gong", "chime", "horn", "sonar", "arcade"] as const) {
       played.mockClear(); audio.playRapidAudio("tournament", { es: "Test" }, "es", false, { ...DEFAULT_RAPID_AUDIO, mode: "tone", sound })
       expect(played).toHaveBeenCalled(); expect(spoken).toHaveLength(0)
     }
     expect(Math.max(...gains)).toBeGreaterThan(.18); expect(Math.max(...gains)).toBeLessThan(1)
     played.mockClear(); audio.playRapidCountdown("tournament", 3, "es", { ...DEFAULT_RAPID_AUDIO, mode: "tone" }); expect(played).toHaveBeenCalledTimes(1)
-    played.mockClear(); audio.playRapidAudio("tournament", { es: "Test" }, "es", false, { ...DEFAULT_RAPID_AUDIO, mode: "voice", voiceEs: "missing" })
+    played.mockClear(); audio.playRapidAudio("tournament", { es: "Test" }, "es", false, { ...DEFAULT_RAPID_AUDIO, mode: "voice" })
     await vi.advanceTimersByTimeAsync(0); expect(played).not.toHaveBeenCalled(); expect(spoken[0].voice).toEqual(voices[0])
   })
   it("previews three prepared numbers before the message and cancels pending preview steps", async () => {

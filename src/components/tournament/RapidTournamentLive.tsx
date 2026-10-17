@@ -6,6 +6,7 @@ import { loadRapidAudio, saveRapidAudio } from "@/lib/rapidAudioSettings"
 import { translateLeagueText } from "@/i18n/leagueText"
 import { RapidAudioSettings } from "./RapidAudioSettings"
 import styles from "./Tournament.module.css"
+import Link from "next/link"
 
 const speechMessage = (source: string, round?: number): RapidSpeech => Object.fromEntries((["es", "en", "eu"] as const).map((lang) => [lang, `${translateLeagueText(lang, source)}${round ? ` ${round}` : ""}`]))
 const testMessage = speechMessage("Prueba de sonido. Quedan dos minutos.")
@@ -95,8 +96,8 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
       {phase.finish > plannedEnd ? <p className={`${styles.help} mt-2`}>{tx("El fin previsto supera la hora original de la reserva.")}</p> : null}
     </section>
     <section className={`${styles.panel} p-3 space-y-3`} aria-label={tx("Controles de seguimiento")}>
-      <div className="grid grid-cols-2 gap-2"><button className={styles.secondary} aria-pressed={sound} onClick={() => void toggleSound()}>{sound ? tx("Silenciar avisos") : tx("Activar avisos")}</button><button className={styles.secondary} disabled={!sound} onClick={() => previewRapidAudio(tournamentId, testMessage, locale, settings)}>{tx("Probar sonido")}</button></div>
-      <RapidAudioSettings value={settings} onChange={(value) => { cancelRapidPlayback(); setSettings(value); saveRapidAudio(value) }} />
+      <div className="grid grid-cols-2 gap-2"><button className={styles.secondary} aria-pressed={sound} onClick={() => void toggleSound()}>{sound ? tx("Silenciar avisos") : tx("Activar avisos")}</button><Link className={styles.secondary} href={`/settings/sounds?returnTo=${encodeURIComponent(`/tournaments/${tournamentId}/live`)}`}>{tx("Abrir en Ajustes")}</Link></div>
+      <RapidAudioSettings value={settings} previewDisabled={!sound} onPreview={() => previewRapidAudio(tournamentId, testMessage, locale, settings)} onChange={(value) => { cancelRapidPlayback(); setSettings(value); saveRapidAudio(value) }} />
       <label className="flex min-h-11 items-center justify-between gap-3 text-sm font-bold"><span>{tx("Evitar bloqueo durante Seguimiento")}</span><input type="checkbox" checked={keepAwake} disabled={!active} onChange={(event) => setKeepAwake(event.target.checked)} /></label>
       {awake ? <p className={styles.help} role="status">{tx("Pantalla encendida mientras Seguimiento esté visible.")}</p> : null}
       {wakeError ? <p className={styles.help} role="status">{wakeError}</p> : null}

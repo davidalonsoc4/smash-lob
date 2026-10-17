@@ -4,7 +4,8 @@ const mocks = vi.hoisted(() => ({ auth: vi.fn(), rpc: vi.fn(), maybeSingle: vi.f
 vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.auth }))
 vi.mock("@/lib/serverRateLimit", () => ({ enforceRequestRateLimit: vi.fn(async () => null) }))
 
-import { GET as readTournament } from "@/app/api/tournaments/[id]/route"
+import { GET as readTournament, DELETE as deleteTournament } from "@/app/api/tournaments/[id]/route"
+import { POST as restartTournament } from "@/app/api/tournaments/[id]/restart/route"
 import { POST as createTournament } from "@/app/api/tournaments/route"
 import { POST as drawTournament } from "@/app/api/tournaments/[id]/draw/route"
 import { POST as startTournament } from "@/app/api/tournaments/[id]/start/route"
@@ -88,6 +89,50 @@ describe("rapid tournament creator routes", () => {
     const response = await finishTournament(request(`/api/tournaments/${tournamentId}/finish`), params({ id: tournamentId }))
     expect(response.status).toBe(409)
     expect(mocks.rpc).toHaveBeenCalledWith("finish_rapid_tournament", { p_tournament_id: tournamentId, p_creator_user_id: "creator-uuid" })
+  })
+
+  it("binds restart and deletion to the authenticated creator and finished state", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://pre.smashandlob.com")
+    vi.stubEnv("VERCEL_ENV", "preview")
+    vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-17T12:00:00Z"))
+    for (const action of [restartTournament, deleteTournament]) {
+      mocks.maybeSingle.mockResolvedValueOnce({ data: null, error: null })
+      expect((await action(request(`/api/tournaments/${tournamentId}`), params({ id: tournamentId }))).status).toBe(404)
+      expect(mocks.rpc).not.toHaveBeenCalled()
+      mocks.rpc.mockResolvedValueOnce({ data: false, error: null })
+      expect((await action(request(`/api/tournaments/${tournamentId}`), params({ id: tournamentId }))).status).toBe(409)
+      mocks.rpc.mockResolvedValueOnce({ data: true, error: null })
+      expect((await action(request(`/api/tournaments/${tournamentId}`), params({ id: tournamentId }))).status).toBe(200)
+      expect(mocks.rpc).toHaveBeenLastCalledWith(action === restartTournament ? "restart_rapid_tournament_for_testing" : "delete_finished_rapid_tournament", { p_tournament_id: tournamentId, p_creator_user_id: "creator-uuid" })
+      mocks.rpc.mockClear()
+      mocks.auth.mockResolvedValueOnce({ ok: false, status: 401, error: "unauthenticated" })
+      expect((await action(request(`/api/tournaments/${tournamentId}`), params({ id: tournamentId }))).status).toBe(401)
+    }
+    vi.unstubAllEnvs()
+  })
+
+  it("rejects testing restart in Production and after its expiry without calling Supabase", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://smashandlob.com")
+    vi.stubEnv("NEXT_PUBLIC_APP_VARIANT", "pre")
+    vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-17T12:00:00Z"))
+    expect((await restartTournament(request(`/api/tournaments/${tournamentId}/restart`), params({ id: tournamentId }))).status).toBe(404)
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://pre.smashandlob.com")
+    vi.stubEnv("VERCEL_ENV", "production")
+    expect((await restartTournament(request(`/api/tournaments/${tournamentId}/restart`), params({ id: tournamentId }))).status).toBe(404)
+    vi.stubEnv("VERCEL_ENV", "preview")
+    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-10-26T00:00:00Z"))
+    expect((await restartTournament(request(`/api/tournaments/${tournamentId}/restart`), params({ id: tournamentId }))).status).toBe(404)
+    expect(mocks.rpc).not.toHaveBeenCalled()
+    vi.unstubAllEnvs()
+  })
+
+  it("reports database failures without pretending restart or deletion succeeded", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "http://localhost:3100")
+    vi.stubEnv("VERCEL_ENV", "")
+    vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-17T12:00:00Z"))
+    mocks.rpc.mockResolvedValue({ data: null, error: { message: "database_unavailable" } })
+    for (const action of [restartTournament, deleteTournament]) expect((await action(request(`/api/tournaments/${tournamentId}`), params({ id: tournamentId }))).status).toBe(500)
+    vi.unstubAllEnvs()
   })
 
   it("returns actual-start schedules after reload while preserving stored round IDs", async () => {

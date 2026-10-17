@@ -1,6 +1,6 @@
 begin;
 
-select plan(28);
+select plan(43);
 
 select ok((select relrowsecurity from pg_class where oid = 'public.rapid_tournaments'::regclass), 'tournaments enable RLS');
 select ok((select relrowsecurity from pg_class where oid = 'public.rapid_tournament_players'::regclass), 'players enable RLS');
@@ -55,6 +55,25 @@ $$;
 select is((select count(*)::integer from public.rapid_tournament_matches m join rapid_tournament_test_fixture t using (tournament_id) where score_a is not null and score_b is not null), 12, 'result RPC persists every score');
 select ok(public.finish_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012'), 'creator can finish after all twelve results');
 select is((select t.status from public.rapid_tournaments t join rapid_tournament_test_fixture f on f.tournament_id = t.id), 'finished', 'finished status persists');
+
+select ok(not has_function_privilege('anon', 'public.restart_rapid_tournament_for_testing(uuid,uuid)', 'EXECUTE'), 'anon cannot restart');
+select ok(not has_function_privilege('authenticated', 'public.restart_rapid_tournament_for_testing(uuid,uuid)', 'EXECUTE'), 'authenticated cannot restart directly');
+select ok(not has_function_privilege('authenticated', 'public.delete_finished_rapid_tournament(uuid,uuid)', 'EXECUTE'), 'authenticated cannot delete directly');
+select ok(not public.restart_rapid_tournament_for_testing((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000013'), 'another creator cannot restart');
+select ok(not public.delete_finished_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000013'), 'another creator cannot delete');
+create temporary table saved_fixture_matches as select * from public.rapid_tournament_matches where tournament_id = (select tournament_id from rapid_tournament_test_fixture);
+select ok(public.restart_rapid_tournament_for_testing((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012'), 'creator restarts completed tournament');
+select ok((select status = 'in_progress' and finished_at is null and started_at is not null from public.rapid_tournaments where id = (select tournament_id from rapid_tournament_test_fixture)), 'restart persists new active state and clears finish');
+select is((select count(*)::integer from public.rapid_tournament_matches where tournament_id = (select tournament_id from rapid_tournament_test_fixture) and score_a is null and score_b is null), 12, 'all twelve results are cleared');
+select is((select count(*)::integer from saved_fixture_matches s join public.rapid_tournament_matches m on m.id = s.id and m.round_id = s.round_id and m.team_a_one_id = s.team_a_one_id and m.team_a_two_id = s.team_a_two_id and m.team_b_one_id = s.team_b_one_id and m.team_b_two_id = s.team_b_two_id and m.court_number = s.court_number), 12, 'restart preserves all pairings, courts and round IDs');
+select ok(not public.restart_rapid_tournament_for_testing((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012'), 'active tournament cannot restart');
+select ok(not public.delete_finished_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012'), 'active tournament cannot be deleted');
+update public.rapid_tournament_matches set score_a = 10, score_b = 15 where tournament_id = (select tournament_id from rapid_tournament_test_fixture);
+select public.finish_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012');
+select ok(public.delete_finished_rapid_tournament((select tournament_id from rapid_tournament_test_fixture), '10000000-0000-0000-0000-000000000012'), 'creator can delete after finishing again');
+select is((select count(*)::integer from public.rapid_tournament_matches where tournament_id = (select tournament_id from rapid_tournament_test_fixture)), 0, 'delete cascades to matches');
+select is((select count(*)::integer from public.rapid_tournament_players where tournament_id = (select tournament_id from rapid_tournament_test_fixture)), 0, 'delete cascades to players');
+select is((select count(*)::integer from public.rapid_tournament_rounds where tournament_id = (select tournament_id from rapid_tournament_test_fixture)), 0, 'delete cascades to rounds');
 
 select * from finish();
 rollback;
