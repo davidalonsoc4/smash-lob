@@ -1,6 +1,16 @@
-# T01APRE — Publicación de avisos en PRE (2026-10-17, IN_PROGRESS)
+# T01APRE — Publicación de avisos en PRE (2026-10-17, DONE)
+
+PRE1.15.24 confirmada: staging da304d2affba0300f831e9fe3df0eb30d9ef1b16, Vercel preview dpl_3ssYNbBAp5gqRfXsFRysXjRZWeS3 READY y alias pre.smashandlob.com correcto. Health ok/version1.15.24/environment pre; SWcache1.15.24 y manifiesto Smash & Lob PRE correctos. Seis WAV descargados del dominio protegido y SHA256 idéntico al local; API torneos401 sin sesión Google. Production sigue en dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz, main9578fe00 y tagv1.0.0e9152940 intactos. Sin DB, migraciones ni dependencias modificadas. Evidencia en .quality-artifacts/avisos-pre-release-20261017 (logs, verification.json y CI). Prueba física de volumen, voces y Bluetooth pendiente del usuario; no se afirma automatizada. Registros finales en rama de trabajo sin nueva publicación de staging.
 
 Usuario autoriza publicación en PRE para pruebas móviles. Preparación v1.15.24 sobre codex/mis-competiciones, con validación aislada usando lock exacto. Se incluyen únicamente cambios de avisos ya implementados y sus pruebas; sin dependencias o DB nuevas. Adjuntos privados excluidos. Pendientes gates, subida e identificación/validación de despliegue y audios.
+
+Candidata registrada en a9a70073, versión/SW/changelog coherentes. Vercel proyecto y ramas comprobados: PRE ligado a staging; ProductionBranch main y despliegue Production anterior intactos. Copia aislada comparada con 1199 archivos versionados: contenido idéntico (62 diferencias solo CRLF/LF). Auditoría runtime 0 vulnerabilidades. validate y E2E completos en curso; sin push todavía.
+
+Push a9a70073 verificado en codex/mis-competiciones. PR42 draft hacia staging creada/adjunta; CI375/39026968565 iniciada en paralelo al cierre local. E2E completo 96/96 correcto (3,7 min); lint completo 0 errores/4 avisos y TypeScript correctos. validate sigue con pruebas/build. Ningún merge ni publicación PRE todavía. Rollback PRE disponible: dpl_7vkBsRohkgGTrsAUyeCupa52C523/v1.15.23.
+
+Gates locales completos correctos: validate (967 pruebas/246 archivos, TypeScript, lint0errores/4avisos, build1211357 bytes gzip/102chunks) y 96/96 E2E, con auditoría runtime0vulnerabilidades. PR42 lista para revisión y descripción actualizada; solo falta CI y despliegue/verificación PRE. Sin cambios adicionales a la candidata a9a70073.
+
+CI375/39026968565 completada success en los cuatro jobs. PR42 integrada tras comprobar base/head/mergeable: staging da304d2affba0300f831e9fe3df0eb30d9ef1b16, mismo árbol validado. Pendiente Vercel READY/alias y comprobaciones de versión/SW/WAV. Main/Production sin promoción.
 
 # T01A — Avisos configurables (2026-10-17, DONE local)
 

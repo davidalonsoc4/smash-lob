@@ -1,7 +1,7 @@
 # Production Hardening Plan
 
 ## T01APRE - Publicar avisos configurables en PRE
-- Status: IN_PROGRESS (2026-10-17)
+- Status: DONE (2026-10-17; gates locales/CI y PRE1.15.24 READY/alias/SW/seis WAV verificados)
 - Objective: Publicar v1.15.24 con preferencias de sonido/voz y cuenta atrás para pruebas físicas de PWA.
 - Validation: validate, E2E, auditoría runtime y CI; verificar staging/READY/alias, versión/SW y seis WAV con hash idéntico al local.
 - Remote changes allowed: commits/push de rama y PR/merge staging para PRE. Sin DB, cambios de main, Production o v1.0.0.
