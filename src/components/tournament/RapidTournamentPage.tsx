@@ -13,6 +13,7 @@ import { disableRapidAudio, enableRapidAudio } from "@/lib/rapidTournamentAudio"
 
 type TournamentData = {
   serverNow?: string
+  canRestartForTesting?: boolean
   tournament: { id: string; name: string; description: string; startsAt: string; startedAt: string | null; courtNames: string[]; status: "draft" | "in_progress" | "finished"; createdByUserId: string; finishedAt: string | null; configuration: Record<string, number | string> }
   players: Array<{ id: string; slot: string; name: string }>
   rounds: Array<{ id: string; round: number; startsAt: string; endsAt: string }>
@@ -96,15 +97,18 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
   const roundState = data ? getRapidRoundAt(data.rounds, now) : null
   const roundCountdownTarget = roundState?.phase === "playing" ? roundState.endsAt : roundState?.startsAt
 
-  async function performAction(action: "draw" | "start" | "finish") {
+  async function performAction(action: "draw" | "start" | "finish" | "restart" | "delete") {
+    if (action === "restart" && !window.confirm(tx("Se borrarán todos los resultados y empezarán dos minutos de preparación. Se conservan jugadores y cruces. ¿Reiniciar el torneo?"))) return
+    if (action === "delete" && !window.confirm(tx("Se eliminarán definitivamente este torneo, sus jugadores y resultados. ¿Eliminar el torneo?"))) return
     setBusyAction(action); setActionError("")
     try {
-      if (action === "start") await enableRapidAudio(tournamentId)
-      const response = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/${action}`, { method: "POST" })
-      if (!response.ok) { if (action === "start") disableRapidAudio(); setActionError(tx(action === "draw" ? "El sorteo está bloqueado porque el torneo ya ha comenzado." : action === "start" ? "No se ha podido iniciar el torneo." : "Registra los doce resultados antes de finalizar.")); return }
-      if (action === "start") router.push(`/tournaments/${tournamentId}/live`)
+      if (action === "start" || action === "restart") await enableRapidAudio(tournamentId)
+      const response = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}${action === "delete" ? "" : `/${action}`}`, { method: action === "delete" ? "DELETE" : "POST" })
+      if (!response.ok) { if (action === "start" || action === "restart") disableRapidAudio(); setActionError(tx(action === "draw" ? "El sorteo está bloqueado porque el torneo ya ha comenzado." : action === "start" ? "No se ha podido iniciar el torneo." : action === "finish" ? "Registra los doce resultados antes de finalizar." : "No se ha podido completar la acción. Comprueba tu conexión e inténtalo de nuevo.")); return }
+      if (action === "delete") { disableRapidAudio(); router.replace("/leagues"); return }
+      if (action === "start" || action === "restart") { refresh(); router.push(`/tournaments/${tournamentId}/live`) }
       else refresh()
-    } catch { if (action === "start") disableRapidAudio(); setActionError(tx("No se ha podido completar la acción. Comprueba tu conexión e inténtalo de nuevo.")) }
+    } catch { if (action === "start" || action === "restart") disableRapidAudio(); setActionError(tx("No se ha podido completar la acción. Comprueba tu conexión e inténtalo de nuevo.")) }
     finally { setBusyAction("") }
   }
 
@@ -124,6 +128,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
   return <div className={`${styles.theme} ${styles.page}`}>
     <header className={`app-page-header ${styles.header}`}><Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">‹ {tx("Mis Competiciones")}</Link><h1 className={`type-page-title font-black ${styles.headerTitle}`}>{tournament.name}</h1><div className={styles.headerContext}><span>{formatDate(displayStart, locale)} · {tournament.startedAt ? `${tx("Inicio real")} ` : ""}{formatTime(displayStart, locale)}</span><span>· {statusLabel}</span></div>{venue ? <p className={styles.headerLocation}>{venue}</p> : null}</header>
     {view === "summary" && tournament.description ? <p className={`${styles.help} break-words`}>{tournament.description}</p> : null}
+    {tournament.status === "finished" && (view === "summary" || view === "live") ? <section className={`${styles.panel} p-3 space-y-2`} aria-label={tx("Gestionar torneo finalizado")}><h2 className="type-panel-title font-black">{tx("Gestionar torneo finalizado")}</h2>{data.canRestartForTesting ? <><p className={styles.help}>{tx("Reinicio temporal para pruebas hasta el 25 de octubre. Borra resultados y conserva jugadores y cruces.")}</p><button className={`${styles.secondary} w-full`} disabled={busyAction !== ""} onClick={() => void performAction("restart")}>{busyAction === "restart" ? tx("Iniciando…") : tx("Reiniciar para pruebas")}</button></> : null}<button className={`${buttonClass} w-full text-red-700`} disabled={busyAction !== ""} onClick={() => void performAction("delete")}>{tx("Eliminar torneo")}</button></section> : null}
 
     {view === "summary" ? <>
       <AppCard><p className="text-xs font-black uppercase tracking-wider text-neutral-500">{tx("Torneo rápido · Americana equilibrada")}</p><p className="mt-2 text-sm font-bold">12 {tx("jugadores")} · 2 {tx("pistas")} · 6 {tx("rondas")}</p><p className="mt-1 text-xs font-semibold text-neutral-500">16 min + 3 min · 120 min {tx("de reserva")}</p>{tournament.status === "in_progress" && roundState ? <p className="mt-3 rounded-lg bg-neutral-50 p-2 text-sm font-black">{tx("Ronda actual")} {roundState.round} · {roundState.phase === "playing" ? tx("En juego") : tx("Próxima")} · {roundState.phase === "playing" ? tx("Termina") : tx("Empieza")} {formatTime(roundCountdownTarget!, locale)}</p> : null}</AppCard>
@@ -167,7 +172,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
     </> : null}
 
     {view === "live" ? <>
-      {tournament.status === "in_progress" && tournament.startedAt ? <RapidTournamentLive tournamentId={tournamentId} startedAt={tournament.startedAt} clockOffset={clockOffset ?? 0} plannedEnd={Date.parse(tournament.startsAt) + 120 * 60_000} rounds={Object.fromEntries(data.rounds.map((round) => [round.round, <div key={round.round} className="space-y-2">{matchCards(matchesByRound(round.round))}</div>]))} /> : <AppCard><p className="text-sm font-semibold">{tournament.status === "draft" ? tx("El seguimiento estará disponible al iniciar el torneo.") : tournament.status === "in_progress" ? tx("No se ha podido recuperar la hora real de inicio.") : tx("El torneo ha terminado.")}</p></AppCard>}
+      {tournament.status === "in_progress" && tournament.startedAt ? <RapidTournamentLive key={tournament.startedAt} tournamentId={tournamentId} startedAt={tournament.startedAt} clockOffset={clockOffset ?? 0} plannedEnd={Date.parse(tournament.startsAt) + 120 * 60_000} rounds={Object.fromEntries(data.rounds.map((round) => [round.round, <div key={round.round} className="space-y-2">{matchCards(matchesByRound(round.round))}</div>]))} /> : <AppCard><p className="text-sm font-semibold">{tournament.status === "draft" ? tx("El seguimiento estará disponible al iniciar el torneo.") : tournament.status === "in_progress" ? tx("No se ha podido recuperar la hora real de inicio.") : tx("El torneo ha terminado.")}</p></AppCard>}
       {complete && tournament.status === "in_progress" ? <button className={`${primaryClass} w-full`} disabled={busyAction !== ""} onClick={() => void performAction("finish")}>{busyAction === "finish" ? tx("Finalizando…") : tx("Finalizar torneo")}</button> : null}
     </> : null}
 

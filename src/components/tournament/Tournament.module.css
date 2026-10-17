@@ -2,6 +2,15 @@
 :global(html.dark) .theme { --t-surface: #202329; --t-raised: #292e36; --t-border: #414854; --t-text: #f4f5f7; --t-muted: #b3bdca; --t-accent: #e0b866; --t-primary: #e0b866; --t-primary-text: #171717; }
 :global(html[data-visual-style="competition"]) .theme { --t-surface: var(--competition-surface); --t-raised: var(--competition-surface-raised); --t-border: var(--competition-border); --t-text: var(--competition-text); --t-muted: var(--competition-text-muted); --t-accent: var(--competition-accent-text, var(--competition-accent)); --t-primary: var(--competition-accent); --t-primary-text: var(--competition-accent-contrast); }
 .page { display: grid; gap: 1rem; padding-bottom: 1rem; min-width: 0; }
+.audioCard { border: 1px solid var(--t-border); border-radius: .75rem; background: var(--t-surface); overflow: hidden; }
+.audioHeading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .75rem; background: var(--t-raised); }
+.audioHeading button { flex-shrink: 0; padding-inline: .65rem; }
+.audioCard .audioSettings { padding: .25rem .75rem .75rem; border: 0; }
+.audioCard .audioSettings > summary { display: flex; align-items: center; justify-content: space-between; min-height: 2.75rem; cursor: pointer; list-style: none; font-size: .85rem; font-weight: 800; }
+.audioCard .audioSettings > summary::after { content: "⌄"; }
+.audioSettings[open] > summary::after { transform: rotate(180deg); }
+.audioSwitch { display: flex; align-items: center; justify-content: space-between; gap: .75rem; border-top: 1px solid var(--t-border); padding-top: .75rem; min-height: 2.75rem; }
+.audioSwitch input { width: 1.2rem; height: 1.2rem; flex-shrink: 0; accent-color: var(--t-accent); }
 .theme .header:global(.app-page-header) { padding: .5rem .75rem; }
 .theme .header :global(.type-page-title) { letter-spacing: -.025em; }
 .headerTitle { min-width: 0; overflow-wrap: anywhere; }

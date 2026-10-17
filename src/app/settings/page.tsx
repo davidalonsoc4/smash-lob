@@ -355,6 +355,7 @@ function SpectatorSettingsPage() {
           <LanguageSwitcher />
         </SettingsStaticRow>
         <AppearanceSettingsLink />
+        <SettingsLinkRow href="/settings/sounds" id="sounds" title={tx("Sonidos y avisos")} description={tx("Personaliza y prueba los avisos de las rondas de tus torneos.")} icon="notifications" />
       </SettingsSection>
       <SettingsSection
         title={tx("Mis Competiciones")}
@@ -566,6 +567,7 @@ function PlayerSettingsPage() {
           <LanguageSwitcher />
         </SettingsStaticRow>
         <AppearanceSettingsLink />
+        <SettingsLinkRow href="/settings/sounds" id="sounds" title={tx("Sonidos y avisos")} description={tx("Personaliza y prueba los avisos de las rondas de tus torneos.")} icon="notifications" />
         <SettingsLinkRow
           href="/settings/notifications"
           id="notifications"

@@ -1,7 +1,21 @@
 # Production Hardening Plan
 
+## T02PRE - Publicar ajustes de avisos y gestión de finalizados
+- Status: IN PROGRESS (2026-10-17)
+- Objective: Publicar v1.15.25 en staging/PRE para probar sonidos, Ajustes y reinicio/borrado desde PWA.
+- Validation: validate, E2E completos, auditoría runtime y CI; verificar commit remoto, Vercel READY/alias, health/PWA, ruta Ajustes y API autenticada.
+- Remote changes allowed: commits/push de rama, PR y merge a staging y PRE, autorizados explícitamente por el usuario. Migración ya aplicada: solo verificar registro. Sin cambios de main, Production ni v1.0.0.
+- Stop condition: fallo crítico bloquea publicación.
+
+## T02 - Ajustes de avisos y gestión de torneos finalizados
+- Status: DONE (2026-10-17; 971 pruebas, cinco recorridos móviles, build y migración PRE verificados)
+- Objective: Panel móvil compartido Seguimiento/Ajustes, prueba de sonido, ocho tonos y voz automática; reinicio temporal local/PRE hasta 25 octubre y borrado de finalizados con confirmación y autorización del creador.
+- Validation: audio/API/SQL, búsqueda de ajustes y happy path móvil claro/oscuro; TypeScript, ESLint, i18n, presupuestos y build. Fixtures ficticios, sin datos personales.
+- Remote changes allowed: aplicar/verificar solo la nueva migración aditiva en PRE miadjotkucgluwbrgeih, según autorización de validación PRE del módulo; verificación SQL con fixtures sintéticos y rollback. Sin commits, publicación, datos reales ni PROD.
+- Stop condition: fallo crítico de validación impide cerrar o publicar.
+
 ## T01APRE - Publicar avisos configurables en PRE
-- Status: IN_PROGRESS (2026-10-17)
+- Status: DONE (2026-10-17; gates locales/CI y PRE1.15.24 READY/alias/SW/seis WAV verificados)
 - Objective: Publicar v1.15.24 con preferencias de sonido/voz y cuenta atrás para pruebas físicas de PWA.
 - Validation: validate, E2E, auditoría runtime y CI; verificar staging/READY/alias, versión/SW y seis WAV con hash idéntico al local.
 - Remote changes allowed: commits/push de rama y PR/merge staging para PRE. Sin DB, cambios de main, Production o v1.0.0.

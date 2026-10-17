@@ -34,7 +34,14 @@ function track(source: AudioScheduledSourceNode, gain: GainNode) { sources.add(s
 function tone(settings: RapidAudioSettings, warning = false, countdown = false) {
   if (!context) return
   const now = context.currentTime
-  const notes = settings.sound === "beep" ? (countdown ? [0] : [0, .16, .32]).map((offset) => [warning ? 660 : 880, offset, .1, .9]) : settings.sound === "bell" ? [[1046, 0, .9, .65], [1568, 0, .7, .25]] : settings.sound === "whistle" ? [[2400, 0, .55, .8]] : [[220, 0, 1.2, .6], [440, 0, .9, .25]]
+  const patterns: Record<RapidAudioSettings["sound"], number[][]> = {
+    beep: (countdown ? [0] : [0, .16, .32]).map((offset) => [warning ? 660 : 880, offset, .1, .9]),
+    bell: [[1046, 0, .9, .65], [1568, 0, .7, .25]], whistle: [[2400, 0, .55, .8]], gong: [[220, 0, 1.2, .6], [440, 0, .9, .25]],
+    chime: [[784, 0, .18, .8], [1046, .2, .18, .8], [1318, .4, .3, .8]],
+    horn: [[196, 0, .7, .5], [294, 0, .7, .4]], sonar: [[1200, 0, .3, .8], [1200, .45, .3, .8]],
+    arcade: [[523, 0, .1, .8], [659, .12, .1, .8], [784, .24, .1, .8], [1046, .36, .2, .8]],
+  }
+  const notes = patterns[settings.sound]
   for (const [frequency, offset, duration, strength] of notes) {
     const oscillator = context.createOscillator(), gain = context.createGain(), start = now + offset
     oscillator.frequency.value = frequency
@@ -50,8 +57,8 @@ function speak(id: string, text: RapidSpeech, locale: string, settings: RapidAud
     if (token !== generation || !audible(id) || index >= langs.length) return
     const lang = langs[index], utterance = new SpeechSynthesisUtterance(text[lang] ?? text.es)
     utterance.lang = lang === "eu" ? "eu-ES" : lang === "en" ? "en-GB" : "es-ES"
-    const voices = window.speechSynthesis.getVoices(), preferred = lang === "en" ? settings.voiceEn : lang === "es" ? settings.voiceEs : ""
-    utterance.voice = voices.find((voice) => voice.voiceURI === preferred && voice.lang.toLowerCase().startsWith(lang)) ?? voices.find((voice) => voice.lang.toLowerCase().startsWith(lang) && voice.localService) ?? voices.find((voice) => voice.lang.toLowerCase().startsWith(lang)) ?? null
+    const voices = window.speechSynthesis.getVoices()
+    utterance.voice = voices.find((voice) => voice.lang.toLowerCase().startsWith(lang) && voice.localService) ?? voices.find((voice) => voice.lang.toLowerCase().startsWith(lang)) ?? null
     if (utterance.voice) utterance.lang = utterance.voice.lang
     utterance.volume = settings.intensity === "soft" ? .5 : settings.intensity === "normal" ? .8 : 1
     let advanced = false
