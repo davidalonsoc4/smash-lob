@@ -1,7 +1,19 @@
 # Production Hardening Plan
 
-## T01PRE - Publicar Mis Competiciones y torneos en PRE
+## T01APRE - Publicar avisos configurables en PRE
 - Status: IN_PROGRESS (2026-10-17)
+- Objective: Publicar v1.15.24 con preferencias de sonido/voz y cuenta atrás para pruebas físicas de PWA.
+- Validation: validate, E2E, auditoría runtime y CI; verificar staging/READY/alias, versión/SW y seis WAV con hash idéntico al local.
+- Remote changes allowed: commits/push de rama y PR/merge staging para PRE. Sin DB, cambios de main, Production o v1.0.0.
+
+## T01A - Avisos configurables de torneos
+- Status: DONE (2026-10-17, local; 21 pruebas focalizadas, dos happy paths móviles y gates correctos)
+- Objective: Preferencias locales de sonido/intensidad/modo/idioma/voces, inglés seguido de español con pausa y cuenta atrás de tres segundos sin alterar horarios.
+- Validation: pruebas de preferencias, secuencias y cancelación/visibilidad; límites temporales, TypeScript/ESLint/i18n/presupuesto/build y happy paths móviles claro/oscuro con controles y persistencia.
+- Remote changes allowed: none. Sin DB, migraciones, dependencias, commits ni publicación.
+
+## T01PRE - Publicar Mis Competiciones y torneos en PRE
+- Status: DONE (2026-10-17; gates locales/CI correctos y PRE1.15.23 READY/alias/health/SW verificados)
 - Objective: Registrar rama, preparar v1.15.23, validar con lockfile exacto en copia aislada y publicar staging/PRE para pruebas físicas de PWA.
 - Validation: npm run validate, npm run test:e2e y auditoría runtime; verificar SHA remoto, Vercel READY/rama/alias, health/version/PRE, SW y autenticación de API. OAuth, audio y bloqueo físicos quedan manuales.
 - Remote changes allowed: commits y push de codex/mis-competiciones y staging, despliegue/alias exclusivamente PRE. Migraciones de torneos ya aplicadas: solo comprobar registro. Main, Production y v1.0.0 intactos.

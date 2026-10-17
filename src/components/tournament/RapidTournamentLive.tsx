@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { buildRapidCues, getDueRapidCues, getRapidLiveState, type RapidCue } from "@/lib/rapidTournamentTiming"
-import { disableRapidAudio, enableRapidAudio, playRapidAudio, rapidAudioEnabled, suspendRapidAudio } from "@/lib/rapidTournamentAudio"
+import { cancelRapidPlayback, disableRapidAudio, enableRapidAudio, playRapidAudio, playRapidCountdown, previewRapidAudio, rapidAudioEnabled, suspendRapidAudio, type RapidSpeech } from "@/lib/rapidTournamentAudio"
+import { loadRapidAudio, saveRapidAudio } from "@/lib/rapidAudioSettings"
+import { translateLeagueText } from "@/i18n/leagueText"
+import { RapidAudioSettings } from "./RapidAudioSettings"
 import styles from "./Tournament.module.css"
 
+const speechMessage = (source: string, round?: number): RapidSpeech => Object.fromEntries((["es", "en", "eu"] as const).map((lang) => [lang, `${translateLeagueText(lang, source)}${round ? ` ${round}` : ""}`]))
+const testMessage = speechMessage("Prueba de sonido. Quedan dos minutos.")
 export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, rounds, plannedEnd }: { tournamentId: string; startedAt: string; clockOffset: number; rounds: Record<number, ReactNode>; plannedEnd: number }) {
   const { tx, locale } = useI18n()
   const clock = useCallback(() => Date.now() + clockOffset, [clockOffset])
@@ -13,43 +18,43 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
   const [keepAwake, setKeepAwake] = useState(false)
   const [awake, setAwake] = useState(false)
   const [wakeError, setWakeError] = useState("")
+  const [settings, setSettings] = useState(loadRapidAudio)
   const previous = useRef(now - (now - Date.parse(startedAt) < 3000 ? 3000 : 0))
   const announced = useRef(new Set<string>())
-  const cues = useMemo(() => buildRapidCues(startedAt), [startedAt])
+  const cues = useMemo(() => buildRapidCues(startedAt, settings.countdown), [startedAt, settings.countdown])
   const phase = getRapidLiveState(startedAt, now)
   const active = Boolean(phase && phase.phase !== "ended")
-  const cueText = useCallback((cue: RapidCue) => cue.kind === "preparation" ? tx("Dos minutos de preparación") : cue.kind === "start" ? `${tx("Comienza la ronda")} ${cue.round}` : cue.kind === "two_minutes" ? tx("Quedan dos minutos") : cue.kind === "finished" ? tx("Tiempo de torneo finalizado. Termina el punto en juego.") : tx("Fin de ronda. Termina el punto en juego. Tres minutos de cambio."), [tx])
+  const cueText = useCallback((cue: RapidCue) => speechMessage(cue.kind === "preparation" ? "Dos minutos de preparación" : cue.kind === "start" ? "Comienza la ronda" : cue.kind === "two_minutes" ? "Quedan dos minutos" : cue.kind === "finished" ? "Tiempo de torneo finalizado. Termina el punto en juego." : "Fin de ronda. Termina el punto en juego. Tres minutos de cambio.", cue.kind === "start" ? cue.round : undefined), [])
 
   useEffect(() => {
     let timer: number | undefined
     let disposed = false
     const resumeAudio = () => { if (rapidAudioEnabled(tournamentId)) void enableRapidAudio(tournamentId).then((ok) => { if (!disposed && !ok) { disableRapidAudio(); setSound(false); setAudioError(true) } }) }
     const update = () => {
+      window.clearTimeout(timer)
       const time = clock(); setNow(time)
-      if (getRapidLiveState(startedAt, time)?.phase === "ended") window.clearInterval(timer)
+      if (!document.hidden && getRapidLiveState(startedAt, time)?.phase !== "ended") timer = window.setTimeout(update, 1010 - ((time - Date.parse(startedAt)) % 1000))
     }
     const visibility = () => {
-      window.clearInterval(timer)
+      window.clearTimeout(timer)
       update()
       previous.current = clock()
       if (document.hidden) suspendRapidAudio()
       else {
         resumeAudio()
-        if (getRapidLiveState(startedAt, clock())?.phase !== "ended") timer = window.setInterval(update, 1000)
       }
     }
     if (!document.hidden) resumeAudio()
     update()
-    if (!document.hidden && getRapidLiveState(startedAt, clock())?.phase !== "ended") timer = window.setInterval(update, 1000)
     document.addEventListener("visibilitychange", visibility)
-    return () => { disposed = true; window.clearInterval(timer); document.removeEventListener("visibilitychange", visibility); suspendRapidAudio() }
+    return () => { disposed = true; window.clearTimeout(timer); document.removeEventListener("visibilitychange", visibility); suspendRapidAudio() }
   }, [clock, startedAt, tournamentId])
   useEffect(() => {
     for (const cue of getDueRapidCues(cues, previous.current, now)) {
-      if (!announced.current.has(cue.id)) { announced.current.add(cue.id); playRapidAudio(tournamentId, cueText(cue), locale, cue.kind === "two_minutes") }
+      if (!announced.current.has(cue.id)) { announced.current.add(cue.id); if (cue.kind === "countdown") playRapidCountdown(tournamentId, cue.count!, locale, settings); else playRapidAudio(tournamentId, cueText(cue), locale, cue.kind === "two_minutes", settings) }
     }
     previous.current = now
-  }, [now, cues, cueText, locale, tournamentId])
+  }, [now, cues, cueText, locale, tournamentId, settings])
   useEffect(() => {
     if (!keepAwake || !active) return
     let cancelled = false, lock: WakeLockSentinel | null = null, requesting = false
@@ -74,7 +79,7 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
     if (sound) { disableRapidAudio(); setSound(false); return }
     const ok = await enableRapidAudio(tournamentId)
     setSound(ok); setAudioError(!ok)
-    if (ok) playRapidAudio(tournamentId, tx("Avisos sonoros activados"), locale)
+    if (ok) playRapidAudio(tournamentId, speechMessage("Avisos sonoros activados"), locale, false, settings)
   }
   if (!phase) return <p role="alert">{tx("No se ha podido recuperar la hora real de inicio.")}</p>
   const label = phase.phase === "preparation" ? tx("Preparación") : phase.phase === "transition" ? tx("Pausa") : phase.phase === "ended" ? tx("Tiempo de juego terminado") : `${tx("Ronda")} ${phase.round}`
@@ -90,7 +95,8 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
       {phase.finish > plannedEnd ? <p className={`${styles.help} mt-2`}>{tx("El fin previsto supera la hora original de la reserva.")}</p> : null}
     </section>
     <section className={`${styles.panel} p-3 space-y-3`} aria-label={tx("Controles de seguimiento")}>
-      <div className="grid grid-cols-2 gap-2"><button className={styles.secondary} aria-pressed={sound} onClick={() => void toggleSound()}>{sound ? tx("Silenciar avisos") : tx("Activar avisos")}</button><button className={styles.secondary} disabled={!sound} onClick={() => playRapidAudio(tournamentId, tx("Prueba de sonido. Quedan dos minutos."), locale, true)}>{tx("Probar sonido")}</button></div>
+      <div className="grid grid-cols-2 gap-2"><button className={styles.secondary} aria-pressed={sound} onClick={() => void toggleSound()}>{sound ? tx("Silenciar avisos") : tx("Activar avisos")}</button><button className={styles.secondary} disabled={!sound} onClick={() => previewRapidAudio(tournamentId, testMessage, locale, settings)}>{tx("Probar sonido")}</button></div>
+      <RapidAudioSettings value={settings} onChange={(value) => { cancelRapidPlayback(); setSettings(value); saveRapidAudio(value) }} />
       <label className="flex min-h-11 items-center justify-between gap-3 text-sm font-bold"><span>{tx("Evitar bloqueo durante Seguimiento")}</span><input type="checkbox" checked={keepAwake} disabled={!active} onChange={(event) => setKeepAwake(event.target.checked)} /></label>
       {awake ? <p className={styles.help} role="status">{tx("Pantalla encendida mientras Seguimiento esté visible.")}</p> : null}
       {wakeError ? <p className={styles.help} role="status">{wakeError}</p> : null}

@@ -37,7 +37,7 @@ test(`creates and completes the fixed 12-player tournament happy path (${theme})
   await page.route("**/api/locations", (route) => route.fulfill({ json: { locations: [{ id: "fixture-venue", name: "Club de prueba", town: "Localidad" }] } }))
   await page.addInitScript((mode) => { localStorage.setItem("smash-lob-theme-mode", mode); localStorage.setItem("smash-lob-visual-style", "competition") }, theme)
   await page.addInitScript(() => {
-    const probe = { speech: [] as string[], tones: 0, locks: 0, releases: 0 }
+    const probe = { speech: [] as string[], tones: 0, locks: 0, releases: 0, countdowns: 0, spoken: [] as Array<{lang: string; voice: string | undefined; volume: number}> }
     Object.assign(window, { rapidTest: probe })
     class AudioStub {
       state = "suspended"; currentTime = 0; destination = {}
@@ -45,13 +45,16 @@ test(`creates and completes the fixed 12-player tournament happy path (${theme})
       async suspend() { this.state = "suspended" }
       createOscillator() { return { frequency: { value: 0 }, connect() {}, disconnect() {}, start() { probe.tones++ }, stop() {}, onended: null } }
       createGain() { return { gain: { setValueAtTime() {}, linearRampToValueAtTime() {} }, connect() {}, disconnect() {} } }
+      async decodeAudioData() { return {} }
+      createBufferSource() { return { connect() {}, disconnect() {}, start() { probe.countdowns++ }, stop() {}, buffer: null, onended: null } }
     }
     class LockStub extends EventTarget {
       released = false
       async release() { if (!this.released) { this.released = true; probe.releases++; this.dispatchEvent(new Event("release")) } }
     }
     Object.defineProperty(window, "AudioContext", { value: AudioStub, configurable: true })
-    Object.defineProperty(window, "speechSynthesis", { value: { cancel() {}, speak(utterance: SpeechSynthesisUtterance) { probe.speech.push(utterance.text) } }, configurable: true })
+    Object.defineProperty(window, "SpeechSynthesisUtterance", { value: class { text: string; constructor(text: string) { this.text = text } }, configurable: true })
+    Object.defineProperty(window, "speechSynthesis", { value: { cancel() {}, getVoices: () => [{ voiceURI: "qa-es", name: "Voz QA española", lang: "es-ES", localService: true }, { voiceURI: "qa-en", name: "English QA voice", lang: "en-GB", localService: true }], addEventListener() {}, removeEventListener() {}, speak(utterance: SpeechSynthesisUtterance) { probe.speech.push(utterance.text); probe.spoken.push({ lang: utterance.lang, voice: utterance.voice?.voiceURI, volume: utterance.volume }); setTimeout(() => utterance.onend?.call(utterance, new Event("end") as SpeechSynthesisEvent), 100) } }, configurable: true })
     Object.defineProperty(navigator, "wakeLock", { value: { async request() { probe.locks++; return new LockStub() } }, configurable: true })
     localStorage.setItem("smash-lob:competition-launch-popup-v2:qa-tournament@example.test", "dismissed")
     localStorage.setItem("smash-lob-user-league-memberships", JSON.stringify([{ userId: "qa-tournament@example.test", leagueId: "league-smash-lob", playerId: "davo", role: "admin" }]))
@@ -142,6 +145,18 @@ test(`creates and completes the fixed 12-player tournament happy path (${theme})
   await page.getByRole("button", { name: "Probar sonido" }).click()
   const speech = () => page.evaluate(() => (window as unknown as { rapidTest: { speech: string[] } }).rapidTest.speech)
   await expect.poll(speech).toContain("Prueba de sonido. Quedan dos minutos.")
+  await page.getByText("Configurar avisos", { exact: true }).click()
+  await page.getByRole("combobox", { name: "Idioma de los avisos", exact: true }).selectOption("both")
+  await page.getByRole("combobox", { name: "Sonido del aviso", exact: true }).selectOption("gong")
+  await page.getByRole("combobox", { name: "Voz en español", exact: true }).selectOption("qa-es")
+  await page.getByRole("combobox", { name: "Voz en inglés", exact: true }).selectOption("qa-en")
+  const beforePreview = (await speech()).length
+  await page.getByRole("button", { name: "Probar sonido" }).click()
+  await expect.poll(async () => (await speech()).slice(beforePreview)).toEqual(["Sound test. Two minutes remaining.", "Prueba de sonido. Quedan dos minutos."])
+  await page.getByRole("combobox", { name: "Intensidad", exact: true }).selectOption("normal")
+  await page.getByText("Configurar avisos", { exact: true }).scrollIntoViewIfNeeded()
+  await page.screenshot({ path: testInfo.outputPath(`audio-settings-${theme}.png`), scale: "css" })
+  await page.getByText("Configurar avisos", { exact: true }).click()
   await page.getByRole("checkbox", { name: "Evitar bloqueo durante Seguimiento" }).check()
   await expect(page.getByText("Pantalla encendida mientras Seguimiento esté visible.")).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath(`live-preparation-${theme}.png`), scale: "css" })
@@ -151,6 +166,13 @@ test(`creates and completes the fixed 12-player tournament happy path (${theme})
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
   await page.setViewportSize(originalViewport)
   const atMinute = async (minutes: number) => { await page.clock.setFixedTime(new Date(Date.parse(data.tournament.startedAt!) + minutes * 60_000)) }
+  const countdowns = () => page.evaluate(() => (window as unknown as { rapidTest: { countdowns: number } }).rapidTest.countdowns)
+  const beforeCountdown = await countdowns()
+  for (const [seconds, count] of [[117, 3], [118, 2], [119, 1]]) {
+    await atMinute(seconds / 60)
+    await expect(timer).toHaveText(`00:0${count}`)
+    await expect.poll(countdowns).toBe(beforeCountdown + 4 - count)
+  }
   await atMinute(2)
   await expect(page.getByRole("heading", { name: "Ronda 1", exact: true })).toBeVisible()
   await expect(timer).toHaveText("16:00")
@@ -174,6 +196,13 @@ test(`creates and completes the fixed 12-player tournament happy path (${theme})
   await expect(page.getByText("Pantalla encendida mientras Seguimiento esté visible.")).toBeVisible()
   await page.reload()
   await expect(timer).toHaveText("16:00")
+  await page.getByText("Configurar avisos", { exact: true }).click()
+  await expect(page.getByRole("combobox", { name: "Idioma de los avisos", exact: true })).toHaveValue("both")
+  await expect(page.getByRole("combobox", { name: "Sonido del aviso", exact: true })).toHaveValue("gong")
+  await expect(page.getByRole("combobox", { name: "Voz en español", exact: true })).toHaveValue("qa-es")
+  await expect(page.getByRole("combobox", { name: "Voz en inglés", exact: true })).toHaveValue("qa-en")
+  await expect(page.getByRole("combobox", { name: "Intensidad", exact: true })).toHaveValue("normal")
+  await page.getByText("Configurar avisos", { exact: true }).click()
   await expect(page.getByRole("button", { name: "Activar avisos", exact: true })).toBeVisible()
   await page.evaluate(() => { Reflect.set(window, "rapidOriginalAudio", window.AudioContext); Object.defineProperty(window, "AudioContext", { value: undefined, configurable: true }) })
   await page.getByRole("button", { name: "Activar avisos", exact: true }).click()

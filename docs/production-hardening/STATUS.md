@@ -1,4 +1,22 @@
-# T01PRE — Publicación de competiciones/torneos en PRE (2026-10-17, IN_PROGRESS)
+# T01APRE — Publicación de avisos en PRE (2026-10-17, IN_PROGRESS)
+
+Usuario autoriza publicación en PRE para pruebas móviles. Preparación v1.15.24 sobre codex/mis-competiciones, con validación aislada usando lock exacto. Se incluyen únicamente cambios de avisos ya implementados y sus pruebas; sin dependencias o DB nuevas. Adjuntos privados excluidos. Pendientes gates, subida e identificación/validación de despliegue y audios.
+
+# T01A — Avisos configurables (2026-10-17, DONE local)
+
+Usuario autoriza configuración plegable de sonido, intensidad, modo, idioma y voces; preferencias en el dispositivo, bilingüe EN→ES con pausa y cuenta atrás en los últimos tres segundos. Implementación local sobre codex/mis-competiciones, sin operaciones remotas ni cambios de calendario/DB. Pendiente validación y revisión móvil.
+
+Cierre: 21 pruebas focalizadas con lock exacto correctas; TypeScript, ESLint selectivo, i18n, tipografía, presupuesto (133487/133500) y build pasan. Dos happy paths móviles claro/oscuro completos comprueban voces/idioma/intensidad/sonido guardados tras recarga, vista de configuración, prueba bilingüe en orden, tres números preparados a 3/2/1 segundos, cambios de fase, resultados y cierre. Tres regresiones del hub pasan. Axe sin errores graves/críticos y 320 px sin desbordamiento en el recorrido existente. Capturas 393×852 revisadas en .quality-artifacts/avisos-torneos-20261017, junto al log final. Preview local HTTP200. Las voces reales, sonoridad y latencia Bluetooth requieren prueba física; el límite de volumen lo fija el dispositivo y la cuenta atrás usa muestras fijas. PRE permanece en la publicación anterior; sin commits, push, despliegue, DB ni dependencias nuevas.
+
+Implementados combos nativos, cuatro señales sintetizadas, intensidad alta con margen frente a saturación, voz elegida por idioma y fallback automático. Seis muestras PCM cortas (EN/ES, menos de 0,5 s) para la cuenta atrás, precargadas una vez; bilingüe cuenta en inglés una sola vez. Mensajes EN→pausa de 600 ms tras terminar→ES; cancelación al silenciar/ocultar/cambiar ajustes/recibir otro aviso. Preferencias versionadas y validadas en localStorage. Reloj local alineado a segundos del inicio real, sin modificar horarios ni añadir polling de servidor. TypeScript, ESLint, i18n y 21 pruebas focalizadas correctos con lock exacto en copia aislada; E2E y revisión móvil en curso. No se amplía presupuesto (133487/133500 líneas).
+
+# T01PRE — Publicación de competiciones/torneos en PRE (2026-10-17, DONE)
+
+Publicación confirmada: staging fc51efce7a5a283934c49c5c1fefae0bad5647ff, Vercel PRE dpl_7vkBsRohkgGTrsAUyeCupa52C523 READY/preview y alias pre.smashandlob.com apuntando a ese ID. GET protegido mediante Vercel CLI: health200/version1.15.23/environment pre; sw.js cache smash-lob-v1.15.23; manifest Smash & Lob PRE/start_url launch; creación /tournaments/new200 y APIs listado/detalle401 sin sesión Google. Production permanece en dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz; main9578fe00/tagv1.0.0e9152940 verificados intactos. Sin reaplicar migraciones ni modificar datos remotos. CI PR41 completa success (cuatro jobs); árbol integrado idéntico a candidata validada. La comprobación física de Google OAuth, actualización de la PWA, voz/volumen y bloqueo en móvil la realiza el usuario; no se afirma automatizada. La evidencia y estos registros finales quedan en la rama de trabajo sin provocar una nueva publicación de staging.
+
+CI373/38978349217 completada success en sus cuatro jobs: código/build, navegador/PWA, migraciones/pgTAP/restauración y Lighthouse. PR41 integrada tras verificar base/head/mergeable: staging fc51efce7a5a283934c49c5c1fefae0bad5647ff. Vercel confirma ProductionBranch main y dominio PRE ligado a staging. Pendiente READY/alias/health del despliegue nuevo; sin promoción Production.
+
+Push verificado por ls-remote: codex/mis-competiciones 9911d5fe. PR41 hacia staging creada/adjunta; CI release quality373/38978349217 en cola. Main9578fe00/tagv1.0.0e9152940 intactos. No se considera el preview de rama una publicación de PRE; falta CI, merge y READY/alias/health de staging. Evidencia local copiada a .quality-artifacts/torneos-pre-release-20261017.
 
 Gates locales completos en copia exacta: npm run validate correcto (960 pruebas/245 archivos, TypeScript, lint 0 errores/4 avisos, build 1207758 bytes gzip/102 chunks); npm run test:e2e 96/96, incluidas visuales/Axe, americanas claro/oscuro, ligas/amistosos y PWA offline. Auditorías completa/runtime 0 vulnerabilidades. Se prepara push y PR a staging; ninguna promoción a main/Production.
 
