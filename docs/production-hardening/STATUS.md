@@ -1,10 +1,16 @@
-# T02PRE — Publicación en PRE (2026-10-17, IN PROGRESS)
+# T02PRE — Publicación en PRE (2026-10-17, DONE)
+
+PRE1.15.25 confirmada: staging673deac919cac6f755f49baa05d97b337a5ff0ed, Vercel dpl_AM3mLruHNpRYobDrdMQXXC7n3NDw READY (77 s) y alias pre.smashandlob.com asociado al mismo commit/rama. Health ok/version1.15.25/environment pre, SWcache1.15.25 y manifiesto Smash & Lob PRE correctos; seis WAV con hashes idénticos al origen. /settings/sounds y /tournaments/new responden200. API listado y acciones DELETE/restart con UUIDv4 válido devuelven401 sin sesión; el primer probe usaba UUID inválido y devolvía404 por validación previa, corregido sin cambios de aplicación. Production sigue en dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz, main9578fe00 y tagv1.0.0e9152940 intactos. Sin nuevas operaciones DB ni dependencias. Evidencia en .quality-artifacts/t02-pre-release-20261017 (validación, E2E, auditoría y verification/deployment-and-ci.json). Código y SQL cubiertos por CI378; prueba física de audio/PWA por el usuario pendiente. Cierre documental en rama de trabajo sin nueva publicación de staging.
 
 Usuario autoriza publicar para probar desde PWA. Se prepara v1.15.25 en codex/mis-competiciones, usando staging/PRE y validación aislada con lock exacto. Remotos iniciales comprobados: rama8e90d356, stagingda304d2a, main9578fe00 y tagv1.0.0e9152940. Migración 20261017125224 ya aplicada: no se repite ni modifica. Sin cambios en Production ni adjuntos privados.
 
 Candidata bf3a4d9e registrada y push verificado en la rama; PR43 draft hacia staging creada y adjunta. CI377/39036817538 arrancada; publicación PRE pendiente de gates completos. Copia aislada: 1203 archivos idénticos al origen, sin diferencias de contenido. Auditoría runtime 0 vulnerabilidades. Alias iniciales comprobados: PRE dpl_3ssYNbBAp5gqRfXsFRysXjRZWeS3 y Production dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz. Dominio PRE ligado a staging. validate y E2E completos en curso. La tarjeta MCP open_deployments no está disponible; seguimiento mediante API/CLI sin cambiar el destino.
 
 Primer E2E global: 94/96 correctos; fallan solo dos referencias visuales de Ajustes por añadir la fila Sonidos y avisos (84 px más en móvil y 64 en escritorio). Capturas actual/esperada revisadas: se conserva el resto del contenido y se actualizan exclusivamente esas dos referencias. CI377 ya confirmó código/build, pgTAP/restauración y Lighthouse; nueva candidata con referencias requiere CI del nuevo HEAD. Sin integración ni publicación todavía.
+
+Candidata final a03d7e67179545cdf8a8c7d24758b5e04ae43b49 subida y verificada. validate termina con 971 pruebas/246 archivos, lint0errores/4avisos previos, TypeScript/build/presupuestos correctos (1214843 bytes gzip/103 chunks); auditoría runtime0vulnerabilidades. Repetición de las dos referencias de Ajustes correcta: cobertura final de los 96 casos E2E sin fallos pendientes. PR43 lista para revisión y CI378/39037110981 en curso antes de integrar staging.
+
+CI378/39037110981 termina success en los cuatro jobs. SQL pgTAP/restauración: 81 aserciones/3 archivos pasan antes/después de restaurar, incluidas 43 de torneos. PR43 integrada tras verificar base/head/mergeable: staging673deac919cac6f755f49baa05d97b337a5ff0ed, árbol idéntico al validado. Pendiente READY y comprobación de alias/version/PWA. Sin cambios de Production.
 
 # T02 — Avisos y gestión de finalizados (2026-10-17, DONE)
 

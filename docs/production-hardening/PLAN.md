@@ -1,7 +1,7 @@
 # Production Hardening Plan
 
 ## T02PRE - Publicar ajustes de avisos y gestión de finalizados
-- Status: IN PROGRESS (2026-10-17)
+- Status: DONE (2026-10-17; CI/local correctos, PRE1.15.25 READY/alias/versión/PWA/API verificados)
 - Objective: Publicar v1.15.25 en staging/PRE para probar sonidos, Ajustes y reinicio/borrado desde PWA.
 - Validation: validate, E2E completos, auditoría runtime y CI; verificar commit remoto, Vercel READY/alias, health/PWA, ruta Ajustes y API autenticada.
 - Remote changes allowed: commits/push de rama, PR y merge a staging y PRE, autorizados explícitamente por el usuario. Migración ya aplicada: solo verificar registro. Sin cambios de main, Production ni v1.0.0.
