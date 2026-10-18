@@ -1,9 +1,29 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, expect, it, vi } from "vitest"
 import { MatchSlides } from "@/components/ui/MatchSlides"
 
-afterEach(() => { cleanup(); vi.restoreAllMocks() })
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers() })
+it("settles after touch release even without scrollend, without interrupting a held gesture", () => {
+  vi.useFakeTimers()
+  const onChange = vi.fn()
+  const { unmount } = render(<MatchSlides index={0} onChange={onChange} label="Partidos"><a href="/a">Liga</a><a href="/b">Mío</a></MatchSlides>)
+  const slider = screen.getByRole("group")
+  Object.defineProperty(slider, "clientWidth", { value: 320 })
+  slider.scrollTo = vi.fn()
+  fireEvent.touchStart(slider)
+  slider.scrollLeft = 40
+  fireEvent.scroll(slider)
+  act(() => vi.advanceTimersByTime(200))
+  expect(onChange).not.toHaveBeenCalled()
+  fireEvent.touchEnd(slider)
+  act(() => vi.advanceTimersByTime(200))
+  expect(slider.scrollTo).toHaveBeenLastCalledWith({ left: 0, behavior: "instant" })
+  expect(onChange).toHaveBeenLastCalledWith(0)
+  fireEvent.scroll(slider)
+  unmount()
+  expect(vi.getTimerCount()).toBe(0)
+})
 it("keeps a single card unchanged and enables snapping when a second card arrives", () => {
   const { rerender } = render(<MatchSlides index={0} onChange={() => {}} label="Partidos"><a href="/a">Liga</a></MatchSlides>)
   expect(screen.queryByRole("group")).toBeNull()

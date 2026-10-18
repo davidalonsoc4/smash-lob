@@ -134,7 +134,7 @@ for (const theme of ["light", "dark"] as const) {
     const viewport = page.viewportSize()!
     await page.setViewportSize({ width: 320, height: 812 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
-    expect(await navigation.getByRole("link").evaluateAll(links => links.every(link => {
+    await expect.poll(() => navigation.getByRole("link").evaluateAll(links => links.every(link => {
       const label = link.querySelector("span")!, range = document.createRange()
       range.selectNodeContents(label)
       const text = range.getBoundingClientRect(), box = link.getBoundingClientRect()
