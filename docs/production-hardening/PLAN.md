@@ -1,7 +1,7 @@
 # Production Hardening Plan
-## MC12PRE - Pulir los círculos del grafismo FORMA y publicar en PRE
+## MC12PRE - Pulir los círculos de RACHA y publicar en PRE
 - Status: IN PROGRESS (2026-10-18)
-- Objective: Renombrar FORMA a RACHA y añadir borde blanco/sombra discreta a los círculos V/D en perfiles global y de liga; publicar solo en PRE cuando pasen todos los gates.
+- Objective: Renombrar FORMA a RACHA y dar más presencia a las V/D blancas con mayor tamaño y sombra de texto, manteniendo círculos verdes/rojos, borde blanco y sombra; publicar solo en PRE cuando pasen todos los gates.
 - Remote changes allowed: rama de trabajo, PR/merge a staging y PRE por solicitud explícita del usuario. No Production, main, base de datos ni tag v1.0.0.
 - Stop condition: no integrar ni publicar si falla un gate crítico.
 

@@ -686,9 +686,9 @@ DONE: Ver Mis partidos pasa a la cabecera de Actividad personal; la tarjeta reut
 
 # Production Hardening Status
 
-## MC12 - Relieve para los resultados de FORMA (IN PROGRESS)
+## MC12 - Mejorar la legibilidad de RACHA (IN PROGRESS)
 
-Solicitud: destacar cada círculo V/D con borde blanco y sombra sutil, conservando los fondos verde/rojo y el texto blanco en ambos perfiles. Pendiente validar, integrar y publicar v1.15.31 exclusivamente en PRE.
+Solicitud: renombrar FORMA a RACHA y destacar las V/D blancas con más tamaño y sombra de texto, conservando los círculos verdes/rojos, borde blanco y sombra en ambos perfiles. Cambios aplicados en el componente compartido; tres pruebas focalizadas pasan. `npm run test` (999/999), `npm run build` (1195395 bytes gzip/103 chunks), E2E (107 passed/1 skip previsto), auditoría runtime (0 vulnerabilidades) y gates de fuente/lint/tipos pasan. La primera ejecución de `npm run validate` reportó un timeout RPC de Vitest mientras E2E corría en paralelo; la repetición aislada de la suite pasa completamente. Pendiente integrar y publicar v1.15.31 exclusivamente en PRE.
 
 ## MC11 - Colores del grafismo FORMA (DONE)
 

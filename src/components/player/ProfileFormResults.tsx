@@ -14,7 +14,7 @@ export function ProfileFormResults({ results }: { results: ProfileFormResult[] }
           <span
             key={`${result}-${index}`}
             title={tx(result === "win" ? "Victoria" : "Derrota")}
-            className={`inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-md ring-1 ring-black/10 type-caption font-black text-white ${result === "win" ? "bg-emerald-600" : "bg-rose-600"}`}
+            className={`inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-md ring-1 ring-black/10 text-sm font-black text-white drop-shadow-sm ${result === "win" ? "bg-emerald-600" : "bg-rose-600"}`}
           >
             {result === "win" ? "V" : "D"}
           </span>

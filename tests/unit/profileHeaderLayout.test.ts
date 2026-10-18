@@ -55,6 +55,7 @@ describe("player profile shared layout", () => {
     expect(form).toContain("bg-rose-600")
     expect(form).toContain("border-2 border-white shadow-md ring-1 ring-black/10")
     expect(form).toContain("text-white")
+    expect(form).toContain("text-sm font-black text-white drop-shadow-sm")
     expect(form).not.toContain("bg-amber-300")
   })
 })
