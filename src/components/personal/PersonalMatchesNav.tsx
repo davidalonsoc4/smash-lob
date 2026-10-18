@@ -15,7 +15,7 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
     strokeWidth: 2.2,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
-    className: "h-4 w-4",
+    className: "app-bottom-nav-icon",
   }
 
   if (icon === "chats") {
@@ -106,13 +106,14 @@ export function PersonalMatchesNav() {
   return (
     <nav
       aria-label={tx("Navegación global")}
-      className="personal-matches-bottom-nav fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-neutral-200 bg-white/95 shadow-[0_-5px_16px_rgba(0,0,0,0.05)] backdrop-blur"
+      className="personal-matches-bottom-nav fixed bottom-0 left-1/2 z-50 w-full -translate-x-1/2 border-t border-neutral-200 bg-white/95 shadow-[0_-6px_18px_rgba(0,0,0,0.06)] backdrop-blur"
       style={{
-        minHeight: "62px",
+        maxWidth: "var(--app-shell-width, 448px)",
+        minHeight: "72px",
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      <div className="grid min-h-[62px] grid-cols-[1.2fr_1.1fr_0.7fr_1fr] gap-0.5 px-1 py-1.5 text-center">
+      <div className="app-bottom-nav-grid grid w-full grid-cols-4 bg-transparent text-center" style={{ minHeight: "72px", paddingTop: "7px", paddingBottom: "7px" }}>
         {items.map((item) => (
           <Link
             key={item.href}
@@ -120,12 +121,13 @@ export function PersonalMatchesNav() {
             aria-current={item.active ? "page" : undefined}
             className={
               item.active
-                ? "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-0.5 type-caption font-black text-white shadow-sm"
-                : "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 type-caption font-black text-neutral-500 transition active:bg-neutral-100"
+                ? "app-bottom-nav-active flex min-w-0 flex-col items-center justify-center bg-neutral-950 text-center font-black text-white shadow-sm"
+                : "app-bottom-nav-item flex min-w-0 flex-col items-center justify-center bg-transparent text-center font-black text-neutral-600 transition active:bg-neutral-100"
             }
+            style={{ minHeight: "52px" }}
           >
             <PersonalNavIcon icon={item.icon} />
-            <FitText className="w-full leading-tight">{tx(item.label)}</FitText>
+            <FitText className="w-[calc(100%+8px)] leading-none tracking-tighter">{tx(item.label)}</FitText>
           </Link>
         ))}
       </div>

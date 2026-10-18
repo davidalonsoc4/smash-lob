@@ -1,7 +1,7 @@
 "use client"
 
 import { createPortal } from "react-dom"
-import { useEffect } from "react"
+import { useEffect, type ReactNode } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export type GeneratedImagePreviewModalBusyAction = "preview" | "download" | "share" | null
@@ -46,6 +46,11 @@ export function GeneratedImagePreviewModal({
   previewAlt,
   variant = "default",
   portalToBody = false,
+  beforePreview,
+  qrHeading = "Invitación de espectadores",
+  qrCaption = "Escanea para abrir la liga",
+  qrFooter = "Un enlace para toda la liga",
+  showActions = true,
   busyAction,
   onClose,
   onDownload,
@@ -62,6 +67,11 @@ export function GeneratedImagePreviewModal({
   previewAlt?: string
   variant?: "default" | "spectator-qr"
   portalToBody?: boolean
+  beforePreview?: ReactNode
+  qrHeading?: string
+  qrCaption?: string
+  qrFooter?: string
+  showActions?: boolean
   busyAction: GeneratedImagePreviewModalBusyAction
   onClose: () => void
   onDownload: () => void | Promise<void>
@@ -95,7 +105,7 @@ export function GeneratedImagePreviewModal({
       className={`fixed inset-0 z-[120] flex items-center justify-center p-3 backdrop-blur-md sm:p-5 ${isSpectatorQr ? "bg-black/45" : "bg-black/45 backdrop-blur-sm"}`}
       role="dialog"
       aria-modal="true"
-      aria-label={`${tx(isSpectatorQr ? "Invitación para espectadores" : "Vista previa")} · ${title}`}
+      aria-label={`${tx(isSpectatorQr ? qrHeading : "Vista previa")} · ${title}`}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && busyAction === null) onClose()
       }}
@@ -110,7 +120,7 @@ export function GeneratedImagePreviewModal({
                     <QrMark />
                   </span>
                   <p className="type-caption font-black uppercase tracking-[.2em] text-neutral-600">
-                    {tx("Invitación de espectadores")}
+                    {tx(qrHeading)}
                   </p>
                 </div>
                 <p className="mt-3 truncate text-lg font-black tracking-tight text-neutral-950 sm:text-xl">{title}</p>
@@ -137,6 +147,7 @@ export function GeneratedImagePreviewModal({
         </div>
 
         <div className={`min-h-0 flex-1 overflow-auto ${isSpectatorQr ? "bg-stone-50 px-4 py-5 sm:px-6 sm:py-6" : "bg-[radial-gradient(circle_at_50%_20%,#292929,#050505_72%)] p-2 sm:p-3"}`}>
+          {beforePreview}
           <div className={`relative flex items-center justify-center ${isSpectatorQr ? "min-h-0 flex-col gap-3" : "min-h-[54vh]"}`} aria-busy={loading}>
             {previewUrl ? (
               isSpectatorQr ? (
@@ -165,7 +176,7 @@ export function GeneratedImagePreviewModal({
             ) : null}
 
             {isSpectatorQr && previewUrl && !loading && !error ? (
-              <p className="text-center text-xs font-semibold tracking-wide text-neutral-600">{tx("Escanea para abrir la liga")}</p>
+              <p className="text-center text-xs font-semibold tracking-wide text-neutral-600">{tx(qrCaption)}</p>
             ) : null}
           </div>
         </div>
@@ -173,7 +184,7 @@ export function GeneratedImagePreviewModal({
         {isSpectatorQr && previewUrl && !error ? (
           <p className="flex shrink-0 items-center justify-center gap-2 border-t border-neutral-200 bg-stone-50 px-4 py-2 text-center text-xs font-bold tracking-wide text-neutral-600">
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
-            {tx("Un enlace para toda la liga")}
+            {tx(qrFooter)}
           </p>
         ) : null}
 
@@ -183,7 +194,7 @@ export function GeneratedImagePreviewModal({
           </p>
         ) : null}
 
-        <div className={`grid shrink-0 grid-cols-2 gap-2 ${isSpectatorQr ? "border-t border-neutral-200 bg-stone-50 p-4 sm:px-5" : "border-t border-white/10 bg-neutral-950 p-3"}`}>
+        {showActions ? <div className={`grid shrink-0 grid-cols-2 gap-2 ${isSpectatorQr ? "border-t border-neutral-200 bg-stone-50 p-4 sm:px-5" : "border-t border-white/10 bg-neutral-950 p-3"}`}>
           <button
             type="button"
             disabled={actionsDisabled}
@@ -202,7 +213,7 @@ export function GeneratedImagePreviewModal({
             {isSpectatorQr && busyAction !== "share" ? <ShareMark /> : null}
             {busyAction === "share" ? tx("Compartiendo...") : tx("Compartir")}
           </button>
-        </div>
+        </div> : null}
       </div>
     </div>
   )

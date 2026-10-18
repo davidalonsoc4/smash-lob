@@ -86,9 +86,10 @@ describe("v1.8.17 finished-season lock and chat replies", () => {
     expect(shared).not.toContain("chat-bubble-incoming-first")
     expect(css).not.toContain("chat-bubble-incoming-first")
     expect(css).not.toContain("border-top: 6px solid #fff")
-    expect(shell).toContain("const shouldShowSettingsButton =\n    !isMatchChatRoute &&")
-    expect(shell).toContain("const shouldShowHelpButton =\n    !isMatchChatRoute &&")
-    expect(shell).toContain("const shouldShowNotificationsButton =\n    !isMatchChatRoute &&")
+    expect(shell).toContain("const shouldShowActionBar = !isPublicAccessRoute")
+    expect(shell).toContain("const shouldShowSettingsButton = shouldShowActionBar")
+    expect(shell).toContain("const shouldShowHelpButton = shouldShowActionBar")
+    expect(shell).toContain("const shouldShowNotificationsButton = shouldShowActionBar")
     expect(shell).toContain('isMatchChatRoute ? "z-[70]" : "z-50"')
   })
 

@@ -1,7 +1,58 @@
 # Production Hardening Plan
+## MC09PRE - Publicar perfiles unificados en PRE
+- Status: IN PROGRESS (2026-10-18; autorización explícita del usuario; gates locales correctos)
+- Objective: Publicar v1.15.28 desde staging para probar en la PWA la navegación y los perfiles global/de liga unificados.
+- Validation: npm run validate, npm run test:e2e, npm audit --omit=dev --audit-level=high; verificar PR/CI, SHA de staging, deployment READY, alias PRE y smoke v1.15.28.
+- Remote changes allowed: push de codex/mis-competiciones, PR/merge a staging y publicación exclusivamente PRE por solicitud explícita del usuario. Sin DB, main, Production ni tag v1.0.0.
+- Stop condition: cualquier gate crítico fallido bloquea merge/publicación.
+
+## MC09 - Perfiles unificados y disponibilidad contextual
+- Status: DONE (2026-10-18; validate completo, 998 pruebas y E2E móviles focalizados correctos)
+- Objective: Corregir navegación global, mostrar solo accesos con datos o permiso creator, mantener una Action Bar consistente y unificar la presentación de perfil global y de liga.
+- Tasks: (1) navegación, secciones y barra superior; (2) cabecera, pestañas y rendimiento compartidos conservando las métricas de liga; (3) filtros globales y FORMA cronológica con validación móvil.
+- Validation: npm run validate (controles, lint, TypeScript, 998 pruebas, build y presupuesto) y E2E móviles de Competiciones, perfil, volver desde Mis partidos, QR y acceso espectador. 28 flujos pasaron antes de la corrección final y los cuatro flujos afectados volvieron a pasar después.
+- Limitation: los participantes de torneos rápidos son nombres manuales sin identidad de cuenta; no atribuirlos a perfiles hasta que exista vínculo fiable. No se muestran filtros ni pestaña de torneos en perfiles.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## MC08 - Invitaciones según contexto y acceso a Competiciones
+- Status: DONE (2026-10-18;35 pruebas focalizadas,9 E2E móviles,tipos/lint/build y controles correctos)
+- Objective: Textos naturales, ocultar opciones sin permiso/contexto, QR directo con una opción y acceso Competiciones adaptable en Home.
+- Validation: Permisos, selección y reapertura; TypeScript, ESLint, i18n, tipografía, controles Mis partidos y presupuesto133852/133900. Nueve E2E móviles con fixtures pasan, incluido Axe y geometría a320/393px. Capturas revisadas en .quality-artifacts/mc08-20261018.
+- Future ideas: invitaciones de torneo como jugador/espectador al ampliar participantes y sistema de amigos solicitado por el usuario.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## MC07 - Elegir invitación con botones
+- Status: DONE (2026-10-18;4 pruebas,recorrido móvil320px,lint/tipos/build/i18n/presupuesto correctos)
+- Objective: Tres botones iniciales; al elegir mostrar solo QR y acciones. Cerrar/reabrir devuelve a la selección.
+- Validation: pruebas de selección, reapertura y respuestas tardías; lint/tipos/i18n/presupuesto y recorrido móvil con fixtures.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## MC06 - Selector de invitaciones y color de etiquetas
+- Status: DONE (2026-10-18;50 pruebas,9 E2E móviles,lint/tipos/build/controles y Axe correctos)
+- Objective: Compartir liga como espectador/jugador o la app con el QR existente; etiquetas con el color de su liga adaptado al tema.
+- Validation: pruebas de selección/permisos/carreras y colores, lint/tipos/i18n/presupuesto y E2E móvil con fixtures.
+- Remote changes allowed: none. Sin commits, publicación, migraciones ni operaciones remotas de DB.
+
+## MC05 - Icono, navbar uniforme y detalle de ligas
+- Status: DONE (2026-10-18;35 pruebas,6 E2E móviles,lint/tipos/build y controles correctos)
+- Objective: Flechas SVG sin burbuja, cuatro destinos iguales, bordes uniformes y tarjetas ampliadas en Mis ligas.
+- Validation: lint/tipos, controles i18n/Mis partidos y pruebas focalizadas; E2E móvil con fixtures, geometría y accesibilidad.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## DEVORIGIN01 - Permitir el origen local de desarrollo
+- Status: CANCELLED (2026-10-18; usuario resolvió la configuración y pidió detener esta intervención)
+- Objective: Permitir 192.168.3.34 en allowedDevOrigins sin ampliar el acceso con comodines.
+- Validation: ESLint de next.config.ts y comprobación HTTP del recurso de desarrollo con ese Origin.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## MC04 - Compactar controles y unificar geometría de navegación
+- Status: DONE (2026-10-18;18 pruebas,8 recorridos móviles,geometría/contraste y lint/tipos/build E2E correctos)
+- Objective: Selector de actividad con icono compacto, espacio entre tarjetas, badges ajustados al texto y navbars global/torneos con estilos existentes de Ligas, sin modificar la barra de Ligas.
+- Validation: pruebas de paso del carrusel, geometría móvil 320/393 px, badges cortos/largos y navbars; lint/tipos/i18n/presupuestos y build E2E con fixtures.
+- Remote changes allowed: none. Sin commits, despliegue, DB ni dependencias.
 
 ## MC03PRE - Publicar tarjetas y cabecera de actividad
-- Status: IN PROGRESS (2026-10-18)
+- Status: DONE (2026-10-18; CI386 cuatro jobs success, PRE1.15.27 READY/alias/rutas/PWA y autenticación verificados)
 - Objective: Publicar v1.15.27 en staging/PRE para probar navbar centrada, swipe y selector compacto desde la PWA.
 - Validation: validate, E2E completos, auditoría runtime y CI; verificar staging/READY/alias, versión/SW/manifiesto y rutas principales.
 - Remote changes allowed: commits/push, PR/merge a staging y publicación exclusivamente PRE, autorizados por el usuario. Sin DB, main, Production ni v1.0.0.

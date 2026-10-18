@@ -91,7 +91,7 @@ export default function PersonalMatchesPage() {
   return (
     <div className="compact-page space-y-4">
       <header className="app-page-header">
-        <BackButton fallbackHref="/" label={t.common.back} />
+        <BackButton fallbackHref="/leagues" label={t.common.back} alwaysFallback />
         <h1 className="type-page-title font-black tracking-tight">Mis partidos</h1>
         <p className="mt-0.5 type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
           Actividad personal

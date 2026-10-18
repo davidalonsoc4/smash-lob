@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { Locator, Page } from "@playwright/test"
+import { leagues as fixtureLeagues } from "../../src/data/fakeData"
 
 async function swipe(page: Page, slider: Locator, direction: "left" | "right", short = false) {
   await slider.scrollIntoViewIfNeeded()
@@ -14,7 +15,7 @@ async function swipe(page: Page, slider: Locator, direction: "left" | "right", s
   }
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] })
   try {
-    await expect.poll(() => slider.evaluate(el => Math.abs(el.scrollLeft / el.clientWidth - Math.round(el.scrollLeft / el.clientWidth)))).toBeLessThan(0.01)
+    await expect.poll(() => slider.evaluate(el => { const step = el.clientWidth + (parseFloat(getComputedStyle(el).columnGap) || 0); return Math.abs(el.scrollLeft / step - Math.round(el.scrollLeft / step)) })).toBeLessThan(0.01)
   } finally { await cdp.detach() }
 }
 
@@ -30,6 +31,72 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
+test("share menu offers three branded QR destinations without changing league access", async ({ page }, testInfo) => {
+  await page.route("**/api/leagues/*/spectator-invite", route => route.fulfill({ json: { code: "READ", url: "http://127.0.0.1:3100/spectate/READ" } }))
+  await page.addInitScript(() => localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }])))))
+  await page.goto("/leagues")
+  await page.getByRole("button", { name: "Compartir invitación", exact: true }).click()
+  await expect(page.getByRole("dialog").getByRole("img")).toBeVisible()
+  await expect(page.getByRole("dialog").getByRole("group")).toHaveCount(0)
+  await page.getByRole("dialog").getByRole("button", { name: "Cerrar", exact: true }).click()
+  await page.getByRole("button", { name: /^Entrar en/ }).first().click()
+  await expect(page).toHaveURL(/\/$/)
+  for (const width of [320, 393]) {
+    await page.setViewportSize({ width, height: 852 })
+    const back = page.getByRole("link", { name: "Competiciones", exact: true })
+    await expect.poll(() => back.evaluate(el => { const text = el.querySelector("span span")!, range = document.createRange(); range.selectNodeContents(text); const rect = range.getBoundingClientRect(), link = el.getBoundingClientRect(), controls = document.querySelector("[data-floating-top-toolbar]")!.getBoundingClientRect(); return range.getClientRects().length === 1 && rect.right <= link.right + 0.5 && link.right <= controls.left })).toBe(true)
+  }
+  await page.getByRole("button", { name: "Compartir invitación", exact: true }).click()
+  await page.setViewportSize({ width: 320, height: 852 })
+  let modal = page.getByRole("dialog")
+  await expect(modal.getByRole("img")).toHaveCount(0)
+  await expect(modal.getByRole("button", { name: "Descargar", exact: true })).toHaveCount(0)
+  await page.screenshot({ path: testInfo.outputPath("share-choices-320.png"), scale: "css" })
+  for (const [type, label] of [["spectator", "Invitar a seguir la liga"], ["player", "Invitar a jugar en la liga"], ["app", "Compartir Smash & Lob"]]) {
+    await modal.getByRole("button", { name: label, exact: true }).click()
+    await expect(modal.getByRole("group", { name: "Qué quieres compartir" })).toHaveCount(0)
+    const image = modal.getByRole("img")
+    await expect(image).toBeVisible()
+    expect(decodeURIComponent((await image.getAttribute("src"))!)).toContain('aria-label="Smash &amp; Lob"')
+    await expect(modal.getByRole("button", { name: "Compartir", exact: true })).toBeEnabled()
+    const a11y = await new AxeBuilder({ page }).include('[role="dialog"]').analyze()
+    expect(a11y.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: testInfo.outputPath(`share-${type}.png`), scale: "css" })
+    await modal.getByRole("button", { name: "Cerrar", exact: true }).click()
+    await page.getByRole("button", { name: "Compartir invitación", exact: true }).click()
+    await expect(modal.getByRole("group", { name: "Qué quieres compartir" })).toBeVisible()
+    await expect(modal.getByRole("img")).toHaveCount(0)
+  }
+  await modal.getByRole("button", { name: "Cerrar", exact: true }).click()
+  await page.addInitScript(() => localStorage.setItem("smash-lob-user-league-memberships", JSON.stringify([{ userId: "qa-v1-1@example.test", leagueId: "league-smash-lob", playerId: "davo", role: "player" }])))
+  await page.reload()
+  await page.getByRole("button", { name: "Compartir invitación", exact: true }).click()
+  modal = page.getByRole("dialog")
+  await expect(modal.getByRole("button", { name: "Invitar a jugar en la liga" })).toHaveCount(0)
+  await expect(modal.getByRole("button", { name: "Invitar a seguir la liga", exact: true })).toBeVisible()
+})
+
+for (const theme of ["light", "dark"]) {
+  test(`league badges follow their own accent and stay readable (${theme})`, async ({ page }, testInfo) => {
+    await page.addInitScript(({ leagues, mode }) => {
+      localStorage.setItem("smash-lob-theme-mode", mode)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      localStorage.setItem("smash-lob-leagues", JSON.stringify(leagues.map((league, i) => ({ ...league, accentColor: i ? "#FFFFFF" : "#000011" }))))
+    }, { leagues: fixtureLeagues, mode: theme })
+    const match = { id: "fixture-colour", origin: "league", leagueId: "league-smash-lob", leagueName: "Liga oscura", seasonId: "season-2", seasonName: "Temporada", round: 4, canManage: false, canDelete: false, locationName: "Pista", sets: [], participants: [{ team: 1, slot: 1, displayName: "Fixture propia", isCurrentUser: true }, { team: 2, slot: 1, displayName: "Fixture rival", isCurrentUser: false }], status: "scheduled", scheduledAt: "2099-10-17T18:00:00Z", resultRecordedAt: null }
+    await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [], upcoming: [match], hasMore: false, nextOffset: null } }))
+    for (const path of ["/leagues", "/personal-matches"]) {
+      await page.goto(path)
+      const badge = page.locator('[data-personal-match-origin="league"]').first()
+      await expect(badge).toHaveAttribute("data-league-accent", "#000011")
+      expect(await badge.evaluate(el => getComputedStyle(el).getPropertyValue("--personal-league-accent"))).toBe("#000011")
+      const a11y = await new AxeBuilder({ page }).analyze()
+      expect(a11y.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    }
+    await page.screenshot({ path: testInfo.outputPath(`league-colour-${theme}.png`), scale: "css" })
+  })
+}
+
 test("mobile cards snap between next/last and league/mine, with centered uncut labels", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-chromium", "Physical touch gestures use the mobile project")
   const base = { origin: "league", leagueId: "league-smash-lob", leagueName: "Liga de prueba con un nombre especialmente largo para el móvil", seasonId: "season-2", seasonName: "Temporada", round: 4, canManage: false, canDelete: false, locationName: "Pista ficticia", sets: [], participants: [{ team: 1, slot: 1, displayName: "Fixture propia", isCurrentUser: true }, { team: 2, slot: 1, displayName: "Fixture rival", isCurrentUser: false }] }
@@ -44,7 +111,13 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
       const title = el.querySelector("p")!.getBoundingClientRect(), button = el.querySelector("button")!.getBoundingClientRect(), box = el.getBoundingClientRect()
       return title.right <= button.left && Math.abs((title.top + title.bottom - button.top - button.bottom) / 2) < 1 && Math.abs(button.right - box.right) < 1
     })).toBe(true)
+    const toggle = heading.getByRole("button")
+    await expect(toggle.locator("svg")).toHaveCount(1)
+    expect(await toggle.evaluate(el => { const icon = el.querySelector("svg")!.getBoundingClientRect(), box = el.getBoundingClientRect(); return getComputedStyle(el).backgroundColor === "rgba(0, 0, 0, 0)" && Math.abs((icon.top + icon.bottom - box.top - box.bottom) / 2) < 1 })).toBe(true)
+    expect((await toggle.boundingBox())!.height).toBeLessThanOrEqual(28)
+    expect(await slider.evaluate(el => { const panels = [...el.children].map(child => child.getBoundingClientRect()); return panels[1].left - panels[0].right })).toBeGreaterThanOrEqual(11.5)
     const nav = page.getByRole("navigation", { name: "Navegación global" })
+    expect(await nav.getByRole("link").evaluateAll(links => { const widths = links.map(link => link.getBoundingClientRect().width); return Math.max(...widths) - Math.min(...widths) < 1 })).toBe(true)
     await expect.poll(() => nav.getByRole("link").evaluateAll(links => links.every(link => {
       const text = link.querySelector("span span")!, range = document.createRange(); range.selectNodeContents(text)
       const rect = range.getBoundingClientRect(), box = link.getBoundingClientRect()
@@ -61,10 +134,15 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
     await swipe(page, slider, "left", true)
     if (await activity.getByRole("button", { name: "Próximo partido", exact: true }).count()) await activity.getByRole("button", { name: "Próximo partido", exact: true }).click()
     await activity.getByRole("button", { name: "Último partido", exact: true }).click()
-    await expect.poll(() => slider.evaluate(el => el.scrollLeft / el.clientWidth)).toBe(1)
+    await expect.poll(() => slider.evaluate(el => el.scrollLeft / (el.clientWidth + (parseFloat(getComputedStyle(el).columnGap) || 0)))).toBeCloseTo(1, 2)
     await activity.getByRole("button", { name: "Próximo partido", exact: true }).click()
     await page.screenshot({ path: testInfo.outputPath(`activity-${width}.png`), scale: "css" })
   }
+  const navGeometry = (el: HTMLElement) => {
+    const grid = el.firstElementChild!, item = el.querySelector("a")!, icon = item.querySelector("svg")!
+    return [el.getBoundingClientRect().height, getComputedStyle(grid).paddingTop, getComputedStyle(grid).paddingBottom, getComputedStyle(grid).columnGap, getComputedStyle(item).fontSize, getComputedStyle(item).borderRadius, item.getBoundingClientRect().height, icon.getBoundingClientRect().width, icon.getBoundingClientRect().height]
+  }
+  const globalGeometry = await page.getByRole("navigation", { name: "Navegación global" }).evaluate(navGeometry)
   await page.addInitScript(() => {
     localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([['app-introduction', 1], ['home', 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
     localStorage.setItem("smash-lob-matches", JSON.stringify([
@@ -75,6 +153,7 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   await page.getByRole("button", { name: /^Entrar en/ }).first().click()
   await expect(page).toHaveURL(/\/$/)
   await page.reload()
+  expect(await page.locator('nav[data-tour="bottom-navigation"]').evaluate(navGeometry)).toEqual(globalGeometry)
   const league = page.locator('[data-tour="home-next-match"]'), leagueSlider = league.locator(".match-slides")
   await expect(league.getByRole("button", { name: "Liga", exact: true })).toHaveAttribute("aria-pressed", "true")
   await swipe(page, leagueSlider, "left")
@@ -96,6 +175,11 @@ test("last encounter is compact only in the hub and history stays detailed", asy
   await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [last], upcoming: [], hasMore: false, nextOffset: null } }))
   await page.goto("/leagues")
   await expect(page.getByText("Tu último encuentro", { exact: true })).toBeVisible()
+  const origin = page.locator('[data-personal-match-origin="friendly"]').first()
+  await expect.poll(() => origin.evaluate(el => {
+    const range = document.createRange(); range.selectNodeContents(el.querySelector("span span")!)
+    return el.getBoundingClientRect().width - range.getBoundingClientRect().width
+  })).toBeLessThanOrEqual(20)
   await expect(page.getByText(last.locationName)).toHaveCount(0)
   await expect(page.getByText(/15 oct 2026/)).toHaveCount(0)
   const header = page.locator("#personal-activity").locator("..")
@@ -145,6 +229,10 @@ for (const theme of ["light", "dark"] as const) {
     await page.getByRole("link", { name: "Ver todas", exact: true }).click()
     await expect(page).toHaveURL(/\/leagues\/all$/)
     await expect(page.getByRole("link", { name: "Unirme con invitación" })).toBeVisible()
+    const leagueCards = page.getByRole("button", { name: /^Entrar en/ })
+    expect(await leagueCards.evaluateAll(cards => cards.every(card => card.getBoundingClientRect().height >= 128) && new Set(cards.map(card => getComputedStyle(card).borderColor)).size === 1)).toBe(true)
+    await expect(leagueCards.first()).toContainText(/Jornadas/)
+    await page.screenshot({ path: testInfo.outputPath("league-list-" + theme + ".png"), fullPage: true, scale: "css" })
     await expect(page.getByRole("heading", { name: "Actividad personal" })).toHaveCount(0)
     await expect(navigation).toHaveCount(1)
     await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
@@ -152,15 +240,9 @@ for (const theme of ["light", "dark"] as const) {
     await expect(navigation.getByRole("link", { name: "Competiciones", exact: true })).toHaveAttribute("aria-current", "page")
     await page.getByRole("link", { name: "Volver", exact: true }).click()
     await expect(page).toHaveURL(/\/leagues$/)
-    await page.getByRole("link", { name: "Ver todos", exact: true }).click()
-    await expect(page).toHaveURL(/\/tournaments$/)
-    await expect(page.getByText("Todavía no tienes torneos.")).toBeVisible()
-    await expect(page.getByRole("link", { name: "Crear", exact: true })).toHaveAttribute("href", "/tournaments/new")
-    await expect(page.getByRole("button", { name: /^Entrar en/ })).toHaveCount(0)
+    await expect(page.getByRole("heading", { name: "Mis torneos", exact: true })).toHaveCount(0)
     await expect(navigation).toHaveCount(1)
     await expect(page.getByRole("navigation", { name: "Navegación del torneo" })).toHaveCount(0)
-    await page.getByRole("link", { name: "Volver", exact: true }).click()
-    await expect(page).toHaveURL(/\/leagues$/)
     await navigation.getByRole("link", { name: "Mis partidos", exact: true }).click()
     await expect(navigation.getByRole("link", { name: "Mis partidos", exact: true })).toHaveAttribute("aria-current", "page")
     await expect(page.getByRole("link", { name: "Crear nuevo encuentro", exact: true })).toBeVisible()
@@ -169,15 +251,21 @@ for (const theme of ["light", "dark"] as const) {
     await expect(navigation.getByRole("link", { name: "Chats", exact: true })).toHaveAttribute("aria-current", "page")
     await navigation.getByRole("link", { name: "Mi perfil", exact: true }).click()
     await expect(navigation.getByRole("link", { name: "Mi perfil", exact: true })).toHaveAttribute("aria-current", "page")
+    await expect(page.locator('[data-profile-identity="global"]')).toBeVisible()
+    await expect(page.locator("[data-personal-global-filters]")).toBeVisible()
+    await expect(page.locator("[data-personal-profile-sections]")).toBeVisible()
     await navigation.getByRole("link", { name: "Competiciones", exact: true }).click()
     await expect(page.getByRole("heading", { name: "Actividad personal" })).toBeVisible()
     await expect(navigation).toHaveCount(1)
+    await navigation.getByRole("link", { name: "Mis partidos", exact: true }).click()
+    await page.getByRole("link", { name: "Volver", exact: true }).click()
+    await expect(page).toHaveURL(/\/leagues$/)
     await page.getByRole("link", { name: "Ver todas", exact: true }).click()
     await page.getByRole("button", { name: /^Entrar en/ }).first().click()
     await expect(page).toHaveURL(/\/$/)
     await expect(page.locator(".app-bottom-nav")).toHaveCount(1)
     await expect(navigation).toHaveCount(0)
-    await page.getByRole("link", { name: "Mis Competiciones", exact: true }).click()
+    await page.getByRole("link", { name: "Competiciones", exact: true }).click()
     await expect(navigation).toHaveCount(1)
   })
 }
@@ -196,6 +284,10 @@ for (const spectator of [false, true]) {
       await expect(page.getByRole("navigation", { name: "Navegación global", exact: true })).toHaveCount(1)
       await expect(page).toHaveURL(new RegExp(path + "$"))
       await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
+      if (path === "/leagues") {
+        await expect(page.getByRole("heading", { name: "Mis ligas", exact: false })).toHaveCount(0)
+        await expect(page.getByRole("heading", { name: "Mis torneos", exact: false })).toHaveCount(0)
+      }
     }
   })
 }

@@ -204,14 +204,24 @@ function stableStringHash(value: string) {
 export function getPersonalMatchOriginBadgeClass(
   match: Pick<PersonalMatchItem, "origin" | "leagueId" | "leagueName">,
 ) {
-  return match.origin === "friendly" ? friendlyBadgeStyle : "border"
+  return match.origin === "friendly" ? friendlyBadgeStyle : "personal-match-league-origin border"
 }
 
 export function getPersonalMatchOriginBadgeStyle(
   match: Pick<PersonalMatchItem, "origin" | "leagueId" | "leagueName">,
+  accentColor?: string | null,
 ) {
   if (match.origin === "friendly") {
     return undefined
+  }
+
+  if (accentColor && /^#[0-9a-f]{6}$/i.test(accentColor)) {
+    return {
+      "--personal-league-accent": accentColor,
+      borderColor: "var(--personal-league-border)",
+      backgroundColor: "var(--personal-league-background)",
+      color: "var(--personal-league-text)",
+    }
   }
 
   const key = match.leagueId ?? match.leagueName ?? "league"

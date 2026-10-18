@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FitText } from "@/components/ui/FitText";
 import { getRankingDisplayPosition } from "@/lib/rankingOrder";
 import { useSession } from "next-auth/react";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -844,9 +845,9 @@ export default function Home() {
   return (
     <div className="space-y-4">
       <header data-tour="home-header" className="app-page-header">
-        <Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">
-          <span aria-hidden="true" className="mr-1 inline-block">←</span>
-          {tx("Mis Competiciones")}
+        <Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500" style={{ maxWidth: "min(8rem, calc(100% - var(--app-top-controls-width, 202px) - 28px))" }}>
+          <span aria-hidden="true" className="mr-1 inline-block shrink-0">←</span>
+          <FitText noWrap className="min-w-0 flex-1">{tx("Competiciones")}</FitText>
         </Link>
         <div className={activeLeague.logoUrl ? (visualStyle === "competition" ? "flex items-center gap-2" : "flex items-start gap-3") : "block"}>
           {activeLeague.logoUrl ? (

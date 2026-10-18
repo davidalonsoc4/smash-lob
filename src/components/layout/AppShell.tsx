@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react"
-import { FloatingInviteShareButton } from "@/components/invite/FloatingInviteShareButton"
 import { PendingAccessIntentNotice } from "@/components/invite/PendingAccessIntentNotice"
 import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
@@ -17,7 +16,6 @@ import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useTheme } from "@/context/ThemeProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
-import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
@@ -104,71 +102,17 @@ function getPreproductionBadgeLeft() {
   return "max(4px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 4px))"
 }
 
-function InviteFloatingControls() {
-  const {
-    getLeagueInviteCode,
-    isLeagueAdmin,
-    isPlayerClaimed,
-    regenerateLeagueInviteCode,
-  } = useLeagueAccess()
-  const {
-    activeLeague,
-    activeSeason,
-    roundSettings,
-    players,
-  } = useCurrentLeagueData()
-  const { seasonPlayers } = useSeasonSettings()
-
-  if (!isLeagueAdmin(activeLeague.id)) {
-    return null
-  }
-
-  const unclaimedPlayers = players.filter(
-    (player) => !isPlayerClaimed(activeLeague.id, player.id)
-  )
-  const inviteCode = getLeagueInviteCode(activeLeague.id)
-  const registeredCount = seasonPlayers.filter(
-    (item) =>
-      item.seasonId === activeSeason.id && item.status !== "withdrawn",
-  ).length
-  const selfRegistrationSlots =
-    roundSettings.rosterMode === "self_registration" &&
-    roundSettings.registrationOpen &&
-    roundSettings.playerCapacity
-      ? Math.max(roundSettings.playerCapacity - registeredCount, 0)
-      : 0
-  const inviteCount =
-    roundSettings.rosterMode === "self_registration"
-      ? selfRegistrationSlots
-      : unclaimedPlayers.length
-
-  if (inviteCount === 0) {
-    return null
-  }
-
-  return (
-    <FloatingInviteShareButton
-      initialInviteCode={inviteCode}
-      leagueName={activeLeague.name}
-      unclaimedCount={inviteCount}
-      onGenerateInviteCode={() => regenerateLeagueInviteCode(activeLeague.id)}
-    />
-  )
-}
-
-
-function SpectatorFloatingControls() {
-  const { canShareSpectatorInvite } = useLeagueAccess()
-  const { activeLeague } = useCurrentLeagueData()
-
-  if (!canShareSpectatorInvite(activeLeague.id)) {
-    return null
-  }
+function SpectatorFloatingControls({ inLeagueContext }: { inLeagueContext: boolean }) {
+  const { canShareSpectatorInvite, isLeagueAdmin, regenerateLeagueInviteCode, userLeagues } = useLeagueAccess()
+  const { activeLeagueId } = useActiveLeague()
+  const activeLeague = inLeagueContext ? userLeagues.find(league => league.id === activeLeagueId) : undefined
 
   return (
     <FloatingSpectatorShareButton
-      leagueId={activeLeague.id}
-      leagueName={activeLeague.name}
+      leagueId={activeLeague?.id ?? ""}
+      leagueName={activeLeague?.name ?? "Smash & Lob"}
+      canShareLeague={Boolean(activeLeague && canShareSpectatorInvite(activeLeague.id))}
+      onGeneratePlayerInvite={activeLeague && isLeagueAdmin(activeLeague.id) ? () => regenerateLeagueInviteCode(activeLeague.id) : undefined}
     />
   )
 }
@@ -192,7 +136,6 @@ export function AppShell({ children }: AppShellProps) {
   const {
     canAccessLeagueAdminTools,
     canCreateLeagues,
-    canShareSpectatorInvite,
     getMembershipForLeague,
     hasLeagueAdminRole,
     isLeagueAdmin,
@@ -339,25 +282,10 @@ export function AppShell({ children }: AppShellProps) {
           activeRoundSettings?.availabilityRecommendationsEnabled === true,
       })
     : []
-  const shouldShowSettingsButton =
-    !isMatchChatRoute &&
-    !isTournamentRoute &&
-    !isSettingsRoute &&
-    !isInitialSeasonSetupRoute &&
-    !isPublicAccessRoute
-  const shouldShowHelpButton =
-    !isMatchChatRoute &&
-    !isTournamentRoute &&
-    !isInitialSeasonSetupRoute &&
-    !isPublicAccessRoute &&
-    !isPersonalMatchesRoute
-  const shouldShowNotificationsButton =
-    !isMatchChatRoute &&
-    !isTournamentRoute &&
-    !isInitialSeasonSetupRoute &&
-    !isPublicAccessRoute &&
-    !isPersonalMatchesRoute &&
-    !spectatorMode
+  const shouldShowActionBar = !isPublicAccessRoute
+  const shouldShowSettingsButton = shouldShowActionBar
+  const shouldShowHelpButton = shouldShowActionBar
+  const shouldShowNotificationsButton = shouldShowActionBar
   const shouldShowBottomNav =
     !isTournamentRoute &&
     !isMatchChatRoute &&
@@ -369,26 +297,10 @@ export function AppShell({ children }: AppShellProps) {
   const shouldShowPersonalMatchesNav =
     (isPersonalMatchesRoute || isCompetitionOverview) && !isMatchChatRoute && !isPublicAccessRoute
   const shouldShowTournamentNav = Boolean(tournamentNavId) && !isMatchChatRoute
-  const shouldShowPlayerInviteButton =
-    !isTournamentRoute &&
-    !isMatchChatRoute &&
-    !isPublicAccessRoute &&
-    !isNewLeagueRoute &&
-    !isInitialSeasonSetupRoute &&
-    !isPersonalMatchesRoute &&
-    !spectatorMode
-  const shouldShowSpectatorShareButton = shouldShowPlayerInviteButton
-  const hasPlayerInviteControl =
-    shouldShowPlayerInviteButton && isLeagueAdmin(activeLeagueId)
-  const hasSpectatorShareControl =
-    shouldShowSpectatorShareButton &&
-    canShareSpectatorInvite(activeLeagueId)
-  const hasFloatingTopControls =
-    shouldShowSettingsButton ||
-    shouldShowHelpButton ||
-    shouldShowNotificationsButton ||
-    hasPlayerInviteControl ||
-    hasSpectatorShareControl
+  const shouldShowSpectatorShareButton = shouldShowActionBar
+  const hasSpectatorShareControl = shouldShowSpectatorShareButton
+  const hasFloatingTopControls = shouldShowActionBar
+  const floatingTopControlWidth = 4 * 42 - 8
   const activeLeague = leagues.find((league) => league.id === activeLeagueId)
   const transitioningLeague = transitioningLeagueId
     ? leagues.find((league) => league.id === transitioningLeagueId)
@@ -444,9 +356,7 @@ export function AppShell({ children }: AppShellProps) {
           >
             {shouldShowHelpButton ? <FloatingHelpButton /> : null}
 
-            {hasPlayerInviteControl ? <InviteFloatingControls /> : null}
-
-            {hasSpectatorShareControl ? <SpectatorFloatingControls /> : null}
+            {hasSpectatorShareControl ? <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} /> : null}
 
             {shouldShowNotificationsButton ? (
               <Link
@@ -482,6 +392,7 @@ export function AppShell({ children }: AppShellProps) {
           data-match-chat-route={isMatchChatRoute}
           style={
             {
+              "--app-top-controls-width": `${floatingTopControlWidth}px`,
               paddingTop: isMatchChatRoute
                 ? "0px"
                 : isLeagueNavigationRoute

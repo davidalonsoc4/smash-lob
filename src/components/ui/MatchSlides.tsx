@@ -6,10 +6,11 @@ export function MatchSlides({ index, onChange, label, children }: { index: numbe
   const count = Children.count(children)
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const touching = useRef(false)
+  const stride = (el: HTMLDivElement) => el.clientWidth + (parseFloat(getComputedStyle(el).columnGap) || 0)
   function settle(el: HTMLDivElement) {
     if (touching.current || !el.clientWidth) return
-    const next = Math.max(0, Math.min(count - 1, Math.round(el.scrollLeft / el.clientWidth)))
-    if (Math.abs(el.scrollLeft - next * el.clientWidth) > 0.5) el.scrollTo?.({ left: next * el.clientWidth, behavior: "instant" })
+    const next = Math.max(0, Math.min(count - 1, Math.round(el.scrollLeft / stride(el))))
+    if (Math.abs(el.scrollLeft - next * stride(el)) > 0.5) el.scrollTo?.({ left: next * stride(el), behavior: "instant" })
     onChange(next)
   }
   function waitForIdle(el: HTMLDivElement) {
@@ -19,7 +20,7 @@ export function MatchSlides({ index, onChange, label, children }: { index: numbe
   useLayoutEffect(() => {
     const element = ref.current
     if (!element) return
-    const align = () => element.scrollTo?.({ left: index * element.clientWidth, behavior: "instant" })
+    const align = () => element.scrollTo?.({ left: index * stride(element), behavior: "instant" })
     align()
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(align)
     observer?.observe(element)

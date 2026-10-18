@@ -16,7 +16,7 @@ describe("v1.10.11 personal chats, scheduled admin access and registration payme
 
     expect(nav).toContain('href: "/personal-matches/chats"')
     expect(nav).toContain('label: "Chats"')
-    expect(nav).toContain("grid-cols-[1.2fr_1.1fr_0.7fr_1fr]")
+    expect(nav).toContain("grid-cols-4")
     expect(nav.match(/href: /g)).toHaveLength(4)
     expect(page).toContain("data-personal-match-chats-list")
     expect(page).toContain("Historial eliminado")

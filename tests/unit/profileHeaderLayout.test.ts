@@ -3,10 +3,11 @@ import { describe, expect, it } from "vitest"
 
 describe("player profile shared layout", () => {
   it("uses one shared profile screen for own and public player routes", async () => {
-    const [ownProfile, playerProfile, sharedProfile] = await Promise.all([
+    const [ownProfile, playerProfile, sharedProfile, identityCard] = await Promise.all([
       readFile("src/app/profile/page.tsx", "utf8"),
       readFile("src/app/player/[id]/page.tsx", "utf8"),
       readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
+      readFile("src/components/player/PlayerProfileIdentityCard.tsx", "utf8"),
     ])
 
     expect(ownProfile).toContain('<PlayerProfileScreen mode="self" />')
@@ -17,16 +18,19 @@ describe("player profile shared layout", () => {
     expect(sharedProfile).toContain('import { useCurrentUser } from "@/context/CurrentUserProvider"')
     expect(sharedProfile).toContain('const resolvedPlayerIdOrSlug = isSelf ? currentUserId : playerIdOrSlug')
     expect(sharedProfile).toContain('<header className="app-page-header">')
-    expect(sharedProfile).toContain('<PlayerAvatar player={player} size="md" previewable />')
+    expect(sharedProfile).toContain("<PlayerProfileIdentityCard")
+    expect(identityCard).toContain('<PlayerAvatar player={player} size="md" previewable />')
 
-    const avatarIndex = sharedProfile.indexOf('<PlayerAvatar player={player} size="md" previewable />')
-    const titleIndex = sharedProfile.indexOf("{player.displayName}", avatarIndex)
-    const contextIndex = sharedProfile.indexOf("<SeasonContextLine", titleIndex)
+    const avatarIndex = identityCard.indexOf('<PlayerAvatar player={player} size="md" previewable />')
+    const titleIndex = identityCard.indexOf("{player.displayName}", avatarIndex)
+    const contextIndex = identityCard.indexOf("{contextDetails ?", titleIndex)
     expect(titleIndex).toBeGreaterThan(avatarIndex)
     expect(contextIndex).toBeGreaterThan(titleIndex)
+    expect(sharedProfile).toContain("<SeasonContextLine seasonName={latestSeason.name}")
 
     expect(sharedProfile).toMatch(/const historyHref = isSelf\s*\?\s*"\/personal-matches"/)
-    expect(sharedProfile).toMatch(/\{isSelf\s*&&\s*latestSeasonSettings\?\.availabilityRecommendationsEnabled\s*\?\s*\(\s*<Link href="\/availability" className="block">/)
+    expect(sharedProfile).toMatch(/\{isSelf\s*&&\s*section\s*===\s*"summary"\s*&&\s*latestSeasonSettings\?\.availabilityRecommendationsEnabled\s*\?\s*\(/)
+    expect(sharedProfile).toContain('<Link href="/availability" className="block">')
     expect(sharedProfile).not.toContain("getSeasonStatusBadgeClassName")
   })
 

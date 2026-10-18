@@ -25,6 +25,8 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   const { activeLeagueId, changeActiveLeague } = useActiveLeague()
   const { canCreateLeagues, canAccessLeagueAdminTools, getMembershipForLeague, isLeagueAdmin, isLeagueSpectator, userLeagues } = useLeagueAccess()
   const canCreateLeaguesInCurrentView = canCreateLeagues && canAccessLeagueAdminTools(activeLeagueId)
+  const canCreateCompetition = canCreateLeagues
+  const memberLeagues = userLeagues.filter(league => getMembershipForLeague(league.id))
   const { matches } = useMatchData()
   const { seasons, playerProfiles, getActiveSeasonByLeagueId, getSeasonRoundSettings } = useSeasonSettings()
   const [dashboard, setDashboard] = useState<PersonalMatchesDashboardPayload | null>(null)
@@ -67,7 +69,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   })
   const highlights = selectCompetitionHighlights([...ownLeagueMatches, ...(dashboard?.upcoming ?? []), ...(dashboard?.items ?? [])], now)
   const visibleActivityIndex = Math.min(activityIndex, Math.max(0, highlights.length - 1))
-  const leagueRows = userLeagues.map(league => ({ league, season: getActiveSeasonByLeagueId(league.id) }))
+  const leagueRows = memberLeagues.map(league => ({ league, season: getActiveSeasonByLeagueId(league.id) }))
   const statusOrder = { active: 0, upcoming: 1, finished: 2 }
   const orderedLeagues = [...leagueRows].sort((a, b) => statusOrder[a.season.status] - statusOrder[b.season.status])
   const relevantLeagues = orderedLeagues.filter(item => item.season.status !== "finished").slice(0, 2)
@@ -85,9 +87,14 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   }
   function leagueRow({ league, season }: (typeof leagueRows)[number]) {
     const status = season.totalRounds === 0 ? tx("Sin temporada") : season.status === "active" ? tx("Activa") : season.status === "upcoming" ? tx("Próximamente") : tx("Terminada")
-    return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} className={`flex w-full items-center gap-3 rounded-2xl border bg-white p-3 text-left shadow-sm transition active:scale-[0.99] ${activeLeagueId === league.id ? "border-neutral-950" : "border-neutral-200"}`}>
-      <LeagueLogo league={league} size="md" />
-      <span className="min-w-0 flex-1"><span className="block truncate text-base font-black text-neutral-950">{league.name}</span><span className="mt-1 block text-xs font-semibold text-neutral-500">{status} · {isLeagueAdmin(league.id) ? tx("Admin") : isLeagueSpectator(league.id) ? tx("Espectador") : tx("Jugador")}</span></span>
+    return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} className={`flex w-full items-center gap-3 rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition active:scale-[0.99] ${view === "leagues" ? "min-h-32 p-4" : "p-3"}`}>
+      <LeagueLogo league={league} size={view === "leagues" ? "lg" : "md"} />
+      <span className="min-w-0 flex-1"><span className={`block text-base font-black text-neutral-950 ${view === "leagues" ? "break-words" : "truncate"}`}>{league.name}</span><span className="mt-1 block text-xs font-semibold text-neutral-500">{status} · {isLeagueAdmin(league.id) ? tx("Admin") : isLeagueSpectator(league.id) ? tx("Espectador") : tx("Jugador")}</span>
+        {view === "leagues" ? <>
+          {league.description ? <span className="mt-2 block line-clamp-2 text-sm text-neutral-600">{league.description}</span> : null}
+          {season.totalRounds > 0 ? <span className="mt-2 block text-xs font-semibold text-neutral-500"><span className="block break-words">{season.name}</span><span className="mt-1 block">{tx("Jornadas")} · {season.completedRounds}/{season.totalRounds}</span></span> : null}
+        </> : null}
+      </span>
       <span aria-hidden="true" className="text-neutral-400">›</span>
     </button>
   }
@@ -102,25 +109,25 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       {!dashboard && !loadError ? <AppCard><p role="status" className="text-sm text-neutral-500">{tx("Cargando tus partidos…")}</p></AppCard> : loadError ? <AppCard><p role="alert" className="text-sm text-neutral-500">{tx("No se ha podido cargar tu actividad personal.")}</p></AppCard> : highlights.length ? <>
         <div data-activity-heading className="flex items-center justify-between gap-2">
           <p className="min-w-0 type-caption font-black uppercase tracking-wide text-neutral-500">{tx(highlights[visibleActivityIndex].kind === "live" ? "Tu partido en curso" : highlights[visibleActivityIndex].kind === "next" ? "Tu próximo partido" : "Tu último encuentro")}</p>
-          {highlights.length > 1 ? <button type="button" onClick={() => setActivityIndex(visibleActivityIndex === 0 ? 1 : 0)} className="min-h-11 shrink-0 rounded-full bg-neutral-100 px-2.5 type-caption font-black text-neutral-600">{tx(visibleActivityIndex === 0 ? "Último partido" : "Próximo partido")} <span aria-hidden="true">↔</span></button> : null}
+          {highlights.length > 1 ? <button type="button" aria-label={tx(visibleActivityIndex === 0 ? "Último partido" : "Próximo partido")} title={tx(visibleActivityIndex === 0 ? "Último partido" : "Próximo partido")} onClick={() => setActivityIndex(visibleActivityIndex === 0 ? 1 : 0)} className="inline-flex h-7 w-8 shrink-0 items-center justify-center bg-transparent p-0 text-neutral-600 focus-visible:outline-2 focus-visible:outline-offset-2"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="block h-5 w-5"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4" /></svg></button> : null}
         </div>
         <MatchSlides index={visibleActivityIndex} onChange={setActivityIndex} label={tx("Actividad personal")}>
           {highlights.map(highlight => <PersonalMatchCard key={highlight.kind} match={highlight.match} hideEventMeta={highlight.kind === "last"} />)}
         </MatchSlides>
       </> : <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Todavía no tienes encuentros para mostrar.")}</p></AppCard>}
     </section> : null}
-    {view === "summary" || view === "leagues" ? <section aria-labelledby="competitions-leagues" className="space-y-2">
-      <div className="flex items-center justify-between gap-2"><h2 id="competitions-leagues" className="type-panel-title font-black">{tx("Mis ligas")} <span className="text-neutral-400">· {userLeagues.length}</span></h2>
+    {(view === "leagues" || memberLeagues.length > 0 || canCreateCompetition) && (view === "summary" || view === "leagues") ? <section aria-labelledby="competitions-leagues" className="space-y-2">
+      <div className="flex items-center justify-between gap-2"><h2 id="competitions-leagues" className="type-panel-title font-black">{tx("Mis ligas")} <span className="text-neutral-400">· {memberLeagues.length}</span></h2>
         {view === "summary" ? <Link href="/leagues/all" className="min-h-11 inline-flex items-center text-sm font-black underline underline-offset-4">{tx("Ver todas")}</Link> : null}</div>
       {visibleLeagues.map(leagueRow)}
-      {!visibleLeagues.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx(userLeagues.length ? "No tienes ligas activas o próximas." : "Todavía no perteneces a ninguna liga. Puedes seguir usando Mis partidos.")}</p></AppCard> : null}
+      {!visibleLeagues.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx(memberLeagues.length ? "No tienes ligas activas o próximas." : "Aún no formas parte de ninguna liga.")}</p>{view === "summary" && canCreateCompetition ? <Link href="/league/new" className={`${actionClass} mt-3`}>{tx("Crear nueva liga")}</Link> : null}</AppCard> : null}
       {view === "leagues" ? <>
         {finishedLeagues.length ? <details className="rounded-2xl border border-neutral-200 p-3"><summary className="cursor-pointer py-2 text-sm font-black">{tx("Finalizadas")} · {finishedLeagues.length}</summary><div className="mt-2 space-y-2">{finishedLeagues.map(leagueRow)}</div></details> : null}
         <div className="grid gap-2 pt-2"><Link href="/invite" className={actionClass}>{tx("Unirme con invitación")}</Link>
           {canCreateLeaguesInCurrentView ? <Link href="/league/new" className={actionClass}>{tx("Crear nueva liga")}</Link> : null}</div>
       </> : null}
     </section> : null}
-    {view === "summary" || view === "tournaments" ? <section aria-labelledby="competitions-tournaments" className="space-y-2">
+    {(view === "tournaments" || tournaments.length > 0 || canCreateCompetition) && (view === "summary" || view === "tournaments") ? <section aria-labelledby="competitions-tournaments" className="space-y-2">
       <div className="flex items-center justify-between gap-2"><h2 id="competitions-tournaments" className="type-panel-title font-black">{tx("Mis torneos")} <span className="text-neutral-400">· {tournaments.length}</span></h2>{view === "summary" ? <Link href="/tournaments" className="min-h-11 inline-flex items-center text-sm font-black underline underline-offset-4">{tx("Ver todos")}</Link> : <Link href="/tournaments/new" className="min-h-11 inline-flex shrink-0 items-center text-sm font-black underline underline-offset-4">{tx("Crear")}</Link>}</div>
       {tournamentLoadError ? <AppCard><p role="alert" className="text-sm font-semibold text-neutral-500">{tx("No se han podido cargar tus torneos.")}</p><button type="button" onClick={() => setTournamentRequestVersion((value) => value + 1)} className="mt-2 text-sm font-black underline">{tx("Reintentar")}</button></AppCard> : visibleTournaments.map(tournamentRow)}
       {!tournamentLoadError && !visibleTournaments.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Todavía no tienes torneos.")}</p>{view === "summary" ? <Link href="/tournaments/new" className={`${actionClass} mt-3`}>{tx("Crear torneo rápido")}</Link> : null}</AppCard> : null}

@@ -22,4 +22,8 @@ it("keeps a readable minimum, wraps extreme names and fits shorter labels on one
   expect(text.style.fontSize).toBe("10px")
   expect(text.style.whiteSpace).toBe("normal")
   expect(text).toHaveTextContent("Nombre de competición muy largo")
+  available = 90
+  rerender(<FitText noWrap>Competiciones</FitText>)
+  expect(text.style.whiteSpace).toBe("nowrap")
+  expect(parseFloat(text.style.fontSize)).toBe(9)
 })

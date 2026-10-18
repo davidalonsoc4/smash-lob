@@ -26,6 +26,8 @@ const [
   personalNav,
   personalMatchesLib,
   personalProfilePage,
+  profileIdentityCard,
+  profileTabs,
   personalProfileStats,
   detailPairingPanel,
   personalProfileView,
@@ -68,6 +70,8 @@ const [
   read("src/components/personal/PersonalMatchesNav.tsx"),
   read("src/lib/personalMatches.ts"),
   read("src/app/personal-matches/profile/page.tsx"),
+  read("src/components/player/PlayerProfileIdentityCard.tsx"),
+  read("src/components/player/ProfileSectionTabs.tsx"),
   read("src/lib/personalProfileStats.ts"),
   read("src/components/match/MatchDetailPairingPanel.tsx"),
   read("src/components/personal/PersonalProfileStatistics.tsx"),
@@ -154,7 +158,7 @@ assert(card.includes("getPersonalMatchOriginLabel(match)"), "Liga/Amistoso debe 
 assert(card.includes("MatchEventMeta"), "Fecha, hora y ubicación deben usar el bloque compartido")
 assert(card.includes("locationText={match.locationName}"), "La ubicación debe mostrarse debajo de las parejas")
 assert(card.includes("locationFallback={null}") && card.includes("hideMissingRows"), "El historial debe ocultar por separado fecha y ubicación ausentes")
-assert(card.includes("getPersonalMatchOriginBadgeStyle(match)"), "Cada liga debe aplicar su color estable propio")
+assert(card.includes("getPersonalMatchOriginBadgeStyle(match, league ? normalizeAccentColor(league.accentColor) : undefined)"), "Cada liga debe aplicar su color configurado con fallback estable")
 assert(matchEventMeta.includes('weekday: "long"') && matchEventMeta.includes('hour: "2-digit"'), "El bloque compartido debe mostrar día, fecha y hora")
 
 assert(newPage.includes("<PersonalMatchParticipantSelector"), "El alta debe reutilizar el selector compartido de participantes")
@@ -232,19 +236,19 @@ assert(!personalNav.includes('label: "+ Partido"'), "La navegación personal no 
 assert(personalNav.includes('href: "/leagues"'), "La navegación personal debe enlazar a Mis Competiciones")
 assert(personalNav.includes('href: "/personal-matches/chats"'), "La navegación personal debe enlazar a todos los chats de amistosos")
 assert(personalNav.includes('href: "/personal-matches/profile"'), "La navegación personal debe enlazar al perfil global")
-assert(personalNav.includes("grid-cols-[1.2fr_1.1fr_0.7fr_1fr]") && (personalNav.match(/href: /g)?.length === 4), "La navegación personal debe repartir cuatro destinos y reservar más ancho para Competiciones")
+assert(personalNav.includes("grid-cols-4") && (personalNav.match(/href: /g)?.length === 4), "La navegación personal debe repartir cuatro destinos del mismo ancho")
 assert(personalNav.includes('root.dataset.bottomNavVisible = "true"'), "La NAVBAR personal debe activar la superficie segura inferior")
 assert(personalNav.includes('paddingBottom: "env(safe-area-inset-bottom)"'), "La NAVBAR personal debe respetar el safe area inferior")
 assert(appShell.includes('href={`/settings?returnTo=${encodeURIComponent(pathname)}`}'), "Ajustes debe conservar la ruta personal de origen")
 assert(appShell.includes("const isSettingsRoute ="), "El shell debe tratar Ajustes como contexto neutral")
-assert(personalProfilePage.includes("Perfil global"), "Debe existir un perfil global dentro de Mis partidos")
+assert(personalProfilePage.includes('context="global"') && profileIdentityCard.includes('tx("Perfil global")'), "Debe existir un perfil global dentro de Mis partidos")
 assert(personalProfilePage.includes("Todos los partidos") && personalProfilePage.includes("Partidos de liga"), "El perfil global debe filtrar por origen")
 assert(personalProfilePage.includes("Todas las ligas") && personalProfilePage.includes("Todas las temporadas"), "El perfil global debe filtrar por liga y temporada")
 assert(personalProfileStats.includes("filterPersonalProfileMatches") && personalProfileStats.includes("getPersonalProfileStats"), "Las estadísticas globales deben calcularse desde el historial personal")
 assert(personalProfileStats.includes("getPersonalProfileHeadToHead") && personalProfileStats.includes("bestTeammate") && personalProfileStats.includes("nemesis"), "El perfil global debe incluir parejas, rivales y cara a cara")
 assert(personalProfileStats.includes("decidingSetMatches") && personalProfileStats.includes("comebackWins") && personalProfileStats.includes("currentForm"), "El perfil global debe incluir rendimiento avanzado y forma reciente")
 assert(personalProfilePage.includes("includeAvatars=1"), "El perfil global debe cargar avatares para relaciones y cara a cara")
-assert(personalProfileView.includes("Parejas / rivales") && personalProfileView.includes("Cara a cara") && personalProfileView.includes("Mejor pareja") && personalProfileView.includes("Némesis"), "La UI del perfil debe exponer las nuevas estadísticas")
+assert(profileTabs.includes("Parejas / rivales") && profileTabs.includes("Cara a cara") && personalProfileView.includes("Mejor pareja") && personalProfileView.includes("Némesis"), "La UI del perfil debe exponer las nuevas estadísticas")
 assert(personalProfileView.includes("Enfrentamientos directos") && personalProfileView.includes("Rendimiento de la pareja"), "Cara a cara debe distinguir rivalidad y partidos como pareja")
 assert(personalMatchesLib.includes("personKey?: string | null"), "Los participantes del histórico deben exponer una identidad estable opcional")
 assert(serverHelper.includes("getParticipantPersonKey") && serverHelper.includes('`user:${userId}`') && serverHelper.includes('`player:${playerId}`'), "El histórico global debe unificar identidades vinculadas entre ligas")

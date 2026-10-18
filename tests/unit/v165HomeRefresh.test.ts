@@ -11,8 +11,8 @@ describe("v1.6.5 HOME refresh and compact season sharing", () => {
 
   it("opens the league list from HOME", async () => {
     const home = await readFile("src/app/page.tsx", "utf8")
-    expect(home).toContain('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">')
-    expect(home).toContain('{tx("Mis Competiciones")}')
+    expect(home).toContain('<Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500"')
+    expect(home).toContain('{tx("Competiciones")}')
   })
 
   it("shortens the finished-season share action in every locale", async () => {
