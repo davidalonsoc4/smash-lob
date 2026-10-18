@@ -7,8 +7,8 @@ export function ProfileFormResults({ results }: { results: ProfileFormResult[] }
   if (!results.length) return null
 
   return (
-    <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-amber-500 bg-amber-300 px-2.5 py-2 text-amber-950">
-      <p className="shrink-0 type-caption font-black uppercase tracking-[0.14em]">{tx("Forma")}</p>
+    <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[var(--app-accent)] bg-[var(--app-accent)] px-2.5 py-2">
+      <p className="shrink-0 type-caption font-black uppercase tracking-[0.14em] text-[var(--competition-accent-contrast)]">{tx("Forma")}</p>
       <div className="flex min-w-0 items-center gap-1.5" aria-label={tx("Forma reciente") }>
         {results.slice(-5).map((result, index) => (
           <span
