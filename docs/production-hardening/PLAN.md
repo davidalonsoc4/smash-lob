@@ -1,7 +1,7 @@
 # Production Hardening Plan
 
 ## MC03PRE - Publicar tarjetas y cabecera de actividad
-- Status: IN PROGRESS (2026-10-18)
+- Status: DONE (2026-10-18; CI386 cuatro jobs success, PRE1.15.27 READY/alias/rutas/PWA y autenticación verificados)
 - Objective: Publicar v1.15.27 en staging/PRE para probar navbar centrada, swipe y selector compacto desde la PWA.
 - Validation: validate, E2E completos, auditoría runtime y CI; verificar staging/READY/alias, versión/SW/manifiesto y rutas principales.
 - Remote changes allowed: commits/push, PR/merge a staging y publicación exclusivamente PRE, autorizados por el usuario. Sin DB, main, Production ni v1.0.0.
