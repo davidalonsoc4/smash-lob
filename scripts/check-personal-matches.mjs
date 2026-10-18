@@ -198,7 +198,7 @@ assert(schedulePanel.includes("<MatchScheduleForm"), "La programación personal 
 assert(newPage.includes("<PersonalMatchLocationPicker") && schedulePanel.includes("<MatchScheduleForm"), "Alta mantiene su selector y el detalle reutiliza el selector global de MatchScheduleForm")
 assert(locationPicker.includes('role="dialog"') && locationPicker.includes("backdrop-blur"), "La ubicación personal debe abrirse como popup con fondo difuminado")
 assert(participantSelector.includes('createPortal') && participantSelector.includes('aria-modal="true"') && participantSelector.includes('backdrop-blur-[1px]'), "El selector de jugadores debe abrirse como popup flotante con fondo difuminado")
-assert(personalChatsPage.includes("data-personal-match-chats-list") && personalChatsPage.includes("Todavía no tienes chats de amistosos"), "Mis partidos debe incluir una bandeja con todos los chats de amistosos")
+assert(personalChatsPage.includes("data-personal-match-chats-list") && personalChatsPage.includes('fetch("/api/personal-matches/chats"') && personalChatsPage.includes("/api/chats?") && personalChatsPage.includes('tx("Activos")') && personalChatsPage.includes('tx("Próximos")') && personalChatsPage.includes('tx("Chats finalizados")'), "Chats global debe reunir amistosos y ligas, agrupando activos, próximos y finalizados")
 assert(personalChatsRoute.includes('.from("personal_matches")') && !personalChatsRoute.includes('.eq("status"'), "La bandeja de amistosos no debe filtrar por estado")
 assert(personalChatsRoute.includes("personal_match_chat_schema_missing"), "La bandeja de amistosos debe distinguir una migración de chat pendiente")
 for (const sharedToken of ["MatchChatScreen", "MatchChatTextMessage", "MatchChatComposer", "MatchChatReadOnlyBar", "MatchChatWriteWindowBanner", "useMatchChatViewport", "useMatchChatAutoScroll"]) {
@@ -234,7 +234,7 @@ for (const label of ["Competiciones", "Mis partidos", "Chats", "Mi perfil"]) {
 }
 assert(!personalNav.includes('label: "+ Partido"'), "La navegación personal no debe incluir + Partido")
 assert(personalNav.includes('href: "/leagues"'), "La navegación personal debe enlazar a Mis Competiciones")
-assert(personalNav.includes('href: "/personal-matches/chats"'), "La navegación personal debe enlazar a todos los chats de amistosos")
+assert(personalNav.includes('href: "/personal-matches/chats"'), "La navegación personal debe enlazar a todos los chats globales")
 assert(personalNav.includes('href: "/personal-matches/profile"'), "La navegación personal debe enlazar al perfil global")
 assert(personalNav.includes("grid-cols-4") && (personalNav.match(/href: /g)?.length === 4), "La navegación personal debe repartir cuatro destinos del mismo ancho")
 assert(personalNav.includes('root.dataset.bottomNavVisible = "true"'), "La NAVBAR personal debe activar la superficie segura inferior")

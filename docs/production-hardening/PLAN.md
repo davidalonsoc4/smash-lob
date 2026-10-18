@@ -1,4 +1,18 @@
 # Production Hardening Plan
+## MC10PRE - Publicar ajustes de perfil y chats globales
+- Status: IN PROGRESS
+- Objective: Publicar v1.15.29 en staging/PRE con FORMA usando el acento actual, cabeceras de perfil sin tarjeta anidada y bandeja global de chats de liga/amistosos agrupada por estado.
+- Validation: npm run validate, E2E completos, audit de producción y CI 4/4; verificar SHA en staging, deployment READY/alias PRE, health/version/PWA, rutas globales y acceso autenticado a Chats.
+- Remote changes allowed: push de codex/mis-competiciones, PR/merge a staging y publicación exclusivamente PRE autorizados explícitamente por el usuario. Sin DB, main, Production ni tag v1.0.0.
+- Stop condition: cualquier gate crítico fallido bloquea merge/publicación.
+
+## MC10 - Ajustes visuales de perfil y bandeja global de Chats
+- Status: IN PROGRESS
+- Objective: Utilizar el acento activo en FORMA conservando V verde/D rojo y contraste; quitar la tarjeta interior de ambas cabeceras; mostrar chats de amistosos y de todas las ligas accesibles agrupados en Activos, Próximos y Finalizados.
+- Tasks: (1) identidad visual compartida de perfiles; (2) agregar chats de liga al listado global conservando permisos y calendario progresivo, con secciones ordenadas por estado; (3) validar perfiles/chats y preparar v1.15.29 para PRE.
+- Validation: pruebas focalizadas, npm run validate, E2E y smoke PRE con usuario/fixtures autorizados; ningún test con cuentas personales o datos de Production.
+- Remote changes allowed: none for local implementation; PRE publication only under MC10PRE.
+
 ## MC09PRE - Publicar perfiles unificados en PRE
 - Status: DONE (2026-10-18; PR #46, CI 4/4, PRE v1.15.28 READY y smoke verificado)
 - Objective: Publicar v1.15.28 desde staging para probar en la PWA la navegación y los perfiles global/de liga unificados.

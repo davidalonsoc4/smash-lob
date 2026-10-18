@@ -40,6 +40,8 @@ const EXACT_OVERRIDES = {
     "Amistosos": "Friendly matches",
     "Forma": "Form",
     "Forma reciente": "Recent form",
+    "Todavía no tienes chats.": "You don’t have any chats yet.",
+    "Las conversaciones de tus ligas y amistosos aparecerán aquí.": "Conversations from your leagues and friendly matches will appear here.",
     "Compañeros y rivales destacados": "Featured teammates and rivals",
     "Compañero más fuerte": "Strongest teammate",
     "Rival más duro": "Toughest rival",
@@ -984,6 +986,8 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "Todavía no tienes chats.": "Oraindik ez duzu txatik.",
+    "Las conversaciones de tus ligas y amistosos aparecerán aquí.": "Zure ligetako eta lagunarteko partidetako elkarrizketak hemen agertuko dira.",
     "Sigue nuestra liga": "Jarraitu gure liga",
     "Únete a nuestra liga": "Sartu gure ligan",
     "Descubre Smash & Lob": "Ezagutu Smash & Lob",

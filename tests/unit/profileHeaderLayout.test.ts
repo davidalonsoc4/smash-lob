@@ -20,6 +20,7 @@ describe("player profile shared layout", () => {
     expect(sharedProfile).toContain('<header className="app-page-header">')
     expect(sharedProfile).toContain("<PlayerProfileIdentityCard")
     expect(identityCard).toContain('<PlayerAvatar player={player} size="md" previewable />')
+    expect(identityCard).not.toContain("AppCard")
 
     const avatarIndex = identityCard.indexOf('<PlayerAvatar player={player} size="md" previewable />')
     const titleIndex = identityCard.indexOf("{player.displayName}", avatarIndex)
@@ -42,5 +43,14 @@ describe("player profile shared layout", () => {
     const className = stats.slice(classStart, classEnd)
 
     expect(className).toContain("whitespace-nowrap")
+  })
+
+  it("uses the current accent for form while keeping wins and losses distinct", async () => {
+    const form = await readFile("src/components/player/ProfileFormResults.tsx", "utf8")
+    expect(form).toContain("bg-[var(--app-accent)]")
+    expect(form).toContain("text-[var(--competition-accent-contrast)]")
+    expect(form).toContain("text-emerald-400")
+    expect(form).toContain("text-rose-400")
+    expect(form).not.toContain("bg-amber-300")
   })
 })

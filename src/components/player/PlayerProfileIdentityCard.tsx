@@ -1,6 +1,5 @@
 import type { ReactNode } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
-import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type PlayerProfileIdentityCardProps = {
@@ -22,7 +21,7 @@ export function PlayerProfileIdentityCard({
   const contextLabel = context === "global" ? tx("Perfil global") : leagueName ?? tx("Liga")
 
   return (
-    <AppCard data-profile-identity={context} accentStrip className="!p-3">
+    <div data-profile-identity={context} className="min-w-0">
       <div className="flex min-w-0 items-center gap-3">
         <PlayerAvatar player={player} size="md" previewable />
         <div className="min-w-0 flex-1">
@@ -38,6 +37,6 @@ export function PlayerProfileIdentityCard({
           ) : null}
         </div>
       </div>
-    </AppCard>
+    </div>
   )
 }
