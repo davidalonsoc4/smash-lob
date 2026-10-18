@@ -7,6 +7,11 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+    "Competiciones": "Competitions",
+    "Mis ligas": "My leagues",
+    "Mis torneos": "My tournaments",
+    "Navegación global": "Global navigation",
+    "Ver todos": "View all",
     "Sonidos y avisos": "Sounds and alerts",
     "Personaliza y prueba los avisos de las rondas de tus torneos.": "Customize and test your tournament round alerts.",
     "Carillón": "Chime",
@@ -942,6 +947,11 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "Competiciones": "Lehiaketak",
+    "Mis ligas": "Nire ligak",
+    "Mis torneos": "Nire txapelketak",
+    "Navegación global": "Nabigazio globala",
+    "Ver todos": "Ikusi guztiak",
     "Sonidos y avisos": "Soinuak eta abisuak",
     "Personaliza y prueba los avisos de las rondas de tus torneos.": "Pertsonalizatu eta probatu txapelketetako txanden abisuak.",
     "Carillón": "Karilloia",

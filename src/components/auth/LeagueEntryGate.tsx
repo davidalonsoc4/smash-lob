@@ -10,6 +10,7 @@ import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { isCompetitionOverviewRoute } from "@/lib/competitionNavigation"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
 
 type LeagueEntryGateProps = {
@@ -55,7 +56,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const isLeagueNavigationRoute = pathname === "/open"
   const isAccessInviteRoute = isInviteRoute || isSpectatorInviteRoute
   const isNewLeagueRoute = pathname === "/league/new"
-  const isLeaguesRoute = pathname === "/leagues"
+  const isLeaguesRoute = isCompetitionOverviewRoute(pathname)
   const isTournamentRoute = pathname === "/tournaments" || pathname.startsWith("/tournaments/")
   const isPersonalMatchesRoute =
     pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
@@ -132,7 +133,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     pathname === "/settings" ||
     pathname === "/settings/profile" ||
     pathname === "/settings/suggestions" ||
-    pathname === "/leagues" ||
+    isLeaguesRoute ||
     isTournamentRoute ||
     isPersonalMatchesRoute ||
     pathname === "/help" ||

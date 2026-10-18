@@ -1,17 +1,18 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import LeaguesPage from "@/app/leagues/page"
+import { CompetitionsOverview } from "@/components/competitions/CompetitionsOverview"
 
 const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es", matches: [] as MatchData[], leagues: [
   { id: "a", name: "Liga A", status: "active" }, { id: "b", name: "Liga B", status: "active" },
   { id: "c", name: "Liga C", status: "upcoming" }, { id: "d", name: "Liga D", status: "finished" },
 ] }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: state.refresh }) }))
-vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: state.locale, tx: (text: string) => text, t: { common: { refreshApp: "Actualizar" } } }) }))
+vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: state.locale, tx: (text: string) => text, t: { common: { refreshApp: "Actualizar", back: "Volver" } } }) }))
 vi.mock("@/context/ActiveLeagueProvider", () => ({ useActiveLeague: () => ({ activeLeagueId: "a", changeActiveLeague: state.enter }) }))
 vi.mock("@/context/LeagueAccessProvider", () => ({ useLeagueAccess: () => ({ userLeagues: state.leagues, canCreateLeagues: true, canAccessLeagueAdminTools: () => true, getMembershipForLeague: () => ({ playerId: "own" }), isLeagueAdmin: () => false, isLeagueSpectator: () => false }) }))
 vi.mock("@/context/MatchDataProvider", () => ({ useMatchData: () => ({ matches: state.matches }) }))
@@ -22,27 +23,33 @@ const empty = { items: [], upcoming: [], hasMore: false, nextOffset: null }
 beforeEach(() => { state.locale = "es"; state.matches = []; vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => empty })) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.clearAllMocks() })
 
-it("limits the summary to two leagues and opens all leagues without changing context", async () => {
+it("limits the summary to two leagues and links to separate lists without changing context", async () => {
   render(<LeaguesPage />)
   await screen.findByText("Todavía no tienes encuentros para mostrar.")
   expect(screen.getAllByRole("button", { name: /^Entrar en/ })).toHaveLength(2)
-  fireEvent.click(screen.getByRole("button", { name: "Ver todas" }))
-  expect(screen.getAllByRole("button", { name: /^Entrar en/ })).toHaveLength(4)
-  const archive = screen.getByText(/Finalizadas/).closest("details")!
-  expect(archive.open).toBe(false)
+  expect(screen.getByRole("link", { name: "Ver todas" })).toHaveAttribute("href", "/leagues/all")
+  expect(screen.getByRole("link", { name: "Ver todos" })).toHaveAttribute("href", "/tournaments")
+  expect(screen.getByRole("link", { name: "Ver Mis partidos" })).toHaveAttribute("href", "/personal-matches")
+  expect(screen.queryByRole("button", { name: "Resumen" })).toBeNull()
+  expect(screen.queryByText("Amistosos")).toBeNull()
+  expect(state.enter).not.toHaveBeenCalled()
+})
+it("retains complete league listings, archived seasons, permissions and explicit entry", () => {
+  render(<CompetitionsOverview view="leagues" />)
+  expect(screen.getByText(/Finalizadas/).closest("details")!.open).toBe(false)
+  expect(screen.getByRole("link", { name: "Crear nueva liga" })).toHaveAttribute("href", "/league/new")
+  expect(screen.getByRole("link", { name: "Unirme con invitación" })).toHaveAttribute("href", "/invite")
   fireEvent.click(screen.getByRole("button", { name: "Entrar en Liga C" }))
   expect(state.enter).toHaveBeenCalledWith("c")
+  expect(fetch).not.toHaveBeenCalled()
 })
-it("keeps tournaments informational and friendlies on their existing routes", async () => {
-  render(<LeaguesPage />)
-  fireEvent.click(screen.getByRole("button", { name: "Torneos" }))
-  expect(screen.getByText("Todavía no tienes torneos.")).toBeVisible()
+it("keeps complete tournaments and creation on their existing routes", async () => {
+  render(<CompetitionsOverview view="tournaments" />)
+  await screen.findByText("Todavía no tienes torneos.")
   expect(screen.getByRole("link", { name: "Crear" })).toHaveAttribute("href", "/tournaments/new")
-  fireEvent.click(screen.getByRole("button", { name: "Amistosos" }))
-  expect(screen.getByRole("link", { name: "+ Registrar encuentro amistoso" })).toHaveAttribute("href", "/personal-matches/new")
-  expect(screen.getByRole("link", { name: "Mis partidos" })).toHaveAttribute("href", "/personal-matches")
+  expect(screen.getByRole("link", { name: "Volver" })).toHaveAttribute("href", "/leagues")
   expect(state.enter).not.toHaveBeenCalled()
-  await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+  expect(fetch).toHaveBeenCalledTimes(1)
 })
 it.each(["es", "en", "eu"])("renders an existing tournament with date and time in %s", async (locale) => {
   state.locale = locale
@@ -51,7 +58,6 @@ it.each(["es", "en", "eu"])("renders an existing tournament with date and time i
   const tournament = await screen.findByRole("link", { name: /Americana de prueba/ })
   expect(tournament).toHaveAttribute("href", "/tournaments/fixture-tournament")
   expect(tournament).toHaveTextContent("2026")
-  fireEvent.click(screen.getByRole("button", { name: "Torneos" }))
   expect(screen.getByRole("link", { name: /Americana de prueba/ })).toBeVisible()
 })
 it("shows a clear error and can retry through the refresh action", async () => {

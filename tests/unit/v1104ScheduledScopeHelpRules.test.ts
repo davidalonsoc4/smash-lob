@@ -14,8 +14,8 @@ describe("v1.10.4 scheduled-season personal scope and guidance", () => {
     expect(shell).toContain("scheduledSeasonHomeOnly")
     expect(shell).toContain('homeOnlyLocked={scheduledSeasonHomeOnly}')
     expect(shell).toContain("readSelectedSeasonId")
-    expect(shell).toContain('const shouldShowLeagueSearch =\n    pathname === "/leagues"')
-    expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    isPersonalMatchesRoute')
+    expect(shell).toContain('const shouldShowLeagueSearch =\n    (pathname === "/leagues" || pathname === "/leagues/all")')
+    expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    (isPersonalMatchesRoute || isCompetitionOverview)')
     expect(shell).toContain("{children}")
   })
   it("documents personal scope and the scheduled-season boundary in Help", () => {

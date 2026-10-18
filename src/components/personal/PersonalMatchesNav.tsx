@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { isCompetitionOverviewRoute } from "@/lib/competitionNavigation"
 import { useI18n } from "@/i18n/I18nProvider"
 import { usePathname } from "next/navigation"
 import { useEffect } from "react"
@@ -80,9 +81,9 @@ export function PersonalMatchesNav() {
   const items = [
     {
       href: "/leagues",
-      label: "Mis Competiciones",
+      label: "Competiciones",
       icon: "leagues" as const,
-      active: false,
+      active: isCompetitionOverviewRoute(pathname),
     },
     {
       href: "/personal-matches",
@@ -106,7 +107,7 @@ export function PersonalMatchesNav() {
 
   return (
     <nav
-      aria-label={tx("Navegación de Mis partidos")}
+      aria-label={tx("Navegación global")}
       className="personal-matches-bottom-nav fixed bottom-0 left-1/2 z-50 w-full max-w-md -translate-x-1/2 border-t border-neutral-200 bg-white/95 shadow-[0_-5px_16px_rgba(0,0,0,0.05)] backdrop-blur"
       style={{
         minHeight: "62px",
@@ -121,12 +122,12 @@ export function PersonalMatchesNav() {
             aria-current={item.active ? "page" : undefined}
             className={
               item.active
-                ? "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 type-caption font-black text-white shadow-sm"
-                : "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl px-1 type-caption font-black text-neutral-500 transition active:bg-neutral-100"
+                ? "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 type-caption font-black text-white shadow-sm"
+                : "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 type-caption font-black text-neutral-500 transition active:bg-neutral-100"
             }
           >
             <PersonalNavIcon icon={item.icon} />
-            <span className="text-balance leading-tight">{tx(item.label)}</span>
+            <span className="block w-full break-words text-balance leading-tight">{tx(item.label)}</span>
           </Link>
         ))}
       </div>

@@ -52,12 +52,12 @@ describe("v1.4.12 personal and league polish", () => {
   it("redirects a deleted league to Mis ligas and exposes direct friendly creation", async () => {
     const [adminLeague, leagues] = await Promise.all([
       read("src/app/admin/league/page.tsx"),
-      read("src/app/leagues/page.tsx"),
+      read("src/app/personal-matches/page.tsx"),
     ])
 
     expect(adminLeague).toContain('window.location.replace("/leagues")')
     expect(leagues).toContain('href="/personal-matches/new"')
-    expect(leagues).toContain("Registrar encuentro amistoso")
+    expect(leagues).toContain("/personal-matches/new")
   })
 
   it("normalizes location text before rendering shared match metadata", async () => {

@@ -54,7 +54,7 @@ const [
   read("src/app/api/personal-matches/[id]/route.ts"),
   read("src/app/api/personal-matches/people/route.ts"),
   read("src/lib/serverPersonalMatches.ts"),
-  read("src/app/leagues/page.tsx"),
+  read("src/components/competitions/CompetitionsOverview.tsx"),
   read("src/app/personal-matches/page.tsx"),
   read("src/app/personal-matches/new/page.tsx"),
   read("src/app/personal-matches/[id]/page.tsx"),
@@ -122,7 +122,8 @@ assert(listRoute.includes("personal_match_requires_current_user"), "El creador d
 assert(listRoute.includes("p_status: status"), "La creación debe persistir el estado programado/finalizado")
 
 assert(leaguesPage.includes('href="/personal-matches"'), "Mis Competiciones debe enlazar a Mis partidos")
-assert(leaguesPage.includes("partidos de liga") && leaguesPage.includes("amistosos"), "Mis Competiciones debe explicar el historial agregado")
+assert(!leaguesPage.includes('href="/personal-matches/new"'), "La creación de amistosos pertenece a Mis partidos")
+assert(personalPage.includes('href="/personal-matches/new"'), "Mis partidos debe conservar el acceso a crear amistosos")
 assert(personalPage.includes("const pageSize = 10"), "El historial debe paginar diez partidos cada vez")
 assert(personalPage.includes("Cargar 10 más"), "Debe existir carga incremental de diez partidos")
 assert(personalPage.includes("dashboard.upcoming.length > 0"), "Próximos partidos debe ocultarse por completo cuando no hay amistosos futuros")
@@ -223,8 +224,8 @@ assert(appShell.includes("const shouldShowSettingsButton"), "El modo personal de
 assert(appShell.includes("!isPersonalMatchesRoute"), "El modo personal debe ocultar la navegación completa y los controles de liga")
 assert(appShell.includes("shouldShowPersonalMatchesNav"), "El shell debe activar la navegación compacta del modo personal")
 assert(appShell.includes("<PersonalMatchesNav"), "El shell debe renderizar la navegación compacta de Mis partidos")
-assert(personalNav.includes('aria-label="Navegación de Mis partidos"') || personalNav.includes('tx("Navegación de Mis partidos")'), "La navegación personal debe ser accesible")
-for (const label of ["Mis Competiciones", "Mis partidos", "Chats", "Mi perfil"]) {
+assert(personalNav.includes('aria-label="Navegación global"') || personalNav.includes('tx("Navegación global")'), "La navegación personal debe ser accesible")
+for (const label of ["Competiciones", "Mis partidos", "Chats", "Mi perfil"]) {
   assert(personalNav.includes(label), `Falta el destino ${label} en la navegación personal`)
 }
 assert(!personalNav.includes('label: "+ Partido"'), "La navegación personal no debe incluir + Partido")

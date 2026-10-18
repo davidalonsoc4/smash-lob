@@ -1,5 +1,19 @@
 # Production Hardening Plan
 
+## MC02PRE - Publicar navegación global de Competiciones
+- Status: IN PROGRESS (2026-10-18)
+- Objective: Publicar v1.15.26 en staging/PRE para validar la nueva navegación desde la PWA.
+- Validation: validate, E2E completos, auditoría runtime y CI; READY/commit/alias, health/versión/SW y las rutas resumen/listados.
+- Remote changes allowed: commits/push de rama, PR/merge a staging y publicación exclusivamente PRE autorizados por usuario. Sin DB, main, Production ni v1.0.0.
+- Stop condition: fallo crítico bloquea publicación.
+
+## MC02 - Navbar global y resumen de Competiciones
+- Status: DONE (2026-10-18; 987 pruebas cubiertas, 12 recorridos E2E, controles y build correctos)
+- Objective: Reutilizar PersonalMatchesNav en resumen/listados de Competiciones, retirar pestañas y sección Amistosos del hub, mantener barras de liga/torneo y navegación Atrás.
+- Validation: selección exclusiva de Navbar, rutas/listados con y sin liga/temporada, resumen y amistosos; TypeScript, lint, i18n, presupuesto/build y recorridos móviles con fixtures.
+- Remote changes allowed: none. Sin commits, publicación, DB ni dependencias.
+- Stop condition: fallo crítico bloquea el cierre.
+
 ## T02PRE - Publicar ajustes de avisos y gestión de finalizados
 - Status: DONE (2026-10-17; CI/local correctos, PRE1.15.25 READY/alias/versión/PWA/API verificados)
 - Objective: Publicar v1.15.25 en staging/PRE para probar sonidos, Ajustes y reinicio/borrado desde PWA.
