@@ -15,7 +15,13 @@ export function MatchSlides({ index, onChange, label, children }: { index: numbe
   }, [index, count])
   if (count < 2) return <>{children}</>
   return <div ref={ref} role="group" aria-label={label} className="match-slides flex w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
-    onScrollEnd={event => { const el = event.currentTarget; if (el.clientWidth) onChange(Math.max(0, Math.min(Children.count(children) - 1, Math.round(el.scrollLeft / el.clientWidth)))) }}>
+    onScrollEnd={event => {
+      const el = event.currentTarget
+      if (!el.clientWidth) return
+      const next = Math.max(0, Math.min(count - 1, Math.round(el.scrollLeft / el.clientWidth)))
+      if (Math.abs(el.scrollLeft - next * el.clientWidth) > 0.5) el.scrollTo?.({ left: next * el.clientWidth, behavior: "instant" })
+      onChange(next)
+    }}>
     {Children.map(children, (child, position) => <div className="min-w-0 shrink-0 basis-full snap-start snap-always" aria-hidden={position !== index} inert={position !== index}>{child}</div>)}
   </div>
 }

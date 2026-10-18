@@ -13,8 +13,9 @@ async function swipe(page: Page, slider: Locator, direction: "left" | "right", s
     await page.waitForTimeout(25)
   }
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] })
-  await cdp.detach()
-  await expect.poll(() => slider.evaluate(el => Math.abs(el.scrollLeft / el.clientWidth - Math.round(el.scrollLeft / el.clientWidth)))).toBeLessThan(0.01)
+  try {
+    await expect.poll(() => slider.evaluate(el => Math.abs(el.scrollLeft / el.clientWidth - Math.round(el.scrollLeft / el.clientWidth)))).toBeLessThan(0.01)
+  } finally { await cdp.detach() }
 }
 
 test.beforeEach(async ({ page }) => {

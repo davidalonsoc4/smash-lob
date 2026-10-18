@@ -21,6 +21,10 @@ it("settles to a complete card and only exposes the selected panel to keyboard a
   expect(screen.getByRole("link", { name: "Liga" })).toBeVisible()
   expect(screen.queryByRole("link", { name: "Mío" })).toBeNull()
   expect(slider.children[1]).toHaveAttribute("inert")
+  slider.scrollLeft = 40
+  fireEvent(slider, new Event("scrollend", { bubbles: true }))
+  expect(onChange).toHaveBeenLastCalledWith(0)
+  expect(scrollTo).toHaveBeenLastCalledWith({ left: 0, behavior: "instant" })
   slider.scrollLeft = 320
   fireEvent(slider, new Event("scrollend", { bubbles: true }))
   expect(onChange).toHaveBeenLastCalledWith(1)
