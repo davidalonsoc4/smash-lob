@@ -1,7 +1,8 @@
 # Production Hardening Plan
 ## MC11PRE - Corregir los colores del grafismo FORMA y publicar en PRE
-- Status: IN PROGRESS (2026-10-18)
+- Status: DONE (2026-10-18; PR #48, CI 4/4, PRE v1.15.30 READY y smoke verificado)
 - Objective: Mostrar V en círculos verdes y D en círculos rojos y garantizar legibilidad del título FORMA en perfiles global y de liga; publicar solo en PRE después de los gates locales y remotos.
+- Validation: `npm run validate` (999 pruebas/250 archivos; TypeScript y build); E2E 107/107 (1 omisión prevista); auditoría runtime 0 vulnerabilidades; CI #392 4/4 success. PR #48 integrado en `staging` `6ae40381b13c977acd84907b800a516f7a1b8323`; deployment Vercel `dpl_CPMMW5qQ56hA8USd3rGzdbEBo1aV` READY con alias PRE; health 200/version 1.15.30/environment pre y SW v1.15.30.
 - Remote changes allowed: rama de trabajo, PR/merge a staging y PRE por solicitud del usuario. No Production, main, base de datos ni tag v1.0.0.
 - Stop condition: no fusionar ni publicar si falla un gate crítico.
 
