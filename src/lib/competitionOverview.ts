@@ -14,3 +14,9 @@ export function selectCompetitionHighlight(items: PersonalMatchItem[], now: Date
   const last = own.filter(item => item.status === "finished" && lastTime(item) > 0 && lastTime(item) <= now.getTime()).sort((a, b) => lastTime(b) - lastTime(a))[0]
   return last ? { kind: "last" as const, match: last } : null
 }
+/** Keep the same privacy/date rules while exposing the two activity cards. */
+export function selectCompetitionHighlights(items: PersonalMatchItem[], now: Date) {
+  const next = selectCompetitionHighlight(items.filter(item => item.status !== "finished"), now)
+  const last = selectCompetitionHighlight(items.filter(item => item.status === "finished"), now)
+  return [next, last].filter((item): item is NonNullable<typeof item> => item !== null)
+}

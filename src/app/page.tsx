@@ -8,6 +8,7 @@ import { LeagueLogo } from "@/components/league/LeagueLogo";
 import { SeasonContextLineSelector } from "@/components/layout/SeasonContextLine";
 import { LeagueAnnouncementsCard } from "@/components/announcements/LeagueAnnouncementsCard";
 import { MatchCard } from "@/components/matches/MatchCard";
+import { MatchSlides } from "@/components/ui/MatchSlides";
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
@@ -542,12 +543,6 @@ export default function Home() {
         personalMatch: nextMatch,
         candidateCount: nextMatchCandidateCount,
       });
-  const selectedNextMatch =
-    effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
-  const canShowSelectedNextMatchScheduleHint =
-    Boolean(selectedNextMatch) &&
-    (selectedNextMatch.teamA.includes(currentUserId) ||
-      selectedNextMatch.teamB.includes(currentUserId));
   const shouldShowLastMatchScopeSwitch = shouldShowScopeSwitch({
     leagueMatch: leagueLastMatch,
     personalMatch: personalLastMatch,
@@ -587,11 +582,6 @@ export default function Home() {
       : "MVP de jornada";
   const selectedLastMatchHighlightedPlayerIds =
     getMatchPanelHighlightedPlayerIds(selectedLastMatch);
-  const selectedNextMatchHighlightedPlayerIds =
-    getMatchPanelHighlightedPlayerIds(selectedNextMatch);
-  const selectedNextMatchRound = selectedNextMatch
-    ? rounds.find((round) => round.round === selectedNextMatch.round)
-    : null;
   const selectedLastMatchRound = selectedLastMatch
     ? rounds.find((round) => round.round === selectedLastMatch.round)
     : null;
@@ -1215,6 +1205,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setNextMatchScope("league")}
+                    aria-pressed={effectiveNextMatchScope === "league"}
                     className={`rounded-full px-2.5 py-1 transition ${
                       effectiveNextMatchScope === "league"
                         ? "bg-white text-neutral-950 shadow-sm"
@@ -1225,6 +1216,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setNextMatchScope("mine")}
+                    aria-pressed={effectiveNextMatchScope === "mine"}
                     className={`rounded-full px-2.5 py-1 transition ${
                       effectiveNextMatchScope === "mine"
                         ? "bg-white text-neutral-950 shadow-sm"
@@ -1237,7 +1229,13 @@ export default function Home() {
             }
           />
 
-          {selectedNextMatch ? (
+          <MatchSlides index={shouldShowNextMatchScopeSwitch && effectiveNextMatchScope === "mine" ? 1 : 0} onChange={index => setNextMatchScope(index === 1 ? "mine" : "league")} label={tx("Próximo partido")}>
+          {(shouldShowNextMatchScopeSwitch ? ["league", "mine"] as const : [effectiveNextMatchScope]).map(effectiveNextMatchScope => {
+            const selectedNextMatch = effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
+            const canShowSelectedNextMatchScheduleHint = Boolean(selectedNextMatch) && (selectedNextMatch.teamA.includes(currentUserId) || selectedNextMatch.teamB.includes(currentUserId));
+            const selectedNextMatchRound = rounds.find(round => round.round === selectedNextMatch?.round);
+            const selectedNextMatchHighlightedPlayerIds = getMatchPanelHighlightedPlayerIds(selectedNextMatch);
+            return <div key={effectiveNextMatchScope}>{selectedNextMatch ? (
             <MatchCard
               match={selectedNextMatch}
               players={players}
@@ -1260,7 +1258,9 @@ export default function Home() {
           ) : (
             <AppCard className="border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-500">
               {tx("No tienes próximo partido pendiente.")}{" "}</AppCard>
-          )}
+          )}</div>;
+          })}
+          </MatchSlides>
         </section>
       ) : null}
       {selectedLastMatch && !isSeasonClosed && !isPlayerSeasonLocked ? (

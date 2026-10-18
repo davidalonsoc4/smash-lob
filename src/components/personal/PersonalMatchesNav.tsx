@@ -3,7 +3,7 @@ import { isCompetitionOverviewRoute } from "@/lib/competitionNavigation"
 import { useI18n } from "@/i18n/I18nProvider"
 import { usePathname } from "next/navigation"
 import { useEffect } from "react"
-
+import { FitText } from "@/components/ui/FitText"
 type PersonalNavIconName = "matches" | "chats" | "profile" | "leagues"
 
 function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
@@ -17,7 +17,6 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
     strokeLinejoin: "round" as const,
     className: "h-4 w-4",
   }
-
 
   if (icon === "chats") {
     return (
@@ -36,7 +35,6 @@ function PersonalNavIcon({ icon }: { icon: PersonalNavIconName }) {
       </svg>
     )
   }
-
 
   if (icon === "leagues") {
     return (
@@ -114,7 +112,7 @@ export function PersonalMatchesNav() {
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      <div className="grid min-h-[62px] grid-cols-4 gap-1 px-3 py-1.5">
+      <div className="grid min-h-[62px] grid-cols-[1.2fr_1.1fr_0.7fr_1fr] gap-0.5 px-1 py-1.5 text-center">
         {items.map((item) => (
           <Link
             key={item.href}
@@ -122,12 +120,12 @@ export function PersonalMatchesNav() {
             aria-current={item.active ? "page" : undefined}
             className={
               item.active
-                ? "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-1 type-caption font-black text-white shadow-sm"
-                : "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 type-caption font-black text-neutral-500 transition active:bg-neutral-100"
+                ? "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl bg-neutral-950 px-0.5 type-caption font-black text-white shadow-sm"
+                : "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 type-caption font-black text-neutral-500 transition active:bg-neutral-100"
             }
           >
             <PersonalNavIcon icon={item.icon} />
-            <span className="block w-full break-words text-balance leading-tight">{tx(item.label)}</span>
+            <FitText className="w-full leading-tight">{tx(item.label)}</FitText>
           </Link>
         ))}
       </div>

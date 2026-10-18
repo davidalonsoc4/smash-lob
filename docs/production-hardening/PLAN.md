@@ -1,7 +1,27 @@
 # Production Hardening Plan
 
-## MC02PRE - Publicar navegación global de Competiciones
+## MC03PRE - Publicar tarjetas y cabecera de actividad
 - Status: IN PROGRESS (2026-10-18)
+- Objective: Publicar v1.15.27 en staging/PRE para probar navbar centrada, swipe y selector compacto desde la PWA.
+- Validation: validate, E2E completos, auditoría runtime y CI; verificar staging/READY/alias, versión/SW/manifiesto y rutas principales.
+- Remote changes allowed: commits/push, PR/merge a staging y publicación exclusivamente PRE, autorizados por el usuario. Sin DB, main, Production ni v1.0.0.
+- Stop condition: fallo crítico impide la publicación.
+
+## MC03H - Compactar selector de actividad personal
+- Status: DONE (2026-10-18; 8 pruebas y recorrido táctil 320/393 px, geometría, lint/tipos y build E2E correctos)
+- Objective: Título del encuentro y botón Próximo/Último en una fila, con acción a la derecha y swipe conservado.
+- Validation: ESLint, TypeScript, i18n/presupuesto y recorrido móvil 320/393 px con controles y gestos.
+- Remote changes allowed: none. Sin commits, despliegue, DB ni dependencias.
+
+## MC03 - Etiquetas y tarjetas deslizables en móvil
+- Status: DONE (2026-10-18; pruebas, seis recorridos móviles, tipos/lint/build y capturas 320/393 px correctos)
+- Objective: Centrar navbar global sin palabras cortadas, ajustar etiquetas largas y deslizar próximos partidos Liga/Mío y actividad Próximo/Último con parada completa.
+- Validation: pruebas de selección/gestos, regresiones de permisos, TypeScript, lint, i18n, presupuestos y build; E2E móvil 320/393 px y revisión visual.
+- Remote changes allowed: none. Trabajo local sin commits, publicación, DB ni dependencias.
+- Stop condition: fallo crítico bloquea el cierre.
+
+## MC02PRE - Publicar navegación global de Competiciones
+- Status: DONE (2026-10-18; 987 pruebas, 100 E2E, CI y PRE1.15.26 READY/alias/rutas/PWA verificados)
 - Objective: Publicar v1.15.26 en staging/PRE para validar la nueva navegación desde la PWA.
 - Validation: validate, E2E completos, auditoría runtime y CI; READY/commit/alias, health/versión/SW y las rutas resumen/listados.
 - Remote changes allowed: commits/push de rama, PR/merge a staging y publicación exclusivamente PRE autorizados por usuario. Sin DB, main, Production ni v1.0.0.

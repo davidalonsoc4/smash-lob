@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { selectCompetitionHighlight } from "@/lib/competitionOverview"
+import { selectCompetitionHighlight, selectCompetitionHighlights } from "@/lib/competitionOverview"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 
 const now = new Date("2026-10-16T12:00:00Z")
@@ -7,6 +7,13 @@ function match(id: string, overrides: Partial<PersonalMatchItem> = {}): Personal
   return { id, origin: "friendly", status: "scheduled", scheduledAt: "2026-10-17T12:00:00Z", resultRecordedAt: null, locationName: null, sets: [], canManage: false, canDelete: false, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null, participants: [{ team: 1, slot: 1, displayName: "Fixture", isCurrentUser: true }], ...overrides }
 }
 describe("competition overview", () => {
+  it("offers the next and last own encounters together without duplicating API results", () => {
+    const next = match("next")
+    const last = match("last", { status: "finished", resultRecordedAt: "2026-10-15T15:00:00Z" })
+    expect(selectCompetitionHighlights([next, next, last, last, match("other", { participants: [] })], now)).toEqual([{ kind: "next", match: next }, { kind: "last", match: last }])
+    expect(selectCompetitionHighlights([last], now)).toEqual([{ kind: "last", match: last }])
+    expect(selectCompetitionHighlights([], now)).toEqual([])
+  })
   it("prioritizes a match in progress over future league and friendly encounters", () => {
     const live = match("live", { scheduledAt: "2026-10-16T11:00:00Z" })
     expect(selectCompetitionHighlight([match("future"), live], now)).toEqual({ kind: "live", match: live })

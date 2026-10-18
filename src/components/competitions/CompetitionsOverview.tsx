@@ -7,12 +7,13 @@ import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { AppCard } from "@/components/ui/AppCard"
+import { MatchSlides } from "@/components/ui/MatchSlides"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import { selectCompetitionHighlight } from "@/lib/competitionOverview"
+import { selectCompetitionHighlights } from "@/lib/competitionOverview"
 import { isRoundRevealedToPlayers } from "@/lib/progressiveCalendar"
 import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
 
@@ -33,6 +34,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   const [loadError, setLoadError] = useState(false)
   const [requestVersion, setRequestVersion] = useState(0)
   const [now, setNow] = useState(() => new Date())
+  const [activityIndex, setActivityIndex] = useState(0)
   useEffect(() => {
     if (view !== "summary") return
     const controller = new AbortController()
@@ -63,7 +65,8 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       status: match.status, scheduledAt: match.scheduledAt, resultRecordedAt: match.resultRecordedAt, locationName: match.location, sets: match.sets, canManage: false, canDelete: false,
       participants: [match.teamA, match.teamB].flatMap((team, teamIndex) => team.map((id, slot) => ({ team: (teamIndex + 1) as 1 | 2, slot: (slot + 1) as 1 | 2, displayName: playerProfiles.find(player => player.id === id)?.displayName ?? tx("Jugador"), isCurrentUser: id === playerId }))) }]
   })
-  const highlight = selectCompetitionHighlight([...ownLeagueMatches, ...(dashboard?.upcoming ?? []), ...(dashboard?.items ?? [])], now)
+  const highlights = selectCompetitionHighlights([...ownLeagueMatches, ...(dashboard?.upcoming ?? []), ...(dashboard?.items ?? [])], now)
+  const visibleActivityIndex = Math.min(activityIndex, Math.max(0, highlights.length - 1))
   const leagueRows = userLeagues.map(league => ({ league, season: getActiveSeasonByLeagueId(league.id) }))
   const statusOrder = { active: 0, upcoming: 1, finished: 2 }
   const orderedLeagues = [...leagueRows].sort((a, b) => statusOrder[a.season.status] - statusOrder[b.season.status])
@@ -96,9 +99,14 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     {view === "summary" ? <section aria-labelledby="personal-activity" className="space-y-2">
       <div className="flex items-center justify-between gap-2"><h2 id="personal-activity" className="type-panel-title font-black">{tx("Actividad personal")}</h2>
         <Link href="/personal-matches" className="min-h-11 inline-flex shrink-0 items-center text-sm font-black underline underline-offset-4">{tx("Ver Mis partidos")}</Link></div>
-      {!dashboard && !loadError ? <AppCard><p role="status" className="text-sm text-neutral-500">{tx("Cargando tus partidos…")}</p></AppCard> : loadError ? <AppCard><p role="alert" className="text-sm text-neutral-500">{tx("No se ha podido cargar tu actividad personal.")}</p></AppCard> : highlight ? <>
-        <p className="type-caption font-black uppercase tracking-widest text-neutral-500">{tx(highlight.kind === "live" ? "Tu partido en curso" : highlight.kind === "next" ? "Tu próximo partido" : "Tu último encuentro")}</p>
-        <PersonalMatchCard match={highlight.match} hideEventMeta={highlight.kind === "last"} />
+      {!dashboard && !loadError ? <AppCard><p role="status" className="text-sm text-neutral-500">{tx("Cargando tus partidos…")}</p></AppCard> : loadError ? <AppCard><p role="alert" className="text-sm text-neutral-500">{tx("No se ha podido cargar tu actividad personal.")}</p></AppCard> : highlights.length ? <>
+        <div data-activity-heading className="flex items-center justify-between gap-2">
+          <p className="min-w-0 type-caption font-black uppercase tracking-wide text-neutral-500">{tx(highlights[visibleActivityIndex].kind === "live" ? "Tu partido en curso" : highlights[visibleActivityIndex].kind === "next" ? "Tu próximo partido" : "Tu último encuentro")}</p>
+          {highlights.length > 1 ? <button type="button" onClick={() => setActivityIndex(visibleActivityIndex === 0 ? 1 : 0)} className="min-h-11 shrink-0 rounded-full bg-neutral-100 px-2.5 type-caption font-black text-neutral-600">{tx(visibleActivityIndex === 0 ? "Último partido" : "Próximo partido")} <span aria-hidden="true">↔</span></button> : null}
+        </div>
+        <MatchSlides index={visibleActivityIndex} onChange={setActivityIndex} label={tx("Actividad personal")}>
+          {highlights.map(highlight => <PersonalMatchCard key={highlight.kind} match={highlight.match} hideEventMeta={highlight.kind === "last"} />)}
+        </MatchSlides>
       </> : <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Todavía no tienes encuentros para mostrar.")}</p></AppCard>}
     </section> : null}
     {view === "summary" || view === "leagues" ? <section aria-labelledby="competitions-leagues" className="space-y-2">
