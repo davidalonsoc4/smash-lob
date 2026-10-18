@@ -120,6 +120,10 @@ test(`creates and completes the fixed 12-player tournament happy path (${theme})
   await page.screenshot({ path: testInfo.outputPath(`calendar-mobile-393-${theme}.png`), scale: "css" })
   await page.setViewportSize({ width: 320, height: 812 })
   const nav = page.getByRole("navigation", { name: "Navegación del torneo" })
+  expect(await nav.evaluate(el => {
+    const grid = el.firstElementChild!, item = el.querySelector("a")!, icon = item.querySelector("svg")!
+    return [el.getBoundingClientRect().height, getComputedStyle(grid).paddingTop, getComputedStyle(grid).paddingBottom, getComputedStyle(grid).columnGap, getComputedStyle(item).fontSize, getComputedStyle(item).borderRadius, item.getBoundingClientRect().height, icon.getBoundingClientRect().width, icon.getBoundingClientRect().height]
+  })).toEqual([73, "7px", "7px", "6px", "11px", "12px", 58, 16, 16])
   expect(await nav.locator("a").evaluateAll((links) => links.every((link) => {
     const item = link.getBoundingClientRect(), label = link.querySelector("span")!.getBoundingClientRect()
     return label.left >= item.left - 1 && label.right <= item.right + 1

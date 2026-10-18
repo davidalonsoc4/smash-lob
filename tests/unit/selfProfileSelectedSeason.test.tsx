@@ -13,6 +13,7 @@ const fixture = vi.hoisted(() => ({
   ],
   selected: "finished",
 }))
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }) }))
 vi.mock("@/hooks/useCurrentLeagueData", () => ({ useCurrentLeagueData: () => ({
   activeLeague: fixture.league, activeSeason: fixture.seasons.find(s => s.id === (localStorage.getItem("smash-lob-selected-season:fixture-league") ?? fixture.selected)),
 }) }))

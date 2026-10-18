@@ -37,6 +37,7 @@ it("settles to a complete card and only exposes the selected panel to keyboard a
   const slider = screen.getByRole("group")
   Object.defineProperty(slider, "clientWidth", { value: 320 })
   const scrollTo = vi.fn()
+  slider.style.columnGap = "12px"
   slider.scrollTo = scrollTo
   expect(screen.getByRole("link", { name: "Liga" })).toBeVisible()
   expect(screen.queryByRole("link", { name: "Mío" })).toBeNull()
@@ -45,11 +46,11 @@ it("settles to a complete card and only exposes the selected panel to keyboard a
   fireEvent(slider, new Event("scrollend", { bubbles: true }))
   expect(onChange).toHaveBeenLastCalledWith(0)
   expect(scrollTo).toHaveBeenLastCalledWith({ left: 0, behavior: "instant" })
-  slider.scrollLeft = 320
+  slider.scrollLeft = 332
   fireEvent(slider, new Event("scrollend", { bubbles: true }))
   expect(onChange).toHaveBeenLastCalledWith(1)
   rerender(<MatchSlides index={1} onChange={onChange} label="Partidos"><a href="/a">Liga</a><a href="/b">Mío</a></MatchSlides>)
-  expect(scrollTo).toHaveBeenCalledWith({ left: 320, behavior: "instant" })
+  expect(scrollTo).toHaveBeenCalledWith({ left: 332, behavior: "instant" })
   expect(screen.queryByRole("link", { name: "Liga" })).toBeNull()
   expect(screen.getByRole("link", { name: "Mío" })).toBeVisible()
 })

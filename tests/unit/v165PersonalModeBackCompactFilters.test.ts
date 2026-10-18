@@ -9,7 +9,7 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
     ])
 
     expect(matches).toContain('import { BackButton } from "@/components/ui/BackButton"')
-    expect(matches).toContain('<BackButton fallbackHref="/" label={t.common.back} />')
+    expect(matches).toContain('<BackButton fallbackHref="/leagues" label={t.common.back} alwaysFallback />')
     expect(profile).toContain('import { BackButton } from "@/components/ui/BackButton"')
     expect(profile).toContain('<BackButton fallbackHref="/personal-matches" label={t.common.back} />')
   })
@@ -19,8 +19,11 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
 
     expect(profile).toContain("data-personal-global-filters")
     expect(profile).toMatch(/\["all",\s*tx\("Todos"\),\s*tx\("Todos los partidos"\)\]|\["all", "Todos", "Todos los partidos"\]/)
-    expect(profile).toMatch(/\["league",\s*tx\("Liga"\),\s*tx\("Partidos de liga"\)\]|\["league", "Liga", "Partidos de liga"\]/)
-    expect(profile).toMatch(/\["friendly",\s*tx\("Amistoso"\),\s*tx\("Amistosos"\)\]|\["friendly", "Amistoso", "Amistosos"\]/)
+    expect(profile).toContain('participatingLeagues.length === 1 ? "Liga" : "Ligas"')
+    expect(profile).toContain('match.origin === "friendly"')
+    expect(profile).toContain('items.filter((match) => match.origin === "friendly").length === 1 ? "Amistoso" : "Amistosos"')
+    expect(profile).toContain('participatingLeagues.length ?')
+    expect(profile).toContain('hasFriendlyMatches ?')
     expect(profile).toContain('origin === "league" ? (')
     expect(profile).toMatch(/aria-label=(?:"Liga"|\{tx\("Liga"\)\})/)
     expect(profile).toMatch(/aria-label=(?:"Temporada"|\{tx\("Temporada"\)\})/)
@@ -31,9 +34,10 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
   })
 
   it("keeps filter behavior and compacts the statistics section selector", async () => {
-    const [profile, statistics] = await Promise.all([
+    const [profile, statistics, tabs] = await Promise.all([
       readFile("src/app/personal-matches/profile/page.tsx", "utf8"),
       readFile("src/components/personal/PersonalProfileStatistics.tsx", "utf8"),
+      readFile("src/components/player/ProfileSectionTabs.tsx", "utf8"),
     ])
 
     for (const token of [
@@ -50,10 +54,11 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
     }
 
     expect(profile).not.toContain('disabled={origin === "friendly"}')
-    expect(statistics).toContain("data-personal-profile-sections")
-    expect(statistics).toContain("Resumen")
-    expect(statistics).toContain("Parejas / rivales")
-    expect(statistics).toContain("Cara a cara")
-    expect(statistics).toContain("rounded-lg px-1.5 py-1.5")
+    expect(tabs).toContain("data-personal-profile-sections")
+    expect(tabs).toContain('tx("Resumen")')
+    expect(tabs).toContain('tx("Parejas / rivales")')
+    expect(tabs).toContain('tx("Cara a cara")')
+    expect(statistics).toContain("ProfileSectionTabs")
+    expect(tabs).toContain("rounded-lg px-1.5 py-1.5")
   })
 })

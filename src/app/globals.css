@@ -52,8 +52,19 @@ summary::-webkit-details-marker {
   display: none;
 }
 
-.match-slides { scrollbar-width: none; }
+.match-slides { column-gap: .75rem; scrollbar-width: none; }
 .match-slides::-webkit-scrollbar { display: none; }
+
+.personal-match-league-origin {
+  --personal-league-background: color-mix(in srgb, var(--personal-league-accent) 12%, white);
+  --personal-league-border: color-mix(in srgb, var(--personal-league-accent) 55%, white);
+  --personal-league-text: color-mix(in srgb, var(--personal-league-accent) 45%, black);
+}
+html.dark .personal-match-league-origin {
+  --personal-league-background: color-mix(in srgb, var(--personal-league-accent) 20%, #18181b);
+  --personal-league-border: color-mix(in srgb, var(--personal-league-accent) 65%, #aaaaaa);
+  --personal-league-text: color-mix(in srgb, var(--personal-league-accent) 30%, white);
+}
 
 button,
 input,
@@ -2605,6 +2616,11 @@ html[data-visual-style="competition"] [data-personal-match-origin="friendly"] {
   border-color: var(--competition-tone-friendly-border) !important;
   background: rgb(var(--competition-rgb-friendly) / .32) !important;
   color: var(--competition-tone-friendly-text) !important;
+}
+html[data-visual-style="competition"] [data-personal-match-origin="league"][data-league-accent] {
+  border-color: var(--personal-league-border) !important;
+  background: var(--personal-league-background) !important;
+  color: var(--personal-league-text) !important;
 }
 
 /* Match chat follows the same surface language as the rest of Competition. */

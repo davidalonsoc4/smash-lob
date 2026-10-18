@@ -1,4 +1,7 @@
+import type { ReactNode } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import { ProfileFormResults } from "@/components/player/ProfileFormResults"
+import { ProfileSectionTabs, type PersonalProfileSection } from "@/components/player/ProfileSectionTabs"
 import { useI18n } from "@/i18n/I18nProvider"
 import { AppCard } from "@/components/ui/AppCard"
 import type {
@@ -6,8 +9,6 @@ import type {
   PersonalProfileRelation,
   PersonalProfileStats,
 } from "@/lib/personalProfileStats"
-
-export type PersonalProfileSection = "summary" | "relations" | "head-to-head"
 
 type PersonalProfileStatisticsProps = {
   stats: PersonalProfileStats
@@ -19,6 +20,8 @@ type PersonalProfileStatisticsProps = {
   onRelationSelect: (key: string) => void
   onOpenPlayerProfile: (playerId: string, leagueId: string | null) => void
   headToHead: PersonalProfileHeadToHead | null
+  summaryContent?: ReactNode
+  contextLabel?: string
 }
 
 function signed(value: number) {
@@ -181,7 +184,7 @@ function RelationTable({
   )
 }
 
-function SummarySection({ stats }: { stats: PersonalProfileStats }) {
+function SummarySection({ stats, onRelationSelect }: { stats: PersonalProfileStats; onRelationSelect: (key: string) => void }) {
   const { tx } = useI18n()
   return (
     <div className="space-y-3">
@@ -198,17 +201,23 @@ function SummarySection({ stats }: { stats: PersonalProfileStats }) {
             <p className="text-xs font-semibold text-neutral-500">{tx("Estadísticas de juego")}</p>
             <p className="mt-0.5 type-panel-title">Rendimiento global</p>
           </div>
-          <div className="rounded-xl bg-neutral-950 px-3 py-2 text-right text-white">
-            <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-300">Forma</p>
-            <div className="mt-1"><FormDots form={stats.currentForm} /></div>
-          </div>
         </div>
+
+        <div className="mt-2"><ProfileFormResults results={stats.currentForm} /></div>
 
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <StatTile label="Sets" value={`${stats.setsFor}-${stats.setsAgainst}`} detail={`${percentage(stats.setWinRate)} ganados`} />
           <StatTile label={tx("Dif. sets")} value={signed(stats.setsDiff)} detail={tx(`${decimal(stats.averageSetsFor)} a favor / partido`)} />
           <StatTile label={tx("Juegos")} value={`${stats.gamesFor}-${stats.gamesAgainst}`} detail={tx(`${percentage(stats.gamesWinRate)} a favor`)} />
           <StatTile label={tx("Media juegos")} value={signed(stats.averageGamesDiff)} detail={tx(`${decimal(stats.averageGamesFor)}-${decimal(stats.averageGamesAgainst)} / partido`)} />
+        </div>
+      </AppCard>
+
+      <AppCard className="p-3">
+        <p className="text-xs font-semibold text-neutral-500">{tx("Compañeros y rivales destacados")}</p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <RelationHighlight label={tx("Compañero más fuerte")} relation={stats.bestTeammate} onSelect={onRelationSelect} detail={(row) => tx(`${row.wins}V/${row.losses}D · ${signed(row.gamesDiff)} juegos`)} />
+          <RelationHighlight label={tx("Rival más duro")} relation={stats.toughestRival} onSelect={onRelationSelect} detail={(row) => `${percentage(row.winRate)} · ${signed(row.gamesDiff)} juegos`} />
         </div>
       </AppCard>
 
@@ -286,12 +295,14 @@ function HeadToHeadSection({
   onComparisonChange,
   onOpenPlayerProfile,
   headToHead,
+  contextLabel,
 }: {
   people: PersonalProfileStatisticsProps["comparisonPeople"]
   comparisonKey: string
   onComparisonChange: (key: string) => void
   onOpenPlayerProfile: (playerId: string, leagueId: string | null) => void
   headToHead: PersonalProfileHeadToHead | null
+  contextLabel?: string
 }) {
   const { tx } = useI18n()
   if (people.length === 0) {
@@ -309,7 +320,7 @@ function HeadToHeadSection({
   return (
     <div className="space-y-3">
       <AppCard className="p-3">
-        <p className="text-xs font-semibold text-neutral-500">{tx("Comparación global")}</p>
+        <p className="text-xs font-semibold text-neutral-500">{tx(contextLabel ?? "Comparación global")}</p>
         <p className="mt-0.5 type-panel-title">Cara a cara</p>
         <label className="mt-3 block">
           <span className="type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Comparar con")}</span>
@@ -417,34 +428,18 @@ export function PersonalProfileStatistics({
   onRelationSelect,
   onOpenPlayerProfile,
   headToHead,
+  summaryContent,
+  contextLabel,
 }: PersonalProfileStatisticsProps) {
-  const { tx } = useI18n()
   return (
     <>
-      <div data-personal-profile-sections className="grid grid-cols-3 gap-1 rounded-xl bg-neutral-100 p-1">
-        {[
-          ["summary", tx("Resumen")],
-          ["relations", "Parejas / rivales"],
-          ["head-to-head", "Cara a cara"],
-        ].map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => onSectionChange(value as PersonalProfileSection)}
-            className={`rounded-lg px-1.5 py-1.5 type-caption font-black transition ${
-              section === value ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <ProfileSectionTabs section={section} onSectionChange={onSectionChange} />
 
       <div className="mt-3">
-        {section === "summary" ? <SummarySection stats={stats} /> : null}
+        {section === "summary" ? summaryContent ?? <SummarySection stats={stats} onRelationSelect={onRelationSelect} /> : null}
         {section === "relations" ? <RelationsSection stats={stats} onSelect={onRelationSelect} /> : null}
         {section === "head-to-head" ? (
-          <HeadToHeadSection people={comparisonPeople} comparisonKey={comparisonKey} onComparisonChange={onComparisonChange} onOpenPlayerProfile={onOpenPlayerProfile} headToHead={headToHead} />
+          <HeadToHeadSection people={comparisonPeople} comparisonKey={comparisonKey} onComparisonChange={onComparisonChange} onOpenPlayerProfile={onOpenPlayerProfile} headToHead={headToHead} contextLabel={contextLabel} />
         ) : null}
       </div>
     </>

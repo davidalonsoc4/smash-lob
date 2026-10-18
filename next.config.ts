@@ -47,7 +47,7 @@ const nextConfig: NextConfig = {
     tsconfigPath:
       process.env.NODE_ENV === "development" ? "tsconfig.json" : "tsconfig.build.json",
   },
-  allowedDevOrigins: ["192.168.3.2", "localhost", "127.0.0.1", ...extraDevOrigins],
+  allowedDevOrigins: ["192.168.3.2", "192.168.3.34", "localhost", "127.0.0.1", ...extraDevOrigins],
   async headers() {
     return [
       {

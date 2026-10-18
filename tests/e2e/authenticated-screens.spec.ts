@@ -145,10 +145,11 @@ test("league spectator share shows a downloadable QR and shares the league link"
   })
 
   await page.goto("/")
-  await page.getByRole("button", { name: "Compartir enlace de espectador" }).click()
+  await page.getByRole("button", { name: "Compartir invitación" }).click()
   const dialog = page.getByRole("dialog")
   await expect(dialog).toBeVisible()
-  const qrImage = dialog.getByRole("img", { name: /Código QR de espectadores/ })
+  await dialog.getByRole("button", { name: "Invitar a seguir la liga" }).click()
+  const qrImage = dialog.getByRole("img", { name: /Sigue nuestra liga/ })
   await expect(qrImage).toBeVisible()
   await expect(dialog.getByRole("button", { name: "Descargar" })).toBeEnabled()
   const qrDataUrl = await qrImage.getAttribute("src")
@@ -172,10 +173,10 @@ test("league spectator share shows a downloadable QR and shares the league link"
   const downloadPromise = page.waitForEvent("download")
   await dialog.getByRole("button", { name: "Descargar" }).click()
   const download = await downloadPromise
-  expect(download.suggestedFilename()).toMatch(/qr-espectador\.svg$/)
+  expect(download.suggestedFilename()).toMatch(/smash-lob-qr-spectator\.svg$/)
 
   await dialog.getByRole("button", { name: "Compartir" }).click()
-  await expect(dialog.getByRole("status")).toContainText("Enlace de espectador compartido.")
+  await expect(dialog.getByRole("status")).toContainText("Enlace compartido")
   expect(await page.evaluate(() => window.sessionStorage.getItem("qa-shared-spectator-url"))).toBe(spectatorUrl)
 })
 
@@ -441,8 +442,8 @@ test("personal matches use a separate simplified mode", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Mi perfil", exact: true })).toBeVisible()
   await expect(page.getByRole("link", { name: "+ Partido", exact: true })).toHaveCount(0)
   await expect(page.locator('[data-tour="floating-settings"]')).toHaveCount(1)
-  await expect(page.locator('[data-tour="floating-help"]')).toHaveCount(0)
-  await expect(page.locator('[data-tour="floating-notifications"]')).toHaveCount(0)
+  await expect(page.locator('[data-tour="floating-help"]')).toHaveCount(1)
+  await expect(page.locator('[data-tour="floating-notifications"]')).toHaveCount(1)
 })
 
 test("personal matches hide the whole upcoming section when there is no future match", async ({ page }) => {

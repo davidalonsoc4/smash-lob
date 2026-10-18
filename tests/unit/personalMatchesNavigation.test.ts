@@ -3,11 +3,12 @@ import { describe, expect, it } from "vitest"
 
 describe("personal matches navigation", () => {
   it("uses a compact four-destination nav with friendly chats and keeps Back only on subpages", async () => {
-    const [shell, nav, rootPage, profilePage, newPage, detailPage] = await Promise.all([
+    const [shell, nav, rootPage, profilePage, identity, newPage, detailPage] = await Promise.all([
       readFile("src/components/layout/AppShell.tsx", "utf8"),
       readFile("src/components/personal/PersonalMatchesNav.tsx", "utf8"),
       readFile("src/app/personal-matches/page.tsx", "utf8"),
       readFile("src/app/personal-matches/profile/page.tsx", "utf8"),
+      readFile("src/components/player/PlayerProfileIdentityCard.tsx", "utf8"),
       readFile("src/app/personal-matches/new/page.tsx", "utf8"),
       readFile("src/app/personal-matches/[id]/page.tsx", "utf8"),
     ])
@@ -31,9 +32,10 @@ describe("personal matches navigation", () => {
     )
     expect(nav).not.toContain('href: "/personal-matches/new"')
     expect(nav).toContain('label: "Competiciones"')
-    expect(nav).toContain("grid-cols-[1.2fr_1.1fr_0.7fr_1fr]")
+    expect(nav).toContain("grid-cols-4")
     expect(nav.match(/href: /g)).toHaveLength(4)
-    expect(profilePage).toContain("Perfil global")
+    expect(identity).toContain('tx("Perfil global")')
+    expect(identity).not.toContain("Mis partidos · Perfil global")
     expect(profilePage).toContain("Todos los partidos")
     expect(profilePage).toContain("Partidos de liga")
     expect(profilePage).toContain("Todas las temporadas")

@@ -39,16 +39,14 @@ describe("v1.10.17 settings context and personal safe area", () => {
     expect(settingsSearch).toContain('max(14px, env(safe-area-inset-bottom, 0px))')
   })
 
-  it("removes the global Settings bubble from both league and friendly chats", async () => {
+  it("keeps the same four-action toolbar visible in league and friendly chats", async () => {
     const shell = await read("src/components/layout/AppShell.tsx")
 
-    const settingsGate = shell.slice(
-      shell.indexOf("const shouldShowSettingsButton"),
-      shell.indexOf("const shouldShowHelpButton"),
-    )
-
-    expect(settingsGate).toContain("!isMatchChatRoute")
-    expect(settingsGate).toContain("!isSettingsRoute")
+    expect(shell).toContain("const shouldShowActionBar = !isPublicAccessRoute")
+    expect(shell).toContain("const shouldShowSettingsButton = shouldShowActionBar")
+    expect(shell).toContain("const shouldShowHelpButton = shouldShowActionBar")
+    expect(shell).toContain("const shouldShowNotificationsButton = shouldShowActionBar")
+    expect(shell).toContain("const shouldShowSpectatorShareButton = shouldShowActionBar")
     expect(shell).toContain('pathname.startsWith("/match/")')
     expect(shell).toContain('pathname.startsWith("/personal-matches/")')
     expect(shell).toContain('pathname.endsWith("/chat")')
