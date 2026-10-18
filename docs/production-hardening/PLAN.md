@@ -1,4 +1,10 @@
 # Production Hardening Plan
+## MC11PRE - Corregir los colores del grafismo FORMA y publicar en PRE
+- Status: IN PROGRESS (2026-10-18)
+- Objective: Mostrar V en círculos verdes y D en círculos rojos y garantizar legibilidad del título FORMA en perfiles global y de liga; publicar solo en PRE después de los gates locales y remotos.
+- Remote changes allowed: rama de trabajo, PR/merge a staging y PRE por solicitud del usuario. No Production, main, base de datos ni tag v1.0.0.
+- Stop condition: no fusionar ni publicar si falla un gate crítico.
+
 ## MC10PRE - Publicar ajustes de perfil y chats globales
 - Status: DONE (2026-10-18; PR #47, CI 4/4, PRE v1.15.29 READY y smoke verificado)
 - Objective: Publicar v1.15.29 en staging/PRE con FORMA usando el acento actual, cabeceras de perfil sin tarjeta anidada y bandeja global de chats de liga/amistosos agrupada por estado.

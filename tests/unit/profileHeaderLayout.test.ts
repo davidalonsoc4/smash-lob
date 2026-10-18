@@ -48,9 +48,10 @@ describe("player profile shared layout", () => {
   it("uses the current accent for form while keeping wins and losses distinct", async () => {
     const form = await readFile("src/components/player/ProfileFormResults.tsx", "utf8")
     expect(form).toContain("bg-[var(--app-accent)]")
-    expect(form).toContain("text-[var(--competition-accent-contrast)]")
-    expect(form).toContain("text-emerald-400")
-    expect(form).toContain("text-rose-400")
+    expect(form).toContain("text-xs font-black uppercase tracking-[0.14em] text-[var(--competition-accent-contrast)]")
+    expect(form).toContain("bg-emerald-600")
+    expect(form).toContain("bg-rose-600")
+    expect(form).toContain("text-white")
     expect(form).not.toContain("bg-amber-300")
   })
 })

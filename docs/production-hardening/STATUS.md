@@ -686,6 +686,10 @@ DONE: Ver Mis partidos pasa a la cabecera de Actividad personal; la tarjeta reut
 
 # Production Hardening Status
 
+## MC11 - Colores del grafismo FORMA (IN PROGRESS)
+
+Corrección solicitada: cada resultado usa un círculo verde/rojo con letra blanca; el título FORMA mantiene el acento y contraste. El componente es compartido por perfiles global y de liga. Pendiente: validar, integrar y publicar v1.15.30 exclusivamente en PRE.
+
 ## MC10 - Ajustes de perfil y chats globales (DONE)
 
 DONE 2026-10-18. PR #47 integrado en `staging` (SHA `1a24aef06f0b8b0883868a351686b0f37aac8e28`). Los cuatro jobs de CI #390 pasan. PRE apunta al deployment `dpl_S9c6eRhp3prJpWkrggQpLzkhKmty` (READY) construido desde ese SHA; `pre.smashandlob.com` confirma el mismo deployment. Smoke con transporte autenticado Vercel: health 200, versión 1.15.29, entorno pre; manifest y service worker 200 con caché `smash-lob-v1.15.29`; `/leagues`, `/personal-matches/chats` y `/personal-matches/profile` 200. Validación local: `npm run validate` 998 pruebas/250 archivos, ESLint 0 errores y 4 avisos preexistentes, TypeScript, build 1195300 bytes gzip/103 chunks y presupuesto; E2E 107/107 más 1 skip previsto; `npm audit --omit=dev --audit-level=high` 0 vulnerabilidades; 45 pruebas focalizadas adicionales correctas. Sin cambios de base de datos/dependencias ni pruebas con datos personales o de Production. Main (`9578fe006063108cfcab93956fe23e1eb402f37c`) y tag `v1.0.0` (`e9152940ec51fdc34b785aa8ea0e054c110c4040`) permanecen intactos.
