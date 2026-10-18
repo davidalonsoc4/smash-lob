@@ -52,6 +52,9 @@ summary::-webkit-details-marker {
   display: none;
 }
 
+.match-slides { scrollbar-width: none; }
+.match-slides::-webkit-scrollbar { display: none; }
+
 button,
 input,
 select,

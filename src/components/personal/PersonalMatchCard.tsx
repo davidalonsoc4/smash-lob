@@ -9,6 +9,7 @@ import { MatchEventMeta } from "@/components/matches/MatchEventMeta"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { AppCard } from "@/components/ui/AppCard"
+import { FitText } from "@/components/ui/FitText"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { getMatchStatusBadgeClassName } from "@/lib/statusStyles"
@@ -44,10 +45,10 @@ function MatchCardContent({ match, hideEventMeta = false }: PersonalMatchCardPro
       <div className="mb-2 flex items-center justify-between gap-3">
         <span
           data-personal-match-origin={match.origin}
-          className={`max-w-[58%] shrink truncate rounded-full border px-2 py-1 type-caption font-black uppercase tracking-[0.12em] ${getPersonalMatchOriginBadgeClass(match)}`}
+          className={`min-w-0 max-w-[58%] flex-1 rounded-xl border px-2 py-1 type-caption font-black uppercase tracking-wide ${getPersonalMatchOriginBadgeClass(match)}`}
           style={getPersonalMatchOriginBadgeStyle(match)}
         >
-          {getPersonalMatchOriginLabel(match)}
+          <FitText>{getPersonalMatchOriginLabel(match)}</FitText>
         </span>
 
         {isFinished ? (
