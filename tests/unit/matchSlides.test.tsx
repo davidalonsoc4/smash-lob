@@ -4,6 +4,13 @@ import { afterEach, expect, it, vi } from "vitest"
 import { MatchSlides } from "@/components/ui/MatchSlides"
 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
+it("keeps a single card unchanged and enables snapping when a second card arrives", () => {
+  const { rerender } = render(<MatchSlides index={0} onChange={() => {}} label="Partidos"><a href="/a">Liga</a></MatchSlides>)
+  expect(screen.queryByRole("group")).toBeNull()
+  rerender(<MatchSlides index={0} onChange={() => {}} label="Partidos"><a href="/a">Liga</a><a href="/b">Mío</a></MatchSlides>)
+  expect(screen.getByRole("group")).toBeVisible()
+  expect(screen.queryByRole("link", { name: "Mío" })).toBeNull()
+})
 it("settles to a complete card and only exposes the selected panel to keyboard and assistive tech", () => {
   const onChange = vi.fn()
   const { rerender } = render(<MatchSlides index={0} onChange={onChange} label="Partidos"><a href="/a">Liga</a><a href="/b">Mío</a></MatchSlides>)
