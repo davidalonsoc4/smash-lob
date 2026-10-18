@@ -1,16 +1,22 @@
 # Production Hardening Plan
+## MC11PRE - Corregir los colores del grafismo FORMA y publicar en PRE
+- Status: IN PROGRESS (2026-10-18)
+- Objective: Mostrar V en círculos verdes y D en círculos rojos y garantizar legibilidad del título FORMA en perfiles global y de liga; publicar solo en PRE después de los gates locales y remotos.
+- Remote changes allowed: rama de trabajo, PR/merge a staging y PRE por solicitud del usuario. No Production, main, base de datos ni tag v1.0.0.
+- Stop condition: no fusionar ni publicar si falla un gate crítico.
+
 ## MC10PRE - Publicar ajustes de perfil y chats globales
-- Status: IN PROGRESS
+- Status: DONE (2026-10-18; PR #47, CI 4/4, PRE v1.15.29 READY y smoke verificado)
 - Objective: Publicar v1.15.29 en staging/PRE con FORMA usando el acento actual, cabeceras de perfil sin tarjeta anidada y bandeja global de chats de liga/amistosos agrupada por estado.
-- Validation: npm run validate, E2E completos, audit de producción y CI 4/4; verificar SHA en staging, deployment READY/alias PRE, health/version/PWA, rutas globales y acceso autenticado a Chats.
+- Validation: npm run validate (998 pruebas), E2E 107/107 (1 skip previsto), audit de producción 0 vulnerabilidades; CI #390 4/4 success. PR #47 integrado en staging `1a24aef06f0b8b0883868a351686b0f37aac8e28`; deployment Vercel `dpl_S9c6eRhp3prJpWkrggQpLzkhKmty` READY, alias PRE verificado, health 200/version 1.15.29/environment pre, manifest y SW v1.15.29 y rutas de Competiciones, Chats y perfil 200.
 - Remote changes allowed: push de codex/mis-competiciones, PR/merge a staging y publicación exclusivamente PRE autorizados explícitamente por el usuario. Sin DB, main, Production ni tag v1.0.0.
 - Stop condition: cualquier gate crítico fallido bloquea merge/publicación.
 
 ## MC10 - Ajustes visuales de perfil y bandeja global de Chats
-- Status: IN PROGRESS
+- Status: DONE (2026-10-18; integración en PRE v1.15.29)
 - Objective: Utilizar el acento activo en FORMA conservando V verde/D rojo y contraste; quitar la tarjeta interior de ambas cabeceras; mostrar chats de amistosos y de todas las ligas accesibles agrupados en Activos, Próximos y Finalizados.
 - Tasks: (1) identidad visual compartida de perfiles; (2) agregar chats de liga al listado global conservando permisos y calendario progresivo, con secciones ordenadas por estado; (3) validar perfiles/chats y preparar v1.15.29 para PRE.
-- Validation: pruebas focalizadas, npm run validate, E2E y smoke PRE con usuario/fixtures autorizados; ningún test con cuentas personales o datos de Production.
+- Validation: 45 pruebas unitarias focalizadas; npm run validate y E2E completos con fixtures; smoke PRE de salud/PWA/rutas con acceso Vercel autenticado. No se usaron cuentas personales ni datos de Production.
 - Remote changes allowed: none for local implementation; PRE publication only under MC10PRE.
 
 ## MC09PRE - Publicar perfiles unificados en PRE
