@@ -686,9 +686,13 @@ DONE: Ver Mis partidos pasa a la cabecera de Actividad personal; la tarjeta reut
 
 # Production Hardening Status
 
-## MC11 - Colores del grafismo FORMA (IN PROGRESS)
+## MC12 - Mejorar la legibilidad de RACHA (IN PROGRESS)
 
-Corrección solicitada: cada resultado usa un círculo verde/rojo con letra blanca; el título FORMA mantiene el acento y contraste. El componente es compartido por perfiles global y de liga. Pendiente: validar, integrar y publicar v1.15.30 exclusivamente en PRE.
+Solicitud: renombrar FORMA a RACHA y destacar las V/D blancas con más tamaño y sombra de texto, conservando los círculos verdes/rojos, borde blanco y sombra en ambos perfiles. Cambios aplicados en el componente compartido; tres pruebas focalizadas pasan. `npm run test` (999/999), `npm run build` (1195395 bytes gzip/103 chunks), E2E (107 passed/1 skip previsto), auditoría runtime (0 vulnerabilidades) y gates de fuente/lint/tipos pasan. La primera ejecución de `npm run validate` reportó un timeout RPC de Vitest mientras E2E corría en paralelo; la repetición aislada de la suite pasa completamente. Pendiente integrar y publicar v1.15.31 exclusivamente en PRE.
+
+## MC11 - Colores del grafismo FORMA (DONE)
+
+PR #48 integrado en `staging` (SHA `6ae40381b13c977acd84907b800a516f7a1b8323`); CI #392 completó los cuatro jobs correctamente. PRE apunta al deployment `dpl_CPMMW5qQ56hA8USd3rGzdbEBo1aV` (READY) del SHA integrado y el deployment reporta el alias `pre.smashandlob.com`. Smoke: `/api/health` 200 con versión 1.15.30 y entorno `pre`; `/sw.js` 200 con caché `smash-lob-v1.15.30`. Validación local: `npm run validate` (999 pruebas/250 archivos), ESLint 0 errores y 4 avisos preexistentes, TypeScript, build 1195293 bytes gzip/103 chunks; E2E 107/107 y 1 omisión prevista; `npm audit --omit=dev --audit-level=high` 0 vulnerabilidades. Sin cambios de base de datos/dependencias ni uso de cuentas personales o datos de Production. Main (`9578fe006063108cfcab93956fe23e1eb402f37c`) y tag `v1.0.0` (`e9152940ec51fdc34b785aa8ea0e054c110c4040`) permanecen intactos.
 
 ## MC10 - Ajustes de perfil y chats globales (DONE)
 
