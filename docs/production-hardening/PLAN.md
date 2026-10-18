@@ -1,7 +1,7 @@
 # Production Hardening Plan
 
 ## MC02PRE - Publicar navegación global de Competiciones
-- Status: IN PROGRESS (2026-10-18)
+- Status: DONE (2026-10-18; 987 pruebas, 100 E2E, CI y PRE1.15.26 READY/alias/rutas/PWA verificados)
 - Objective: Publicar v1.15.26 en staging/PRE para validar la nueva navegación desde la PWA.
 - Validation: validate, E2E completos, auditoría runtime y CI; READY/commit/alias, health/versión/SW y las rutas resumen/listados.
 - Remote changes allowed: commits/push de rama, PR/merge a staging y publicación exclusivamente PRE autorizados por usuario. Sin DB, main, Production ni v1.0.0.

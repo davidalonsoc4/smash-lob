@@ -1,6 +1,14 @@
-# MC02PRE — Publicar navegación global (2026-10-18, IN PROGRESS)
+# MC02PRE — Publicar navegación global (2026-10-18, DONE)
+
+Publicación verificada: PRE1.15.26 en staging8154271255bd5d6bf29485e3633d16eaddcbcc55, despliegue dpl_12iorNLo5raX1zLssBbkkBhAUZQH READY/preview y alias pre.smashandlob.com confirmado. Health200/version1.15.26/environment pre, SWcache1.15.26 y manifiesto PRE correctos; seis WAV con hashes idénticos al origen. /leagues, /leagues/all, /tournaments y /personal-matches responden200; listado API y acciones DELETE/restart con UUIDv4 ficticio responden401 sin sesión. Script de verificación completo termina exit0. Gates: validate987 pruebas/247archivos, E2E100/100, auditoría runtime0vulnerabilidades y CI380/39093637488 cuatro jobs success. Main9578fe00, tagv1.0.0e9152940 y Productiondpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz intactos. Sin operaciones DB ni dependencias nuevas. Evidencia en .quality-artifacts/mc02-pre-release-20261018. Google OAuth y uso físico de la PWA quedan para comprobación manual del usuario; cierre documental solo en rama de trabajo, sin republicar staging.
 
 Usuario autoriza publicación PRE y aviso al terminar. Preparación1.15.26 sobre codex/mis-competiciones, validación aislada con lock exacto. Referencias iniciales verificadas: ramaaa600a81, staging673deac9, main9578fe00, tagv1.0.0e9152940. Solo navegación ya implementada y controles/versionado necesarios; sin DB ni dependencias. Adjuntos privados excluidos.
+
+Candidata6652823e3bd234724c4b69d0028fabb8963c86a3 registrada, push y SHA remoto verificados; PR44 draft hacia staging creada/adjunta. Copia aislada1208 archivos idénticos; tres archivos abiertos por el sistema no se copiaron y la comparación confirmó que ya eran idénticos. Auditoría runtime0vulnerabilidades; validate y E2E globales en curso. Alias iniciales: PREdpl_AM3mLruHNpRYobDrdMQXXC7n3NDw, Productiondpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz. Sin publicación todavía.
+
+E2E local completo100/100 correcto (4,5min), incluidos PWA/offline, ligas, amistosos, resumen/listados y torneos. CI380/39093637488 ya confirmó código/build, migraciones/pgTAP/restauración y Lighthouse; navegador remoto en curso. validate local termina sus pruebas/build; sin integración hasta cerrar ambos gates.
+
+Gates completos correctos: validate987 pruebas/247archivos, lint0errores/4avisos previos, TypeScript/build1214985bytes gzip/103chunks; E2E100/100 y auditoría runtime0vulnerabilidades. CI380/39093637488 success en los cuatro jobs. PR44 integrada tras comprobar base/head/mergeabilidad: staging8154271255bd5d6bf29485e3633d16eaddcbcc55 con árbol idéntico al validado. Pendiente READY y comprobaciones PRE; sin cambios de main/Production/v1.0.0.
 
 # MC02 — Navbar global y resumen de Competiciones (2026-10-18, DONE)
 
