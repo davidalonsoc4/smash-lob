@@ -2,6 +2,10 @@
 
 Usuario autoriza publicar PRE para pruebas desde el móvil. Se prepara1.15.27 sobre codex/mis-competiciones ddd0a141, staging81542712; main9578fe00 y tagv1.0.0e9152940 verificados. Incluye los cambios locales MC03/MC03H, sin DB ni dependencias. Validación con lock exacto en copia aislada; conservar localhost3000 y excluir adjuntos privados. Proyecto/team Vercel confirmados; pendiente verificar dominio/alias y gates completos antes de integrar staging.
 
+Candidata c313f22d5d7674aca25b6125e85c3faa51f960f9 registrada y push/SHA remoto verificados. PR45 draft creada/adjunta hacia staging; CI382/39113795198 en cola. Copia aislada1212 archivos idénticos; auditoría runtime0vulnerabilidades. validate y E2E completos en curso con entorno ficticio de Playwright. Dominio PRE vinculado a staging; baselinePREdpl_12iorNLo5raX1zLssBbkkBhAUZQH, Productiondpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz verificados. Sin integrar staging todavía.
+
+Gate personal-matches:check detiene validate por contrato fuente que aún exige grid-cols-4 uniforme. Se actualizan el control y dos pruebas de fuente para verificar las cuatro proporciones actuales y exactamente cuatro href; sin relajar la cantidad de destinos ni cambiar la UI validada. Publicación detenida hasta repetir y cerrar los gates con la candidata corregida.
+
 # MC03H — Selector de actividad en cabecera (2026-10-18, DONE)
 
 Una sola fila con título activo a la izquierda y botón para alternar al otro encuentro a la derecha; eliminados selectores separados y título duplicado dentro del carrusel. El botón cambia entre Último partido y Próximo partido, conservando swipe y metadatos compactos del último encuentro. Ocho pruebas del hub correctas; ESLint selectivo, TypeScript, i18n y presupuesto133712/133800 correctos. Build y recorrido E2E móvil pasan: alineación vertical, sin solapamiento y borde derecho exacto a320/393px, botones y gestos en ambos sentidos, Liga/Mío y Axe. Capturas a escala CSS revisadas en .quality-artifacts/mc03h-20261018. Cambio local, sin commits/publicación ni operaciones DB.

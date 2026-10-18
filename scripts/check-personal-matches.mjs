@@ -232,7 +232,7 @@ assert(!personalNav.includes('label: "+ Partido"'), "La navegación personal no 
 assert(personalNav.includes('href: "/leagues"'), "La navegación personal debe enlazar a Mis Competiciones")
 assert(personalNav.includes('href: "/personal-matches/chats"'), "La navegación personal debe enlazar a todos los chats de amistosos")
 assert(personalNav.includes('href: "/personal-matches/profile"'), "La navegación personal debe enlazar al perfil global")
-assert(personalNav.includes("grid-cols-4"), "La navegación personal debe repartir cuatro destinos")
+assert(personalNav.includes("grid-cols-[1.2fr_1.1fr_0.7fr_1fr]") && (personalNav.match(/href: /g)?.length === 4), "La navegación personal debe repartir cuatro destinos y reservar más ancho para Competiciones")
 assert(personalNav.includes('root.dataset.bottomNavVisible = "true"'), "La NAVBAR personal debe activar la superficie segura inferior")
 assert(personalNav.includes('paddingBottom: "env(safe-area-inset-bottom)"'), "La NAVBAR personal debe respetar el safe area inferior")
 assert(appShell.includes('href={`/settings?returnTo=${encodeURIComponent(pathname)}`}'), "Ajustes debe conservar la ruta personal de origen")
