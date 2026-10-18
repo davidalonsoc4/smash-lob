@@ -1,10 +1,12 @@
 Recordatorio solicitado por el usuario para esta rama: en próximas peticiones y al terminar el desarrollo, recordar la idea de un sistema de amigos en la app. Queda pendiente para más adelante; no implementarlo ahora.
 
-## MC09PRE — Publicación v1.15.28 en PRE (en curso)
+## MC09PRE — Publicación v1.15.28 en PRE (DONE)
 
 Solicitud explícita del usuario para publicar las mejoras de perfiles unificados y Competiciones. Candidato preparado en `codex/mis-competiciones` sobre `origin/staging` 8ca12315. Versión actualizada a v1.15.28 en package, lock, etiqueta visible, changelog, service worker y smoke checks para que la PWA detecte la actualización. Sin cambios SQL ni dependencias.
 
-Gates locales: `npm run validate` correcto (998 pruebas, lint sin errores y cuatro avisos previos, TypeScript, build 1194262 bytes gzip/103 chunks y presupuesto); suite E2E completa 107 passed/1 skip esperado; auditoría de dependencias de producción sin vulnerabilidades. La primera ejecución de E2E detectó siete snapshots de escritorio desactualizados por el cambio intencional de «Mis Competiciones» a «Competiciones»; se actualizaron esas capturas y la repetición completa pasó. `git diff --check` correcto. Pendiente integrar y verificar CI/alias/health/PWA de PRE.
+Gates locales: `npm run validate` correcto (998 pruebas, lint sin errores y cuatro avisos previos, TypeScript, build 1194262 bytes gzip/103 chunks y presupuesto); suite E2E completa 107 passed/1 skip esperado; auditoría de dependencias de producción sin vulnerabilidades. La primera ejecución de E2E detectó siete snapshots de escritorio desactualizados por el cambio intencional de «Mis Competiciones» a «Competiciones»; se actualizaron esas capturas y la repetición completa pasó. `git diff --check` correcto.
+
+PR #46 integrado en `staging` con SHA `b342d196f94849b01baa29476b2ce7ff28d93202`; los cuatro jobs de CI 39142665387 pasan. Vercel deployment `dpl_CHzyiFGi6c6JhWu2amG34epKsFAS` está READY para ese SHA y `pre.smashandlob.com` apunta al mismo deployment. Con `vercel curl` autenticado se confirmó health 200/version 1.15.28/environment pre; home, manifest, ligas, Mis partidos y torneos responden 200; service worker usa `smash-lob-v1.15.28`; API de Avatar Lab requiere sesión (401). El smoke HTTP sin autenticación recibió 302 de Deployment Protection; se completaron las mismas comprobaciones usando el acceso autenticado de Vercel. Sin cambios SQL ni dependencias; no se tocó main, Production ni v1.0.0.
 
 # MC09 — Perfiles unificados y disponibilidad contextual (2026-10-18, DONE)
 

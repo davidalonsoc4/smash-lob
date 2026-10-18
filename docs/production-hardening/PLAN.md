@@ -1,8 +1,8 @@
 # Production Hardening Plan
 ## MC09PRE - Publicar perfiles unificados en PRE
-- Status: IN PROGRESS (2026-10-18; autorización explícita del usuario; gates locales correctos)
+- Status: DONE (2026-10-18; PR #46, CI 4/4, PRE v1.15.28 READY y smoke verificado)
 - Objective: Publicar v1.15.28 desde staging para probar en la PWA la navegación y los perfiles global/de liga unificados.
-- Validation: npm run validate, npm run test:e2e, npm audit --omit=dev --audit-level=high; verificar PR/CI, SHA de staging, deployment READY, alias PRE y smoke v1.15.28.
+- Validation: npm run validate, E2E 107/107 (1 skip previsto), npm audit sin vulnerabilidades; CI cuatro jobs correctos. PR #46 integrado en staging b342d196; deployment Vercel READY, alias PRE, health v1.15.28/pre, rutas 200, service worker v1.15.28 y API protegida 401.
 - Remote changes allowed: push de codex/mis-competiciones, PR/merge a staging y publicación exclusivamente PRE por solicitud explícita del usuario. Sin DB, main, Production ni tag v1.0.0.
 - Stop condition: cualquier gate crítico fallido bloquea merge/publicación.
 
