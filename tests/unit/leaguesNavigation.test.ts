@@ -6,7 +6,7 @@ describe("leagues navigation", () => {
     const [shell, bottomNav, leaguesPage] = await Promise.all([
       readFile("src/components/layout/AppShell.tsx", "utf8"),
       readFile("src/components/layout/BottomNav.tsx", "utf8"),
-      readFile("src/app/leagues/page.tsx", "utf8"),
+      readFile("src/components/competitions/CompetitionsOverview.tsx", "utf8"),
     ])
 
     expect(shell).toContain("const shouldShowBottomNav")
@@ -16,7 +16,7 @@ describe("leagues navigation", () => {
     expect(bottomNav).toContain('href: "/ranking"')
     expect(bottomNav).toContain('href: "/matches"')
     expect(bottomNav).toContain('href: "/profile"')
-    expect(leaguesPage).toContain('href="/personal-matches/new"')
-    expect(leaguesPage).toContain("Registrar encuentro amistoso")
+    expect(leaguesPage).toContain('href="/personal-matches"')
+    expect(leaguesPage).not.toContain("Registrar encuentro amistoso")
   })
 })

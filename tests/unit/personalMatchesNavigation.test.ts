@@ -12,7 +12,7 @@ describe("personal matches navigation", () => {
       readFile("src/app/personal-matches/[id]/page.tsx", "utf8"),
     ])
 
-    expect(nav).toMatch(/aria-label=(?:"Navegación de Mis partidos"|\{tx\("Navegación de Mis partidos"\)\})/)
+    expect(nav).toMatch(/aria-label=(?:"Navegación global"|\{tx\("Navegación global"\)\})/)
     expect(nav).toContain('href: "/personal-matches"')
     expect(nav).toContain('href: "/personal-matches/chats"')
     expect(nav).toContain('href: "/personal-matches/profile"')
@@ -30,7 +30,7 @@ describe("personal matches navigation", () => {
       nav.indexOf('href: "/personal-matches/profile"'),
     )
     expect(nav).not.toContain('href: "/personal-matches/new"')
-    expect(nav).toContain('label: "Mis Competiciones"')
+    expect(nav).toContain('label: "Competiciones"')
     expect(nav).toContain("grid-cols-4")
     expect(profilePage).toContain("Perfil global")
     expect(profilePage).toContain("Todos los partidos")

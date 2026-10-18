@@ -8,6 +8,7 @@ import { PendingAccessIntentNotice } from "@/components/invite/PendingAccessInte
 import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 import { GlobalSettingsSearch } from "@/components/settings/GlobalSettingsSearch"
+import { isCompetitionOverviewRoute } from "@/lib/competitionNavigation"
 import { PersonalMatchesNav } from "@/components/personal/PersonalMatchesNav"
 import { LeagueTransitionSkeleton } from "@/components/loading/PageSkeletons"
 import { ActionFeedbackCenter } from "@/components/ui/ActionFeedbackCenter"
@@ -203,6 +204,7 @@ export function AppShell({ children }: AppShellProps) {
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectateRoute = pathname.startsWith("/spectate/")
   const isLeagueNavigationRoute = pathname === "/open"
+  const isCompetitionOverview = isCompetitionOverviewRoute(pathname)
   const isTournamentRoute = pathname === "/tournaments" || pathname.startsWith("/tournaments/")
   const tournamentNavMatch = pathname.match(/^\/tournaments\/([^/]+)/)
   const tournamentNavId = tournamentNavMatch?.[1] && tournamentNavMatch[1] !== "new" ? tournamentNavMatch[1] : null
@@ -211,6 +213,7 @@ export function AppShell({ children }: AppShellProps) {
   const isSettingsRoute =
     pathname === "/settings" || pathname.startsWith("/settings/")
   const isSettingsContextRoute =
+    isCompetitionOverview ||
     isSettingsRoute ||
     pathname === "/availability" ||
     pathname === "/leagues" ||
@@ -321,7 +324,7 @@ export function AppShell({ children }: AppShellProps) {
   const shouldShowSettingsSearch =
     settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute && !isPersonalMatchesRoute
   const shouldShowLeagueSearch =
-    pathname === "/leagues" && !isPublicAccessRoute
+    (pathname === "/leagues" || pathname === "/leagues/all") && !isPublicAccessRoute
   const settingsSearchEntries = shouldShowSettingsSearch
     ? buildSettingsSearchEntries(locale, {
         isSpectator: !isSuperuser && spectatorMode,
@@ -364,7 +367,7 @@ export function AppShell({ children }: AppShellProps) {
     !isInitialSeasonSetupRoute &&
     !isPersonalMatchesRoute
   const shouldShowPersonalMatchesNav =
-    isPersonalMatchesRoute && !isMatchChatRoute && !isPublicAccessRoute
+    (isPersonalMatchesRoute || isCompetitionOverview) && !isMatchChatRoute && !isPublicAccessRoute
   const shouldShowTournamentNav = Boolean(tournamentNavId) && !isMatchChatRoute
   const shouldShowPlayerInviteButton =
     !isTournamentRoute &&
