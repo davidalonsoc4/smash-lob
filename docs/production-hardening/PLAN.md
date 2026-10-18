@@ -1,4 +1,10 @@
 # Production Hardening Plan
+## MC12PRE - Pulir los círculos del grafismo FORMA y publicar en PRE
+- Status: IN PROGRESS (2026-10-18)
+- Objective: Renombrar FORMA a RACHA y añadir borde blanco/sombra discreta a los círculos V/D en perfiles global y de liga; publicar solo en PRE cuando pasen todos los gates.
+- Remote changes allowed: rama de trabajo, PR/merge a staging y PRE por solicitud explícita del usuario. No Production, main, base de datos ni tag v1.0.0.
+- Stop condition: no integrar ni publicar si falla un gate crítico.
+
 ## MC11PRE - Corregir los colores del grafismo FORMA y publicar en PRE
 - Status: DONE (2026-10-18; PR #48, CI 4/4, PRE v1.15.30 READY y smoke verificado)
 - Objective: Mostrar V en círculos verdes y D en círculos rojos y garantizar legibilidad del título FORMA en perfiles global y de liga; publicar solo en PRE después de los gates locales y remotos.
