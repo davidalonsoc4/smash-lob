@@ -1,9 +1,9 @@
 # Production Hardening Plan
 ## MC12PRE - Pulir los círculos de RACHA y publicar en PRE
-- Status: IN PROGRESS (2026-10-18)
+- Status: DONE (2026-10-18; PR #49, CI 4/4, PRE v1.15.31 READY y smoke verificado)
 - Objective: Renombrar FORMA a RACHA y dar más presencia a las V/D blancas con mayor tamaño y sombra de texto, manteniendo círculos verdes/rojos, borde blanco y sombra; publicar solo en PRE cuando pasen todos los gates.
 - Remote changes allowed: rama de trabajo, PR/merge a staging y PRE por solicitud explícita del usuario. No Production, main, base de datos ni tag v1.0.0.
-- Stop condition: no integrar ni publicar si falla un gate crítico.
+- Validation: `npm run validate` (999 pruebas/250 archivos; repetición aislada limpia tras timeout de workers al ejecutar en paralelo con E2E), build 1195395 bytes gzip/103 chunks, E2E 107/107 y un skip previsto, auditoría runtime 0 vulnerabilidades; CI #395 4/4 success. PR #49 integrado en `staging` `a27422963f64695b0d52adb30807a0117051cd8d`; deployment Vercel `dpl_CMgAqTznm19ni2NsotQQq8ABj45q` READY con alias PRE; health 200/version 1.15.31/environment pre y SW v1.15.31. Sin cambios DB/dependencias; `main` y `v1.0.0` intactos.
 
 ## MC11PRE - Corregir los colores del grafismo FORMA y publicar en PRE
 - Status: DONE (2026-10-18; PR #48, CI 4/4, PRE v1.15.30 READY y smoke verificado)

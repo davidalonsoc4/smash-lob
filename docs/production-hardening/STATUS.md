@@ -686,9 +686,9 @@ DONE: Ver Mis partidos pasa a la cabecera de Actividad personal; la tarjeta reut
 
 # Production Hardening Status
 
-## MC12 - Mejorar la legibilidad de RACHA (IN PROGRESS)
+## MC12 - Mejorar la legibilidad de RACHA (DONE)
 
-Solicitud: renombrar FORMA a RACHA y destacar las V/D blancas con más tamaño y sombra de texto, conservando los círculos verdes/rojos, borde blanco y sombra en ambos perfiles. Cambios aplicados en el componente compartido; tres pruebas focalizadas pasan. `npm run test` (999/999), `npm run build` (1195395 bytes gzip/103 chunks), E2E (107 passed/1 skip previsto), auditoría runtime (0 vulnerabilidades) y gates de fuente/lint/tipos pasan. La primera ejecución de `npm run validate` reportó un timeout RPC de Vitest mientras E2E corría en paralelo; la repetición aislada de la suite pasa completamente. Pendiente integrar y publicar v1.15.31 exclusivamente en PRE.
+Solicitud: renombrar FORMA a RACHA y destacar las V/D blancas con más tamaño y sombra de texto, conservando los círculos verdes/rojos, borde blanco y sombra en ambos perfiles. Componente compartido y prueba de regresión actualizados. `npm run validate` (999/999; repetición aislada tras timeout RPC de workers durante concurrencia con E2E), build (1195395 bytes gzip/103 chunks), E2E (107 passed/1 skip previsto), auditoría runtime (0 vulnerabilidades). PR #49 integrado; CI #395 4/4 success. PRE `dpl_CMgAqTznm19ni2NsotQQq8ABj45q` READY y alias `pre.smashandlob.com` verificado; health 200/version 1.15.31/environment pre y SW `smash-lob-v1.15.31`. Sin cambios DB/dependencias; main (`9578fe006063108cfcab93956fe23e1eb402f37c`) y tag `v1.0.0` (`e9152940ec51fdc34b785aa8ea0e054c110c4040`) intactos.
 
 ## MC11 - Colores del grafismo FORMA (DONE)
 
