@@ -10,6 +10,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getPublicInviteUrl } from "@/lib/inviteUrls"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 
 const qaModeEnabled = process.env.NEXT_PUBLIC_QA_MODE === "true"
 
@@ -197,7 +198,8 @@ export default function AdminPage() {
   const { t } = useI18n()
   const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled } =
     useLeagueAccess()
-  const { activeLeague, matches, roundSettings } = useCurrentLeagueData()
+  const { activeLeague, activeSeason, matches, roundSettings } = useCurrentLeagueData(); const { seasons } = useSeasonSettings()
+  const [selectedTournamentSeasonId, setSelectedTournamentSeasonId] = useState(activeSeason.id)
   const [isUpdatingStatusColors, setIsUpdatingStatusColors] = useState(false)
   const [statusColorsError, setStatusColorsError] = useState<string | null>(null)
   const canAccessAdmin = hasLeagueAdminRole(activeLeague.id)
@@ -205,6 +207,7 @@ export default function AdminPage() {
   const openIncidentCount = matches.filter(
     (match) => match.incidentStatus === "open",
   ).length
+  const leagueSeasons = seasons.filter((season) => season.leagueId === activeLeague.id); const selectedSeasonId = leagueSeasons.some((season) => season.id === selectedTournamentSeasonId) ? selectedTournamentSeasonId : leagueSeasons.some((season) => season.id === activeSeason.id) ? activeSeason.id : leagueSeasons[0]?.id ?? ""
 
   if (!canAccessAdmin) {
     return (
@@ -328,6 +331,11 @@ export default function AdminPage() {
           title={tx("Administrar MVP")}
           description={tx("Consulta los MVP de jornadas cerradas y el resultado de la temporada.")}
         />
+        {leagueSeasons.length > 0 ? <div id="organize-tournament" className="settings-search-target px-3 py-3">
+          <p className="text-sm font-black text-neutral-950">{tx("Organizar torneo")}</p><p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">{tx("Crea un torneo con los jugadores inscritos en esta temporada.")}</p>
+          <label className="mt-3 block"><span className="mb-1 block type-caption font-black uppercase tracking-wider text-neutral-500">{tx("Temporada")}</span><select value={selectedSeasonId} onChange={(event) => setSelectedTournamentSeasonId(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm font-bold text-neutral-900">{leagueSeasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
+          <Link href={`/tournaments/new?sourceLeagueId=${encodeURIComponent(activeLeague.id)}&sourceSeasonId=${encodeURIComponent(selectedSeasonId)}&sourceLeagueName=${encodeURIComponent(activeLeague.name)}`} className="mt-2 flex min-h-11 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2 text-center text-sm font-black text-white transition active:scale-[0.99]">{tx("Organizar torneo")}</Link>
+        </div> : null}
       </AdminGroup>
 
       <AdminGroup

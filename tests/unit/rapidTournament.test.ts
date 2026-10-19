@@ -1,16 +1,20 @@
 import { describe, expect, it } from "vitest"
 import {
+  buildRapidScheduleChecks,
   buildRapidFixtures,
   buildRapidRounds,
   calculateRapidStandings,
   getRapidRoundAt,
   getTournamentChampions,
+  generateBalancedAmericanaFixtures,
+  getRapidPreparationMax,
+  getRapidRoundCount,
   RAPID_TOURNAMENT_SLOTS,
   shuffleTournamentNames,
   validateTournamentParticipants,
 } from "@/lib/rapidTournament"
 
-const names = [...RAPID_TOURNAMENT_SLOTS]
+const names = RAPID_TOURNAMENT_SLOTS.slice(0, 12)
 
 describe("rapid tournament fixed format", () => {
   it("keeps the balanced twelve-match template invariants", () => {
@@ -50,12 +54,28 @@ describe("rapid tournament fixed format", () => {
     expect([...partners.values()].map((value) => value.size)).toEqual(Array(12).fill(4))
     expect([...opponents.values()].map((value) => value.size)).toEqual(Array(12).fill(8))
     expect([...courts.values()]).toEqual(Array.from({ length: 12 }, () => [2, 2]))
-    for (const slot of RAPID_TOURNAMENT_SLOTS) {
+    for (const slot of names) {
       const roundsPlayed = fixtures.filter((match) => [...match.teamA, ...match.teamB].includes(slot)).map((match) => match.round)
       const roundsRested = restsByRound.flatMap((rest, index) => rest.includes(slot) ? [index + 1] : [])
       expect(roundsRested.some((round, index) => roundsRested[index - 1] === round - 1)).toBe(false)
       expect(roundsPlayed).toHaveLength(4)
     }
+  })
+
+  it("reports all creator schedule checks and each player's run/rest/court counts", () => {
+    const matches = buildRapidFixtures().map((match) => ({
+      round: match.round, court: match.court,
+      teamAIds: match.teamA, teamBIds: match.teamB,
+    }))
+    const result = buildRapidScheduleChecks(names.map((id) => ({ id, name: id })), matches)
+    expect(result.passed).toBe(true)
+    expect(result.checks.every((check) => check.passed)).toBe(true)
+    expect(result.players).toHaveLength(12)
+    expect(result.players.every((player) => player.played === 4 && player.rested === 2 && player.playedMinutes === 64)).toBe(true)
+    expect(result.players.every((player) => player.maxConsecutivePlayed <= 2 && player.maxConsecutiveRested === 1 && player.courts[0] === 2 && player.courts[1] === 2)).toBe(true)
+    const invalid = buildRapidScheduleChecks(names.map((id) => ({ id, name: id })), [...matches.slice(0, 1), { ...matches[0], round: 2 }, ...matches.slice(2)])
+    expect(invalid.passed).toBe(false)
+    expect(invalid.checks.find((check) => check.id === "complete-calendar")?.passed).toBe(false)
   })
 
   it("builds six 16-minute rounds with three-minute transitions and nine-minute margin", () => {
@@ -75,6 +95,28 @@ describe("rapid tournament fixed format", () => {
     expect(validateTournamentParticipants([...names.slice(0, 11), "  a "])).toMatchObject({ ok: false, error: "duplicate_player_names" })
     expect(validateTournamentParticipants([...names.slice(0, 11), " "])).toMatchObject({ ok: false, error: "all_player_names_required" })
     expect(shuffleTournamentNames(names, () => 0)).toEqual([...names.slice(1), names[0]])
+  })
+
+  it("generates valid balanced schedules for every supported player and court count", () => {
+    for (let playerCount = 8; playerCount <= 16; playerCount += 1) for (let courts = 1; courts <= 4; courts += 1) {
+      const rounds = getRapidRoundCount(120), schedule = generateBalancedAmericanaFixtures(playerCount, courts, rounds)
+      const config = { players: playerCount, courts, reservationMinutes: 120, rounds, roundMinutes: 16, transitionMinutes: 3, preparationMinutes: 2 }
+      const checks = buildRapidScheduleChecks(RAPID_TOURNAMENT_SLOTS.slice(0, playerCount).map((id) => ({ id, name: id })), schedule.map((match) => ({ round: match.round, court: match.court, teamAIds: match.teamA, teamBIds: match.teamB })), config)
+      expect(schedule).toHaveLength(rounds * Math.min(courts, Math.floor(playerCount / 4)))
+      expect(checks.passed, `${playerCount} players, ${courts} courts: ${JSON.stringify(checks.checks)} ${JSON.stringify(checks.players)}`).toBe(true)
+      expect(checks.players.every((player) => player.playedMinutes === player.played * 16)).toBe(true)
+    }
+  })
+
+  it("fits 60, 90 and 120 minute reservations while preserving two safety minutes", () => {
+    for (const reservation of [60, 90, 120]) {
+      const count = getRapidRoundCount(reservation), preparation = getRapidPreparationMax(reservation)
+      const rounds = buildRapidRounds(new Date(Date.parse("2026-10-19T09:00:00Z") + preparation * 60_000), { rounds: count, roundMinutes: 16, transitionMinutes: 3 })
+      const elapsed = (Date.parse(rounds.at(-1)!.endsAt) - Date.parse("2026-10-19T09:00:00Z")) / 60_000
+      expect(count).toBe(({ 60: 3, 90: 4, 120: 6 } as const)[reservation as 60 | 90 | 120])
+      expect(elapsed).toBeLessThanOrEqual(reservation - 2)
+      expect(reservation - elapsed).toBeGreaterThanOrEqual(2)
+    }
   })
 
   it("calculates the arithmetic average, provisional leader, and only declares finished champions", () => {

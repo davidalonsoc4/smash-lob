@@ -6,11 +6,12 @@ vi.mock("@/lib/serverRateLimit", () => ({ enforceRequestRateLimit: vi.fn(async (
 
 import { GET as readTournament, DELETE as deleteTournament } from "@/app/api/tournaments/[id]/route"
 import { POST as restartTournament } from "@/app/api/tournaments/[id]/restart/route"
-import { POST as createTournament } from "@/app/api/tournaments/route"
+import { GET as listTournaments, POST as createTournament } from "@/app/api/tournaments/route"
 import { POST as drawTournament } from "@/app/api/tournaments/[id]/draw/route"
 import { POST as startTournament } from "@/app/api/tournaments/[id]/start/route"
 import { PUT as saveResult } from "@/app/api/tournaments/[id]/matches/[matchId]/result/route"
 import { POST as finishTournament } from "@/app/api/tournaments/[id]/finish/route"
+import { requireRapidTournamentAccess } from "@/lib/serverRapidTournaments"
 
 const tournamentId = "47b0b645-4790-491f-8f15-b1fe8bf8be13"
 const matchId = "a2bd4f89-621c-4be5-9e4f-5e2decc003c9"
@@ -38,7 +39,28 @@ describe("rapid tournament creator routes", () => {
       rpc: mocks.rpc,
     }
     mocks.auth.mockResolvedValue({ ok: true, actor: { supabase, user: { id: "creator-uuid", email: "creator@example.test" } } })
-    mocks.maybeSingle.mockResolvedValue({ data: { id: tournamentId }, error: null })
+    mocks.maybeSingle.mockResolvedValue({ data: { id: tournamentId, created_by_user_id: "creator-uuid", player_count: 12, court_count: 2, round_count: 6, status: "draft" }, error: null })
+  })
+
+  it("keeps creator tournament lists available before account-link columns are installed", async () => {
+    const tournament = { id: tournamentId, name: "Americana anterior", description: "", starts_at: "2026-10-17T07:00:00Z", status: "draft", created_at: "2026-10-16T12:00:00Z", finished_at: null, created_by_user_id: "creator-uuid" }
+    const from = vi.fn((table: string) => {
+      const query = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        or: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn(async () => ({ data: [tournament], error: null })),
+        then: (resolve: (value: unknown) => void) => Promise.resolve({ data: null, error: table === "rapid_tournament_players" ? { code: "42703", message: "column rapid_tournament_players.user_id does not exist" } : null }).then(resolve),
+      }
+      return query
+    })
+    mocks.auth.mockResolvedValueOnce({ ok: true, actor: { supabase: { from }, user: { id: "creator-uuid" } } })
+    const response = await listTournaments(request("/api/tournaments"))
+    expect(response.status).toBe(200)
+    expect((await response.json()).tournaments).toMatchObject([{ id: tournamentId, name: "Americana anterior", role: "creator" }])
+    expect(from).toHaveBeenCalledWith("rapid_tournament_players")
+    expect(from).toHaveBeenCalledWith("rapid_tournaments")
   })
 
   it("hides an owned tournament from non-creators and unauthenticated requests", async () => {
@@ -51,6 +73,17 @@ describe("rapid tournament creator routes", () => {
     expect(unauthenticated.status).toBe(401)
   })
 
+  it("grants read access only to the creator or an account linked to a tournament player", async () => {
+    mocks.maybeSingle.mockResolvedValueOnce({ data: { id: tournamentId, created_by_user_id: "another-user" }, error: null })
+      .mockResolvedValueOnce({ data: { id: "player-link" }, error: null })
+    await expect(requireRapidTournamentAccess(tournamentId)).resolves.toMatchObject({ ok: true, role: "participant" })
+    mocks.maybeSingle.mockResolvedValueOnce({ data: { id: tournamentId, created_by_user_id: "another-user" }, error: null })
+      .mockResolvedValueOnce({ data: null, error: null })
+    await expect(requireRapidTournamentAccess(tournamentId)).resolves.toMatchObject({ ok: false, status: 404 })
+    mocks.maybeSingle.mockResolvedValueOnce({ data: { id: tournamentId, created_by_user_id: "creator-uuid" }, error: null })
+    await expect(requireRapidTournamentAccess(tournamentId)).resolves.toMatchObject({ ok: true, role: "creator" })
+  })
+
   it("creates only complete, unique twelve-player tournaments through the atomic database RPC", async () => {
     mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
     const duplicate = await createTournament(request("/api/tournaments", { name: "Americana", startsAt: "2026-10-17T07:00:00Z", courtNames: ["Pista 1", "Pista 2"], players: [...names.slice(0, 11), " jugador a " ] }))
@@ -59,7 +92,30 @@ describe("rapid tournament creator routes", () => {
     const created = await createTournament(request("/api/tournaments", { name: "Americana", startsAt: "2026-10-17T07:00:00Z", courtNames: ["Pista 1", "Pista 2"], players: names }))
     expect(created.status).toBe(201)
     expect(await created.json()).toEqual({ id: tournamentId })
-    expect(mocks.rpc).toHaveBeenCalledWith("create_rapid_tournament", expect.objectContaining({ p_creator_user_id: "creator-uuid", p_shuffled_names: expect.arrayContaining(names) }))
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      "create_rapid_tournament_flexible",
+      expect.objectContaining({
+        p_creator_user_id: "creator-uuid",
+        p_player_names: expect.arrayContaining(names),
+        p_reservation_minutes: 120,
+        p_preparation_minutes: 2,
+        p_round_count: 6,
+      }),
+    )
+  })
+
+  it("accepts only supported rapid tournament sizes, courts, booking times and preparation windows", async () => {
+    mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
+    const base = { name: "Americana flexible", startsAt: "2026-10-17T07:00:00Z", players: Array.from({ length: 8 }, (_, index) => `Jugador ${index + 1}`) }
+    const valid = await createTournament(request("/api/tournaments", { ...base, playerCount: 8, courtNames: ["Pista 1"], reservationMinutes: 60, preparationMinutes: 4 }))
+    expect(valid.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_rapid_tournament_flexible", expect.objectContaining({ p_reservation_minutes: 60, p_preparation_minutes: 4, p_round_count: 3, p_court_names: ["Pista 1"] }))
+    const tooMuchPreparation = await createTournament(request("/api/tournaments", { ...base, playerCount: 8, courtNames: ["Pista 1"], reservationMinutes: 60, preparationMinutes: 5 }))
+    expect(tooMuchPreparation.status).toBe(400)
+    const unsupportedBooking = await createTournament(request("/api/tournaments", { ...base, playerCount: 8, courtNames: ["Pista 1"], reservationMinutes: 75, preparationMinutes: 0 }))
+    expect(unsupportedBooking.status).toBe(400)
+    const invalidSize = await createTournament(request("/api/tournaments", { ...base, playerCount: 7, courtNames: ["Pista 1"], reservationMinutes: 60, preparationMinutes: 0 }))
+    expect(invalidSize.status).toBe(400)
   })
 
   it("allows reroll and start only through creator-bound state RPCs", async () => {
@@ -68,7 +124,7 @@ describe("rapid tournament creator routes", () => {
     expect(locked.status).toBe(409)
     const started = await startTournament(request(`/api/tournaments/${tournamentId}/start`), params({ id: tournamentId }))
     expect(started.status).toBe(200)
-    expect(mocks.rpc).toHaveBeenNthCalledWith(1, "reroll_rapid_tournament", expect.objectContaining({ p_creator_user_id: "creator-uuid" }))
+    expect(mocks.rpc).toHaveBeenNthCalledWith(1, "reroll_rapid_tournament_flexible", expect.objectContaining({ p_creator_user_id: "creator-uuid", p_player_user_ids: Array(12).fill(null), p_matches: expect.any(Array) }))
     expect(mocks.rpc).toHaveBeenNthCalledWith(2, "start_rapid_tournament", { p_tournament_id: tournamentId, p_creator_user_id: "creator-uuid" })
   })
 
@@ -136,10 +192,11 @@ describe("rapid tournament creator routes", () => {
   })
 
   it("returns actual-start schedules after reload while preserving stored round IDs", async () => {
-    const stored = { id: tournamentId, starts_at: "2026-10-17T07:00:00Z", started_at: "2026-10-17T07:05:00Z", safety_margin_minutes: 9 }
-    const rows: Record<string, unknown[]> = { rapid_tournament_players: [], rapid_tournament_matches: [], rapid_tournament_rounds: [1, 6].map((round_number) => ({ id: `round-${round_number}`, round_number, starts_at: stored.starts_at, ends_at: stored.starts_at })) }
+    const stored = { id: tournamentId, starts_at: "2026-10-17T07:00:00Z", started_at: "2026-10-17T07:05:00Z", safety_margin_minutes: 9, player_count: 12, court_count: 2, reservation_minutes: 120, round_count: 6, round_minutes: 16, transition_minutes: 3, preparation_minutes: 2 }
+    const rows: Record<string, unknown[]> = { rapid_tournament_players: [{ id: "player-a", slot: "A", full_name: "Jugador A" }], rapid_tournament_matches: [], rapid_tournament_rounds: [1, 6].map((round_number) => ({ id: `round-${round_number}`, round_number, starts_at: stored.starts_at, ends_at: stored.starts_at })) }
     const from = vi.fn((table: string) => {
-      const query = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockResolvedValue({ data: { id: tournamentId }, error: null }), single: vi.fn().mockResolvedValue({ data: stored, error: null }), order: vi.fn().mockReturnThis(), then: (resolve: (value: unknown) => void) => Promise.resolve({ data: rows[table] ?? [], error: null }).then(resolve) }
+      let selectedColumns = ""
+      const query = { select: vi.fn((columns: string) => { selectedColumns = columns; return query }), eq: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockResolvedValue({ data: { id: tournamentId }, error: null }), single: vi.fn().mockResolvedValue({ data: stored, error: null }), order: vi.fn().mockReturnThis(), then: (resolve: (value: unknown) => void) => Promise.resolve(table === "rapid_tournament_players" && selectedColumns.includes("user_id") ? { data: null, error: { code: "42703", message: "column rapid_tournament_players.user_id does not exist" } } : { data: rows[table] ?? [], error: null }).then(resolve) }
       return query
     })
     mocks.auth.mockResolvedValue({ ok: true, actor: { supabase: { from }, user: { id: "creator-uuid" } } })
@@ -148,6 +205,7 @@ describe("rapid tournament creator routes", () => {
     expect(response.status).toBe(200)
     expect(result.tournament.startedAt).toBe(stored.started_at)
     expect(result.tournament.configuration).toMatchObject({ preparationMinutes: 2, safetyMarginMinutes: 7 })
+    expect(result.players).toEqual([{ id: "player-a", slot: "A", name: "Jugador A", hasAccount: false }])
     expect(result.rounds).toEqual([{ id: "round-1", round: 1, startsAt: "2026-10-17T07:07:00.000Z", endsAt: "2026-10-17T07:23:00.000Z" }, { id: "round-6", round: 6, startsAt: "2026-10-17T08:42:00.000Z", endsAt: "2026-10-17T08:58:00.000Z" }])
     expect(Number.isFinite(Date.parse(result.serverNow))).toBe(true)
   })

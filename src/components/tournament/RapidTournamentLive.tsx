@@ -5,12 +5,12 @@ import { cancelRapidPlayback, disableRapidAudio, enableRapidAudio, playRapidAudi
 import { loadRapidAudio, saveRapidAudio } from "@/lib/rapidAudioSettings"
 import { translateLeagueText } from "@/i18n/leagueText"
 import { RapidAudioSettings } from "./RapidAudioSettings"
+import type { RapidTournamentConfig } from "@/lib/rapidTournament"
 import styles from "./Tournament.module.css"
 import Link from "next/link"
-
 const speechMessage = (source: string, round?: number): RapidSpeech => Object.fromEntries((["es", "en", "eu"] as const).map((lang) => [lang, `${translateLeagueText(lang, source)}${round ? ` ${round}` : ""}`]))
 const testMessage = speechMessage("Prueba de sonido. Quedan dos minutos.")
-export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, rounds, plannedEnd }: { tournamentId: string; startedAt: string; clockOffset: number; rounds: Record<number, ReactNode>; plannedEnd: number }) {
+export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, rounds, plannedEnd, config }: { tournamentId: string; startedAt: string; clockOffset: number; rounds: Record<number, ReactNode>; plannedEnd: number; config: RapidTournamentConfig }) {
   const { tx, locale } = useI18n()
   const clock = useCallback(() => Date.now() + clockOffset, [clockOffset])
   const [now, setNow] = useState(clock)
@@ -22,11 +22,10 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
   const [settings, setSettings] = useState(loadRapidAudio)
   const previous = useRef(now - (now - Date.parse(startedAt) < 3000 ? 3000 : 0))
   const announced = useRef(new Set<string>())
-  const cues = useMemo(() => buildRapidCues(startedAt, settings.countdown), [startedAt, settings.countdown])
-  const phase = getRapidLiveState(startedAt, now)
+  const cues = useMemo(() => buildRapidCues(startedAt, settings.countdown, config), [startedAt, settings.countdown, config])
+  const phase = getRapidLiveState(startedAt, now, config)
   const active = Boolean(phase && phase.phase !== "ended")
   const cueText = useCallback((cue: RapidCue) => speechMessage(cue.kind === "preparation" ? "Dos minutos de preparación" : cue.kind === "start" ? "Comienza la ronda" : cue.kind === "two_minutes" ? "Quedan dos minutos" : cue.kind === "finished" ? "Tiempo de torneo finalizado. Termina el punto en juego." : "Fin de ronda. Termina el punto en juego. Tres minutos de cambio.", cue.kind === "start" ? cue.round : undefined), [])
-
   useEffect(() => {
     let timer: number | undefined
     let disposed = false
@@ -34,7 +33,7 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
     const update = () => {
       window.clearTimeout(timer)
       const time = clock(); setNow(time)
-      if (!document.hidden && getRapidLiveState(startedAt, time)?.phase !== "ended") timer = window.setTimeout(update, 1010 - ((time - Date.parse(startedAt)) % 1000))
+      if (!document.hidden && getRapidLiveState(startedAt, time, config)?.phase !== "ended") timer = window.setTimeout(update, 1010 - ((time - Date.parse(startedAt)) % 1000))
     }
     const visibility = () => {
       window.clearTimeout(timer)
@@ -49,7 +48,7 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
     update()
     document.addEventListener("visibilitychange", visibility)
     return () => { disposed = true; window.clearTimeout(timer); document.removeEventListener("visibilitychange", visibility); suspendRapidAudio() }
-  }, [clock, startedAt, tournamentId])
+  }, [clock, config, startedAt, tournamentId])
   useEffect(() => {
     for (const cue of getDueRapidCues(cues, previous.current, now)) {
       if (!announced.current.has(cue.id)) { announced.current.add(cue.id); if (cue.kind === "countdown") playRapidCountdown(tournamentId, cue.count!, locale, settings); else playRapidAudio(tournamentId, cueText(cue), locale, cue.kind === "two_minutes", settings) }
@@ -75,7 +74,6 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
     void acquire(); document.addEventListener("visibilitychange", visibility)
     return () => { cancelled = true; document.removeEventListener("visibilitychange", visibility); void lock?.release().catch(() => {}); setAwake(false) }
   }, [keepAwake, active, tx])
-
   async function toggleSound() {
     if (sound) { disableRapidAudio(); setSound(false); return }
     const ok = await enableRapidAudio(tournamentId)
@@ -90,7 +88,7 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
     <section className={`${styles.panel} ${styles.liveClock}`} aria-label={tx("Temporizador del torneo")}>
       <h2 className="type-panel-title font-black" aria-live="polite">{label}</h2>
       <p className={styles.liveDigits} role="timer" aria-label={tx("Tiempo restante")}>{remaining}</p>
-      <p className={styles.help}>{phase.phase === "preparation" ? tx("Preparad las pistas. La primera ronda empezará automáticamente.") : phase.phase === "transition" ? `${tx("Próxima ronda")} ${phase.round} · ${time(phase.until)}` : phase.phase === "playing" ? `${tx("Termina")} ${time(phase.until)} · ${phase.round}/6` : tx("Puedes seguir registrando resultados y finalizar desde Resumen.")}</p>
+      <p className={styles.help}>{phase.phase === "preparation" ? tx("Preparad las pistas. La primera ronda empezará automáticamente.") : phase.phase === "transition" ? `${tx("Próxima ronda")} ${phase.round} · ${time(phase.until)}` : phase.phase === "playing" ? `${tx("Termina")} ${time(phase.until)} · ${phase.round}/${config.rounds}` : tx("Puedes seguir registrando resultados y finalizar desde Resumen.")}</p>
       <progress className={`${styles.progress} mt-3`} max={phase.duration || 1} value={active ? Math.max(0, phase.duration - phase.remaining) : 1} aria-label={tx("Progreso de la fase")} />
       <p className={`${styles.help} mt-3`}>{tx("Inicio real")} {time(Date.parse(startedAt))} · {tx("Fin previsto")} {time(phase.finish)}</p>
       {phase.finish > plannedEnd ? <p className={`${styles.help} mt-2`}>{tx("El fin previsto supera la hora original de la reserva.")}</p> : null}
