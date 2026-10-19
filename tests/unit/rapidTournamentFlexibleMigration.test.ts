@@ -16,4 +16,12 @@ describe("flexible rapid tournament migration", () => {
     expect(sql).toContain("TO service_role")
     expect(sql).toContain("CREATE OR REPLACE FUNCTION public.finish_rapid_tournament")
   })
+
+  it("replaces the flexible RPCs with PostgreSQL-valid JSON and unambiguous account checks", async () => {
+    const sql = await readFile("supabase/migrations/20261019160000_fix_rapid_tournament_flexible_function_lint.sql", "utf8")
+    expect(sql).toContain("jsonb_array_length(p_matches)")
+    expect(sql).toContain("AS accounts(user_id)")
+    expect(sql).not.toContain("cardinality(p_matches)")
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.reroll_rapid_tournament_flexible")
+  })
 })
