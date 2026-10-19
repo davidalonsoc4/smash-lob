@@ -14,6 +14,10 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { selectCompetitionHighlights } from "@/lib/competitionOverview"
+import { calculateSeasonRanking } from "@/lib/ranking"
+import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
+import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
+import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
 import { isRoundRevealedToPlayers } from "@/lib/progressiveCalendar"
 import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
 
@@ -27,8 +31,20 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   const canCreateLeaguesInCurrentView = canCreateLeagues && canAccessLeagueAdminTools(activeLeagueId)
   const canCreateCompetition = canCreateLeagues
   const memberLeagues = userLeagues.filter(league => getMembershipForLeague(league.id))
-  const { matches } = useMatchData()
-  const { seasons, playerProfiles, getActiveSeasonByLeagueId, getSeasonRoundSettings } = useSeasonSettings()
+  const { matches, resultConfirmations } = useMatchData()
+  const { seasons, playerProfiles, seasonPlayers, getActiveSeasonByLeagueId, getSeasonRoundSettings } = useSeasonSettings()
+  const countedMatches = matches.map(match => ({
+    ...match,
+    resultCounts: match.rankingCounts !== false && getMatchResultConfirmationState({
+      matchId: match.id,
+      participantIds: [...match.teamA, ...match.teamB],
+      reporterPlayerId: match.resultReportedByPlayerId,
+      resultRecordedAt: match.resultRecordedAt,
+      resultLocked: match.resultLocked,
+      confirmations: resultConfirmations,
+      mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
+    }).countsForRanking,
+  }))
   const [dashboard, setDashboard] = useState<PersonalMatchesDashboardPayload | null>(null)
   const [tournaments, setTournaments] = useState<Array<{ id: string; name: string; description: string; startsAt: string; status: "draft" | "in_progress" | "finished" }>>([])
   const [tournamentLoadError, setTournamentLoadError] = useState(false)
@@ -87,15 +103,37 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   }
   function leagueRow({ league, season }: (typeof leagueRows)[number]) {
     const status = season.totalRounds === 0 ? tx("Sin temporada") : season.status === "active" ? tx("Activa") : season.status === "upcoming" ? tx("Próximamente") : tx("Terminada")
-    return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} className={`flex w-full items-center gap-3 rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition active:scale-[0.99] ${view === "leagues" ? "min-h-32 p-4" : "p-3"}`}>
-      <LeagueLogo league={league} size={view === "leagues" ? "lg" : "md"} />
-      <span className="min-w-0 flex-1"><span className={`block text-base font-black text-neutral-950 ${view === "leagues" ? "break-words" : "truncate"}`}>{league.name}</span><span className="mt-1 block text-xs font-semibold text-neutral-500">{status} · {isLeagueAdmin(league.id) ? tx("Admin") : isLeagueSpectator(league.id) ? tx("Espectador") : tx("Jugador")}</span>
-        {view === "leagues" ? <>
-          {league.description ? <span className="mt-2 block line-clamp-2 text-sm text-neutral-600">{league.description}</span> : null}
-          {season.totalRounds > 0 ? <span className="mt-2 block text-xs font-semibold text-neutral-500"><span className="block break-words">{season.name}</span><span className="mt-1 block">{tx("Jornadas")} · {season.completedRounds}/{season.totalRounds}</span></span> : null}
-        </> : null}
+    const isActive = activeLeagueId === league.id
+    const isAdmin = isLeagueAdmin(league.id)
+    const isSpectator = isLeagueSpectator(league.id)
+    const seasonMatches = countedMatches.filter(match => match.leagueId === league.id && match.seasonId === season.id)
+    const finishedMatches = seasonMatches.filter(isMatchCompetitionComplete).length
+    const seasonPlayerCount = seasonPlayers.filter(player => player.seasonId === season.id).length
+    const ranking = calculateSeasonRanking({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches })
+    const leader = ranking.find(player => player.points > 0) ?? null
+    return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} className={`w-full rounded-2xl border bg-white p-3 text-left shadow-[0_2px_12px_rgba(15,23,42,0.06)] transition active:scale-[0.99] ${view === "leagues" ? isActive ? "border-neutral-950 ring-2 ring-neutral-950" : "border-neutral-200 hover:border-neutral-300" : "border-neutral-200 shadow-sm"}`}>
+      <span className="flex min-w-0 items-start gap-3">
+        <LeagueLogo league={league} size={view === "leagues" ? "lg" : "md"} />
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className={`min-w-0 flex-1 text-base font-black text-neutral-950 ${view === "leagues" ? "break-words" : "truncate"}`}>{league.name}</span>
+            {view === "leagues" && isActive ? <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 type-caption font-black uppercase tracking-wide text-white">{tx("Actual")}</span> : null}
+          </span>
+          {view === "leagues" ? <>
+            <span className="mt-1 block line-clamp-1 text-xs font-semibold text-neutral-500">{league.description || tx("Sin descripción")}</span>
+            <span className="mt-2 flex flex-wrap items-center gap-2">
+              {season.status !== "upcoming" ? <span className={getSeasonStatusBadgeClassName(season.status, season.totalRounds)}>{status}</span> : null}
+              {isAdmin ? <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-amber-800">{tx("Admin")}</span> : isSpectator ? <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-neutral-600">{tx("Espectador")}</span> : null}
+            </span>
+          </> : <span className="mt-1 block text-xs font-semibold text-neutral-500">{status} · {isAdmin ? tx("Admin") : isSpectator ? tx("Espectador") : tx("Jugador")}</span>}
+        </span>
+        {view !== "leagues" ? <span aria-hidden="true" className="self-center text-neutral-400">›</span> : null}
       </span>
-      <span aria-hidden="true" className="text-neutral-400">›</span>
+      {view === "leagues" ? <span className="mt-3 grid grid-cols-3 gap-2 text-center">
+        <span className="rounded-2xl bg-neutral-100 px-2 py-2"><span className="block type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Jugadores")}</span><span className="mt-0.5 block text-base font-black text-neutral-950">{seasonPlayerCount || "-"}</span></span>
+        <span className="rounded-2xl bg-neutral-100 px-2 py-2"><span className="block type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Partidos")}</span><span className="mt-0.5 block text-base font-black text-neutral-950">{finishedMatches}/{seasonMatches.length || 0}</span></span>
+        <span className="rounded-2xl bg-neutral-100 px-2 py-2"><span className="block type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Líder")}</span><span className="mt-0.5 block truncate text-xs font-black text-neutral-950">{leader?.displayName ?? "-"}</span></span>
+      </span> : null}
     </button>
   }
   return <div className="space-y-5">
