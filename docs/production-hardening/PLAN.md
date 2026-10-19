@@ -3,7 +3,7 @@
 - Status: IN_PROGRESS
 - Objective: Usar controles numéricos compactos con flechas, separar pistas/reserva de la logística calculada y mostrar la participación por jugador frente a los totales del torneo, actualizados al cambiar la configuración.
 - Tasks: (1) reemplazar los selectores numéricos por stepper accesibles y agrupar la configuración de pistas/reserva antes de participantes; (2) aclarar la logística derivada y el resumen en términos por jugador/total, con cálculos fiables para cualquier combinación permitida; (3) actualizar E2E, ejecutar gates locales y publicar solo en PRE tras verificar migración y deployment.
-- Remote changes allowed: únicamente PRE, incluida la migración `20261019145647_rapid_tournament_flexible_americana.sql` de MC15 aplicada a `smash-lob-staging`, bajo la solicitud explícita del usuario del 2026-10-19. No tocar Production, `main` ni tag `v1.0.0`.
+- Remote changes allowed: únicamente PRE, incluidas las migraciones `20261019145647_rapid_tournament_flexible_americana.sql` y `20261019154207_fix_rapid_tournament_flexible_function_lint.sql` aplicadas a `smash-lob-staging`, bajo la solicitud explícita del usuario del 2026-10-19. No tocar Production, `main` ni tag `v1.0.0`.
 - Stop condition: no publicar si falla un gate crítico, la identidad PRE o el estado del deployment no se puede verificar.
 
 ## MC14 - Acceso visible para organizar torneos desde la administración de liga
