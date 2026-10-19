@@ -15,8 +15,8 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: state.refresh }
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: state.locale, tx: (text: string) => text, t: { common: { refreshApp: "Actualizar", back: "Volver" } } }) }))
 vi.mock("@/context/ActiveLeagueProvider", () => ({ useActiveLeague: () => ({ activeLeagueId: "a", changeActiveLeague: state.enter }) }))
 vi.mock("@/context/LeagueAccessProvider", () => ({ useLeagueAccess: () => ({ userLeagues: state.leagues, canCreateLeagues: true, canAccessLeagueAdminTools: () => true, getMembershipForLeague: () => ({ playerId: "own" }), isLeagueAdmin: () => false, isLeagueSpectator: () => false }) }))
-vi.mock("@/context/MatchDataProvider", () => ({ useMatchData: () => ({ matches: state.matches }) }))
-vi.mock("@/context/SeasonSettingsProvider", () => ({ useSeasonSettings: () => ({ playerProfiles: [], seasons: state.leagues.map(item => ({ id: item.id, leagueId: item.id, status: item.status, totalRounds: 3 })), getActiveSeasonByLeagueId: (id: string) => ({ status: state.leagues.find(item => item.id === id)?.status, totalRounds: 3 }), getSeasonRoundSettings: () => ({ calendarVisibilityMode: "full" }) }) }))
+vi.mock("@/context/MatchDataProvider", () => ({ useMatchData: () => ({ matches: state.matches, resultConfirmations: [] }) }))
+vi.mock("@/context/SeasonSettingsProvider", () => ({ useSeasonSettings: () => ({ playerProfiles: [], seasonPlayers: [], seasons: state.leagues.map(item => ({ id: item.id, leagueId: item.id, status: item.status, totalRounds: 3 })), getActiveSeasonByLeagueId: (id: string) => ({ id, name: `Temporada ${id}`, status: state.leagues.find(item => item.id === id)?.status, totalRounds: 3, completedRounds: 1 }), getSeasonRoundSettings: () => ({ calendarVisibilityMode: "full", resultConfirmationMode: "optional" }) }) }))
 vi.mock("@/components/league/LeagueLogo", () => ({ LeagueLogo: () => <span /> }))
 vi.mock("@/components/personal/PersonalMatchCard", () => ({ PersonalMatchCard: ({ match }: { match: PersonalMatchItem }) => <div data-testid="highlight">{match.id}</div> }))
 const empty = { items: [], upcoming: [], hasMore: false, nextOffset: null }
@@ -36,6 +36,11 @@ it("limits the summary to two leagues and links to separate lists without changi
 })
 it("retains complete league listings, archived seasons, permissions and explicit entry", () => {
   render(<CompetitionsOverview view="leagues" />)
+  expect(screen.getAllByText("Jugadores")).toHaveLength(4)
+  expect(screen.getAllByText("Partidos")).toHaveLength(4)
+  expect(screen.getAllByText("Líder")).toHaveLength(4)
+  expect(screen.queryByText("Próximamente")).toBeNull()
+  expect(screen.queryByText("Toca para entrar")).toBeNull()
   expect(screen.getByText(/Finalizadas/).closest("details")!.open).toBe(false)
   expect(screen.getByRole("link", { name: "Crear nueva liga" })).toHaveAttribute("href", "/league/new")
   expect(screen.getByRole("link", { name: "Unirme con invitación" })).toHaveAttribute("href", "/invite")

@@ -1,6 +1,13 @@
 # Production Hardening Plan
-## MC16 - Simplificar selectores y aclarar el resumen de torneos
+## MC17 - Recuperar el detalle visual de las tarjetas de Mis ligas
 - Status: IN_PROGRESS
+- Objective: Alinear las tarjetas de la lista Mis ligas con la referencia de producción, retirando las etiquetas Próximamente y Toca para entrar.
+- Tasks: (1) recuperar logo, descripción y métricas de jugadores/partidos/líder; (2) conservar selección de liga y hacer explícito el estado actual; (3) validar accesibilidad y recorridos móvil/escritorio y publicar solo en PRE.
+- Remote changes allowed: rama de trabajo, integración en `staging` y despliegue PRE bajo solicitud explícita del usuario. No tocar Production, `main`, migraciones ni tag `v1.0.0`.
+- Stop condition: no publicar si falla un gate crítico o no se verifica el deployment PRE.
+
+## MC16 - Simplificar selectores y aclarar el resumen de torneos
+- Status: DONE (2026-10-19; PR #50, CI #400 success, PRE v1.15.32 READY and smoke verified)
 - Objective: Usar controles numéricos compactos con flechas, separar pistas/reserva de la logística calculada y mostrar la participación por jugador frente a los totales del torneo, actualizados al cambiar la configuración.
 - Tasks: (1) reemplazar los selectores numéricos por stepper accesibles y agrupar la configuración de pistas/reserva antes de participantes; (2) aclarar la logística derivada y el resumen en términos por jugador/total, con cálculos fiables para cualquier combinación permitida; (3) actualizar E2E, ejecutar gates locales y publicar solo en PRE tras verificar migración y deployment.
 - Remote changes allowed: únicamente PRE, incluidas las migraciones `20261019145647_rapid_tournament_flexible_americana.sql` y `20261019154207_fix_rapid_tournament_flexible_function_lint.sql` aplicadas a `smash-lob-staging`, bajo la solicitud explícita del usuario del 2026-10-19. No tocar Production, `main` ni tag `v1.0.0`.
