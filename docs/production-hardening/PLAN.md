@@ -1,4 +1,34 @@
 # Production Hardening Plan
+## MC16 - Simplificar selectores y aclarar el resumen de torneos
+- Status: IN_PROGRESS
+- Objective: Usar controles numéricos compactos con flechas, separar pistas/reserva de la logística calculada y mostrar la participación por jugador frente a los totales del torneo, actualizados al cambiar la configuración.
+- Tasks: (1) reemplazar los selectores numéricos por stepper accesibles y agrupar la configuración de pistas/reserva antes de participantes; (2) aclarar la logística derivada y el resumen en términos por jugador/total, con cálculos fiables para cualquier combinación permitida; (3) actualizar E2E, ejecutar gates locales y publicar solo en PRE tras verificar migración y deployment.
+- Remote changes allowed: únicamente PRE, incluida la migración `20261019145647_rapid_tournament_flexible_americana.sql` de MC15 aplicada a `smash-lob-staging`, bajo la solicitud explícita del usuario del 2026-10-19. No tocar Production, `main` ni tag `v1.0.0`.
+- Stop condition: no publicar si falla un gate crítico, la identidad PRE o el estado del deployment no se puede verificar.
+
+## MC14 - Acceso visible para organizar torneos desde la administración de liga
+- Status: DONE (2026-10-19; validate passed)
+- Objective: Hacer visible Organizar torneo bajo las acciones de competición, permitiendo elegir la temporada de origen y localizar el acceso desde el buscador de Ajustes.
+- Tasks: (1) selector de temporada y navegación al formulario existente desde Administración de liga; (2) entrada localizada y restringida por permisos en el buscador de Ajustes; (3) pruebas focalizadas y validación del hito. Completed.
+- Validation: prueba focalizada del buscador 4/4; `npm run validate` correcto: 1006 pruebas/251 archivos, TypeScript, ESLint sin errores (4 avisos existentes), build dentro de presupuesto (1202401 bytes gzip/103 chunks).
+- Remote changes allowed: ninguno. Sin cambios de base de datos ni despliegue en esta tarea.
+- Stop condition: no alterar el flujo actual de creación independiente ni la importación de jugadores existente.
+
+## MC15 - Parámetros flexibles para Americana rápida
+- Status: DONE locally (2026-10-19; `npm run validate` and 6/6 rapid tournament E2E passed; migration prepared, not applied)
+- Objective: Permitir 8–16 jugadores, 1–4 pistas, reservas de 60/90/120 minutos y preparación ajustable respetando 2 minutos de margen mínimo; el nombre debe proponerse según modalidad y liga sin perder edición manual.
+- Tasks: (1) parametrizar configuración y calendario para tamaños/canchas soportados con validaciones de equilibrio; (2) actualizar formulario, previsualización y resumen, incluyendo valor de nombre contextual; (3) probar combinaciones, flujos independiente/vinculado y validar la aplicación. Completed locally.
+- Remote changes allowed: ninguno. No tocar migraciones aplicadas, base de datos, Production ni publicar.
+- Stop condition: no crear torneos incompatibles con la planificación ni perder compatibilidad de torneos guardados existentes.
+
+## MC13 - Verificación y acceso a participantes de torneos
+- Status: DONE (2026-10-19; PRE migrations verified)
+- Objective: Mostrar al organizador validaciones reales del calendario fijo, preparar opciones futuras de cuenta atrás/datos ocultos, permitir seleccionar cuentas conocidas y habilitar acceso de participantes mediante invitación segura; cambios solo en desarrollo local hasta validación.
+- Tasks: (1) pruebas y panel visual de invariantes/rachas del sorteo; (2) opciones informativas de visibilidad/temporizador marcadas como próximamente; (3) asociación de cuentas conocidas y flujo privado de invitación con migración nueva y pruebas de permisos.
+- Validation: `npm run validate` (1005 pruebas, typecheck, lint sin errores y build dentro de presupuesto), E2E de torneos 6/6, rutas/invitaciones 14/14; migraciones aplicadas y verificadas solo en PRE, con RLS y privilegios revisados.
+- Remote changes allowed: aplicar únicamente en PRE (`smash-lob-staging`, `miadjotkucgluwbrgeih`) las migraciones versionadas necesarias para cuentas participantes y vínculo torneo-liga-temporada, bajo solicitud explícita del usuario. Sin despliegue, cambios en main/Production/tag v1.0.0 ni uso de cuentas personales.
+- Stop condition: si la invitación no puede preservarse de forma segura durante login o el aislamiento del torneo no queda demostrado, mantener el acceso por invitación bloqueado y no declarar MC13 completo.
+
 ## MC12PRE - Pulir los círculos de RACHA y publicar en PRE
 - Status: DONE (2026-10-18; PR #49, CI 4/4, PRE v1.15.31 READY y smoke verificado)
 - Objective: Renombrar FORMA a RACHA y dar más presencia a las V/D blancas con mayor tamaño y sombra de texto, manteniendo círculos verdes/rojos, borde blanco y sombra; publicar solo en PRE cuando pasen todos los gates.

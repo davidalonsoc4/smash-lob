@@ -143,15 +143,19 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/spectator-invites/[code]` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/suggestions` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/suggestions` | POST | Protegido | requireAuthenticatedAppUser |
-| `/api/tournaments` | GET | Protegido | requireAuthenticatedAppUser |
-| `/api/tournaments` | POST | Protegido | requireAuthenticatedAppUser |
+| `/api/tournament-invites/[code]` | GET | Público explícito | Allowlist revisada |
+| `/api/tournament-invites/[code]/claim` | POST | Protegido | requireAuthenticatedAppUser |
+| `/api/tournaments` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/tournaments` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/tournaments/[id]` | GET | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]` | DELETE | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/draw` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/finish` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
+| `/api/tournaments/[id]/invites/[playerId]` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/matches/[matchId]/result` | PUT | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/restart` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/start` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
+| `/api/tournaments/people` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 
 ## Reglas
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
@@ -1689,6 +1689,13 @@ function PlayerMatchActionsSettingsPanel({
   );
 }
 
+function LinkedSeasonTournaments({ leagueId, seasonId, seasonName, leagueName }: { leagueId: string; seasonId: string; seasonName: string; leagueName: string }) {
+  const { tx, locale } = useI18n();
+  const [items, setItems] = useState<Array<{ id: string; name: string; startsAt: string }>>([]);
+  useEffect(() => { let cancelled = false; fetch("/api/tournaments", { cache: "no-store" }).then(async (response) => { const payload = await response.json(); if (!response.ok) throw new Error(); return payload.tournaments ?? []; }).then((tournaments) => { if (!cancelled) setItems(tournaments.filter((item: { sourceLeagueId?: string; sourceSeasonId?: string }) => item.sourceLeagueId === leagueId && item.sourceSeasonId === seasonId)); }).catch(() => { if (!cancelled) setItems([]); }); return () => { cancelled = true; }; }, [leagueId, seasonId]);
+  return <AppCard className="space-y-3"><div><p className="text-sm font-black">{tx("Torneos de esta temporada")}</p><p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Crea un torneo con los jugadores inscritos en esta temporada.")}</p></div><a href={`/tournaments/new?sourceLeagueId=${encodeURIComponent(leagueId)}&sourceSeasonId=${encodeURIComponent(seasonId)}`} className="flex min-h-11 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2 text-center text-sm font-black text-white">{tx("Organizar torneo")}</a>{items.length ? <div className="space-y-2"><p className="type-caption font-black uppercase tracking-wider text-neutral-500">{seasonName}</p>{items.map((item) => <a key={item.id} href={`/tournaments/${item.id}`} className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 p-3"><span className="min-w-0"><span className="block truncate text-sm font-black">{item.name}</span><span className="block text-xs font-semibold text-neutral-500">{new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.startsAt))}</span></span><span aria-hidden="true" className="text-neutral-400">›</span></a>)}</div> : null}</AppCard>;
+}
+
 export default function AdminSeasonPage() {
   const { tx } = useI18n()
   const { t } = useI18n();
@@ -1833,6 +1840,8 @@ export default function AdminSeasonPage() {
         registrationEnabled={roundSettings.registrationFee.enabled}
         />
       </div>
+
+      {hasCreatedLeagueSeason ? <LinkedSeasonTournaments leagueId={activeLeague.id} seasonId={activeSeason.id} seasonName={activeSeason.name} leagueName={activeLeague.name} /> : null}
 
 
       {hasCreatedLeagueSeason ? (

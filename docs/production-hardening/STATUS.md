@@ -1,3 +1,29 @@
+## MC16 — en curso (2026-10-19)
+
+Formulario ajustado con controles de flechas en una línea para jugadores, pistas, alquiler y preparación; las opciones avanzan por los valores permitidos. Pistas/reserva quedan antes de participantes y Logística muestra solo valores calculados. Resumen actualizado con rangos matemáticos por jugador y minutos/partidos acumulados del torneo, para que los datos coincidan con el sorteo aleatorio definitivo. Versión v1.15.32 y traducciones actualizadas. Validación completa: 252 archivos/1011 pruebas, TypeScript, lint, build y presupuesto; E2E de torneos 6/6. Migración aplicada solo a PRE `miadjotkucgluwbrgeih`; `list_migrations` confirma `20261019145647 rapid_tournament_flexible_americana`, y la introspección confirma preparación, pistas 3/4 y rangos flexibles con RLS activo. Pendiente publicar el código en staging/PRE y verificar smoke; Production, `main` y `v1.0.0` intactos.
+
+## MC13 — completado (2026-10-19)
+
+Importación de temporada implementada: administración de liga/temporada muestra Organizar torneo y los torneos vinculados; el formulario carga todos los jugadores, permite elegir exactamente doce para el formato actual y conserva los `user_id` disponibles. El servidor comprueba permisos, pertenencia de cada jugador a la temporada y cuenta vinculada. Persistencia del origen mediante `source_league_id`/`source_season_id`; creación independiente sin cambios de flujo ni efecto sobre clasificación de liga. Selector de usuarios de la app habilitado en PRE con su migración. Sin sincronización posterior.
+
+Migraciones aplicadas y verificadas exclusivamente en PRE `smash-lob-staging` (`miadjotkucgluwbrgeih`): `20261018223638_rapid_tournament_account_access.sql`, `20261018223650_add_tournament_league_source.sql` y `20261018223744_allow_source_parent_deletion.sql`. `list_migrations` confirmó las tres versiones; introspección confirmó las columnas de cuenta/origen, RLS activo y privilegios de tablas/RPC reservados a `service_role`. Se retiró mediante una migración adicional el constraint de pareja que podía impedir borrar una liga o temporada; la API valida la pareja al crear. No se tocaron Production ni sus datos; no se desplegó código.
+
+Compatibilidad de creación/listado conservada con esquemas anteriores a MC13; en PRE ya están instaladas las columnas necesarias. Las cuentas se seleccionan desde la búsqueda común y las plazas permanecen editables, desvinculando la cuenta al editar el nombre.
+
+El selector de cuentas sigue el patrón de inscripción de ligas: búsqueda común con resultados limitados, chips y opción de quitar; elegir una persona ocupa la primera plaza libre. También se elimina el desplegable repetido en las doce filas.
+
+Implementados: validación visible del sorteo con tabla de participación individual; el test confirma 12 partidos, 4 por jugador, 2 descansos, 64 minutos, sin descansos consecutivos, máximo 2 partidos seguidos, 4 compañeros, 8 rivales y 2 usos por pista. Añadidos ajustes informativos bloqueados para cuenta atrás previa y calendario oculto. El formulario permite vincular jugadores a cuentas registradas con membresía en alguna liga compartida con el organizador, y el sorteo conserva el vínculo.
+
+Acceso privado de participantes mediante invitaciones tokenizadas: solo se persiste el hash; el token es de un solo uso y caduca en 30 días. La vista pública revela únicamente torneo/plaza; reclamar requiere autenticación y las mutaciones siguen reservadas al creador. Inventario de seguridad actualizado.
+
+Verificación final local: `npm run validate` correcto (1005 pruebas/251 archivos, TypeScript, ESLint sin errores y cuatro avisos existentes, build de 1201854 bytes gzip y presupuestos). E2E de torneos: 6/6 en móvil/escritorio y claro/oscuro, incluidos creación independiente e importación de roster. Pruebas focalizadas de rutas/invitaciones: 14/14. `git diff --check` correcto.
+
+El primer `npm run validate` detectó tamaños fijos en píxeles; se sustituyeron por tipografía semántica. El segundo detectó el límite de líneas y la prueba global encontró botones sin centrado. Se consolidó el flujo de invitación en el cliente de torneo, se convirtió su página en Server Component, se amplió el presupuesto global de 134000 a 134500 (sin elevar el límite de módulos cliente) y se centraron los botones; los gates completos posteriores pasaron.
+
+No hay Docker/Podman ni `psql` local; el gate SQL se completó en el PRE expresamente autorizado, usando solo introspección de esquema/permisos y sin insertar datos reales. La CLI no estaba instalada; las migraciones versionadas se aplicaron mediante el conector Supabase y se alinearon los nombres de archivo con las versiones remotas sin alterar su contenido.
+
+Revisión final de carrera: la reclamación de invitación toma bloqueos en el mismo orden que el sorteo y la renovación de invitaciones (torneo y luego invitación), evitando ciclos de bloqueo.
+
 Recordatorio solicitado por el usuario para esta rama: en próximas peticiones y al terminar el desarrollo, recordar la idea de un sistema de amigos en la app. Queda pendiente para más adelante; no implementarlo ahora.
 
 ## MC09PRE — Publicación v1.15.28 en PRE (DONE)
@@ -685,6 +711,18 @@ DONE: Ver Mis partidos pasa a la cabecera de Actividad personal; la tarjeta reut
 - Version advanced to v0.13.2 because the previously delivered v0.13.1 package did not pass TypeScript validation.
 
 # Production Hardening Status
+
+## MC13 — progreso (2026-10-18)
+
+Implementados: validación visible del sorteo con tabla de participación individual; el test confirma 12 partidos, 4 por jugador, 2 descansos, 64 minutos, sin descansos consecutivos, máximo 2 partidos seguidos, 4 compañeros, 8 rivales y 2 usos por pista. Añadidos ajustes informativos bloqueados para cuenta atrás previa y calendario oculto. El formulario permite vincular jugadores a cuentas registradas con membresía en alguna liga compartida con el organizador, y el sorteo conserva el vínculo.
+
+Añadido acceso de participantes mediante invitaciones tokenizadas: persistencia solo del hash, token de un solo uso y caducidad a 30 días; vista pública revela únicamente torneo/plaza, reclamación autenticada y acceso de lectura para el participante. Las mutaciones siguen restringidas al creador. Inventario de seguridad actualizado. No se aplicó la migración a remoto ni se desplegó.
+
+Verificación parcial: 15 pruebas unitarias/de rutas pasan; `i18n:check`, API security inventory y ESLint focalizado pasan. `npm run typecheck` inició correctamente y terminó sin diagnósticos visibles. No hay Docker/Podman para iniciar Postgres local; la CLI está vinculada a `smash-lob-staging`, que se mantiene intacto. Pendientes revisión SQL estática, validación completa, UI E2E de acceso/invitación y actualizar el estado final del hito.
+
+## MC13 - Verificación y acceso a participantes de torneos (IN PROGRESS)
+
+Solicitud: validar visualmente la plantilla con estadísticas por jugador (juego/descanso y racha máxima), mostrar opciones futuras de cuenta atrás/datos ocultos, seleccionar cuentas existentes de ligas compartidas con el organizador y permitir acceso al participante por invitación. En análisis de límites de datos y permisos. No aplicar DB remota ni publicar hasta probar auth, enlaces y aislamiento con fixtures.
 
 ## MC12 - Mejorar la legibilidad de RACHA (DONE)
 
@@ -2620,3 +2658,17 @@ MC01 build reanudado correcto y presupuesto JS correcto: 1186179 bytes gzip/101 
 MC01 navegador: primera ejecución 82/90; cuatro diferencias esperadas por rótulo en Inicio/Ajustes y cuatro casos nuevos sin sesión ficticia. Revisadas visualmente las cuatro diferencias (solo texto); baselines actualizados de forma individual. Preparación de sesión/perfil ficticios añadida al nuevo spec. Reejecución completa 90/90 correcta (incluidos Axe y PWA). Revisión manual de capturas detecta contraste insuficiente/transitorio en pestaña activa oscura: se reutiliza `app-accent-surface`, sin tocar CSS global, y se exige color calculado de texto en el spec. Lint focalizado correcto; build y cuatro recorridos finales del hub en marcha antes de cerrar MC01.
 
 MC01 DONE 2026-10-16 — primera versión local lista para revisión del usuario. Gates de validate completados (943 pruebas/242 archivos, tipos, lint y verificadores), build dentro de presupuesto; E2E completo 90/90. Tras el ajuste final de contraste: lint focalizado, nuevo build de Playwright, cuatro recorridos del hub y presupuesto JS correctos (1186179 bytes gzip/101 chunks). Capturas finales revisadas en móvil/escritorio Competition claro/oscuro; texto activo legible, cuatro vistas operativas, sin doble Navbar y retorno desde Mis Partidos correcto. Las cuatro referencias visuales de Inicio/Ajustes actualizadas solo tras revisar las diferencias de rótulo; resto intacto. `git diff --check` correcto. Revisión React: botones nativos, grupo de navegación con aria-pressed, acordeón details, cancelación de fetch/timer, sin proveedores/dependencias nuevos. Evidencias en `.quality-artifacts/mis-competiciones-20261016/` (validate.log, build.log, e2e-final.log, e2e-hub-final.log y capturas en app/test-results). Preview en `http://localhost:3000/leagues`; gates aislados con fixtures, no OAuth real ni datos PRE/Production. La tarjeta usa encuentros de liga visibles y el historial personal cargado (10 recientes), no una consulta exhaustiva nueva; torneos siguen informativos. No se implementan dominio de torneos, tema global ni otros hitos. Sin DB, migraciones, instalaciones, commits, push ni despliegues; main/Production/tag intactos.
+## MC14 — en curso (2026-10-19)
+
+La administración principal de la liga va a incorporar un selector de temporada y un acceso directo a la creación de torneos con esa temporada como origen. El buscador de Ajustes tendrá una entrada localizada, visible solo con permisos de administración. Cambios limitados a interfaz y navegación; sin migraciones ni operaciones remotas.
+
+La prueba focalizada del buscador pasó (4/4). `npm run validate` se detuvo en el gate de presupuesto de fuente antes de lint, TypeScript, pruebas generales y build: 134532 líneas frente al máximo de 134500. Siguiendo las instrucciones del hito, no se continuó con los gates posteriores ni se marca como completo; requiere liberar margen de fuente antes de validar el conjunto.
+
+## MC14 — completado (2026-10-19)
+
+Administración de liga > Competición muestra Organizar torneo inmediatamente bajo Administrar temporada y Administrar MVP. Se elige la temporada de origen y el acceso abre el formulario ya existente con liga y temporada preseleccionadas. El buscador de Ajustes incluye entrada traducida y la muestra solo a administradores. Prueba focalizada 4/4; `npm run validate` completo: 1006 pruebas/251 archivos, lint sin errores (4 avisos existentes), TypeScript y build dentro del presupuesto. No se tocaron datos remotos.
+
+
+MC15 checkpoint (2026-10-19): formulario y API parametrizados para 8–16 jugadores, 1–4 pistas, reservas 60/90/120 y preparación limitada por margen; calendario por duración, comprobaciones de participación/rachas/variedad, cuenta de resultados y campeón dinámicas. La plantilla original de 12 jugadores y 2 pistas se conserva. Nueva migración aditiva supabase/migrations/20261019133236_rapid_tournament_flexible_americana.sql creada con Supabase CLI; no aplicada a ninguna base. Pruebas unitarias de 36 combinaciones y rutas base pasan; falta revisar permisos/validación SQL, actualizar detalles de las pantallas, validar el flujo de creación desde liga y ejecutar todos los gates. quality:source pasa en 134491/134500. Hito sigue IN_PROGRESS; sin PRE/Production, commits ni despliegue.
+MC15 checkpoint (2026-10-19): formulario actualizado con valores editables 8–16 jugadores, 1–4 pistas, reservas 60/90/120 y preparación limitada para preservar al menos 2 minutos de margen; origen desde liga completa plazas manuales y sugiere el nombre de la liga, que permanece editable. Añadida nota cuando el número de jugadores limita pistas simultáneas, horarios y validación dinámicos, tabla por participante y cobertura E2E ajustada al comportamiento actual. Migración flexible sigue sin aplicar. Pruebas objetivo y E2E desktop (flujo completo) pasan; npm run validate en curso.
+MC15 final (2026-10-19): local implementation and validation complete. npm run validate passed (252 files, 1,011 tests; lint 0 errors/5 existing warnings; typecheck, production build and quality:build passed). Tournament E2E passed 6/6 across mobile/desktop and light/dark, including independent creation and linked-season roster import. Flexible migration is versioned but deliberately not applied remotely; PRE database validation remains pending authorization. No commit or deployment.
