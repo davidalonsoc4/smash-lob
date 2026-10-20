@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), rpc: vi.fn(), maybeSingle: vi.fn() }))
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), rpc: vi.fn(), maybeSingle: vi.fn(), single: vi.fn(), generate: vi.fn() }))
 vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.auth }))
 vi.mock("@/lib/serverRateLimit", () => ({ enforceRequestRateLimit: vi.fn(async () => null) }))
+vi.mock("@/lib/serverDynamicMexicano", () => ({ generateAndPersistMexicanoRound: mocks.generate }))
 
 import { GET as readTournament, DELETE as deleteTournament } from "@/app/api/tournaments/[id]/route"
 import { POST as restartTournament } from "@/app/api/tournaments/[id]/restart/route"
@@ -11,6 +12,7 @@ import { POST as drawTournament } from "@/app/api/tournaments/[id]/draw/route"
 import { POST as startTournament } from "@/app/api/tournaments/[id]/start/route"
 import { PUT as saveResult } from "@/app/api/tournaments/[id]/matches/[matchId]/result/route"
 import { POST as finishTournament } from "@/app/api/tournaments/[id]/finish/route"
+import { POST as generateNextRound } from "@/app/api/tournaments/[id]/next-round/route"
 import { requireRapidTournamentAccess } from "@/lib/serverRapidTournaments"
 
 const tournamentId = "47b0b645-4790-491f-8f15-b1fe8bf8be13"
@@ -33,13 +35,16 @@ describe("rapid tournament creator routes", () => {
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: names.map((full_name) => ({ full_name })), error: null }),
       maybeSingle: mocks.maybeSingle,
+      single: mocks.single,
     }
     const supabase = {
       from: vi.fn(() => query),
       rpc: mocks.rpc,
     }
     mocks.auth.mockResolvedValue({ ok: true, actor: { supabase, user: { id: "creator-uuid", email: "creator@example.test" } } })
-    mocks.maybeSingle.mockResolvedValue({ data: { id: tournamentId, created_by_user_id: "creator-uuid", player_count: 12, court_count: 2, round_count: 6, status: "draft" }, error: null })
+    mocks.maybeSingle.mockResolvedValue({ data: { id: tournamentId, created_by_user_id: "creator-uuid", player_count: 12, court_count: 2, round_count: 6, status: "draft", format: "balanced_americana" }, error: null })
+    mocks.single.mockResolvedValue({ data: { format: "balanced_americana" }, error: null })
+    mocks.generate.mockResolvedValue({ ok: true, round: 2 })
   })
 
   it("keeps creator tournament lists available before account-link columns are installed", async () => {
@@ -118,6 +123,14 @@ describe("rapid tournament creator routes", () => {
     expect(invalidSize.status).toBe(400)
   })
 
+  it("creates a dynamic Mexicano without pre-generating matches", async () => {
+    mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
+    const response = await createTournament(request("/api/tournaments", { name: "Mexicano", startsAt: "2026-10-17T07:00:00Z", courtNames: ["Pista 1", "Pista 2"], players: names, format: "dynamic_mexicano" }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_dynamic_mexicano_tournament", expect.objectContaining({ p_player_names: names, p_round_count: 6, p_generation_seed: expect.any(Number) }))
+    expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("p_matches")
+  })
+
   it("allows reroll and start only through creator-bound state RPCs", async () => {
     mocks.rpc.mockResolvedValueOnce({ data: false, error: null }).mockResolvedValueOnce({ data: true, error: null })
     const locked = await drawTournament(request(`/api/tournaments/${tournamentId}/draw`), params({ id: tournamentId }))
@@ -145,6 +158,16 @@ describe("rapid tournament creator routes", () => {
     const response = await finishTournament(request(`/api/tournaments/${tournamentId}/finish`), params({ id: tournamentId }))
     expect(response.status).toBe(409)
     expect(mocks.rpc).toHaveBeenCalledWith("finish_rapid_tournament", { p_tournament_id: tournamentId, p_creator_user_id: "creator-uuid" })
+  })
+
+  it("keeps next-round generation behind creator access and reports generation gates", async () => {
+    const generated = await generateNextRound(request(`/api/tournaments/${tournamentId}/next-round`), params({ id: tournamentId }))
+    expect(generated.status).toBe(200)
+    expect(mocks.generate).toHaveBeenCalledWith(expect.anything(), tournamentId, "creator-uuid")
+    mocks.generate.mockResolvedValueOnce({ ok: false, status: 409, error: "previous_round_incomplete" })
+    const blocked = await generateNextRound(request(`/api/tournaments/${tournamentId}/next-round`), params({ id: tournamentId }))
+    expect(blocked.status).toBe(409)
+    expect(await blocked.json()).toEqual({ error: "previous_round_incomplete" })
   })
 
   it("binds restart and deletion to the authenticated creator and finished state", async () => {

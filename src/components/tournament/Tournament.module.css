@@ -20,6 +20,9 @@
 .muted { color: var(--t-muted); }
 .eyebrow { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: var(--t-muted); }
 .field { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 2.875rem; padding: .65rem .75rem; border: 1px solid var(--t-border); border-radius: .75rem; background: var(--t-raised); color: var(--t-text); font-size: 1rem; font-weight: 600; }
+.selectWrap { position: relative; display: block; width: 100%; }
+.selectField { appearance: none; padding-right: 2.75rem; }
+.selectChevron { position: absolute; top: 50%; right: .8rem; width: 1.1rem; height: 1.1rem; color: var(--t-muted); pointer-events: none; transform: translateY(-50%); }
 .field:focus-visible, .navItem:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 3px; }
 .field:disabled { opacity: .65; cursor: not-allowed; }
 .stepperRow { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; padding: .25rem 0; }

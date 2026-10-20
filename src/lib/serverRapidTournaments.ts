@@ -67,6 +67,7 @@ export function mapTournamentData(
           finishedAt: tournamentResult.data.finished_at,
           configuration: {
             format: tournamentResult.data.format,
+            generationSeed: tournamentResult.data.generation_seed ?? 0,
             players: tournamentResult.data.player_count,
             courts: tournamentResult.data.court_count,
             reservationMinutes: tournamentResult.data.reservation_minutes,
