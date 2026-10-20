@@ -2,9 +2,9 @@
 
 Los tres enlaces superiores de vuelta de creación y detalle de torneos muestran «Competiciones» y conservan su destino `/leagues`: carga/error del detalle, cabecera del torneo y formulario de creación. Títulos de pantalla, Ajustes y textos informativos no cambian. Se actualizaron las dos comprobaciones E2E de regreso al listado. Validación local: `npm run i18n:check`, ESLint focalizado, `npm run typecheck` y recorrido Playwright de torneo fijo en cuatro variantes correcto. Sin base de datos, dependencias, despliegue ni commits.
 
-## MC19 — publicación en PRE en curso (2026-10-21)
+## MC19 — publicado en PRE (2026-10-21)
 
-El usuario ha autorizado la publicación de los cambios pendientes para pruebas. Antes de tocar PRE se verificará la rama frente a `origin/staging`, se ejecutarán los gates locales y el `dry-run` de Supabase deberá confirmar que `20261020164339_add_dynamic_mexicano_tournaments.sql` es la única migración pendiente. Solo entonces se aplicará esa migración en PRE, se integrará el código en `staging` y se comprobará el despliegue; `main`, Producción y `v1.0.0` siguen fuera de alcance.
+La publicación fue autorizada y completada exclusivamente en PRE. `npm run validate` pasó con 255 archivos y 1.037 pruebas, TypeScript, build y presupuesto; el pipeline de la PR #52 validó además migraciones/pgTAP/restore, navegador, accesibilidad, PWA y Lighthouse. El `dry-run` confirmó como única pendiente `20261020164339_add_dynamic_mexicano_tournaments.sql`, que se aplicó y quedó registrada en `smash-lob-staging` (`miadjotkucgluwbrgeih`). La PR #52 se integró como `022f05492f6d3feba9488833470685591e80865a` en `staging`; deployment `dpl_72U9taBDcQxKEfwC34W3kAEpXqSe` READY con alias `pre.smashandlob.com`. La comprobación autenticada de Vercel devolvió health 200, versión 1.15.33, entorno `pre`, y las rutas `/tournaments/new`, `/tournaments` y `/leagues` 200. El smoke local sin bypass devuelve 302 por la protección de Vercel. No se tocaron `main`, Producción ni `v1.0.0`.
 
 ## MC19 — completado localmente (2026-10-20)
 

@@ -7,7 +7,7 @@
 - Stop condition: no cerrar si cambia una ruta de retorno, se altera un encabezado de contenido o falla una validación crítica.
 
 ## MC19 - Mexicano Dinámico Equilibrado
-- Status: IN PROGRESS (2026-10-21; publicación en PRE solicitada: validar la rama, aplicar exclusivamente la migración aditiva pendiente en PRE, integrar en `staging`, desplegar y verificar)
+- Status: DONE in PRE (2026-10-21; PR #52 merged in `staging`, migration applied and PRE deployment verified)
 - Objective: Incorporar el formato Mexicano Dinámico a los torneos rápidos existentes, generando una sola ronda cada vez según resultados, con participación, descansos, parejas y rivales equilibrados.
 - Tasks: (1) añadir el motor determinista puro y sus simulaciones para configuraciones variables; (2) persistir formato, semilla y generación idempotente/transaccional con permisos actuales, además de bloquear resultados históricos que ya tengan rondas posteriores; (3) integrar selector, calendario, clasificación y acción de siguiente ronda, y ejecutar los gates completos sin alterar la Americana.
 - Remote changes allowed: únicamente PRE, bajo la solicitud explícita del usuario del 2026-10-21. Aplicar exclusivamente `20261020164339_add_dynamic_mexicano_tournaments.sql` tras un `dry-run` que confirme que es la única pendiente; integrar en `staging`, desplegar y verificar. No tocar Production, `main` ni la etiqueta `v1.0.0`.
