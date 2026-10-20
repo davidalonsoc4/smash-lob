@@ -10,9 +10,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params
   const access = await requireRapidTournamentCreator(id)
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
-  const { data: tournament, error: tournamentError } = await access.actor.supabase.from("rapid_tournaments").select("player_count,court_count,round_count,status").eq("id", access.tournamentId).maybeSingle()
+  const { data: tournament, error: tournamentError } = await access.actor.supabase.from("rapid_tournaments").select("player_count,court_count,round_count,status,format").eq("id", access.tournamentId).maybeSingle()
   if (tournamentError || !tournament) return NextResponse.json({ error: "tournament_read_failed" }, { status: 500 })
-  if (tournament.status !== "draft") return NextResponse.json({ error: "tournament_draw_locked" }, { status: 409 })
+  if (tournament.status !== "draft" || tournament.format !== "balanced_americana") return NextResponse.json({ error: "tournament_draw_locked" }, { status: 409 })
   const { data: players, error: playersError } = await access.actor.supabase.from("rapid_tournament_players").select("full_name,user_id").eq("tournament_id", access.tournamentId).order("slot")
   const validated = validateTournamentParticipants(players?.map((player) => player.full_name), tournament.player_count)
   if (playersError || !validated.ok) return NextResponse.json({ error: "tournament_players_read_failed" }, { status: 500 })

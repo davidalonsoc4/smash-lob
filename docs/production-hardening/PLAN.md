@@ -1,6 +1,27 @@
 # Production Hardening Plan
+## MC20 - Etiqueta compacta de vuelta a Competiciones
+- Status: DONE locally (2026-10-20; i18n, lint específico, TypeScript y recorrido E2E focalizado correctos)
+- Objective: Unificar los controles superiores de vuelta desde los flujos de torneos con la etiqueta compacta «Competiciones», sin cambiar sus destinos ni la navegación.
+- Tasks: (1) localizar únicamente los enlaces superiores de retorno; (2) reutilizar la traducción corta ya existente; (3) actualizar las comprobaciones focalizadas y validar tipos, formato de traducciones y pruebas de torneos.
+- Remote changes allowed: ninguno. Sin base de datos, despliegue, commits ni cambios en Production.
+- Stop condition: no cerrar si cambia una ruta de retorno, se altera un encabezado de contenido o falla una validación crítica.
+
+## MC19 - Mexicano Dinámico Equilibrado
+- Status: IN PROGRESS (2026-10-21; publicación en PRE solicitada: validar la rama, aplicar exclusivamente la migración aditiva pendiente en PRE, integrar en `staging`, desplegar y verificar)
+- Objective: Incorporar el formato Mexicano Dinámico a los torneos rápidos existentes, generando una sola ronda cada vez según resultados, con participación, descansos, parejas y rivales equilibrados.
+- Tasks: (1) añadir el motor determinista puro y sus simulaciones para configuraciones variables; (2) persistir formato, semilla y generación idempotente/transaccional con permisos actuales, además de bloquear resultados históricos que ya tengan rondas posteriores; (3) integrar selector, calendario, clasificación y acción de siguiente ronda, y ejecutar los gates completos sin alterar la Americana.
+- Remote changes allowed: únicamente PRE, bajo la solicitud explícita del usuario del 2026-10-21. Aplicar exclusivamente `20261020164339_add_dynamic_mexicano_tournaments.sql` tras un `dry-run` que confirme que es la única pendiente; integrar en `staging`, desplegar y verificar. No tocar Production, `main` ni la etiqueta `v1.0.0`.
+- Stop condition: no continuar tras un fallo crítico de equidad, concurrencia, autorización o regresión de Americana; no cerrar sin las simulaciones solicitadas y los gates del repositorio.
+
+## MC18 - Clarificar parámetros y resumen de creación de torneos
+- Status: DONE locally (2026-10-19; `npm run validate` correct; rapid-tournament E2E 6/6)
+- Objective: Aclarar unidades, ocultar el aviso de plazas manuales cuando no hagan falta, sustituir flechas nativas de selects, simplificar etiquetas de puntuación y condensar el resumen sin totales redundantes.
+- Tasks: (1) ajustar etiquetas, selectores, textos condicionales y transiciones; (2) consolidar el resumen con todos los datos útiles no repetidos; (3) actualizar E2E, validar los flujos independientes y vinculados y ejecutar los gates locales.
+- Remote changes allowed: ninguno. Sin despliegue, cambios de base de datos, dependencias ni commits.
+- Stop condition: no cerrar el hito si falla una validación crítica o se pierde un dato de configuración/logística necesario.
+
 ## MC17 - Recuperar el detalle visual de las tarjetas de Mis ligas
-- Status: IN_PROGRESS
+- Status: DONE (2026-10-19; PR #51, PRE v1.15.33 READY and smoke verified)
 - Objective: Alinear las tarjetas de la lista Mis ligas con la referencia de producción, retirando las etiquetas Próximamente y Toca para entrar.
 - Tasks: (1) recuperar logo, descripción y métricas de jugadores/partidos/líder; (2) conservar selección de liga y hacer explícito el estado actual; (3) validar accesibilidad y recorridos móvil/escritorio y publicar solo en PRE.
 - Remote changes allowed: rama de trabajo, integración en `staging` y despliegue PRE bajo solicitud explícita del usuario. No tocar Production, `main`, migraciones ni tag `v1.0.0`.
