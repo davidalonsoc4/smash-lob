@@ -3037,3 +3037,11 @@ Reproducidos HTTP 500 en /leagues y /api/health. Proceso next dev previo a la ac
 ### MC52 — presupuesto de componentes cliente
 
 - Ajustado el límite de componentes cliente de 195 a 196 para cubrir el nuevo `DirectionsPicker`, un componente reutilizable compartido por las acciones de navegación.
+## MC53 — publicación en PRE y rama de desarrollo de torneos
+
+- Status: PRE READY (2026-10-24)
+- PR #55 fusionado en `staging` como `b67df81af4aa63c249feeb53dd845f06fa7acd4e`.
+- Vercel deployment `smash-d0mnws415-davidalonsoc4` listo con alias `pre.smashandlob.com`; `/api/health` verificado con `vercel curl` y versión `1.15.34` en entorno `pre`.
+- Smoke público directo bloqueado por la protección de Vercel (302); la comprobación autenticada de Vercel fue correcta.
+- Rama de trabajo creada desde `origin/staging`: `codex/tournament-development`.
+
