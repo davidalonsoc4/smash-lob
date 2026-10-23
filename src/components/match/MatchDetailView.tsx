@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react"
-import { MatchDetailPairingPanel } from "@/components/match/MatchDetailPairingPanel"
+import { MatchDetailPairingPanel, MatchSideHelp } from "@/components/match/MatchDetailPairingPanel"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import { BackButton } from "@/components/ui/BackButton"
 
@@ -41,6 +41,12 @@ export function MatchDetailView({
   pairing,
   children,
 }: MatchDetailViewProps) {
+  const showPositionHelp = pairing.showPositionHelp && !pairing.sets?.length && (pairing.pointsA == null || pairing.pointsB == null)
+  const contextLine = context ?? (subtitle ? (
+    <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-neutral-500">
+      {subtitle}
+    </p>
+  ) : null)
   return (
     <div className="space-y-3">
       <header className="app-page-header">
@@ -65,11 +71,12 @@ export function MatchDetailView({
           </div>
 
 
-          {context ?? (subtitle ? (
-            <p className="mt-0.5 text-xs font-black uppercase tracking-wide text-neutral-500">
-              {subtitle}
-            </p>
-          ) : null)}
+          {showPositionHelp ? (
+            <div className="flex items-end justify-between gap-2">
+              <div className="min-w-0 flex-1">{contextLine}</div>
+              <MatchSideHelp />
+            </div>
+          ) : contextLine}
         </div>
       </header>
 

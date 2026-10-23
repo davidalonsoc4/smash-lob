@@ -3108,3 +3108,9 @@ html[data-visual-style="competition"] .personal-form-result {
 .public-site-hero .app-top-back-control { color: #fff; }
 html[data-visual-style="competition"] .app-accent-surface a.bg-white { color: var(--competition-text) !important; }
 @media (display-mode: standalone) { html, body, html[data-theme][data-style], html[data-theme][data-style] body { background: #000000 !important; } }
+
+/* Standalone match-up: emphasize names without changing previews or finished scores. */
+.app-match-pairing-standalone .app-match-player-name {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}

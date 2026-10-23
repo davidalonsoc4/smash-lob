@@ -1,12 +1,75 @@
+## MC40 — Ayuda al pulsar la posición cambiada
+- Status: DONE locally (2026-10-23; ocho pruebas de interacción, tipos, lint y cuatro casos de navegador correctos)
+- Objective: texto rojo y símbolo de cambio abren la misma ayuda que el icono de Jornada, con teclado y sin navegar al perfil. Centrar el símbolo equivalente mediante SVG, por nueva indicación del usuario.
+- Validation: pruebas de interacción, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+## MC39 — Ayuda en el extremo inferior de Jornada
+- Status: DONE locally (2026-10-23; ocho pruebas, tipos, lint y cuatro casos de navegador correctos)
+- Objective: estado arriba a la derecha y ayuda debajo, alineada al borde inferior del contenido de la cabecera.
+- Validation: pruebas existentes, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+## MC38 — Ayuda de posiciones junto al estado
+- Status: DONE locally (2026-10-23; ocho pruebas, tipos, lint y cuatro casos de navegador correctos)
+- Objective: mover el icono desde el VS a la cabecera de Jornada, manteniendo ayuda y visibilidad contextual.
+- Validation: pruebas de ayuda/posiciones, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+## MC37 — Prueba de enfrentamiento sin tarjeta exterior
+- Status: DONE locally (2026-10-23; veinte pruebas, tipos, lint y ocho casos de navegador correctos; diseño de prueba pendiente de valoración)
+- Objective: parejas y VS directamente sobre la pantalla, nombres algo mayores y ayuda discreta; preservar recomendaciones y marcador final.
+- Validation: pruebas existentes, tipos, lint y capturas móviles claro/oscuro. Sin operaciones remotas; prueba reversible.
+
+## MC36 — Cabecera y separación de Emparejamiento/Programación
+- Status: DONE locally (2026-10-23; veinte pruebas, tipos, lint, tipografía y cuatro casos de navegador correctos)
+- Objective: reutilizar SectionHeader en Emparejamiento y eliminar espacio adicional de Programación, con separación común de Pagos.
+- Validation: pruebas existentes, TypeScript, lint, tipografía y comprobación móvil claro/oscuro. Sin operaciones remotas.
+
+## MC35 — Ubicación uniforme en previews
+- Status: DONE locally (2026-10-23; 26 pruebas, TypeScript, lint y controles de ubicaciones/Mis partidos correctos)
+- Objective: Población · Ubicación · Pista mediante el formateador compartido; conservar resolución de catálogo, datos y campos ausentes.
+- Validation: pruebas de ubicaciones y tarjetas, TypeScript, lint y controles de ubicaciones. Sin operaciones remotas.
+
+## MC34 — Emparejamiento sin etiquetas redundantes
+- Status: DONE locally (2026-10-23; nueve pruebas, TypeScript y ESLint focalizado correctos)
+- Objective: retirar Pareja A/B y su fila del panel de emparejamiento; mantener nombres, posiciones, VS y resultados.
+- Validation: pruebas existentes del panel, tipos y lint focalizado. Sin operaciones remotas.
+
+## MC33 — Alineación y jerarquía de paneles de Partido
+- Status: DONE locally (2026-10-23; doce pruebas de formulario, tipos, lint, i18n y cuatro casos de navegador correctos)
+- Objective: Por cobrar en cabecera antes del chevron, Resultado destacado y botones de programación iguales. Incluir Población · Ubicación y pista, también en estados finalizado y aplazado.
+- Validation: formularios, tipos, lint, i18n y navegador móvil claro/oscuro; sin operaciones remotas.
+
+## MC32 — Claridad visual de Programación, Pagos y Resultado
+- Status: DONE locally (2026-10-23; validate completo: 1092 pruebas, tipos, lint y build; cuatro casos de navegador correctos)
+- Objective: corregir pulsación clara, destacar ubicación, compactar acciones y alinear parejas con inputs. Sin cambios de permisos ni operaciones remotas.
+- Validation: formularios, tipos, lint, build y navegador móvil claro/oscuro con fixtures.
+
+## MC31 - Pulido contextual de la pantalla Partido
+- Status: DONE locally (2026-10-23; validate completo: 1092 pruebas, tipos, lint y build; cuatro casos de navegador y repetición final móvil correctos)
+- Objective: Aplicar solo propuestas 1, 2, 4, 8, 12, 13, 14 y 15: prioridad por estado, cabeceras comunes, acciones jerarquizadas, pagos claros, parejas y validación de marcador, gestión de resultado agrupada.
+- Validation: formularios, permisos, errores, estados previo/pendiente/finalizado y pruebas de navegador con fixtures; tipos, lint, i18n y build.
+- Remote changes allowed: ninguno. Sin migraciones ni cambios en reglas deportivas.
+
+## MC30 - Orden visual de jugadores por lado de pista
+- Status: DONE locally (2026-10-23; 25 tests focalizados, cuatro casos de navegador, tipos y lint correctos)
+- Objective: En el detalle con posiciones recomendadas, Pareja A Revés/Drive y Pareja B Drive/Revés; conservar orden si faltan recomendaciones y no alterar jugadores, equipos ni el símbolo de cambio.
+- Validation: orden con equipos invertidos, clasificación cambiante, empates y partidos finalizados; tipos, lint y pruebas focalizadas.
+- Remote changes allowed: ninguno.
+
+## MC29 - Unificar etiquetas de resultado
+- Status: DONE locally (2026-10-23; 25 pruebas, seis casos de navegador, tipos y lint correctos)
+- Objective: Usar en todas las etiquetas Victoria/Derrota el estilo compacto de Actividad personal, con componente común y guía de estilos.
+- Validation: tarjetas de liga/personales, ayuda accesible, tipos, lint y comprobaciones visuales con fixtures móviles/escritorio; reutiliza colores de tema existentes.
+- Remote changes allowed: ninguno.
+
 ## MC26 - Publicar cambios pendientes en PRE
-- Status: IN PROGRESS (2026-10-23)
+- Status: DONE (2026-10-23; PR #54, PRE 1.15.34 verificado)
 - Objective: Publicar el estado visual y funcional aprobado, incluidas las migraciones aditivas de MC21/22, exclusivamente en PRE.
 - Validation: npm run validate, Playwright con fixtures, CI y smoke PRE con versión nueva.
 - Remote changes allowed: commit/push de la rama, PR/merge a staging, aplicar solo migraciones pendientes verificadas en smash-lob-staging y comprobar deployment PRE, autorizados por el usuario el 2026-10-23. No main, Production ni v1.0.0.
 - Stop condition: fallo crítico de gates, destino no identificado o migraciones inesperadas.
 
 ## MC27 - Recomendaciones de posición en partidos de liga
-- Status: PENDING (tras MC26)
+- Status: DONE locally (2026-10-23; validate completo y cuatro pruebas de navegador correctas, sin publicar)
 - Objective: Recomendar Drive/Revés según preferencias y clasificación actual, respetando preferencias compatibles, sin imponer lados ni modificar datos; ayuda clara en el icono preparado.
 - Validation: pruebas de combinaciones, empates, datos ausentes y visibilidad solo en partidos pendientes; tipos/lint y gates pertinentes.
 - Remote changes allowed: ninguno; implementación local posterior a la publicación PRE solicitada.
@@ -839,3 +902,8 @@ Last updated: 2026-07-16 23:31:46 +02:00
 - Remote changes allowed: none
 - Rollback: documentation only
 - Depends on: H22
+## MC28 - Recuperar servidor local tras actualizar Next
+- Status: DONE (2026-10-23; reinicio local y tres rutas HTTP 200)
+- Objective: Corregir el HTTP 500 local sin tocar PRE ni las funcionalidades.
+- Validation: comprobar /api/health, /leagues y detalle de partido tras reiniciar el proceso local con Next actualizado.
+- Remote changes allowed: ninguno.

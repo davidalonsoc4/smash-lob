@@ -1,6 +1,6 @@
 "use client";
 
-import { StatusHelp } from "@/components/ui/StatusHelp"
+import { MatchOutcomeBadge } from "@/components/matches/MatchOutcomeBadge"
 
 import Link from "next/link";
 import { MatchEventMeta } from "@/components/matches/MatchEventMeta";
@@ -21,7 +21,6 @@ import {
 import type { PlayerProfile } from "@/data/fakeData";
 import type { MatchSubstitution } from "@/lib/substitutes";
 import { getMatchSubstituteLabels } from "@/lib/substitutes";
-import { getBadgeClassName } from "@/lib/statusStyles";
 import {
   getCurrentUserMatchOutcome,
   getMatchTeamScores,
@@ -194,14 +193,7 @@ export function MatchCard({
     />
   );
   const outcomeNode = currentUserOutcome ? (
-    <StatusHelp kind="match" status={currentUserOutcome ?? ""}
-      className={getBadgeClassName(
-        currentUserOutcome === "victory" ? "green" : "red",
-        "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 type-caption font-medium uppercase tracking-wide leading-none",
-      )}
-    >
-      {currentUserOutcome === "victory" ? t.matches.victory : t.matches.defeat}
-    </StatusHelp>
+    <MatchOutcomeBadge outcome={currentUserOutcome} />
   ) : null;
   const statusNode = outcomeNode ?? matchStatusNode;
 

@@ -16,8 +16,8 @@ export function CalendarEventButton({ event, children, className, label }: { eve
     <button type="button" title={label ?? tx("Añadir al calendario")} className={className ?? "flex w-full items-center justify-center rounded-xl bg-neutral-950 px-2.5 py-2 text-xs !font-semibold text-white"} onClick={() => dialog.current?.showModal()}>{children ?? label ?? tx("Añadir al calendario")}</button>
     <dialog ref={dialog} aria-label={tx("Añadir al calendario")} className="fixed inset-0 m-auto w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-950 shadow-xl backdrop:bg-black/50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white">
       <h2 className="type-panel-title font-black">{tx("Añadir al calendario")}</h2>
-      <button type="button" className="mt-3 w-full rounded-xl bg-neutral-100 px-3 py-3 text-left text-sm font-bold dark:bg-neutral-800" onClick={() => exportTo("google")}>Google Calendar</button>
-      <button type="button" className="mt-2 w-full rounded-xl bg-neutral-100 px-3 py-3 text-left text-sm font-bold dark:bg-neutral-800" onClick={() => exportTo("ics")}>{tx("Apple Calendar / otros (.ics)")}</button>
+      <button type="button" className="mt-3 flex w-full items-center justify-between rounded-xl bg-neutral-100 px-3 py-3 text-left text-sm font-bold dark:bg-neutral-800" onClick={() => exportTo("google")}>Google Calendar<span aria-hidden="true">›</span></button>
+      <button type="button" className="mt-2 flex w-full items-center justify-between rounded-xl bg-neutral-100 px-3 py-3 text-left text-sm font-bold dark:bg-neutral-800" onClick={() => exportTo("ics")}>{tx("Apple Calendar / otros (.ics)")}<span aria-hidden="true">›</span></button>
       <button type="button" className="mt-3 w-full rounded-xl px-3 py-2 text-sm font-bold" onClick={() => dialog.current?.close()}>{tx("Cancelar")}</button>
     </dialog>
   </>

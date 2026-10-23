@@ -4,6 +4,8 @@ import { StatusHelp } from "@/components/ui/StatusHelp"
 
 import { useState } from "react";
 import { AppCard } from "@/components/ui/AppCard";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { matchPrimaryButton, matchDestructiveButton, matchSoftBadge } from "./matchPanelStyles";
 import {
   getMatchResultConfirmationState,
   type ResultConfirmationMode,
@@ -117,34 +119,28 @@ export function MatchResultConfirmationCard({
   }
 
   return (
-    <AppCard className="p-2.5">
-      <div className="flex items-center gap-2">
+    <AppCard>
+      <div className="space-y-2">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <p className="type-panel-title">{tx("Confirmar resultado")}</p>
-            <StatusHelp kind="confirmation" status={canRespond && !currentConfirmation ? "action_pending" : validation.state === "pending" && mode !== "required" ? "optional" : validation.state}
-              className={`shrink-0 rounded-full px-1.5 py-0.5 type-caption font-black ${status.className}`}
-            >{status.label}</StatusHelp>
-          </div>
+          <SectionHeader title={tx("Confirmar resultado")} action={<StatusHelp kind="confirmation" status={canRespond && !currentConfirmation ? "action_pending" : validation.state === "pending" && mode !== "required" ? "optional" : validation.state}
+              className={`${matchSoftBadge} ${status.className}`}
+            >{tx(status.label)}</StatusHelp>} />
 
           {detail ? (
-            <p className="mt-0.5 truncate type-caption font-semibold text-neutral-500">
-              {detail}
+            <p className="mt-1 type-caption text-neutral-500">
+              {tx(detail)}
             </p>
           ) : null}
         </div>
 
         {canRespond ? (
-          <div className="flex shrink-0 gap-1">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => saveStatus("confirmed")}
               disabled={isSaving}
-              className={`rounded-lg px-2 py-1.5 type-caption font-black disabled:opacity-50 ${
-                currentConfirmation?.status === "confirmed"
-                  ? "bg-neutral-950 text-white"
-                  : "bg-neutral-100 text-neutral-800"
-              }`}
+              aria-pressed={currentConfirmation?.status === "confirmed"}
+              className={matchPrimaryButton}
             >
               {tx("Correcto")}
             </button>
@@ -153,7 +149,7 @@ export function MatchResultConfirmationCard({
               type="button"
               onClick={() => saveStatus("disputed")}
               disabled={isSaving}
-              className="inline-flex rounded-lg bg-red-50 px-2 py-1.5 type-caption font-black text-red-700 disabled:opacity-50 items-center justify-center text-center"
+              className={matchDestructiveButton}
             >
               {tx("Incorrecto")}
             </button>

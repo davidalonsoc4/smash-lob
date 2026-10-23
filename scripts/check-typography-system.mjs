@@ -159,8 +159,10 @@ const matchPanelTitleFiles = await Promise.all([
   "src/components/match/MatchSubstitutionPanel.tsx",
   "src/components/mvp/MvpVotingCard.tsx",
 ].map((file) => readFile(file, "utf8")))
+const sharedSectionHeader = await readFile("src/components/ui/SectionHeader.tsx", "utf8")
+assert(sharedSectionHeader.includes("type-panel-title"), "SectionHeader debe conservar type-panel-title")
 for (const source of matchPanelTitleFiles) {
-  assert(source.includes("type-panel-title"), "Todos los paneles principales de PARTIDO deben usar type-panel-title")
+  assert(source.includes("type-panel-title") || (source.includes('import { SectionHeader } from "@/components/ui/SectionHeader"') && source.includes("<SectionHeader")), "Todos los paneles principales de PARTIDO deben usar type-panel-title directamente o mediante SectionHeader")
 }
 
 const bottomNav = await readFile("src/components/layout/BottomNav.tsx", "utf8")

@@ -12,6 +12,7 @@ import {
   type LeagueLocation,
 } from "@/lib/leagueLocations";
 import { useI18n } from "@/i18n/I18nProvider"
+import { DirectionsPicker } from "@/components/ui/DirectionsPicker"
 
 type LeagueLocationsEditorProps = {
   locations: LeagueLocation[];
@@ -581,14 +582,12 @@ export function LeagueLocationsEditor({
                 </div>
               </div>
 
-              <a
-                href={getLeagueLocationMapsUrl(location)}
-                target="_blank"
-                rel="noreferrer"
-                className="flex mt-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center type-caption font-black text-neutral-800 items-center justify-center"
-              >
-                {copy.openMaps}
-              </a>
+              <DirectionsPicker
+                mapsUrl={getLeagueLocationMapsUrl(location)}
+                locationLabel={`${getLeagueLocationOptionLabel(location)}${getLeagueLocationSubtitle(location) ? ` · ${getLeagueLocationSubtitle(location)}` : ""}`}
+                triggerLabel={copy.openMaps}
+                className="mt-2 flex w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-center type-caption font-black text-neutral-800"
+              />
             </div>
           ))}
         </div>
@@ -709,23 +708,16 @@ export function LeagueLocationsEditor({
           ) : null}
 
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <a
-              href={
-                draftLocation
-                  ? getLeagueLocationMapsUrl(draftLocation)
-                  : undefined
-              }
-              target="_blank"
-              rel="noreferrer"
-              aria-disabled={!draftLocation}
-              className={`rounded-xl border px-3 py-2 text-center text-sm font-black shadow-sm ${
-                draftLocation
-                  ? "border-neutral-200 bg-white text-neutral-800"
-                  : "pointer-events-none border-neutral-200 bg-neutral-200 text-neutral-400"
-              }`}
-            >
-              {copy.searchMaps}
-            </a>
+            {draftLocation ? (
+              <DirectionsPicker
+                mapsUrl={getLeagueLocationMapsUrl(draftLocation)}
+                locationLabel={`${getLeagueLocationOptionLabel(draftLocation)}${getLeagueLocationSubtitle(draftLocation) ? ` · ${getLeagueLocationSubtitle(draftLocation)}` : ""}`}
+                triggerLabel={copy.searchMaps}
+                className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-sm font-black text-neutral-800 shadow-sm"
+              />
+            ) : (
+              <button type="button" disabled className="flex items-center justify-center rounded-xl border border-neutral-200 bg-neutral-200 px-3 py-2 text-center text-sm font-black text-neutral-400">{copy.searchMaps}</button>
+            )}
 
             <button
               type="button"

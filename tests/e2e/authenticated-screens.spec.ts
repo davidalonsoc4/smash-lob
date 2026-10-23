@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import jsQR from "jsqr"
 import sharp from "sharp"
+import { playerProfiles, allMatches as fixtureMatches } from "@/data/fakeData"
 
 const screens = [
   { name: "home", path: "/" },
@@ -13,6 +14,125 @@ const screens = [
   { name: "season-admin", path: "/admin/season" },
   { name: "season-summary", path: "/statistics/season" },
 ] as const
+
+for (const theme of ["light", "dark"]) {
+  test(`match workflow prioritizes scheduling, pending results and corrections (${theme})`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 360, height: 800 })
+    await page.route("**/api/locations", route => route.fulfill({ json: { locations: [{ id: "qa-derio", name: "Padel Derio", town: "Derio" }] } }))
+    await page.addInitScript(({ theme, matches }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      localStorage.setItem("smash-lob-matches", JSON.stringify(matches))
+      const guides = JSON.parse(localStorage.getItem("smash-lob-guided-onboarding-v1") ?? "{}")
+      guides.match = { tourKey: "match", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null }
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(guides))
+    }, { theme, matches: fixtureMatches.map(match => match.id === "season-2-round-5-match-2" ? { ...match, scheduledAt: "2026-08-09T12:00:00Z", location: "Club QA" } : match.id === "season-2-round-5-match-1" ? { ...match, location: JSON.stringify({ id: "qa-derio", name: "Padel Derio", town: "Derio" }), courtBooking: { isReserved: true, reservations: [{ playerId: "davo", amount: 40 }], ballPurchases: [], transfers: [{ id: "fixture-transfer", fromPlayerId: "bea", toPlayerId: "davo", amount: 10, isPaid: false, paidAt: null }], updatedAt: null } } : match) })
+
+    await page.goto("/match/season-2-round-4-match-1")
+    await expect(page.getByRole("button", { name: "Guardar programación", exact: true })).toBeVisible()
+    await page.screenshot({ path: testInfo.outputPath(`match-unscheduled-${theme}.png`), fullPage: true, scale: "css" })
+
+    await page.goto("/match/season-2-round-5-match-1")
+    const scheduleHeader = page.locator(".app-schedule-card > button")
+    await scheduleHeader.scrollIntoViewIfNeeded()
+    const headerBox = await scheduleHeader.boundingBox()
+    await page.mouse.move(headerBox!.x + 20, headerBox!.y + 20)
+    await page.mouse.down()
+    if (theme === "dark") expect(await scheduleHeader.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgb(250, 250, 250)")
+    await page.mouse.up()
+    await expect(page.locator(".app-schedule-card").getByRole("button", { name: "Editar", exact: true })).toBeVisible()
+    await expect(page.locator(".app-schedule-card").getByText("Derio · Padel Derio", { exact: true })).toBeVisible()
+    const directionsButton = page.locator(".app-schedule-card").getByRole("button", { name: "Cómo llegar", exact: true })
+    const directionsBox = await directionsButton.boundingBox()
+    const calendarBox = await page.locator(".app-schedule-card").getByRole("button", { name: "Calendario", exact: true }).boundingBox()
+    expect(Math.abs(directionsBox!.width - calendarBox!.width)).toBeLessThanOrEqual(1)
+    expect(Math.abs(directionsBox!.height - calendarBox!.height)).toBeLessThanOrEqual(1)
+    await directionsButton.click()
+    const directionsDialog = page.getByRole("dialog", { name: "Cómo llegar" })
+    await expect(directionsDialog).toBeVisible()
+    await expect(directionsDialog.getByRole("link", { name: "Google Maps", exact: true })).toBeVisible()
+    await expect(directionsDialog.getByRole("link", { name: "Apple Maps", exact: true })).toBeVisible()
+    await expect(directionsDialog.getByRole("link", { name: "Waze", exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Cancelar" }).click()
+    const paymentsTitleBox = await page.getByRole("heading", { name: "Pagos y reservas", exact: true }).boundingBox()
+    const receiveBox = await page.getByRole("button", { name: /Por cobrar/ }).boundingBox()
+    expect(Math.abs(paymentsTitleBox!.y + paymentsTitleBox!.height / 2 - receiveBox!.y - receiveBox!.height / 2)).toBeLessThanOrEqual(2)
+    await page.screenshot({ path: testInfo.outputPath(`match-schedule-expanded-${theme}.png`), fullPage: true, scale: "css" })
+    await page.getByRole("button", { name: "Ver pagos", exact: true }).click()
+    await expect(page.getByRole("button", { name: "Marcar transferencia como recibida" })).toBeVisible()
+    await page.screenshot({ path: testInfo.outputPath(`match-payments-${theme}.png`), fullPage: true, scale: "css" })
+    const result = page.getByRole("region", { name: "Resultado del partido", exact: true })
+    await expect(result.getByRole("textbox")).toHaveCount(0)
+    await result.getByRole("button", { name: "Registrar resultado", exact: true }).click()
+    await expect(result.getByText("Davo", { exact: true })).toBeVisible()
+    await expect(result.getByRole("textbox")).toHaveCount(6)
+    await expect(result.getByText("Resultado", { exact: true })).toBeVisible()
+    await page.screenshot({ path: testInfo.outputPath(`match-early-result-${theme}.png`), fullPage: true, scale: "css" })
+
+    await page.goto("/match/season-2-round-5-match-2")
+    await expect(result.getByRole("textbox")).toHaveCount(6)
+    const resultBox = await result.boundingBox()
+    const scheduleBox = await page.getByText("Programación", { exact: true }).boundingBox()
+    expect(resultBox!.y).toBeLessThan(scheduleBox!.y)
+    await page.screenshot({ path: testInfo.outputPath(`match-result-pending-${theme}.png`), fullPage: true, scale: "css" })
+    const accessibility = await new AxeBuilder({ page }).analyze()
+    expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+
+    await page.goto("/match/season-2-round-3-match-1")
+    await expect(result.getByRole("heading", { name: "Resultado registrado", exact: true })).toBeVisible()
+    await expect(result.getByRole("button", { name: "Limpiar resultado", exact: true })).toHaveCount(0)
+    await result.getByRole("button", { name: "Editar resultado", exact: true }).click()
+    await expect(result.getByRole("textbox").first()).toHaveValue("6")
+    await result.getByRole("button", { name: "Cancelar", exact: true }).click()
+    await result.getByText("Más acciones del resultado", { exact: true }).click()
+    await expect(result.getByRole("button", { name: "Limpiar resultado", exact: true })).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.screenshot({ path: testInfo.outputPath(`match-result-saved-${theme}.png`), fullPage: true, scale: "css" })
+  })
+}
+
+for (const theme of ["light", "dark"]) {
+  test(`recommended match sides and their help fit on mobile (${theme})`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 360, height: 800 })
+    await page.addInitScript(({ theme, players }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      localStorage.setItem("smash-lob-season-data", JSON.stringify({ playerProfiles: players }))
+      const guides = JSON.parse(localStorage.getItem("smash-lob-guided-onboarding-v1") ?? "{}")
+      guides.match = { tourKey: "match", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null }
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(guides))
+    }, { theme, players: playerProfiles.map(player => ({ ...player, preferredSide: "reves" })) })
+    await page.goto("/match/season-2-round-5-match-1")
+    const help = page.getByRole("button", { name: "Información sobre posiciones recomendadas" })
+    await expect(help).toBeVisible()
+    await expect(page.locator('[data-recommended-side="drive"]')).toHaveCount(2)
+    await expect(page.locator(".app-match-player-name")).toHaveText(["Davo", "Bea", "Carlos", "Alvaro"])
+    const changed = page.getByRole("button", { name: /Lado recomendado: Drive.*Preferencia: Revés/ }).first()
+    await expect(changed).toHaveAttribute("aria-label", /Lado recomendado: Drive.*Preferencia: Revés/)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.screenshot({ path: testInfo.outputPath(`recommended-sides-closed-${theme}.png`), scale: "css" })
+    await help.click()
+    const tooltip = page.getByRole("tooltip")
+    await expect(tooltip).toContainText("Un lado para cada uno")
+    await expect(tooltip).toContainText("vosotros decidís")
+    const bounds = await tooltip.boundingBox()
+    expect(bounds!.x).toBeGreaterThanOrEqual(0)
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(360)
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(800)
+    await page.screenshot({ path: testInfo.outputPath(`recommended-sides-${theme}.png`) })
+    const accessibility = await new AxeBuilder({ page }).include("[role=tooltip]").analyze()
+    expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.keyboard.press("Escape")
+    await expect(tooltip).toHaveCount(0)
+    await changed.click()
+    await expect(tooltip).toContainText("Un lado para cada uno")
+    await page.keyboard.press("Escape")
+    await expect(tooltip).toHaveCount(0)
+    await page.goto("/match/season-2-round-3-match-1")
+    await expect(page.locator("[data-recommended-side]")).toHaveCount(0)
+    await expect(help).toHaveCount(0)
+  })
+}
 
 test("welcome pack uses the final overgrip design and prints a full A4 sheet", async ({ page, context }) => {
   await context.addInitScript(() => { window.print = () => {} })
