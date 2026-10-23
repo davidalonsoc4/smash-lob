@@ -27,9 +27,11 @@ it("limits the summary to two leagues and links to separate lists without changi
   render(<LeaguesPage />)
   await screen.findByText("Todavía no tienes encuentros para mostrar.")
   expect(screen.getAllByRole("button", { name: /^Entrar en/ })).toHaveLength(2)
+  expect(screen.getAllByRole("button", { name: /^Entrar en/ }).map(button => button.getAttribute("aria-label"))).toEqual(["Entrar en Liga A", "Entrar en Liga C"])
   expect(screen.getByRole("link", { name: "Ver todas" })).toHaveAttribute("href", "/leagues/all")
   expect(screen.getByRole("link", { name: "Ver todos" })).toHaveAttribute("href", "/tournaments")
-  expect(screen.getByRole("link", { name: "Ver Mis partidos" })).toHaveAttribute("href", "/personal-matches")
+  expect(screen.queryByRole("link", { name: "Ver Mis partidos" })).toBeNull()
+  expect(screen.queryByRole("button", { name: "Actualizar" })).toBeNull()
   expect(screen.queryByRole("button", { name: "Resumen" })).toBeNull()
   expect(screen.queryByText("Amistosos")).toBeNull()
   expect(state.enter).not.toHaveBeenCalled()
@@ -39,7 +41,7 @@ it("retains complete league listings, archived seasons, permissions and explicit
   expect(screen.getAllByText("Jugadores")).toHaveLength(4)
   expect(screen.getAllByText("Partidos")).toHaveLength(4)
   expect(screen.getAllByText("Líder")).toHaveLength(4)
-  expect(screen.queryByText("Próximamente")).toBeNull()
+  expect(screen.getByText("Próximamente")).toBeVisible()
   expect(screen.queryByText("Toca para entrar")).toBeNull()
   expect(screen.getByText(/Finalizadas/).closest("details")!.open).toBe(false)
   expect(screen.getByRole("link", { name: "Crear nueva liga" })).toHaveAttribute("href", "/league/new")
@@ -56,6 +58,23 @@ it("keeps complete tournaments and creation on their existing routes", async () 
   expect(state.enter).not.toHaveBeenCalled()
   expect(fetch).toHaveBeenCalledTimes(1)
 })
+it("previews an active and the nearest upcoming tournament without changing the full list", async () => {
+  const tournaments = [
+    { id: "active-a", name: "Activo A", status: "in_progress", startsAt: "2026-10-23T09:00:00Z" },
+    { id: "active-b", name: "Activo B", status: "in_progress", startsAt: "2026-10-23T10:00:00Z" },
+    { id: "later", name: "Próximo lejano", status: "draft", startsAt: "2099-12-01T09:00:00Z" },
+    { id: "near", name: "Próximo cercano", status: "draft", startsAt: "2099-11-01T09:00:00Z" },
+  ]
+  vi.mocked(fetch).mockImplementation(async input => ({ ok: true, json: async () => String(input) === "/api/tournaments" ? { tournaments } : empty }) as Response)
+  const view = render(<CompetitionsOverview />)
+  await screen.findByText("Próximo cercano")
+  expect(screen.getByText("Activo A")).toBeVisible()
+  expect(screen.queryByText("Activo B")).toBeNull()
+  expect(screen.queryByText("Próximo lejano")).toBeNull()
+  view.rerender(<CompetitionsOverview view="tournaments" />)
+  expect(screen.getByText("Activo B")).toBeVisible()
+  expect(screen.getByText("Próximo lejano")).toBeVisible()
+})
 it.each(["es", "en", "eu"])("renders an existing tournament with date and time in %s", async (locale) => {
   state.locale = locale
   vi.mocked(fetch).mockImplementation(async (input) => ({ ok: true, json: async () => String(input) === "/api/tournaments" ? { tournaments: [{ id: "fixture-tournament", name: "Americana de prueba", startsAt: "2026-10-17T07:00:00Z", status: "draft" }] } : empty }) as Response)
@@ -65,13 +84,11 @@ it.each(["es", "en", "eu"])("renders an existing tournament with date and time i
   expect(tournament).toHaveTextContent("2026")
   expect(screen.getByRole("link", { name: /Americana de prueba/ })).toBeVisible()
 })
-it("shows a clear error and can retry through the refresh action", async () => {
+it("shows a clear error without the removed refresh action", async () => {
   vi.mocked(fetch).mockRejectedValueOnce(new Error("offline"))
   render(<LeaguesPage />)
   await screen.findByRole("alert")
-  fireEvent.click(screen.getByRole("button", { name: /Actualizar/ }))
-  await screen.findByText("Todavía no tienes encuentros para mostrar.")
-  expect(fetch).toHaveBeenCalledTimes(3)
+  expect(screen.queryByRole("button", { name: /Actualizar/ })).toBeNull()
 })
 it("does not expose another player's encounter or a not-yet-started season", async () => {
   const base: MatchData = { id: "base", leagueId: "a", seasonId: "a", round: 1, status: "scheduled", teamA: ["own"], teamB: [], pointsA: null, pointsB: null, sets: [], scheduledAt: "2099-01-01T12:00:00Z", dateLabel: null, location: null, resultRecordedAt: null, resultReportedByPlayerId: null, resultLocked: false, rankingCounts: true, incidentType: null, incidentStatus: null, incidentReason: null, incidentNotes: null, incidentCreatedAt: null, incidentResolvedAt: null, resolutionType: null, courtBooking: getEmptyCourtBooking() }

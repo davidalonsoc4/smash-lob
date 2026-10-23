@@ -15,7 +15,7 @@ import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { normalizeAccentColor } from "@/lib/visualStyle"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
-import { getMatchStatusBadgeClassName } from "@/lib/statusStyles"
+import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 import {
   getPersonalMatchOriginBadgeClass,
   getPersonalMatchOriginBadgeStyle,
@@ -28,9 +28,9 @@ import {
 
 const showPersonalMatchChevron = false
 
-type PersonalMatchCardProps = { match: PersonalMatchItem; hideEventMeta?: boolean }
+type PersonalMatchCardProps = { match: PersonalMatchItem; hideEventMeta?: boolean; compactBadges?: boolean }
 
-function MatchCardContent({ match, hideEventMeta = false, navigation }: PersonalMatchCardProps & { navigation: ReactNode }) {
+function MatchCardContent({ match, hideEventMeta = false, compactBadges = false, navigation }: PersonalMatchCardProps & { navigation: ReactNode }) {
   const { tx } = useI18n()
   const { userLeagues } = useLeagueAccess()
   const league = userLeagues.find(item => item.id === match.leagueId)
@@ -47,11 +47,11 @@ function MatchCardContent({ match, hideEventMeta = false, navigation }: Personal
 
   return (
     <AppCard className="relative !p-3 transition active:scale-[0.99]">
-      <div className="mb-2 flex items-center justify-between gap-3">
+      <div className={`mb-2 flex justify-between gap-3 ${!isFinished ? "items-start" : "items-center"}`}>
         <span
           data-personal-match-origin={match.origin}
           data-league-accent={match.origin === "league" && league ? normalizeAccentColor(league.accentColor) : undefined}
-          className={`min-w-0 max-w-[58%] shrink rounded-xl border px-2 py-1 type-caption font-black uppercase tracking-wide ${getPersonalMatchOriginBadgeClass(match)}`}
+          className={`min-w-0 max-w-[58%] shrink rounded-xl type-caption ${compactBadges ? "px-2 py-0.5 font-semibold tracking-normal !border-0" : "border px-2 py-1 font-black uppercase tracking-wide"} ${getPersonalMatchOriginBadgeClass(match)}`}
           style={getPersonalMatchOriginBadgeStyle(match, league ? normalizeAccentColor(league.accentColor) : undefined)}
         >
           <FitText>{getPersonalMatchOriginLabel(match)}</FitText>
@@ -59,7 +59,7 @@ function MatchCardContent({ match, hideEventMeta = false, navigation }: Personal
 
         {isFinished ? (
           <StatusHelp kind="match" status={outcome === "win" ? "victory" : outcome === "loss" ? "defeat" : "finished"}
-            className={`relative z-10 shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 type-caption font-black uppercase tracking-wide leading-none ${
+            className={`relative z-10 shrink-0 whitespace-nowrap rounded-full type-caption leading-none ${compactBadges ? "px-2 py-0.5 font-semibold tracking-normal !ring-0" : "px-2.5 py-1 font-black uppercase tracking-wide"} ${
               outcome === "win"
                 ? "bg-green-100 text-green-800"
                 : outcome === "loss"
@@ -74,13 +74,13 @@ function MatchCardContent({ match, hideEventMeta = false, navigation }: Personal
                 : "Finalizado"}
           </StatusHelp>
         ) : (
-          <StatusHelp kind={match.participants.some(participant => participant.isCurrentUser) ? "match-participant" : "match"} status={displayStatus} className={`relative z-10 ${getMatchStatusBadgeClassName(displayStatus)}`}>
-            {displayStatus === "in_progress"
-              ? "En juego"
-              : displayStatus === "result_pending"
-                ? tx("Pendiente de resultado")
-                : "Programado"}
-          </StatusHelp>
+          <MatchStatusBadge
+            variant="dot"
+            status={match.status}
+            scheduledAt={match.scheduledAt}
+            resultRecordedAt={match.resultRecordedAt}
+            isParticipant={match.participants.some(participant => participant.isCurrentUser)}
+          />
         )}
       </div>
 
@@ -205,19 +205,19 @@ function MatchCardContent({ match, hideEventMeta = false, navigation }: Personal
   )
 }
 
-export function PersonalMatchCard({ match, hideEventMeta = false }: PersonalMatchCardProps) {
+export function PersonalMatchCard({ match, hideEventMeta = false, compactBadges = false }: PersonalMatchCardProps) {
   const { tx } = useI18n()
   const router = useRouter()
   const { activateLeague } = useActiveLeague()
 
   if (match.origin === "friendly") {
     return (
-      <MatchCardContent match={match} hideEventMeta={hideEventMeta} navigation={<Link href={`/personal-matches/${encodeURIComponent(match.id)}`} className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2" aria-label={tx(`Abrir partido de ${tx("Amistoso")}`)} />} />
+      <MatchCardContent match={match} hideEventMeta={hideEventMeta} compactBadges={compactBadges} navigation={<Link href={`/personal-matches/${encodeURIComponent(match.id)}`} className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2" aria-label={tx(`Abrir partido de ${tx("Amistoso")}`)} />} />
     )
   }
 
   return (
-    <MatchCardContent match={match} hideEventMeta={hideEventMeta} navigation={<button
+    <MatchCardContent match={match} hideEventMeta={hideEventMeta} compactBadges={compactBadges} navigation={<button
       type="button"
       className="absolute inset-0 w-full rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-offset-2"
       onClick={() => {

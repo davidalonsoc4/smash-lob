@@ -876,7 +876,7 @@ export const eu = {
     accountSettingsDescription:
       "Pertsonalizatu zure liga guztietan agertzen den profileko irudi globala.",
     connectedEmail: "Lotutako emaila",
-    joinNewExistingLeague: "Lehendik dagoen beste liga batera sartu",
+    joinNewExistingLeague: "Lehendik dagoen lehiaketa batera sartu",
     avatarCustomActive: "Irudi pertsonalizatua aktibo dago zure kontuan.",
     avatarGoogleFallback: "Zure kontuko irudi globala erabiltzen da.",
     avatarInitialsFallback:

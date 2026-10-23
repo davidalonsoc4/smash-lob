@@ -7,7 +7,7 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import { StatusHelp } from "@/components/ui/StatusHelp"
+import { StatusDot } from "@/components/ui/StatusDot"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import {
   CHAT_UNREAD_LOCAL_REFRESH_EVENT,
@@ -229,9 +229,7 @@ export default function PersonalMatchChatsPage() {
                           {chat.unread > 99 ? "99+" : chat.unread}
                         </span>
                       ) : null}
-                      <StatusHelp kind={chat.expired || chat.readOnly ? "chat" : "match-participant"} status={chat.expired || chat.readOnly ? "readonly" : getMatchDisplayStatus(chat)} label={tx(chatBadge(chat))} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
-                        <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${chat.expired || chat.readOnly ? "bg-neutral-400" : getMatchDisplayStatus(chat) === "result_pending" ? "bg-amber-500" : getMatchDisplayStatus(chat) === "in_progress" ? "bg-emerald-500" : "bg-sky-500"}`} />
-                      </StatusHelp>
+                      <StatusDot kind={chat.expired || chat.readOnly ? "chat" : "match-participant"} status={chat.expired || chat.readOnly ? "readonly" : getMatchDisplayStatus(chat)} label={tx(chatBadge(chat))} />
                     </div>
 
                     <p className="mt-2 break-words type-small font-semibold text-neutral-600" title={[chat.partner, ...chat.rivals].join(" · ")}>

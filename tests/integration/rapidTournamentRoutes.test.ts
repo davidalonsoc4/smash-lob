@@ -12,6 +12,7 @@ import { POST as drawTournament } from "@/app/api/tournaments/[id]/draw/route"
 import { POST as startTournament } from "@/app/api/tournaments/[id]/start/route"
 import { PUT as saveResult } from "@/app/api/tournaments/[id]/matches/[matchId]/result/route"
 import { POST as finishTournament } from "@/app/api/tournaments/[id]/finish/route"
+import { POST as finishEmptyTournament } from "@/app/api/tournaments/[id]/finish-empty/route"
 import { POST as generateNextRound } from "@/app/api/tournaments/[id]/next-round/route"
 import { requireRapidTournamentAccess } from "@/lib/serverRapidTournaments"
 
@@ -158,6 +159,17 @@ describe("rapid tournament creator routes", () => {
     const response = await finishTournament(request(`/api/tournaments/${tournamentId}/finish`), params({ id: tournamentId }))
     expect(response.status).toBe(409)
     expect(mocks.rpc).toHaveBeenCalledWith("finish_rapid_tournament", { p_tournament_id: tournamentId, p_creator_user_id: "creator-uuid" })
+  })
+
+  it("only finishes an unscored tournament through the creator-bound cleanup action", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: false, error: null }).mockResolvedValueOnce({ data: true, error: null })
+    const blocked = await finishEmptyTournament(request(`/api/tournaments/${tournamentId}/finish-empty`), params({ id: tournamentId }))
+    expect(blocked.status).toBe(409)
+    expect(mocks.rpc).toHaveBeenLastCalledWith("finish_empty_rapid_tournament", { p_tournament_id: tournamentId, p_creator_user_id: "creator-uuid" })
+    const finished = await finishEmptyTournament(request(`/api/tournaments/${tournamentId}/finish-empty`), params({ id: tournamentId }))
+    expect(finished.status).toBe(200)
+    mocks.auth.mockResolvedValueOnce({ ok: false, status: 401, error: "unauthenticated" })
+    expect((await finishEmptyTournament(request(`/api/tournaments/${tournamentId}/finish-empty`), params({ id: tournamentId }))).status).toBe(401)
   })
 
   it("keeps next-round generation behind creator access and reports generation gates", async () => {

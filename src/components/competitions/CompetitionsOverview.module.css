@@ -1,0 +1,48 @@
+.league {
+  position: relative;
+}
+
+.runningStatus {
+  color: #15803d;
+}
+
+:global(html.dark) .runningStatus {
+  color: #6ee7b7;
+}
+
+.league::before {
+  position: absolute;
+  inset: .3rem auto .3rem .2rem;
+  z-index: 1;
+  width: .72rem;
+  border-radius: .75rem 0 0 .75rem;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--league-card-accent) 48%, transparent), transparent);
+  filter: blur(.35px);
+  content: "";
+  pointer-events: none;
+}
+
+.activitySlides > div > div > div,
+.activitySlides > div > div > div > section {
+  height: 100%;
+}
+
+.activitySlides section:has([data-match-event-meta]) {
+  display: flex;
+  flex-direction: column;
+}
+
+.withCalendar > section {
+  height: 100%;
+}
+
+.withCalendar [data-match-event-meta] {
+  padding-right: 3rem;
+}
+
+.activitySlides [data-match-event-meta] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}

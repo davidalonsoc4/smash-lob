@@ -68,7 +68,7 @@ assert(
 )
 
 assert(
-  pairingPanel.includes('metadataPlacement={index === 0 ? "before-name" : "after-name"}'),
+  pairingPanel.includes('metadataPlacement="after-name"'),
   "El orden visual de metadatos/nombre debe ser compartido",
 )
 assert(

@@ -30,6 +30,7 @@ describe("v1.10.17 settings context and personal safe area", () => {
     expect(shell).toContain('pathname === "/settings" || pathname.startsWith("/settings/")')
     expect(shell).toContain('!isSettingsContextRoute &&\n    !isPublicAccessRoute')
     expect(shell).toContain('href={`/settings?returnTo=${encodeURIComponent(pathname)}`}')
+    expect(shell).toContain("const settingsOpenedFromCompetition =")
     expect(settings).toContain('fallbackHref="/"')
     expect(settings).toContain('returnToParam="returnTo"')
     expect(backButton).toContain("getSafeInternalReturnTo")
@@ -37,6 +38,24 @@ describe("v1.10.17 settings context and personal safe area", () => {
     expect(shell).toContain("hasBottomNav={shouldShowBottomNav}")
     expect(settingsSearch).toContain("hasBottomNav = true")
     expect(settingsSearch).toContain('max(14px, env(safe-area-inset-bottom, 0px))')
+  })
+
+  it("uses competition-only settings and exposes tournament management inside general Settings", async () => {
+    const [settings, tournamentSettings, tournamentRoute] = await Promise.all([
+      read("src/app/settings/page.tsx"),
+      read("src/components/tournament/RapidTournamentSettings.tsx"),
+      read("src/app/tournaments/[id]/settings/page.tsx"),
+    ])
+
+    expect(settings).toContain('returnTo === "/leagues" || returnTo === "/leagues/all" || returnTo === "/tournaments"')
+    expect(settings).toContain('return <CompetitionSettingsPage allowCreation={returnTo === "/leagues"} />')
+    expect(settings).toContain("return <PlayerSettingsPage tournamentId={tournamentId} />")
+    expect(settings).toContain("TournamentManagementSettingsSection")
+    expect(settings).toContain('id="manage-tournament"')
+    expect(tournamentSettings).toContain('data.access.role === "creator"')
+    expect(tournamentSettings).toContain('data.tournament.status === "finished"')
+    expect(tournamentSettings).toContain('method: "DELETE"')
+    expect(tournamentRoute).toContain("RapidTournamentSettings")
   })
 
   it("keeps the same four-action toolbar visible in league and friendly chats", async () => {

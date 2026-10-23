@@ -121,7 +121,7 @@ export default function PersonalMatchesPage() {
           </div>
           <div className="space-y-2">
             {dashboard.upcoming.map((match) => (
-              <PersonalMatchCard key={`upcoming-${match.id}`} match={match} />
+              <PersonalMatchCard key={`upcoming-${match.id}`} match={match} compactBadges />
             ))}
           </div>
         </section>
@@ -154,7 +154,7 @@ export default function PersonalMatchesPage() {
         ) : (
           <div className="space-y-2">
             {dashboard.items.map((match) => (
-              <PersonalMatchCard key={`${match.origin}-${match.id}`} match={match} />
+              <PersonalMatchCard key={`${match.origin}-${match.id}`} match={match} compactBadges />
             ))}
           </div>
         )}

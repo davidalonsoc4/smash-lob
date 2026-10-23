@@ -69,7 +69,7 @@ export function MatchEventMeta({
   if (!dateText && !location) return null
 
   return (
-    <div className="mt-2 border-t border-neutral-100 pt-2">
+    <div data-match-event-meta className="mt-2 border-t border-neutral-100 pt-2">
       {dateText ? (
         <p className="type-caption font-semibold text-neutral-500">{dateText}</p>
       ) : null}

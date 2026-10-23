@@ -355,6 +355,7 @@ export default function MatchDetailPage() {
 
   return (
     <MatchDetailView
+      statusVariant="soft"
       backHref="/matches"
       backLabel={t.common.back}
       title={
@@ -418,6 +419,7 @@ export default function MatchDetailPage() {
         </>
       }
       pairing={{
+        showPositionHelp: true,
         teamA: match.teamA,
         teamB: match.teamB,
         players,

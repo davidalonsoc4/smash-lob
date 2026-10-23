@@ -9,6 +9,22 @@ import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: "es", tx: (text: string) => text, t: { matches: { scheduled: "Programado", resultPending: "Pendiente de resultado", unscheduled: "Sin programar" } } }) }))
 afterEach(cleanup)
 describe("status help", () => {
+  it("preserves the written state and its explanation in the soft detail variant", () => {
+    render(<MatchStatusBadge variant="soft" status="scheduled" scheduledAt="2099-01-01T10:00:00Z" />)
+    const trigger = screen.getByRole("button", { name: "Programado" })
+    expect(trigger.textContent).toBe("Programado")
+    fireEvent.click(trigger)
+    expect(screen.getByRole("tooltip").textContent).toContain("fecha y hora")
+  })
+  it("keeps preview dots accessible and explains their state without opening the match", () => {
+    const navigate = vi.fn()
+    render(<div onClick={navigate}><MatchStatusBadge variant="dot" status="scheduled" scheduledAt="2099-01-01T10:00:00Z" /></div>)
+    const trigger = screen.getByRole("button", { name: "Programado" })
+    expect(trigger.textContent).toBe("")
+    fireEvent.click(trigger)
+    expect(screen.getByRole("tooltip").textContent).toContain("fecha y hora")
+    expect(navigate).not.toHaveBeenCalled()
+  })
   it("guides participants to the chat while keeping spectator explanations informative", () => {
     const view = render(<MatchStatusBadge status="scheduling" coordinationStatus="coordinating" isParticipant />)
     fireEvent.click(screen.getByRole("button"))

@@ -6,7 +6,7 @@ import { FitText } from "@/components/ui/FitText"
 import styles from "./Tournament.module.css"
 
 const items = [
-  { path: "", label: "Resumen", shortLabel: "Resumen", icon: "home" },
+  { path: "", label: "Inicio", shortLabel: "Inicio", icon: "home" },
   { path: "/calendar", label: "Calendario", shortLabel: "Rondas", icon: "calendar" },
   { path: "/standings", label: "Clasificación", shortLabel: "Ranking", icon: "ranking" },
   { path: "/players", label: "Mis partidos", shortLabel: "Jugador", icon: "players" },
@@ -37,7 +37,7 @@ export function TournamentNav({ tournamentId }: { tournamentId: string }) {
         const href = `${root}${item.path}`
         const active = pathname === href
         return <Link key={item.path} href={href} aria-label={tx(item.label)} title={tx(item.label)} aria-current={active ? "page" : undefined} className={`${styles.navItem} ${active ? "app-bottom-nav-active" : "app-bottom-nav-item"} font-black`}>
-          <Icon name={item.icon} /><FitText className={styles.navLabel}>{tx(item.shortLabel)}</FitText>
+          <Icon name={item.icon} /><FitText noWrap className={styles.navLabel}>{tx(item.shortLabel)}</FitText>
         </Link>
       })}
     </div>

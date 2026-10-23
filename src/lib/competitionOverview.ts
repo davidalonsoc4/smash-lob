@@ -2,6 +2,25 @@ import type { PersonalMatchItem } from "@/lib/personalMatches"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime"
 
+/** Reserve a summary slot for an upcoming competition without hiding active ones. */
+export function selectCompetitionPreview<T>(entries: Array<{
+  item: T; phase: "active" | "upcoming" | "finished"; startsAt?: string | null; createdAt?: string | null
+}>): T[] {
+  const date = (value?: string | null) => value && Number.isFinite(Date.parse(value)) ? Date.parse(value) : null
+  const active = entries.filter(entry => entry.phase === "active")
+  const upcoming = entries.filter(entry => entry.phase === "upcoming").sort((a, b) => {
+    const aStart = date(a.startsAt), bStart = date(b.startsAt)
+    if (aStart !== bStart) {
+      if (aStart === null) return 1
+      if (bStart === null) return -1
+      return aStart - bStart
+    }
+    return (date(b.createdAt) ?? 0) - (date(a.createdAt) ?? 0)
+  })
+  const selected = active.length && upcoming.length ? [active[0], upcoming[0]] : [...active, ...upcoming].slice(0, 2)
+  return selected.map(entry => entry.item)
+}
+
 /** Select only dated, own encounters. Never present overdue fixtures as played. */
 export function selectCompetitionHighlight(items: PersonalMatchItem[], now: Date) {
   const own = items.filter(item => item.participants.some(player => player.isCurrentUser))

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react"
 import { PendingAccessIntentNotice } from "@/components/invite/PendingAccessIntentNotice"
 import { GlobalLeagueSearch } from "@/components/league/GlobalLeagueSearch"
@@ -29,6 +29,7 @@ import {
 import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
 import { CompetitionLaunchNotice } from "@/components/announcements/CompetitionLaunchNotice"
 import { BottomNav } from "./BottomNav"
+import { TournamentShareButton } from "@/components/tournament/TournamentShareButton"
 import { TournamentNav } from "@/components/tournament/TournamentNav"
 
 type AppShellProps = {
@@ -126,6 +127,7 @@ export function AppShell({ children }: AppShellProps) {
   }, [])
   const branding = getAppBranding()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { setLeagueAccent } = useTheme()
   const {
@@ -264,8 +266,14 @@ export function AppShell({ children }: AppShellProps) {
     }
   }, [canAccessAdmin, isScheduledSeasonUtilityRoute, pathname, router, scheduledSeasonHomeOnly])
 
+  const settingsOpenedFromCompetition =
+    pathname === "/settings" &&
+    ["/leagues", "/leagues/all", "/tournaments"].includes(searchParams.get("returnTo") ?? "")
   const shouldShowSettingsSearch =
-    settingsSearchHubRoutes.has(pathname) && !isPublicAccessRoute && !isPersonalMatchesRoute
+    settingsSearchHubRoutes.has(pathname) &&
+    !settingsOpenedFromCompetition &&
+    !isPublicAccessRoute &&
+    !isPersonalMatchesRoute
   const shouldShowLeagueSearch =
     (pathname === "/leagues" || pathname === "/leagues/all") && !isPublicAccessRoute
   const settingsSearchEntries = shouldShowSettingsSearch
@@ -296,8 +304,10 @@ export function AppShell({ children }: AppShellProps) {
     !isPersonalMatchesRoute
   const shouldShowPersonalMatchesNav =
     (isPersonalMatchesRoute || isCompetitionOverview) && !isMatchChatRoute && !isPublicAccessRoute
-  const shouldShowTournamentNav = Boolean(tournamentNavId) && !isMatchChatRoute
+  const isTournamentSettingsRoute = Boolean(tournamentNavId) && pathname === `/tournaments/${tournamentNavId}/settings`
+  const shouldShowTournamentNav = Boolean(tournamentNavId) && !isMatchChatRoute && !isTournamentSettingsRoute
   const shouldShowSpectatorShareButton = shouldShowActionBar
+  const shareTournamentId = tournamentNavId ?? searchParams.get("returnTo")?.match(/^\/tournaments\/([^/]+)/)?.[1]
   const hasSpectatorShareControl = shouldShowSpectatorShareButton
   const hasFloatingTopControls = shouldShowActionBar
   const floatingTopControlWidth = 4 * 42 - 8
@@ -356,7 +366,7 @@ export function AppShell({ children }: AppShellProps) {
           >
             {shouldShowHelpButton ? <FloatingHelpButton /> : null}
 
-            {hasSpectatorShareControl ? <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} /> : null}
+            {hasSpectatorShareControl ? (shareTournamentId ? <TournamentShareButton tournamentId={shareTournamentId} /> : <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} />) : null}
 
             {shouldShowNotificationsButton ? (
               <Link

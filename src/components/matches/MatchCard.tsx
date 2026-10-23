@@ -60,6 +60,7 @@ type MatchCardProps = {
   statusPosition?: "auto" | "left" | "right";
   hideMissingScheduleMeta?: boolean;
   isCurrentUserBallCustodian?: boolean;
+  compactScheduleHint?: boolean;
 };
 export function MatchCard({
   match,
@@ -79,6 +80,7 @@ export function MatchCard({
   statusPosition = "auto",
   hideMissingScheduleMeta = false,
   isCurrentUserBallCustodian = false,
+  compactScheduleHint = false,
 }: MatchCardProps) {
   const { tx, t, locale } = useI18n();
   const substituteLabels = getMatchSubstituteLabels({
@@ -183,6 +185,7 @@ export function MatchCard({
 
   const matchStatusNode = (
     <MatchStatusBadge
+      variant="dot"
       status={match.status}
       isParticipant={!!currentUserId && [...match.teamA, ...match.teamB].includes(currentUserId)}
       scheduledAt={match.scheduledAt ?? null}
@@ -214,7 +217,7 @@ export function MatchCard({
   return (
     <Link href={`/match/${match.id}`} className="block">
       <AppCard className="relative transition active:scale-[0.99]">
-        <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="mb-2 flex items-start justify-between gap-3">
           {statusPosition === "left" ? (
             <div>{matchStatusNode}</div>
           ) : effectiveHeaderLeft ? (
@@ -300,11 +303,11 @@ export function MatchCard({
 
           {stackTeamPlayers ? (
             !isFinished && !hasScheduleDetails && showMissingScheduleHint ? (
-              <div className="mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2">
+              <div data-match-schedule-hint className={`mt-2 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-2.5 py-2 ${compactScheduleHint ? "flex min-h-10 items-center justify-center text-center" : ""}`}>
                 <p className="text-xs font-black text-neutral-800">{t.dashboard.addSchedule}</p>
-                <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-                  {t.dashboard.playersCanSchedule}
-                </p>
+                {!compactScheduleHint ? <p className="mt-0.5 type-caption font-semibold text-neutral-500">
+                  {tx("Coordínalo desde el chat")}
+                </p> : null}
               </div>
             ) : (
               <MatchEventMeta

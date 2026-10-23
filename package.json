@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.15.33",
+  "version": "1.15.34",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -24,8 +24,8 @@
     "public-urls:check": "node scripts/check-public-app-urls.mjs",
     "migrations:check": "node scripts/check-identity-migrations.mjs",
     "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
-    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.15.33 pre",
-    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.15.33 prod",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.15.34 pre",
+    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.15.34 prod",
     "api-security:check": "node scripts/check-api-security-inventory.mjs",
     "api-security:update": "node scripts/check-api-security-inventory.mjs --write",
     "quality:source": "node scripts/check-source-budgets.mjs",
@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",
-    "next": "16.3.8",
+    "next": "16.4.3",
     "next-auth": "5.0.0-beta.32",
     "qrcode-generator": "^2.0.4",
     "react": "19.2.8",
@@ -68,7 +68,7 @@
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.3",
     "jsdom": "^26.1.0",
     "jsqr": "^1.4.0",
     "postcss": "8.5.24",

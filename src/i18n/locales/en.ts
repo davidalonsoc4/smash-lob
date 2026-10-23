@@ -867,7 +867,7 @@ export const en = {
     accountSettingsDescription:
       "Customize the global profile image shown in all your leagues.",
     connectedEmail: "Connected email",
-    joinNewExistingLeague: "Join another existing league",
+    joinNewExistingLeague: "Join an existing competition",
     avatarCustomActive: "Custom image active on your account.",
     avatarGoogleFallback: "Your global account image is being used.",
     avatarInitialsFallback:

@@ -1,3 +1,154 @@
+## MC26 — publicación de pendientes en PRE (2026-10-23)
+
+Gates locales superados: npm run validate completo, audit de dependencias de ejecución sin vulnerabilidades y Playwright 111 correctas / una omitida (gate manual PRE). Capturas actualizadas de cuatro pantallas en móvil/escritorio. Preparada publicación de 1.15.34; comienza commit/push y PR hacia staging, sin tocar main ni Production.
+
+Validación completa terminada correctamente, incluido presupuesto de build (1211047 bytes gzip, 104 chunks). Primera ejecución de navegador: 99 correctas, una omitida y 12 fallos por referencias visuales y expectativas antiguas. Revisadas y regeneradas solo ocho capturas afectadas; adaptada prueba de torneo al enlace compartido, selección de perfil y clasificación final con 12 resultados. Segunda ejecución completa en curso; publicación y migraciones siguen pendientes hasta superarla.
+
+Publicación autorizada por el usuario antes de comenzar recomendaciones de posición. Rama codex/tournament-settings-context parte del mismo commit que origin/staging (022f0549). Supabase PRE identificado como smash-lob-staging/miadjotkucgluwbrgeih; pendientes las dos migraciones locales de cierre vacío e invitación compartida. Se excluyen las capturas locales del artefacto. En curso validaciones locales y verificación de destino Vercel.
+
+Bloqueo de gate detectado: npm audit señala vulnerabilidad crítica de Next 16.3.8; publicación detenida hasta actualizar Next/eslint-config-next a 16.4.3, versión corregida verificada en npm y advisories oficiales, y repetir gates. La primera suite completa detectó cuatro controles literales antiguos de UI pendientes de adaptación; no se publica con fallos. Dry-run de Supabase confirma exactamente las dos migraciones esperadas, sin otras pendientes.
+
+Actualización Next/eslint-config-next 16.4.3 completada sin force; npm audit --omit=dev informa cero vulnerabilidades. Versionado de candidata 1.15.34, caché PWA y changelog coherentes. Adaptados gates visuales antiguos al diseño aprobado; 29 pruebas de los cinco archivos afectados pasan. Presupuesto permite el único componente cliente adicional StatusDot compartido (195); tamaño total 135110 líneas dentro del límite. Validación completa en curso.
+
+Suite completa: 1061/1061 pruebas en 261 archivos, con Vitest 4.1.11 instalado desde el lockfile. Lint sin errores (cinco avisos previos); build Next 16.4.3 compilado, comprobaciones finales en curso. Playwright móvil pasa navegación/Axe; revisadas capturas actuales de Home, Calendario, Ajustes e invitación: requieren nuevas referencias por cambios de diseño aprobados. Sin migraciones aplicadas ni publicación todavía.
+
+## MC25 — Home de Competiciones (2026-10-23)
+
+Tras comparar capturas, se retiran definitivamente los avatares del emparejamiento, sin volver a añadir la fila superior. Nombres recuperan ancho; perfiles y chats conservan fotos. Tres pruebas focalizadas, TypeScript y ESLint correctos. Sin publicación.
+
+Avatares restaurados a petición para comparar capturas: 24 px junto al nombre hacia el exterior de cada pareja, sin borde decorativo. Conserva nombres adaptativos y metadatos compactos; sin fila superior de fotos. Tres pruebas focalizadas, TypeScript y ESLint correctos. Comparación visual pendiente de capturas; sin publicación.
+
+Avatares retirados del panel de emparejamiento por decisión del usuario; nombres recuperan todo el ancho. Conserva metadatos compactos, ajuste de fuente y VS. Fotos de perfil en otras pantallas intactas. Tres pruebas focalizadas, TypeScript y ESLint correctos. Sin publicación.
+
+Anillo decorativo y separación del avatar retirados solo del emparejamiento; conserva indicador de foco al navegar con teclado. Prueba del panel, TypeScript y ESLint correctos. Sin publicación.
+
+Prueba de avatares pendientes: foto de 24 px junto a cada nombre hacia el exterior de la pareja; retirada la fila superior de fotos. Se conserva apertura ampliada, nombres adaptativos, metadatos debajo y VS; sin fotos válidas continúa sin avatares. Tres pruebas focalizadas, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Separador de metadatos corregido a punto medio por solicitud: «#1 · Revés · Diestro». Prueba del panel, TypeScript y ESLint correctos. Sin publicación.
+
+Prueba de metadatos: «#1 - Revés - Diestro», sin «en liga», componentes separados con guiones y mayúsculas normales. Mantiene una línea bajo el nombre, datos ausentes omitidos y traducciones existentes. Tres pruebas focalizadas, TypeScript, ESLint e i18n correctos. Sin revisión visual real ni publicación.
+
+Prueba visual solicitada: los cuatro jugadores muestran nombre arriba y línea compacta de datos debajo. Conserva ajuste de nombres hasta 10 px, elipsis, VS y avatares. Tres pruebas focalizadas, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Emparejamiento: metadatos compactados en una línea periférica conservando disposición de nombres y VS; nombres usan FitText sin saltos, mínimo 10 px y elipsis después, también en tema competición. MVP conserva espacio propio y nombres completos en title. FitText recalcula al cambiar tema/tamaño de texto para este uso; comportamiento predeterminado conservado. Doce pruebas focalizadas, TypeScript y ESLint correctos. Sin revisión visual real ni publicación. Avatares intactos.
+
+Mayúsculas de nombres revertidas por solicitud. Auditoría de código del detalle de liga: metadatos arriba para primer jugador y debajo para segundo; avatar agrupado por pareja, VS de 32 px sobre hueco de 8 px, tratamiento de nombres largos distinto en tema competición y datos de mano ocultos si no hay lado preferido. Recomendaciones pendientes de aprobación: orden uniforme nombre/metadatos, VS sin solapar, agrupación avatar-jugador y prioridad de fecha/lugar sobre ventana oficial. No se aplican esas propuestas. Prueba del panel, TypeScript y ESLint correctos.
+
+Prueba visual: nombres en mayúsculas mediante CSS en el panel de emparejamiento, pendientes y finalizados. Datos originales conservados. Prueba focalizada, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Datos secundarios de jugadores en emparejamiento (# en liga, lado y mano) pasan a type-micro con peso medium y espaciado normal; nombre intacto y alineación conservada. Aplicado a metadatos pendientes y finalizados del panel compartido. Prueba focalizada, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Vista previa visual de posiciones: cabecera discreta Emparejamiento y botón informativo en panel pendiente del detalle de partido de liga. Reutiliza StatusHelp con texto explícito de función futura; no asigna ni modifica posiciones, datos o clasificación. No aparece en amistosos ni resultados finalizados. Trece pruebas focalizadas, TypeScript, ESLint e i18n correctos tras completar la traducción del nuevo título. Sin revisión visual real ni publicación.
+
+Mis torneos reutiliza presentación de estado de ligas y cálculo informativo desde startsAt: En curso verde, próximos con días/Mañana/Hoy, finalizados con texto neutro. Sin cambiar estado persistido ni inicio manual. Detalle de partido de liga usa variante soft del badge (sin anillo/borde, texto normal semibold y relleno compacto); detalle amistoso mantiene variante existente. Veintisiete pruebas focalizadas, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Estados de preview de liga en la misma fila: En curso con punto/texto verde adaptado a oscuro; inicio programado futuro muestra días, Mañana u Hoy/hora de Madrid. Sin fecha programada mantiene Próximamente. Temporada truncable para conservar altura, sin nuevas filas ni bordes. Catorce pruebas focalizadas incluidas fechas inválidas, ausencia de cuenta atrás y cambio horario de Madrid; TypeScript, ESLint e i18n correctos. Sin revisión visual real ni publicación.
+
+Previews de ligas/torneos reservan una tarjeta activa y una próxima cuando existen ambas; si solo hay un grupo se muestran hasta dos. Próximas por fecha de inicio ascendente, sin fecha por creación reciente. Ligas usan temporada actual y ajustes de inicio; sin alterar listas completas ni añadir reglas temporales. Doce pruebas focalizadas verifican selección, orden, visibilidad y listas completas; TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Último encuentro unificado en Home, etiquetas accesibles, traducción estructurada y avisos visibles. Separación cabecera/contenido centralizada en --app-section-content-gap (8 px), compartida por SectionHeader y las tres secciones de Competiciones. Ver todas/todos deja de elevar la cabecera; objetivo táctil ampliado mediante pseudo-elemento. Veinte pruebas focalizadas, TypeScript, ESLint, i18n y diff correctos. Sin revisión visual real ni publicación.
+
+Espaciado inferior del indicador revisado en Home de liga/Competiciones: eliminado padding inferior y reducida a 8 px la separación de sección tras carruseles con indicador, sin reducir objetivos táctiles ni alterar secciones sin carrusel. Catorce pruebas focalizadas, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Corrección: carruseles de próximos/últimos vuelven a validar disponibilidad e identidad del partido. Un encuentro coincidente muestra una tarjeta fija sin indicador; dos distintos conservan orden personal/liga. Un contexto sin encuentro no añade panel vacío. Pruebas de regresión de coincidencia y disponibilidad añadidas; 16 pruebas focalizadas, TypeScript y ESLint correctos. Sin revisión visual real ni publicación. Sustituye la decisión anterior de mostrar siempre ambos contextos.
+
+Mis Partidos activa compactBadges en próximos e histórico, reutilizando exactamente etiquetas de origen/resultado de Competiciones: color contextual de liga, sin borde, menor relleno y peso semibold; conserva detalle informativo y navegación. Trece pruebas focalizadas, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Chats de liga/global y tarjetas comparten StatusDot: círculo de 6 px alineado arriba/derecha, colores semánticos y zona pulsable de 20 px con explicación accesible; solo lectura conserva gris. Validación conjunta: 40 pruebas focalizadas (Home, carrusel, ayuda de estado y Chats), TypeScript, ESLint, i18n y diff correctos. Sin revisión visual real ni publicación.
+
+Último partido de Home replica el carrusel próximo: personal a la izquierda inicialmente, liga a la derecha, indicador temático pulsable y misma altura contextual. Mantiene consulta de último jugado/pendiente, MVP y resultados; estado vacío si no hay partido personal. Retiradas funciones sin uso del antiguo selector colapsable. Validación conjunta: 40 pruebas focalizadas, TypeScript, ESLint, i18n y diff correctos. Sin revisión visual real ni publicación.
+
+Calendario de liga reutiliza compactScheduleHint: aviso de programación con una sola línea centrada y el mismo recuadro compacto que Home. Tres pruebas de calendario, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Home de liga: aviso compacto solo con Añadir fecha, hora y lugar, centrado horizontal y verticalmente. Carrusel estira ambas tarjetas a la misma altura según el contenido y centra sus metadatos; alcance CSS limitado al próximo partido de Home. Siete pruebas focalizadas, TypeScript y ESLint correctos. Pendiente revisión visual en móvil; sin publicación.
+
+Indicador activo de carrusel de Home de liga y Competiciones usa bg-foreground (color de texto del tema) en lugar de negro fijo; conserva puntos inactivos grises. Once pruebas focalizadas, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Texto secundario del aviso compacto de programación sustituido por «Coordínalo desde el chat», con traducciones inglesa y euskera. Cuatro pruebas focalizadas, ESLint e i18n correctos. Sin revisión visual real ni publicación.
+
+Home de liga: próximo partido con panel personal fijo a la izquierda (inicial) y de liga a la derecha, incluso si coinciden. Sin próximo personal conserva estado vacío. Indicador inferior raya/punto como Competiciones, pulsable y accesible por teclado; sustituye el selector Liga/Mío. Se mantiene carrusel compartido con separación y snap. Validación: 21 pruebas focalizadas, TypeScript, ESLint y diff correctos. Sin revisión visual real ni publicación.
+
+Separador tenue entre jornadas visibles del Calendario, sin línea encima de la primera y con la separación anterior repartida a ambos lados. Adaptado a tema claro/oscuro. Tres pruebas de calendario, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+Cabeceras de Calendario de liga compactadas: Próximo se sustituye por rango cuando hay fechas; activa muestra Hasta junto al indicador y vencida muestra Venció junto al aviso existente. Fechas sin fila inferior, con ajuste de línea en anchos pequeños; misma cabecera para jornadas secretas y visibles. Próximo sin fechas conserva etiqueta; traducciones inglesa y euskera incluidas. Validación: 28 pruebas focalizadas, TypeScript, ESLint, i18n y diff correctos. Sin revisión visual real ni publicación.
+
+Patrón de punto extendido a previews mediante variante de MatchStatusBadge: Home/Calendario de liga, Mis partidos, Actividad personal y listas del jugador. Detalle conserva texto; resultados personales conservan Victoria/Derrota. Cabeceras de jornada intactas porque describen un estado distinto al del partido. Validación: 23 pruebas focalizadas correctas, incluida interacción del punto con nombre accesible sin activar la tarjeta; TypeScript, ESLint y diff correctos. Revisadas pautas React de componentes compartidos y accesibilidad. Sin publicación ni revisión visual real.
+
+Corregida la alineación del círculo visible: extremo superior alineado con la etiqueta y extremo derecho con el panel de nombres. La zona pulsable se extiende hacia abajo y a la izquierda; ya no centra el punto dentro de ella. Ocho pruebas del hub, TypeScript y ESLint correctos. Sin revisión visual real ni publicación.
+
+El punto se ajusta al margen interior de la tarjeta: comparte la línea superior de la etiqueta de competición y la columna derecha del contenido, sin desplazamientos negativos. Ocho pruebas del hub, TypeScript, ESLint focalizado y diff correctos; sin publicación ni revisión visual real.
+
+El indicador de estado se reduce a 6 px dentro de un objetivo táctil de 20 px y se alinea arriba a la derecha de la tarjeta, manteniendo tooltip y accesibilidad. Ocho pruebas del hub, TypeScript, ESLint focalizado y diff correctos; sin publicación ni revisión visual real.
+
+El estado no finalizado de Actividad personal se representa como el indicador circular de Chats, con color por estado, tooltip y etiqueta accesible. Victoria y Derrota conservan su texto. Ocho pruebas del hub, TypeScript, ESLint focalizado y diff correctos; sin publicación ni revisión visual real.
+
+La etiqueta contextual de estado pendiente («Programado») usa ahora mayúsculas normales, peso semibold y espaciado normal: conserva el color semántico sin competir con el partido. Alcance limitado a Actividad personal. Ocho pruebas del hub, TypeScript, ESLint focalizado y diff correctos; sin publicación ni revisión visual real.
+
+Segunda pasada de etiquetas compactas: origen sin borde y estados sin anillo, conservando fondos y colores contextuales. Limitado a Actividad personal mediante la prop existente. Ocho pruebas del hub, TypeScript y ESLint correctos. Sin publicación ni revisión visual real.
+
+Etiquetas de origen y estado compactadas solo en Actividad personal: menor relleno y peso semibold, sin forzar mayúsculas. Colores, bordes y tarjetas completas de Mis partidos conservan su presentación actual mediante una prop explícita. Ocho pruebas del hub, TypeScript y ESLint correctos. Sin publicación ni revisión visual real.
+
+Corregida la interpretación de la franja: se sustituye la barra plana por un degradado interior suave, reducido a .72rem para no invadir el logo, limitado a la esquina izquierda de cada tarjeta y usando el color de liga. El texto contextual de Actividad personal pasa a peso semibold y mayúsculas normales, de menor intensidad. Ocho pruebas del hub, TypeScript, ESLint y diff correctos. Sin publicación ni revisión visual real.
+
+Acceso discreto de calendario a la derecha inferior del próximo partido, reutilizando CalendarEventButton (Google/ICS), con nombre accesible y por encima del enlace de tarjeta. Espacio reservado para evitar solapar fecha/localización. Solo en Home de Competiciones. Validación pendiente.
+
+Metadatos del próximo partido centrados verticalmente en el espacio restante bajo el emparejamiento. Regla limitada al carrusel de Competiciones; MatchEventMeta solo añade un atributo de identificación sin alterar otras pantallas. Ocho pruebas del hub y ESLint correctos. Pendiente comprobación visual móvil.
+
+Tres ajustes acordados: texto contextual a la derecha de Actividad personal, sin botón de alternancia ni fila adicional; franja de liga mediante variable local y regla prioritaria frente al tema; tarjetas del carrusel estiradas a la altura del contenido mayor sin altura fija ni recorte. Etiquetas de origen/estado intactas. Ocho pruebas del hub, TypeScript y ESLint correctos. Sin publicación ni revisión visual real.
+
+Corrección solicitada: restaurada cabecera Actividad personal con título contextual e intercambio en su fila anterior. Eliminados el enlace Ver Mis partidos y el refresco de la cabecera, incluida su lógica sin uso. Validación: ocho pruebas del hub, ESLint y TypeScript correctos; pruebas adaptadas a la retirada explícita del refresco.
+
+Simplificación adicional autorizada: contador y fila independiente retirados, intercambio junto al título, puntos como indicador único; acceso Mis partidos conservado incluso sin actividad. Retirados + de cabeceras y métricas de liga del resumen; acciones sin subrayado y menor peso, estado de liga como texto secundario y Actualizar como icono accesible. Las ocho pruebas del hub pasan tras corregir el acceso Mis partidos en el estado vacío. Sin cambios remotos ni validación visual real.
+
+Segunda pasada: retirado el fondo envolvente de Actividad; título contextual único, contador de posición y puntos del carrusel. Logos de liga centrados verticalmente, temporada/estado y participación distribuidos en la tarjeta. Torneos compactados con fecha/estado compartiendo fila adaptable. Accesos + de creación solo para creators y contadores históricos retirados de ambas cabeceras del resumen. Ocho pruebas del hub, TypeScript y ESLint focalizado correctos. Pendiente revisión visual real en móvil; sin publicación.
+
+Actividad destacada mediante superficie propia e indicador del carrusel. Tarjetas de liga con acento propio, temporada y estado; contador de ligas retirado del resumen para no confundir total histórico con tarjetas visibles. Torneos con icono propio y estado separado de la fecha. Validación: 8 pruebas del hub, TypeScript, ESLint focalizado y diff correctos. No se ha realizado verificación visual en navegador ni build adicional para este cambio de presentación. Sin cambios remotos.
+
+## MC24 — estados y navegación en curso (2026-10-21)
+
+Mis ligas recupera la etiqueta Próximamente usando el estilo de estado existente. Las invitaciones de jugador de torneo solo se ofrecen al creador de un torneo abierto con al menos un participante sin cuenta. La función SQL existente ya rechaza generar enlaces cuando todos están vinculados. Navbar usa Inicio/Ranking con traducciones y FitText; Ranking se conserva por corrección expresa del usuario; enlaces superiores conservan destino y usan la flecha común. Validación: 19 pruebas focalizadas correctas, i18n, presupuesto fuente, ESLint, TypeScript, build y diff correctos. La última corrección restaura únicamente el texto Ranking original. Sin cambios remotos.
+
+## MC23 — creación y acceso contextual en curso (2026-10-21)
+
+Crear liga y Crear torneo solo se ofrecen con canCreateLeagues y returnTo=/leagues. Retirados de Ajustes de liga y resto de contextos. Unirme usa el título genérico y reconoce códigos/enlaces de liga y tokens/enlaces de torneo, manteniendo el caso del token y reutilizando el flujo de selección/vinculación ya implementado. Validación: 15 pruebas focalizadas (códigos/enlaces, mayúsculas, permisos/contexto e invitaciones), TypeScript, ESLint focalizado, i18n, presupuesto fuente, control de Mis partidos, diff y build correctos. Completado localmente. La vinculación de torneos en PRE requiere la migración compartida pendiente de MC22. Sin cambios de base de datos ni remotos.
+
+## MC22 — ubicación de invitaciones corregida (2026-10-21)
+
+El panel de invitaciones se muestra en Ajustes generales al volver desde un torneo y en su administración. La pantalla Jugador queda dedicada al calendario individual. Ambos accesos y el botón flotante reutilizan FloatingSpectatorShareButton: jugador solo para creador en torneo abierto, espectador bloqueado como próximamente y compartir aplicación. El contexto incluye returnTo para conservar el torneo desde Ajustes. QR, logo, descarga y compartir usan el mismo flujo de ligas y aceptan la URL del torneo sin convertirla en una invitación de liga.
+
+Validación focalizada: TypeScript, ESLint, i18n y 11 pruebas de selector/permisos/rutas correctos. La primera ejecución del gate detectó una comprobación literal de href obsoleta; se conservó el enlace inline original para mantener el control. El presupuesto se ajustó mínimamente a 135200 líneas y 194 clientes por las pantallas de administración/invitación añadidas (135126 líneas medidas), sin ampliar límites de rutas ni páginas. Gate completado por etapas: controles del repositorio, ESLint (cinco avisos preexistentes), TypeScript y build correctos. La suite completa ejecutó 1042 pruebas; 1040 pasaron y dos comprobaciones literales antiguas de Ajustes fallaron. Se actualizaron para las tres variantes de Ajustes y el href contextual; repetición de ambos archivos 9/9 correcta. No se ha validado contra datos reales ni aplicado la migración pendiente. Sin cambios remotos.
+
+## MC22 — invitación compartida de torneo en curso (2026-10-21)
+
+Se inicia la corrección de Ajustes de torneo, estado final de clasificación y acceso de participantes manuales. Se sustituirá el enlace individual por una invitación privada común con selección explícita de un perfil libre, manteniendo el acceso directo existente para jugadores ya vinculados a una cuenta. Sin cambios remotos.
+
+Implementación local: Ajustes de torneo ya no muestra la navbar propia; Ranking pasa a «Clasificación final» tan pronto estén registrados todos los partidos y la tabla recibió cabecera compacta, líder destacado y mejor lectura móvil. La pantalla Jugador usa ahora un enlace común de 30 días para plazas manuales. El enlace muestra únicamente los perfiles libres, exige sesión y la función SQL atómica bloquea torneo/invitación, impide reclamar un perfil ya vinculado y evita que una cuenta reclame dos perfiles. Las cuentas ya asociadas siguen apareciendo directamente en Competiciones. Se conserva la antigua ruta individual para no invalidar enlaces anteriores, pero ya no se genera desde la interfaz.
+
+Se añadió la migración aditiva 20261021233000_add_shared_rapid_tournament_invites.sql; no se ha aplicado a PRE. Validación: i18n, lint, TypeScript, migraciones, inventario API (110 rutas/155 métodos), diff sin espacios y 19 pruebas focalizadas correctas. El build ya completó correctamente con las nuevas rutas. Sin despliegue, commit ni operación remota. Estado: DONE local; PRE requiere aplicar la migración aditiva y publicar el código bajo solicitud explícita.
+## MC21 — cierre de torneos de prueba en curso (2026-10-21)
+
+El cierre ordinario exige que todos los resultados estén registrados. Se añadió «Finalizar sin resultados» en la zona sensible de Administración de torneo: solo se muestra al creador si el torneo está en borrador/en curso y ningún partido tiene marcador. Tras confirmarlo usa la nueva ruta protegida y habilita el borrado habitual. La función SQL aditiva `20261021223000_finish_empty_rapid_tournament.sql` bloquea cualquier torneo con resultado parcial o completo, exige creador y solo permite estados borrador/en curso; no se ha aplicado a PRE.
+
+Validación: inventario API actualizado a 109 rutas/154 métodos, pruebas de integración de rutas y migración 20/20, comprobaciones tipográficas 8/8, i18n, TypeScript, ESLint focalizado, identidad de migraciones, `git diff --check` y build correctos. Para usar la acción contra la base de PRE falta aplicar exclusivamente esta migración y publicar el código bajo una solicitud explícita de PRE.
+
+## MC21 — ajustes contextuales completados localmente (2026-10-21)
+
+Corrección aplicada: el engranaje de todas las pantallas, incluidos los torneos, vuelve a abrir siempre Ajustes generales con `returnTo` a la pantalla exacta de origen. Desde un torneo, Ajustes mantiene perfil, idioma, apariencia/tema, sonidos y avisos, notificaciones, ayuda y acceso a Competiciones; oculta disponibilidad de temporada, actividad/pagos, desvinculación y administración de la liga activa.
+
+Para el creador, Ajustes carga el permiso real del torneo y presenta en Administración el botón «Administrar torneo», que abre la pantalla contextual ya creada. Esa pantalla conserva el borrado protegido: confirmación, creador y torneo finalizado. Un participante no ve el bloque ni el botón. La navegación de Ajustes, las ligas y el esquema de datos permanecen sin cambios.
+
+Validación de la corrección: `npm run i18n:check`, ESLint focalizado, `npm run typecheck`, `git diff --check` y 12 pruebas focalizadas correctas. El build previo de MC21 incluyó correctamente la ruta `/tournaments/[id]/settings`; no se requieren migraciones, dependencias, cambios remotos ni despliegue.
+
+Último ajuste: el acceso de Ajustes se denomina «Unirme a una competición existente» para preparar invitaciones de torneos. Desde un torneo, el botón existente «Panel de administrador» es ahora el único acceso de Administración y abre la administración contextual del torneo; no puede llevar a Administración de liga. La eliminación sigue protegida por creador y estado finalizado. I18n, TypeScript, lint focalizado y las 12 pruebas focalizadas vuelven a pasar.
+
+## MC21 — implementación inicial sustituida (2026-10-21)
+
+Auditoría aplicada: hasta ahora `/settings` recibía el contexto de la última liga activa aunque se abriera desde Competiciones o un torneo. Desde Competiciones se muestra ahora una variante sin disponibilidad de temporada, pagos/actividad de liga, desvinculación, modo de experiencia ni Administración de liga; se conservan perfil, idioma, apariencia, avisos, notificaciones, acceso a Competiciones, invitación, creación de liga autorizada y ayuda.
+
+El botón flotante de Ajustes de cualquier `/tournaments/:id/*` abre `/tournaments/:id/settings`, que conserva la navbar propia del torneo. La nueva pantalla ofrece el enlace a los avisos y una zona sensible contextual: el borrado solo aparece operativo para el creador cuando el torneo está finalizado, solicita confirmación y reutiliza el DELETE/RPC existente, sin cambios de RLS ni de esquema. Los participantes solo reciben el mensaje de permiso insuficiente. El buscador global de Ajustes queda oculto para la variante de Competiciones, evitando resultados de administración de liga.
+
+Validación: `npm run i18n:check`, ESLint focalizado, `npm run typecheck`, `npm run build` y 12 pruebas unitarias focalizadas (contexto de Ajustes, tipografía y centrado de acciones) correctas. Un primer `npm test` completo señaló dos controles nuevos de estilo, corregidos y repetidos de forma focalizada; la ejecución global se detuvo al quedar bloqueada tras esos fallos, por lo que no se declara como evidencia completa. Sin base de datos, migraciones, dependencias, commits, despliegue ni cambios remotos.
+
 ## MC20 — completado localmente (2026-10-20)
 
 Los tres enlaces superiores de vuelta de creación y detalle de torneos muestran «Competiciones» y conservan su destino `/leagues`: carga/error del detalle, cabecera del torneo y formulario de creación. Títulos de pantalla, Ajustes y textos informativos no cambian. Se actualizaron las dos comprobaciones E2E de regreso al listado. Validación local: `npm run i18n:check`, ESLint focalizado, `npm run typecheck` y recorrido Playwright de torneo fijo en cuatro variantes correcto. Sin base de datos, dependencias, despliegue ni commits.
