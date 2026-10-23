@@ -3,6 +3,8 @@ import {
   createScheduledLeagueLocationValue,
   findLeagueLocationByScheduleLocation,
   getLeagueLocationOptionLabel,
+  getLeagueLocationCompactText,
+  getScheduleLocationDisplayText,
   type LeagueLocation,
 } from "@/lib/leagueLocations"
 import { readFile } from "node:fs/promises"
@@ -99,5 +101,19 @@ describe("v1.10.19 strict location resolution", () => {
     expect(server).toContain("scheduleLocation,")
     expect(panel).toContain("location={match.scheduleLocation ?? match.locationName}")
     expect(scheduleForm).toContain("current === otherLocationValue")
+  })
+})
+
+ describe("location labels shared by match previews", () => {
+  it("uses middle dots for structured snapshots and keeps selector labels compatible with legacy resolution", () => {
+    const stored = createScheduledLeagueLocationValue(locations[1], "Pista 2")
+    expect(getScheduleLocationDisplayText(stored)).toBe("Barakaldo · Lasesarre · Pista 2")
+    expect(getLeagueLocationCompactText({ ...locations[1], selectedCourt: "Pista 2" })).toBe("Barakaldo · Lasesarre · Pista 2")
+    expect(getLeagueLocationOptionLabel(locations[1])).toBe("Barakaldo - Lasesarre")
+  })
+  it("omits unavailable town or court without changing free-form venue names", () => {
+    expect(getLeagueLocationCompactText({ id: "club", name: "Club Norte - Sur" })).toBe("Club Norte - Sur")
+    expect(getLeagueLocationCompactText({ id: "club", name: "Club", town: " Bilbao " })).toBe("Bilbao · Club")
+    expect(getScheduleLocationDisplayText(null)).toBeNull()
   })
 })

@@ -1,6 +1,6 @@
 "use client"
 
-import { StatusHelp } from "@/components/ui/StatusHelp"
+import { MatchOutcomeBadge } from "@/components/matches/MatchOutcomeBadge"
 import type { ReactNode } from "react"
 
 import Link from "next/link"
@@ -58,21 +58,7 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
         </span>
 
         {isFinished ? (
-          <StatusHelp kind="match" status={outcome === "win" ? "victory" : outcome === "loss" ? "defeat" : "finished"}
-            className={`relative z-10 shrink-0 whitespace-nowrap rounded-full type-caption leading-none ${compactBadges ? "px-2 py-0.5 font-semibold tracking-normal !ring-0" : "px-2.5 py-1 font-black uppercase tracking-wide"} ${
-              outcome === "win"
-                ? "bg-green-100 text-green-800"
-                : outcome === "loss"
-                  ? "bg-red-100 text-red-800"
-                  : "bg-neutral-100 text-neutral-600"
-            }`}
-          >
-            {outcome === "win"
-              ? tx("Victoria")
-              : outcome === "loss"
-                ? "Derrota"
-                : "Finalizado"}
-          </StatusHelp>
+          <MatchOutcomeBadge outcome={outcome === "win" ? "victory" : outcome === "loss" ? "defeat" : "finished"} />
         ) : (
           <MatchStatusBadge
             variant="dot"
@@ -196,7 +182,7 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
 
       {!hideEventMeta ? <MatchEventMeta
         eventAt={match.scheduledAt}
-        locationText={match.locationName}
+        locationText={match.scheduleLocation ?? match.locationName}
         locationFallback={null}
         hideMissingRows
       /> : null}

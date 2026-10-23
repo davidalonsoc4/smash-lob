@@ -16,6 +16,9 @@ import {
 } from "@/lib/statusStyles"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { PlayerProfile } from "@/data/fakeData"
+import { FitText } from "@/components/ui/FitText"
+import { SectionHeader } from "@/components/ui/SectionHeader"
+import { matchPrimaryButton, matchSecondaryButton, matchDestructiveButton, matchSoftBadge, matchToggleClass } from "./matchPanelStyles"
 
 type CourtBookingPanelProps = {
   matchId: string
@@ -28,6 +31,7 @@ type CourtBookingPanelProps = {
   booking: CourtBooking
   ballPurchasesDisabled?: boolean
   shouldFocusBooking?: boolean
+  initiallyExpanded?: boolean
   actions?: {
     update: (input: {
       participantIds: string[]
@@ -141,6 +145,7 @@ export function CourtBookingPanel({
   booking,
   ballPurchasesDisabled = false,
   shouldFocusBooking = false,
+  initiallyExpanded,
   actions,
 }: CourtBookingPanelProps) {
   const { tx } = useI18n()
@@ -163,7 +168,7 @@ export function CourtBookingPanel({
   const effectiveBallPurchases = ballPurchasesDisabled ? [] : booking.ballPurchases
   const panelRef = useRef<HTMLDivElement | null>(null)
   const [isExpanded, setIsExpanded] = useState(
-    shouldFocusBooking || (!booking.isReserved && canManage)
+    shouldFocusBooking || (initiallyExpanded ?? (!booking.isReserved && canManage))
   )
   const [isEditing, setIsEditing] = useState(!booking.isReserved && canManage)
   const [reservationInputs, setReservationInputs] = useState(() =>
@@ -201,6 +206,7 @@ export function CourtBookingPanel({
   const [isSaving, setIsSaving] = useState(false)
   const [isSendingReminder, setIsSendingReminder] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorSource, setErrorSource] = useState<string | null>(null)
 
   useEffect(() => {
     if (!shouldFocusBooking) {
@@ -392,15 +398,14 @@ export function CourtBookingPanel({
 
     setIsSaving(true)
     setError(null)
+    setErrorSource(null)
 
     const bookingInput = {
       participantIds,
       reservations: parsedReservations,
       ballPurchases: parsedBallPurchases,
     }
-    const saved = actions
-      ? await actions.update(bookingInput)
-      : await updateCourtBooking(matchId, bookingInput)
+    const saved = await (actions ? actions.update(bookingInput) : updateCourtBooking(matchId, bookingInput)).catch(() => false)
 
     setIsSaving(false)
 
@@ -421,19 +426,19 @@ export function CourtBookingPanel({
     if (!canManageExistingBooking || isSaving) {
       return
     }
+    if (!window.confirm(tx("¿Eliminar los datos de reserva y pagos de este partido? Esto no cancela la reserva con el club."))) return
 
     setIsSaving(true)
     setError(null)
+    setErrorSource(null)
 
-    const saved = actions
-      ? await actions.clear()
-      : await clearCourtBooking(matchId)
+    const saved = await (actions ? actions.clear() : clearCourtBooking(matchId)).catch(() => false)
 
     setIsSaving(false)
 
     if (!saved) {
       setError(
-        "No se ha podido quitar la reserva en la base de datos. Revisa Supabase o smash-lob-last-supabase-error."
+        "No se han podido eliminar los datos de reserva. Inténtalo de nuevo."
       )
       return
     }
@@ -471,16 +476,15 @@ export function CourtBookingPanel({
 
     setIsSendingReminder(true)
     setError(null)
+    setErrorSource("reminder")
 
-    const sent = actions?.sendReminder
-      ? await actions.sendReminder()
-      : await sendCourtBookingPaymentReminder(matchId)
+    const sent = await (actions?.sendReminder ? actions.sendReminder() : sendCourtBookingPaymentReminder(matchId)).catch(() => false)
 
     setIsSendingReminder(false)
 
     if (!sent) {
       setError(
-        "No se ha podido mandar el recordatorio. Revisa Supabase o smash-lob-last-supabase-error."
+        "No se ha podido enviar el recordatorio. Inténtalo de nuevo."
       )
     }
   }
@@ -492,45 +496,31 @@ export function CourtBookingPanel({
 
     setIsSaving(true)
     setError(null)
+    setErrorSource(transferId)
 
-    const saved = actions
-      ? await actions.updateTransfer(transferId, isPaid)
-      : await updateCourtBookingTransferPaymentStatus(matchId, transferId, isPaid)
+    const saved = await (actions ? actions.updateTransfer(transferId, isPaid) : updateCourtBookingTransferPaymentStatus(matchId, transferId, isPaid)).catch(() => false)
 
     setIsSaving(false)
 
     if (!saved) {
       setError(
-        "No se ha podido actualizar el estado del pago. Revisa Supabase o smash-lob-last-supabase-error."
+        "No se ha podido actualizar el pago. Inténtalo de nuevo."
       )
     }
   }
 
   return (
     <div ref={panelRef} className="scroll-mt-4">
-      <AppCard className="p-2">
-      <div className="flex items-center justify-between gap-2.5">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="type-panel-title text-neutral-950">{tx("Pagos y reservas")}</p>
-
-          </div>
-
-        </div>
-
-        <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
-            {paymentSummary.toPay > 0 ? <StatusHelp kind="payment" status="pay" className={getBadgeClassName("blue")} label={`${tx("Pendiente de pagar")} · ${formatMoney(paymentSummary.toPay)}`}>{tx("Pendiente")} - {formatMoney(paymentSummary.toPay)}</StatusHelp> : null}
-            {paymentSummary.toReceive > 0 ? <StatusHelp kind="payment" status="receive" className={getBadgeClassName("blue")} label={`${tx("Pendiente de cobrar")} · ${formatMoney(paymentSummary.toReceive)}`}>{tx("Pendiente")} - {formatMoney(paymentSummary.toReceive)}</StatusHelp> : null}
-            {paymentSummary.toPay === 0 && paymentSummary.toReceive === 0 ? <StatusHelp kind="payment" status={paymentSummary.state === "none" ? "pending" : paymentSummary.state} className={`${getBadgeClassName(paymentTone)} !whitespace-normal !leading-snug`}>{paymentLabel}</StatusHelp> : null}
-        </div>
-
+      <AppCard>
+      <SectionHeader title={<FitText noWrap minFontSize={12}>{tx("Pagos y reservas")}</FitText>} titleClassName="min-w-0 flex-1" action={<div className="flex shrink-0 items-center gap-1.5">
+        {paymentSummary.toReceive > 0 ? <StatusHelp kind="payment" status="receive" className={`${getBadgeClassName("blue")} ${matchSoftBadge}`}>{tx("Por cobrar")} · {formatMoney(paymentSummary.toReceive)}</StatusHelp> : null}
         <button
           type="button"
           onClick={() => setIsExpanded((currentValue) => !currentValue)}
           aria-expanded={isExpanded}
           aria-label={isExpanded ? t.courtBooking.collapse : t.courtBooking.expand}
           title={isExpanded ? t.courtBooking.collapse : t.courtBooking.expand}
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600 transition active:bg-neutral-200"
+          className={matchToggleClass}
         >
           <svg
             aria-hidden="true"
@@ -546,8 +536,13 @@ export function CourtBookingPanel({
               strokeLinejoin="round"
             />
           </svg>
-        </button>
-      </div>
+        </button></div>} />
+      {paymentSummary.toPay > 0 || paymentSummary.toReceive === 0 ? <div className="mt-2 flex flex-wrap gap-1.5">
+        {paymentSummary.toPay > 0 ? <StatusHelp kind="payment" status="pay" className={`${getBadgeClassName("blue")} ${matchSoftBadge}`}>{tx("Por pagar")} · {formatMoney(paymentSummary.toPay)}</StatusHelp> : null}
+
+        {paymentSummary.toPay === 0 && paymentSummary.toReceive === 0 ? <StatusHelp kind="payment" status={paymentSummary.state === "none" ? "pending" : paymentSummary.state} className={`${getBadgeClassName(paymentTone)} ${matchSoftBadge}`}>{paymentLabel}</StatusHelp> : null}
+      </div> : null}
+      {error && !errorSource ? <p role="alert" className="mt-2 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">{tx(error)}</p> : null}
 
       {isExpanded ? <p className="mt-3 type-caption font-semibold leading-4 text-neutral-500">{tx("Indica quién pagó pista y bolas. La app calcula las transferencias.")}</p> : null}
 
@@ -612,18 +607,24 @@ export function CourtBookingPanel({
                     key={transfer.id}
                     className={`rounded-lg border px-2.5 py-1.5 text-xs ${isCurrentUserTransfer && !transfer.isPaid ? `${getStatusToneClassName("blue")} border-sky-200` : "border-neutral-200"}`}
                   >
-                    <div className="space-y-2">
+                    <div>
                       <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1 space-y-1">
                         <p className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2 leading-snug text-neutral-900"><span className="font-semibold text-neutral-500">{tx("Paga")}</span><span className="break-words font-bold">{getPlayerName(transfer.fromPlayerId, players)}</span></p>
                         <p className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2 leading-snug text-neutral-900"><span className="font-semibold text-neutral-500">{tx("Recibe")}</span><span className="break-words font-bold">{getPlayerName(transfer.toPlayerId, players)}</span></p>
                       </div>
-                      <div className="shrink-0 space-y-1.5 text-right">
-                        <p className="text-lg font-black text-neutral-950">
+                      <div className="shrink-0 text-right">
+                        <p className="text-base font-bold text-neutral-950">
                           {formatMoney(transfer.amount)}
                         </p>
 
 
+
+                      </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-1.5 flex justify-end">
                         {canPayerManageTransfer ? (
                           <button
                             type="button"
@@ -634,28 +635,21 @@ export function CourtBookingPanel({
                               )
                             }
                             disabled={isSaving}
-                            className={`ml-auto block w-fit rounded-md border px-2 py-1.5 type-caption font-black transition disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-300 ${
-                              transfer.isPaid
-                                ? "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
-                                : "border-emerald-200 bg-emerald-50 text-emerald-800 active:bg-emerald-100"
-                            }`}
+                            className={`ml-auto ${transfer.isPaid ? matchSecondaryButton : matchPrimaryButton}`}
                             aria-label={
                               transfer.isPaid
                                 ? tx("Marcar transferencia como pendiente")
-                                : "Marcar transferencia como pagada"
+                                : tx("Marcar transferencia como recibida")
                             }
                           >
                             {isSaving
                               ? "..."
                               : transfer.isPaid
                                 ? tx("↩ Marcar pendiente")
-                                : "✓ Marcar pagado"}
+                                : tx("Marcar recibido")}
                           </button>
                         ) : null}
-                      </div>
-                      </div>
                     </div>
-
                     {canCurrentUserMarkOwnDebtPaid ? (
                       <button
                         type="button"
@@ -663,11 +657,12 @@ export function CourtBookingPanel({
                           handleUpdatePaymentStatus(transfer.id, true)
                         }
                         disabled={isSaving}
-                        className="ml-auto mt-1.5 flex w-fit rounded-md bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
+                        className={`ml-auto mt-1.5 ${matchPrimaryButton}`}
                       >
-                        {isSaving ? "Guardando..." : "✓ Marcar pagado"}
+                        {isSaving ? tx("Guardando...") : tx("Marcar pagado")}
                       </button>
                     ) : null}
+                    {error && errorSource === transfer.id ? <p role="alert" className="mt-2 text-xs font-semibold text-red-700">{tx(error)}</p> : null}
                   </div>
                 )
               })}</div> : null })}
@@ -694,32 +689,34 @@ export function CourtBookingPanel({
           ) : null}
 
           {canManageExistingBooking ? (
-            <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-200 pt-2">
               {pendingTransfersCount > 0 && (!actions || actions.sendReminder) ? (
                 <button
                   type="button"
                   onClick={handleSendReminder}
                   disabled={isSendingReminder}
-                  className="flex w-full rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1.5 type-caption font-black text-orange-900 shadow-sm disabled:text-orange-300 items-center justify-center text-center"
+                  className={matchSecondaryButton}
                 >
                   {isSendingReminder ? "Enviando..." : "Mandar recordatorio"}
                 </button>
               ) : null}
+              {error && errorSource === "reminder" ? <p role="alert" className="text-xs font-semibold text-red-700">{tx(error)}</p> : null}
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm active:bg-neutral-100 items-center justify-center text-center"
+                  className={matchSecondaryButton}
                 >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="m15 5 4 4M4 20l5-1L20 8a2.8 2.8 0 0 0-4-4L5 15Z" /></svg>
                   {tx("Editar")}{" "}</button>
                 <button
                   type="button"
                   onClick={handleClearBooking}
                   disabled={isSaving || !canCancelBooking}
-                  className="inline-flex rounded-md border border-red-100 bg-red-50 px-2.5 py-1.5 type-caption font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
+                  className={matchDestructiveButton}
                 >
-                  {tx("Cancelar reserva")}{" "}</button>
+                  {tx("Eliminar datos de reserva")}{" "}</button>
               </div>
             </div>
           ) : null}
@@ -728,99 +725,23 @@ export function CourtBookingPanel({
 
       {isExpanded && isEditing && canManageBooking ? (
         <form onSubmit={handleSubmit} className="mt-1.5 space-y-1.5">
-          <div className="space-y-1.5">
-            {!ballPurchasesDisabled ? <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setIsBallBuyerSelectorOpen((currentValue) => !currentValue)
-                }
-                className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-left shadow-sm"
-              >
-                <span className="min-w-0">
-                  <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
-                    {tx("Compró las bolas")}{" "}</span>
-                  <span className="block truncate text-sm font-black text-neutral-950">
-                    {ballBuyerSummary}
-                  </span>
-                </span>
-                <span aria-hidden="true" className="shrink-0 text-sm font-black text-neutral-400">
-                  {isBallBuyerSelectorOpen ? "⌃" : "⌄"}
-                </span>
-              </button>
-
-              <label className="flex min-w-0 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 shadow-sm">
-                <input
-                  inputMode="decimal"
-                  value={editableBallPurchaseInput?.amount ?? ""}
-                  disabled={isSaving || !editableBallPurchaseInput}
-                  onFocus={() => {
-                    if (!selectedBallBuyerId && editableBallPurchaseInput) {
-                      selectBallBuyer(editableBallPurchaseInput.playerId)
-                    }
-                  }}
-                  onChange={(event) => {
-                    if (!editableBallPurchaseInput) {
-                      return
-                    }
-
-                    if (!selectedBallBuyerId) {
-                      setSelectedBallBuyerId(editableBallPurchaseInput.playerId)
-                    }
-                    updateBallPurchaseAmount(
-                      editableBallPurchaseInput.playerId,
-                      event.target.value
-                    )
-                  }}
-                  placeholder="0,00"
-                  className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none disabled:text-neutral-300"
-                />
-                <span className="text-xs font-black text-neutral-500">€</span>
-              </label>
-            </div> : null}
-
-            {isBallBuyerSelectorOpen ? (
-              <div className="grid grid-cols-2 gap-1.5 rounded-lg border border-neutral-200 bg-white p-1.5 shadow-sm">
-                {participantIds.map((playerId) => {
-                  const isSelected = selectedBallBuyerId === playerId
-
-                  return (
-                    <button
-                      key={playerId}
-                      type="button"
-                      onClick={() => selectBallBuyer(playerId)}
-                      disabled={isSaving}
-                      className={`rounded-lg border px-2 py-1.5 text-left text-xs font-black transition ${
-                        isSelected
-                          ? "border-neutral-950 bg-neutral-950 text-white"
-                          : "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
-                      } disabled:opacity-60`}
-                    >
-                      <span className="block truncate">{getPlayerName(playerId, players)}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            ) : null}
-          </div>
-
           {!hasMultipleSelectedPayers ? (
             <div className="space-y-1.5">
-              <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-2">
                 <button
                   type="button"
                   onClick={() => setIsPayerSelectorOpen((currentValue) => !currentValue)}
                   className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-left shadow-sm"
                 >
                   <span className="min-w-0">
-                    <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
+                    <span className="block type-caption font-semibold text-neutral-500">
                       {tx("Pagó la pista")}{" "}</span>
                     <span className="block truncate text-sm font-black text-neutral-950">
                       {payerSummary}
                     </span>
                   </span>
                   <span aria-hidden="true" className="shrink-0 text-sm font-black text-neutral-400">
-                    {isPayerSelectorOpen ? "⌃" : "⌄"}
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className={`h-4 w-4 ${isPayerSelectorOpen ? "rotate-180" : ""}`}><path d="m6 8 4 4 4-4" /></svg>
                   </span>
                 </button>
 
@@ -879,7 +800,7 @@ export function CourtBookingPanel({
                   className="flex w-full items-center justify-between gap-2 text-left"
                 >
                   <span className="min-w-0">
-                    <span className="block type-caption font-black uppercase tracking-wide text-neutral-500">
+                    <span className="block type-caption font-semibold text-neutral-500">
                       {tx("Pagaron la pista")}{" "}</span>
                     <span className="block truncate text-sm font-black text-neutral-950">
                       {payerSummary}
@@ -948,19 +869,90 @@ export function CourtBookingPanel({
             </>
           )}
 
-          {error ? (
-            <p className="rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">
-              {tx(error)}
-            </p>
-          ) : null}
+          <div className="space-y-1.5">
+            {!ballPurchasesDisabled ? <div className="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setIsBallBuyerSelectorOpen((currentValue) => !currentValue)
+                }
+                className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-left shadow-sm"
+              >
+                <span className="min-w-0">
+                  <span className="block type-caption font-semibold text-neutral-500">
+                    {tx("Compró las bolas")}{" "}</span>
+                  <span className="block truncate text-sm font-black text-neutral-950">
+                    {ballBuyerSummary}
+                  </span>
+                </span>
+                <span aria-hidden="true" className="shrink-0 text-sm font-black text-neutral-400">
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className={`h-4 w-4 ${isBallBuyerSelectorOpen ? "rotate-180" : ""}`}><path d="m6 8 4 4 4-4" /></svg>
+                </span>
+              </button>
 
-          <div className="grid grid-cols-2 gap-2">
+              <label className="flex min-w-0 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 shadow-sm">
+                <input
+                  inputMode="decimal"
+                  value={editableBallPurchaseInput?.amount ?? ""}
+                  disabled={isSaving || !editableBallPurchaseInput}
+                  onFocus={() => {
+                    if (!selectedBallBuyerId && editableBallPurchaseInput) {
+                      selectBallBuyer(editableBallPurchaseInput.playerId)
+                    }
+                  }}
+                  onChange={(event) => {
+                    if (!editableBallPurchaseInput) {
+                      return
+                    }
+
+                    if (!selectedBallBuyerId) {
+                      setSelectedBallBuyerId(editableBallPurchaseInput.playerId)
+                    }
+                    updateBallPurchaseAmount(
+                      editableBallPurchaseInput.playerId,
+                      event.target.value
+                    )
+                  }}
+                  placeholder="0,00"
+                  className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-neutral-900 outline-none disabled:text-neutral-300"
+                />
+                <span className="text-xs font-black text-neutral-500">€</span>
+              </label>
+            </div> : null}
+
+            {isBallBuyerSelectorOpen ? (
+              <div className="grid grid-cols-2 gap-1.5 rounded-lg border border-neutral-200 bg-white p-1.5 shadow-sm">
+                {participantIds.map((playerId) => {
+                  const isSelected = selectedBallBuyerId === playerId
+
+                  return (
+                    <button
+                      key={playerId}
+                      type="button"
+                      onClick={() => selectBallBuyer(playerId)}
+                      disabled={isSaving}
+                      className={`rounded-lg border px-2 py-1.5 text-left text-xs font-black transition ${
+                        isSelected
+                          ? "border-neutral-950 bg-neutral-950 text-white"
+                          : "border-neutral-200 bg-neutral-50 text-neutral-700 active:bg-neutral-100"
+                      } disabled:opacity-60`}
+                    >
+                      <span className="block truncate">{getPlayerName(playerId, players)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            ) : null}
+          </div>
+
+
+          <div className="flex flex-wrap justify-end gap-2">
             {booking.isReserved ? (
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
                 disabled={isSaving}
-                className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
+                className={matchSecondaryButton}
               >
                 {tx("Cancelar")}{" "}</button>
             ) : (
@@ -968,7 +960,7 @@ export function CourtBookingPanel({
                 type="button"
                 onClick={() => setIsExpanded(false)}
                 disabled={isSaving}
-                className="inline-flex rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 type-caption font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
+                className={matchSecondaryButton}
               >
                 {tx("Cerrar")}{" "}</button>
             )}
@@ -976,7 +968,7 @@ export function CourtBookingPanel({
             <button
               type="submit"
               disabled={!canSave}
-              className="inline-flex rounded-md bg-neutral-950 px-2.5 py-1.5 type-caption font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
+              className={matchPrimaryButton}
             >
               {isSaving ? "Guardando..." : tx("Guardar pagos")}
             </button>

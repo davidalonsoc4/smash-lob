@@ -18,7 +18,8 @@ describe("v1.6.2 homogeneous headers and personal match flow", () => {
     expect(matchPage).toContain("t.rounds.statusActive")
     expect(matchPage).not.toContain("eyebrow={activeLeague.name}")
     expect(detail).toContain("context?: ReactNode")
-    expect(detail).toContain("{context ?? (subtitle ? (")
+    expect(detail).toContain("const contextLine = context ??")
+    expect(detail).toContain("{contextLine}")
   })
 
   it("adds a floating create encounter button above personal navigation", () => {

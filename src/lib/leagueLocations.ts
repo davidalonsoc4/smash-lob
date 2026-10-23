@@ -423,7 +423,8 @@ export function getLeagueLocationCompactText(location: LeagueLocation) {
   const normalizedLocation = normalizeLeagueLocation(location) ?? location;
 
   return [
-    getLeagueLocationOptionLabel(normalizedLocation),
+    normalizedLocation.town?.trim(),
+    getLeagueLocationLabel(normalizedLocation).trim(),
     normalizedLocation.selectedCourt,
   ]
     .filter((item): item is string => Boolean(item?.trim()))

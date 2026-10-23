@@ -464,6 +464,14 @@ export const es = {
       "Quedará guardado también en la bolsa de suplentes.",
     substitutionAssign: "Asignar a este partido",
     directionsButton: "Cómo llegar",
+    directionsPickerTitle: "Cómo llegar",
+    directionsPickerDescription: "Elige con qué aplicación quieres abrir la ubicación.",
+    directionsGoogleMaps: "Google Maps",
+    directionsAppleMaps: "Apple Maps",
+    directionsWaze: "Waze",
+    directionsCopyLocation: "Copiar ubicación",
+    directionsCopied: "Ubicación copiada",
+    directionsClose: "Cerrar",
     schedulePlaceholderDate: "Ejemplo: Viernes, 20:00",
     schedulePlaceholderLocation: "Ejemplo: Club Pádel Norte",
     saveSchedule: "Guardar programación",
@@ -474,11 +482,12 @@ export const es = {
   },
 
   matchResult: {
+    resultLabel: "Resultado",
     title: "Registrar resultado",
     description:
-      "Introduce los tres sets del partido. La app calculará automáticamente los puntos de cada pareja.",
+      "Introduce los tres sets. Cada set ganado suma un punto.",
     optionalSetsDescription:
-      "Introduce los sets jugados. Los sets vacíos se ignorarán al guardar.",
+      "Introduce los sets jugados y deja el resto vacío. Cada set ganado suma un punto.",
     editTitle: "Editar resultado",
     editDescription:
       "Corrige los sets del partido. El ranking se recalculará automáticamente al guardar.",

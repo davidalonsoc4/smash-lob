@@ -1,4 +1,178 @@
-## MC26 — publicación de pendientes en PRE (2026-10-23)
+MC40 completada localmente: texto de posición cambiada y símbolo rojo abren la misma explicación que el icono de cabecera mediante MatchSideHelp compartido; preserva metadatos, accesibilidad, teclado, Escape y propagación controlada. Flecha sustituida por SVG de 12 px, centrada con inline-flex para evitar el desplazamiento de la fuente. Ocho pruebas de interacción, TypeScript, ESLint y control de Mis partidos correctos; cuatro pruebas Playwright a 360×800 claro/oscuro, pulsación de posición y ayuda de cabecera, sin incidencias graves/críticas de Axe. Captura móvil con ayuda cerrada revisada para confirmar alineación. Sin DB, commits ni publicación.
+
+MC40: texto rojo y flecha reutilizan MatchSideHelp/StatusHelp para tocar, pulsar Enter/Espacio y cerrar con Escape, sin navegar al perfil. Sustituido el glifo por SVG de 12 px centrado mediante inline-flex, conservando rojo. Ocho pruebas de interacción, tipos, lint y controles de Mis partidos correctos. Primera prueba de navegador apuntaba al span interior; adaptada para comprobar el control accesible que ahora contiene la etiqueta. Cuatro casos posteriores correctos; se añaden capturas con ayuda cerrada para revisar la alineación solicitada.
+
+## MC41 — Alineación del indicador de posición recomendada
+- Status: DONE locally (2026-10-23; ocho pruebas, TypeScript y ESLint correctos)
+- Objective: alinear verticalmente el texto rojo y el icono ↔ con el resto de metadatos del jugador, manteniendo el indicador completamente clickable y su ayuda contextual.
+- Validation: `npx vitest run tests/unit/matchSideRecommendationsPanel.test.tsx tests/unit/matchDetailPairingPanel.test.ts tests/unit/v1814MatchDetailPlayerMetadataLayout.test.ts` (8/8), `npm run typecheck` y ESLint focalizado. Sin cambios de datos, navegación ni operaciones remotas.
+
+## MC42 — Ajuste fino del icono de posición
+- Status: DONE locally (2026-10-23; ocho pruebas focalizadas y ESLint correctos)
+- Objective: bajar ligeramente el SVG ↔ para que quede centrado con la línea de texto rojo, sin mover el texto ni cambiar la interacción.
+- Validation: las tres suites unitarias de emparejamiento (8/8) y ESLint focalizado. Sin cambios de datos, navegación ni operaciones remotas.
+
+## MC43 — Corrección del desplazamiento vertical del icono
+- Status: DONE locally (2026-10-23; ESLint focalizado correcto)
+- Objective: aplicar explícitamente el desplazamiento de 2 px hacia abajo al SVG ↔, ya que la utilidad anterior no se generaba.
+- Validation: ESLint focalizado. Sin cambios de datos, navegación ni operaciones remotas.
+
+## MC44 — Microajuste final del icono ↔
+- Status: DONE locally (2026-10-23)
+- Objective: bajar 1 px adicional el icono para rematar su alineación visual con el texto rojo.
+- Validation: ajuste localizado, sin cambios funcionales ni remotos.
+
+## MC45 — Selector de aplicaciones para Cómo llegar
+- Status: DONE locally (2026-10-24; TypeScript, i18n, ESLint y flujo móvil correctos)
+- Objective: sustituir los accesos directos a Google Maps por un selector común con Google Maps, Apple Maps, Waze y copiar ubicación.
+- Validation: `npm run typecheck`, `npm run i18n:check`, ESLint focalizado, `git diff --check` y 2 pruebas Playwright móviles (claro/oscuro). Aplicado en programación de partidos, lugares de liga y comprobación de ubicación manual. Sin base de datos, dependencias ni operaciones remotas.
+
+## MC46 — Modal centrado de navegación
+- Status: DONE locally (2026-10-24; ESLint y diff check correctos)
+- Objective: presentar el selector de aplicaciones centrado en pantalla, con la misma lectura visual del popup de calendario, en lugar de anclado al borde inferior.
+- Validation: ajuste localizado de presentación; ESLint focalizado y `git diff --check`. Sin cambios funcionales, datos ni operaciones remotas.
+
+## MC47 — Estilos compartidos con Añadir al calendario
+- Status: DONE locally (2026-10-24; TypeScript y ESLint focalizados correctos)
+- Objective: igualar los botones del selector de navegación a los del popup de calendario, eliminando bordes redundantes y añadiendo el tratamiento de modo oscuro.
+- Validation: `npm run typecheck` y ESLint focalizado. Sin cambios de comportamiento, datos ni operaciones remotas.
+
+## MC48 — Icono de copiar y chevrons unificados
+- Status: DONE locally (2026-10-24; TypeScript y ESLint focalizados correctos)
+- Objective: añadir chevrons a las opciones del calendario y sustituir el icono cuadrado de copiar por una versión SVG más suave y redondeada.
+- Validation: `npm run typecheck` y ESLint focalizado. Sin cambios de datos ni operaciones remotas.
+
+## MC49 — Cierre unificado de popups
+- Status: DONE locally (2026-10-24; TypeScript y ESLint focalizados correctos)
+- Objective: igualar «Cómo llegar» a «Añadir al calendario» usando «Cancelar» en la parte inferior y eliminando la X superior.
+- Validation: `npm run typecheck` y ESLint focalizado, con la prueba móvil actualizada. Se conserva cierre por fondo y Escape.
+
+## MC50 — Confirmación al copiar ubicación
+- Status: DONE locally (2026-10-24)
+- Objective: reutilizar `ActionFeedbackCenter` para mostrar el aviso verde inferior al copiar correctamente una ubicación.
+- Validation: integración localizada con el sistema global de feedback; sin cambios de datos ni operaciones remotas.
+
+## MC51 — Cierre del selector tras una acción
+- Status: DONE locally (2026-10-24; TypeScript y ESLint focalizados correctos)
+- Objective: cerrar «Cómo llegar» al elegir Google Maps, Apple Maps, Waze o copiar la ubicación, igual que «Añadir al calendario».
+- Validation: `npm run typecheck` y ESLint focalizado. Se conserva el aviso verde de copia y el cierre por Cancelar, fondo o Escape.
+
+## MC40 — Ayuda al pulsar la posición cambiada
+- Status: DONE locally (2026-10-23; ocho pruebas de interacción, tipos, lint y cuatro casos de navegador correctos)
+- Objective: texto rojo y símbolo de cambio abren la misma ayuda que el icono de Jornada, con teclado y sin navegar al perfil. Centrar el símbolo equivalente mediante SVG, por nueva indicación del usuario.
+- Validation: pruebas de interacción, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+MC39 completada localmente: estado en la primera fila de Jornada, arriba a la derecha; información en la fila del contexto, debajo y alineada al extremo inferior derecho. Se mantienen texto de temporada, acciones, popup y visibilidad contextual; sin posiciones absolutas que se solapen con el contenido. Ocho pruebas, TypeScript y ESLint correctos; cuatro casos Playwright a 360×800 claro/oscuro con ayuda, Escape y resultado final correctos. Captura móvil revisada, popup dentro de pantalla y Axe sin incidencias graves/críticas. Sin DB, commits ni publicación.
+
+## MC39 — Ayuda en el extremo inferior de Jornada
+- Status: DONE locally (2026-10-23; ocho pruebas, tipos, lint y cuatro casos de navegador correctos)
+- Objective: estado arriba a la derecha y ayuda debajo, alineada al borde inferior del contenido de la cabecera.
+- Validation: pruebas existentes, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+MC38 completada localmente: icono de ayuda de posiciones junto a la etiqueta de estado en la tarjeta de Jornada; retirado del espacio entre parejas. MatchSideHelp reutiliza el mismo contenido y StatusHelp, con visibilidad solo cuando existen recomendaciones pendientes y sin resultado, conservando las acciones de cabecera. Ocho pruebas existentes, TypeScript y ESLint correctos; cuatro casos Playwright en viewport 360×800 claro/oscuro, popup dentro de pantalla, Escape y ausencia tras resultado correctos. Captura móvil revisada y Axe sin incidencias graves/críticas. Sin DB, commits ni publicación.
+
+## MC38 — Ayuda de posiciones junto al estado
+- Status: DONE locally (2026-10-23; ocho pruebas, tipos, lint y cuatro casos de navegador correctos)
+- Objective: mover el icono desde el VS a la cabecera de Jornada, manteniendo ayuda y visibilidad contextual.
+- Validation: pruebas de ayuda/posiciones, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+MC37 completada localmente como prueba visual: pendientes sin tarjeta/título exterior, parejas con más espacio y nombres de 1,25 rem, VS de 36 px y ayuda discreta debajo del VS. Mantiene nombres adaptativos con mínimo 10 px, preferencias/recomendaciones, enlaces y marcador final previo. Estilo de nombres acotado a .app-match-pairing-standalone. Copia previa local ignorada para facilitar reversión específica. Veinte pruebas, TypeScript, ESLint, tipografía y controles de Mis partidos correctos; ocho casos Playwright a 360×800 claro/oscuro, ayuda y estados de resultado, sin incidencias graves/críticas de Axe. Captura móvil revisada. Sin DB, commits ni publicación; pendiente valoración del usuario para mantener o revertir el diseño.
+
+## MC37 — Prueba de enfrentamiento sin tarjeta exterior
+- Status: DONE locally (2026-10-23; veinte pruebas, tipos, lint y ocho casos de navegador correctos; diseño de prueba pendiente de valoración)
+- Objective: parejas y VS directamente sobre la pantalla, nombres algo mayores y ayuda discreta; preservar recomendaciones y marcador final.
+- Validation: pruebas existentes, tipos, lint y capturas móviles claro/oscuro. Sin operaciones remotas; prueba reversible.
+
+MC36 completada localmente: Emparejamiento adopta SectionHeader con el estilo del resto de paneles y conserva su ayuda. Programación elimina el padding acumulado entre encabezado y contenido; ambos reutilizan el margen compartido de cabecera usado en Pagos, sin modificar estilos globales. Veinte pruebas, TypeScript, ESLint y control tipográfico correctos. Cuatro casos Playwright con build correcto a 360×800 en claro/oscuro; captura móvil revisada y Axe sin incidencias graves/críticas. Sin cambios de datos, permisos, commits ni publicación.
+
+MC36: Emparejamiento reutiliza SectionHeader con ayuda existente. Programación conserva el margen compartido de cabecera y elimina padding inferior/superior acumulado entre título y contenido, también en edición y sin programar. Veinte pruebas existentes, TypeScript, ESLint y control tipográfico correctos; comprobación móvil claro/oscuro en curso.
+
+## MC36 — Cabecera y separación de Emparejamiento/Programación
+- Status: DONE locally (2026-10-23; veinte pruebas, tipos, lint, tipografía y cuatro casos de navegador correctos)
+- Objective: reutilizar SectionHeader en Emparejamiento y eliminar espacio adicional de Programación, con separación común de Pagos.
+- Validation: pruebas existentes, TypeScript, lint, tipografía y comprobación móvil claro/oscuro. Sin operaciones remotas.
+
+MC35 completada localmente: previews de liga, perfiles e historial personal reciben Población · Ubicación · Pista desde getLeagueLocationCompactText compartido. Programación reutiliza el mismo helper; PersonalMatchCard prioriza la ubicación estructurada, con fallback al texto guardado. Se conservan identificadores, resolución legacy, selectores, nombres con guiones y omisión de datos ausentes. 26 pruebas, TypeScript, ESLint y controles de ubicaciones/Mis partidos correctos. Sin DB, commits ni publicación. La propuesta posterior de reforzar la cabecera Emparejamiento queda pendiente de decisión, sin cambios adicionales.
+
+MC35: formateador compartido actualizado y Programación reutilizándolo; tarjetas personales priorizan scheduleLocation estructurado sobre la etiqueta ya formateada. Pasan 26 pruebas y lint focalizado. Controles de ubicaciones/Mis partidos correctos tras adaptar comprobaciones literales antiguas de las etiquetas eliminadas en MC34; no cambios de comportamiento por esos controles. TypeScript en curso.
+
+## MC35 — Ubicación uniforme en previews
+- Status: DONE locally (2026-10-23; 26 pruebas, TypeScript, lint y controles de ubicaciones/Mis partidos correctos)
+- Objective: Población · Ubicación · Pista mediante el formateador compartido; conservar resolución de catálogo, datos y campos ausentes.
+- Validation: pruebas de ubicaciones y tarjetas, TypeScript, lint y controles de ubicaciones. Sin operaciones remotas.
+
+MC34 completada localmente: retiradas las etiquetas Pareja A/B, su fila y el margen residual del emparejamiento. Conserva VS, jugadores, metadatos, recomendaciones y vista de resultado final. Eliminado únicamente el helper de presentación sin uso y adaptadas las expectativas visuales antiguas. Nueve pruebas existentes, tipos y lint focalizado correctos; diff sin errores. Sin datos, navegación, commits ni publicación.
+
+## MC34 — Emparejamiento sin etiquetas redundantes
+- Status: DONE locally (2026-10-23; nueve pruebas, TypeScript y ESLint focalizado correctos)
+- Objective: retirar Pareja A/B y su fila del panel de emparejamiento; mantener nombres, posiciones, VS y resultados.
+- Validation: pruebas existentes del panel, tipos y lint focalizado. Sin operaciones remotas.
+
+## MC33 — COMPLETADA LOCALMENTE (2026-10-23)
+
+Por cobrar comparte cabecera con el título y precede al chevron, con título adaptativo y sin dejar fila vacía debajo. Columna Resultado traducida, más ancha y con cifras de 24 px. Programación usa columnas iguales para mapa/calendario y muestra Población · Ubicación · Pista desde los datos existentes, también al finalizar/aplazar; evita presentar la hora anterior de un partido aplazado como vigente. Mantiene ubicaciones de texto libre cuando no existe población identificable, sin modificar datos ni resolvedor de catálogo.
+
+Validación: 12 pruebas de formulario, TypeScript, lint sin errores (cinco avisos previos), i18n, tipografía, ubicaciones y presupuesto correctos (135207 líneas). Cuatro casos Playwright con build correcto, fixtures a 360×800, claro/oscuro y ambos proyectos; comprueban igualdad de ancho/alto de acciones y alineación vertical de etiqueta/título. Captura móvil revisada y Axe sin incidencias graves/críticas. Sin DB, nuevas dependencias, commits ni publicación.
+
+MC33: ampliado por petición a Población · Ubicación · Pista en programación, sin inventar población para textos libres. Doce pruebas correctas con estados programado, sin fecha, finalizado y aplazado. Primera medida detecta 22 px de diferencia por padding/base flex: acciones pasan a dos columnas iguales de grid. Fixture de navegador ajustada a una ubicación persistida con id para evitar ambigüedad de dos clubes con igual nombre; se conserva el resolvedor seguro existente. Repetición en curso.
+
+MC33: cambios de presentación aplicados, ocho pruebas de formulario correctas. Cabecera de pagos permite título adaptativo para mantener Por cobrar antes del chevron; Resultado aumenta a 24 px con título traducido y columna dedicada; acciones de Programación comparten base flex de cero para igualar ancho. Validación de tipos, lint, traducciones y geometría móvil en curso.
+
+## MC33 — Alineación y jerarquía de paneles de Partido
+- Status: IN PROGRESS (2026-10-23)
+- Objective: Por cobrar en cabecera antes del chevron, Resultado destacado y botones de programación iguales. Incluir Población · Ubicación y pista, también en estados finalizado y aplazado.
+- Validation: formularios, tipos, lint, i18n y navegador móvil claro/oscuro; sin operaciones remotas.
+
+## MC32 — COMPLETADA LOCALMENTE (2026-10-23)
+
+Programación elimina active:bg-neutral-50 de su cabecera, distingue fecha/ubicación y usa iconos de mapa/calendario con acciones compactas. Botones compartidos de 36 px, fuente 12 px, contorno secundario y acción destructiva diferenciada. Pagos presenta pista antes que bolas, importes y transferencias legibles y acciones separadas; reserva cargada reinicia la instancia por partido/estado para evitar un formulario vacío. Resultado reutiliza dos filas de parejas con nombres adaptativos (mínimo 10 px), inputs de sets y puntos calculados, manteniendo validación, avance y permisos. Guía de estilos actualizada.
+
+Validación final sin concurrencia: npm run validate completo correcto, 1092 pruebas / 264 archivos, TypeScript, lint sin errores (cinco avisos previos), i18n y build dentro de presupuesto (1216588 bytes gzip, 104 chunks). Cuatro pruebas Playwright correctas con fixtures a 360×800 en claro/oscuro, estados previo/programado/pendiente/finalizado, pagos y expansión; capturas revisadas y Axe sin incidencias graves/críticas. Health y detalle locales HTTP 200 tras build. Sin DB, dependencias, commits ni publicación; PRE permanece intacto.
+
+MC32: cuatro pruebas de navegador correctas tras identificar la instancia de pagos por partido/reserva; capturas de 360×800 revisadas en claro y oscuro, sin desbordamientos y Axe sin incidencias graves/críticas. Validate inicial: 1091/1092 correctas; única incidencia, timeout de 5000 ms en generación exhaustiva de torneos (5439 ms) durante compilación concurrente. Reejecución aislada pasa las ocho pruebas (2,81 s). Repetición completa sin compilaciones simultáneas en curso; no se modifica lógica ni timeout de torneos.
+
+Diagnóstico MC32: una prueba móvil detecta estado local de pagos inicializado antes de hidratar una reserva guardada. La instancia se identifica por partido/reserva para reiniciar los campos al cambiar entre sin reserva y reserva, manteniendo borradores durante edición normal. Se repite navegador; publicación detenida hasta pasar gates.
+
+## MC32 — Claridad visual de Programación, Pagos y Resultado
+- Status: IN PROGRESS (2026-10-23); formulario con filas de parejas, ubicación destacada, acciones compactas con borde y pista antes que bolas. Ocho pruebas de flujo correctas. Gate tipográfico detectó dos tamaños fijos nuevos: sustituidos por type-caption existente antes de continuar; validación completa y navegador en curso.
+- Objective: corregir pulsación clara, destacar ubicación, compactar acciones y alinear parejas con inputs. Sin cambios de permisos ni operaciones remotas.
+- Validation: formularios, tipos, lint, build y navegador móvil claro/oscuro con fixtures.
+
+## MC31 — pulido de Partido (2026-10-23)
+
+COMPLETADA LOCALMENTE. Aplicadas exclusivamente propuestas 1/2/4/8/12/13/14/15. validate completo correcto: 1092 pruebas en 264 archivos, TypeScript, lint sin errores (cinco avisos previos), i18n y build dentro de presupuesto (1216245 bytes gzip, 104 chunks). Cuatro casos Playwright verifican las vistas sin programar, programada con entrada anticipada, pendiente de resultado y resultado guardado/corrección en 360×800, claro/oscuro y ambos proyectos; capturas móviles revisadas y Axe sin incidencias graves/críticas. Repetición final de los dos casos móviles tras aclarar «cada set ganado suma un punto» también correcta y build del navegador actualizado. Nuevas pruebas de flujo cubren marcador vacío frente a cero, exigencia de tres sets, borrador anticipado, permisos de pago, errores/reintentos, confirmación de eliminación y alternativa manual al acuerdo del chat. Servidor local verificado HTTP 200 en health y detalle. Cabeceras reutilizan SectionHeader; sin consultas, dependencias, migraciones ni cambios de permisos/reglas. Sin commits ni publicación.
+
+Diagnóstico del build de navegador: import incorrecto del fixture allMatches en la prueba nueva; corregido sin tocar código de datos. Validaciones completas y navegador reiniciados. La programación manual sigue disponible junto al acuerdo del chat; resultado anticipado accesible por desplegable; pagos se contraen inicialmente cuando prima el resultado pendiente. Guía compartida ampliada con cabeceras y acciones de Partido.
+
+Implementados prioridad contextual y agrupación de resultado, cabeceras SectionHeader, estilos de acciones compartidos, etiquetas Por pagar/Por cobrar y errores localizados, confirmación al eliminar datos de reserva, nombres de parejas y validación sin convertir vacíos en cero. Ocho pruebas nuevas de flujo y 18 existentes pasan; i18n correcto. Gate tipográfico adaptado para verificar el uso real de SectionHeader. Incremento neto de fuente medido de 66 líneas respecto a MC30, principalmente traducciones; presupuesto total ajustado de 135200 a 135300, sin aumentar clientes. Navegador detenido por fallo de typecheck del servidor de pruebas; se está obteniendo el diagnóstico antes de continuar.
+
+En curso por autorización de propuestas 1/2/4/8/12/13/14/15. Mantener permisos y reglas de resultado; resto de recomendaciones pendiente. Reutilizar SectionHeader de Competiciones, estilos de acciones comunes y formularios existentes. Sin operaciones remotas.
+
+## MC30 — orden visual del emparejamiento (2026-10-23)
+
+COMPLETADA LOCALMENTE. PairDetails construye una lista de presentación con jugador y recomendación asociados y solo la invierte si ambos lados están resueltos: A Revés arriba, Drive abajo; B Drive arriba, Revés abajo. Pruebas verifican equipos inicialmente invertidos sin mutarlos, marcador rojo/↔ en el jugador correcto, actualización al cambiar clasificación y orden conservado con empate, sin recomendaciones o con resultado. 25 pruebas focalizadas y cuatro casos Playwright en 360×800 (claro/oscuro) correctos; TypeScript, ESLint, controles de detalle/Mis partidos y presupuesto correctos. Build de navegador correcto. No cambio de previews, símbolos, posiciones persistidas, datos ni publicación.
+
+En curso. Hasta ahora PairDetails recorría el orden almacenado en teamA/teamB; las recomendaciones no cambiaban ese orden. Se ordena únicamente la presentación del detalle pendiente cuando ambos lados están resueltos: A Revés/Drive, B Drive/Revés. No cambiar el símbolo ↔ por petición expresa; conservar orden en empates/datos insuficientes y encuentros con resultado.
+
+## MC29 — etiquetas de resultado (2026-10-23)
+
+COMPLETADA LOCALMENTE. MatchOutcomeBadge compartido por MatchCard y PersonalMatchCard; todas las etiquetas Victoria/Derrota usan tamaño caption, semibold, texto normal, padding 8/2 px, fondo suave y ningún borde/anillo decorativo, conservando StatusHelp y traducciones. El modo compacto ya no cambia el resultado, solo la etiqueta de origen. Guía guardada en docs/ui-style-guide.md. Verificados 25 tests focalizados, seis casos Playwright (Home, Calendario e historial personal en móvil/escritorio), TypeScript, ESLint, i18n, control de Mis partidos y presupuesto de código; build de Playwright correcto. Revisada captura móvil y actualizadas solo cuatro referencias de Home/Calendario por el cambio aprobado. No CSS de temas, datos ni navegación modificados; no publicación ni commits.
+
+En curso. Auditoría acotada encuentra etiquetas Victoria/Derrota en MatchCard (liga: Home, Calendario y previews) y PersonalMatchCard (Competiciones y Mis partidos); la primera conserva tamaño, borde y mayúsculas antiguos. Se extrae el estilo compacto de Actividad personal a un componente común sin cambiar cálculos ni círculos V/D de Racha. Sin acciones remotas.
+
+## MC27 — recomendaciones de posición (2026-10-23)
+
+COMPLETADA LOCALMENTE. npm run validate correcto: 1082 pruebas / 263 archivos, TypeScript, lint sin errores (cinco avisos previos), i18n, controles de seguridad/presupuesto y build (1213740 bytes gzip, 104 chunks). Cuatro pruebas Playwright correctas en viewport 360×800 con claro/oscuro: lados recomendados, ayuda legible sin desbordar, cierre con Escape y ausencia en encuentros con resultado. Captura móvil revisada. El primer intento visual interfería con el tutorial inicial; fixture corregida marcando únicamente esa guía como completada. ESLint focalizado posterior correcto. Revisión React: cálculo puro durante render, sin efectos/consultas adicionales ni mutación de preferencias; ayuda reutiliza portal y teclado existentes. No migraciones ni publicación de MC27; cambios permanecen locales en la rama actual.
+
+Implementación local: helper puro para parejas Drive/Revés/Versátil, desempate solo por posición válida y distinta en clasificación de temporada; sin asignaciones arbitrarias si faltan datos o hay empate. Integrado en metadatos existentes de partidos de liga pendientes, rojo y ↔ únicamente al cambiar una preferencia fija. Ayuda estructurada y traducida es/en/eu en el icono preparado; StatusHelp acepta contenido React sin cambiar el resto de avisos. 34 pruebas focalizadas correctas, i18n y presupuesto de código correctos; validación completa y revisión móvil en curso. Sin publicación de esta parte.
+
+Comienza implementación local tras terminar MC26. Se reutilizan preferencias y clasificación de temporada ya disponibles, sin consultas ni persistencia nuevas. Mantener emparejamiento sin avatares y metadatos debajo del nombre. Recomendaciones solo antes de finalizar el partido; cambios de preferencia fija destacados y explicación en el icono existente.
+
+## MC26 — publicación de pendientes en PRE (2026-10-23) — COMPLETADA
+
+PR #54 integrada en staging con commit b8d81448 tras pasar los cuatro jobs de CI. Deployment dpl_27kzsdZmY2SXgXsXE6fyiBbz6odD READY, alias pre.smashandlob.com verificado. Health autenticado con Vercel CLI confirma 1.15.34 / pre; portada y Avatar Lab 200, API Avatar Lab 401 sin sesión. Smoke público directo redirige 302 a protección SSO de Vercel; mismas comprobaciones realizadas con vercel curl, sin desactivar protección. Migraciones verificadas en catálogo, RLS activa y permisos exclusivos service_role. Main, Production y v1.0.0 intactos. OAuth y revisión física móvil siguen siendo gates manuales, sin usar cuentas personales en automatización.
+
+Commit c1fb4e7d subido y verificado en remoto; PR #54 abierta hacia staging. CI supera código/build, Lighthouse y migraciones/pgTAP/restore; navegador aún en curso. Aplicadas por CLI únicamente 20261021223000 y 20261021233000 en miadjotkucgluwbrgeih: dry-run posterior sin pendientes, funciones verificadas SECURITY INVOKER y ejecución exclusiva service_role. Advertencia de caché local por Docker ausente no afectó a la aplicación SQL; verificación remota explícita realizada.
 
 Gates locales superados: npm run validate completo, audit de dependencias de ejecución sin vulnerabilidades y Playwright 111 correctas / una omitida (gate manual PRE). Capturas actualizadas de cuatro pantallas en móvil/escritorio. Preparada publicación de 1.15.34; comienza commit/push y PR hacia staging, sin tocar main ni Production.
 
@@ -2855,3 +3029,11 @@ Administración de liga > Competición muestra Organizar torneo inmediatamente b
 MC15 checkpoint (2026-10-19): formulario y API parametrizados para 8–16 jugadores, 1–4 pistas, reservas 60/90/120 y preparación limitada por margen; calendario por duración, comprobaciones de participación/rachas/variedad, cuenta de resultados y campeón dinámicas. La plantilla original de 12 jugadores y 2 pistas se conserva. Nueva migración aditiva supabase/migrations/20261019133236_rapid_tournament_flexible_americana.sql creada con Supabase CLI; no aplicada a ninguna base. Pruebas unitarias de 36 combinaciones y rutas base pasan; falta revisar permisos/validación SQL, actualizar detalles de las pantallas, validar el flujo de creación desde liga y ejecutar todos los gates. quality:source pasa en 134491/134500. Hito sigue IN_PROGRESS; sin PRE/Production, commits ni despliegue.
 MC15 checkpoint (2026-10-19): formulario actualizado con valores editables 8–16 jugadores, 1–4 pistas, reservas 60/90/120 y preparación limitada para preservar al menos 2 minutos de margen; origen desde liga completa plazas manuales y sugiere el nombre de la liga, que permanece editable. Añadida nota cuando el número de jugadores limita pistas simultáneas, horarios y validación dinámicos, tabla por participante y cobertura E2E ajustada al comportamiento actual. Migración flexible sigue sin aplicar. Pruebas objetivo y E2E desktop (flujo completo) pasan; npm run validate en curso.
 MC15 final (2026-10-19): local implementation and validation complete. npm run validate passed (252 files, 1,011 tests; lint 0 errors/5 existing warnings; typecheck, production build and quality:build passed). Tournament E2E passed 6/6 across mobile/desktop and light/dark, including independent creation and linked-season roster import. Flexible migration is versioned but deliberately not applied remotely; PRE database validation remains pending authorization. No commit or deployment.
+## MC28 — servidor local (2026-10-23)
+
+COMPLETADA. Reiniciado exclusivamente next dev de esta carpeta, ahora Next 16.4.3 y escucha en 0.0.0.0:3000. /api/health, /leagues y /match/season-2-round-5-match-1 responden HTTP 200; logs nuevos sin los errores de instrumentation. Sin limpiar datos, modificar código funcional, instalar dependencias ni operaciones remotas. Causa confirmada por recuperación inmediata con el reinicio tras actualizar Next durante MC26; faltó reiniciar el proceso previo antes de entregar las pruebas locales.
+
+Reproducidos HTTP 500 en /leagues y /api/health. Proceso next dev previo a la actualización seguía escuchando en 3000; log muestra routeModule.ensureInstrumentation y ensureInstrumentationRegisteredWithDeferredSpans inexistentes. Se reinicia únicamente el servidor de esta carpeta para cargar Next 16.4.3; validación HTTP pendiente. Sin cambios remotos ni de datos.
+### MC52 — presupuesto de componentes cliente
+
+- Ajustado el límite de componentes cliente de 195 a 196 para cubrir el nuevo `DirectionsPicker`, un componente reutilizable compartido por las acciones de navegación.

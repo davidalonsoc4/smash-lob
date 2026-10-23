@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import type { ReactNode } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import type { PlayerProfile } from "@/data/fakeData"
@@ -11,6 +12,7 @@ import { getMatchSubstituteLabels } from "@/lib/substitutes"
 import { useI18n } from "@/i18n/I18nProvider"
 import { StatusHelp } from "@/components/ui/StatusHelp"
 import { FitText } from "@/components/ui/FitText"
+import { recommendPairSides, type RecommendedSide } from "@/lib/matchSideRecommendations"
 
 type MatchDetailPairingPanelProps = {
   teamA: string[]
@@ -40,6 +42,7 @@ function DetailPlayer({
   metadataPlacement,
   showMetadata,
   showRankingPosition,
+  recommendedSide,
 }: {
   playerId: string
   players?: PlayerProfile[]
@@ -51,6 +54,7 @@ function DetailPlayer({
   metadataPlacement: "before-name" | "after-name"
   showMetadata: boolean
   showRankingPosition: boolean
+  recommendedSide?: RecommendedSide | null
 }) {
   const { tx } = useI18n()
   const player = getPlayerById(playerId, players)
@@ -65,12 +69,24 @@ function DetailPlayer({
       ) : null}
     </span>
   )
-  const playerPositionLabel = [getPreferredPlayerSideLabel(player?.preferredSide), getDominantHandLabel(player?.dominantHand)].filter((label): label is string => Boolean(label)).map(label => tx(label)).join(" · ")
+  const changedSide = Boolean(recommendedSide && player?.preferredSide && player.preferredSide !== "versatile" && recommendedSide !== player.preferredSide)
+  const sideLabel = getPreferredPlayerSideLabel(recommendedSide ?? player?.preferredSide)
+  const handLabel = getDominantHandLabel(player?.dominantHand)
+  const playerPositionLabel = [sideLabel, handLabel].filter((label): label is string => Boolean(label)).map(label => tx(label)).join(" · ")
   const metadataClass = `min-h-4 type-micro font-medium leading-4 tracking-normal text-neutral-500 ${
     alignment === "right" ? "text-right" : "text-left"
   }`
   const metadataText = [showRankingPosition && position ? `#${position}` : null, playerPositionLabel].filter(Boolean).join(" · ")
-  const metadataLine = <p className={`${metadataClass} truncate`} title={metadataText}>{metadataText || "\u00a0"}</p>
+  const metadataLine = <p className={`${metadataClass} truncate`} title={metadataText}>
+    {showRankingPosition && position ? <>#{position}{sideLabel || handLabel ? " · " : ""}</> : null}
+    {sideLabel ? changedSide ? (
+      <MatchSideHelp className="inline align-baseline font-semibold text-red-700" label={`${tx("Lado recomendado")}: ${tx(sideLabel)}. ${tx("Preferencia")}: ${tx(getPreferredPlayerSideLabel(player?.preferredSide) ?? "")}`}>
+        <span data-recommended-side={recommendedSide ?? undefined} className="inline-flex items-baseline gap-0.5 align-baseline"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="relative top-[3px] h-3 w-3 shrink-0 align-baseline"><path d="M3 10h14M7 6l-4 4 4 4m6-8 4 4-4 4" /></svg>{tx(sideLabel)}</span>
+      </MatchSideHelp>
+    ) : <span data-recommended-side={recommendedSide ?? undefined}>{tx(sideLabel)}</span> : null}
+    {handLabel ? <>{sideLabel ? " · " : ""}{tx(handLabel)}</> : null}
+    {!metadataText ? "\u00a0" : null}
+  </p>
   const nameLine = (
     <div className={`flex min-w-0 items-center gap-1.5 ${alignment === "right" ? "flex-row-reverse" : ""}`}>
       <div className="min-w-0 flex-1 overflow-hidden">
@@ -123,40 +139,6 @@ function DetailPlayer({
   )
 }
 
-function PairHeader({
-  label,
-  points,
-  alignment,
-}: {
-  label: string
-  points?: number | null
-  alignment: "left" | "right"
-}) {
-  return (
-    <div className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}>
-      <div className="flex min-w-0 items-center gap-1.5">
-        {points !== null && points !== undefined && alignment === "right" ? (
-          <span className="mr-auto flex h-7 min-w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-950 px-2 text-sm font-black text-white">
-            {points}
-          </span>
-        ) : null}
-        <p
-          className={`min-w-0 type-caption font-bold uppercase leading-none tracking-wide text-neutral-500 ${
-            alignment === "right" ? "ml-auto text-right" : "text-left"
-          }`}
-        >
-          {label}
-        </p>
-        {points !== null && points !== undefined && alignment === "left" ? (
-          <span className="ml-auto flex h-7 min-w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-950 px-2 text-sm font-black text-white">
-            {points}
-          </span>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
 function PairDetails({
   playerIds,
   players,
@@ -167,6 +149,7 @@ function PairDetails({
   alignment,
   showMetadata,
   showRankingPosition,
+  recommendSides,
 }: {
   playerIds: string[]
   players?: PlayerProfile[]
@@ -177,14 +160,21 @@ function PairDetails({
   alignment: "left" | "right"
   showMetadata: boolean
   showRankingPosition: boolean
+  recommendSides: boolean
 }) {
+  const recommendations = recommendSides ? recommendPairSides(playerIds.map(playerId => ({ preferredSide: getPlayerById(playerId, players)?.preferredSide, rankingPosition: positions[playerId] }))) : [null, null]
+  const displayPlayers = playerIds.map((playerId, index) => ({ playerId, recommendedSide: recommendations[index] }))
+  if (recommendSides && recommendations[0] && recommendations[1] && recommendations[0] !== recommendations[1]) {
+    const topSide = alignment === "left" ? "reves" : "drive"
+    if (displayPlayers[0].recommendedSide !== topSide) displayPlayers.reverse()
+  }
   return (
     <div
-      className={`rounded-lg bg-neutral-50 px-2 py-1.5 ${
+      className={`rounded-xl bg-neutral-50 px-2.5 py-3 ${
         alignment === "right" ? "text-right" : "text-left"
       }`}
     >
-      {playerIds.map((playerId, index) => (
+      {displayPlayers.map(({ playerId, recommendedSide }, index) => (
         <div key={playerId} className={index === 0 ? "pb-1.5" : "pt-1"}>
           {index > 0 ? (
             <div
@@ -205,6 +195,7 @@ function PairDetails({
             metadataPlacement="after-name"
             showMetadata={showMetadata}
             showRankingPosition={showRankingPosition}
+            recommendedSide={recommendedSide}
           />
         </div>
       ))}
@@ -346,7 +337,6 @@ export function MatchDetailPairingPanel({
   showFinishedPlayerMetadata,
   showPositionHelp = false,
 }: MatchDetailPairingPanelProps) {
-  const { tx } = useI18n()
 
   const substituteLabels = getMatchSubstituteLabels({ substitutions, players: players ?? [] })
   const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
@@ -357,21 +347,11 @@ export function MatchDetailPairingPanel({
     showFinishedPlayerMetadata ?? showPlayerMetadata
   const showPendingMetadata = pendingPlayerMetadata || showRankingPosition
 
+  const PairingContainer = hasResult ? AppCard : "div"
+
   return (
-    <AppCard className="overflow-hidden !p-0">
-      <div className="p-3 sm:p-4">
-        {showPositionHelp && !hasResult ? (
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <p className="type-caption font-semibold text-neutral-500">{tx("Emparejamiento")}</p>
-            <StatusHelp
-              label={tx("Información sobre posiciones recomendadas")}
-              description={tx("Próximamente: lados recomendados según preferencias y clasificación. Podréis elegir otra distribución. Por ahora se muestran las preferencias de cada jugador.")}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-500"
-            >
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><circle cx="12" cy="7.5" r=".8" fill="currentColor" stroke="none" /></svg>
-            </StatusHelp>
-          </div>
-        ) : null}
+    <PairingContainer className={hasResult ? "overflow-hidden !p-0" : "app-match-pairing-standalone relative"}>
+      <div className={hasResult ? "p-3 sm:p-4" : undefined}>
         {hasResult ? (
           <div className="space-y-2.5">
             <FinishedPairRow
@@ -400,14 +380,9 @@ export function MatchDetailPairingPanel({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 items-start gap-2 sm:gap-4">
-              <PairHeader label={tx("Pareja A")} points={pointsA} alignment="left" />
-              <PairHeader label={tx("Pareja B")} points={pointsB} alignment="right" />
-            </div>
-
-            <div className="relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4">
+            <div className="relative grid grid-cols-2 items-stretch gap-6 sm:gap-8">
               <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 type-caption font-black uppercase tracking-wide text-white shadow-sm">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-950 type-caption font-black uppercase tracking-wide text-white shadow-sm">
                   VS
                 </span>
               </div>
@@ -422,6 +397,7 @@ export function MatchDetailPairingPanel({
                 alignment="left"
                 showMetadata={showPendingMetadata}
                 showRankingPosition={showRankingPosition}
+                recommendSides={showPositionHelp && !hasResult}
               />
 
               <PairDetails
@@ -434,11 +410,31 @@ export function MatchDetailPairingPanel({
                 alignment="right"
                 showMetadata={showPendingMetadata}
                 showRankingPosition={showRankingPosition}
+                recommendSides={showPositionHelp && !hasResult}
               />
             </div>
           </>
         )}
       </div>
-    </AppCard>
+    </PairingContainer>
+  )
+}
+
+export function MatchSideHelp({ children, label, className = "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-500" }: { children?: ReactNode; label?: string; className?: string }) {
+  const { tx } = useI18n()
+  return (
+    <StatusHelp
+      label={label ?? tx("Información sobre posiciones recomendadas")}
+      description={<span className="block space-y-2">
+        <span className="block font-black">{tx("Un lado para cada uno")}</span>
+        <span className="block">{tx("Respetamos las preferencias compatibles. Si uno es versátil, le sugerimos el lado contrario al de su compañero.")}</span>
+        <span className="block">{tx("Si preferís el mismo lado, lo conserva quien esté mejor clasificado esta temporada. El cambio se marca en rojo con ↔.")}</span>
+        <span className="block">{tx("Con dos versátiles, un empate o datos insuficientes, acordad los lados entre vosotros.")}</span>
+        <span className="block border-t border-neutral-200 pt-2 text-xs">{tx("Es una sugerencia: vosotros decidís. Puede cambiar con la clasificación antes del partido.")}</span>
+      </span>}
+      className={className}
+    >
+      {children ?? (<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><circle cx="12" cy="7.5" r=".8" fill="currentColor" stroke="none" /></svg>)}
+    </StatusHelp>
   )
 }

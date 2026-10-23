@@ -3,6 +3,7 @@
 import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { useI18n } from "@/i18n/I18nProvider"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
+import { getPersonalMatchTeamPlayers } from "@/lib/personalMatches"
 
 export function PersonalMatchResultForm({
   match,
@@ -37,6 +38,8 @@ export function PersonalMatchResultForm({
       matchId={match.id}
       initialSets={match.sets}
       mode={mode}
+      teamAPlayers={getPersonalMatchTeamPlayers(match.participants, 1).map(player => player.displayName)}
+      teamBPlayers={getPersonalMatchTeamPlayers(match.participants, 2).map(player => player.displayName)}
       requiresThreeSets={false}
       reportedByPlayerId={null}
       onCancel={onCancel}

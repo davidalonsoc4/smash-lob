@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { getStatusExplanation } from "@/lib/statusHelp"
 
 export function StatusHelp({ children, className = "", kind, status, description, label }: {
-  children: ReactNode; className?: string; kind?: string; status?: string; description?: string; label?: string
+  children: ReactNode; className?: string; kind?: string; status?: string; description?: ReactNode; label?: string
 }) {
   const { locale } = useI18n()
   const text = description ?? getStatusExplanation(kind ?? "match", status ?? "", locale)

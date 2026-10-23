@@ -461,6 +461,14 @@ export const eu = {
       "Ordezkoen poltsan ere gordeko da.",
     substitutionAssign: "Partida honetara esleitu",
     directionsButton: "Nola iritsi",
+    directionsPickerTitle: "Nola iritsi",
+    directionsPickerDescription: "Aukeratu kokapena irekitzeko erabili nahi duzun aplikazioa.",
+    directionsGoogleMaps: "Google Maps",
+    directionsAppleMaps: "Apple Maps",
+    directionsWaze: "Waze",
+    directionsCopyLocation: "Kokapena kopiatu",
+    directionsCopied: "Kokapena kopiatuta",
+    directionsClose: "Itxi",
     schedulePlaceholderDate: "Adibidea: Ostirala, 20:00",
     schedulePlaceholderLocation: "Adibidea: North Padel Club",
     saveSchedule: "Programazioa gorde",
@@ -471,11 +479,12 @@ export const eu = {
   },
 
   matchResult: {
+    resultLabel: "Emaitza",
     title: "Emaitza erregistratu",
     description:
-      "Sartu partidako hiru setak. Appak bikote bakoitzaren puntuak automatikoki kalkulatuko ditu.",
+      "Sartu hiru setak. Irabazitako set bakoitzak puntu bat ematen du.",
     optionalSetsDescription:
-      "Sartu jokatutako setak. Hutsik dauden setak ez dira gordeko.",
+      "Sartu jokatutako setak eta utzi gainerakoak hutsik. Irabazitako set bakoitzak puntu bat ematen du.",
     editTitle: "Emaitza editatu",
     editDescription:
       "Zuzendu partidako setak. Sailkapena automatikoki berriro kalkulatuko da gordetzean.",
