@@ -1,6 +1,6 @@
 {
-  "maxTotalSourceLines": 135000,
-  "maxClientFiles": 192,
+  "maxTotalSourceLines": 135200,
+  "maxClientFiles": 195,
   "maxClientPages": 50,
   "maxApiRouteLines": 1000,
   "files": {

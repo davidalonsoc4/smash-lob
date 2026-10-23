@@ -16,7 +16,8 @@ describe("leagues navigation", () => {
     expect(bottomNav).toContain('href: "/ranking"')
     expect(bottomNav).toContain('href: "/matches"')
     expect(bottomNav).toContain('href: "/profile"')
-    expect(leaguesPage).toContain('href="/personal-matches"')
+    const globalNav = await readFile("src/components/personal/PersonalMatchesNav.tsx", "utf8");
+    expect(globalNav).toContain('href: "/personal-matches"')
     expect(leaguesPage).not.toContain("Registrar encuentro amistoso")
   })
 })

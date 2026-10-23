@@ -11,6 +11,7 @@ type MatchDetailViewProps = {
   context?: ReactNode
   subtitle?: ReactNode
   status: string
+  statusVariant?: ComponentProps<typeof MatchStatusBadge>["variant"]
   scheduledAt?: string | null
   resultRecordedAt?: string | null
   coordinationStatus?: "coordinating" | "awaiting_booking" | null
@@ -29,6 +30,7 @@ export function MatchDetailView({
   context,
   subtitle,
   status,
+  statusVariant = "text",
   scheduledAt,
   resultRecordedAt,
   coordinationStatus = null,
@@ -50,6 +52,7 @@ export function MatchDetailView({
 
             <div className="flex shrink-0 flex-col items-end gap-0.5">
               <MatchStatusBadge
+                variant={statusVariant}
                 status={status}
                 scheduledAt={scheduledAt}
                 resultRecordedAt={resultRecordedAt}

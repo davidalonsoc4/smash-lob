@@ -87,3 +87,20 @@ it("hides player invitations for non-admin league members", () => {
   expect(screen.getByRole("button", { name: labels.spectator })).toBeEnabled()
   expect(screen.getByRole("button", { name: labels.app })).toBeEnabled()
 })
+
+it("shares a tournament URL directly and keeps spectator access locked", async () => {
+  const player = vi.fn().mockResolvedValue("https://example.test/tournament-invite/TOKEN")
+  open({ tournamentId: "a", tournamentName: "Torneo A", onGeneratePlayerInvite: player })
+  expect(screen.getByRole("button", { name: "Invitar a seguir el torneo" })).toBeDisabled()
+  fireEvent.click(screen.getByRole("button", { name: "Invitar a jugar en el torneo" }))
+  await screen.findByRole("img")
+  expect(state.addData).toHaveBeenLastCalledWith("https://example.test/tournament-invite/TOKEN", "Byte")
+  expect(state.spectator).not.toHaveBeenCalled()
+})
+
+it("hides tournament player invitations without organizer permission", () => {
+  open({ tournamentId: "a", canShareLeague: false })
+  expect(screen.queryByRole("button", { name: "Invitar a jugar en el torneo" })).toBeNull()
+  expect(screen.getByRole("button", { name: "Invitar a seguir el torneo" })).toBeDisabled()
+  expect(screen.getByRole("button", { name: "Compartir Smash & Lob" })).toBeEnabled()
+})

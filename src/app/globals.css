@@ -10,6 +10,7 @@
   --app-safe-bottom: env(safe-area-inset-bottom, 0px);
   --foreground: #171717;
   --app-font-size-adjust: 0px;
+  --app-section-content-gap: .5rem;
 }
 
 @theme inline {
@@ -54,6 +55,52 @@ summary::-webkit-details-marker {
 
 .match-slides { column-gap: .75rem; scrollbar-width: none; }
 .match-slides::-webkit-scrollbar { display: none; }
+
+.app-section-header {
+  margin-block-end: var(--app-section-content-gap) !important;
+}
+.app-section-header + * {
+  margin-block-start: 0 !important;
+}
+.app-section-action {
+  position: relative;
+}
+.app-section-action::after {
+  position: absolute;
+  inset: -.75rem 0;
+  content: "";
+}
+
+/* Pagination already provides breathing room beneath its visible marker. */
+[data-home-match-carousel]:has(> .match-preview-pagination),
+section[aria-labelledby="personal-activity"]:has(> .match-preview-pagination) {
+  margin-block-end: .5rem !important;
+}
+[data-home-match-carousel]:has(> .match-preview-pagination) + section,
+section[aria-labelledby="personal-activity"]:has(> .match-preview-pagination) + section {
+  margin-block-start: 0 !important;
+}
+
+[data-home-match-carousel] .match-slides > div > div,
+[data-home-match-carousel] .match-slides > div > div > a {
+  height: 100%;
+}
+[data-home-match-carousel] .match-slides .app-card,
+[data-home-match-carousel] .match-slides .app-card > div:last-of-type {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+[data-home-match-carousel] .match-slides .app-card {
+  height: 100%;
+}
+[data-home-match-carousel] [data-match-event-meta],
+[data-home-match-carousel] [data-match-schedule-hint] {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
 
 .personal-match-league-origin {
   --personal-league-background: color-mix(in srgb, var(--personal-league-accent) 12%, white);
@@ -2898,10 +2945,10 @@ html[data-visual-style="competition"] .season-review-list > li + li {
   border-color: var(--competition-border);
 }
 html[data-visual-style="competition"] .app-match-player-name {
-  white-space: normal;
-  overflow: visible;
-  overflow-wrap: anywhere;
-  text-overflow: clip;
+  white-space: nowrap;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
   line-height: 1.25;
 }
 .app-match-header-row {

@@ -56,7 +56,8 @@ describe("top functional header row", () => {
     expect(shell).toContain("{shouldShowHelpButton ? <FloatingHelpButton /> : null}")
     expect(shell).toContain("const shouldShowActionBar = !isPublicAccessRoute")
     expect(shell).not.toContain("<InviteFloatingControls")
-    expect(shell).toContain("{hasSpectatorShareControl ? <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} /> : null}")
+    expect(shell).toContain("<SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} />")
+    expect(shell).toContain("<TournamentShareButton tournamentId={shareTournamentId} />")
     for (const control of [invite, help, spectatorShare]) {
       expect(control).toContain("shrink-0")
       expect(control).not.toContain("getFloatingTop")

@@ -546,7 +546,7 @@ if (shell.includes("rightOffsetPx")) {
 
 const spectatorShare = read("src/components/spectator/FloatingSpectatorShareButton.tsx")
 for (const marker of [
-  'title: `${tx(heading)} · ${shareType === "app" ? "Smash & Lob" : leagueName}`',
+  'title: tx(shareType === "app" ? "Compartir Smash & Lob" : heading)',
   'text: tx(description)',
   'title={tx("Compartir invitación")}',
 ]) {

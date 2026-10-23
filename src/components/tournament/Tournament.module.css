@@ -99,3 +99,11 @@
 .navLabel { width: 100%; line-height: 1; text-align: center; overflow-wrap: anywhere; }
 @media (min-width: 1024px) { .roundMatches { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: no-preference) { .navItem, .field { transition: background-color .15s, border-color .15s; } }
+.standingsTable { border: 1px solid var(--t-border); border-radius: .9rem; background: var(--t-surface); box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+.standingsTable thead { background: var(--t-raised); color: var(--t-muted); text-transform: uppercase; letter-spacing: .045em; font-size: .64rem; }
+.standingsTable th { padding-block: .7rem; }
+.standingRow { border-top: 1px solid var(--t-border); }
+.standingRow td { padding-top: .72rem; padding-bottom: .72rem; font-variant-numeric: tabular-nums; }
+.standingRow td:nth-child(2) { min-width: 8.5rem; font-size: .82rem; font-weight: 800; }
+.standingLeader { background: color-mix(in srgb, var(--t-accent) 13%, var(--t-surface)); }
+.standingLeader td:first-child { color: var(--t-accent); font-weight: 950; }

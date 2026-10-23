@@ -126,12 +126,13 @@ export function PlayerMatchesList({
           return (
             <Link key={match.id} href={`/match/${match.id}`} className="block">
               <AppCard className="relative transition active:scale-[0.99]">
-                <div className="mb-2 flex items-center justify-between gap-3">
+                <div className="mb-2 flex items-start justify-between gap-3">
                   <p className="min-w-0 text-sm font-semibold text-neutral-500">
                     {t.matches.round} {match.round}
                   </p>
 
                   <MatchStatusBadge
+                    variant="dot"
                     status={match.status}
                     isParticipant={!!currentUserId && [...match.teamA, ...match.teamB].includes(currentUserId)}
                     scheduledAt={match.scheduledAt ?? null}

@@ -10,6 +10,7 @@ import { SeasonContextLineSelector } from "@/components/layout/SeasonContextLine
 import { LeagueAnnouncementsCard } from "@/components/announcements/LeagueAnnouncementsCard";
 import { MatchCard } from "@/components/matches/MatchCard";
 import { MatchSlides } from "@/components/ui/MatchSlides";
+import { getHomeMatchPreviewScopes } from "@/lib/homeMatchPreview";
 import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
@@ -169,26 +170,6 @@ function CalendarIcon() {
 
 
 
-function areStringArraysEqual(left: string[], right: string[]) {
-  return (
-    left.length === right.length &&
-    left.every((value, index) => value === right[index])
-  )
-}
-
-function isSameMatch(left?: MatchData, right?: MatchData) {
-  if (!left || !right) {
-    return false
-  }
-
-  return (
-    left.id === right.id ||
-    (left.round === right.round &&
-      areStringArraysEqual(left.teamA, right.teamA) &&
-      areStringArraysEqual(left.teamB, right.teamB))
-  )
-}
-
 function getMatchRelevantTime(match: MatchData) {
   const scheduledDate = parseMatchScheduleDate(match.scheduledAt);
 
@@ -232,53 +213,6 @@ function getLastPlayedOrPendingMatch(matches: MatchData[], now = new Date()) {
     })[0];
 }
 
-
-function isNextMatchCandidate(match: MatchData, now: Date) {
-  const displayStatus = getMatchDisplayStatus({
-    status: match.status,
-    scheduledAt: match.scheduledAt,
-    resultRecordedAt: match.resultRecordedAt,
-    now,
-  });
-
-  return (
-    match.status === "scheduling" ||
-    match.status === "postponed" ||
-    displayStatus === "scheduled" ||
-    displayStatus === "in_progress"
-  );
-}
-
-function shouldShowScopeSwitch({
-  leagueMatch,
-  personalMatch,
-  candidateCount,
-}: {
-  leagueMatch?: MatchData;
-  personalMatch?: MatchData;
-  candidateCount: number;
-}) {
-  return Boolean(
-    leagueMatch &&
-      personalMatch &&
-      !isSameMatch(leagueMatch, personalMatch) &&
-      candidateCount > 1,
-  );
-}
-
-function getCollapsedScope({
-  leagueMatch,
-}: {
-  leagueMatch?: MatchData;
-  personalMatch?: MatchData;
-  candidateCount: number;
-}): "league" | "mine" {
-  if (leagueMatch) {
-    return "league";
-  }
-
-  return "mine";
-}
 
 function getPlayerNameById(players: AwardPlayer[], playerId: string) {
   return players.find((player) => player.id === playerId)?.displayName ?? "otro jugador";
@@ -453,8 +387,8 @@ export default function Home() {
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
   const [isSendingRegistrationReminder, setIsSendingRegistrationReminder] = useState(false);
-  const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("league");
-  const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("league");
+  const [nextMatchScope, setNextMatchScope] = useState<"league" | "mine">("mine");
+  const [lastMatchScope, setLastMatchScope] = useState<"league" | "mine">("mine");
   const [isLeaguePickerOpen, setIsLeaguePickerOpen] = useState(false);
   const [selectedHomeSeasonId, setSelectedHomeSeasonId] = useState<string | null>(null);
   const { currentUserId, currentUser } = useCurrentUser();
@@ -530,34 +464,10 @@ export default function Home() {
   const leagueLastMatch = getLastPlayedOrPendingMatch(matches, now);
   const nextMatch = getNextMatch(currentUserMatches);
   const leagueNextMatch = getNextMatch(matches);
-  const nextMatchCandidateCount = matches.filter((match) => isNextMatchCandidate(match, now)).length;
-  const lastMatchCandidateCount = matches.filter((match) => isPlayedOrPendingResult(match, now)).length;
-  const shouldShowNextMatchScopeSwitch = shouldShowScopeSwitch({
-    leagueMatch: leagueNextMatch,
-    personalMatch: nextMatch,
-    candidateCount: nextMatchCandidateCount,
-  });
-  const effectiveNextMatchScope = shouldShowNextMatchScopeSwitch
-    ? nextMatchScope
-    : getCollapsedScope({
-        leagueMatch: leagueNextMatch,
-        personalMatch: nextMatch,
-        candidateCount: nextMatchCandidateCount,
-      });
-  const shouldShowLastMatchScopeSwitch = shouldShowScopeSwitch({
-    leagueMatch: leagueLastMatch,
-    personalMatch: personalLastMatch,
-    candidateCount: lastMatchCandidateCount,
-  });
-  const effectiveLastMatchScope = shouldShowLastMatchScopeSwitch
-    ? lastMatchScope
-    : getCollapsedScope({
-        leagueMatch: leagueLastMatch,
-        personalMatch: personalLastMatch,
-        candidateCount: lastMatchCandidateCount,
-      });
-  const selectedLastMatch =
-    effectiveLastMatchScope === "mine" ? personalLastMatch : leagueLastMatch;
+  const nextMatchScopes = getHomeMatchPreviewScopes(nextMatch, leagueNextMatch);
+  const lastMatchScopes = getHomeMatchPreviewScopes(personalLastMatch, leagueLastMatch);
+  const effectiveNextMatchScope = nextMatchScopes.length === 1 ? nextMatchScopes[0] : nextMatchScope;
+  const effectiveLastMatchScope = lastMatchScopes.length === 1 ? lastMatchScopes[0] : lastMatchScope;
   function getMatchPanelHighlightedPlayerIds(match: MatchData | null) {
     if (!match) {
       return [];
@@ -581,11 +491,6 @@ export default function Home() {
     roundSettings.mvpSystem === "voting"
       ? "MVP del partido"
       : "MVP de jornada";
-  const selectedLastMatchHighlightedPlayerIds =
-    getMatchPanelHighlightedPlayerIds(selectedLastMatch);
-  const selectedLastMatchRound = selectedLastMatch
-    ? rounds.find((round) => round.round === selectedLastMatch.round)
-    : null;
   const pendingPaymentGroups = getPendingPaymentGroups({
     matches,
     currentUserId,
@@ -1193,45 +1098,17 @@ export default function Home() {
       ) : null}
 
       {!isSeasonClosed && !isPlayerSeasonLocked && (leagueNextMatch || nextMatch) ? (
-        <section data-tour="home-next-match">
+        <section data-tour="home-next-match" data-home-match-carousel>
           <SectionHeader
             title={
               effectiveNextMatchScope === "mine"
                 ? tx("Mi próximo partido")
                 : tx("Próximo partido")
             }
-            action={
-              shouldShowNextMatchScopeSwitch ? (
-                <div className="flex rounded-full bg-neutral-100 p-0.5 type-caption font-black text-neutral-600">
-                  <button
-                    type="button"
-                    onClick={() => setNextMatchScope("league")}
-                    aria-pressed={effectiveNextMatchScope === "league"}
-                    className={`rounded-full px-2.5 py-1 transition ${
-                      effectiveNextMatchScope === "league"
-                        ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-600"
-                    }`}
-                  >
-                    {tx("Liga")}{" "}</button>
-                  <button
-                    type="button"
-                    onClick={() => setNextMatchScope("mine")}
-                    aria-pressed={effectiveNextMatchScope === "mine"}
-                    className={`rounded-full px-2.5 py-1 transition ${
-                      effectiveNextMatchScope === "mine"
-                        ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-600"
-                    }`}
-                  >
-                    {tx("Mío")}{" "}</button>
-                </div>
-              ) : null
-            }
           />
 
-          <MatchSlides index={shouldShowNextMatchScopeSwitch && effectiveNextMatchScope === "mine" ? 1 : 0} onChange={index => setNextMatchScope(index === 1 ? "mine" : "league")} label={tx("Próximo partido")}>
-          {(shouldShowNextMatchScopeSwitch ? ["league", "mine"] as const : [effectiveNextMatchScope]).map(effectiveNextMatchScope => {
+          <MatchSlides index={Math.max(0, nextMatchScopes.indexOf(effectiveNextMatchScope))} onChange={index => setNextMatchScope(nextMatchScopes[index])} label={tx("Próximo partido")}>
+          {nextMatchScopes.map(effectiveNextMatchScope => {
             const selectedNextMatch = effectiveNextMatchScope === "mine" ? nextMatch : leagueNextMatch;
             const canShowSelectedNextMatchScheduleHint = Boolean(selectedNextMatch) && (selectedNextMatch.teamA.includes(currentUserId) || selectedNextMatch.teamB.includes(currentUserId));
             const selectedNextMatchRound = rounds.find(round => round.round === selectedNextMatch?.round);
@@ -1251,6 +1128,7 @@ export default function Home() {
               highlightedPlayerLabel={matchPanelMvpLabel}
               leagueLocations={activeLeague.locations}
               showMissingScheduleHint={canShowSelectedNextMatchScheduleHint}
+              compactScheduleHint
               isCurrentUserBallCustodian={
                 Boolean(currentUserId) &&
                 homeBallAssignment?.byMatchId[selectedNextMatch.id] === currentUserId
@@ -1262,44 +1140,27 @@ export default function Home() {
           )}</div>;
           })}
           </MatchSlides>
+          {nextMatchScopes.length > 1 ? <div className="match-preview-pagination flex justify-center gap-1.5 pt-1">
+            {(["mine", "league"] as const).map(scope => <button key={scope} type="button" onClick={() => setNextMatchScope(scope)} aria-label={tx(scope === "mine" ? "Mi próximo partido" : "Próximo partido")} aria-pressed={scope === effectiveNextMatchScope} className="flex h-6 min-w-6 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"><span aria-hidden="true" className={`h-1.5 rounded-full transition-all ${scope === effectiveNextMatchScope ? "w-5 bg-foreground" : "w-1.5 bg-neutral-300"}`} /></button>)}
+          </div> : null}
         </section>
       ) : null}
-      {selectedLastMatch && !isSeasonClosed && !isPlayerSeasonLocked ? (
-        <section>
+      {(personalLastMatch || leagueLastMatch) && !isSeasonClosed && !isPlayerSeasonLocked ? (
+        <section data-home-match-carousel>
           <SectionHeader
             title={
               effectiveLastMatchScope === "mine"
-                ? tx("Mi último partido")
-                : tx("Último partido")
-            }
-            action={
-              shouldShowLastMatchScopeSwitch ? (
-                <div className="flex rounded-full bg-neutral-100 p-0.5 type-caption font-black text-neutral-600">
-                  <button
-                    type="button"
-                    onClick={() => setLastMatchScope("league")}
-                    className={`rounded-full px-2.5 py-1 transition ${
-                      effectiveLastMatchScope === "league"
-                        ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-600"
-                    }`}
-                  >
-                    {tx("Liga")}{" "}</button>
-                  <button
-                    type="button"
-                    onClick={() => setLastMatchScope("mine")}
-                    className={`rounded-full px-2.5 py-1 transition ${
-                      effectiveLastMatchScope === "mine"
-                        ? "bg-white text-neutral-950 shadow-sm"
-                        : "text-neutral-600"
-                    }`}
-                  >
-                    {tx("Mío")}{" "}</button>
-                </div>
-              ) : null
+                ? tx("Mi último encuentro")
+                : tx("Último encuentro")
             }
           />
 
+          <MatchSlides index={Math.max(0, lastMatchScopes.indexOf(effectiveLastMatchScope))} onChange={index => setLastMatchScope(lastMatchScopes[index])} label={tx("Último encuentro")}>
+            {lastMatchScopes.map(scope => {
+              const selectedLastMatch = scope === "mine" ? personalLastMatch : leagueLastMatch;
+              const selectedLastMatchRound = rounds.find(round => round.round === selectedLastMatch?.round);
+              const selectedLastMatchHighlightedPlayerIds = getMatchPanelHighlightedPlayerIds(selectedLastMatch);
+              return <div key={scope}>{selectedLastMatch ? (
           <MatchCard
             match={selectedLastMatch}
             players={players}
@@ -1314,6 +1175,12 @@ export default function Home() {
             highlightedPlayerLabel={matchPanelMvpLabel}
             leagueLocations={activeLeague.locations}
           />
+              ) : <AppCard className="border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-500">{tx("Todavía no has jugado ningún partido.")}</AppCard>}</div>;
+            })}
+          </MatchSlides>
+          {lastMatchScopes.length > 1 ? <div className="match-preview-pagination flex justify-center gap-1.5 pt-1">
+            {(["mine", "league"] as const).map(scope => <button key={scope} type="button" onClick={() => setLastMatchScope(scope)} aria-label={tx(scope === "mine" ? "Mi último encuentro" : "Último encuentro")} aria-pressed={scope === effectiveLastMatchScope} className="flex h-6 min-w-6 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"><span aria-hidden="true" className={`h-1.5 rounded-full transition-all ${scope === effectiveLastMatchScope ? "w-5 bg-foreground" : "w-1.5 bg-neutral-300"}`} /></button>)}
+          </div> : null}
         </section>
       ) : null}
 

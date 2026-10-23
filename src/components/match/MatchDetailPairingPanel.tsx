@@ -1,16 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import type { PlayerProfile } from "@/data/fakeData"
-import { isSafeImageUrl } from "@/lib/imageUrl"
 import { getPlayerById, getPlayerDisplayName } from "@/lib/players"
-import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
+import { getPreferredPlayerSideLabel, getDominantHandLabel } from "@/lib/accountProfile"
 import type { MatchSubstitution } from "@/lib/substitutes"
 import { getMatchSubstituteLabels } from "@/lib/substitutes"
 import { useI18n } from "@/i18n/I18nProvider"
+import { StatusHelp } from "@/components/ui/StatusHelp"
+import { FitText } from "@/components/ui/FitText"
 
 type MatchDetailPairingPanelProps = {
   teamA: string[]
@@ -26,6 +26,7 @@ type MatchDetailPairingPanelProps = {
   showPlayerMetadata?: boolean
   showPendingPlayerMetadata?: boolean
   showFinishedPlayerMetadata?: boolean
+  showPositionHelp?: boolean
 }
 
 function DetailPlayer({
@@ -55,8 +56,8 @@ function DetailPlayer({
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const name = (
-    <span className="app-match-player-name block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
-      {displayName}
+    <span className="flex min-w-0 items-center gap-1" title={displayName}>
+      <FitText noWrap minFontSize={10} className="app-match-player-name min-w-0 flex-1 truncate whitespace-nowrap type-player-name-prominent text-neutral-950">{displayName}</FitText>
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label={tx("MVP de jornada")} title={tx("MVP de jornada")}>
           ★
@@ -64,18 +65,15 @@ function DetailPlayer({
       ) : null}
     </span>
   )
-  const playerPositionLabel = getPlayerSideAndHandLabel(player?.preferredSide, player?.dominantHand)
-  const metadataClass = `min-h-4 type-caption font-bold uppercase leading-4 tracking-wide text-neutral-500 ${
+  const playerPositionLabel = [getPreferredPlayerSideLabel(player?.preferredSide), getDominantHandLabel(player?.dominantHand)].filter((label): label is string => Boolean(label)).map(label => tx(label)).join(" · ")
+  const metadataClass = `min-h-4 type-micro font-medium leading-4 tracking-normal text-neutral-500 ${
     alignment === "right" ? "text-right" : "text-left"
   }`
-  const positionLine = <p className={metadataClass}>{position ? tx(`#${position} en liga`) : "\u00a0"}</p>
-  const playLine = playerPositionLabel ? (
-    <p className={metadataClass}>{playerPositionLabel}</p>
-  ) : showRankingPosition ? (
-    <p className={metadataClass}>{"\u00a0"}</p>
-  ) : null
+  const metadataText = [showRankingPosition && position ? `#${position}` : null, playerPositionLabel].filter(Boolean).join(" · ")
+  const metadataLine = <p className={`${metadataClass} truncate`} title={metadataText}>{metadataText || "\u00a0"}</p>
   const nameLine = (
-    <div className="min-w-0 overflow-hidden">
+    <div className={`flex min-w-0 items-center gap-1.5 ${alignment === "right" ? "flex-row-reverse" : ""}`}>
+      <div className="min-w-0 flex-1 overflow-hidden">
       {linkPlayers && player ? (
         <Link
           href={`/player/${player.slug}`}
@@ -88,6 +86,7 @@ function DetailPlayer({
       ) : (
         name
       )}
+      </div>
     </div>
   )
 
@@ -97,15 +96,13 @@ function DetailPlayer({
         <div className="space-y-0.5">
           {metadataPlacement === "before-name" ? (
             <>
-              {showRankingPosition ? positionLine : null}
-              {playLine}
+              {metadataLine}
               {nameLine}
             </>
           ) : (
             <>
               {nameLine}
-              {playLine}
-              {showRankingPosition ? positionLine : null}
+              {metadataLine}
             </>
           )}
         </div>
@@ -160,38 +157,6 @@ function PairHeader({
   )
 }
 
-function PairAvatars({
-  playerIds,
-  players,
-  alignment,
-}: {
-  playerIds: string[]
-  players?: PlayerProfile[]
-  alignment: "left" | "right"
-}) {
-  const pairPlayers = playerIds.map((playerId) => ({
-    id: playerId,
-    player: getPlayerById(playerId, players),
-  }))
-
-  return (
-    <div
-      className={`flex min-w-0 items-center gap-2 ${
-        alignment === "right" ? "justify-end" : "justify-start"
-      }`}
-    >
-      {pairPlayers.map(({ id, player }) => (
-        <PlayerAvatar
-          key={id}
-          player={player}
-          size="md"
-          previewable={Boolean(player?.avatarUrl)}
-        />
-      ))}
-    </div>
-  )
-}
-
 function PairDetails({
   playerIds,
   players,
@@ -237,7 +202,7 @@ function PairDetails({
             substituteLabel={substituteLabels[playerId]}
             linkPlayers={linkPlayers}
             alignment={alignment}
-            metadataPlacement={index === 0 ? "before-name" : "after-name"}
+            metadataPlacement="after-name"
             showMetadata={showMetadata}
             showRankingPosition={showRankingPosition}
           />
@@ -265,13 +230,10 @@ function FinishedPlayerName({
   const { tx } = useI18n()
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
-  const playerPositionLabel = getPlayerSideAndHandLabel(
-    player?.preferredSide,
-    player?.dominantHand,
-  )
+  const playerPositionLabel = [getPreferredPlayerSideLabel(player?.preferredSide), getDominantHandLabel(player?.dominantHand)].filter((label): label is string => Boolean(label)).map(label => tx(label)).join(" · ")
   const name = (
-    <span className="app-match-player-name block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
-      {displayName}
+    <span className="flex min-w-0 items-center gap-1" title={displayName}>
+      <FitText noWrap minFontSize={10} className="app-match-player-name min-w-0 flex-1 truncate whitespace-nowrap type-player-name-prominent text-neutral-950">{displayName}</FitText>
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label={tx("MVP de jornada")} title={tx("MVP de jornada")}>
           ★
@@ -296,7 +258,7 @@ function FinishedPlayerName({
       </div>
 
       {showPlayerMetadata && playerPositionLabel ? (
-        <p className="mt-0.5 type-caption font-bold uppercase leading-4 tracking-wide text-neutral-500">
+        <p title={playerPositionLabel} className="mt-0.5 truncate type-micro font-medium leading-4 tracking-normal text-neutral-500">
           {playerPositionLabel}
         </p>
       ) : null}
@@ -382,13 +344,11 @@ export function MatchDetailPairingPanel({
   showPlayerMetadata = false,
   showPendingPlayerMetadata,
   showFinishedPlayerMetadata,
+  showPositionHelp = false,
 }: MatchDetailPairingPanelProps) {
   const { tx } = useI18n()
 
   const substituteLabels = getMatchSubstituteLabels({ substitutions, players: players ?? [] })
-  const showAvatars = [...teamA, ...teamB].some((playerId) =>
-    isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl),
-  )
   const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
   const showRankingPosition = Object.keys(rankingPositions).length > 0
   const pendingPlayerMetadata =
@@ -400,6 +360,18 @@ export function MatchDetailPairingPanel({
   return (
     <AppCard className="overflow-hidden !p-0">
       <div className="p-3 sm:p-4">
+        {showPositionHelp && !hasResult ? (
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="type-caption font-semibold text-neutral-500">{tx("Emparejamiento")}</p>
+            <StatusHelp
+              label={tx("Información sobre posiciones recomendadas")}
+              description={tx("Próximamente: lados recomendados según preferencias y clasificación. Podréis elegir otra distribución. Por ahora se muestran las preferencias de cada jugador.")}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-500"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><circle cx="12" cy="7.5" r=".8" fill="currentColor" stroke="none" /></svg>
+            </StatusHelp>
+          </div>
+        ) : null}
         {hasResult ? (
           <div className="space-y-2.5">
             <FinishedPairRow
@@ -432,13 +404,6 @@ export function MatchDetailPairingPanel({
               <PairHeader label={tx("Pareja A")} points={pointsA} alignment="left" />
               <PairHeader label={tx("Pareja B")} points={pointsB} alignment="right" />
             </div>
-
-            {showAvatars ? (
-              <div className="mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4">
-                <PairAvatars playerIds={teamA} players={players} alignment="left" />
-                <PairAvatars playerIds={teamB} players={players} alignment="right" />
-              </div>
-            ) : null}
 
             <div className="relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4">
               <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">

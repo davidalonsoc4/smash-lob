@@ -24,6 +24,7 @@
 /build
 
 # misc
+.codex-remote-attachments/
 .DS_Store
 *.pem
 

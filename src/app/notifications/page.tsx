@@ -578,7 +578,7 @@ function getNotificationBody({
 
     return typeof round === "number" || typeof round === "string"
       ? `Revisa y confirma el resultado de tu partido de la Jornada ${round}.`
-      : "Revisa y confirma el resultado de tu último partido.";
+      : "Revisa y confirma el resultado de tu último encuentro.";
   }
 
   if (event.type === "match_result_disputed") {
@@ -590,7 +590,7 @@ function getNotificationBody({
 
     return typeof round === "number" || typeof round === "string"
       ? `Vota al MVP de tu partido de la Jornada ${round}.`
-      : "Vota al MVP de tu último partido.";
+      : "Vota al MVP de tu último encuentro.";
   }
 
   if (event.type === "match_mvp_awarded") {

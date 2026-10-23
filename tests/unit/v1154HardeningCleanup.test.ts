@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest"
 import { readFile } from "node:fs/promises"
 
 describe("v1.15.4 account capability separation", () => {
-  it("keeps create-league visible in player experience mode", async () => {
+  it("offers creation only in competition settings using the account capability", async () => {
     const source = await readFile("src/app/settings/page.tsx", "utf8")
-    expect(source).toContain("const canCreateLeaguesInCurrentView = canCreateLeagues")
+    expect(source).toContain("allowCreation && canCreateLeagues")
+    expect(source.match(/href="\/league\/new"/g)).toHaveLength(1)
+    expect(source.match(/href="\/tournaments\/new"/g)).toHaveLength(1)
     expect(source).not.toContain("canCreateLeagues && canAccessAdmin")
   })
 })

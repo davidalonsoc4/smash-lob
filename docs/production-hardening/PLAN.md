@@ -1,4 +1,49 @@
+## MC26 - Publicar cambios pendientes en PRE
+- Status: IN PROGRESS (2026-10-23)
+- Objective: Publicar el estado visual y funcional aprobado, incluidas las migraciones aditivas de MC21/22, exclusivamente en PRE.
+- Validation: npm run validate, Playwright con fixtures, CI y smoke PRE con versión nueva.
+- Remote changes allowed: commit/push de la rama, PR/merge a staging, aplicar solo migraciones pendientes verificadas en smash-lob-staging y comprobar deployment PRE, autorizados por el usuario el 2026-10-23. No main, Production ni v1.0.0.
+- Stop condition: fallo crítico de gates, destino no identificado o migraciones inesperadas.
+
+## MC27 - Recomendaciones de posición en partidos de liga
+- Status: PENDING (tras MC26)
+- Objective: Recomendar Drive/Revés según preferencias y clasificación actual, respetando preferencias compatibles, sin imponer lados ni modificar datos; ayuda clara en el icono preparado.
+- Validation: pruebas de combinaciones, empates, datos ausentes y visibilidad solo en partidos pendientes; tipos/lint y gates pertinentes.
+- Remote changes allowed: ninguno; implementación local posterior a la publicación PRE solicitada.
+
+## MC25 - Identidad visual de la Home de Competiciones
+- Status: DONE locally (2026-10-23; estados sutiles en previews, 23 pruebas, tipos y lint correctos)
+- Objective: Destacar actividad, dar identidad a las tarjetas compactas y compartir el indicador sutil de estado en previews sin cambiar rutas ni datos.
+- Validation: pruebas del hub, tarjetas y ayuda de estados; TypeScript y ESLint focalizado.
+- Remote changes allowed: ninguno.
+
+## MC24 - Estados y navegación de competiciones
+- Status: DONE locally (2026-10-21; 19 pruebas, tipos, lint y build correctos)
+- Objective: Mostrar Próximamente en Mis ligas, ocultar invitación de jugador sin plazas libres y unificar etiquetas/flechas de torneo.
+- Validation: pruebas focalizadas de invitaciones y navegación, i18n, lint, TypeScript y build.
+- Remote changes allowed: ninguno. Sin DB ni publicación.
+
+## MC23 - Creación contextual y entrada a competiciones
+- Status: DONE locally (2026-10-21; 15 pruebas focalizadas, tipos, lint, controles y build correctos)
+- Objective: Ofrecer Crear liga/torneo solo desde Ajustes abiertos en Competiciones para creadores y reconocer invitaciones de torneo desde Unirme.
+- Tasks: ajustar accesos contextuales; reconocer enlaces/códigos conservando mayúsculas de tokens de torneo; validar ligas y torneos con pruebas y gates locales.
+- Remote changes allowed: ninguno. Sin DB, commits ni despliegue.
+- Stop condition: no cerrar con regresiones en invitaciones de liga o rutas de acceso.
+
+## MC22 - Invitación común y cierre visual de torneos
+- Status: DONE locally (2026-10-21; interfaz e invitaciones verificadas, migración pendiente de PRE)
+- Objective: Quitar la navbar de Ajustes de torneo, declarar final la clasificación cuando estén todos los resultados, y sustituir invitaciones manuales individuales por un enlace privado común que permita reclamar un perfil libre.
+- Tasks: (1) corregir navegación y presentación de clasificación; (2) añadir invitación compartida protegida, selección de perfil y vínculo atómico; (3) validar rutas, migración y regresiones focalizadas.
+- Remote changes allowed: ninguno. Preparar migración aditiva para PRE sin aplicarla, sin desplegar, commits ni cambios en Production.
+- Stop condition: no completar si un participante puede reclamar más de un perfil, un perfil ya vinculado puede ser reclamado, se expone información por una ruta sin token, o falla una validación crítica.
 # Production Hardening Plan
+## MC21 - Ajustes contextuales de Competiciones y Torneos
+- Status: DONE locally (2026-10-21; cierre explícito sin resultados, migración aditiva preparada para PRE, controles de API, pruebas y build correctos)
+- Objective: Evitar que los accesos de administración de liga aparezcan desde Competiciones o un torneo, y proporcionar una gestión mínima propia del torneo con borrado seguro para su creador.
+- Tasks: (1) auditar y separar los enlaces de Ajustes globales, de competición y de liga; (2) dirigir el control de Ajustes de un torneo a su pantalla contextual y conservar allí la navegación del torneo; (3) reutilizar la eliminación existente con confirmación, permiso de creador y restricción a torneos finalizados, y validar rutas y regresiones.
+- Remote changes allowed: ninguno. Sin migraciones, cambios de datos, despliegue, commits ni cambios en Production.
+- Stop condition: no completar si un usuario sin permiso puede ver o ejecutar gestión de torneo, si se muestran acciones de liga dentro de un torneo/Competiciones, o si fallan validaciones críticas.
+
 ## MC20 - Etiqueta compacta de vuelta a Competiciones
 - Status: DONE locally (2026-10-20; i18n, lint específico, TypeScript y recorrido E2E focalizado correctos)
 - Objective: Unificar los controles superiores de vuelta desde los flujos de torneos con la etiqueta compacta «Competiciones», sin cambiar sus destinos ni la navegación.
@@ -7,7 +52,7 @@
 - Stop condition: no cerrar si cambia una ruta de retorno, se altera un encabezado de contenido o falla una validación crítica.
 
 ## MC19 - Mexicano Dinámico Equilibrado
-- Status: IN PROGRESS (2026-10-21; publicación en PRE solicitada: validar la rama, aplicar exclusivamente la migración aditiva pendiente en PRE, integrar en `staging`, desplegar y verificar)
+- Status: DONE in PRE (2026-10-21; PR #52 merged in `staging`, migration applied and PRE deployment verified)
 - Objective: Incorporar el formato Mexicano Dinámico a los torneos rápidos existentes, generando una sola ronda cada vez según resultados, con participación, descansos, parejas y rivales equilibrados.
 - Tasks: (1) añadir el motor determinista puro y sus simulaciones para configuraciones variables; (2) persistir formato, semilla y generación idempotente/transaccional con permisos actuales, además de bloquear resultados históricos que ya tengan rondas posteriores; (3) integrar selector, calendario, clasificación y acción de siguiente ronda, y ejecutar los gates completos sin alterar la Americana.
 - Remote changes allowed: únicamente PRE, bajo la solicitud explícita del usuario del 2026-10-21. Aplicar exclusivamente `20261020164339_add_dynamic_mexicano_tournaments.sql` tras un `dry-run` que confirme que es la única pendiente; integrar en `staging`, desplegar y verificar. No tocar Production, `main` ni la etiqueta `v1.0.0`.

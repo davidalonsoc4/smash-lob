@@ -308,7 +308,7 @@ export const es = {
     regularLeague: "Liga regular",
     rankingTitle: "Clasificación",
     viewAll: "Ver todo",
-    lastMatch: "Último partido",
+    lastMatch: "Último encuentro",
     nextMatch: "Próximo partido",
     addSchedule: "Añadir fecha, hora y lugar",
     playersCanSchedule:
@@ -882,7 +882,7 @@ export const es = {
     accountSettingsDescription:
       "Personaliza la imagen global que se muestra en todas tus ligas.",
     connectedEmail: "Email conectado",
-    joinNewExistingLeague: "Unirme a una nueva liga existente",
+    joinNewExistingLeague: "Unirme a una competición existente",
     avatarCustomActive: "Imagen personalizada activa en tu cuenta.",
     avatarGoogleFallback: "Se usa la imagen global de tu cuenta.",
     avatarInitialsFallback: "Se usan tus iniciales si no subes imagen.",
