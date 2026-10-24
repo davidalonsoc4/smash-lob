@@ -1,5 +1,7 @@
 "use client"
 
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { auditFixedPairLeagueCalendar, type LeaguePair } from "@/lib/fixedPairLeague"
 import { useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useSeasonSettings, type SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
@@ -17,7 +19,54 @@ const isSupabaseBackedId = (id: string) => supabaseUuidPattern.test(id)
 const recordSupabaseError = (action: string, error: unknown) => { try { window.localStorage.setItem("smash-lob-last-supabase-error", JSON.stringify({ action, message: error instanceof Error ? error.message : String(error), at: new Date().toISOString() })) } catch { /* diagnostic only */ } }
 const showSavedFeedback = (message: string) => showActionFeedback({ tone: "success", message })
 
-export function BalancedCalendarAuditPanel({
+type CalendarPanelProps = Parameters<typeof IndividualCalendarAuditPanel>[0]
+
+export function BalancedCalendarAuditPanel(props: CalendarPanelProps) {
+  const { leagues } = useLeagueAccess()
+  return leagues.find(league => league.id === props.activeLeagueId)?.modality === "fixed_pairs"
+    ? <FixedPairCalendarAuditPanel {...props} /> : <IndividualCalendarAuditPanel {...props} />
+}
+
+function FixedPairCalendarAuditPanel({ activeLeagueId, activeSeason, matches, roundSettings }: CalendarPanelProps) {
+  const { tx } = useI18n()
+  const { seasonPlayers, updateSeasonCalendarDefinition } = useSeasonSettings()
+  const { replaceSeasonMatches } = useMatchData()
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [legs, setLegs] = useState(2)
+  const roster = seasonPlayers.filter(row => row.seasonId === activeSeason.id && row.status !== "withdrawn")
+  const numbers = [...new Set(roster.map(row => row.pairNumber))].sort((a, b) => (a ?? 0) - (b ?? 0))
+  const pairs = numbers.map(number => roster.filter(row => row.pairNumber === number).map(row => row.playerId)) as LeaguePair[]
+  const audit = auditFixedPairLeagueCalendar(matches, pairs, activeSeason.totalRounds)
+  const base = getSeasonBaseRoundCount(roster.length, "fixed_pairs")
+  const hasResults = matches.some(match => match.sets.length > 0 || match.pointsA !== null || match.pointsB !== null || match.resultRecordedAt)
+  async function replace(rounds: number, reroll: boolean) {
+    if (saving || hasResults) return
+    if (!window.confirm(tx("Se regenerarán los cruces conservando las parejas. Los resultados registrados impiden esta acción."))) return
+    setSaving(true); setError(null)
+    try {
+      const mode = rounds === base ? "single" : rounds === base * 2 ? "double" : "extended"
+      const result = await replaceSupabaseUpcomingSeasonBalancedCalendar({ leagueId: activeLeagueId, seasonId: activeSeason.id, playerIds: roster.map(row => row.playerId), scheduleMode: mode, targetRoundCount: rounds, reroll })
+      replaceSeasonMatches(activeSeason.id, result.matches)
+      updateSeasonCalendarDefinition({ seasonId: activeSeason.id, totalRounds: result.totalRounds, scheduleMode: result.scheduleMode })
+      showSavedFeedback(tx("Calendario actualizado"))
+    } catch { setError(tx("No se ha podido actualizar el calendario. No se han cambiado las parejas.")) }
+    finally { setSaving(false) }
+  }
+  return <AppCard><p className="font-bold">{tx("Calendario por parejas")}</p><p className="mt-1 text-xs font-semibold text-neutral-500">{pairs.length} {tx("Parejas")} · {activeSeason.totalRounds} {tx("jornadas")}</p><ul className="mt-3 space-y-2 text-sm">{([
+    [tx("Parejas conservadas"), audit.structure], [tx("Un partido como máximo por pareja y jornada"), audit.roundStructure],
+    [tx("Participación equilibrada"), audit.balance], [tx("Reparto de rivales por vueltas"), audit.opponents],
+  ] as const).map(([label, ok]) => <li key={label} className={ok ? "text-emerald-700" : "text-amber-700"}>{ok ? "✓" : "!"} {label}</li>)}</ul>
+    {!hasResults ? <div className="mt-3 space-y-2"><button type="button" disabled={saving} onClick={() => void replace(activeSeason.totalRounds, true)} className="flex w-full items-center justify-center rounded-xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-bold disabled:opacity-40">{tx("Volver a sortear")}</button>
+      {activeSeason.status === "upcoming" ? <button type="button" disabled={saving} onClick={() => void replace(activeSeason.totalRounds, false)} className="flex w-full items-center justify-center rounded-xl bg-neutral-100 px-3 py-2.5 text-center text-sm font-bold disabled:opacity-40">{tx("Restaurar calendario automático")}</button> : null}
+      <label className="flex items-center justify-between gap-2 text-sm font-semibold">{tx("Vueltas")}<select aria-label={tx("Vueltas")} value={legs} onChange={event => setLegs(Number(event.target.value))} className="rounded-xl border border-neutral-200 bg-white px-3 py-2">{[2,3,4,5,6].map(number => <option key={number}>{number}</option>)}</select></label><button type="button" disabled={saving || base * legs <= activeSeason.totalRounds} onClick={() => void replace(base * legs, true)} className="flex w-full items-center justify-center rounded-xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-bold text-white disabled:opacity-40">{tx("Ampliar temporada")}</button>
+    </div> : <p className="mt-3 text-xs text-neutral-500">{tx("El calendario ya tiene resultados y no se puede volver a sortear.")}</p>}
+    {roundSettings.calendarMode === "manual" ? <p className="mt-2 text-xs text-neutral-500">{tx("Calendario manual")}</p> : null}
+    {error ? <p role="alert" className="mt-2 text-sm text-red-700">{error}</p> : null}
+  </AppCard>
+}
+
+function IndividualCalendarAuditPanel({
   activeLeagueId,
   activeSeason,
   playerIds,

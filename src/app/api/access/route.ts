@@ -64,6 +64,7 @@ function toRole(role: unknown): LeagueMemberRole {
 
 function mapLeague(league: Record<string, unknown>): League {
   return {
+    modality: league.modality === "fixed_pairs" ? "fixed_pairs" : "individual",
     id: String(league.id),
     slug: String(league.slug),
     name: String(league.name),
@@ -173,7 +174,7 @@ export async function GET(request: Request) {
   const leaguesQuery = supabase
     .from("leagues")
     .select(
-      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
+      "id,modality,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
     )
 
   if (!isSuperuser) {
@@ -249,7 +250,7 @@ export async function GET(request: Request) {
       .in("league_id", leagueIds),
     supabase
       .from("season_players")
-      .select("season_id,player_id,status,joined_from_round,replaces_player_id,replaced_from_round,replaced_by_player_id,seasons!inner(league_id)")
+      .select("season_id,player_id,pair_number,status,joined_from_round,replaces_player_id,replaced_from_round,replaced_by_player_id,seasons!inner(league_id)")
       .in("seasons.league_id", leagueIds),
     supabase
       .from("season_settings")
@@ -384,6 +385,7 @@ export async function GET(request: Request) {
   )
   const seasonPlayers: SeasonPlayer[] = (seasonPlayersResult.data ?? []).map(
     (seasonPlayer) => ({
+      pairNumber: seasonPlayer.pair_number ?? null,
       seasonId: seasonPlayer.season_id,
       playerId: seasonPlayer.player_id,
       status: seasonPlayer.status === "withdrawn" ? "withdrawn" : "active",

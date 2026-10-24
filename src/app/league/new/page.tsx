@@ -15,6 +15,7 @@ export default function NewLeaguePage() {
   const router = useRouter()
   const { activateGrantedLeague } = useActiveLeague()
   const { canCreateLeagues, createLeague } = useLeagueAccess()
+  const [modality, setModality] = useState<"individual" | "fixed_pairs">("individual")
   const [leagueName, setLeagueName] = useState("")
   const [leagueDescription, setLeagueDescription] = useState("")
   const [leagueRecommendations, setLeagueRecommendations] = useState("")
@@ -35,6 +36,7 @@ export default function NewLeaguePage() {
     setError(null)
 
     const league = await createLeague({
+      modality,
       name: leagueName.trim(),
       description: leagueDescription.trim() || t.newLeague.defaultDescription,
       recommendations: leagueRecommendations.trim(),
@@ -89,6 +91,14 @@ export default function NewLeaguePage() {
             {tx("Primero crea la liga. Después configurarás la Temporada 1 con sus jugadores, jornadas y reglas.")}{" "}</p>
 
           <div className="mt-4 space-y-4">
+            <label className="block">
+              <span className="text-sm font-semibold text-neutral-700">{tx("Modalidad de liga")}</span>
+              <select aria-label={tx("Modalidad de liga")} value={modality} disabled={isCreating} onChange={event => setModality(event.target.value as typeof modality)} className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900">
+                <option value="individual">{tx("Individual de Smash & Lob")}</option>
+                <option value="fixed_pairs">{tx("Por parejas fijas")}</option>
+              </select>
+              <span className="mt-2 block text-xs font-semibold text-neutral-500">{modality === "individual" ? tx("Cada jugador compite individualmente y cambia de compañero a lo largo de la temporada.") : tx("De 2 a 16 parejas. Cada pareja mantiene sus jugadores y compite en una clasificación conjunta durante la temporada.")}</span>
+            </label>
             <label className="block">
               <span className="text-sm font-semibold text-neutral-700">
                 {t.newLeague.leagueName}

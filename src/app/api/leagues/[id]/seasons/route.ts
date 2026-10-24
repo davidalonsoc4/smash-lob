@@ -1,3 +1,5 @@
+import { getServerLeagueModality } from "@/lib/serverLeagueModality"
+import { validateLeaguePairs } from "@/lib/fixedPairLeague"
 import { NextResponse } from "next/server"
 import {
   getSeasonScheduleRoundCount,
@@ -27,6 +29,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 type CreateSeasonBody = {
+  fixedPairs?: unknown
   activeSeasonId?: unknown
   name?: unknown
   playerIds?: unknown
@@ -297,6 +300,7 @@ export async function POST(
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
+  const modality = await getServerLeagueModality(access.actor.supabase, leagueId)
   const body = await parseJsonBody<CreateSeasonBody>(request)
   const name = cleanString(body?.name)
   const playerIds = parseUuidArray(body?.playerIds)
@@ -368,7 +372,7 @@ export async function POST(
     preseasonSecretDaysBefore === undefined ||
     openingRoundAt === undefined ||
     openingRoundLocation === undefined ||
-    !isSeasonPlayerCountInRange(playerCapacity) ||
+    !isSeasonPlayerCountInRange(playerCapacity, modality) ||
     !ballsAssignmentPriority ||
     !ballsAssignmentCustodianIds ||
     (body?.ballsAssignmentMode !== undefined && body.ballsAssignmentMode !== "priority" && body.ballsAssignmentMode !== "selected") ||
@@ -429,11 +433,12 @@ export async function POST(
       : playerIds.length + appUserIds.length + newPlayerNames.length
   const targetRoundCount =
     requestedTargetRoundCount ??
-    getSeasonScheduleRoundCount({ playerCount: totalPlayers, mode: scheduleMode })
+    getSeasonScheduleRoundCount({ playerCount: totalPlayers, mode: scheduleMode, modality })
 
   if (
-    !isSeasonPlayerCountInRange(totalPlayers) ||
+    !isSeasonPlayerCountInRange(totalPlayers, modality) ||
     !isValidSeasonScheduleTarget({
+      modality,
       playerCount: totalPlayers,
       mode: scheduleMode,
       targetRoundCount,
@@ -450,6 +455,9 @@ export async function POST(
       `__new_player__${index}`,
     ),
   ])
+  if (modality === "fixed_pairs" && (rosterMode !== "fixed" || !validateLeaguePairs(body?.fixedPairs, [...validPlayerValues]))) {
+    return NextResponse.json({ error: "invalid_fixed_pairs" }, { status: 400 })
+  }
   const validSelfPlayerValues = new Set<string>([
     ...playerIds,
     ...Array.from({ length: newPlayerNames.length }, (_, index) => `__new_player__${index}`),
@@ -475,6 +483,7 @@ export async function POST(
       actor: access.actor,
       input: {
         leagueId,
+        fixedPairs: modality === "fixed_pairs" ? body!.fixedPairs as [string, string][] : undefined,
         activeSeasonId,
         name,
         playerIds,

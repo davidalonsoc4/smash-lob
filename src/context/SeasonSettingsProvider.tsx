@@ -136,6 +136,7 @@ type SeasonSettingsContextValue = {
     ballsAssignmentCustodianIds?: string[];
   }) => { seasonId: string; playerIds: string[] };
   startNewSeason: (settings: {
+    fixedPairs?: [string, string][];
     leagueId: string;
     name: string;
     playerIds: string[];
@@ -998,6 +999,7 @@ export function SeasonSettingsProvider({
   }
 
   function startNewSeason({
+    fixedPairs,
     leagueId,
     name,
     playerIds,
@@ -1027,6 +1029,7 @@ export function SeasonSettingsProvider({
     ballsAssignmentMode = "priority",
     ballsAssignmentCustodianIds = [],
   }: {
+    fixedPairs?: [string, string][];
     leagueId: string;
     name: string;
     playerIds: string[];
@@ -1113,6 +1116,7 @@ export function SeasonSettingsProvider({
     });
     const newPlayerIds = newPlayers.map((player) => player.id);
     const finalPlayerIds = [...uniquePlayerIds, ...newPlayerIds];
+    const resolvedPairs = fixedPairs?.map(pair => pair.map(id => { const index = getNewPlayerIndexFromToken(id); return index === null ? id : newPlayerIds[index]; }));
     const selectedSelfPlayerIndex =
       selfPlayerValue && isNewPlayerToken(selfPlayerValue)
         ? getNewPlayerIndexFromToken(selfPlayerValue)
@@ -1142,6 +1146,7 @@ export function SeasonSettingsProvider({
           ...currentSeasonData.seasonPlayers,
           ...finalPlayerIds.map((playerId) => ({
             seasonId,
+            pairNumber: resolvedPairs ? resolvedPairs.findIndex(pair => pair.includes(playerId)) + 1 : null,
             playerId,
           })),
         ],

@@ -1,3 +1,4 @@
+import { generateFixedPairLeagueCalendar, validateLeaguePairs, areLeagueMatchesPaired, type LeaguePair, type LeagueModality } from "@/lib/fixedPairLeague"
 import { generateFlexibleCalendarRounds } from "@/lib/flexibleCalendar"
 import {
   getSeasonBaseRoundCount,
@@ -1793,41 +1794,46 @@ const precomputedMaxBalancedLegCount: Record<number, number> = {
   32: 6,
 }
 
-export function getSeasonMaxBalancedLegCount(playerCount: number) {
+export function getSeasonMaxBalancedLegCount(playerCount: number, modality: LeagueModality = "individual") {
+  if (modality === "fixed_pairs") return 6
   if (!isSeasonPlayerCountInRange(playerCount)) return 1
   return precomputedMaxBalancedLegCount[playerCount] ?? 1
 }
 
-export function getSeasonMaxRoundCount(playerCount: number) {
-  return getSeasonBaseRoundCount(playerCount) * getSeasonMaxBalancedLegCount(playerCount)
+export function getSeasonMaxRoundCount(playerCount: number, modality: LeagueModality = "individual") {
+  return getSeasonBaseRoundCount(playerCount, modality) * getSeasonMaxBalancedLegCount(playerCount, modality)
 }
 
 export function isValidSeasonTargetRoundCount({
   playerCount,
+  modality = "individual",
   targetRoundCount,
 }: {
+  modality?: LeagueModality
   playerCount: number
   targetRoundCount: number
 }) {
   return (
-    isSeasonPlayerCountInRange(playerCount) &&
+    isSeasonPlayerCountInRange(playerCount, modality) &&
     Number.isInteger(targetRoundCount) &&
     targetRoundCount >= 1 &&
-    targetRoundCount <= getSeasonMaxRoundCount(playerCount)
+    targetRoundCount <= getSeasonMaxRoundCount(playerCount, modality)
   )
 }
 
 export function isValidSeasonScheduleTarget({
   playerCount,
+  modality = "individual",
   mode,
   targetRoundCount,
 }: {
+  modality?: LeagueModality
   playerCount: number
   mode: SeasonScheduleMode
   targetRoundCount: number
 }) {
-  if (!isValidSeasonTargetRoundCount({ playerCount, targetRoundCount })) return false
-  const baseRoundCount = getSeasonBaseRoundCount(playerCount)
+  if (!isValidSeasonTargetRoundCount({ playerCount, targetRoundCount, modality })) return false
+  const baseRoundCount = getSeasonBaseRoundCount(playerCount, modality)
   if (mode === "single") return targetRoundCount === baseRoundCount
   if (mode === "double") return targetRoundCount === baseRoundCount * 2
   return true
@@ -2109,17 +2115,19 @@ export function getSeasonScheduleRoundMultiplier(mode: SeasonScheduleMode) {
 
 export function getSeasonScheduleRoundCount({
   playerCount,
+  modality = "individual",
   mode,
   targetRoundCount,
   longMultiplier = 2,
 }: {
+  modality?: LeagueModality
   playerCount: number
   mode: SeasonScheduleMode
   targetRoundCount?: number
   longMultiplier?: number
 }) {
   if (typeof targetRoundCount === "number") return targetRoundCount
-  const baseRoundCount = getSeasonBaseRoundCount(playerCount)
+  const baseRoundCount = getSeasonBaseRoundCount(playerCount, modality)
   if (mode === "single") return baseRoundCount
   if (mode === "double") return baseRoundCount * 2
   return baseRoundCount * Math.max(2, Math.trunc(longMultiplier))
@@ -2144,18 +2152,24 @@ export function isOptimizedCustomSeasonCalendar(audit: SeasonCalendarAudit) {
 }
 
 export function generateBalancedCalendar({
+  fixedPairs,
   leagueId,
   seasonId,
   playerIds,
   scheduleMode = "single",
   targetRoundCount,
 }: {
+  fixedPairs?: LeaguePair[]
   leagueId: string
   seasonId: string
   playerIds: string[]
   scheduleMode?: SeasonScheduleMode
   targetRoundCount?: number
 }): GeneratedMatch[] {
+  if (fixedPairs) {
+    if (!validateLeaguePairs(fixedPairs, playerIds)) throw new Error("invalid_fixed_pairs")
+    return generateFixedPairLeagueCalendar({ leagueId, seasonId, pairs: fixedPairs, scheduleMode, targetRoundCount })
+  }
   if (!isSeasonPlayerCountInRange(playerIds.length)) return []
   if (new Set(playerIds).size !== playerIds.length) throw new Error("Duplicate calendar player IDs")
 
@@ -2228,12 +2242,14 @@ export function generateBalancedCalendar({
 }
 
 export function generateManualCalendar({
+  fixedPairs,
   leagueId,
   seasonId,
   matches,
   scheduleMode = "single",
   targetRoundCount,
 }: {
+  fixedPairs?: LeaguePair[]
   leagueId: string
   seasonId: string
   matches: ManualCalendarMatchDraft[]
@@ -2250,6 +2266,13 @@ export function generateManualCalendar({
       teamB: match.teamB,
     })
   )
+  if (fixedPairs) {
+    if (!areLeagueMatchesPaired(matches, fixedPairs)) throw new Error("invalid_fixed_pairs")
+    const sourceRounds = Math.max(...matches.map(match => match.round), 0)
+    const requested = targetRoundCount ?? getSeasonScheduleRoundCount({ playerCount: fixedPairs.length * 2, modality: "fixed_pairs", mode: scheduleMode })
+    if (!sourceRounds || !isValidSeasonScheduleTarget({ playerCount: fixedPairs.length * 2, modality: "fixed_pairs", mode: scheduleMode, targetRoundCount: requested })) throw new Error("invalid_target_round_count")
+    return Array.from({ length: requested }, (_, i) => baseMatches.filter(match => match.round === i % sourceRounds + 1).map((match, index) => ({ ...match, id: `${seasonId}-round-${i + 1}-manual-match-${index + 1}`, round: i + 1, ...(Math.floor(i / sourceRounds) % 2 ? { teamA: [...match.teamB], teamB: [...match.teamA] } : {}) }))).flat()
+  }
   const uniquePlayerCount = getUniquePlayerCount(baseMatches)
   const requestedRoundCount = getSeasonScheduleRoundCount({
     playerCount: uniquePlayerCount,

@@ -1764,6 +1764,7 @@ export default function AdminSeasonPage() {
   });
   const canAuditCalendar =
     isValidSeasonScheduleTarget({
+      modality: activeLeague.modality,
       playerCount: players.length,
       mode: "extended",
       targetRoundCount: activeSeason.totalRounds,

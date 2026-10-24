@@ -95,6 +95,7 @@ type LeagueAccessContextValue = {
     description: string;
     recommendations: string;
     locations: LeagueLocation[];
+    modality?: "individual" | "fixed_pairs";
     accentColor?: string;
   }) => Promise<League | null>;
   getMembershipForLeague: (leagueId: string) => UserLeagueMembership | null;
@@ -316,6 +317,7 @@ function normalizeStoredLeague(league: unknown): League | null {
     locations: normalizeLeagueLocations(item.locations),
     logoUrl: typeof item.logoUrl === "string" ? item.logoUrl : null,
     statusColorsEnabled: item.statusColorsEnabled !== false,
+    modality: item.modality === "fixed_pairs" ? "fixed_pairs" : "individual",
     showRankingAvatars: item.showRankingAvatars !== false,
     showHistoricalProfileStats: item.showHistoricalProfileStats === true,
     createdByUserId:
@@ -756,10 +758,12 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       locations,
       recommendations,
       accentColor,
+      modality,
     }: {
       name: string;
       description: string;
       recommendations: string;
+      modality?: "individual" | "fixed_pairs";
       accentColor?: string;
       locations: LeagueLocation[];
     }) => {
@@ -791,6 +795,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           locations,
           leagueRecommendations: recommendations.trim(),
           accentColor,
+          modality,
         });
 
         setLeagues((currentLeagues) => {

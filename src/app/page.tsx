@@ -413,6 +413,7 @@ export default function Home() {
     roundSettings,
     players,
     leaguePlayers,
+    rankingPairs,
     rankingPlayers: seasonRankingPlayers,
     matches,
     rounds,
@@ -623,15 +624,16 @@ export default function Home() {
     }
   }
 
-  const rankingPlayers = [...seasonRankingPlayers].sort((a, b) => {
+  const rankingPlayers = [...(activeLeague.modality === "fixed_pairs" ? rankingPairs : seasonRankingPlayers)].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     if (b.gamesDiff !== a.gamesDiff) return b.gamesDiff - a.gamesDiff;
     return b.gamesFor - a.gamesFor;
   });
 
   const leader = rankingPlayers[0];
+  const rankingUserId = activeLeague.modality === "fixed_pairs" ? rankingPairs.find(pair => pair.members.some(member => member.id === currentUserId))?.id ?? currentUserId : currentUserId;
   const currentUserRankingIndex = rankingPlayers.findIndex(
-    (player) => player.id === currentUserId,
+    (player) => player.id === rankingUserId,
   );
   const rankingPreviewStart =
     currentUserRankingIndex <= 0
@@ -870,7 +872,7 @@ export default function Home() {
                   players={[leader]}
                   badge="🏆"
                   tone="winner"
-                  href={`/player/${leader.slug ?? leader.id}`}
+                  href={activeLeague.modality === "fixed_pairs" ? "/ranking" : `/player/${leader.slug ?? leader.id}`}
                   meta={`${leader.points} ${t.common.pointsShort}`}
                 />
                 {seasonMvp ? (
@@ -1064,7 +1066,7 @@ export default function Home() {
                 <div
                   key={player.id}
                   className={`flex items-center justify-between gap-3 rounded-xl py-1.5 pl-2 pr-3 ${
-                    player.id === currentUserId ? "bg-neutral-100" : ""
+                    player.id === rankingUserId ? "bg-neutral-100" : ""
                   }`}
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -1075,12 +1077,12 @@ export default function Home() {
                       {getRankingDisplayPosition(rankingPlayers, player.id)}
                     </div>
 
-                    {activeLeague.showRankingAvatars !== false ? (
+                    {activeLeague.showRankingAvatars !== false && activeLeague.modality !== "fixed_pairs" ? (
                       <PlayerAvatar player={player} size="sm" />
                     ) : null}
 
                     <Link
-                      href={`/player/${player.slug ?? player.id}`}
+                      href={activeLeague.modality === "fixed_pairs" ? "/ranking" : `/player/${player.slug ?? player.id}`}
                       className="min-w-0 font-semibold leading-tight text-neutral-950 underline-offset-2 truncate whitespace-nowrap active:underline"
                     >
                       {player.displayName}

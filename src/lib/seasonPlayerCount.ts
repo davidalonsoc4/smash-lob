@@ -1,7 +1,9 @@
+import { fixedPairBaseRounds, isLeaguePlayerCountValid, type LeagueModality } from "@/lib/fixedPairLeague"
 export const MIN_SEASON_PLAYER_COUNT = 8
 export const MAX_SEASON_PLAYER_COUNT = 32
 
-export function isSeasonPlayerCountInRange(playerCount: number) {
+export function isSeasonPlayerCountInRange(playerCount: number, modality: LeagueModality = "individual") {
+  if (modality === "fixed_pairs") return isLeaguePlayerCountValid(playerCount, modality)
   return (
     Number.isInteger(playerCount) &&
     playerCount >= MIN_SEASON_PLAYER_COUNT &&
@@ -21,11 +23,12 @@ export function getSeasonByeCountPerRound(playerCount: number) {
   return isSeasonPlayerCountInRange(playerCount) ? playerCount % 4 : 0
 }
 
-export function getSeasonMatchesPerRound(playerCount: number) {
-  return isSeasonPlayerCountInRange(playerCount) ? Math.floor(playerCount / 4) : 0
+export function getSeasonMatchesPerRound(playerCount: number, modality: LeagueModality = "individual") {
+  return isSeasonPlayerCountInRange(playerCount, modality) ? Math.floor(playerCount / 4) : 0
 }
 
-export function getSeasonBaseRoundCount(playerCount: number) {
+export function getSeasonBaseRoundCount(playerCount: number, modality: LeagueModality = "individual") {
+  if (modality === "fixed_pairs") return fixedPairBaseRounds(playerCount)
   if (!isSeasonPlayerCountInRange(playerCount)) {
     return Math.max(playerCount - 1, 1)
   }

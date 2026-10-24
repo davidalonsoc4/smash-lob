@@ -1,3 +1,5 @@
+import { getServerLeagueModality, getServerSeasonPairs } from "@/lib/serverLeagueModality"
+import { validateLeaguePairs, areLeagueMatchesPaired, type LeaguePair } from "@/lib/fixedPairLeague"
 import "server-only"
 
 import { randomInt } from "node:crypto"
@@ -56,6 +58,7 @@ export function isSeasonMutationError(
 }
 
 type CreateServerSeasonInput = {
+  fixedPairs?: LeaguePair[]
   leagueId: string
   activeSeasonId: string | null
   name: string
@@ -1171,15 +1174,19 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
   targetRoundCount?: number
   reroll?: boolean
 }): Promise<MatchData[]> {
+  const modality = await getServerLeagueModality(supabase, season.leagueId)
+  const fixedPairs = modality === "fixed_pairs" ? await getServerSeasonPairs(supabase, season.id) : undefined
   const expectedRoundCount =
     targetRoundCount ??
     getSeasonScheduleRoundCount({
+      modality,
       playerCount: playerIds.length,
       mode: scheduleMode,
     })
 
   if (
     !isValidSeasonScheduleTarget({
+      modality,
       playerCount: playerIds.length,
       mode: scheduleMode,
       targetRoundCount: expectedRoundCount,
@@ -1262,6 +1269,7 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
     leagueId: season.leagueId,
     seasonId: season.id,
     playerIds,
+    fixedPairs,
     scheduleMode,
     targetRoundCount: expectedRoundCount,
   })
@@ -1304,6 +1312,7 @@ export async function replaceServerUpcomingSeasonBalancedCalendar({
       const candidate = generateBalancedCalendar({
         leagueId: season.leagueId,
         seasonId: season.id,
+        fixedPairs: fixedPairs ? [...fixedPairs].sort((left, right) => shuffledPlayerIds.indexOf(left[0]) - shuffledPlayerIds.indexOf(right[0])) : undefined,
         playerIds: shuffledPlayerIds,
         scheduleMode,
         targetRoundCount: expectedRoundCount,
@@ -1499,6 +1508,10 @@ export async function createServerSeason({
     ballsAssignmentCustodianIds = [],
   } = input
   const { supabase, user, membership } = actor
+  const modality = await getServerLeagueModality(supabase, leagueId)
+  const requestedPairs = input.fixedPairs
+  const validValues = [...playerIds, ...Array.from({ length: newPlayerNames.length + appUserIds.length }, (_, i) => `__new_player__${i}`)]
+  if (modality === "fixed_pairs" && (rosterMode !== "fixed" || !validateLeaguePairs(requestedPairs, validValues) || (manualMatches?.length && !areLeagueMatchesPaired(manualMatches, requestedPairs)))) throw new SeasonMutationError(400, "invalid_fixed_pairs")
   const isSelfRegistration = rosterMode === "self_registration"
   const { count: existingSeasonCount, error: seasonCountError } = await supabase
     .from("seasons")
@@ -1570,6 +1583,7 @@ export async function createServerSeason({
 
   if (
     !isValidSeasonScheduleTarget({
+      modality,
       playerCount: totalPlayers,
       mode: scheduleMode,
       targetRoundCount,
@@ -1800,6 +1814,12 @@ export async function createServerSeason({
         ...(newPlayers ?? []).map((player) => player.id),
       ...appLinkedPlayers.map((player) => player.id),
     ]
+  const createdIds = [...(newPlayers ?? []).map(player => player.id), ...appLinkedPlayers.map(player => player.id)]
+  const fixedPairs = modality === "fixed_pairs" ? requestedPairs!.map(pair => pair.map(id => {
+    const index = getNewPlayerIndexFromToken(id)
+    return index === null ? id : createdIds[index]
+  }) as LeaguePair) : undefined
+  const pairNumberFor = (id: string) => fixedPairs ? fixedPairs.findIndex(pair => pair.includes(id)) + 1 : null
   const cleanBallsAssignmentPriority = resolveBallsAssignmentPriority({
     refs: ballsAssignmentPriority ?? [],
     finalPlayerIds,
@@ -1873,6 +1893,7 @@ export async function createServerSeason({
         finalPlayerIds.map((playerId) => ({
           season_id: season.id,
           player_id: playerId,
+          pair_number: pairNumberFor(playerId),
         }))
       )
 
@@ -1897,6 +1918,7 @@ export async function createServerSeason({
           leagueId,
           seasonId: season.id,
           matches: resolvedManualMatches,
+          fixedPairs,
           scheduleMode,
           targetRoundCount,
         })
@@ -1904,6 +1926,7 @@ export async function createServerSeason({
           leagueId,
           seasonId: season.id,
           playerIds: finalPlayerIds,
+          fixedPairs,
           scheduleMode,
           targetRoundCount,
         })
@@ -2023,6 +2046,7 @@ export async function createServerSeason({
   ]
   const seasonPlayers: SeasonPlayer[] = finalPlayerIds.map((playerId) => ({
     seasonId: season.id,
+    pairNumber: pairNumberFor(playerId),
     playerId,
   }))
   const seasonSettings: SeasonRoundSettings[] = [

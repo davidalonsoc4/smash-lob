@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import jsQR from "jsqr"
 import sharp from "sharp"
-import { playerProfiles, allMatches as fixtureMatches, seasons as fixtureSeasons } from "@/data/fakeData"
+import { playerProfiles, allMatches as fixtureMatches, seasons as fixtureSeasons, leagues as fixtureLeagues } from "@/data/fakeData"
 
 const screens = [
   { name: "home", path: "/" },
@@ -607,4 +607,86 @@ test("personal matches hide the whole upcoming section when there is no future m
   await expect(page.getByText("Próximos partidos", { exact: true })).toHaveCount(0)
   await expect(page.getByText("Sin partidos programados", { exact: true })).toHaveCount(0)
   await expect(page.getByText("Historial", { exact: true })).toBeVisible()
+})
+
+for (const theme of ["light", "dark"]) for (const duration of ["single", "double", "custom", "manual"]) {
+  test(`fixed league pairs keep partners through creation, scoring and ranking (${duration}, ${theme})`, async ({ page }, testInfo) => {
+    await page.addInitScript(({ seasons, leagues, theme }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      if (sessionStorage.getItem("qa-fixed-league-initialized")) return
+      sessionStorage.setItem("qa-fixed-league-initialized", "1")
+      localStorage.setItem("smash-lob-leagues", JSON.stringify(leagues.map(league => league.id === "league-smash-lob" ? { ...league, modality: "fixed_pairs" } : league)))
+      localStorage.setItem("smash-lob-season-data", JSON.stringify({ seasons: seasons.map(season => ({ ...season, status: "finished" })), activeSeasonIds: { "league-smash-lob": "season-2" } }))
+    }, { seasons: fixtureSeasons, leagues: fixtureLeagues, theme })
+    await page.goto("/admin/season")
+    await page.getByRole("button", { name: "Configurar nueva temporada", exact: true }).click()
+    await expect(page.getByText("Parejas de la temporada", { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Reducir número de jugadores", exact: true }).click()
+    const pairOne = page.getByRole("combobox", { name: "Pareja 1 · Jugador 1", exact: true })
+    await expect(pairOne).toBeVisible()
+    const values = await pairOne.locator("option").evaluateAll(options => options.map(option => (option as HTMLOptionElement).value))
+    await pairOne.selectOption(values[2])
+    if (duration === "manual") await page.getByRole("button", { name: /^Calendario manual/ }).click()
+    if (duration === "double") await page.getByRole("button", { name: /^Doble vuelta/ }).click()
+    if (duration === "custom") {
+      await page.getByRole("button", { name: /^Personalizada/ }).click()
+      await page.locator('input[type="number"][max="18"]').fill("4")
+    }
+    const submit = page.getByRole("button", { name: "Crear temporada", exact: true })
+    await expect(submit).toBeEnabled()
+    await submit.evaluate(element => element.scrollIntoView({ block: "center" }))
+    await submit.click()
+    await expect(page).toHaveURL(/\/$/)
+    const created = await page.evaluate(() => {
+      const data = JSON.parse(localStorage.getItem("smash-lob-season-data")!)
+      const seasonId = data.activeSeasonIds["league-smash-lob"]
+      return { season: data.seasons.find((season: {id:string}) => season.id === seasonId), roster: data.seasonPlayers.filter((row: {seasonId:string}) => row.seasonId === seasonId), matches: JSON.parse(localStorage.getItem("smash-lob-matches")!).filter((match: {seasonId:string}) => match.seasonId === seasonId) }
+    })
+    expect(created.season.totalRounds).toBe(duration === "double" ? 6 : duration === "custom" ? 4 : 3)
+    expect(created.roster).toHaveLength(6)
+    expect(created.matches).toHaveLength(created.season.totalRounds)
+    for (const match of created.matches) for (const team of [match.teamA, match.teamB]) {
+      expect(new Set(team.map((id: string) => created.roster.find((row: {playerId:string}) => row.playerId === id).pairNumber)).size).toBe(1)
+    }
+    await page.goto(`/match/${created.matches[0].id}`)
+    const result = page.getByRole("region", { name: "Resultado del partido", exact: true })
+    await result.getByRole("button", { name: "Registrar resultado", exact: true }).click()
+    for (const [team, scores] of [["A", [6,4,6]], ["B", [4,6,3]]] as const) for (const [index, score] of scores.entries()) await result.getByRole("textbox", { name: `Pareja ${team} Set ${index + 1}`, exact: true }).fill(String(score))
+    await result.getByRole("button", { name: "Guardar resultado", exact: true }).click()
+    await expect(result.getByRole("heading", { name: "Resultado registrado", exact: true })).toBeVisible()
+    await page.goto("/ranking")
+    await expect(page.getByRole("heading", { name: "Clasificación por parejas", exact: true })).toBeVisible()
+    await expect(page.locator(".app-ranking-row")).toHaveCount(3)
+    await expect(page.locator(".app-ranking-row").first().locator("p").last()).toHaveText("2")
+    await page.reload()
+    await expect(page.locator(".app-ranking-row")).toHaveCount(3)
+    if (theme === "dark") await expect(page.locator("html")).toHaveClass(/dark/)
+    else await expect(page.locator("html")).not.toHaveClass(/dark/)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    const accessibility = await new AxeBuilder({ page }).analyze()
+    expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: testInfo.outputPath(`pairs-ranking-${theme}.png`), scale: "css" })
+  })
+}
+
+test("new league asks its format and opens the corresponding fixed-pair season form", async ({ page }) => {
+  const id = "40000000-0000-4000-8000-000000000001"
+  let created: typeof fixtureLeagues[number] | null = null
+  await page.route("**/api/access**", route => route.fulfill({ json: { isSuperuser: false, canCreateLeagues: true, leagues: [...fixtureLeagues, ...(created ? [created] : [])], memberships: [{ userId: "qa-v1-1@example.test", leagueId: id, role: "creator", playerId: "" }], spectatorLeagueIds: [], matches: [], seasonSnapshot: { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: {} } } }))
+  await page.route("**/api/leagues", async route => {
+    const body = route.request().postDataJSON()
+    expect(body.modality).toBe("fixed_pairs")
+    created = { id, name: body.leagueName, description: body.leagueDescription, slug: body.leagueSlug, modality: body.modality, inviteCode: body.inviteCode, activeSeasonId: "", joinMode: "closed", locations: [] }
+    await route.fulfill({ json: { league: created, membership: { userId: "qa-v1-1@example.test", leagueId: id, playerId: "", role: "creator" }, seasonSnapshot: { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: { [id]: "" } } } })
+  })
+  await page.route("**/player-directory", route => route.fulfill({ json: { people: [] } }))
+  await page.goto("/league/new")
+  const modality = page.getByRole("combobox", { name: "Modalidad de liga", exact: true })
+  await expect(modality).toHaveValue("individual")
+  await modality.selectOption("fixed_pairs")
+  await page.locator('form input').first().fill("League pairs fixture")
+  await page.getByRole("button", { name: "Crear liga", exact: true }).click()
+  await expect(page).toHaveURL(/admin\/season$/)
+  await expect(page.getByText("Parejas de la temporada", { exact: true })).toBeVisible()
+  await expect(page.getByRole("combobox", { name: "Pareja 1 · Jugador 1", exact: true })).toBeVisible()
 })

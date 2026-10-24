@@ -140,6 +140,7 @@ type MatchDataContextValue = {
   hydrateMatches: (matches: MatchData[]) => void;
   replaceSeasonMatches: (seasonId: string, matches: MatchData[]) => void;
   createSeasonMatches: (settings: {
+    fixedPairs?: [string, string][];
     leagueId: string;
     seasonId: string;
     playerIds: string[];
@@ -743,12 +744,14 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
 
   const createSeasonMatches = useCallback(
     ({
+      fixedPairs,
       leagueId,
       seasonId,
       playerIds,
       scheduleMode = "single",
       targetRoundCount,
     }: {
+      fixedPairs?: [string, string][];
       leagueId: string;
       seasonId: string;
       playerIds: string[];
@@ -758,6 +761,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
       const seasonMatches = generateBalancedCalendar({
         leagueId,
         seasonId,
+        fixedPairs,
         playerIds,
         scheduleMode,
         targetRoundCount,

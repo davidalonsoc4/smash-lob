@@ -305,6 +305,7 @@ export async function replaceSupabaseUpcomingSeasonBalancedCalendar({
 }
 
 export async function startSupabaseSeason({
+  fixedPairs,
   leagueId,
   activeSeasonId,
   name,
@@ -341,6 +342,7 @@ export async function startSupabaseSeason({
   ballsAssignmentCustodianIds = [],
 }: {
   leagueId: string;
+  fixedPairs?: [string, string][];
   activeSeasonId: string | null;
   name: string;
   playerIds: string[];
@@ -388,6 +390,7 @@ export async function startSupabaseSeason({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        fixedPairs,
         activeSeasonId,
         name,
         playerIds,

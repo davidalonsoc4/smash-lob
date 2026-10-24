@@ -16,6 +16,7 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { selectCompetitionHighlights, selectCompetitionPreview } from "@/lib/competitionOverview"
+import { calculateLeaguePairRanking } from "@/lib/leaguePairRanking"
 import { calculateSeasonRanking } from "@/lib/ranking"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
@@ -133,7 +134,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     const seasonMatches = countedMatches.filter(match => match.leagueId === league.id && match.seasonId === season.id)
     const finishedMatches = seasonMatches.filter(isMatchCompetitionComplete).length
     const seasonPlayerCount = seasonPlayers.filter(player => player.seasonId === season.id).length
-    const ranking = calculateSeasonRanking({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches })
+    const ranking = (league.modality === "fixed_pairs" ? calculateLeaguePairRanking : calculateSeasonRanking)({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches })
     const leader = ranking.find(player => player.points > 0) ?? null
     return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} style={view === "summary" ? { "--league-card-accent": normalizeAccentColor(league.accentColor) } as CSSProperties : undefined} className={`${view === "summary" ? styles.league : ""} w-full rounded-2xl border bg-white p-3 text-left shadow-[0_2px_12px_rgba(15,23,42,0.06)] transition active:scale-[0.99] ${view === "leagues" ? isActive ? "border-neutral-950 ring-2 ring-neutral-950" : "border-neutral-200 hover:border-neutral-300" : "border-neutral-200 shadow-sm"}`}>
       <span className={`flex min-w-0 gap-3 ${view === "summary" ? "items-center" : "items-start"}`}>

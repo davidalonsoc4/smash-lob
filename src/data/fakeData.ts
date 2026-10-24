@@ -7,6 +7,7 @@ import type { LeagueLocation } from "@/lib/leagueLocations"
 export type LeagueMemberRole = "creator" | "admin" | "player"
 
 export type League = {
+  modality?: import("@/lib/fixedPairLeague").LeagueModality
   id: string
   slug: string
   name: string
@@ -65,6 +66,7 @@ export type UserLeagueMembership = {
 }
 
 export type SeasonPlayer = {
+  pairNumber?: number | null
   seasonId: string
   playerId: string
   status?: "active" | "withdrawn"
