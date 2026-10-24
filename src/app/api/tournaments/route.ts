@@ -8,7 +8,7 @@ import { validateUuid } from "@/lib/serverRequest"
 import { getRapidTournamentSelectablePeople } from "@/lib/serverRapidTournamentPeople"
 import { getServerLeagueViewer } from "@/lib/serverLeagueAccess"
 import { getTournamentLeagueRoster } from "@/lib/serverTournamentLeagueRoster"
-import { planRapidTournament } from "@/lib/tournamentConfiguration"
+import { getRecommendedRapidRounds, planRapidTournament } from "@/lib/tournamentConfiguration"
 import { requireRapidTournamentCreator } from "@/lib/serverRapidTournaments"
 import { normalizeStoredImageUrl } from "@/lib/serverImageValidation"
 import { fixedTeamsFromPlayers, generateFixedAmericanaFixtures } from "@/lib/fixedRapidTournament"
@@ -16,7 +16,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 const isMissingAccountLinkSchema = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "42703" || error.code === "PGRST204") && /user_id/i.test(error.message ?? ""))
 const isMissingFlexibleCreateRpc = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "PGRST202" || error.code === "42883") && /create_rapid_tournament_flexible/i.test(error.message ?? ""))
-type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; roundCount?: unknown; roundMinutes?: unknown; transitionMinutes?: unknown; logoUrl?: unknown; accentColor?: unknown; format?: unknown; pairing?: unknown; pairNumbers?: unknown; duplicateOf?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
+type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; roundCount?: unknown; roundMinutes?: unknown; transitionMinutes?: unknown; breakMinutes?: unknown; breakEveryRounds?: unknown; logoUrl?: unknown; accentColor?: unknown; format?: unknown; pairing?: unknown; pairNumbers?: unknown; duplicateOf?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
 const numericOption = (value: unknown, fallback: number) => value === undefined ? fallback : typeof value === "number" ? value : NaN
 export async function GET(request: Request) {
   const rateLimited = await enforceRequestRateLimit({ request, scope: "rapid_tournaments_list", limit: 120, windowMs: 60_000 })
@@ -48,13 +48,14 @@ export async function POST(request: Request) {
   const startsAt = validateIsoDateTime(body?.startsAt)
   const playerCount = numericOption(body?.playerCount, Array.isArray(body?.players) ? body.players.length : 0)
   const reservationMinutes = numericOption(body?.reservationMinutes, 120)
-  const roundCount = numericOption(body?.roundCount, getRapidRoundCount(reservationMinutes))
   const roundMinutes = numericOption(body?.roundMinutes, 16), transitionMinutes = numericOption(body?.transitionMinutes, 3)
   const preparationMinutes = numericOption(body?.preparationMinutes, 2)
+  const breakMinutes = numericOption(body?.breakMinutes,0), breakEveryRounds = numericOption(body?.breakEveryRounds,0)
+  const roundCount = numericOption(body?.roundCount, breakMinutes > 0 ? getRecommendedRapidRounds(reservationMinutes,roundMinutes,transitionMinutes,preparationMinutes,{breakMinutes,breakEveryRounds}) : getRapidRoundCount(reservationMinutes))
   const format = body?.format === "dynamic_mexicano" ? "dynamic_mexicano" : body?.format === undefined || body.format === "balanced_americana" ? "balanced_americana" : null
   const pairing = body?.pairing === "fixed" ? "fixed" : body?.pairing === undefined || body.pairing === "rotating" ? "rotating" : null
-  const extended = pairing === "fixed" || body?.roundCount !== undefined || body?.roundMinutes !== undefined || body?.transitionMinutes !== undefined || body?.logoUrl !== undefined || body?.accentColor !== undefined || playerCount < 8 || playerCount > 16
-  const configuration = { players: playerCount, courts: Array.isArray(body?.courtNames) ? body.courtNames.length : 0, reservationMinutes, rounds: roundCount, roundMinutes, transitionMinutes, preparationMinutes }
+  const extended = pairing === "fixed" || body?.breakMinutes !== undefined || body?.breakEveryRounds !== undefined || body?.roundCount !== undefined || body?.roundMinutes !== undefined || body?.transitionMinutes !== undefined || body?.logoUrl !== undefined || body?.accentColor !== undefined || playerCount < 8 || playerCount > 16
+  const configuration = { players: playerCount, courts: Array.isArray(body?.courtNames) ? body.courtNames.length : 0, reservationMinutes, rounds: roundCount, roundMinutes, transitionMinutes, preparationMinutes, breakMinutes, breakEveryRounds }
   const configurationValidation = extended ? planRapidTournament({ ...configuration, pairing: pairing ?? "rotating" }) : validateRapidTournamentConfiguration(playerCount, configuration.courts, reservationMinutes)
   const logoUrl = typeof body?.logoUrl === "string" ? normalizeStoredImageUrl(body.logoUrl) : null
   const accentColor = typeof body?.accentColor === "string" && /^#[0-9a-f]{6}$/i.test(body.accentColor) ? body.accentColor : null
@@ -126,11 +127,11 @@ export async function POST(request: Request) {
     p_reservation_minutes: reservationMinutes, p_preparation_minutes: preparationMinutes, p_round_count: roundCount,
     p_rounds: rounds.map((round) => ({ round_number: round.round, starts_at: round.startsAt, ends_at: round.endsAt })),
   }
-  const result = extended ? await auth.actor.supabase.rpc(pairing === "fixed" ? "create_fixed_rapid_tournament" : "create_configurable_rapid_tournament", {
+  const result = extended ? await auth.actor.supabase.rpc(breakMinutes > 0 ? "create_planned_rapid_tournament" : pairing === "fixed" ? "create_fixed_rapid_tournament" : "create_configurable_rapid_tournament", {
     p_creator_user_id: auth.actor.user.id, p_name: name, p_description: description, p_starts_at: startsAt,
     p_court_names: courtNames, p_player_names: shuffled.map(entry => entry.name), p_player_user_ids: shuffled.map(entry => entry.userId),
-    p_configuration: { ...configuration, format, generationSeed: seed },
-    ...(pairing === "fixed" ? { p_player_pair_numbers: entries.map(entry => entry.pairNumber) } : {}),
+    p_configuration: { ...configuration, format, pairing, generationSeed: seed },
+    ...(pairing === "fixed" || breakMinutes > 0 ? { p_player_pair_numbers: pairing === "fixed" ? entries.map(entry => entry.pairNumber) : null } : {}),
     p_matches: fixtures.map(match => ({ round_number: match.round, court_number: match.court, team_a: match.teamA, team_b: match.teamB })),
     p_duplicate_of: validateUuid(body.duplicateOf), p_source_league_id: sourceLeagueId, p_source_season_id: sourceSeasonId,
     p_logo_url: logoUrl, p_accent_color: accentColor,

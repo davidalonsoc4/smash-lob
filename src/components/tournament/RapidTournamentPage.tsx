@@ -74,11 +74,25 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
   const [error, setError] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [busyAction, setBusyAction] = useState("")
-  const [now] = useState(() => new Date())
+  const [now,setNow] = useState(() => new Date())
   const [clockOffset, setClockOffset] = useState<number | null>(null)
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [actionError, setActionError] = useState("")
   const refresh = useCallback(() => setRefreshKey((value) => value + 1), [])
+  const summaryRounds=data?.rounds, summaryRunning=data?.tournament.status==="in_progress"
+  useEffect(()=>{
+    if(view!=="summary"||!summaryRunning||!summaryRounds)return
+    let timer:number|undefined
+    const update=()=>{
+      window.clearTimeout(timer)
+      const time=Date.now()+(clockOffset??0);setNow(new Date(time))
+      if(document.hidden)return
+      const next=Math.min(...summaryRounds.flatMap(round=>[Date.parse(round.startsAt),Date.parse(round.endsAt)]).filter(at=>at>time))
+      if(Number.isFinite(next))timer=window.setTimeout(update,Math.min(2_147_483_647,next-time+50))
+    }
+    update();document.addEventListener("visibilitychange",update)
+    return()=>{window.clearTimeout(timer);document.removeEventListener("visibilitychange",update)}
+  },[view,summaryRounds,summaryRunning,clockOffset])
   useEffect(() => {
     const controller = new AbortController()
     fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}`, { cache: "no-store", signal: controller.signal })
@@ -104,7 +118,8 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
   const championNames = champions.map((item) => "name" in item ? item.name : item.player)
   const championScore = champions[0] ? "rating" in champions[0] ? champions[0].rating : champions[0].averagePercent : 0
   const selectedPlayer = data?.players.find((player) => player.id === selectedPlayerId) ?? data?.players[0]
-  const scheduledRoundState = data ? getRapidRoundAt(data.rounds, now) : null
+  const firstDraftRound=data?.tournament.status==="draft"?data.rounds[0]:null
+  const scheduledRoundState = firstDraftRound ? {...firstDraftRound,phase:"upcoming" as const} : data && data.tournament.status!=="finished" ? getRapidRoundAt(data.rounds, now) : null
   const roundState = scheduledRoundState && (!isDynamic || scheduledRoundState.round <= generatedRoundCount) ? scheduledRoundState : null
   const roundCountdownTarget = roundState?.phase === "playing" ? roundState.endsAt : roundState?.startsAt
   async function performAction(action: "draw" | "start" | "next-round" | "finish" | "restart" | "delete") {
@@ -151,9 +166,10 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
     "breaks-and-streaks": tx("Descansos y rachas de juego equilibrados"),
     "partners-and-opponents": tx("Se minimizan repeticiones de compañeros y rivales"),
     "court-balance": tx("Mismo número de partidos programados en cada pista"),
+    "player-court-balance": tx("Reparto de pistas por jugador; puede no ser exacto con pocas rondas"),
     "fixed-pairs": tx("Las parejas se mantienen durante todo el torneo"),
   }
-      const scheduleValidation = <section className={`${styles.panel} p-3`} aria-labelledby="schedule-validation"><div className="flex items-center justify-between gap-2"><h2 id="schedule-validation" className="type-panel-title font-black">{tx("Validación del sorteo")}</h2><span className={`${styles.chip} ${scheduleChecks.allPassed ? "text-emerald-800" : scheduleChecks.passed ? "text-amber-800" : "text-red-800"}`}>{scheduleChecks.allPassed ? tx("Todo correcto") : tx("Revisar")}</span></div><ul className="mt-2 space-y-1.5">{scheduleChecks.checks.map((check) => <li key={check.id} className="flex items-start gap-2 text-xs font-semibold"><span aria-hidden="true" className={check.passed ? "text-emerald-700" : "text-red-700"}>{check.passed ? "✓" : "!"}</span><span>{checkLabels[check.id]}</span></li>)}</ul><details className="mt-2"><summary className="cursor-pointer text-xs font-bold">{tx("Detalle por jugador")}</summary><div className="mt-2 overflow-x-auto" role="region" aria-label={tx("Detalle por jugador")} tabIndex={0}><table className="w-full min-w-[430px] text-left text-xs"><thead><tr>{[tx("Jugador"),tx("Partidos"),tx("Descansos"),tx("Minutos"),tx("Máx. seguidos"),`${tx("Compañeros")} / ${tx("Rivales")}`,tx("Pistas")].map((label) => <th className="px-1 py-1 font-black" key={label}>{label}</th>)}</tr></thead><tbody>{scheduleChecks.players.map((player) => <tr key={player.id} className="border-t border-neutral-100"><td className="px-1 py-1 font-bold">{player.name}</td><td className="px-1 py-1">{player.played}</td><td className="px-1 py-1">{player.rested}</td><td className="px-1 py-1">{player.playedMinutes}</td><td className="px-1 py-1">{player.maxConsecutivePlayed} / {player.maxConsecutiveRested}</td><td className="px-1 py-1">{player.uniquePartners} / {player.uniqueOpponents}</td><td className="px-1 py-1">{player.courts.slice(0, Math.min(tournament.courtNames.length, Math.floor(data.players.length / 4))).join(" / ")}</td></tr>)}</tbody></table></div><p className="mt-1 text-xs text-neutral-500">{tx("Máx. seguidos: jugando / descansando · Pistas en orden")}</p></details></section>
+      const scheduleValidation = <section className={`${styles.panel} p-3`} aria-labelledby="schedule-validation"><div className="flex items-center justify-between gap-2"><h2 id="schedule-validation" className="type-panel-title font-black">{tx("Validación del sorteo")}</h2><span className={`${styles.chip} ${scheduleChecks.allPassed ? "text-emerald-800" : scheduleChecks.passed ? "text-amber-800" : "text-red-800"}`}>{scheduleChecks.allPassed ? tx("Todo correcto") : scheduleChecks.passed ? tx("Con observaciones") : tx("Revisar")}</span></div><ul className="mt-2 space-y-1.5">{scheduleChecks.checks.map((check) => <li key={check.id} className="flex items-start gap-2 text-xs font-semibold"><span aria-hidden="true" className={check.passed ? "text-emerald-700" : "text-red-700"}>{check.passed ? "✓" : "!"}</span><span>{checkLabels[check.id]}</span></li>)}</ul><details className="mt-2"><summary className="cursor-pointer text-xs font-bold">{tx("Detalle por jugador")}</summary><div className="mt-2 overflow-x-auto" role="region" aria-label={tx("Detalle por jugador")} tabIndex={0}><table className="w-full min-w-[430px] text-left text-xs"><thead><tr>{[tx("Jugador"),tx("Partidos"),tx("Descansos"),tx("Minutos"),tx("Máx. seguidos"),`${tx("Compañeros")} / ${tx("Rivales")}`,tx("Pistas")].map((label) => <th className="px-1 py-1 font-black" key={label}>{label}</th>)}</tr></thead><tbody>{scheduleChecks.players.map((player) => <tr key={player.id} className="border-t border-neutral-100"><td className="px-1 py-1 font-bold">{player.name}</td><td className="px-1 py-1">{player.played}</td><td className="px-1 py-1">{player.rested}</td><td className="px-1 py-1">{player.playedMinutes}</td><td className="px-1 py-1">{player.maxConsecutivePlayed} / {player.maxConsecutiveRested}</td><td className="px-1 py-1">{player.uniquePartners} / {player.uniqueOpponents}</td><td className="px-1 py-1">{player.courts.slice(0, Math.min(tournament.courtNames.length, Math.floor(data.players.length / 4))).join(" / ")}</td></tr>)}</tbody></table></div><p className="mt-1 text-xs text-neutral-500">{tx("Máx. seguidos: jugando / descansando · Pistas en orden")}</p></details></section>
   return <div className={`${styles.theme} ${styles.page}`} style={tournamentAccentStyle(tournament.accentColor)}>
     <header className={`app-page-header ${styles.header}`} style={tournament.accentColor ? { borderLeft: `0.25rem solid ${tournament.accentColor}` } : undefined}><Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500"><span aria-hidden="true" className="mr-1 inline-block">←</span>{tx("Competiciones")}</Link><div className="flex min-w-0 items-center gap-2">{tournament.logoUrl ? <LeagueLogo league={tournament} label={tx("Logo del torneo")} size="sm" /> : null}<h1 className={`type-page-title font-black ${styles.headerTitle}`}>{tournament.name}</h1></div><div className={styles.headerContext}><span>{formatDate(displayStart, locale)} · {tournament.startedAt ? `${tx("Inicio real")} ` : ""}{formatTime(displayStart, locale)}</span><span>· {statusLabel}</span></div>{venue ? <p className={styles.headerLocation}>{venue}</p> : null}</header>
     {view === "summary" && tournament.description ? <p className={`${styles.help} break-words`}>{tournament.description}</p> : null}
@@ -164,7 +180,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
       {canManage && tournament.status === "draft" && !isDynamic ? scheduleValidation : null}
       {tournament.status === "in_progress" ? <AppCard><p className="text-sm font-black">{tx("Resultados registrados")} · {scoredMatches}/{isDynamic ? expectedMatchCount : configMatches}</p><Link href={`/tournaments/${tournamentId}/live`} className={`${primaryClass} mt-3 w-full`}>{tx("Ir al seguimiento")}</Link>{canManage && canGenerateNextRound ? <button className={`${buttonClass} mt-2 w-full`} disabled={busyAction !== ""} onClick={() => void performAction("next-round")}>{busyAction === "next-round" ? tx("Generando…") : tx("Generar siguiente ronda")}</button> : null}{canManage && complete ? <button className={`${buttonClass} mt-2 w-full`} disabled={busyAction !== ""} onClick={() => void performAction("finish")}>{busyAction === "finish" ? tx("Finalizando…") : tx("Finalizar torneo")}</button> : null}</AppCard> : null}
       {champions.length ? <AppCard className="border-amber-300 bg-amber-50"><p className="text-xs font-black uppercase tracking-wider text-amber-900">{champions.length > 1 ? tx("Campeones") : tx("Campeón")}</p><p className="mt-1 text-lg font-black">{championNames.join(" · ")}</p><p className="mt-1 text-sm font-bold">{championScore.toFixed(2)}%</p></AppCard> : tournament.status === "finished" ? <AppCard className="border-amber-300 bg-amber-50"><p className="text-xs font-black uppercase tracking-wider text-amber-900">{tx("Campeón")}</p><p className="mt-1 text-lg font-black">{tx("Posición compartida")}</p></AppCard> : null}
-      <AppCard><p className="text-sm font-black">{tx("Próximos partidos")}</p>{roundState ? <div className="mt-2 space-y-2">{matchCards(matchesByRound(roundState.round))}</div> : <p className="mt-2 text-sm text-neutral-500">{tx("Todas las rondas han terminado.")}</p>}</AppCard>
+      <AppCard><p className="text-sm font-black">{tx("Próximos partidos")}</p>{roundState ? <div className="mt-2 space-y-2">{matchCards(matchesByRound(roundState.round))}</div> : <p className="mt-2 text-sm text-neutral-500">{tx(isDynamic && tournament.status === "draft" ? "La primera ronda se genera al iniciar el torneo." : "Todas las rondas han terminado.")}</p>}</AppCard>
       <div className="grid grid-cols-2 gap-2"><Link className={buttonClass} href={`/tournaments/${tournamentId}/standings`}>{tx("Ver clasificación")}</Link><Link className={buttonClass} href={`/tournaments/${tournamentId}/calendar`}>{tx("Calendario completo")}</Link><Link className={buttonClass} href={`/tournaments/${tournamentId}/players`}>{tx("Mis partidos y descansos")}</Link><Link className={buttonClass} href={`/tournaments/${tournamentId}/live`}>{tx("Seguimiento")}</Link></div>
     </> : null}
     {view === "calendar" ? <>

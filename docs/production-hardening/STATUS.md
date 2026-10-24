@@ -3093,3 +3093,13 @@ T04 integración: 69 tests focalizados, SQL de doce migraciones y E2E móvil 9/9
 
 Repetición final T04 fija 8/8 PASS en móvil/escritorio y claro/oscuro, con los seis resultados, clasificación por equipos, campeón y copia. Guardar checkpoint y continuar T04 por descansos configurables; no pasar aún a tradicionales ni declarar terminado el módulo.
 
+### T04 — descanso general adicional
+
+Duración/frecuencia editables conectadas a planificación, reserva, horarios, copia, API y seguimiento/audio. Nueva migración aditiva, 13 migraciones SQL aisladas PASS, 55 tests de planificación/timing y 58 de API/copia PASS, i18n/fuente/tipos correctos. E2E de pausa real y validate completo en curso; T04 abierto, sin cambios remotos. Ver terminales/logs en docs/tournaments/STATUS.
+
+Descansos T04: validate PASS 272 archivos/1235 tests, móvil mixto 9/9 y matriz fija con pausas móvil/escritorio 8/8 PASS; trece migraciones SQL verificadas. Resumen ahora cambia de ronda en los límites horarios, con pausa de tareas al ocultarse. Última comprobación de resumen/preview y tipos en curso antes de cerrar hito. Sin PRE/PROD ni datos personales.
+
+### T04 cerrado localmente
+
+Última comprobación de resumen/pausa 4/4 móvil PASS, tipos/lint y 24 tests focalizados correctos; se precisó el selector de Seguimiento al existir acceso de tarjeta y navbar. Validate de descansos 1235 tests, SQL de trece migraciones y E2E 9/9 más 8/8 correctos. Americana/Mexicano × parejas fijas/rotativas integrados con configuración y pausas, sin datos remotos. Primer hito incompleto T05; el objetivo integral continúa por tradicionales, sin declarar terminadas las reglas/roles/economía/integración global pendientes.
+

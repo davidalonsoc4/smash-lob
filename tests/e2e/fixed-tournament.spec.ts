@@ -22,10 +22,10 @@ for (const format of ["balanced_americana","dynamic_mexicano"] as const) for (co
     await page.route("**/api/tournaments/people",route=>route.fulfill({json:{people:[],accountLinkingAvailable:true}}))
     const players = names.map((name,i)=>({id:`p-${i}`,slot:String.fromCharCode(65+i),name,pairNumber:Math.floor(i/2)+1}))
     let history: MexicanoMatch[] = [], status = "draft", startedAt: string | null = null, draws = 0
-    const config = {format,pairing:"fixed",players:8,courts:2,reservationMinutes:120,rounds:3,roundMinutes:10,transitionMinutes:2,preparationMinutes:2}
+    const config = {format,pairing:"fixed",players:8,courts:2,reservationMinutes:120,rounds:3,roundMinutes:10,transitionMinutes:2,preparationMinutes:2,breakMinutes:5,breakEveryRounds:2}
     const teams = ()=>fixedTeamsFromPlayers(players)
     const matchId = (match: MexicanoMatch)=>`r${match.round}-c${match.court}`
-    const data = ()=>({access:{role:"creator"},tournament:{id,name:"Fijas de prueba",description:"",startsAt,startedAt,courtNames:["Pista 1","Pista 2"],status,createdByUserId:"creator",finishedAt:status==="finished"?startsAt:null,configuration:config},players,rounds:buildRapidRounds(startedAt??startsAt,config).map(round=>({...round,id:`round-${round.round}`})),matches:history.map(match=>({...match,id:matchId(match),courtName:`Pista ${match.court}`,teamA:match.teamAIds.map(id=>players.find(player=>player.id===id)!.name),teamB:match.teamBIds.map(id=>players.find(player=>player.id===id)!.name)}))})
+    const data = ()=>({access:{role:"creator"},tournament:{id,name:"Fijas de prueba",description:"",startsAt,startedAt,courtNames:["Pista 1","Pista 2"],status,createdByUserId:"creator",finishedAt:status==="finished"?startsAt:null,configuration:config},players,rounds:buildRapidRounds(new Date(Date.parse(startedAt??startsAt)+config.preparationMinutes*60_000),config).map(round=>({...round,id:`round-${round.round}`})),matches:history.map(match=>({...match,id:matchId(match),courtName:`Pista ${match.court}`,teamA:match.teamAIds.map(id=>players.find(player=>player.id===id)!.name),teamB:match.teamBIds.map(id=>players.find(player=>player.id===id)!.name)}))})
     const nextRound = ()=>{
       const round = Math.max(0,...history.map(match=>match.round))+1
       const generated = generateFixedRapidRound({teams:teams(),history,courts:2,round,seed:41,format})
@@ -34,7 +34,7 @@ for (const format of ["balanced_americana","dynamic_mexicano"] as const) for (co
     await page.route("**/api/tournaments",route=>{
       if(route.request().method()!=="POST") return route.fulfill({json:{tournaments:[]}})
       const body=route.request().postDataJSON()
-      expect(body).toMatchObject({pairing:"fixed",format,playerCount:8,roundCount:3,roundMinutes:10,transitionMinutes:2,pairNumbers:[2,1,1,2,3,3,4,4]})
+      expect(body).toMatchObject({pairing:"fixed",format,playerCount:8,roundCount:3,roundMinutes:10,transitionMinutes:2,breakMinutes:5,breakEveryRounds:2,pairNumbers:[2,1,1,2,3,3,4,4]})
       players.forEach((player,i)=>{player.pairNumber=body.pairNumbers[i]})
       if(format==="balanced_americana") history=generateFixedAmericanaFixtures(teams(),2,3,41)
       return route.fulfill({status:201,json:{id}})
@@ -61,6 +61,8 @@ for (const format of ["balanced_americana","dynamic_mexicano"] as const) for (co
     await page.getByText("Ajustes avanzados",{exact:true}).click()
     await page.getByRole("spinbutton",{name:/^Duración de ronda/}).fill("10")
     await page.getByRole("spinbutton",{name:/^Transición entre rondas/}).fill("2")
+    await page.getByRole("checkbox",{name:"Añadir descanso general"}).check()
+    await page.getByRole("spinbutton",{name:/^Descanso cada/}).fill("2")
     await page.getByRole("checkbox",{name:"Rondas automáticas"}).uncheck()
     await page.getByRole("spinbutton",{name:/^Número de rondas/}).fill("3")
     await page.getByLabel("Fecha",{exact:true}).fill("2027-01-02")
@@ -95,6 +97,15 @@ for (const format of ["balanced_americana","dynamic_mexicano"] as const) for (co
         await expect(card.getByText("16–12",{exact:true})).toBeVisible()
       }
       if(format==="dynamic_mexicano"&&round<3)await page.getByRole("button",{name:"Generar siguiente ronda",exact:true}).click()
+      if(round===2){
+        await page.clock.setFixedTime(new Date("2027-01-01T12:24:00Z"))
+        await page.getByRole("link",{name:"Inicio",exact:true}).click()
+        await expect(page.getByText(/Ronda actual 3/)).toBeVisible()
+        await page.getByRole("navigation",{name:"Navegación del torneo",exact:true}).getByRole("link",{name:"Seguimiento",exact:true}).click()
+        await expect(page.getByRole("heading",{name:"Descanso general",exact:true})).toBeVisible()
+        await expect(page.getByRole("timer")).toHaveText("07:00")
+        await page.getByRole("link",{name:"Calendario",exact:true}).click()
+      }
     }
     await page.getByRole("link",{name:"Clasificación",exact:true}).click()
     await expect(page.getByText("Clasificación final",{exact:true})).toBeVisible()
@@ -110,5 +121,8 @@ for (const format of ["balanced_americana","dynamic_mexicano"] as const) for (co
     await page.getByRole("link",{name:"Duplicar torneo",exact:true}).click()
     await expect(page.getByRole("combobox",{name:"Parejas",exact:true})).toHaveValue("fixed")
     await expect(page.getByRole("combobox",{name:`Pareja de ${names[0]}`,exact:true})).toHaveValue("2")
+    await page.getByText("Ajustes avanzados",{exact:true}).click()
+    await expect(page.getByRole("checkbox",{name:"Añadir descanso general"})).toBeChecked()
+    await expect(page.getByRole("spinbutton",{name:/^Descanso cada/})).toHaveValue("2")
   })
 }

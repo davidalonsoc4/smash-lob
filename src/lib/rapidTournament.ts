@@ -13,7 +13,15 @@ export const RAPID_TOURNAMENT = {
   restsPerPlayer: 2,
 } as const
 export const RAPID_TOURNAMENT_SLOTS = "ABCDEFGHIJKLMNOPQRSTUVWX".split("")
-export type RapidTournamentConfig = { players: number; courts: number; reservationMinutes: number; rounds: number; roundMinutes: number; transitionMinutes: number; preparationMinutes: number }
+export type RapidBreakConfig = { breakMinutes?: number; breakEveryRounds?: number }
+export type RapidTournamentConfig = { players: number; courts: number; reservationMinutes: number; rounds: number; roundMinutes: number; transitionMinutes: number; preparationMinutes: number } & RapidBreakConfig
+export function getRapidBreakOffsetMinutes(round: number, config: RapidBreakConfig) {
+  const every = config.breakEveryRounds ?? 0
+  return every > 0 ? Math.floor(Math.max(0,round-1)/every)*(config.breakMinutes ?? 0) : 0
+}
+export function getRapidPauseMinutes(round: number, config: Pick<RapidTournamentConfig,"rounds"|"transitionMinutes"> & RapidBreakConfig) {
+  return round >= config.rounds ? 0 : config.transitionMinutes + getRapidBreakOffsetMinutes(round+1,config)-getRapidBreakOffsetMinutes(round,config)
+}
 export function getRapidRoundCount(reservationMinutes: number) { return Math.floor((reservationMinutes + RAPID_TOURNAMENT.transitionMinutes - RAPID_TOURNAMENT.safetyMinutes) / (RAPID_TOURNAMENT.roundMinutes + RAPID_TOURNAMENT.transitionMinutes)) }
 export function getRapidPreparationMax(reservationMinutes: number, rounds = getRapidRoundCount(reservationMinutes)) { return Math.max(0, reservationMinutes - RAPID_TOURNAMENT.safetyMinutes - rounds * RAPID_TOURNAMENT.roundMinutes - Math.max(0, rounds - 1) * RAPID_TOURNAMENT.transitionMinutes) }
 export function getRapidActiveCourtCount(players: number, courts: number) { return Math.min(courts, Math.floor(players / 4)) }
@@ -174,16 +182,17 @@ export function buildRapidScheduleChecks(
     { id: "breaks-and-streaks", passed: playerChecks.every((player) => player.maxConsecutiveRested <= Math.ceil(player.rested / (player.played + 1)) + 1 && player.maxConsecutivePlayed <= config.rounds) },
     { id: "partners-and-opponents", passed: playerChecks.every((player) => player.uniquePartners >= Math.min(config.players - 1, player.played, Math.max(2, Math.ceil(player.played / 2))) && player.uniqueOpponents >= Math.min(config.players - 1, Math.ceil(player.played / 2))) },
     { id: "court-balance", passed: Math.max(...courtMatchCounts.slice(0, courtsPerRound)) - Math.min(...courtMatchCounts.slice(0, courtsPerRound)) <= 1 },
+    { id: "player-court-balance", passed: playerChecks.every(player => Math.max(...player.courts.slice(0,courtsPerRound))-Math.min(...player.courts.slice(0,courtsPerRound))<=1) },
   ]
   // Integrity/participation are mandatory. Variety and streaks are audited
   // optimizations, not proof that a mathematically viable tournament is impossible.
   return { passed: checks.filter(check => check.id === "complete-calendar" || check.id === "equal-participation").every(check => check.passed), allPassed: checks.every(check => check.passed), checks, players: playerChecks }
 }
-export function buildRapidRounds(startAt: string | Date, config: Pick<RapidTournamentConfig, "rounds" | "roundMinutes" | "transitionMinutes"> = RAPID_TOURNAMENT) {
+export function buildRapidRounds(startAt: string | Date, config: Pick<RapidTournamentConfig, "rounds" | "roundMinutes" | "transitionMinutes"> & RapidBreakConfig = RAPID_TOURNAMENT) {
   const start = startAt instanceof Date ? startAt.getTime() : Date.parse(startAt)
   if (!Number.isFinite(start)) throw new Error("invalid_tournament_start")
   return Array.from({ length: config.rounds }, (_, index) => {
-    const startTime = start + index * (config.roundMinutes + config.transitionMinutes) * 60_000
+    const startTime = start + (index * (config.roundMinutes + config.transitionMinutes) + getRapidBreakOffsetMinutes(index+1,config)) * 60_000
     return { round: index + 1, startsAt: new Date(startTime).toISOString(), endsAt: new Date(startTime + config.roundMinutes * 60_000).toISOString() }
   })
 }

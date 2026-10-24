@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { calculateFixedRapidStandings, generateFixedAmericanaFixtures, generateFixedRapidRound, validateFixedTournamentTeams, type FixedTournamentTeam } from "@/lib/fixedRapidTournament"
-import { calculateRapidStandings } from "@/lib/rapidTournament"
+import { buildRapidScheduleChecks, calculateRapidStandings } from "@/lib/rapidTournament"
 import type { MexicanoMatch } from "@/lib/dynamicMexicano"
 
 const roster = (count: number): FixedTournamentTeam[] => Array.from({ length: count / 2 }, (_, i) => ({ id: `team-${i}`, playerIds: [`p${i * 2}`, `p${i * 2 + 1}`] }))
@@ -37,6 +37,9 @@ describe("fixed-pair rapid tournaments", () => {
     expect(Math.max(...courtDifferences)).toBe(3)
     expect(history.filter(match => match.court === 1)).toHaveLength(3)
     expect(history.filter(match => match.court === 2)).toHaveLength(3)
+    const audit=buildRapidScheduleChecks(members(roster(8)).map(id=>({id,name:id})),history,{players:8,courts:2,rounds:3,roundMinutes:10,transitionMinutes:2,preparationMinutes:2,reservationMinutes:60})
+    expect(audit.passed).toBe(true)
+    expect(audit.checks.find(check=>check.id==="player-court-balance")?.passed).toBe(false)
   })
   it("does not repeat a rest when six pairs can rotate through two courts", () => {
     const history = generateFixedAmericanaFixtures(roster(12),2,9,31)

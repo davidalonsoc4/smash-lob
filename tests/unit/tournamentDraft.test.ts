@@ -16,7 +16,7 @@ describe("independent tournament copy", () => {
       players: [{ name: "Ana", userId: "user-ana" }, { name: "Pepe" }], matches: [{ scoreA: 12, scoreB: 10 }],
     }
     const draft = tournamentDraftFromCopy(source)
-    expect(draft).toEqual({ duplicateOf: "original", name: "Americana", description: "Prueba", courtNames: ["Club · Pista 1", "Club · Pista 2"], format: "dynamic_mexicano", pairing: "rotating", pairNumbers: [1,1], reservationMinutes: 90, preparationMinutes: 3, rounds: 6, roundMinutes: 16, transitionMinutes: 3, logoUrl: null, accentColor: null, players: ["Ana", "Pepe"], playerUserIds: ["user-ana", null] })
+    expect(draft).toEqual({ duplicateOf: "original", name: "Americana", description: "Prueba", courtNames: ["Club · Pista 1", "Club · Pista 2"], format: "dynamic_mexicano", pairing: "rotating", pairNumbers: [1,1], reservationMinutes: 90, preparationMinutes: 3, rounds: 6, roundMinutes: 16, transitionMinutes: 3, breakMinutes: 0, breakEveryRounds: 0, logoUrl: null, accentColor: null, players: ["Ana", "Pepe"], playerUserIds: ["user-ana", null] })
     draft.courtNames[0] = "Otra pista"
     expect(source.tournament.courtNames[0]).toBe("Club · Pista 1")
   })

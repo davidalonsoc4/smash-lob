@@ -1,6 +1,6 @@
 # Estado de torneos
 
-Objetivo global: ACTIVO, no completado. Primer hito incompleto: **T04**.
+Objetivo global: ACTIVO, no completado. Primer hito incompleto: **T05**.
 
 ## Checkpoint 24/10/2026 — inventario inicial
 
@@ -97,3 +97,24 @@ Siguiente: añadir pruebas API específicas de fijas/errores/sorteo, copia y ser
 - Repetición final fija con marcador vacío y viewport real de cada proyecto en curso, terminal 30068, log `.quality-artifacts/tournaments-t04-final-fixed-e2e.log`. No declarar T04 cerrado todavía: además de confirmar estos gates, queda concretar descansos configurables dentro de rápidos, conservando descansos individuales equilibrados. Reglas de puntuación/desempates completos tienen dueño explícito en T06 (no se han omitido del objetivo).
 
 Checkpoint fijo validado: repetición final 8/8 PASS, móvil 393 px y escritorio, claro/oscuro, ambos formatos; incluye campos vacíos, parejas editadas, sorteo, los seis resultados, ranking por cuatro equipos, campeón y copia. Guardar commits locales y continuar T04 con descansos configurables. Propuesta mínima siguiente: descanso general adicional de duración/frecuencia elegidas, sumado a transiciones, visible en planificación, reserva y seguimiento/audio; descansos individuales siguen derivados y equilibrados según jugadores/pistas/rondas. Implementar y verificar antes de dar por completo T04.
+
+## T04 checkpoint — descansos generales configurables
+
+- Parejas fijas guardadas en commits `be0072d5` y `0dab0a17`, sin publicar. Árbol limpio confirmado antes de empezar descansos.
+- Planificador, preview, horarios derivados e inicio real admiten pausa adicional de 1–60 min cada 1–100 rondas; ninguna pausa tras la última ronda, mantiene al menos dos minutos de seguridad. Se añade a la transición y no cambia descansos individuales ni emparejamientos.
+- Nueva migración CLI `20261024053002_rapid_tournament_break_schedule.sql`, aditiva y solo local. RPC planificada reutiliza las RPC de crear rotativo/fijo, valida reserva y persiste pausas/horarios de manera atómica. Defaults cero para todos los torneos anteriores. Harness PostgreSQL 13 migraciones PASS con fijos/rotativos, intervalo y margen correctos y escritura autenticada rechazada; ampliando matriz también a Mexicano.
+- Formulario/copia/API/GET/directo/audio conectados. Descanso general identificado en seguimiento, aviso habla de pausa real incluyendo cambio. 55 tests de planificación/timing y 58 de API/copia PASS; i18n/fuente PASS, typecheck PASS antes de última ampliación E2E. Fuente 135893/136000, sin nuevos clientes ni dependencias.
+- E2E móvil mixto con descanso y contador 07:00 en curso, terminal 45715, log `.quality-artifacts/tournaments-t04-breaks-e2e.log`. Validate completo terminal 93204, log `.quality-artifacts/tournaments-t04-breaks-validate.log`. Confirmar ambos resultados y repetir SQL ampliado; no cerrar T04 con gates en curso.
+
+Checkpoint de descansos validado: E2E móvil 9/9 PASS y matriz fija con descansos 8/8 móvil/escritorio claro/oscuro PASS. SQL ampliado 13 migraciones PASS con Americana/Mexicano × fijo/rotativo. Validate PASS 272 archivos/1235 tests, tipos/lint/build/presupuestos (1226910 bytes gzip/103 chunks; cinco warnings previos). Auditoría añade reparto individual de pistas y distingue observaciones de un calendario inválido.
+
+Pulido final T04: resumen actualiza ronda al siguiente límite de horario y al recuperar visibilidad usando offset de servidor, sin intervalo continuo fuera de Seguimiento; finalizado no muestra próxima ronda y borrador americano conserva preview inicial aunque pase la fecha prevista. Mexicano borrador explica que la primera ronda se genera al iniciar. Typecheck y lint PASS antes del último ajuste de texto/preview, 24 tests de motores/pausas PASS. E2E móvil de resumen/pausa en curso terminal 35760, log `.quality-artifacts/tournaments-t04-summary-e2e.log`; confirmar y tipos/lint finales antes de cerrar T04 y pasar a T05.
+
+## T04 cerrado localmente
+
+- Último E2E de resumen/pausa 4/4 PASS tras precisar el selector del enlace Seguimiento dentro de la navbar (antes encontraba dos accesos legítimos y fallaban los tests). Tipos/lint finales PASS, 24 tests focalizados PASS; fuente 135914/136000 y diff correctos.
+- Evidencia acumulada: validate completo PASS 272 archivos/1235 tests, matriz de descansos 8/8 móvil/escritorio claro/oscuro, móvil con regresiones rotativas 9/9, SQL con trece migraciones y cuatro combinaciones de formato/pareja PASS. Preserva plantilla original 12/2/6 y cuenta exacta por equipo, clocks/avisos reales, identidad/copia/origen y rutas/nav actuales.
+- Pausas adicionales configurables no sustituyen los descansos individuales: estos se derivan de jugadores/pistas/rondas y se equilibran automáticamente. UI lo explica y muestra parámetros y tiempos por jugador, reserva y margen reales. Observaciones de variedad/pistas no se confunden con imposibilidad ni se anuncia equilibrio perfecto universal.
+- Sin cambios remotos, tres migraciones nuevas del objetivo preparadas. OAuth/PWA/audio físico y gate Supabase completo siguen explícitos para T09. Objetivo integral continúa; quedan T05–T09.
+
+Siguiente T05: inspeccionar solo contratos/modelos/rutas/formulario existentes necesarios para tradicionales. Implementar motores separados y acotados de eliminación/grupos/mixto (hasta 24 jugadores, combinaciones viables), con byes/semillas/manual, tercer puesto/consolación y calendarios. Reutilizar identidad, participantes, permisos y presentación; integrar SQL/API/UI y probar cada formato antes de habilitarlo. No rehacer ni degradar rápidos ni ligas. Empezar por esquema/contrato puro verificable y knockout; no marcar T05 completo con solo knockout.

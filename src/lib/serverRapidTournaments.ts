@@ -77,6 +77,8 @@ export function mapTournamentData(
             rounds: tournamentResult.data.round_count,
             roundMinutes: tournamentResult.data.round_minutes,
             transitionMinutes: tournamentResult.data.transition_minutes,
+            breakMinutes: tournamentResult.data.break_minutes ?? 0,
+            breakEveryRounds: tournamentResult.data.break_every_rounds ?? 0,
             preparationMinutes: tournamentResult.data.preparation_minutes ?? 2,
             safetyMarginMinutes: tournamentResult.data.safety_margin_minutes - (tournamentResult.data.preparation_minutes ?? 2),
             scoringMode: tournamentResult.data.scoring_mode,
@@ -90,6 +92,7 @@ export function mapTournamentData(
         rounds: getEffectiveRapidRounds((roundsResult.data ?? []).map((round) => ({ id: round.id, round: round.round_number, startsAt: round.starts_at, endsAt: round.ends_at })), tournamentResult.data.started_at ?? tournamentResult.data.starts_at, {
           rounds: tournamentResult.data.round_count, roundMinutes: tournamentResult.data.round_minutes,
           transitionMinutes: tournamentResult.data.transition_minutes, preparationMinutes: tournamentResult.data.preparation_minutes ?? 2,
+          breakMinutes: tournamentResult.data.break_minutes ?? 0, breakEveryRounds: tournamentResult.data.break_every_rounds ?? 0,
         }),
         matches: (matchesResult.data ?? []).map((match) => ({
           id: match.id, round: match.round_number, court: match.court_number, courtName: match.court_name,

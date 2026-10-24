@@ -379,4 +379,15 @@ describe("rapid tournament creator routes", () => {
     const pairById = new Map(roster.map(player => [player.id, player.pair_number]))
     for (const match of mocks.rpc.mock.calls[0][1].p_matches) for (const team of [match.team_a,match.team_b]) expect(pairById.get(team[0])).toBe(pairById.get(team[1]))
   })
+  it.each(["fixed","rotating"])("creates a %s tournament with persisted general break scheduling",async pairing=>{
+    mocks.rpc.mockResolvedValueOnce({data:tournamentId,error:null})
+    const response=await createTournament(request("/api/tournaments",{name:"Descanso",startsAt:"2027-01-01T09:00:00Z",players:names.slice(0,4),playerCount:4,courtNames:["Uno"],pairing,pairNumbers:[1,1,2,2],roundCount:2,roundMinutes:10,reservationMinutes:60,breakMinutes:20,breakEveryRounds:1}))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_planned_rapid_tournament",expect.objectContaining({p_configuration:expect.objectContaining({pairing,breakMinutes:20,breakEveryRounds:1}),p_player_pair_numbers:pairing==="fixed"?[1,1,2,2]:null}))
+  })
+  it.each([{breakMinutes:40,breakEveryRounds:1},{breakMinutes:5,breakEveryRounds:0},{breakMinutes:0,breakEveryRounds:2}])("rejects breaks outside the reservation or inconsistent settings %j",async settings=>{
+    const response=await createTournament(request("/api/tournaments",{name:"Descanso",startsAt:"2027-01-01T09:00:00Z",players:names.slice(0,4),playerCount:4,courtNames:["Uno"],roundCount:2,roundMinutes:10,reservationMinutes:60,...settings}))
+    expect(response.status).toBe(400)
+    expect(mocks.rpc).not.toHaveBeenCalled()
+  })
 })

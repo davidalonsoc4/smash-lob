@@ -14,6 +14,8 @@ export type TournamentDraft = {
   rounds: number
   roundMinutes: number
   transitionMinutes: number
+  breakMinutes: number
+  breakEveryRounds: number
   logoUrl: string | null
   accentColor: string | null
 }
@@ -31,6 +33,7 @@ export function tournamentDraftFromCopy(data: {
     players: data.players.map(player => player.name), playerUserIds: data.players.map(player => player.userId ?? null),
     courtNames: [...data.tournament.courtNames], reservationMinutes: config.reservationMinutes, preparationMinutes: config.preparationMinutes,
     rounds: config.rounds, roundMinutes: config.roundMinutes, transitionMinutes: config.transitionMinutes,
+    breakMinutes: config.breakMinutes ?? 0, breakEveryRounds: config.breakEveryRounds ?? 0,
     logoUrl: data.tournament.logoUrl ?? null, accentColor: data.tournament.accentColor ?? null,
   }
 }

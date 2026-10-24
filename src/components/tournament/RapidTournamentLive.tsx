@@ -84,7 +84,7 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
     if (ok) playRapidAudio(tournamentId, speechMessage("Avisos sonoros activados"), locale, false, settings)
   }
   if (!phase) return <p role="alert">{tx("No se ha podido recuperar la hora real de inicio.")}</p>
-  const label = phase.phase === "preparation" ? tx("Preparación") : phase.phase === "transition" ? tx("Pausa") : phase.phase === "ended" ? tx("Tiempo de juego terminado") : `${tx("Ronda")} ${phase.round}`
+  const label = phase.phase === "preparation" ? tx("Preparación") : phase.phase === "transition" ? tx(phase.generalBreak ? "Descanso general" : "Pausa") : phase.phase === "ended" ? tx("Tiempo de juego terminado") : `${tx("Ronda")} ${phase.round}`
   const remaining = `${String(Math.floor(phase.remaining / 60)).padStart(2, "0")}:${String(phase.remaining % 60).padStart(2, "0")}`
   const time = (value: number) => new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { hour: "2-digit", minute: "2-digit" }).format(value)
   return <>
