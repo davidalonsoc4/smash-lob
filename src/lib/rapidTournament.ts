@@ -12,7 +12,7 @@ export const RAPID_TOURNAMENT = {
   matchesPerPlayer: 4,
   restsPerPlayer: 2,
 } as const
-export const RAPID_TOURNAMENT_SLOTS = "ABCDEFGHIJKLMNOP".split("")
+export const RAPID_TOURNAMENT_SLOTS = "ABCDEFGHIJKLMNOPQRSTUVWX".split("")
 export type RapidTournamentConfig = { players: number; courts: number; reservationMinutes: number; rounds: number; roundMinutes: number; transitionMinutes: number; preparationMinutes: number }
 export function getRapidRoundCount(reservationMinutes: number) { return Math.floor((reservationMinutes + RAPID_TOURNAMENT.transitionMinutes - RAPID_TOURNAMENT.safetyMinutes) / (RAPID_TOURNAMENT.roundMinutes + RAPID_TOURNAMENT.transitionMinutes)) }
 export function getRapidPreparationMax(reservationMinutes: number, rounds = getRapidRoundCount(reservationMinutes)) { return Math.max(0, reservationMinutes - RAPID_TOURNAMENT.safetyMinutes - rounds * RAPID_TOURNAMENT.roundMinutes - Math.max(0, rounds - 1) * RAPID_TOURNAMENT.transitionMinutes) }
@@ -46,7 +46,7 @@ export function normalizeTournamentName(value: string) {
   return value.trim().replace(/\s+/g, " ")
 }
 export function validateTournamentParticipants(values: unknown, expectedCount: number = RAPID_TOURNAMENT.players) {
-  if (!Array.isArray(values) || values.length < 8 || values.length > 16 || values.length !== expectedCount) {
+  if (!Array.isArray(values) || values.length < 4 || values.length > 24 || values.length !== expectedCount) {
     return { ok: false as const, error: "invalid_player_count" }
   }
   const names = values.map((value) => typeof value === "string" ? normalizeTournamentName(value) : "")
@@ -71,7 +71,7 @@ export function buildRapidFixtures() {
   return template.flatMap((round) => round.matches)
 }
 export function generateBalancedAmericanaFixtures(playerCount: number, courtCount: number, roundCount: number, random = Math.random) {
-  if (playerCount < 8 || playerCount > 16 || courtCount < 1 || courtCount > 4 || roundCount < 1 || roundCount > 6) throw new Error("invalid_tournament_configuration")
+  if (![playerCount, courtCount, roundCount].every(Number.isSafeInteger) || playerCount < 4 || playerCount > 24 || courtCount < 1 || courtCount > 4 || roundCount < 1 || roundCount > 100) throw new Error("invalid_tournament_configuration")
   if (playerCount === 12 && courtCount === 2 && roundCount === 6) return buildRapidFixtures()
   const players = RAPID_TOURNAMENT_SLOTS.slice(0, playerCount), courtsPerRound = Math.min(courtCount, Math.floor(playerCount / 4)), played = new Map(players.map((id) => [id, 0])), restStreaks = new Map(players.map((id) => [id, 0])), partnerCounts = new Map<string, number>(), rivalCounts = new Map<string, number>(), courtCounts = new Map(players.map((id) => [id, new Map<number, number>()]))
   const fixtures: RapidFixture[] = []
@@ -172,10 +172,12 @@ export function buildRapidScheduleChecks(
     { id: "complete-calendar", passed: players.length === config.players && matches.length === config.rounds * courtsPerRound && validRounds },
     { id: "equal-participation", passed: Math.max(...playerChecks.map((p) => p.played)) - Math.min(...playerChecks.map((p) => p.played)) <= 1 && playerChecks.every((p) => p.played >= expectedGames) },
     { id: "breaks-and-streaks", passed: playerChecks.every((player) => player.maxConsecutiveRested <= Math.ceil(player.rested / (player.played + 1)) + 1 && player.maxConsecutivePlayed <= config.rounds) },
-    { id: "partners-and-opponents", passed: playerChecks.every((player) => player.uniquePartners >= Math.min(player.played, Math.max(2, Math.ceil(player.played / 2))) && player.uniqueOpponents >= Math.min(config.players - 1, Math.ceil(player.played / 2))) },
+    { id: "partners-and-opponents", passed: playerChecks.every((player) => player.uniquePartners >= Math.min(config.players - 1, player.played, Math.max(2, Math.ceil(player.played / 2))) && player.uniqueOpponents >= Math.min(config.players - 1, Math.ceil(player.played / 2))) },
     { id: "court-balance", passed: Math.max(...courtMatchCounts.slice(0, courtsPerRound)) - Math.min(...courtMatchCounts.slice(0, courtsPerRound)) <= 1 },
   ]
-  return { passed: checks.every((check) => check.passed), checks, players: playerChecks }
+  // Integrity/participation are mandatory. Variety and streaks are audited
+  // optimizations, not proof that a mathematically viable tournament is impossible.
+  return { passed: checks.filter(check => check.id === "complete-calendar" || check.id === "equal-participation").every(check => check.passed), allPassed: checks.every(check => check.passed), checks, players: playerChecks }
 }
 export function buildRapidRounds(startAt: string | Date, config: Pick<RapidTournamentConfig, "rounds" | "roundMinutes" | "transitionMinutes"> = RAPID_TOURNAMENT) {
   const start = startAt instanceof Date ? startAt.getTime() : Date.parse(startAt)

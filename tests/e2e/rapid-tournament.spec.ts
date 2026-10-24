@@ -10,6 +10,10 @@ const playerIds = new Map(playerNames.map((name, index) => [String.fromCharCode(
 const start = "2026-10-17T07:00:00.000Z"
 const venue = "Localidad - Club de prueba"
 
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/tournaments/sources", route => route.fulfill({ json: { sources: [] } }))
+})
+
 function makeTournament() {
   const players = playerNames.map((name, index) => ({ id: `player-${index + 1}`, slot: String.fromCharCode(65 + index), name }))
   const rounds = buildRapidRounds(start).map((round) => ({ ...round, id: `round-${round.round}` }))
@@ -400,7 +404,7 @@ test(`creates and completes the fixed 12-player tournament happy path (${theme})
 })
 }
 
-test("imports a season roster, keeps linked accounts, and lets the organizer choose twelve", async ({ page }) => {
+test("imports the whole season roster, keeps linked accounts, and allows manual replacements", async ({ page }) => {
   await page.setViewportSize({ width: 393, height: 852 })
   await page.clock.setFixedTime(new Date("2026-10-16T12:00:00Z"))
   await page.route("**/api/auth/session", (route) => route.fulfill({ json: { user: { name: "QA Torneos", email: "qa-tournament@example.test", image: null }, expires: "2099-01-01T00:00:00Z" } }))
@@ -418,22 +422,78 @@ test("imports a season roster, keeps linked accounts, and lets the organizer cho
   const leagueId = "b5f3b9b0-20b2-4265-9f9e-8c3129af3aa1"
   const seasonId = "a31f5097-f5be-4861-9ed0-80724c33fc0c"
   await page.goto(`/tournaments/new?sourceLeagueId=${leagueId}&sourceSeasonId=${seasonId}`)
+  await expect(page.getByLabel("Número de jugadores: 13")).toBeVisible()
   await expect(page.getByText("13/12", { exact: true })).toHaveCount(0)
   await expect(page.getByText("Jugador 13", { exact: true })).toBeVisible()
   await expect(page.getByText("Cuenta vinculada", { exact: true })).toBeVisible()
   await expect(page.getByText("Completa con nombres manuales las plazas restantes.", { exact: true })).toHaveCount(0)
   await page.getByRole("checkbox", { name: "Jugador 12", exact: true }).uncheck()
   await expect(page.getByText("Completa con nombres manuales las plazas restantes.", { exact: true })).toBeVisible()
-  await page.locator('input[aria-label="Jugador 12"]').fill("Jugador manual")
+  await page.locator('input[aria-label="Jugador 13"]').fill("Jugador manual")
   await page.getByLabel("Nombre del torneo *").fill("Torneo desde temporada")
   await page.getByLabel("Fecha").fill("2026-10-17")
   await page.getByLabel("Hora de inicio").fill("09:00")
   await page.getByRole("button", { name: "Crear y generar calendario" }).click()
   await expect(page).toHaveURL(new RegExp(`/tournaments/${id}/calendar$`))
   expect(submitted[0]).toMatchObject({ source: { leagueId, seasonId } })
-  expect((submitted[0].source as { playerIds: string[] }).playerIds).toHaveLength(11)
+  expect((submitted[0].source as { playerIds: string[] }).playerIds).toHaveLength(12)
   expect(submitted[0].players).toContain("Jugador manual")
   expect((submitted[0].playerUserIds as Array<string | null>)[0]).toBe("account-1")
+})
+
+test("configures 24 players with custom round times and refuses an overbooked reservation", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 393, height: 852 })
+  await page.clock.setFixedTime(new Date("2026-10-16T12:00:00Z"))
+  await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { name: "QA Torneos", email: "qa-tournament@example.test", image: null }, expires: "2099-01-01T00:00:00Z" } }))
+  await page.route("**/api/account/profile", route => route.fulfill({ json: { profile: { firstName: "QA", lastName: "Torneos", displayName: "QA Torneos", profileCompletedAt: "2026-08-03T00:00:00Z", availabilityCompletedAt: "2026-08-03T00:00:00Z", standardAvailabilityTimezone: "Europe/Madrid", standardAvailabilityWeeklySlots: {}, isComplete: true, isSuperuser: false } } }))
+  await page.route("**/api/onboarding/progress", route => route.fulfill({ json: { items: [], ok: true } }))
+  await page.route("**/api/locations", route => route.fulfill({ json: { locations: [] } }))
+  await page.route("**/api/tournaments/people", route => route.fulfill({ json: { people: [], accountLinkingAvailable: true } }))
+  const leagueId = "b5f3b9b0-20b2-4265-9f9e-8c3129af3aa1", seasonId = "a31f5097-f5be-4861-9ed0-80724c33fc0c"
+  await page.route("**/api/tournaments/sources", route => route.fulfill({ json: { sources: [{ leagueId, seasonId, leagueName: "Liga QA", seasonName: "Temporada QA" }] } }))
+  const sourcePlayers = Array.from({ length: 24 }, (_, i) => ({ playerId: `source-${i}`, displayName: `Jugador QA ${i + 1}`, userId: i === 0 ? "account-qa" : null }))
+  await page.route("**/api/tournaments/people?leagueId=**", route => route.fulfill({ json: { players: sourcePlayers, leagueName: "Liga QA" } }))
+  let submitted: Record<string, unknown> | null = null
+  await page.route("**/api/tournaments", route => {
+    if (route.request().method() === "POST") { submitted = route.request().postDataJSON(); return route.fulfill({ status: 201, json: { id } }) }
+    return route.fulfill({ json: { tournaments: [] } })
+  })
+  await page.route(`**/api/tournaments/${id}`, route => route.fulfill({ json: { ...makeTournament(), access: { role: "creator" } } }))
+  await page.goto("/tournaments/new")
+  await page.getByRole("combobox", { name: "Origen de los participantes" }).selectOption(seasonId)
+  await expect(page.getByLabel("Número de jugadores: 24")).toBeVisible()
+  await expect(page.getByLabel("Nombre del torneo *")).toHaveValue("TORNEO RÁPIDO DE Liga QA")
+  await page.getByText("Personalización", { exact: true }).click()
+  await page.getByLabel("Logo del torneo", { exact: true }).setInputFiles("public/icon-192.png")
+  await page.getByRole("dialog", { name: "Recortar logo" }).getByRole("button", { name: "Usar imagen" }).click()
+  await expect(page.getByRole("dialog", { name: "Recortar logo" })).toHaveCount(0)
+  // The existing logo component intentionally renders a decorative image beside the name.
+  await expect(page.locator('img[src^="data:image/"]')).toBeVisible()
+  await page.getByLabel("Color de acento", { exact: true }).fill("#38bdf8")
+  await expect(page.getByRole("button", { name: "Usar el color de la app" })).toBeVisible()
+  await page.getByRole("spinbutton", { name: /^Tiempo de reserva/ }).fill("90")
+  await page.getByText("Ajustes avanzados", { exact: true }).click()
+  await page.getByRole("spinbutton", { name: /^Duración de ronda/ }).fill("10")
+  await page.getByRole("spinbutton", { name: /^Transición entre rondas/ }).fill("2")
+  await page.getByRole("checkbox", { name: "Rondas automáticas" }).uncheck()
+  await page.getByRole("spinbutton", { name: /^Número de rondas/ }).fill("8")
+  const create = page.getByRole("button", { name: "Crear y generar calendario" })
+  await expect(create).toBeDisabled()
+  await page.getByRole("spinbutton", { name: /^Número de rondas/ }).fill("6")
+  await page.getByRole("button", { name: "Aumentar Calentamiento (minutos)", exact: true }).click({ clickCount: 2 })
+  await page.getByLabel("Fecha", { exact: true }).fill("2026-10-17")
+  await page.getByLabel("Hora de inicio").fill("09:00")
+  const summary = page.locator('section[aria-labelledby="tournament-summary"]')
+  await expect(summary.getByText("16 minutos", { exact: true })).toBeVisible()
+  await expect(summary.getByText("20 minutos", { exact: true })).toBeVisible()
+  await expect(create).toBeEnabled()
+  const axe = await new AxeBuilder({ page }).include('section[aria-labelledby="tournament-summary"]').analyze()
+  expect(axe.violations.filter(item => ["critical", "serious"].includes(item.impact ?? ""))).toEqual([])
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await summary.screenshot({ path: testInfo.outputPath("configured-summary-mobile.png") })
+  await create.click()
+  await expect(page).toHaveURL(new RegExp(`/tournaments/${id}/calendar$`))
+  expect(submitted).toMatchObject({ playerCount: 24, courtNames: ["Pista 1", "Pista 2"], reservationMinutes: 90, preparationMinutes: 4, roundCount: 6, roundMinutes: 10, transitionMinutes: 2, accentColor: "#38bdf8", logoUrl: expect.stringMatching(/^data:image\/(webp|png);base64,/), source: { leagueId, seasonId } })
 })
 
 test("creates a dynamic Mexicano and generates only the next completed round", async ({ page }) => {

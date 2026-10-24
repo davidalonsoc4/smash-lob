@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
-import { buildRapidCues, getDueRapidCues, getRapidLiveState, type RapidCue } from "@/lib/rapidTournamentTiming"
+import { buildRapidCues, getDueRapidCues, getRapidCueAnnouncement, getRapidLiveState, type RapidCue } from "@/lib/rapidTournamentTiming"
 import { cancelRapidPlayback, disableRapidAudio, enableRapidAudio, playRapidAudio, playRapidCountdown, previewRapidAudio, rapidAudioEnabled, suspendRapidAudio, type RapidSpeech } from "@/lib/rapidTournamentAudio"
 import { loadRapidAudio, saveRapidAudio } from "@/lib/rapidAudioSettings"
 import { translateLeagueText } from "@/i18n/leagueText"
@@ -25,7 +25,10 @@ export function RapidTournamentLive({ tournamentId, startedAt, clockOffset, roun
   const cues = useMemo(() => buildRapidCues(startedAt, settings.countdown, config), [startedAt, settings.countdown, config])
   const phase = getRapidLiveState(startedAt, now, config)
   const active = Boolean(phase && phase.phase !== "ended")
-  const cueText = useCallback((cue: RapidCue) => speechMessage(cue.kind === "preparation" ? "Dos minutos de preparación" : cue.kind === "start" ? "Comienza la ronda" : cue.kind === "two_minutes" ? "Quedan dos minutos" : cue.kind === "finished" ? "Tiempo de torneo finalizado. Termina el punto en juego." : "Fin de ronda. Termina el punto en juego. Tres minutos de cambio.", cue.kind === "start" ? cue.round : undefined), [])
+  const cueText = useCallback((cue: RapidCue): RapidSpeech => {
+    const message = getRapidCueAnnouncement(cue, config)
+    return Object.fromEntries((["es", "en", "eu"] as const).map(lang => [lang, translateLeagueText(lang, message.source).replace("{}", String(message.number ?? ""))]))
+  }, [config])
   useEffect(() => {
     let timer: number | undefined
     let disposed = false

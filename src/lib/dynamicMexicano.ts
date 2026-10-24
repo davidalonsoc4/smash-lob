@@ -92,6 +92,14 @@ function selectRoundPlayers(players: readonly MexicanoPlayer[], history: readonl
       else rested.set(player.id, (rested.get(player.id) ?? 0) + 1)
     }
   }
+  // Preserve the exhaustive legacy selection for <=16. For larger rosters avoid
+  // C(24,16) allocations: participation first, then avoid consecutive rests.
+  if (players.length > 16) return [...players].sort((a, b) =>
+    played.get(a.id)! - played.get(b.id)! ||
+    Number(previousPlaying.has(a.id)) - Number(previousPlaying.has(b.id)) ||
+    rested.get(b.id)! - rested.get(a.id)! ||
+    seededHash(seed + round, a.id) - seededHash(seed + round, b.id) || a.id.localeCompare(b.id)
+  ).slice(0, required)
   const candidates = combinations(players, required).map((selected) => {
     const selectedIds = new Set(selected.map((player) => player.id))
     const projected = players.map((player) => (played.get(player.id) ?? 0) + (selectedIds.has(player.id) ? 1 : 0))
@@ -154,7 +162,7 @@ function buildPairings(selected: readonly MexicanoPlayer[], standings: readonly 
 
 export function generateDynamicMexicanoRound(input: { players: readonly MexicanoPlayer[]; history: readonly MexicanoMatch[]; courts: number; round: number; seed: number }) {
   const activeCourts = Math.min(input.courts, Math.floor(input.players.length / 4)), required = activeCourts * 4
-  if (!Number.isInteger(input.round) || input.round < 1 || activeCourts < 1 || new Set(input.players.map((player) => player.id)).size !== input.players.length) throw new Error("invalid_mexicano_configuration")
+  if (!Number.isInteger(input.round) || input.round < 1 || input.round > 100 || !Number.isInteger(input.courts) || input.courts < 1 || input.courts > 4 || input.players.length < 4 || input.players.length > 24 || activeCourts < 1 || new Set(input.players.map((player) => player.id)).size !== input.players.length) throw new Error("invalid_mexicano_configuration")
   const standing = calculateMexicanoStandings(input.players, input.history, input.round - 1)
   const selected = selectRoundPlayers(input.players, input.history, required, input.round, input.seed)
   const matches = buildPairings(selected, standing, input.history, input.round, input.seed)

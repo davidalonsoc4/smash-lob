@@ -32,6 +32,8 @@
 .stepper button:disabled { color: var(--t-muted); opacity: .4; }
 .stepper button:focus-visible { outline: 2px solid var(--t-accent); outline-offset: -3px; }
 .stepper output { text-align: center; font-size: .9rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.stepper input { width: 100%; min-width: 0; border: 0; background: transparent; color: inherit; text-align: center; font-size: .9rem; font-weight: 900; font-variant-numeric: tabular-nums; appearance: textfield; }
+.stepper input::-webkit-inner-spin-button, .stepper input::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .primary, .secondary { min-height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; border-radius: .75rem; padding: .65rem .9rem; font-size: .85rem; font-weight: 800; text-align: center; }
 .primary { background: var(--t-primary); color: var(--t-primary-text); }
 .secondary { border: 1px solid var(--t-border); background: var(--t-raised); color: var(--t-text); }

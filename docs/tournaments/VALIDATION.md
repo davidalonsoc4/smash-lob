@@ -7,6 +7,14 @@
 - T01 PASS: `npm run typecheck`, ESLint en API y test modificados, `git diff --check`.
 - Se mantendrán aquí comandos, resultados y limitaciones por hito. No marcar DB/RLS comprobada solo por tests de mocks o lectura de SQL.
 
+## T03 — creación configurable
+
+- `npm run validate` PASS: 270 archivos / 1192 tests, tipos, build y presupuestos; lint sin errores, cinco warnings existentes. Build 1223383 bytes gzip/103 chunks. Log `.quality-artifacts/tournaments-t03-validate.log`.
+- `npx playwright test tests/e2e/rapid-tournament.spec.ts --workers=2` PASS 10/10 móvil/escritorio, claro/oscuro, Americana/Mexicano, origen y configuración. Repetición móvil con audio actualizado: happy path 2/2; identidad 1/1 después de corregir selector decorativo. Crop real, logo/acento enviados, 24 participantes, rondas/tiempos, exceso de reserva bloqueado, Axe del resumen y ancho 393 px comprobados. Logs `tournaments-t03-*-e2e.log` en `.quality-artifacts/`.
+- `npm run database:tournaments` PASS con PostgreSQL 17.11 dedicado en 127.0.0.1:55439, datos sintéticos y las once migraciones de torneos. Comprueba transacciones, dimensiones, tiempos, cuentas copiadas, snapshot de liga, sorteo sin cambiar IDs, bloqueo tras inicio, resultados/correcciones, suspensión, permisos reales de anon/authenticated/service_role, RLS e invoker/search_path. Usa únicamente el clúster `.quality-artifacts/postgres-tournaments-data`, validado antes de crear/borrar una base temporal; no lee URLs ni credenciales Supabase de la app.
+- Las herramientas portátiles están ignoradas; para repetir en este equipo iniciar el clúster mediante `.quality-artifacts/postgres-tools/pgsql/bin/pg_ctl.exe -D .quality-artifacts/postgres-tournaments-data -l .quality-artifacts/postgres-tournaments.log -o "-p 55439 -h 127.0.0.1" start`, después ejecutar el script. Detener con el mismo `-D` y `stop`. No sustituye `database:quality` con Supabase/pgTAP/restore, pendiente para T09.
+- Primer hito incompleto T04. Nada aplicado en PRE/PROD. Resto de la matriz sigue pendiente.
+
 ## Matriz de aceptación final (pendiente)
 
 T03 duplicación (parcial): 23 unitarias/API PASS, typecheck/lint/i18n/fuente/diff PASS. `npx playwright test tests/e2e/rapid-tournament.spec.ts --grep 'creates and completes' --project=mobile-chromium --workers=2`: 2/2 PASS, build de producción del harness y Axe del flujo existente incluidos; copia con doce marcadores pendientes y original sin modificar. No se ha comprobado SQL de cuentas fuera de liga compartida, que sigue siendo una limitación explícita de esta entrega parcial.

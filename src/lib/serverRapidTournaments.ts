@@ -58,6 +58,8 @@ export function mapTournamentData(
           id: tournamentResult.data.id,
           name: tournamentResult.data.name,
           description: tournamentResult.data.description,
+          logoUrl: tournamentResult.data.logo_url ?? null,
+          accentColor: tournamentResult.data.accent_color ?? null,
           startsAt: tournamentResult.data.starts_at,
           courtNames: [tournamentResult.data.court_one_name, tournamentResult.data.court_two_name, tournamentResult.data.court_three_name, tournamentResult.data.court_four_name].slice(0, tournamentResult.data.court_count),
           status: tournamentResult.data.status,

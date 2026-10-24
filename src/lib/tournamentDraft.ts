@@ -9,9 +9,14 @@ export type TournamentDraft = {
   courtNames: string[]
   reservationMinutes: number
   preparationMinutes: number
+  rounds: number
+  roundMinutes: number
+  transitionMinutes: number
+  logoUrl: string | null
+  accentColor: string | null
 }
 export function tournamentDraftFromCopy(data: {
-  tournament: { id: string; name: string; description: string; courtNames: string[]; configuration: Record<string, unknown> }
+  tournament: { id: string; name: string; description: string; courtNames: string[]; configuration: Record<string, unknown>; logoUrl?: string | null; accentColor?: string | null }
   players: Array<{ name: string; userId?: string | null }>
 }): TournamentDraft {
   const format = data.tournament.configuration.format ?? "balanced_americana"
@@ -22,5 +27,7 @@ export function tournamentDraftFromCopy(data: {
     format,
     players: data.players.map(player => player.name), playerUserIds: data.players.map(player => player.userId ?? null),
     courtNames: [...data.tournament.courtNames], reservationMinutes: config.reservationMinutes, preparationMinutes: config.preparationMinutes,
+    rounds: config.rounds, roundMinutes: config.roundMinutes, transitionMinutes: config.transitionMinutes,
+    logoUrl: data.tournament.logoUrl ?? null, accentColor: data.tournament.accentColor ?? null,
   }
 }

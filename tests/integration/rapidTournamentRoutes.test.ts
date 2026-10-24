@@ -134,6 +134,28 @@ describe("rapid tournament creator routes", () => {
     expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("p_matches")
   })
 
+  it.each([4,7,17,24])("persists configurable Americana with %i players and arbitrary timings", async count => {
+    mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Configurable", startsAt: "2027-01-01T09:00:00Z", playerCount: count,
+      players: Array.from({length:count},(_,i)=>`Player ${i}`), courtNames:["One","Two"],
+      roundCount:8, roundMinutes:10, transitionMinutes:2, preparationMinutes:4, reservationMinutes:120,
+      accentColor:"#336699", logoUrl:null,
+    }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_configurable_rapid_tournament", expect.objectContaining({
+      p_configuration:expect.objectContaining({players:count,rounds:8,roundMinutes:10,transitionMinutes:2}),
+      p_accent_color:"#336699",p_logo_url:null,
+    }))
+  })
+
+  it.each([{playerCount:-1},{playerCount:1.5},{roundCount:0},{roundMinutes:0},{transitionMinutes:-1},{roundMinutes:120},{accentColor:"red"},{logoUrl:"javascript:alert(1)"}])("rejects invalid configurable input before persistence: %j", patch => {
+    return createTournament(request("/api/tournaments", {
+      name:"Configurable",startsAt:"2027-01-01T09:00:00Z",players:names,courtNames:["One","Two"],
+      roundCount:6,roundMinutes:16,transitionMinutes:3, ...patch,
+    })).then(async response => { expect(response.status).toBe(400); expect(mocks.rpc).not.toHaveBeenCalled() })
+  })
+
   it("denies copying another organizer's tournament before writing", async () => {
     mocks.maybeSingle.mockResolvedValueOnce({ data: null, error: null })
     const response = await createTournament(request("/api/tournaments", {
@@ -302,5 +324,27 @@ describe("rapid tournament creator routes", () => {
     expect(result.players).toEqual([{ id: "player-a", slot: "A", name: "Jugador A", hasAccount: false }])
     expect(result.rounds).toEqual([{ id: "round-1", round: 1, startsAt: "2026-10-17T07:07:00.000Z", endsAt: "2026-10-17T07:23:00.000Z" }, { id: "round-6", round: 6, startsAt: "2026-10-17T08:42:00.000Z", endsAt: "2026-10-17T08:58:00.000Z" }])
     expect(Number.isFinite(Date.parse(result.serverNow))).toBe(true)
+  })
+  it("copies an invited account outside the league directory using its authorized original identity", async () => {
+    const accountId = "c1255e07-a318-4a17-b9ea-b366b32e5082"
+    const from = vi.fn((table: string) => {
+      const query = {
+        select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: tournamentId, created_by_user_id: "creator-uuid" }, error: null }),
+        then: (resolve: (result: unknown) => void) => Promise.resolve({ data: table === "rapid_tournament_players" ? [{ full_name: "Invitado original", user_id: accountId }] : [], error: null }).then(resolve),
+      }
+      return query
+    })
+    mocks.auth.mockResolvedValue({ ok: true, actor: { supabase: { from, rpc: mocks.rpc }, user: { id: "creator-uuid" } } })
+    people.selectable.mockResolvedValueOnce({ people: [], error: null })
+    mocks.rpc.mockResolvedValueOnce({ data: matchId, error: null })
+    const response = await createTournament(request("/api/tournaments", { name: "Copia", startsAt: "2027-01-01T09:00:00Z", courtNames: ["Pista"], playerCount: 4, players: ["Nombre manipulado", "Dos", "Tres", "Cuatro"], playerUserIds: [accountId, null, null, null], reservationMinutes: 60, roundCount: 2, roundMinutes: 10, transitionMinutes: 2, duplicateOf: tournamentId }))
+    expect(response.status).toBe(201)
+    const [rpcName, payload] = mocks.rpc.mock.calls[0]
+    expect(rpcName).toBe("create_configurable_rapid_tournament")
+    expect(payload.p_duplicate_of).toBe(tournamentId)
+    const accountIndex = payload.p_player_user_ids.indexOf(accountId)
+    expect(payload.p_player_names[accountIndex]).toBe("Invitado original")
+    expect(payload.p_player_names).not.toContain("Nombre manipulado")
   })
 })

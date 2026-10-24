@@ -10,11 +10,13 @@ import { getServerLeagueViewer } from "@/lib/serverLeagueAccess"
 import { getTournamentLeagueRoster } from "@/lib/serverTournamentLeagueRoster"
 import { planRapidTournament } from "@/lib/tournamentConfiguration"
 import { requireRapidTournamentCreator } from "@/lib/serverRapidTournaments"
+import { normalizeStoredImageUrl } from "@/lib/serverImageValidation"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 const isMissingAccountLinkSchema = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "42703" || error.code === "PGRST204") && /user_id/i.test(error.message ?? ""))
 const isMissingFlexibleCreateRpc = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "PGRST202" || error.code === "42883") && /create_rapid_tournament_flexible/i.test(error.message ?? ""))
-type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; format?: unknown; duplicateOf?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
+type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; roundCount?: unknown; roundMinutes?: unknown; transitionMinutes?: unknown; logoUrl?: unknown; accentColor?: unknown; format?: unknown; duplicateOf?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
+const numericOption = (value: unknown, fallback: number) => value === undefined ? fallback : typeof value === "number" ? value : NaN
 export async function GET(request: Request) {
   const rateLimited = await enforceRequestRateLimit({ request, scope: "rapid_tournaments_list", limit: 120, windowMs: 60_000 })
   if (rateLimited) return rateLimited
@@ -43,24 +45,35 @@ export async function POST(request: Request) {
   const name = normalizeBoundedText(body?.name, 100)
   const description = normalizeBoundedText(body?.description, 1000)
   const startsAt = validateIsoDateTime(body?.startsAt)
-  const playerCount = typeof body?.playerCount === "number" ? body.playerCount : Array.isArray(body?.players) ? body.players.length : 0
-  const reservationMinutes = typeof body?.reservationMinutes === "number" ? body.reservationMinutes : 120
-  const roundCount = getRapidRoundCount(reservationMinutes)
-  const preparationMinutes = typeof body?.preparationMinutes === "number" ? body.preparationMinutes : 2
+  const playerCount = numericOption(body?.playerCount, Array.isArray(body?.players) ? body.players.length : 0)
+  const reservationMinutes = numericOption(body?.reservationMinutes, 120)
+  const roundCount = numericOption(body?.roundCount, getRapidRoundCount(reservationMinutes))
+  const roundMinutes = numericOption(body?.roundMinutes, 16), transitionMinutes = numericOption(body?.transitionMinutes, 3)
+  const preparationMinutes = numericOption(body?.preparationMinutes, 2)
   const format = body?.format === "dynamic_mexicano" ? "dynamic_mexicano" : body?.format === undefined || body.format === "balanced_americana" ? "balanced_americana" : null
-  const configurationValidation = validateRapidTournamentConfiguration(playerCount, Array.isArray(body?.courtNames) ? body.courtNames.length : 0, reservationMinutes)
+  const extended = body?.roundCount !== undefined || body?.roundMinutes !== undefined || body?.transitionMinutes !== undefined || body?.logoUrl !== undefined || body?.accentColor !== undefined || playerCount < 8 || playerCount > 16
+  const configuration = { players: playerCount, courts: Array.isArray(body?.courtNames) ? body.courtNames.length : 0, reservationMinutes, rounds: roundCount, roundMinutes, transitionMinutes, preparationMinutes }
+  const configurationValidation = extended ? planRapidTournament({ ...configuration, pairing: "rotating" }) : validateRapidTournamentConfiguration(playerCount, configuration.courts, reservationMinutes)
+  const logoUrl = typeof body?.logoUrl === "string" ? normalizeStoredImageUrl(body.logoUrl) : null
+  const accentColor = typeof body?.accentColor === "string" && /^#[0-9a-f]{6}$/i.test(body.accentColor) ? body.accentColor : null
   const courtNames = Array.isArray(body?.courtNames) ? body.courtNames.map((item) => normalizeBoundedText(item, 80)) : []
   const participants = validateTournamentParticipants(body?.players, playerCount)
-  const playerUserIds = Array.isArray(body?.playerUserIds) ? body.playerUserIds : Array(playerCount).fill(null)
-  if (!body || !name || !startsAt || !format || !configurationValidation.ok || courtNames.some((court) => !court) || !participants.ok || playerUserIds.length !== playerCount || playerUserIds.some((id) => id !== null && !validateUuid(id)) || !Number.isSafeInteger(preparationMinutes) || preparationMinutes < 0 || preparationMinutes > getRapidPreparationMax(reservationMinutes)) {
+  const playerUserIds = Array.isArray(body?.playerUserIds) ? body.playerUserIds : Array(Number.isInteger(playerCount) && playerCount >= 4 && playerCount <= 24 ? playerCount : 0).fill(null)
+  if (!body || !name || !startsAt || !format || (extended && Date.parse(startsAt) <= Date.now()) || !configurationValidation.ok || configuration.courts > 4 || reservationMinutes < 30 || reservationMinutes > 1440 || roundMinutes > 120 || transitionMinutes > 30 || courtNames.some((court) => !court) || !participants.ok || playerUserIds.length !== playerCount || playerUserIds.some((id) => id !== null && !validateUuid(id)) || !Number.isSafeInteger(preparationMinutes) || preparationMinutes < 0 || (!extended && preparationMinutes > getRapidPreparationMax(reservationMinutes)) || (body.logoUrl != null && !logoUrl) || (body.accentColor != null && !accentColor)) {
     return NextResponse.json({ error: !participants.ok ? participants.error : !configurationValidation.ok ? configurationValidation.error : "invalid_tournament_details" }, { status: 400 })
   }
   const accountIds = playerUserIds.map((id) => typeof id === "string" ? validateUuid(id) : null), linkedIds = accountIds.filter((id): id is string => Boolean(id))
   if (new Set(linkedIds).size !== linkedIds.length) return NextResponse.json({ error: "duplicate_player_accounts" }, { status: 400 })
+  const copyPeople: Array<{ userId: string; displayName: string }> = []
   if (body.duplicateOf !== undefined) {
     if (body.source) return NextResponse.json({ error: "invalid_tournament_source" }, { status: 400 })
     const copied = await requireRapidTournamentCreator(body.duplicateOf)
     if (!copied.ok) return NextResponse.json({ error: copied.error }, { status: copied.status })
+    if (extended && linkedIds.length) {
+      const roster = await auth.actor.supabase.from("rapid_tournament_players").select("user_id,full_name").eq("tournament_id", copied.tournamentId)
+      if (roster.error) return NextResponse.json({ error: "tournament_read_failed" }, { status: 500 })
+      for (const player of roster.data ?? []) if (player.user_id) copyPeople.push({ userId: player.user_id, displayName: player.full_name })
+    }
   }
   const sourceLeagueId = validateUuid(body?.source?.leagueId), sourceSeasonId = validateUuid(body?.source?.seasonId)
   const sourcePlayerIds = Array.isArray(body?.source?.playerIds) ? body.source.playerIds.map((id) => validateUuid(id)) : []; let canonicalNames = participants.ok ? participants.names : []
@@ -75,19 +88,20 @@ export async function POST(request: Request) {
     const validation = validateTournamentParticipants([...selectedRoster.map((person) => person!.displayName), ...participants.names.slice(sourcePlayerIds.length)], playerCount)
     if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 }); canonicalNames = validation.names
   }
-  if (linkedIds.length && !sourceLeagueId) {
+  const accountOffset = sourceLeagueId ? sourcePlayerIds.length : 0
+  const additionalLinkedIds = accountIds.slice(accountOffset).filter((id): id is string => Boolean(id))
+  if (additionalLinkedIds.length) {
     const available = await getRapidTournamentSelectablePeople(auth.actor.supabase, auth.actor.user.id)
     if (available.error || !available.people) return NextResponse.json({ error: "tournament_people_lookup_failed" }, { status: 500 })
-    const peopleById = new Map(available.people.map((person) => [person.userId, person.displayName]))
-    if (linkedIds.some((id) => !peopleById.has(id))) return NextResponse.json({ error: "invalid_tournament_player_account" }, { status: 400 })
-    canonicalNames = participants.names.map((personName, index) => accountIds[index] ? peopleById.get(accountIds[index]!)! : personName)
+    const peopleById = new Map([...copyPeople, ...available.people].map((person) => [person.userId, person.displayName]))
+    if (additionalLinkedIds.some((id) => !peopleById.has(id))) return NextResponse.json({ error: "invalid_tournament_player_account" }, { status: 400 })
+    canonicalNames = canonicalNames.map((personName, index) => index >= accountOffset && accountIds[index] ? peopleById.get(accountIds[index]!)! : personName)
     const canonicalValidation = validateTournamentParticipants(canonicalNames, playerCount)
     if (!canonicalValidation.ok) return NextResponse.json({ error: canonicalValidation.error }, { status: 400 })
     canonicalNames = canonicalValidation.names
   }
   const entries = canonicalNames.map((playerName, index) => ({ name: playerName, userId: accountIds[index] }))
   const shuffled = format === "balanced_americana" ? shuffleTournamentEntries(entries) : entries
-  const configuration = { players: playerCount, courts: courtNames.length, reservationMinutes, rounds: roundCount, roundMinutes: 16, transitionMinutes: 3, preparationMinutes }
   const plan = planRapidTournament({ ...configuration, pairing: "rotating" })
   if (!plan.ok) return NextResponse.json({ error: plan.error }, { status: 400 })
   const rounds = buildRapidRounds(new Date(Date.parse(startsAt) + preparationMinutes * 60_000), configuration)
@@ -102,18 +116,25 @@ export async function POST(request: Request) {
     p_reservation_minutes: reservationMinutes, p_preparation_minutes: preparationMinutes, p_round_count: roundCount,
     p_rounds: rounds.map((round) => ({ round_number: round.round, starts_at: round.startsAt, ends_at: round.endsAt })),
   }
-  const result = format === "dynamic_mexicano"
+  const result = extended ? await auth.actor.supabase.rpc("create_configurable_rapid_tournament", {
+    p_creator_user_id: auth.actor.user.id, p_name: name, p_description: description, p_starts_at: startsAt,
+    p_court_names: courtNames, p_player_names: shuffled.map(entry => entry.name), p_player_user_ids: shuffled.map(entry => entry.userId),
+    p_configuration: { ...configuration, format, generationSeed: randomInt(1, 2_147_483_647) },
+    p_matches: fixtures.map(match => ({ round_number: match.round, court_number: match.court, team_a: match.teamA, team_b: match.teamB })),
+    p_duplicate_of: validateUuid(body.duplicateOf), p_source_league_id: sourceLeagueId, p_source_season_id: sourceSeasonId,
+    p_logo_url: logoUrl, p_accent_color: accentColor,
+  }) : format === "dynamic_mexicano"
     ? await auth.actor.supabase.rpc("create_dynamic_mexicano_tournament", { ...commonParameters, p_generation_seed: randomInt(1, 2_147_483_647) })
     : await auth.actor.supabase.rpc("create_rapid_tournament_flexible", { ...commonParameters, p_matches: fixtures.map((match) => ({ round_number: match.round, court_number: match.court, team_a: match.teamA, team_b: match.teamB })) })
   const { data, error } = result
-  if (isMissingFlexibleCreateRpc(error) || error && format === "dynamic_mexicano" && ["PGRST202", "42883", "42703"].includes(error.code ?? "")) {
+  if (isMissingFlexibleCreateRpc(error) || error && (extended || format === "dynamic_mexicano") && ["PGRST202", "42883", "42703"].includes(error.code ?? "")) {
     return NextResponse.json({ error: "tournament_account_access_not_ready" }, { status: 503 })
   }
   if (error || typeof data !== "string") {
     console.error("[rapidTournaments] create failed", { code: error?.code ?? null })
     return NextResponse.json({ error: "tournament_create_failed" }, { status: 500 })
   }
-  if (sourceLeagueId && sourceSeasonId) {
+  if (!extended && sourceLeagueId && sourceSeasonId) {
     const { error: sourceLinkError } = await auth.actor.supabase.from("rapid_tournaments").update({ source_league_id: sourceLeagueId, source_season_id: sourceSeasonId }).eq("id", data).eq("created_by_user_id", auth.actor.user.id)
     if (sourceLinkError) {
       await auth.actor.supabase.from("rapid_tournaments").delete().eq("id", data).eq("created_by_user_id", auth.actor.user.id)

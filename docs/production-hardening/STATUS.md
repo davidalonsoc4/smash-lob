@@ -3065,3 +3065,17 @@ Duplicación independiente sobre el formulario actual y POST existente, protegid
 
 23 pruebas unitarias/API y dos E2E móviles claro/oscuro PASS, tipos/lint/i18n correctos. Copia independiente mediante formulario existente con original intacto. Limitación SQL detectada: cuentas vinculadas solo por invitación necesitan extensión futura, no se amplían permisos ficticiamente en TS. T03 permanece abierto; siguiente paso persistencia/configuración ampliada y pruebas de DB aisladas.
 
+## Torneos integrales — T03 SQL/configuración (24/10/2026)
+
+PostgreSQL portátil 17.11 con checksum verificado, clúster local aislado. Migración nueva creada por CLI (no remota) para 4–24 jugadores, tiempos/rondas, identidad y creación/sorteo atómicos. Once migraciones de torneos y tests reales de transacciones/roles/copias/sorteo pasan con fixtures mínimos. Formulario ampliado y algoritmos compatibles en desarrollo; 53 tests pasan, i18n correcto. Fallo de tipos de allPassed detectado y corregido, repetición pendiente; no se cierra T03 ni se publica. Ver docs/tournaments/STATUS para reanudar.
+
+### T03 — origen integrado
+
+TypeScript PASS confirmado. Importación automática hasta 24 y selector de temporada autorizado integrados; consultas cancelables. DB aislada PASS para procedencia/snapshot y permisos, 53 tests/i18n correctos. Inventario de API actualizado tras detectar desfase, check PASS (111 rutas/156 métodos). E2E de configuración ampliada en curso; T03 abierto, sin operaciones remotas.
+
+T03: E2E ampliado 10/10 PASS y SQL repetido PASS, incluidos resultados/correcciones y aislamiento. Avisos de voz ajustados a tiempos configurados tras encontrar textos fijos. 22 tests de timing/audio y 54 de API/configuración PASS. E2E final añade logo/crop/acento y validate completo sigue en curso; no se cierra todavía el hito.
+
+### T03 cerrado localmente
+
+Validate PASS (270 archivos/1192 tests; tipos/build/presupuestos, lint 0 errores y cinco warnings previos), E2E 10/10 más repetición móvil del happy path y logo/crop/acento correctos. SQL dedicado PASS con 11 migraciones, seis tablas con RLS y roles reales aislados. Captura de resumen móvil revisada. Sin operaciones remotas; migración nueva pendiente fuera del clúster de prueba. Primer hito incompleto T04, parejas fijas con creación/engine/ranking integrados antes de desbloquear controles. Objetivo integral sigue activo.
+

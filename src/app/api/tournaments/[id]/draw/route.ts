@@ -10,14 +10,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params
   const access = await requireRapidTournamentCreator(id)
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
-  const { data: tournament, error: tournamentError } = await access.actor.supabase.from("rapid_tournaments").select("player_count,court_count,round_count,status,format").eq("id", access.tournamentId).maybeSingle()
+  const { data: tournament, error: tournamentError } = await access.actor.supabase.from("rapid_tournaments").select("*").eq("id", access.tournamentId).maybeSingle()
   if (tournamentError || !tournament) return NextResponse.json({ error: "tournament_read_failed" }, { status: 500 })
   if (tournament.status !== "draft" || tournament.format !== "balanced_americana") return NextResponse.json({ error: "tournament_draw_locked" }, { status: 409 })
-  const { data: players, error: playersError } = await access.actor.supabase.from("rapid_tournament_players").select("full_name,user_id").eq("tournament_id", access.tournamentId).order("slot")
+  const { data: players, error: playersError } = await access.actor.supabase.from("rapid_tournament_players").select("id,full_name,user_id").eq("tournament_id", access.tournamentId).order("slot")
   const validated = validateTournamentParticipants(players?.map((player) => player.full_name), tournament.player_count)
   if (playersError || !validated.ok) return NextResponse.json({ error: "tournament_players_read_failed" }, { status: 500 })
   const shuffled = shuffleTournamentEntries(validated.names.map((name, index) => ({ name, userId: (players![index].user_id as string | null | undefined) ?? null })))
   const fixtures = generateBalancedAmericanaFixtures(tournament.player_count, tournament.court_count, tournament.round_count)
+  if (tournament.configuration_version === 2) {
+    const identities = shuffleTournamentEntries(players!.map(player => player.id as string))
+    const { data, error } = await access.actor.supabase.rpc("redraw_configurable_rapid_tournament", {
+      p_tournament_id: access.tournamentId, p_creator_user_id: access.actor.user.id,
+      p_matches: fixtures.map(match => ({ round_number: match.round, court_number: match.court,
+        team_a: match.teamA.map(slot => identities[slot.charCodeAt(0) - 65]), team_b: match.teamB.map(slot => identities[slot.charCodeAt(0) - 65]) })),
+    })
+    if (error) return NextResponse.json({ error: "tournament_draw_failed" }, { status: 500 })
+    return NextResponse.json(data === true ? { ok: true } : { error: "tournament_draw_locked" }, { status: data === true ? 200 : 409, headers: { "Cache-Control": "no-store" } })
+  }
   const { data, error } = await access.actor.supabase.rpc("reroll_rapid_tournament_flexible", {
     p_tournament_id: access.tournamentId,
     p_creator_user_id: access.actor.user.id,

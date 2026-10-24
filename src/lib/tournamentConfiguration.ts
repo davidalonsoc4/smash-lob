@@ -6,6 +6,9 @@ export type TournamentRole = "creator" | "admin" | "participant" | "spectator"
 export type TournamentResultPolicy = "free" | "opponent_confirmation" | "admin_approval"
 export type TournamentScoring = "timed_points" | "points" | "games" | "sets" | "tiebreak"
 export type RapidPlanningInput = RapidTournamentConfig & { pairing: TournamentPairing }
+export function getRecommendedRapidRounds(reservation: number, minutes: number, transition: number, preparation: number) {
+  return Math.max(0, Math.min(100, Math.floor((reservation - preparation - 2 + transition) / (minutes + transition))))
+}
 
 // Pure planning shared by previews and server validation. This does not activate new formats.
 export function planRapidTournament(config: RapidPlanningInput) {
