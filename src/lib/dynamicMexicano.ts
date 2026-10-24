@@ -43,7 +43,7 @@ function pairKey(left: string, right: string) {
   return left < right ? `${left}|${right}` : `${right}|${left}`
 }
 
-export function calculateMexicanoStandings(players: readonly MexicanoPlayer[], matches: readonly MexicanoMatch[], generatedRounds = Math.max(0, ...matches.map((match) => match.round))) {
+export function calculateMexicanoStandings(players: readonly MexicanoPlayer[], matches: readonly { round: number; court?: number; teamAIds: readonly string[]; teamBIds: readonly string[]; scoreA: number | null; scoreB: number | null }[], generatedRounds = Math.max(0, ...matches.map((match) => match.round))) {
   const stats = new Map(players.map((player) => [player.id, { ...player, played: 0, wins: 0, draws: 0, losses: 0, pointsFor: 0, pointsAgainst: 0, rests: generatedRounds }]))
   for (const match of matches) {
     const participants = [...match.teamAIds, ...match.teamBIds]

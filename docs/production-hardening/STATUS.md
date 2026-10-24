@@ -3079,3 +3079,9 @@ T03: E2E ampliado 10/10 PASS y SQL repetido PASS, incluidos resultados/correccio
 
 Validate PASS (270 archivos/1192 tests; tipos/build/presupuestos, lint 0 errores y cinco warnings previos), E2E 10/10 más repetición móvil del happy path y logo/crop/acento correctos. SQL dedicado PASS con 11 migraciones, seis tablas con RLS y roles reales aislados. Captura de resumen móvil revisada. Sin operaciones remotas; migración nueva pendiente fuera del clúster de prueba. Primer hito incompleto T04, parejas fijas con creación/engine/ranking integrados antes de desbloquear controles. Objetivo integral sigue activo.
 
+### T04 — motor fijo inicial
+
+Motor puro de Americana/Mexicano por parejas fijas y ranking de equipo sobre cálculos compartidos; 41 tests con regresiones PASS. Corregido desbordamiento de conversión de porcentajes en torneos largos sin alterar comparación exacta. Aún sin UI/SQL, controles bloqueados, T04 abierto. Tipos/lint/pruebas complementarias en curso. Sin operaciones remotas.
+
+Checkpoint T04 confirmado: typecheck/lint PASS y 90 tests complementarios PASS. Contrato conserva campos opcionales de partidos legacy tras detectar y resolver incompatibilidad de tipos. Próxima acción: persistencia e integración fija; no cerrar T04 todavía.
+

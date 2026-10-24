@@ -66,3 +66,15 @@ Checkpoint: E2E 10/10 PASS, móvil/escritorio, Americana/Mexicano, importación 
 - Auto-Resume verificado: habilitado, watcher activo, cero recuperaciones pendientes, 0.6.13 structurally_compatible. No reenviar interrupciones recuperadas.
 
 Siguiente T04: parejas fijas para Americana/Mexicano, empezando por contrato/algoritmo puro y tests; integrar persistencia, creación, clasificación por equipo y directa antes de habilitar la opción. Mantener jugadores, algoritmos y resultados de torneos rotativos actuales. T05–T09 siguen pendientes, no considerar terminado el objetivo integral.
+
+## T04 checkpoint — motor de parejas fijas
+
+- T03 guardado en commits locales `226c1183` (SQL/harness) y `e6718c11` (flujo integrado). Sin push, PRE ni PROD.
+- `fixedRapidTournament.ts`: valida equipos completos/disjuntos 4–24, genera Americana fija y Mexicano incremental determinista conservando compañeros, distribuye participación/descansos/pistas y calcula clasificación de pareja reutilizando los rankings existentes, sin duplicar puntos. No está conectado a UI/RPC aún, opción sigue bloqueada.
+- 41 tests de motor fijo + regresiones Americana/Mexicano PASS. Primer test suponía una distribución de pistas matemáticamente incompatible con todos los rivales distintos (cuatro parejas/tres rondas); corregida la expectativa y documentada la limitación, no relajada la integridad/participación.
+- Porcentajes de torneos de hasta cien rondas podían convertirse a Infinity/Infinity con marcadores grandes; nueva conversión finita para presentación, conservando fracciones BigInt para los desempates. Test explícito con 100 resultados PASS.
+- Fuente 135738 líneas bajo 136000. Typecheck/lint y pruebas complementarias en curso, no cerrar ni habilitar todavía T04.
+
+Siguiente paso: confirmar gates, guardar checkpoint del motor. Crear migración aditiva de parejas fijas (no editar `20261024003812`, ya guardada), relación de equipos e invariantes de partidos/sorteo/resultados. Conectar creación, origen/duplicación, ranking por equipo, calendario/directo y pruebas SQL/API/E2E antes de desbloquear la opción. No retirar ni alterar flujos rotativos.
+
+Checkpoint del motor validado: 41 tests de motores y 90 complementarios PASS, ESLint y typecheck PASS. Typecheck detectó campos adicionales id/court en literales legacy al ampliar el contrato; mantenidos como opcionales y repetición correcta. Guardar commit local; siguiente acción es migración de persistencia de parejas fijas, no repetir T03 ni activar controles todavía.

@@ -226,7 +226,13 @@ function addPercentage(stats: { percentNumerator: bigint; percentDenominator: bi
   stats.percentNumerator = numerator / divisor
   stats.percentDenominator = denominator / divisor
 }
-export function calculateRapidStandings(names: readonly string[], matches: readonly RapidTournamentMatch[]) {
+function finiteRatio(numerator: bigint, denominator: bigint) {
+  // Ranking keeps the exact fractions. Convert only the display ratio, without
+  // overflowing Number when many different score totals multiply denominators.
+  const scale = BigInt(1_000_000_000_000_000)
+  return Number(numerator / denominator) + Number((numerator % denominator) * scale / denominator) / Number(scale)
+}
+export function calculateRapidStandings(names: readonly string[], matches: readonly { id?: string; round?: number; court?: number; teamA: readonly string[]; teamB: readonly string[]; scoreA: number | null; scoreB: number | null }[]) {
   const stats = new Map(names.map((player) => [player, { played: 0, wins: 0, pointsFor: 0, pointsAgainst: 0, percentNumerator: BigInt(0), percentDenominator: BigInt(1) }]))
   const scheduled = new Map(names.map((player) => [player, 0]))
   for (const match of matches) {
@@ -250,7 +256,7 @@ export function calculateRapidStandings(names: readonly string[], matches: reado
   const sorted = [...stats].map(([player, item]) => ({
     player, played: item.played, pending: Math.max(0, (scheduled.get(player) ?? 0) - item.played), wins: item.wins,
     pointsFor: item.pointsFor, pointsAgainst: item.pointsAgainst,
-    averagePercent: item.played ? Number(item.percentNumerator) / Number(item.percentDenominator) / item.played * 100 : 0,
+    averagePercent: item.played ? finiteRatio(item.percentNumerator, item.percentDenominator) / item.played * 100 : 0,
     globalPercent: item.pointsFor + item.pointsAgainst ? item.pointsFor / (item.pointsFor + item.pointsAgainst) * 100 : 0,
     rankNumerator: item.percentNumerator,
     rankDenominator: item.percentDenominator,
