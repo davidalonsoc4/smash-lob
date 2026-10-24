@@ -31,6 +31,7 @@
     "quality:source": "node scripts/check-source-budgets.mjs",
     "quality:build": "node scripts/check-build-budgets.mjs",
     "database:quality": "node scripts/run-database-quality.mjs",
+    "database:tournaments": "node scripts/check-tournament-database.mjs",
     "performance:lighthouse": "npx --yes @lhci/cli@0.15.1 autorun",
     "quality:full": "npm run release:check && npm run database:quality && npm run performance:lighthouse",
     "external:readiness": "node scripts/check-external-readiness.mjs",

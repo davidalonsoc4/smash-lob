@@ -1,0 +1,112 @@
+import assert from "node:assert/strict"
+import { execFileSync } from "node:child_process"
+import { readdirSync } from "node:fs"
+import path from "node:path"
+import { randomUUID } from "node:crypto"
+
+// Dedicated disposable PostgreSQL, never environment database URLs or Supabase credentials.
+const binary = process.env.TOURNAMENT_TEST_PSQL ?? path.resolve(".quality-artifacts/postgres-tools/pgsql/bin/psql.exe")
+const expectedData = path.resolve(".quality-artifacts/postgres-tournaments-data").replaceAll("\\", "/").toLowerCase()
+const database = `tournament_quality_${randomUUID().replaceAll("-", "").slice(0, 12)}`
+const env = { ...process.env, PGPASSWORD: "", PGSSLMODE: "disable", PGCLIENTENCODING: "UTF8" }
+function sql(query, db = database) {
+  return execFileSync(binary, ["-X", "--no-password", "-h", "127.0.0.1", "-p", "55439", "-U", "postgres", "-d", db, "-v", "ON_ERROR_STOP=1", "-t", "-A", "-c", query], { encoding: "utf8", env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim()
+}
+const actualData = sql("SHOW data_directory", "postgres").replaceAll("\\", "/").toLowerCase()
+assert.equal(actualData, expectedData, "Refusing to test a server outside the dedicated workspace cluster")
+sql(`CREATE DATABASE ${database}`, "postgres")
+const quote = value => `'${String(value).replaceAll("'", "''")}'`
+const creator = "10000000-0000-4000-8000-000000000001"
+const invited = "10000000-0000-4000-8000-000000000002"
+const other = "10000000-0000-4000-8000-000000000003"
+function create({ players = 4, configuration = {}, matches, accounts, duplicateOf = null, owner = creator, sourceLeague = null, sourceSeason = null } = {}) {
+  const config = { format: "balanced_americana", rounds: 2, roundMinutes: 10, transitionMinutes: 3, preparationMinutes: 2, reservationMinutes: 60, ...configuration }
+  const schedule = matches ?? [1, 2].map(round => ({ round_number: round, court_number: 1, team_a: ["A", "B"], team_b: ["C", "D"] }))
+  return `SELECT public.create_configurable_rapid_tournament(${quote(owner)}::uuid,'Fixture only','',now()+interval '1 day',ARRAY['Court 1'],ARRAY[${Array.from({length:players},(_,i)=>quote(`Fixture ${i}`)).join(",")}],ARRAY[${(accounts ?? Array(players).fill(null)).map(id=>id?quote(id):"NULL").join(",")}]::uuid[],${quote(JSON.stringify(config))}::jsonb,${quote(JSON.stringify(schedule))}::jsonb,${duplicateOf?quote(duplicateOf):"NULL"}::uuid,${sourceLeague?quote(sourceLeague):"NULL"}::uuid,${sourceSeason?quote(sourceSeason):"NULL"}::uuid)`
+}
+function rejects(statement, message) {
+  assert.throws(() => sql(statement), error => String(error.stderr).includes(message), message)
+}
+try {
+  sql(`DO $$ BEGIN
+    IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='anon') THEN CREATE ROLE anon; END IF;
+    IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated; END IF;
+    IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='service_role') THEN CREATE ROLE service_role BYPASSRLS; END IF;
+  END $$;
+  CREATE TABLE public.app_users(id uuid PRIMARY KEY, suspended_at timestamptz, is_superuser boolean NOT NULL DEFAULT false);
+  CREATE TABLE public.leagues(id uuid PRIMARY KEY);
+  CREATE TABLE public.seasons(id uuid PRIMARY KEY, league_id uuid REFERENCES public.leagues);
+  CREATE TABLE public.league_memberships(league_id uuid, user_id uuid, player_id uuid, role text);
+  CREATE TABLE public.season_players(season_id uuid, player_id uuid);
+  GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+  INSERT INTO public.app_users(id) VALUES ('${creator}'),('${invited}'),('${other}');`)
+  const migrationDir = path.resolve("supabase/migrations")
+  const files = readdirSync(migrationDir).filter(name => name.endsWith(".sql") && name.includes("tournament")).sort()
+  for (const file of files) {
+    execFileSync(binary, ["-X", "--no-password", "-h", "127.0.0.1", "-p", "55439", "-U", "postgres", "-d", database, "-v", "ON_ERROR_STOP=1", "-f", path.join(migrationDir, file)], { env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] })
+  }
+  const tables = ["rapid_tournaments", "rapid_tournament_players", "rapid_tournament_rounds", "rapid_tournament_matches", "rapid_tournament_invites", "rapid_tournament_join_invites"]
+  assert.equal(sql(`SELECT count(*) FROM pg_class WHERE relnamespace='public'::regnamespace AND relname IN (${tables.map(quote).join(",")}) AND relrowsecurity`), "6", "all tournament tables retain RLS")
+  assert.equal(sql("SELECT count(*) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN ('create_configurable_rapid_tournament','redraw_configurable_rapid_tournament') AND NOT prosecdef AND 'search_path=public, pg_temp'=ANY(proconfig)"), "2", "RPCs must use invoker rights and a fixed search path")
+  for (const table of tables) for (const role of ["anon", "authenticated"]) rejects(`SET ROLE ${role}; SELECT * FROM public.${table}`, "permission denied")
+  const id = sql(`SET ROLE service_role; ${create()}`).split(/\r?\n/).at(-1)
+  assert.match(id, /^[0-9a-f-]{36}$/)
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${id}'`), "4")
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_matches WHERE tournament_id='${id}' AND score_a IS NULL AND score_b IS NULL`), "2")
+  const dynamicId = sql(create({ players:24, configuration:{format:"dynamic_mexicano",rounds:8,roundMinutes:10,transitionMinutes:2,preparationMinutes:4,reservationMinutes:120}, matches:[] }))
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${dynamicId}'`), "24")
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_rounds WHERE tournament_id='${dynamicId}' AND ends_at-starts_at=interval '10 minutes'`), "8")
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_matches WHERE tournament_id='${dynamicId}'`), "0")
+  const originalCount = sql("SELECT count(*) FROM rapid_tournaments")
+  rejects(create({ players:25 }), "invalid_tournament_configuration")
+  rejects(create({ configuration:{roundMinutes:40} }), "invalid_tournament_configuration")
+  rejects(create({ configuration:{rounds:0} }), "invalid_tournament_configuration")
+  rejects(create({ accounts:[invited,null,null,null] }), "invalid_player_accounts")
+  const sameCourt = [1,1].map(round=>({round_number:round,court_number:1,team_a:["A","B"],team_b:["C","D"]}))
+  rejects(create({ matches:sameCourt }), "invalid_tournament_schedule")
+  assert.equal(sql("SELECT count(*) FROM rapid_tournaments"), originalCount, "failed RPCs must roll back all rows")
+  sql(`UPDATE rapid_tournament_players SET user_id='${invited}' WHERE tournament_id='${id}' AND slot='A'`)
+  const copyId = sql(create({ duplicateOf:id, accounts:[invited,null,null,null] }))
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${copyId}' AND user_id='${invited}'`), "1")
+  const identities = sql(`SELECT json_agg(row_to_json(p) ORDER BY slot) FROM rapid_tournament_players p WHERE tournament_id='${copyId}'`)
+  const roster = JSON.parse(identities)
+  const redraw = [1,2].map(round=>({round_number:round,court_number:1,team_a:[roster[0].id,roster[2].id],team_b:[roster[1].id,roster[3].id]}))
+  const redrawCall = actor => `SELECT public.redraw_configurable_rapid_tournament('${copyId}','${actor}',${quote(JSON.stringify(redraw))}::jsonb)`
+  assert.equal(sql(`SET ROLE service_role; ${redrawCall(creator)}`).split(/\r?\n/).at(-1), "t")
+  assert.equal(sql(`SELECT json_agg(row_to_json(p) ORDER BY slot) FROM rapid_tournament_players p WHERE tournament_id='${copyId}'`), identities)
+  assert.equal(sql(redrawCall(other)), "f")
+  assert.equal(sql(`SELECT public.start_rapid_tournament('${copyId}','${creator}')`), "t")
+  assert.equal(sql(redrawCall(creator)), "f")
+  const matchId = sql(`SELECT id FROM rapid_tournament_matches WHERE tournament_id='${copyId}' ORDER BY round_number LIMIT 1`)
+  const record = (actor, a, b) => `SELECT public.record_rapid_tournament_result('${copyId}','${matchId}','${actor}',${a},${b})`
+  assert.equal(sql(`SET ROLE service_role; ${record(creator,16,12)}`).split(/\r?\n/).at(-1), "t")
+  assert.equal(sql(`SELECT score_a||'/'||score_b FROM rapid_tournament_matches WHERE id='${matchId}'`), "16/12")
+  assert.equal(sql(record(other,0,28)), "f")
+  rejects(record(creator,0,0), "invalid_score")
+  assert.equal(sql(`SELECT score_a||'/'||score_b FROM rapid_tournament_matches WHERE id='${matchId}'`), "16/12")
+  assert.equal(sql(record(creator,19,19)), "t")
+  assert.equal(sql(`SELECT score_a||'/'||score_b FROM rapid_tournament_matches WHERE id='${matchId}'`), "19/19")
+  assert.equal(sql(`SELECT public.finish_rapid_tournament('${copyId}','${creator}')`), "f")
+  rejects(create({ duplicateOf:id,owner:other }), "invalid_tournament_source")
+  const league = "20000000-0000-4000-8000-000000000001", season = "30000000-0000-4000-8000-000000000001", member = "40000000-0000-4000-8000-000000000001"
+  sql(`INSERT INTO leagues VALUES ('${league}'); INSERT INTO seasons VALUES ('${season}','${league}');
+    INSERT INTO league_memberships VALUES ('${league}','${creator}',NULL,'admin'),('${league}','${invited}','${member}','player');
+    INSERT INTO season_players VALUES ('${season}','${member}');`)
+  const sourceId = sql(`SET ROLE service_role; ${create({ sourceLeague:league, sourceSeason:season, accounts:[invited,null,null,null] })}`).split(/\r?\n/).at(-1)
+  assert.equal(sql(`SELECT source_league_id||'/'||source_season_id FROM rapid_tournaments WHERE id='${sourceId}'`), `${league}/${season}`)
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${sourceId}' AND user_id='${invited}'`), "1")
+  rejects(create({ owner:other, sourceLeague:league, sourceSeason:season }), "invalid_tournament_source")
+  rejects(create({ sourceLeague:league, sourceSeason:other }), "invalid_tournament_source")
+  rejects(create({ duplicateOf:id, sourceLeague:league, sourceSeason:season }), "invalid_tournament_source")
+  // Import is a snapshot. Later league membership changes cannot rewrite tournament players.
+  sql(`DELETE FROM league_memberships WHERE user_id='${invited}'`)
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${sourceId}' AND user_id='${invited}'`), "1")
+  sql(`UPDATE app_users SET suspended_at=now() WHERE id='${invited}'`)
+  rejects(create({ duplicateOf:id,accounts:[invited,null,null,null] }), "invalid_player_accounts")
+  rejects(`SET ROLE authenticated; ${create()}`, "permission denied")
+  rejects(`SET ROLE anon; SELECT * FROM rapid_tournaments`, "permission denied")
+  console.log(`Tournament PostgreSQL checks PASS: ${files.length} migrations, atomic creation, 24 players, timing, copy, source snapshot, suspension and role isolation.`)
+} finally {
+  // Only this freshly generated database, on the cluster verified above.
+  sql(`DROP DATABASE ${database}`, "postgres")
+}
