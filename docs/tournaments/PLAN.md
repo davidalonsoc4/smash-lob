@@ -1,6 +1,6 @@
 # Desarrollo integral de torneos
 
-Objetivo autorizado el 24/10/2026: completar todo el alcance solicitado, por hitos verificables. Base: `origin/staging` b67df81a; rama `codex/tournament-development` (solo documentación posterior al merge). No publicar ni modificar datos remotos sin nueva autorización. Sin temporadas de torneo, doble eliminación ni pasarela de pago.
+Objetivo autorizado el 24/10/2026: completar todo el alcance solicitado, por hitos verificables. Base: `origin/staging` b67df81a; rama `codex/tournament-development` (solo documentación posterior al merge). Autorización posterior del 24/10: migraciones y modificaciones en Supabase PRE permitidas para este desarrollo; código todavía solo local, sin publicación PRE. Producción sigue excluida. Sin temporadas de torneo, doble eliminación ni pasarela de pago.
 
 Trabajar exclusivamente en el primer hito incompleto. Cada checkpoint actualiza STATUS, DECISIONS y VALIDATION cuando corresponda, además de production-hardening/STATUS. Un hito solo se cierra con sus gates correctos; no confundir un motor probado con una funcionalidad integrada. Continuar al siguiente hito tras cerrar el anterior.
 

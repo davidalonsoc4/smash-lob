@@ -3127,3 +3127,7 @@ T05 validate final confirmado PASS: **279 archivos / 1411 tests**, TypeScript/bu
 
 **T05 completo localmente:** regresiones ligas/amistosos/hub **9/9 PASS**, salida 0; matriz rápidos/tradicionales **44/44 PASS**, validate **1411 tests PASS**, SQL aislado de catorce migraciones PASS y capturas móviles revisadas. Guardar interfaz/checkpoint local, sin PRE/PROD ni datos reales modificados. Primer hito incompleto T06; el objetivo integral sigue pendiente por gestión/reglas, integración, economía y validación final. La última petición deja este hito listo para pruebas; migraciones y publicación de PRE requieren la autorización explícita prevista en GOAL/AGENTS.
 
+### T05 — autorización de base PRE y prueba local
+
+El usuario autoriza Supabase PRE y excluye expresamente publicar código en PRE. Proyecto `smash-lob-staging` / `miadjotkucgluwbrgeih` verificado frente a enlace CLI y configuración local. Cuatro migraciones versionadas aplicadas con CLI existente, dry-run antes/después e historial SQL correctos; cero pendientes. Checksums de datos existentes idénticos (5 torneos/56 participantes/30 rondas/60 partidos), RLS/grants/RPC protegidos y advisor sin WARN/ERROR. Probe REST de nuevas columnas/tablas con limit=0 HTTP 200, acceso anónimo tradicional 401, health local 200. Sin código desplegado, sin push de rama ni cambios en Producción. Guía y evidencia en docs/tournaments/STATUS y VALIDATION. Primer hito incompleto T06, no iniciado en esta operación.
+
