@@ -3115,3 +3115,7 @@ Backend T05 validate confirmado: 1398 tests/276 archivos PASS, tipos/lint/build/
 
 E2E backend T05: regresiones rápidas móvil 9/9 PASS y último typecheck PASS. Auto-Resume sigue habilitado con watcher y cero pendientes. Guardar checkpoint y continuar T05 por formulario/presentación/E2E tradicionales; todavía no disponible en UI ni completo. Sin cambios remotos.
 
+T05 presentación, parcial: extraída tarjeta/editor de resultados a componente compartido con endpoint legacy intacto y callback tradicional. 15 pruebas focalizadas (seis nuevas de interacción), lint/i18n/fuente PASS; tipos y regresión E2E móvil en curso, terminales en STATUS de torneos. Sin activar tradicionales todavía ni tocar otras pantallas. Presupuesto +50 por interfaz de presentación compartida, no nuevos clientes/dependencias.
+
+Editor T05 confirmado: tipos PASS y E2E fijo móvil 4/4 PASS tras extracción, Americana/Mexicano claro/oscuro hasta campeón/copia. Guardar commit de presentación reutilizable y continuar formulario/vistas tradicionales; T05 abierto, sin pendientes de validación en este checkpoint ni operaciones remotas.
+
