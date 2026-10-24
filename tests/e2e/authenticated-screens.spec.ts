@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import jsQR from "jsqr"
 import sharp from "sharp"
-import { playerProfiles, allMatches as fixtureMatches } from "@/data/fakeData"
+import { playerProfiles, allMatches as fixtureMatches, seasons as fixtureSeasons } from "@/data/fakeData"
 
 const screens = [
   { name: "home", path: "/" },
@@ -372,6 +372,23 @@ test.beforeEach(async ({ page }) => {
       }),
     })
   })
+})
+
+test("league creation selector reaches 32 players and refuses a thirty-third", async ({page}) => {
+  await page.addInitScript(seasons => {
+    localStorage.setItem("smash-lob-season-data",JSON.stringify({seasons:seasons.map(season=>({...season,status:"finished"})),activeSeasonIds:{"league-smash-lob":"season-2"}}))
+  },fixtureSeasons)
+  await page.goto("/admin/season")
+  await page.getByRole("button",{name:"Configurar nueva temporada",exact:true}).click()
+  const increase=page.getByRole("button",{name:"Aumentar número de jugadores",exact:true})
+  await expect(increase).toBeVisible()
+  for(let i=0;i<24&&!await increase.isDisabled();i++)await increase.click()
+  await expect(increase).toBeDisabled()
+  await expect(increase.locator("..").getByText("32",{exact:true})).toBeVisible()
+  await page.getByRole("button",{name:"Reducir número de jugadores",exact:true}).click()
+  await expect(increase).toBeEnabled()
+  await expect(increase.locator("..").getByText("31",{exact:true})).toBeVisible()
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
 })
 
 for (const screen of screens) {

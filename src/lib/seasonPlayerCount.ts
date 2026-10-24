@@ -1,5 +1,5 @@
 export const MIN_SEASON_PLAYER_COUNT = 8
-export const MAX_SEASON_PLAYER_COUNT = 24
+export const MAX_SEASON_PLAYER_COUNT = 32
 
 export function isSeasonPlayerCountInRange(playerCount: number) {
   return (

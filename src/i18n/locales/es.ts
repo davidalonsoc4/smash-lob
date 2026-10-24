@@ -1113,7 +1113,7 @@ export const es = {
     decreasePlayerCount: "Reducir número de jugadores",
     increasePlayerCount: "Aumentar número de jugadores",
     playersShortLabel: "jugadores",
-    playerCountRangeDescription: "Selecciona entre 8 y 24 jugadores. Puedes ajustar el tamaño de uno en uno.",
+    playerCountRangeDescription: "Selecciona entre 8 y 32 jugadores. Puedes ajustar el tamaño de uno en uno.",
     playerCountBalancedDescription: "Este tamaño permite un calendario perfectamente equilibrado: todos juegan cada jornada, sin descansos.",
     playerCountRequiresByesDescription: "Calendario equilibrado con descansos: {count} jugadores descansan en cada jornada y todos descansan el mismo número de veces.",
     newPlayerName: "Nuevo jugador",

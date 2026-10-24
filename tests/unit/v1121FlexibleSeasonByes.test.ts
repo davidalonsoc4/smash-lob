@@ -16,7 +16,7 @@ import {
   seasonRequiresByes,
 } from "@/lib/seasonPlayerCount"
 
-const flexiblePlayerCounts = [9, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23]
+const flexiblePlayerCounts = [9, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23, 25, 26, 27, 29, 30, 31]
 
 function playerIds(playerCount: number) {
   return Array.from({ length: playerCount }, (_, index) => `player-${index + 1}`)
@@ -28,7 +28,7 @@ describe("v1.12.1 balanced seasons with byes", () => {
     expect(getDefaultSeasonPlayerCount(9)).toBe(9)
     expect(getDefaultSeasonPlayerCount(14)).toBe(14)
     expect(getDefaultSeasonPlayerCount(24)).toBe(24)
-    expect(getDefaultSeasonPlayerCount(30)).toBe(24)
+    expect(getDefaultSeasonPlayerCount(30)).toBe(30)
   })
 
   it.each(flexiblePlayerCounts)("accepts %i players and derives its balanced round structure", (playerCount) => {
