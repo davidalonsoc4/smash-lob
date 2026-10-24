@@ -1,9 +1,22 @@
 import assert from "node:assert/strict"
 import { execFileSync } from "node:child_process"
-import { readdirSync } from "node:fs"
+import { readdirSync,readFileSync,mkdirSync,writeFileSync } from "node:fs"
+import { createRequire } from "node:module"
+import ts from "typescript"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
-import { checkTraditionalDatabase } from "./tournament-traditional-database-cases.mjs"
+import { checkTraditionalDatabase,checkCanonicalTraditionalDatabase } from "./tournament-traditional-database-cases.mjs"
+
+// Compile the actual pure application modules with the installed TypeScript
+// compiler. No additional runtime or package is installed for database tests.
+const domainDir=path.resolve(".quality-artifacts/tournament-test-domain")
+mkdirSync(domainDir,{recursive:true})
+for(const name of ["tournamentResult","rapidTournament","dynamicMexicano","fixedRapidTournament","traditionalTournament","traditionalTournamentSchedule","traditionalTournamentState"]){
+  const source=readFileSync(path.resolve(`src/lib/${name}.ts`),"utf8")
+  writeFileSync(path.join(domainDir,`${name}.js`),ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)
+}
+const require=createRequire(import.meta.url)
+const engine={...require(path.join(domainDir,"traditionalTournament.js")),...require(path.join(domainDir,"traditionalTournamentSchedule.js")),...require(path.join(domainDir,"traditionalTournamentState.js"))}
 
 // Dedicated disposable PostgreSQL, never environment database URLs or Supabase credentials.
 const binary = process.env.TOURNAMENT_TEST_PSQL ?? path.resolve(".quality-artifacts/postgres-tools/pgsql/bin/psql.exe")
@@ -142,6 +155,7 @@ try {
   rejects(`SET ROLE authenticated; ${create()}`, "permission denied")
   rejects(`SET ROLE anon; SELECT * FROM rapid_tournaments`, "permission denied")
   checkTraditionalDatabase({ sql, quote, creator, other })
+  checkCanonicalTraditionalDatabase({sql,quote,creator,engine})
   console.log(`Tournament PostgreSQL checks PASS: ${files.length} migrations, rapid and traditional creation/results, byes/groups/qualification, 24 players, revision conflicts, fixed pairs, timing, copy, source snapshot, suspension and role isolation.`)
 } finally {
   // Only this freshly generated database, on the cluster verified above.

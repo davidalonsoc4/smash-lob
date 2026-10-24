@@ -99,3 +99,33 @@ export function checkTraditionalDatabase({ sql, quote, creator, other }) {
   assert.equal(sql(`SELECT count(*) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN ('create_traditional_tournament','update_traditional_tournament') AND NOT prosecdef AND 'search_path=public, pg_temp'=ANY(proconfig)`),"2")
   assert.equal(sql(`SELECT relrowsecurity FROM pg_class WHERE oid='public.traditional_tournament_state'::regclass`),"t")
 }
+
+export function checkCanonicalTraditionalDatabase({sql,quote,creator,engine}){
+  const json=value=>`${quote(JSON.stringify(value))}::jsonb`
+  for(const [count,format] of [[2,"knockout"],[3,"groups"],[5,"knockout"],[6,"groups_knockout"],[12,"knockout"]]){
+    const teams=Array.from({length:count},(_,i)=>({id:`pair-${i+1}`,playerIds:[`p${i*2}`,`p${i*2+1}`]}))
+    const configuration={format,groupCount:format==="knockout"?0:format==="groups"?1:2,qualifiersPerGroup:format==="groups_knockout"?2:0,thirdPlace:format==="groups_knockout",consolation:format==="groups_knockout"}
+    const draw=engine.buildTraditionalDraw({teams,configuration,seed:19,seededTeamIds:["pair-1"]})
+    const startsAt=new Date(Date.now()+86400000).toISOString(),options={startsAt,courts:2,matchMinutes:30,transitionMinutes:5}
+    const schedule=engine.buildTraditionalSchedule(draw,options)
+    const id=sql(`SELECT public.create_traditional_tournament('${creator}','Canonical ${format}','',${quote(startsAt)}::timestamptz,ARRAY['Court 1','Court 2'],ARRAY[${teams.flatMap((_,i)=>[quote(`Canonical ${i*2}`),quote(`Canonical ${i*2+1}`)]).join(",")}],ARRAY[${Array(count*2).fill("NULL").join(",")}]::uuid[],ARRAY[${teams.flatMap((_,i)=>[i+1,i+1]).join(",")}]::smallint[],${json(draw)},${json(schedule)},30,5)`)
+    const read=()=>engine.readTraditionalStoredState(JSON.parse(sql(`SELECT jsonb_build_object('draw',draw,'results',results,'schedule',schedule,'tie_orders',tie_orders,'revision',revision) FROM traditional_tournament_state WHERE tournament_id='${id}'`)),options)
+    let current=read()
+    assert.deepEqual(current.draw.matches,draw.matches,"the canonical application draw must round-trip through SQL")
+    assert.equal(sql(`SELECT public.update_traditional_tournament('${id}','${creator}',0,'start')`),"1")
+    let steps=0
+    for(;;){
+      current=read();const resolved=engine.resolveTraditionalTournament(current.draw,current.results,current.tieOrders)
+      if(resolved.complete){assert.ok(resolved.championIds.includes("pair-1"));break}
+      assert.ok(++steps<100,"canonical tournament must make progress")
+      const match=resolved.matches.find(match=>match.state==="ready")
+      assert.ok(match,"unambiguous canonical results must unlock another match")
+      const winA=Number(match.teamAId.split("-")[1])<Number(match.teamBId.split("-")[1])
+      const result={matchId:match.id,teamAId:match.teamAId,teamBId:match.teamBId,scoreA:winA?20:10,scoreB:winA?10:20}
+      const next=[...current.results,result]
+      assert.equal(sql(`SET ROLE service_role; SELECT public.update_traditional_tournament('${id}','${creator}',${current.revision},'result',NULL,${json(next)})`).split(/\r?\n/).at(-1),String(current.revision+1))
+    }
+    assert.equal(sql(`SELECT public.update_traditional_tournament('${id}','${creator}',${current.revision},'finish')`),String(current.revision+1))
+    assert.equal(sql(`SELECT status FROM rapid_tournaments WHERE id='${id}'`),"finished")
+  }
+}
