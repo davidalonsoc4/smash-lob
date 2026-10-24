@@ -3631,6 +3631,9 @@ const DYNAMIC_TEMPLATES = {
 
 const FINAL_OVERRIDES = {
   "en": {
+    "Duplicar torneo": "Duplicate tournament",
+    "Revisa la copia y elige una nueva fecha. Los resultados y el progreso empezarán de cero.": "Review the copy and choose a new date. Results and progress will start from scratch.",
+    "Reutiliza los participantes y la configuración en un torneo independiente. Los resultados no se copian.": "Reuse the participants and settings in an independent tournament. Results are not copied.",
     "Reparto de botes actualizado.": "Ball allocation updated.",
     "No se puede modificar el reparto después de registrar un resultado.": "The allocation cannot be changed after a result has been recorded.",
     "No se ha podido guardar el reparto de botes.": "The ball allocation could not be saved.",
@@ -4519,6 +4522,9 @@ const FINAL_OVERRIDES = {
     "Eliminar mi cuenta": "Delete my account",
   },
   "eu": {
+    "Duplicar torneo": "Txapelketa bikoiztu",
+    "Revisa la copia y elige una nueva fecha. Los resultados y el progreso empezarán de cero.": "Berrikusi kopia eta aukeratu data berria. Emaitzak eta aurrerapena hutsetik hasiko dira.",
+    "Reutiliza los participantes y la configuración en un torneo independiente. Los resultados no se copian.": "Berrerabili parte-hartzaileak eta ezarpenak txapelketa independente batean. Emaitzak ez dira kopiatzen.",
     "Reparto de botes actualizado.": "Boten banaketa eguneratu da.",
     "No se puede modificar el reparto después de registrar un resultado.": "Ezin da banaketa aldatu emaitza bat erregistratu ondoren.",
     "No se ha podido guardar el reparto de botes.": "Ezin izan da banden banaketa gorde.",

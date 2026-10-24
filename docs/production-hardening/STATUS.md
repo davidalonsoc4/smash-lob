@@ -3057,3 +3057,11 @@ Contratos de configuración y puntuación compartidos integrados en rutas/rankin
 
 Validate completo PASS: 267 archivos/1156 pruebas, typecheck/build/presupuesto correctos; lint 0 errores y 5 avisos previos. E2E torneos 8/8 móvil/escritorio claro/oscuro con Axe. Nuevo primer hito incompleto T03. Contratos integrados sin activar opciones aún incompatibles con SQL; no hay migraciones nuevas ni despliegue.
 
+## Torneos integrales — T03 checkpoint (24/10/2026)
+
+Duplicación independiente sobre el formulario actual y POST existente, protegida por creador; participantes y cuentas conservados sin copiar resultados/progreso. 22 tests pasan; tipos, lint e i18n correctos, E2E móvil claro/oscuro en curso. Sin migración ni operaciones remotas. Hito T03 sigue abierto.
+
+## Torneos integrales — T03 duplicación validada (24/10/2026)
+
+23 pruebas unitarias/API y dos E2E móviles claro/oscuro PASS, tipos/lint/i18n correctos. Copia independiente mediante formulario existente con original intacto. Limitación SQL detectada: cuentas vinculadas solo por invitación necesitan extensión futura, no se amplían permisos ficticiamente en TS. T03 permanece abierto; siguiente paso persistencia/configuración ampliada y pruebas de DB aisladas.
+

@@ -134,6 +134,35 @@ describe("rapid tournament creator routes", () => {
     expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("p_matches")
   })
 
+  it("denies copying another organizer's tournament before writing", async () => {
+    mocks.maybeSingle.mockResolvedValueOnce({ data: null, error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Copia", startsAt: "2027-01-01T09:00:00Z", players: names,
+      courtNames: ["Pista 1", "Pista 2"], duplicateOf: tournamentId,
+    }))
+    expect(response.status).toBe(404)
+    expect(mocks.rpc).not.toHaveBeenCalled()
+  })
+
+  it("keeps permitted account links after authorizing the original creator", async () => {
+    const userId = "5b028680-92f9-4cc3-80a6-59e34fab0529"
+    const query = {
+      select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), maybeSingle: mocks.maybeSingle,
+      then: (resolve: (value: unknown) => void) => Promise.resolve({ data: [{ user_id: userId, full_name: "Ana vinculada" }], error: null }).then(resolve),
+    }
+    const actor = { supabase: { from: vi.fn(() => query), rpc: mocks.rpc }, user: { id: "creator-uuid" } }
+    mocks.auth.mockResolvedValue({ ok: true, actor })
+    people.selectable.mockResolvedValue({ people: [{ userId, displayName: "Ana vinculada" }], error: null })
+    mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Copia", startsAt: "2027-01-01T09:00:00Z", players: names,
+      courtNames: ["Pista 1", "Pista 2"], duplicateOf: tournamentId, format: "dynamic_mexicano",
+      playerUserIds: [userId, ...Array(11).fill(null)],
+    }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_dynamic_mexicano_tournament", expect.objectContaining({ p_player_names: ["Ana vinculada", ...names.slice(1)] }))
+  })
+
   it.each([8, 10, 16])("creates a %i-player tournament with canonical registered names", async (count) => {
     const userId = "5b028680-92f9-4cc3-80a6-59e34fab0529"
     people.selectable.mockResolvedValue({ people: [{ userId, displayName: "Nombre registrado" }], error: null })

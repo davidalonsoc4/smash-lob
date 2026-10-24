@@ -112,6 +112,11 @@ export function RapidTournamentSettings({ tournamentId }: { tournamentId: string
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Configura los sonidos y avisos que usarás durante el seguimiento de este torneo.")}</p>
         <Link href={`/settings/sounds?returnTo=${encodeURIComponent(`/tournaments/${tournamentId}/settings`)}`} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-center text-sm font-black text-neutral-900 active:bg-neutral-100">{tx("Sonidos y avisos")}</Link>
       </AppCard>
+      {isCreator ? <AppCard accentStrip>
+        <p className="type-panel-title font-black">{tx("Duplicar torneo")}</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Reutiliza los participantes y la configuración en un torneo independiente. Los resultados no se copian.")}</p>
+        <Link href={`/tournaments/new?duplicateOf=${encodeURIComponent(tournamentId)}`} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-center text-sm font-black text-neutral-900 active:bg-neutral-100">{tx("Duplicar torneo")}</Link>
+      </AppCard> : null}
       <AppCard className="border-red-200 bg-red-50">
         <p className="type-panel-title font-black text-red-950">{tx("Zona sensible")}</p>
         {isCreator ? <>

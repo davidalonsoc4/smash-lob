@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { getLeagueLocationOptionLabel, sortLeagueLocationsByOptionLabel, type LeagueLocation } from "@/lib/leagueLocations"
 import { buildRapidRounds, getRapidActiveCourtCount, getRapidPreparationMax, getRapidRoundCount, validateRapidTournamentConfiguration, validateTournamentParticipants } from "@/lib/rapidTournament"
 import styles from "./Tournament.module.css"
+import { tournamentDraftFromCopy, type TournamentDraft } from "@/lib/tournamentDraft"
 type TournamentPerson = { userId: string; displayName: string }
 type LeagueRosterPerson = { playerId: string; displayName: string; userId: string | null }
 const fieldClass = styles.field
@@ -31,22 +32,25 @@ function uniqueLocationOptions(locations: LeagueLocation[]) {
     return true
   })
 }
-export function RapidTournamentCreateForm({ initialSource = null }: { initialSource?: { leagueId: string; seasonId: string; leagueName?: string } | null }) {
+export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }: { initialSource?: { leagueId: string; seasonId: string; leagueName?: string } | null; duplicateOf?: string }) {
   const { tx, locale } = useI18n()
   const router = useRouter()
+  const [initialDraft, setInitialDraft] = useState<TournamentDraft>()
+  const [copyLoading, setCopyLoading] = useState(Boolean(duplicateOf))
+  const [copyError, setCopyError] = useState(false)
   const [initial] = useState(defaultStart)
-  const [name, setName] = useState(() => initialSource?.leagueName ? `TORNEO RÁPIDO DE ${initialSource.leagueName}` : "TORNEO RÁPIDO")
+  const [name, setName] = useState(() => initialDraft?.name ?? (initialSource?.leagueName ? `TORNEO RÁPIDO DE ${initialSource.leagueName}` : "TORNEO RÁPIDO"))
   const nameEdited = useRef(false)
-  const [description, setDescription] = useState("")
-  const [format, setFormat] = useState<"balanced_americana" | "dynamic_mexicano">("balanced_americana")
+  const [description, setDescription] = useState(initialDraft?.description ?? "")
+  const [format, setFormat] = useState<"balanced_americana" | "dynamic_mexicano">(initialDraft?.format ?? "balanced_americana")
   const [date, setDate] = useState(initial.date)
   const [time, setTime] = useState(initial.time)
-  const [playerCount, setPlayerCount] = useState(12), [courtCount, setCourtCount] = useState(2), [reservationMinutes, setReservationMinutes] = useState(120), [preparationMinutes, setPreparationMinutes] = useState(2)
+  const [playerCount, setPlayerCount] = useState(initialDraft?.players.length ?? 12), [courtCount, setCourtCount] = useState(initialDraft?.courtNames.length ?? 2), [reservationMinutes, setReservationMinutes] = useState(initialDraft?.reservationMinutes ?? 120), [preparationMinutes, setPreparationMinutes] = useState(initialDraft?.preparationMinutes ?? 2)
   const [locations, setLocations] = useState<LeagueLocation[]>([])
   const [locationId, setLocationId] = useState("")
   const [locationsLoading, setLocationsLoading] = useState(true)
-  const [players, setPlayers] = useState(Array<string>(16).fill(""))
-  const [playerUserIds, setPlayerUserIds] = useState(Array<string | null>(16).fill(null))
+  const [players, setPlayers] = useState(() => Array.from({ length: 16 }, (_, i) => initialDraft?.players[i] ?? ""))
+  const [playerUserIds, setPlayerUserIds] = useState(() => Array.from({ length: 16 }, (_, i) => initialDraft?.playerUserIds[i] ?? null))
   const [people, setPeople] = useState<TournamentPerson[]>([])
   const [peopleLoading, setPeopleLoading] = useState(true)
   const [accountLinkingAvailable, setAccountLinkingAvailable] = useState(false)
@@ -55,6 +59,26 @@ export function RapidTournamentCreateForm({ initialSource = null }: { initialSou
   const [sourcePlayers, setSourcePlayers] = useState<LeagueRosterPerson[]>([]), [selectedSourcePlayerIds, setSelectedSourcePlayerIds] = useState<string[]>([]), [sourceLoading, setSourceLoading] = useState(Boolean(initialSource)), [sourceError, setSourceError] = useState("")
   const [saving, setSaving] = useState(false), [error, setError] = useState("")
   const [nowTimestamp, setNowTimestamp] = useState(() => Date.now())
+  useEffect(() => {
+    if (!duplicateOf) return
+    const controller = new AbortController()
+    fetch(`/api/tournaments/${encodeURIComponent(duplicateOf)}`, { cache: "no-store", signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error("copy_unavailable")
+        const data = await response.json()
+        if (data.access?.role !== "creator") throw new Error("copy_forbidden")
+        if (controller.signal.aborted) return
+        const draft = tournamentDraftFromCopy(data)
+        setInitialDraft(draft); setName(draft.name); setDescription(draft.description); setFormat(draft.format)
+        setPlayerCount(draft.players.length); setCourtCount(draft.courtNames.length)
+        setReservationMinutes(draft.reservationMinutes); setPreparationMinutes(draft.preparationMinutes)
+        setPlayers(Array.from({ length: 16 }, (_, i) => draft.players[i] ?? ""))
+        setPlayerUserIds(Array.from({ length: 16 }, (_, i) => draft.playerUserIds[i] ?? null))
+      })
+      .catch(() => { if (!controller.signal.aborted) setCopyError(true) })
+      .finally(() => { if (!controller.signal.aborted) setCopyLoading(false) })
+    return () => controller.abort()
+  }, [duplicateOf])
   useEffect(() => {
     const timer = window.setInterval(() => setNowTimestamp(Date.now()), 60_000)
     return () => window.clearInterval(timer)
@@ -102,7 +126,7 @@ export function RapidTournamentCreateForm({ initialSource = null }: { initialSou
     .filter((person) => !normalizedPeopleQuery || person.displayName.toLocaleLowerCase(locale === "eu" ? "eu" : locale === "en" ? "en" : "es").includes(normalizedPeopleQuery))
     .slice(0, 8)
   const selectedLocation = locations.find((location) => location.id === locationId) ?? null
-  const courtNames = Array.from({ length: courtCount }, (_, index) => `${selectedLocation ? `${getLeagueLocationOptionLabel(selectedLocation)} · ` : ""}${tx("Pista")} ${index + 1}`)
+  const courtNames = Array.from({ length: courtCount }, (_, index) => !selectedLocation && initialDraft?.courtNames[index] ? initialDraft.courtNames[index] : `${selectedLocation ? `${getLeagueLocationOptionLabel(selectedLocation)} · ` : ""}${tx("Pista")} ${index + 1}`)
   const startsAt = localDateTime(date, time)
   const roundCount = getRapidRoundCount(reservationMinutes), activeCourtCount = getRapidActiveCourtCount(playerCount, courtCount), preparationMax = getRapidPreparationMax(reservationMinutes), effectivePreparationMinutes = Math.min(preparationMinutes, preparationMax), configurationValidation = validateRapidTournamentConfiguration(playerCount, courtCount, reservationMinutes), rounds = startsAt && Number.isFinite(startsAt.getTime()) ? buildRapidRounds(new Date(startsAt.getTime() + effectivePreparationMinutes * 60_000), { rounds: roundCount, roundMinutes: 16, transitionMinutes: 3 }) : []
   const formatTimeRange = (minimum: number, maximum: number) => `${minimum}${minimum === maximum ? "" : `–${maximum}`}`
@@ -111,12 +135,12 @@ export function RapidTournamentCreateForm({ initialSource = null }: { initialSou
   const dateFormat = new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { dateStyle: "medium" })
   const timeFormat = new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { hour: "2-digit", minute: "2-digit" })
   const duplicateMessage = !participants.ok && participants.error === "duplicate_player_names"
-  const ready = Boolean(name.trim() && startsAt && startsAt.getTime() > nowTimestamp && configurationValidation.ok && participants.ok && (!source || (!sourceLoading && !sourceError && selectedSourcePlayers.length <= playerCount)))
+  const ready = Boolean(!copyLoading && !copyError && name.trim() && startsAt && startsAt.getTime() > nowTimestamp && configurationValidation.ok && participants.ok && (!source || (!sourceLoading && !sourceError && selectedSourcePlayers.length <= playerCount)))
   async function createTournament() {
     if (!ready || !startsAt) return
     setSaving(true); setError("")
     try {
-      const response = await fetch("/api/tournaments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, description, startsAt: startsAt.toISOString(), courtNames, players: formPlayers, playerUserIds: formPlayerUserIds, playerCount, reservationMinutes, preparationMinutes: effectivePreparationMinutes, format, source: source ? { ...source, playerIds: selectedSourcePlayers.map((player) => player.playerId) } : null }) })
+      const response = await fetch("/api/tournaments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, description, startsAt: startsAt.toISOString(), courtNames, players: formPlayers, playerUserIds: formPlayerUserIds, playerCount, reservationMinutes, preparationMinutes: effectivePreparationMinutes, format, duplicateOf: initialDraft?.duplicateOf, source: source ? { ...source, playerIds: selectedSourcePlayers.map((player) => player.playerId) } : null }) })
       const result = await response.json().catch(() => null)
       if (!response.ok || typeof result?.id !== "string") {
         const message = result?.error === "duplicate_player_names" ? "Hay nombres de jugadores duplicados." : result?.error === "invalid_player_count" ? "Elige entre ocho y dieciséis jugadores y completa todos los nombres." : result?.error === "tournament_account_access_not_ready" ? "La selección de cuentas todavía no está activada. Puedes completar las plazas escribiendo los nombres manualmente." : "No se ha podido crear el torneo. Revisa los datos e inténtalo de nuevo."
@@ -141,7 +165,9 @@ export function RapidTournamentCreateForm({ initialSource = null }: { initialSou
   }
   const locked = (label: string, value: string, explanation: string) => <div className={styles.optionRow} aria-disabled="true"><p>{label}</p><p className={styles.value}>{value}</p>{explanation ? <small>{explanation}</small> : null}</div>
   const filledPlayers = formPlayers.filter((player) => player.trim()).length
+  if (copyLoading || copyError) return <div className={`${styles.theme} ${styles.page}`}><Link href="/leagues" className="app-top-back-control">{tx("Competiciones")}</Link><p role={copyError ? "alert" : "status"}>{tx(copyError ? "No se ha podido cargar este torneo o no tienes acceso." : "Cargando ajustes del torneo…")}</p></div>
   return <div className={`${styles.theme} ${styles.page}`}>
+    {initialDraft ? <p role="status" className="rounded-xl bg-neutral-100 p-3 text-sm text-neutral-700">{tx("Revisa la copia y elige una nueva fecha. Los resultados y el progreso empezarán de cero.")}</p> : null}
     <header className={`app-page-header ${styles.header}`}><Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500"><span aria-hidden="true" className="mr-1 inline-block">←</span>{tx("Competiciones")}</Link><h1 className={`type-page-title font-black ${styles.headerTitle}`}>{tx("Crear torneo rápido")}</h1></header>
     <section aria-labelledby="tournament-mode"><details open className={`${styles.panel} ${styles.section}`}><summary id="tournament-mode"><span className={styles.step} aria-hidden="true">1</span>{tx("Modalidad de torneo")}</summary><div className={styles.sectionBody}>
       <label className="block space-y-1"><span className="text-sm font-bold">{tx("Modalidad")}</span><SelectChevron><select className={`${fieldClass} ${styles.selectField}`} defaultValue="rapid" aria-describedby="tournament-mode-help"><option value="rapid">{tx("Torneo rápido")} · {tx("Activo")}</option><option value="traditional" disabled>{tx("Torneo tradicional")} · {tx("Disponible próximamente")}</option></select></SelectChevron></label>

@@ -24,3 +24,4 @@
 5. Un torneo no tiene temporadas. Liga/temporada origen son procedencia; identidad de cuenta global, nombres manuales vinculables mediante invitación existente.
 6. Ningún push/merge ni PRE/PROD autorizado para este objetivo. Commits locales sí; pruebas aisladas sin cuentas personales.
 7. Auto-Resume no es un ejecutor continuo de objetivos: su watcher recupera este chat tras fallos clasificados, sujeto a límites y a que el chat esté abierto. El plan y los checkpoints son la fuente de reanudación.
+8. Duplicar usa un borrador editable con una nueva creación, no copia filas de resultados ni reinicia el torneo original. El servidor exige propiedad del origen incluso si se manipula la URL; por ahora mantiene las restricciones del directorio permitido. Las RPC existentes requieren liga compartida para las cuentas; admitir cuentas vinculadas solo por invitación necesita ampliación SQL antes de dar la duplicación por completa.

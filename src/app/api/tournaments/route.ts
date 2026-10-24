@@ -9,11 +9,12 @@ import { getRapidTournamentSelectablePeople } from "@/lib/serverRapidTournamentP
 import { getServerLeagueViewer } from "@/lib/serverLeagueAccess"
 import { getTournamentLeagueRoster } from "@/lib/serverTournamentLeagueRoster"
 import { planRapidTournament } from "@/lib/tournamentConfiguration"
+import { requireRapidTournamentCreator } from "@/lib/serverRapidTournaments"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 const isMissingAccountLinkSchema = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "42703" || error.code === "PGRST204") && /user_id/i.test(error.message ?? ""))
 const isMissingFlexibleCreateRpc = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "PGRST202" || error.code === "42883") && /create_rapid_tournament_flexible/i.test(error.message ?? ""))
-type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; format?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
+type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; format?: unknown; duplicateOf?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
 export async function GET(request: Request) {
   const rateLimited = await enforceRequestRateLimit({ request, scope: "rapid_tournaments_list", limit: 120, windowMs: 60_000 })
   if (rateLimited) return rateLimited
@@ -56,6 +57,11 @@ export async function POST(request: Request) {
   }
   const accountIds = playerUserIds.map((id) => typeof id === "string" ? validateUuid(id) : null), linkedIds = accountIds.filter((id): id is string => Boolean(id))
   if (new Set(linkedIds).size !== linkedIds.length) return NextResponse.json({ error: "duplicate_player_accounts" }, { status: 400 })
+  if (body.duplicateOf !== undefined) {
+    if (body.source) return NextResponse.json({ error: "invalid_tournament_source" }, { status: 400 })
+    const copied = await requireRapidTournamentCreator(body.duplicateOf)
+    if (!copied.ok) return NextResponse.json({ error: copied.error }, { status: copied.status })
+  }
   const sourceLeagueId = validateUuid(body?.source?.leagueId), sourceSeasonId = validateUuid(body?.source?.seasonId)
   const sourcePlayerIds = Array.isArray(body?.source?.playerIds) ? body.source.playerIds.map((id) => validateUuid(id)) : []; let canonicalNames = participants.ok ? participants.names : []
   if (Boolean(sourceLeagueId) !== Boolean(sourceSeasonId) || (body?.source && (!sourceLeagueId || !sourceSeasonId || sourcePlayerIds.length > playerCount || sourcePlayerIds.some((id) => !id) || new Set(sourcePlayerIds).size !== sourcePlayerIds.length))) return NextResponse.json({ error: "invalid_tournament_source" }, { status: 400 })

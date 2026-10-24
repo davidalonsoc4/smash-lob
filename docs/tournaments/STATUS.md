@@ -26,3 +26,12 @@ Siguiente paso T02: contratos y validación compartida de puntuación/configurac
 T02 cerrado: validate completo PASS (267 archivos, 1156 tests; lint 0 errores/5 warnings preexistentes; typecheck/build/presupuestos correctos). E2E 8/8 torneos móvil/escritorio, claro/oscuro, incluye Axe. Se reutilizan los adaptadores y componentes existentes; no extraer presentaciones adicionales hasta que una vista nueva las necesite. No hay nuevas modalidades visibles aún.
 
 Siguiente T03: ampliar persistencia/configuración y flujo guiado de forma compatible, con pruebas SQL aisladas. Es un hito grande y seguirá abierto hasta cubrir identidad, origen, duplicación, parejas y preview integrado.
+
+## T03 checkpoint — duplicación independiente
+
+- Ajustes ofrece Duplicar torneo al creador. Formulario existente precargado con participantes/cuentas, formato, reserva, calentamiento y nombres de pistas; fecha futura por defecto revisable. Sin copiar resultados, estado, inicio real ni progreso; no arrastra una temporada de torneo.
+- GET sigue el permiso existente; interfaz rechaza rol participante y POST vuelve a exigir creador del torneo original. Los vínculos copiados se validan contra el directorio disponible, conservando las restricciones SQL de creación.
+- 22 tests de borrador/API pasan, tipos/lint/i18n y fuente correctos. E2E móvil claro/oscuro con creación de copia independiente en curso (terminal 2700).
+- T03 no completo. RPC actuales requieren liga compartida para vincular cuentas: la copia de cuentas vinculadas solo por invitación aún necesita ampliación SQL. No conceder ese permiso solo en TypeScript, porque SQL lo rechazaría. Próximo: terminar E2E y checkpoint/commit; ampliar parámetros/esquema con tests DB aislados. No desbloquear formatos todavía no integrados.
+
+Checkpoint de duplicación validado: 23 tests unitarios/API, tipos, lint e i18n correctos; dos E2E móviles claro/oscuro PASS incluyendo crear copia, doce resultados pendientes y original finalizado intacto. Los intentos iniciales fallaron por selectores del test (status ambiguo, ruta esperada sin /calendar y Borrador no aislado del metadato); corregidos sin cambiar el flujo existente. Build de Playwright correcto. Guardar commit local y seguir T03 por persistencia configurable y compatibilidad SQL, todavía sin cerrar el hito.
