@@ -3103,3 +3103,7 @@ Descansos T04: validate PASS 272 archivos/1235 tests, móvil mixto 9/9 y matriz 
 
 Última comprobación de resumen/pausa 4/4 móvil PASS, tipos/lint y 24 tests focalizados correctos; se precisó el selector de Seguimiento al existir acceso de tarjeta y navbar. Validate de descansos 1235 tests, SQL de trece migraciones y E2E 9/9 más 8/8 correctos. Americana/Mexicano × parejas fijas/rotativas integrados con configuración y pausas, sin datos remotos. Primer hito incompleto T05; el objetivo integral continúa por tradicionales, sin declarar terminadas las reglas/roles/economía/integración global pendientes.
 
+### T05 — motores tradicionales, primer checkpoint
+
+Cuadros, grupos y mixto puros hasta 24 jugadores por parejas fijas, semillas/byes/manual, tercer puesto/consolación y calendarios manuales/automáticos. Protege resultados ya disputados y empates ambiguos de clasificación. 122 tests focalizados, tipos/lint/fuente PASS; matriz mixta ampliada en curso. Presupuesto fuente +450 para dos módulos nuevos, sin clientes/dependencias. Sin migración/API/UI todavía; opciones siguen bloqueadas, T05 permanece abierto. Próximo paso y decisiones en docs/tournaments/STATUS.md. Sin PRE/PROD.
+
