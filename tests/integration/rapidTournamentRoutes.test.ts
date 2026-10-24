@@ -112,6 +112,24 @@ describe("rapid tournament creator routes", () => {
     )
   })
 
+  it.each(["knockout","groups","groups_knockout"])("creates %s through traditional persistence while retaining the shared roster",async format=>{
+    mocks.rpc.mockResolvedValueOnce({data:tournamentId,error:null})
+    const response=await createTournament(request("/api/tournaments",{name:"Tradicional",startsAt:"2027-01-01T09:00:00Z",courtNames:["Uno","Dos"],players:names.slice(0,8),pairing:"fixed",pairNumbers:[1,1,2,2,3,3,4,4],format,roundMinutes:30,transitionMinutes:5,traditional:{groupCount:format==="knockout"?0:2,qualifiersPerGroup:format==="groups_knockout"?1:0,thirdPlace:false,consolation:false}}))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_traditional_tournament",expect.objectContaining({p_player_names:names.slice(0,8),p_player_pair_numbers:[1,1,2,2,3,3,4,4],p_draw:expect.objectContaining({configuration:expect.objectContaining({format})}),p_match_minutes:30,p_transition_minutes:5}))
+    expect(mocks.rpc.mock.calls[0][1].p_schedule.length).toBeGreaterThan(0)
+  })
+
+  it("supports a manually scheduled traditional draw and rejects impossible or rotating entries",async()=>{
+    const body={name:"Manual",startsAt:"2027-01-01T09:00:00Z",courtNames:["Uno"],players:names.slice(0,8),pairing:"fixed",pairNumbers:[1,1,2,2,3,3,4,4],format:"knockout",roundMinutes:30,traditional:{groupCount:0,qualifiersPerGroup:0,thirdPlace:false,consolation:false,scheduleMode:"manual"}}
+    mocks.rpc.mockResolvedValueOnce({data:tournamentId,error:null})
+    expect((await createTournament(request("/api/tournaments",body))).status).toBe(201)
+    expect(mocks.rpc.mock.calls[0][1].p_schedule).toEqual([])
+    mocks.rpc.mockClear()
+    for(const changed of [{...body,pairing:"rotating"},{...body,traditional:{...body.traditional,thirdPlace:true,consolation:true}},{...body,courtNames:[]},{...body,roundMinutes:0}])expect((await createTournament(request("/api/tournaments",changed))).status).toBe(400)
+    expect(mocks.rpc).not.toHaveBeenCalled()
+  })
+
   it("accepts only supported rapid tournament sizes, courts, booking times and preparation windows", async () => {
     mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
     const base = { name: "Americana flexible", startsAt: "2026-10-17T07:00:00Z", players: Array.from({ length: 8 }, (_, index) => `Jugador ${index + 1}`) }

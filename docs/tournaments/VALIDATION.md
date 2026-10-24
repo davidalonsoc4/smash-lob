@@ -2,6 +2,10 @@
 
 ## Evidencia inicial
 
+T05 API backend (parcial): `npm run validate` PASS, 276 archivos/1398 tests, typecheck, lint 0 errores/cinco avisos previos y build/budgets 1227165 bytes gzip/103 chunks. Log `.quality-artifacts/tournaments-t05-backend-validate.log`. Tres pruebas posteriores de mapeo/privacidad y 81 de API/adaptador/servidor PASS; inventario 112 rutas/157 métodos y fuente 136439/136450 PASS. E2E de regresiones rápidas móvil en curso, sin afirmar tradicionales visibles o hito completo.
+
+Regresión backend T05 confirmada: `npx playwright test tests/e2e/rapid-tournament.spec.ts tests/e2e/fixed-tournament.spec.ts --project=mobile-chromium --workers=2` PASS 9/9, claro/oscuro y ambos formatos/parejas, incluyendo Axe y flujo de creación hasta campeón/copia. Log `.quality-artifacts/tournaments-t05-backend-e2e.log`. Último typecheck PASS tras añadir mapeo; no es todavía E2E de la interfaz tradicional, pendiente.
+
 T05 persistencia (parcial): `npm run database:tournaments` PASS con 14 migraciones y datos sintéticos, ahora incluye los tres tradicionales hasta final, fuentes/participantes/resultados, terceros/consolación, byes, 24 jugadores/66 partidos, empates explícitos, conflictos/revisión/aislamiento y rollback. Nueva tabla con RLS e invoker/search_path comprobados. Las RPC legacy de estado rechazan tradicional; ninguna migración remota aplicada. Motor/regresiones siguen 194 tests PASS. Sin E2E tradicional todavía: UI no habilitada, T05 abierto.
 
 T05 motor (parcial): 194 tests/4 archivos PASS con `npx vitest run tests/unit/traditionalTournament.test.ts tests/unit/fixedRapidTournament.test.ts tests/unit/tournamentConfiguration.test.ts tests/unit/dynamicMexicano.test.ts`. Incluye 130 casos tradicionales, todas las combinaciones mixtas viables hasta doce parejas, semifinales/consolación/byes, empates, identidad de resultados y calendario sin solapamientos; 64 regresiones de rápidos/planificador. TypeScript, ESLint focalizado, fuente (136251/136450 líneas) y diff PASS. Sin migración ni interfaz tradicional en este checkpoint, por tanto no afirmar SQL/E2E de tradicionales ni T05 completo.

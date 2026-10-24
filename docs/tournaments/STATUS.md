@@ -142,3 +142,16 @@ Matriz ampliada confirmada: 194 tests/4 archivos PASS (130 tradicionales), inclu
 - T05 abierto: falta conectar API común, creación, calendario/clasificaciones/seguimiento y E2E. No activar el selector tradicional hasta integrar y validar.
 
 Siguiente: guardar persistencia tras lint/migraciones/diff; añadir adaptador servidor de estado y comandos tradicionales (resultado/sorteo/calendario/empate/inicio/fin con revisión), reutilizando autenticación/rutas/permisos actuales. Después integrar formulario y vistas, validar móvil y cerrar T05 solo con recorrido completo.
+
+## T05 checkpoint — API común tradicional
+
+- Persistencia guardada en `3351609b`. POST `/api/tournaments` acepta los tres formatos tradicionales, exige parejas fijas y reutiliza toda la validación canónica de origen/cuentas/copia/roster. Genera cuadro y planificación automática o manual mediante los motores, sin aceptar un grafo arbitrario del cliente.
+- GET existente añade estado tradicional cuando corresponda; lectura decodifica JSONB y reconstruye el cuadro canónico. PATCH `/api/tournaments/[id]/traditional` valida creador, revisión y comandos de sorteo/inicio/resultados/calendario/desempate/final. SQL repite permisos/estado/revisión; corrección incompatible, final pendiente, empates eliminatorios, datos malformados y estado finalizado se rechazan.
+- Reinicio rápido para pruebas no se anuncia en tradicionales mientras no tenga implementación propia. Creación tradicional todavía NO activada en formulario; falta presentar las vistas nuevas y E2E antes de ofrecerla.
+- 211 tests/5 archivos PASS (motores, JSONB, servidor, API clásica y nueva), tipos y lint focalizado PASS, inventario API 112 rutas/157 métodos y fuente 136439/136450 PASS; el presupuesto anterior cubre el adaptador sin ampliación adicional, sin nuevos clientes/dependencias. Validate completo en curso: `.quality-artifacts/tournaments-t05-backend-validate.log`, terminal 32499; no cerrar ni comprometer gates antes de confirmar.
+
+Siguiente: confirmar validate y guardar API. Integrar tradicionales en el formulario común y las cinco rutas actuales con editor de resultado compartido, orden manual/semillas, tabla de grupos/cuadro, edición de calendario y mensajes de empate claros. Añadir traducciones y E2E de los tres recorridos, sin alterar rápidos/ligas.
+
+Validate backend confirmado PASS: 276 archivos/1398 tests, TypeScript, lint 0 errores/cinco avisos preexistentes, build/presupuestos correctos (1227165 bytes gzip/103 chunks). Añadidas tres pruebas de mapeo de lectura/privacidad: 84 pruebas de adaptador/servidor/API PASS tras mockear autenticación en el nuevo test para no cargar NextAuth real en Vitest. E2E de regresión rápida móvil en curso, terminal 48043, log `.quality-artifacts/tournaments-t05-backend-e2e.log`. No dar por verificados UI/E2E tradicionales todavía.
+
+Checkpoint API validado: E2E móvil 9/9 PASS, Americana/Mexicano fijos y rotativos, claro/oscuro, copia/origen/24 jugadores/directo y resultados. Último typecheck (incluye nuevos tests de mapeo) PASS. Auto-Resume habilitado, watcher activo y cero recuperaciones pendientes. Guardar API como commit local y continuar con presentación/creación tradicional; no repetir motores/persistencia y no cerrar T05 con backend solamente.

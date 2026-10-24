@@ -3109,3 +3109,9 @@ Cuadros, grupos y mixto puros hasta 24 jugadores por parejas fijas, semillas/bye
 
 T05 persistencia parcial: 194 pruebas de motores/regresiones PASS; PostgreSQL aislado 14 migraciones PASS con tres tradicionales completos, byes, grupo de 24 jugadores, revisión concurrente y permisos/rollback/correcciones protegidos. Nueva migración aditiva solo local; identidad, roster, fuentes e invitaciones compartidas. Sin API/UI integrada todavía, no cerrar T05 ni anunciar disponible. Estado y siguiente acción detallados en docs/tournaments/STATUS.md.
 
+T05 API parcial: creación/lectura común y PATCH tradicional con revisión, motor canónico, autoría y validación de resultados/calendario/empates; 211 tests/5 archivos, tipos/lint focalizado e inventario/fuente PASS. Validate completo en curso (terminal/log en docs/tournaments/STATUS). Sin formulario/vistas tradicionales visibles ni E2E aún, hito abierto. Sin operaciones remotas.
+
+Backend T05 validate confirmado: 1398 tests/276 archivos PASS, tipos/lint/build/presupuestos correctos; tres tests adicionales de lectura/privacidad PASS. E2E rápidos móvil en curso, detalles en STATUS de torneos. Se conserva el presupuesto fuente anterior (136439/136450); no nuevas dependencias/clientes. T05 no cerrado y sin PRE/PROD.
+
+E2E backend T05: regresiones rápidas móvil 9/9 PASS y último typecheck PASS. Auto-Resume sigue habilitado con watcher y cero pendientes. Guardar checkpoint y continuar T05 por formulario/presentación/E2E tradicionales; todavía no disponible en UI ni completo. Sin cambios remotos.
+

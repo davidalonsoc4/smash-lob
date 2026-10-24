@@ -12,11 +12,13 @@ import { getRecommendedRapidRounds, planRapidTournament } from "@/lib/tournament
 import { requireRapidTournamentCreator } from "@/lib/serverRapidTournaments"
 import { normalizeStoredImageUrl } from "@/lib/serverImageValidation"
 import { fixedTeamsFromPlayers, generateFixedAmericanaFixtures } from "@/lib/fixedRapidTournament"
+import { buildTraditionalDraw, type TraditionalFormat, type TraditionalPlan } from "@/lib/traditionalTournament"
+import { buildTraditionalSchedule, type TraditionalScheduleEntry } from "@/lib/traditionalTournamentSchedule"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 const isMissingAccountLinkSchema = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "42703" || error.code === "PGRST204") && /user_id/i.test(error.message ?? ""))
 const isMissingFlexibleCreateRpc = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "PGRST202" || error.code === "42883") && /create_rapid_tournament_flexible/i.test(error.message ?? ""))
-type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; roundCount?: unknown; roundMinutes?: unknown; transitionMinutes?: unknown; breakMinutes?: unknown; breakEveryRounds?: unknown; logoUrl?: unknown; accentColor?: unknown; format?: unknown; pairing?: unknown; pairNumbers?: unknown; duplicateOf?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
+type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; roundCount?: unknown; roundMinutes?: unknown; transitionMinutes?: unknown; breakMinutes?: unknown; breakEveryRounds?: unknown; logoUrl?: unknown; accentColor?: unknown; format?: unknown; pairing?: unknown; pairNumbers?: unknown; duplicateOf?: unknown; traditional?: {groupCount?:number;qualifiersPerGroup?:number;thirdPlace?:boolean;consolation?:boolean;seededTeamIds?:string[];manualOrder?:string[];manualGroups?:string[][];scheduleMode?:"automatic"|"manual"}; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
 const numericOption = (value: unknown, fallback: number) => value === undefined ? fallback : typeof value === "number" ? value : NaN
 export async function GET(request: Request) {
   const rateLimited = await enforceRequestRateLimit({ request, scope: "rapid_tournaments_list", limit: 120, windowMs: 60_000 })
@@ -49,14 +51,15 @@ export async function POST(request: Request) {
   const playerCount = numericOption(body?.playerCount, Array.isArray(body?.players) ? body.players.length : 0)
   const reservationMinutes = numericOption(body?.reservationMinutes, 120)
   const roundMinutes = numericOption(body?.roundMinutes, 16), transitionMinutes = numericOption(body?.transitionMinutes, 3)
-  const preparationMinutes = numericOption(body?.preparationMinutes, 2)
+  const traditionalFormat = body?.format === "knockout" || body?.format === "groups" || body?.format === "groups_knockout" ? body.format : null
+  const preparationMinutes = traditionalFormat ? 0 : numericOption(body?.preparationMinutes, 2)
   const breakMinutes = numericOption(body?.breakMinutes,0), breakEveryRounds = numericOption(body?.breakEveryRounds,0)
   const roundCount = numericOption(body?.roundCount, breakMinutes > 0 ? getRecommendedRapidRounds(reservationMinutes,roundMinutes,transitionMinutes,preparationMinutes,{breakMinutes,breakEveryRounds}) : getRapidRoundCount(reservationMinutes))
-  const format = body?.format === "dynamic_mexicano" ? "dynamic_mexicano" : body?.format === undefined || body.format === "balanced_americana" ? "balanced_americana" : null
+  const format = traditionalFormat ?? (body?.format === "dynamic_mexicano" ? "dynamic_mexicano" : body?.format === undefined || body.format === "balanced_americana" ? "balanced_americana" : null)
   const pairing = body?.pairing === "fixed" ? "fixed" : body?.pairing === undefined || body.pairing === "rotating" ? "rotating" : null
-  const extended = pairing === "fixed" || body?.breakMinutes !== undefined || body?.breakEveryRounds !== undefined || body?.roundCount !== undefined || body?.roundMinutes !== undefined || body?.transitionMinutes !== undefined || body?.logoUrl !== undefined || body?.accentColor !== undefined || playerCount < 8 || playerCount > 16
+  const extended = Boolean(traditionalFormat) || pairing === "fixed" || body?.breakMinutes !== undefined || body?.breakEveryRounds !== undefined || body?.roundCount !== undefined || body?.roundMinutes !== undefined || body?.transitionMinutes !== undefined || body?.logoUrl !== undefined || body?.accentColor !== undefined || playerCount < 8 || playerCount > 16
   const configuration = { players: playerCount, courts: Array.isArray(body?.courtNames) ? body.courtNames.length : 0, reservationMinutes, rounds: roundCount, roundMinutes, transitionMinutes, preparationMinutes, breakMinutes, breakEveryRounds }
-  const configurationValidation = extended ? planRapidTournament({ ...configuration, pairing: pairing ?? "rotating" }) : validateRapidTournamentConfiguration(playerCount, configuration.courts, reservationMinutes)
+  const configurationValidation = traditionalFormat ? {ok:true as const} : extended ? planRapidTournament({ ...configuration, pairing: pairing ?? "rotating" }) : validateRapidTournamentConfiguration(playerCount, configuration.courts, reservationMinutes)
   const logoUrl = typeof body?.logoUrl === "string" ? normalizeStoredImageUrl(body.logoUrl) : null
   const accentColor = typeof body?.accentColor === "string" && /^#[0-9a-f]{6}$/i.test(body.accentColor) ? body.accentColor : null
   const courtNames = Array.isArray(body?.courtNames) ? body.courtNames.map((item) => normalizeBoundedText(item, 80)) : []
@@ -66,6 +69,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: !participants.ok ? participants.error : !configurationValidation.ok ? configurationValidation.error : "invalid_tournament_details" }, { status: 400 })
   }
   const pairNumbers: number[] = Array.isArray(body.pairNumbers) ? body.pairNumbers : []
+  if (traditionalFormat && (pairing !== "fixed" || courtNames.length<1 || !Number.isSafeInteger(roundMinutes) || roundMinutes < 1 || !Number.isSafeInteger(transitionMinutes) || transitionMinutes < 0)) return NextResponse.json({error:"invalid_traditional_configuration"},{status:400})
   if (pairing === "fixed") {
     try { if (pairNumbers.length !== playerCount) throw new Error("invalid_fixed_teams"); fixedTeamsFromPlayers(pairNumbers.map((pairNumber,index) => ({ id: RAPID_TOURNAMENT_SLOTS[index], pairNumber }))) }
     catch { return NextResponse.json({ error: "invalid_fixed_teams" }, { status: 400 }) }
@@ -109,10 +113,21 @@ export async function POST(request: Request) {
     canonicalNames = canonicalValidation.names
   }
   const entries = canonicalNames.map((playerName, index) => ({ name: playerName, userId: accountIds[index], pairNumber: pairNumbers[index] }))
+  let traditionalPlan: TraditionalPlan | null = null, traditionalSchedule: TraditionalScheduleEntry[] = []
+  if (traditionalFormat) {
+    const settings = body.traditional
+    if (!settings || typeof settings !== "object" || Array.isArray(settings) || settings.scheduleMode !== undefined && settings.scheduleMode !== "automatic" && settings.scheduleMode !== "manual") return NextResponse.json({error:"invalid_traditional_configuration"},{status:400})
+    try {
+      traditionalPlan = buildTraditionalDraw({ teams:fixedTeamsFromPlayers(entries.map((entry,index)=>({id:RAPID_TOURNAMENT_SLOTS[index],pairNumber:entry.pairNumber}))),
+        configuration:{format:traditionalFormat as TraditionalFormat,groupCount:settings.groupCount ?? (traditionalFormat==="knockout"?0:2),qualifiersPerGroup:settings.qualifiersPerGroup ?? (traditionalFormat==="groups_knockout"?1:0),thirdPlace:settings.thirdPlace ?? false,consolation:settings.consolation ?? false},
+        seed:randomInt(1,2147483647),seededTeamIds:settings.seededTeamIds,manualOrder:settings.manualOrder,manualGroups:settings.manualGroups })
+      if (settings.scheduleMode!=="manual") traditionalSchedule=buildTraditionalSchedule(traditionalPlan,{startsAt,courts:courtNames.length,matchMinutes:roundMinutes,transitionMinutes})
+    } catch { return NextResponse.json({error:"invalid_traditional_configuration_or_draw"},{status:400}) }
+  }
   const shuffled = format === "balanced_americana" && pairing === "rotating" ? shuffleTournamentEntries(entries) : entries
-  const plan = planRapidTournament({ ...configuration, pairing })
+  const plan = traditionalPlan ? {ok:true as const} : planRapidTournament({ ...configuration, pairing })
   if (!plan.ok) return NextResponse.json({ error: plan.error }, { status: 400 })
-  const rounds = buildRapidRounds(new Date(Date.parse(startsAt) + preparationMinutes * 60_000), configuration)
+  const rounds = traditionalPlan ? [] : buildRapidRounds(new Date(Date.parse(startsAt) + preparationMinutes * 60_000), configuration)
   const seed = randomInt(1,2_147_483_647)
   const fixtures = format !== "balanced_americana" ? [] : pairing === "fixed"
     ? generateFixedAmericanaFixtures(fixedTeamsFromPlayers(entries.map((entry,index) => ({ id: RAPID_TOURNAMENT_SLOTS[index], pairNumber: entry.pairNumber }))), courtNames.length, roundCount, seed).map(match => ({ round: match.round, court: match.court, teamA: match.teamAIds, teamB: match.teamBIds }))
@@ -127,7 +142,11 @@ export async function POST(request: Request) {
     p_reservation_minutes: reservationMinutes, p_preparation_minutes: preparationMinutes, p_round_count: roundCount,
     p_rounds: rounds.map((round) => ({ round_number: round.round, starts_at: round.startsAt, ends_at: round.endsAt })),
   }
-  const result = extended ? await auth.actor.supabase.rpc(breakMinutes > 0 ? "create_planned_rapid_tournament" : pairing === "fixed" ? "create_fixed_rapid_tournament" : "create_configurable_rapid_tournament", {
+  const result = traditionalPlan ? await auth.actor.supabase.rpc("create_traditional_tournament",{
+    p_creator_user_id:auth.actor.user.id,p_name:name,p_description:description,p_starts_at:startsAt,p_court_names:courtNames,
+    p_player_names:canonicalNames,p_player_user_ids:accountIds,p_player_pair_numbers:pairNumbers,p_draw:traditionalPlan,p_schedule:traditionalSchedule,
+    p_match_minutes:roundMinutes,p_transition_minutes:transitionMinutes,p_duplicate_of:validateUuid(body.duplicateOf),p_source_league_id:sourceLeagueId,p_source_season_id:sourceSeasonId,p_logo_url:logoUrl,p_accent_color:accentColor,
+  }) : extended ? await auth.actor.supabase.rpc(breakMinutes > 0 ? "create_planned_rapid_tournament" : pairing === "fixed" ? "create_fixed_rapid_tournament" : "create_configurable_rapid_tournament", {
     p_creator_user_id: auth.actor.user.id, p_name: name, p_description: description, p_starts_at: startsAt,
     p_court_names: courtNames, p_player_names: shuffled.map(entry => entry.name), p_player_user_ids: shuffled.map(entry => entry.userId),
     p_configuration: { ...configuration, format, pairing, generationSeed: seed },

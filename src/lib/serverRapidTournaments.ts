@@ -2,6 +2,7 @@ import "server-only"
 import { requireAuthenticatedAppUser, type AuthenticatedAppUser } from "@/lib/serverAuth"
 import { validateUuid } from "@/lib/serverRequest"
 import { getEffectiveRapidRounds } from "@/lib/rapidTournamentTiming"
+import { readTraditionalTournament } from "@/lib/serverTraditionalTournaments"
 const isMissingPlayerAccountColumn = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "42703" || error.code === "PGRST204") && /user_id/i.test(error.message ?? ""))
 export async function requireRapidTournamentCreator(tournamentId: unknown) {
   const id = validateUuid(tournamentId)
@@ -50,12 +51,19 @@ export function mapTournamentData(
     if (tournamentResult.error || playersResult.error || roundsResult.error || matchesResult.error || !tournamentResult.data) {
       return { data: null, error: "tournament_read_failed" as const }
     }
+    const traditional = tournamentResult.data.tournament_mode === "traditional" ? await readTraditionalTournament(actor, tournamentId, {
+      startsAt: tournamentResult.data.starts_at, courts: tournamentResult.data.court_count,
+      matchMinutes: tournamentResult.data.round_minutes, transitionMinutes: tournamentResult.data.transition_minutes,
+    }) : null
+    if (traditional?.error) return { data: null, error: "tournament_read_failed" as const }
     const playerById = new Map((playersResult.data ?? []).map((player) => [player.id, player]))
     return {
       error: null,
       data: {
+        traditional: traditional?.data ?? null,
         tournament: {
           id: tournamentResult.data.id,
+          mode: tournamentResult.data.tournament_mode ?? "rapid",
           name: tournamentResult.data.name,
           description: tournamentResult.data.description,
           logoUrl: tournamentResult.data.logo_url ?? null,

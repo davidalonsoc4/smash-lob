@@ -158,6 +158,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/tournaments/[id]/next-round` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/restart` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/start` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
+| `/api/tournaments/[id]/traditional` | PATCH | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/people` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/tournaments/sources` | GET | Protegido | requireAuthenticatedAppUser |
 
