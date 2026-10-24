@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
-import { generateBalancedAmericanaFixtures, shuffleTournamentEntries, validateTournamentParticipants } from "@/lib/rapidTournament"
+import { RAPID_TOURNAMENT_SLOTS, generateBalancedAmericanaFixtures, shuffleTournamentEntries, validateTournamentParticipants } from "@/lib/rapidTournament"
 import { requireRapidTournamentCreator } from "@/lib/serverRapidTournaments"
 import { randomInt } from "node:crypto"
 import { fixedTeamsFromPlayers, generateFixedAmericanaFixtures } from "@/lib/fixedRapidTournament"
@@ -36,7 +36,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { data, error } = await access.actor.supabase.rpc("redraw_configurable_rapid_tournament", {
       p_tournament_id: access.tournamentId, p_creator_user_id: access.actor.user.id,
       p_matches: fixtures.map(match => ({ round_number: match.round, court_number: match.court,
-        team_a: match.teamA.map(slot => identities[slot.charCodeAt(0) - 65]), team_b: match.teamB.map(slot => identities[slot.charCodeAt(0) - 65]) })),
+        team_a: match.teamA.map(slot => identities[RAPID_TOURNAMENT_SLOTS.indexOf(slot)]), team_b: match.teamB.map(slot => identities[RAPID_TOURNAMENT_SLOTS.indexOf(slot)]) })),
     })
     if (error) return NextResponse.json({ error: "tournament_draw_failed" }, { status: 500 })
     return NextResponse.json(data === true ? { ok: true } : { error: "tournament_draw_locked" }, { status: data === true ? 200 : 409, headers: { "Cache-Control": "no-store" } })

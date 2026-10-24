@@ -441,7 +441,7 @@ test("imports the whole season roster, keeps linked accounts, and allows manual 
   expect((submitted[0].playerUserIds as Array<string | null>)[0]).toBe("account-1")
 })
 
-test("configures 24 players with custom round times and refuses an overbooked reservation", async ({ page }, testInfo) => {
+test("configures 32 players with custom round times and refuses an overbooked reservation", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 393, height: 852 })
   await page.clock.setFixedTime(new Date("2026-10-16T12:00:00Z"))
   await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { name: "QA Torneos", email: "qa-tournament@example.test", image: null }, expires: "2099-01-01T00:00:00Z" } }))
@@ -449,9 +449,9 @@ test("configures 24 players with custom round times and refuses an overbooked re
   await page.route("**/api/onboarding/progress", route => route.fulfill({ json: { items: [], ok: true } }))
   await page.route("**/api/locations", route => route.fulfill({ json: { locations: [] } }))
   await page.route("**/api/tournaments/people", route => route.fulfill({ json: { people: [], accountLinkingAvailable: true } }))
-  const leagueId = "b5f3b9b0-20b2-4265-9f9e-8c3129af3aa1", seasonId = "a31f5097-f5be-4861-9ed0-80724c33fc0c"
+  const leagueId = "b5f3b9b0-20b2-4265-9f9e-8c3129af3aa1", seasonId = "a31f5097-f5be-4861-9ed0-80732c33fc0c"
   await page.route("**/api/tournaments/sources", route => route.fulfill({ json: { sources: [{ leagueId, seasonId, leagueName: "Liga QA", seasonName: "Temporada QA" }] } }))
-  const sourcePlayers = Array.from({ length: 24 }, (_, i) => ({ playerId: `source-${i}`, displayName: `Jugador QA ${i + 1}`, userId: i === 0 ? "account-qa" : null }))
+  const sourcePlayers = Array.from({ length: 32 }, (_, i) => ({ playerId: `source-${i}`, displayName: `Jugador QA ${i + 1}`, userId: i === 0 ? "account-qa" : null }))
   await page.route("**/api/tournaments/people?leagueId=**", route => route.fulfill({ json: { players: sourcePlayers, leagueName: "Liga QA" } }))
   let submitted: Record<string, unknown> | null = null
   await page.route("**/api/tournaments", route => {
@@ -461,7 +461,7 @@ test("configures 24 players with custom round times and refuses an overbooked re
   await page.route(`**/api/tournaments/${id}`, route => route.fulfill({ json: { ...makeTournament(), access: { role: "creator" } } }))
   await page.goto("/tournaments/new")
   await page.getByRole("combobox", { name: "Origen de los participantes" }).selectOption(seasonId)
-  await expect(page.getByLabel("Número de jugadores: 24")).toBeVisible()
+  await expect(page.getByLabel("Número de jugadores: 32")).toBeVisible()
   await expect(page.getByLabel("Nombre del torneo *")).toHaveValue("TORNEO RÁPIDO DE Liga QA")
   await page.getByText("Personalización", { exact: true }).click()
   await page.getByLabel("Logo del torneo", { exact: true }).setInputFiles("public/icon-192.png")
@@ -485,7 +485,7 @@ test("configures 24 players with custom round times and refuses an overbooked re
   await page.getByLabel("Hora de inicio").fill("09:00")
   const summary = page.locator('section[aria-labelledby="tournament-summary"]')
   await expect(summary.getByText("16 minutos", { exact: true })).toBeVisible()
-  await expect(summary.getByText("20 minutos", { exact: true })).toBeVisible()
+  await expect(summary.getByText("10–20 minutos", { exact: true })).toBeVisible()
   await expect(create).toBeEnabled()
   const axe = await new AxeBuilder({ page }).include('section[aria-labelledby="tournament-summary"]').analyze()
   expect(axe.violations.filter(item => ["critical", "serious"].includes(item.impact ?? ""))).toEqual([])
@@ -493,7 +493,7 @@ test("configures 24 players with custom round times and refuses an overbooked re
   await summary.screenshot({ path: testInfo.outputPath("configured-summary-mobile.png") })
   await create.click()
   await expect(page).toHaveURL(new RegExp(`/tournaments/${id}/calendar$`))
-  expect(submitted).toMatchObject({ playerCount: 24, courtNames: ["Pista 1", "Pista 2"], reservationMinutes: 90, preparationMinutes: 4, roundCount: 6, roundMinutes: 10, transitionMinutes: 2, accentColor: "#38bdf8", logoUrl: expect.stringMatching(/^data:image\/(webp|png);base64,/), source: { leagueId, seasonId } })
+  expect(submitted).toMatchObject({ playerCount: 32, courtNames: ["Pista 1", "Pista 2"], reservationMinutes: 90, preparationMinutes: 4, roundCount: 6, roundMinutes: 10, transitionMinutes: 2, accentColor: "#38bdf8", logoUrl: expect.stringMatching(/^data:image\/(webp|png);base64,/), source: { leagueId, seasonId } })
 })
 
 test("creates a dynamic Mexicano and generates only the next completed round", async ({ page }) => {

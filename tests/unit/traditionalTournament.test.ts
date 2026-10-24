@@ -24,7 +24,7 @@ function finish(plan: TraditionalPlan) {
 const options: TraditionalScheduleOptions = { startsAt: "2026-11-01T09:00:00.000Z", courts: 2, matchMinutes: 30, transitionMinutes: 5 }
 
 describe("traditional knockout", () => {
-  it.each(Array.from({ length: 11 }, (_, i) => i + 2))("completes %i fixed pairs with byes and exactly N-1 played matches", count => {
+  it.each(Array.from({ length: 15 }, (_, i) => i + 2))("completes %i fixed pairs with byes and exactly N-1 played matches", count => {
     const plan = draw(count), snapshot = structuredClone(plan), { state, results } = finish(plan)
     expect(state.complete).toBe(true)
     expect(state.championIds).toEqual(["team-1"])
@@ -76,7 +76,7 @@ describe("traditional knockout", () => {
 
 describe("traditional groups and qualifying brackets", () => {
   const matrix: Array<[number, TraditionalConfiguration]> = []
-  for (let count = 4; count <= 12; count++) for (let groupCount = 2; groupCount <= Math.floor(count / 2); groupCount++) {
+  for (let count = 4; count <= 16; count++) for (let groupCount = 2; groupCount <= Math.floor(count / 2); groupCount++) {
     for (let qualifiersPerGroup = 1; qualifiersPerGroup <= Math.floor(count / groupCount); qualifiersPerGroup++) {
       matrix.push([count, { format: "groups_knockout", groupCount, qualifiersPerGroup, thirdPlace: groupCount * qualifiersPerGroup >= 4, consolation: count - groupCount * qualifiersPerGroup >= 2 }])
     }
@@ -86,7 +86,7 @@ describe("traditional groups and qualifying brackets", () => {
     expect(finish(plan).state.complete).toBe(true)
     expect(validateTraditionalSchedule(plan, buildTraditionalSchedule(plan, options), options).complete).toBe(true)
   })
-  it.each([2,3,4,5,6,7,8,9,10,11,12])("plays every opponent once with %i teams, including odd groups", count => {
+  it.each([2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])("plays every opponent once with %i teams, including odd groups", count => {
     const groupCount = count >= 4 ? 2 : 1
     const plan = draw(count, { ...knockout, format: "groups", groupCount }), { state, results } = finish(plan)
     expect(results).toHaveLength(plan.groups.reduce((sum, group) => sum + group.teamIds.length * (group.teamIds.length - 1) / 2, 0))
@@ -167,7 +167,7 @@ describe("traditional validation and manual calendars", () => {
     expect(() => validateTraditionalConfiguration(count, configuration)).toThrow(error)
   })
   it("rejects malformed rosters, invalid result values, duplicate results and unknown matches", () => {
-    expect(() => buildTraditionalDraw({ teams: roster(13), configuration: knockout, seed: 7 })).toThrow("invalid_fixed_teams")
+    expect(() => buildTraditionalDraw({ teams: roster(17), configuration: knockout, seed: 7 })).toThrow("invalid_fixed_teams")
     const teams = roster(4); teams[1].playerIds = teams[0].playerIds
     expect(() => buildTraditionalDraw({ teams, configuration: knockout, seed: 7 })).toThrow("invalid_fixed_teams")
     const plan = draw(4), ready = resultFor(resolveTraditionalTournament(plan, []).matches[0])

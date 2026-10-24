@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   const accentColor = typeof body?.accentColor === "string" && /^#[0-9a-f]{6}$/i.test(body.accentColor) ? body.accentColor : null
   const courtNames = Array.isArray(body?.courtNames) ? body.courtNames.map((item) => normalizeBoundedText(item, 80)) : []
   const participants = validateTournamentParticipants(body?.players, playerCount)
-  const playerUserIds = Array.isArray(body?.playerUserIds) ? body.playerUserIds : Array(Number.isInteger(playerCount) && playerCount >= 4 && playerCount <= 24 ? playerCount : 0).fill(null)
+  const playerUserIds = Array.isArray(body?.playerUserIds) ? body.playerUserIds : Array(Number.isInteger(playerCount) && playerCount >= 4 && playerCount <= 32 ? playerCount : 0).fill(null)
   if (!body || !name || !startsAt || !format || !pairing || (extended && Date.parse(startsAt) <= Date.now()) || !configurationValidation.ok || configuration.courts > 4 || reservationMinutes < 30 || reservationMinutes > 1440 || roundMinutes > 120 || transitionMinutes > 30 || courtNames.some((court) => !court) || !participants.ok || playerUserIds.length !== playerCount || playerUserIds.some((id) => id !== null && !validateUuid(id)) || !Number.isSafeInteger(preparationMinutes) || preparationMinutes < 0 || (!extended && preparationMinutes > getRapidPreparationMax(reservationMinutes)) || (body.logoUrl != null && !logoUrl) || (body.accentColor != null && !accentColor)) {
     return NextResponse.json({ error: !participants.ok ? participants.error : !configurationValidation.ok ? configurationValidation.error : "invalid_tournament_details" }, { status: 400 })
   }

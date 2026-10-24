@@ -4,7 +4,7 @@ import { calculateMexicanoStandings, generateDynamicMexicanoRound, type Mexicano
 import { buildRapidCues, getRapidCueAnnouncement } from "@/lib/rapidTournamentTiming"
 
 describe("configurable rapid tournaments", () => {
-  it.each([4,5,7,17,19,21,23,24])("generates a complete balanced Americana for %i players", players => {
+  it.each([4,5,7,17,19,21,23,24,25,26,27,28,29,30,31,32])("generates a complete balanced Americana for %i players", players => {
     const config = { players, courts: 2, rounds: 8, roundMinutes: 10, transitionMinutes: 2, preparationMinutes: 4, reservationMinutes: 120 }
     const fixtures = generateBalancedAmericanaFixtures(players,2,8)
     const checks = buildRapidScheduleChecks(RAPID_TOURNAMENT_SLOTS.slice(0,players).map(id=>({id,name:id})),fixtures.map(match=>({...match,teamAIds:match.teamA,teamBIds:match.teamB})),config)

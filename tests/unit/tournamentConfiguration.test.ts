@@ -9,12 +9,12 @@ describe("shared rapid planning", () => {
     expect(readLegacyRapidConfiguration({})).toEqual(expect.objectContaining({ players: 12, courts: 2, rounds: 6, preparationMinutes: 2 }))
     expect(readLegacyRapidConfiguration({ preparationMinutes: 0, courts: 1 }).preparationMinutes).toBe(0)
   })
-  it.each(Array.from({ length: 21 }, (_, i) => i + 4))("plans %i individuals without requiring multiples of four", players => {
+  it.each(Array.from({ length: 29 }, (_, i) => i + 4))("plans %i individuals without requiring multiples of four", players => {
     const plan = planRapidTournament({ ...defaults, players, courts: 6 })
     expect(plan.ok).toBe(true)
     if (!plan.ok) return
     expect(plan.maximumMatchesPerPlayer - plan.minimumMatchesPerPlayer).toBeLessThanOrEqual(1)
-    expect(plan.activeCourts).toBe(Math.floor(players / 4))
+    expect(plan.activeCourts).toBe(Math.min(6, Math.floor(players / 4)))
     expect(plan.minimumPlayingMinutesPerPlayer).toBe(plan.minimumMatchesPerPlayer * 16)
   })
   it("reports unequal participation honestly and rejects impossible fixed teams", () => {
@@ -27,7 +27,7 @@ describe("shared rapid planning", () => {
     expect(planRapidTournament({ ...defaults, preparationMinutes: 8 })).toMatchObject({ ok: false, error: "insufficient_safety_margin" })
     expect(planRapidTournament({ ...defaults, rounds: 8, roundMinutes: 10, transitionMinutes: 1 })).toMatchObject({ ok: true, scheduledMinutes: 89 })
   })
-  it.each([{ players: 25 }, { players: 3 }, { players: 8.5 }, { rounds: NaN }, { courts: 0 }, { roundMinutes: 0 }, { transitionMinutes: -1 }])("rejects invalid configuration %j", patch => {
+  it.each([{ players: 33 }, { players: 3 }, { players: 8.5 }, { rounds: NaN }, { courts: 0 }, { roundMinutes: 0 }, { transitionMinutes: -1 }])("rejects invalid configuration %j", patch => {
     expect(planRapidTournament({ ...defaults, ...patch }).ok).toBe(false)
   })
 })

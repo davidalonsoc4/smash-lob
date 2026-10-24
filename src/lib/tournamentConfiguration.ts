@@ -17,7 +17,7 @@ export function planRapidTournament(config: RapidPlanningInput) {
   const { players, courts, rounds, roundMinutes, transitionMinutes, preparationMinutes, reservationMinutes, pairing } = config
   const breakMinutes = config.breakMinutes ?? 0, breakEveryRounds = config.breakEveryRounds ?? 0
   if (![players, courts, rounds, roundMinutes, transitionMinutes, preparationMinutes, reservationMinutes].every(Number.isSafeInteger) ||
-    players < 4 || players > 24 || courts < 1 || courts > 6 || rounds < 1 || rounds > 100 ||
+    players < 4 || players > 32 || courts < 1 || courts > 6 || rounds < 1 || rounds > 100 ||
     roundMinutes < 1 || transitionMinutes < 0 || preparationMinutes < 0 || reservationMinutes < 1 ||
     (pairing !== "fixed" && pairing !== "rotating") || !Number.isSafeInteger(breakMinutes) || !Number.isSafeInteger(breakEveryRounds) ||
     breakMinutes < 0 || breakMinutes > 60 || breakEveryRounds < 0 || breakEveryRounds > 100 || Boolean(breakMinutes) !== Boolean(breakEveryRounds)) return { ok: false as const, error: "invalid_tournament_configuration" }

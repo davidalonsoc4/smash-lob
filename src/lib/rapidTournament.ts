@@ -12,7 +12,8 @@ export const RAPID_TOURNAMENT = {
   matchesPerPlayer: 4,
   restsPerPlayer: 2,
 } as const
-export const RAPID_TOURNAMENT_SLOTS = "ABCDEFGHIJKLMNOPQRSTUVWX".split("")
+// Preserve existing A–X identities; new participants use the remaining letters.
+export const RAPID_TOURNAMENT_SLOTS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef".split("")
 export type RapidBreakConfig = { breakMinutes?: number; breakEveryRounds?: number }
 export type RapidTournamentConfig = { players: number; courts: number; reservationMinutes: number; rounds: number; roundMinutes: number; transitionMinutes: number; preparationMinutes: number } & RapidBreakConfig
 export function getRapidBreakOffsetMinutes(round: number, config: RapidBreakConfig) {
@@ -54,7 +55,7 @@ export function normalizeTournamentName(value: string) {
   return value.trim().replace(/\s+/g, " ")
 }
 export function validateTournamentParticipants(values: unknown, expectedCount: number = RAPID_TOURNAMENT.players) {
-  if (!Array.isArray(values) || values.length < 4 || values.length > 24 || values.length !== expectedCount) {
+  if (!Array.isArray(values) || values.length < 4 || values.length > 32 || values.length !== expectedCount) {
     return { ok: false as const, error: "invalid_player_count" }
   }
   const names = values.map((value) => typeof value === "string" ? normalizeTournamentName(value) : "")
@@ -79,7 +80,7 @@ export function buildRapidFixtures() {
   return template.flatMap((round) => round.matches)
 }
 export function generateBalancedAmericanaFixtures(playerCount: number, courtCount: number, roundCount: number, random = Math.random) {
-  if (![playerCount, courtCount, roundCount].every(Number.isSafeInteger) || playerCount < 4 || playerCount > 24 || courtCount < 1 || courtCount > 4 || roundCount < 1 || roundCount > 100) throw new Error("invalid_tournament_configuration")
+  if (![playerCount, courtCount, roundCount].every(Number.isSafeInteger) || playerCount < 4 || playerCount > 32 || courtCount < 1 || courtCount > 4 || roundCount < 1 || roundCount > 100) throw new Error("invalid_tournament_configuration")
   if (playerCount === 12 && courtCount === 2 && roundCount === 6) return buildRapidFixtures()
   const players = RAPID_TOURNAMENT_SLOTS.slice(0, playerCount), courtsPerRound = Math.min(courtCount, Math.floor(playerCount / 4)), played = new Map(players.map((id) => [id, 0])), restStreaks = new Map(players.map((id) => [id, 0])), partnerCounts = new Map<string, number>(), rivalCounts = new Map<string, number>(), courtCounts = new Map(players.map((id) => [id, new Map<number, number>()]))
   const fixtures: RapidFixture[] = []

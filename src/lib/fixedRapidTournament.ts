@@ -8,7 +8,7 @@ type FixedFormat = "balanced_americana" | "dynamic_mexicano"
 export function fixedTeamsFromPlayers(players: readonly { id: string; pairNumber?: number | null }[]): FixedTournamentTeam[] {
   const groups = new Map<number, string[]>()
   for (const player of players) {
-    if (!Number.isInteger(player.pairNumber) || player.pairNumber! < 1 || player.pairNumber! > Math.min(12, players.length/2)) throw new Error("invalid_fixed_teams")
+    if (!Number.isInteger(player.pairNumber) || player.pairNumber! < 1 || player.pairNumber! > Math.min(16, players.length/2)) throw new Error("invalid_fixed_teams")
     groups.set(player.pairNumber!, [...(groups.get(player.pairNumber!) ?? []), player.id])
   }
   const teams = [...groups].sort(([a],[b]) => a-b).map(([number, ids]) => ({ id: `pair-${number}`, playerIds: ids as [string,string] }))
@@ -18,7 +18,7 @@ export function fixedTeamsFromPlayers(players: readonly { id: string; pairNumber
 
 export function validateFixedTournamentTeams(playerIds: readonly string[], teams: readonly FixedTournamentTeam[]) {
   const members = teams.flatMap(team => [...team.playerIds])
-  return playerIds.length >= 4 && playerIds.length <= 24 && playerIds.length % 2 === 0 &&
+  return playerIds.length >= 4 && playerIds.length <= 32 && playerIds.length % 2 === 0 &&
     teams.length * 2 === playerIds.length && new Set(playerIds).size === playerIds.length &&
     teams.every(team => Boolean(team.id) && team.playerIds.length === 2) && new Set(teams.map(team => team.id)).size === teams.length &&
     new Set(members).size === playerIds.length && members.every(id => Boolean(id) && playerIds.includes(id))

@@ -49,12 +49,12 @@ const outcome = (matchId: string, kind: "winner" | "loser" = "winner"): Traditio
 const groupSource = (groupId: string, position: number): TraditionalSource => ({ kind: "group", groupId, position })
 
 export function validateTraditionalConfiguration(teamCount: number, config: TraditionalConfiguration) {
-  if (!Number.isInteger(teamCount) || teamCount < 2 || teamCount > 12 ||
+  if (!Number.isInteger(teamCount) || teamCount < 2 || teamCount > 16 ||
     !["knockout", "groups", "groups_knockout"].includes(config.format) ||
     typeof config.thirdPlace !== "boolean" || typeof config.consolation !== "boolean" ||
     !Number.isInteger(config.groupCount) || !Number.isInteger(config.qualifiersPerGroup)) fail("invalid_traditional_configuration")
   const grouped = config.format !== "knockout"
-  if (grouped && (config.groupCount < 1 || config.groupCount > 6 || config.groupCount * 2 > teamCount)) fail("invalid_traditional_groups")
+  if (grouped && (config.groupCount < 1 || config.groupCount > 8 || config.groupCount * 2 > teamCount)) fail("invalid_traditional_groups")
   if (config.format === "groups" && (config.thirdPlace || config.consolation || config.qualifiersPerGroup !== 0)) fail("invalid_traditional_options")
   if (!grouped && (config.groupCount !== 0 || config.qualifiersPerGroup !== 0)) fail("invalid_traditional_groups")
   if (config.format === "groups_knockout" && (config.groupCount < 2 || config.qualifiersPerGroup < 1 ||
@@ -127,7 +127,10 @@ function qualifiersForBracket(groups: TraditionalGroup[], count: number): Tradit
     return score + 1000 ** (Math.log2(positions.length) - Math.floor(Math.log2(difference)) - 1)
   }, 0), 0)
   for (let rank = 1; rank <= count; rank++) {
-    const options = rank === 1 ? [groups] : permutations(groups)
+    // Keep the existing exhaustive search for up to six groups. Larger draws
+    // use bounded rotations/reflections instead of factorial browser work.
+    const options = rank === 1 ? [groups] : groups.length <= 6 ? permutations(groups)
+      : [groups, [...groups].reverse()].flatMap(order => order.map((_, i) => [...order.slice(i), ...order.slice(0, i)]))
     let best = options[0], bestCost = Infinity
     for (const option of options) {
       const nextCost = cost([...ordered, ...option.map(group => ({ kind: "group" as const, groupId: group.id, position: rank }))])

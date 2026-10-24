@@ -57,7 +57,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
   const [format, setFormat] = useState<"balanced_americana" | "dynamic_mexicano">("balanced_americana")
   const [isTraditional,setIsTraditional]=useState(false),[traditionalSetup,setTraditionalSetup]=useState<TraditionalSetup>(defaultTraditionalSetup)
   const [pairing, setPairing] = useState<"rotating" | "fixed">("rotating")
-  const [pairNumbers, setPairNumbers] = useState(() => Array.from({ length: 24 },(_,index) => Math.floor(index/2)+1))
+  const [pairNumbers, setPairNumbers] = useState(() => Array.from({ length: 32 },(_,index) => Math.floor(index/2)+1))
   const [roundMinutes, setRoundMinutes] = useState(16), [transitionMinutes, setTransitionMinutes] = useState(3)
   const [breakMinutes,setBreakMinutes]=useState(0), [breakEveryRounds,setBreakEveryRounds]=useState(3)
   const [manualRoundCount, setManualRoundCount] = useState<number | null>(null)
@@ -69,8 +69,8 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
   const [locations, setLocations] = useState<LeagueLocation[]>([])
   const [locationId, setLocationId] = useState("")
   const [locationsLoading, setLocationsLoading] = useState(true)
-  const [players, setPlayers] = useState(() => Array.from({ length: 24 }, (_, i) => initialDraft?.players[i] ?? ""))
-  const [playerUserIds, setPlayerUserIds] = useState(() => Array.from({ length: 24 }, (_, i) => initialDraft?.playerUserIds[i] ?? null))
+  const [players, setPlayers] = useState(() => Array.from({ length: 32 }, (_, i) => initialDraft?.players[i] ?? ""))
+  const [playerUserIds, setPlayerUserIds] = useState(() => Array.from({ length: 32 }, (_, i) => initialDraft?.playerUserIds[i] ?? null))
   const [people, setPeople] = useState<TournamentPerson[]>([])
   const [peopleLoading, setPeopleLoading] = useState(true)
   const [accountLinkingAvailable, setAccountLinkingAvailable] = useState(false)
@@ -93,14 +93,14 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
         const draft = tournamentDraftFromCopy(data)
         setInitialDraft(draft); setName(draft.name); setDescription(draft.description)
         if(draft.traditional){setIsTraditional(true);setTraditionalSetup(draft.traditional)}else if(draft.format==="balanced_americana"||draft.format==="dynamic_mexicano")setFormat(draft.format)
-        setPairing(draft.pairing); setPairNumbers(Array.from({ length: 24 },(_,index) => draft.pairNumbers[index] ?? Math.floor(index/2)+1))
+        setPairing(draft.pairing); setPairNumbers(Array.from({ length: 32 },(_,index) => draft.pairNumbers[index] ?? Math.floor(index/2)+1))
         setPlayerCount(draft.players.length); setCourtCount(draft.courtNames.length)
         setReservationMinutes(draft.reservationMinutes); setPreparationMinutes(draft.preparationMinutes)
         setRoundMinutes(draft.roundMinutes); setTransitionMinutes(draft.transitionMinutes); setManualRoundCount(draft.rounds)
         setBreakMinutes(draft.breakMinutes); setBreakEveryRounds(draft.breakEveryRounds||3)
         setLogoUrl(draft.logoUrl); setAccentColor(draft.accentColor)
-        setPlayers(Array.from({ length: 24 }, (_, i) => draft.players[i] ?? ""))
-        setPlayerUserIds(Array.from({ length: 24 }, (_, i) => draft.playerUserIds[i] ?? null))
+        setPlayers(Array.from({ length: 32 }, (_, i) => draft.players[i] ?? ""))
+        setPlayerUserIds(Array.from({ length: 32 }, (_, i) => draft.playerUserIds[i] ?? null))
       })
       .catch(() => { if (!controller.signal.aborted) setCopyError(true) })
       .finally(() => { if (!controller.signal.aborted) setCopyLoading(false) })
@@ -155,8 +155,8 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
         if (controller.signal.aborted) return
         const items = (payload.players ?? []) as LeagueRosterPerson[]
         if (!nameEdited.current && payload.leagueName) setName(current=>`${current.startsWith("TORNEO TRADICIONAL")?"TORNEO TRADICIONAL":"TORNEO RÁPIDO"} DE ${String(payload.leagueName).slice(0,80)}`)
-        setSourcePlayers(items); setSelectedSourcePlayerIds(items.slice(0, 24).map(item => item.playerId))
-        setPlayerCount(Math.max(4, Math.min(24, items.length))); setSourceError("")
+        setSourcePlayers(items); setSelectedSourcePlayerIds(items.slice(0, 32).map(item => item.playerId))
+        setPlayerCount(Math.max(4, Math.min(32, items.length))); setSourceError("")
       })
       .catch(() => { if (!controller.signal.aborted) setSourceError("No se han podido cargar los jugadores de esta temporada.") })
       .finally(() => { if (!controller.signal.aborted) setSourceLoading(false) })
@@ -176,10 +176,10 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
   }
   const traditionalTeams=useMemo(()=>{try{return fixedTeamsFromPlayers(Array.from({length:playerCount},(_,index)=>({id:RAPID_TOURNAMENT_SLOTS[index],pairNumber:pairNumbers[index]})))}catch{return []}},[playerCount,pairNumbers])
   const traditionalPreview=useMemo(()=>isTraditional?previewTraditionalSetup(traditionalTeams,traditionalSetup):{plan:null,error:null},[isTraditional,traditionalTeams,traditionalSetup])
-  const traditionalNames=new Map(traditionalTeams.map(team=>[team.id,team.playerIds.map(id=>formPlayers[id.charCodeAt(0)-65]?.trim()||`${tx("Jugador")} ${id.charCodeAt(0)-64}`).join(" / ")]))
+  const traditionalNames=new Map(traditionalTeams.map(team=>[team.id,team.playerIds.map(id=>formPlayers[RAPID_TOURNAMENT_SLOTS.indexOf(id)]?.trim()||`${tx("Jugador")} ${RAPID_TOURNAMENT_SLOTS.indexOf(id)+1}`).join(" / ")]))
   function changeMode(traditional:boolean){
     setIsTraditional(traditional);setPairing(traditional?"fixed":"rotating");setRoundMinutes(traditional?30:16);setTransitionMinutes(traditional?5:3)
-    if(traditional&&playerCount%2)setPlayerCount(Math.min(24,playerCount+1))
+    if(traditional&&playerCount%2)setPlayerCount(Math.min(32,playerCount+1))
     if(!nameEdited.current)setName(current=>current.replace(traditional?"TORNEO RÁPIDO":"TORNEO TRADICIONAL",traditional?"TORNEO TRADICIONAL":"TORNEO RÁPIDO"))
   }
   const selectedPeople = playerUserIds.map((userId) => people.find((person) => person.userId === userId) ?? null).filter((person): person is TournamentPerson => person !== null)
@@ -217,7 +217,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
       const response = await fetch("/api/tournaments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, description, startsAt: startsAt.toISOString(), courtNames, players: formPlayers, playerUserIds: formPlayerUserIds, playerCount, reservationMinutes, preparationMinutes: effectivePreparationMinutes, roundCount, roundMinutes, transitionMinutes,...breakSettings, logoUrl, accentColor, format:isTraditional?traditionalSetup.format:format, pairing, ...(isTraditional?{traditional:{...traditionalSetup,...traditionalDrawOptions(traditionalTeams,traditionalSetup)}}:{}), ...(pairing === "fixed" ? { pairNumbers: pairNumbers.slice(0,playerCount) } : {}), duplicateOf: initialDraft?.duplicateOf, source: source ? { ...source, playerIds: selectedSourcePlayers.map((player) => player.playerId) } : null }) })
       const result = await response.json().catch(() => null)
       if (!response.ok || typeof result?.id !== "string") {
-        const message = result?.error === "duplicate_player_names" ? "Hay nombres de jugadores duplicados." : result?.error === "invalid_player_count" ? "Elige entre cuatro y veinticuatro jugadores y completa todos los nombres." : result?.error === "tournament_account_access_not_ready" ? "La configuración de torneos necesita actualizarse. Contacta con el administrador." : "No se ha podido crear el torneo. Revisa los datos e inténtalo de nuevo."
+        const message = result?.error === "duplicate_player_names" ? "Hay nombres de jugadores duplicados." : result?.error === "invalid_player_count" ? "Elige entre cuatro y treinta y dos jugadores y completa todos los nombres." : result?.error === "tournament_account_access_not_ready" ? "La configuración de torneos necesita actualizarse. Contacta con el administrador." : "No se ha podido crear el torneo. Revisa los datos e inténtalo de nuevo."
         setError(tx(message)); return
       }
       router.push(`/tournaments/${result.id}/calendar`)
@@ -297,13 +297,13 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
     </div></details></section>
     </>}
     <section aria-labelledby="tournament-participants"><details open className={`${styles.panel} ${styles.section}`}><summary id="tournament-participants"><span className={styles.step} aria-hidden="true">4</span>{tx("Participantes")}<span className={styles.chip}>{filledPlayers}/{playerCount}</span></summary><div className={styles.sectionBody}>
-      <NumberStepper label={tx("Número de jugadores")} value={playerCount} values={pairing === "fixed" ? Array.from({ length: 11 },(_,index) => index*2+4) : Array.from({ length: 21 }, (_, index) => index + 4)} onChange={setPlayerCount} tx={tx} />
+      <NumberStepper label={tx("Número de jugadores")} value={playerCount} values={pairing === "fixed" ? Array.from({ length: 15 },(_,index) => index*2+4) : Array.from({ length: 29 }, (_, index) => index + 4)} onChange={setPlayerCount} tx={tx} />
       <progress className={styles.progress} value={filledPlayers} max={playerCount} aria-label={tx("Participantes")} />
       <p className={styles.help}>{playerCount} {tx("jugadores")} · {tx(pairing === "fixed" ? "Por parejas" : "Individual")}. {tx("Puedes escribir nombres o vincular a personas registradas de tus ligas.")}</p>
       {source ? <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
         <p className="text-sm font-black text-neutral-900">{tx("Jugadores de la temporada")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx(manualSourceSlots > 0 ? "Selecciona jugadores de la temporada y completa con nombres manuales hasta alcanzar la cantidad elegida." : "Selecciona los jugadores de la temporada que participarán en el torneo.")}</p>
-        {sourcePlayers.length > 24 ? <p className={styles.help}>{tx("Se han seleccionado los primeros 24 jugadores. Puedes cambiar la selección antes de crear el torneo.")}</p> : null}
+        {sourcePlayers.length > 32 ? <p className={styles.help}>{tx("Se han seleccionado los primeros 32 jugadores. Puedes cambiar la selección antes de crear el torneo.")}</p> : null}
         {sourceLoading ? <p className="mt-3 text-xs text-neutral-500">{tx("Cargando jugadores…")}</p> : sourceError ? <p role="alert" className="mt-3 text-sm font-bold text-red-700">{tx(sourceError)}</p> : sourcePlayers.length === 0 ? <p className="mt-3 text-sm font-semibold text-neutral-600">{tx("Esta temporada no tiene jugadores inscritos.")}</p> : <div className="mt-3 space-y-2">{sourcePlayers.map((person) => <label key={person.playerId} className="flex items-center gap-3 rounded-xl bg-white p-2.5 ring-1 ring-neutral-200"><input type="checkbox" checked={selectedSourcePlayerIds.includes(person.playerId)} onChange={(event) => setSelectedSourcePlayerIds((ids) => event.target.checked ? [...ids, person.playerId] : ids.filter((id) => id !== person.playerId))} /><span className="min-w-0 flex-1 truncate text-sm font-bold">{person.displayName}</span>{person.userId ? <span className="type-caption font-black uppercase text-emerald-700">{tx("Cuenta vinculada")}</span> : null}</label>)}</div>}
         {selectedSourcePlayers.length > playerCount ? <p className="mt-3 text-xs font-semibold text-amber-800">{tx("Desmarca participantes hasta igualar el número de jugadores elegido.")}</p> : manualSourceSlots > 0 ? <p className="mt-3 text-xs font-semibold text-neutral-600">{tx("Completa con nombres manuales las plazas restantes.")}</p> : null}
       </div> : peopleLoading || accountLinkingAvailable ? <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
@@ -321,7 +321,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
       {pairing === "fixed" ? <details open className={styles.help}><summary>{tx("Formar parejas")}</summary><p>{tx("Asigna dos jugadores a cada pareja. El compañero se mantiene durante todo el torneo.")}</p>
         <div className="mt-2 grid gap-2">{formPlayers.map((player,index) => <label key={index} className={styles.pairChooser}><span className="min-w-0 flex-1 truncate font-bold">{player.trim() || `${tx("Jugador")} ${index+1}`}</span><SelectChevron><select className={`${fieldClass} ${styles.selectField}`} aria-label={`${tx("Pareja de")} ${player.trim() || `${tx("Jugador")} ${index+1}`}`} value={pairNumbers[index]} onChange={event => setPairNumbers(current => current.map((number,i) => i === index ? Number(event.target.value) : number))}>{Array.from({length:Math.floor(playerCount/2)},(_,i) => <option key={i+1} value={i+1}>{tx("Pareja")} {i+1}</option>)}</select></SelectChevron></label>)}</div>
         {!fixedTeamsValid ? <p role="alert" className="mt-2 font-bold text-red-700">{tx("Cada pareja debe tener dos jugadores. Revisa los equipos o restablece las parejas.")}</p> : null}
-        <button type="button" className={`${styles.secondary} mt-2`} onClick={() => setPairNumbers(Array.from({length:24},(_,index) => Math.floor(index/2)+1))}>{tx("Restablecer parejas")}</button>
+        <button type="button" className={`${styles.secondary} mt-2`} onClick={() => setPairNumbers(Array.from({length:32},(_,index) => Math.floor(index/2)+1))}>{tx("Restablecer parejas")}</button>
       </details> : null}
       <details className={styles.help}><summary>{tx("Próximamente: más opciones de inscripción")}</summary>{locked(tx("Inscripción abierta mediante invitación"), tx("Desactivada"), tx("Disponible próximamente"))}{locked(tx("Equilibrio por nivel de juego"), tx("Desactivado"), tx("Disponible próximamente"))}</details>
     </div></details></section>

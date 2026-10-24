@@ -8,7 +8,7 @@ const members = (teams: FixedTournamentTeam[]) => teams.flatMap(team => [...team
 const teamKey = (ids: readonly string[]) => [...ids].sort().join("/")
 
 describe("fixed-pair rapid tournaments", () => {
-  it.each([4,6,8,10,12,14,16,18,20,22,24])("generates balanced complete rounds for %i players", count => {
+  it.each([4,6,8,10,12,14,16,18,20,22,24,26,28,30,32])("generates balanced complete rounds for %i players", count => {
     const teams = roster(count), courts = 2, rounds = 12
     const history = generateFixedAmericanaFixtures(teams, courts, rounds, 19)
     expect(history).toEqual(generateFixedAmericanaFixtures(teams, courts, rounds, 19))

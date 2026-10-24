@@ -3,17 +3,18 @@ import AxeBuilder from "@axe-core/playwright"
 import {installTraditionalFixture,traditionalFixtureId as id} from "./fixtures/traditional-tournament"
 import type {TraditionalFormat} from "@/lib/traditionalTournament"
 
-for(const format of ["knockout","groups","groups_knockout"] as TraditionalFormat[])for(const theme of ["light","dark"]){
-  test(`creates and completes traditional ${format} (${theme})`,async({page},testInfo)=>{
-    test.setTimeout(120000)
+for(const format of ["knockout","groups","groups_knockout"] as TraditionalFormat[])for(const theme of ["light","dark"])for(const count of [8,32]){
+  test(`creates and completes traditional ${format} (${theme}, ${count} players)`,async({page},testInfo)=>{
+    test.setTimeout(180000)
     if(testInfo.project.name==="mobile-chromium")await page.setViewportSize({width:393,height:852})
     const fixture=await installTraditionalFixture(page,format,theme)
     await page.goto("/tournaments/new")
     await page.getByRole("combobox",{name:"Modalidad",exact:true}).selectOption("traditional")
     await expect(page.getByRole("heading",{name:"Crear torneo tradicional",exact:true})).toBeVisible()
     await page.getByRole("combobox",{name:"Formato",exact:true}).selectOption(format)
-    await page.getByRole("button",{name:"Disminuir Número de jugadores",exact:true}).click({clickCount:2})
-    for(let i=0;i<8;i++)await page.getByLabel(`Jugador ${i+1}`,{exact:true}).fill(`Persona ${i+1}`)
+    await page.getByRole("button",{name:count===8?"Disminuir Número de jugadores":"Aumentar Número de jugadores",exact:true}).click({clickCount:count===8?2:10})
+    if(count===32&&format!=="knockout")await page.getByRole("button",{name:"Aumentar Número de grupos",exact:true}).click({clickCount:6})
+    for(let i=0;i<count;i++)await page.getByLabel(`Jugador ${i+1}`,{exact:true}).fill(`Persona ${i+1}`)
     await page.getByLabel("Fecha",{exact:true}).fill("2027-01-02")
     await page.getByLabel("Hora de inicio",{exact:true}).fill("10:00")
     if(format==="knockout")await page.getByRole("checkbox",{name:"Partido por el tercer puesto",exact:true}).check()
@@ -21,7 +22,7 @@ for(const format of ["knockout","groups","groups_knockout"] as TraditionalFormat
     const create=page.getByRole("button",{name:"Crear y generar calendario",exact:true})
     await expect(create).toBeEnabled()
     await page.getByRole("heading",{name:"Crear torneo tradicional",exact:true}).scrollIntoViewIfNeeded()
-    await page.screenshot({path:testInfo.outputPath(`form-${format}-${theme}.png`),scale:"css"})
+    await page.screenshot({path:testInfo.outputPath(`form-${format}-${theme}-${count}.png`),scale:"css"})
     await create.click()
     await expect(page).toHaveURL(new RegExp(`/tournaments/${id}/calendar$`))
     expect(fixture.created()).toBe(1)
@@ -50,13 +51,13 @@ for(const format of ["knockout","groups","groups_knockout"] as TraditionalFormat
     await expect(page.getByText(format==="groups"?"Ganadores de grupo":"Campeones",{exact:true})).toBeVisible()
     await page.getByRole("navigation",{name:"Navegación del torneo"}).getByRole("link",{name:"Clasificación",exact:true}).click()
     if(format!=="knockout"){
-      await expect(page.getByText("Resultados completos",{exact:true})).toHaveCount(2)
-      await expect(page.locator("tbody tr")).toHaveCount(4)
+      await expect(page.getByText("Resultados completos",{exact:true})).toHaveCount(count===32?8:2)
+      await expect(page.locator("tbody tr")).toHaveCount(count/2)
     }
     const axe=await new AxeBuilder({page}).include("main").analyze()
     expect(axe.violations.filter(v=>["serious","critical"].includes(v.impact??""))).toEqual([])
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true)
-    await page.screenshot({path:testInfo.outputPath(`${format}-${theme}.png`),scale:"css"})
+    await page.screenshot({path:testInfo.outputPath(`${format}-${theme}-${count}.png`),scale:"css"})
     await page.reload()
     await expect(page.getByText(format==="groups"?"Ganadores de grupo":"Campeones",{exact:true})).toBeVisible()
     await page.goto(`/tournaments/${id}/settings`)

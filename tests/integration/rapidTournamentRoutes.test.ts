@@ -152,7 +152,7 @@ describe("rapid tournament creator routes", () => {
     expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("p_matches")
   })
 
-  it.each([4,7,17,24])("persists configurable Americana with %i players and arbitrary timings", async count => {
+  it.each([4,7,17,24,25,28,31,32])("persists configurable Americana with %i players and arbitrary timings", async count => {
     mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
     const response = await createTournament(request("/api/tournaments", {
       name: "Configurable", startsAt: "2027-01-01T09:00:00Z", playerCount: count,

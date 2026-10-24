@@ -129,7 +129,9 @@ function buildPairings(selected: readonly MexicanoPlayer[], standings: readonly 
   }
   const ordered = selected.map((player) => player.id).sort((left, right) => seededHash(seed + round, left) - seededHash(seed + round, right) || left.localeCompare(right))
   let beam: PairingState[] = [{ remaining: ordered, matches: [], score: [0, 0, 0, 0, 0, 0], tie: 0 }]
-  const width = selected.length <= 8 ? Number.MAX_SAFE_INTEGER : 450
+  // Preserve legacy draws. Larger rosters use a bounded beam so four-court
+  // rounds remain interactive; participation is decided before this search.
+  const width = selected.length <= 8 ? Number.MAX_SAFE_INTEGER : standings.length > 24 ? 32 : 450
   while (beam[0]?.remaining.length) {
     const next: PairingState[] = []
     for (const state of beam) {
@@ -162,7 +164,7 @@ function buildPairings(selected: readonly MexicanoPlayer[], standings: readonly 
 
 export function generateDynamicMexicanoRound(input: { players: readonly MexicanoPlayer[]; history: readonly MexicanoMatch[]; courts: number; round: number; seed: number }) {
   const activeCourts = Math.min(input.courts, Math.floor(input.players.length / 4)), required = activeCourts * 4
-  if (!Number.isInteger(input.round) || input.round < 1 || input.round > 100 || !Number.isInteger(input.courts) || input.courts < 1 || input.courts > 4 || input.players.length < 4 || input.players.length > 24 || activeCourts < 1 || new Set(input.players.map((player) => player.id)).size !== input.players.length) throw new Error("invalid_mexicano_configuration")
+  if (!Number.isInteger(input.round) || input.round < 1 || input.round > 100 || !Number.isInteger(input.courts) || input.courts < 1 || input.courts > 4 || input.players.length < 4 || input.players.length > 32 || activeCourts < 1 || new Set(input.players.map((player) => player.id)).size !== input.players.length) throw new Error("invalid_mexicano_configuration")
   const standing = calculateMexicanoStandings(input.players, input.history, input.round - 1)
   const selected = selectRoundPlayers(input.players, input.history, required, input.round, input.seed)
   const matches = buildPairings(selected, standing, input.history, input.round, input.seed)
