@@ -102,7 +102,7 @@ export function checkTraditionalDatabase({ sql, quote, creator, other }) {
 
 export function checkCanonicalTraditionalDatabase({sql,quote,creator,engine}){
   const json=value=>`${quote(JSON.stringify(value))}::jsonb`
-  for(const [count,format] of [[2,"knockout"],[3,"groups"],[5,"knockout"],[6,"groups_knockout"],[12,"knockout"]]){
+  for(const [count,format] of [[2,"knockout"],[3,"groups"],[5,"knockout"],[6,"groups_knockout"],[12,"knockout"],[16,"knockout"],[16,"groups"],[16,"groups_knockout"]]){
     const teams=Array.from({length:count},(_,i)=>({id:`pair-${i+1}`,playerIds:[`p${i*2}`,`p${i*2+1}`]}))
     const configuration={format,groupCount:format==="knockout"?0:format==="groups"?1:2,qualifiersPerGroup:format==="groups_knockout"?2:0,thirdPlace:format==="groups_knockout",consolation:format==="groups_knockout"}
     const draw=engine.buildTraditionalDraw({teams,configuration,seed:19,seededTeamIds:["pair-1"]})
@@ -117,7 +117,7 @@ export function checkCanonicalTraditionalDatabase({sql,quote,creator,engine}){
     for(;;){
       current=read();const resolved=engine.resolveTraditionalTournament(current.draw,current.results,current.tieOrders)
       if(resolved.complete){assert.ok(resolved.championIds.includes("pair-1"));break}
-      assert.ok(++steps<100,"canonical tournament must make progress")
+      assert.ok(++steps<=draw.matches.length,"canonical tournament must make progress")
       const match=resolved.matches.find(match=>match.state==="ready")
       assert.ok(match,"unambiguous canonical results must unlock another match")
       const winA=Number(match.teamAId.split("-")[1])<Number(match.teamBId.split("-")[1])

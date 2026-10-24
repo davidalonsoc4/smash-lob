@@ -16,7 +16,7 @@ for(const name of ["tournamentResult","rapidTournament","dynamicMexicano","fixed
   writeFileSync(path.join(domainDir,`${name}.js`),ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)
 }
 const require=createRequire(import.meta.url)
-const engine={...require(path.join(domainDir,"traditionalTournament.js")),...require(path.join(domainDir,"traditionalTournamentSchedule.js")),...require(path.join(domainDir,"traditionalTournamentState.js"))}
+const engine={...require(path.join(domainDir,"rapidTournament.js")),...require(path.join(domainDir,"fixedRapidTournament.js")),...require(path.join(domainDir,"traditionalTournament.js")),...require(path.join(domainDir,"traditionalTournamentSchedule.js")),...require(path.join(domainDir,"traditionalTournamentState.js"))}
 
 // Dedicated disposable PostgreSQL, never environment database URLs or Supabase credentials.
 const binary = process.env.TOURNAMENT_TEST_PSQL ?? path.resolve(".quality-artifacts/postgres-tools/pgsql/bin/psql.exe")
@@ -24,7 +24,8 @@ const expectedData = path.resolve(".quality-artifacts/postgres-tournaments-data"
 const database = `tournament_quality_${randomUUID().replaceAll("-", "").slice(0, 12)}`
 const env = { ...process.env, PGPASSWORD: "", PGSSLMODE: "disable", PGCLIENTENCODING: "UTF8" }
 function sql(query, db = database) {
-  return execFileSync(binary, ["-X", "--no-password", "-h", "127.0.0.1", "-p", "55439", "-U", "postgres", "-d", db, "-v", "ON_ERROR_STOP=1", "-t", "-A", "-c", query], { encoding: "utf8", env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim()
+  // Large draws exceed Windows' command-line limit; pass SQL through stdin.
+  return execFileSync(binary, ["-X", "--no-password", "-h", "127.0.0.1", "-p", "55439", "-U", "postgres", "-d", db, "-v", "ON_ERROR_STOP=1", "-t", "-A", "-f", "-"], { encoding: "utf8", env, input: query, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] }).trim()
 }
 const actualData = sql("SHOW data_directory", "postgres").replaceAll("\\", "/").toLowerCase()
 assert.equal(actualData, expectedData, "Refusing to test a server outside the dedicated workspace cluster")
@@ -56,7 +57,7 @@ try {
   GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
   INSERT INTO public.app_users(id) VALUES ('${creator}'),('${invited}'),('${other}');`)
   const migrationDir = path.resolve("supabase/migrations")
-  const files = readdirSync(migrationDir).filter(name => name.endsWith(".sql") && name.includes("tournament")).sort()
+  const files = readdirSync(migrationDir).filter(name => name.endsWith(".sql") && (name.includes("tournament") || name.endsWith("_competition_capacity_32.sql"))).sort()
   for (const file of files) {
     execFileSync(binary, ["-X", "--no-password", "-h", "127.0.0.1", "-p", "55439", "-U", "postgres", "-d", database, "-v", "ON_ERROR_STOP=1", "-f", path.join(migrationDir, file)], { env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] })
   }
@@ -154,9 +155,26 @@ try {
   rejects(create({ duplicateOf:id,accounts:[invited,null,null,null] }), "invalid_player_accounts")
   rejects(`SET ROLE authenticated; ${create()}`, "permission denied")
   rejects(`SET ROLE anon; SELECT * FROM rapid_tournaments`, "permission denied")
+  // Boundary creation, fixed-pair identity and result persistence with all 32
+  // slots, including lowercase positions beyond Z. No real app data is used.
+  for(const fixed of [false,true]){
+    const teams=Array.from({length:16},(_,i)=>({id:`pair-${i+1}`,playerIds:engine.RAPID_TOURNAMENT_SLOTS.slice(i*2,i*2+2)}))
+    const games=fixed?engine.generateFixedAmericanaFixtures(teams,1,8,17).map(m=>({round_number:m.round,court_number:m.court,team_a:m.teamAIds,team_b:m.teamBIds}))
+      :engine.generateBalancedAmericanaFixtures(32,1,8).map(m=>({round_number:m.round,court_number:m.court,team_a:m.teamA,team_b:m.teamB}))
+    const id32=sql(`SET ROLE service_role; ${create({players:32,fixed,configuration:{rounds:8,reservationMinutes:120},matches:games})}`).split(/\r?\n/).at(-1)
+    assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${id32}'`),"32")
+    assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${id32}' AND slot IN ('a','b','c','d','e','f')`),"6")
+    assert.equal(sql(`SELECT public.start_rapid_tournament('${id32}','${creator}')`),"t")
+    const ids=sql(`SELECT id FROM rapid_tournament_matches WHERE tournament_id='${id32}' ORDER BY round_number`).split(/\r?\n/)
+    for(const matchId of ids)assert.equal(sql(`SELECT public.record_rapid_tournament_result('${id32}','${matchId}','${creator}',16,12)`),"t")
+    assert.equal(sql(`SELECT count(*) FROM rapid_tournament_matches WHERE tournament_id='${id32}' AND score_a=16 AND score_b=12`),"8")
+    const copied32=sql(create({players:32,fixed,configuration:{rounds:8,reservationMinutes:120},matches:games,duplicateOf:id32}))
+    assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${copied32}'`),"32")
+  }
+  rejects(create({players:33,configuration:{format:"dynamic_mexicano",rounds:9},matches:[]}),"invalid_tournament_configuration")
   checkTraditionalDatabase({ sql, quote, creator, other })
   checkCanonicalTraditionalDatabase({sql,quote,creator,engine})
-  console.log(`Tournament PostgreSQL checks PASS: ${files.length} migrations, rapid and traditional creation/results, byes/groups/qualification, 24 players, revision conflicts, fixed pairs, timing, copy, source snapshot, suspension and role isolation.`)
+  console.log(`Tournament PostgreSQL checks PASS: ${files.length} migrations, rapid and traditional creation/results, byes/groups/qualification, 32 players, revision conflicts, fixed pairs, timing, copy, source snapshot, suspension and role isolation.`)
 } finally {
   // Only this freshly generated database, on the cluster verified above.
   sql(`DROP DATABASE ${database}`, "postgres")
