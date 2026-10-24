@@ -11,6 +11,7 @@ Trabajar exclusivamente en el primer hito incompleto. Cada checkpoint actualiza 
 | T03 | Creación común guiada, identidad/logo/acento, 4–24 participantes según viabilidad para rotativas existentes, origen de liga y duplicación; preview y validación servidor | COMPLETO |
 | T04 | Americana y Mexicano rotativos/fijos: creación e inscripción por parejas fijas, parámetros configurables, balance auditable, generación segura, seguimiento/audio existentes | COMPLETO |
 | T05 | Tradicionales: eliminación, tercer puesto/consolación, grupos y grupos+cuadro; semillas, byes, sorteo manual/automático, calendarios editables/manuales | COMPLETO LOCAL |
+| T05b | Ampliación solicitada: hasta 32 jugadores totales (16 parejas) en rápidos, tradicionales y ligas; calendarios, validación, creación/importación/copia, migración aditiva y pruebas | COMPLETO LOCAL + DB PRE |
 | T06 | Gestión y reglas: puntuaciones/desempates configurables, administradores/espectadores, inscripción e invitaciones, resultado/confirmación/aprobación, historial, incidencias, sustituciones/bajas/aplazamientos y recálculos seguros | PENDIENTE |
 | T07 | Mis Partidos y perfil global con métricas compatibles, filtros y RACHA/FORMA; chats y notificaciones configurables; navegación contextual | PENDIENTE |
 | T08 | Economía opcional: cuotas, cobros, gastos, bolas, premios, balances y permisos reutilizados | PENDIENTE |
