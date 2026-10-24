@@ -20,10 +20,10 @@ const creator = "10000000-0000-4000-8000-000000000001"
 const invited = "10000000-0000-4000-8000-000000000002"
 const other = "10000000-0000-4000-8000-000000000003"
 function create({ players = 4, configuration = {}, matches, accounts, duplicateOf = null, owner = creator, sourceLeague = null, sourceSeason = null, fixed = false, pairNumbers } = {}) {
-  const config = { format: "balanced_americana", rounds: 2, roundMinutes: 10, transitionMinutes: 3, preparationMinutes: 2, reservationMinutes: 60, ...configuration }
+  const config = { format: "balanced_americana", pairing:fixed?"fixed":"rotating", rounds: 2, roundMinutes: 10, transitionMinutes: 3, preparationMinutes: 2, reservationMinutes: 60, ...configuration }
   const schedule = matches ?? [1, 2].map(round => ({ round_number: round, court_number: 1, team_a: ["A", "B"], team_b: ["C", "D"] }))
-  const pairArgument = fixed ? `ARRAY[${(pairNumbers ?? Array.from({length:players},(_,i)=>Math.floor(i/2)+1)).join(",")}]::smallint[],` : ""
-  return `SELECT public.${fixed ? "create_fixed_rapid_tournament" : "create_configurable_rapid_tournament"}(${quote(owner)}::uuid,'Fixture only','',now()+interval '1 day',ARRAY['Court 1'],ARRAY[${Array.from({length:players},(_,i)=>quote(`Fixture ${i}`)).join(",")}],ARRAY[${(accounts ?? Array(players).fill(null)).map(id=>id?quote(id):"NULL").join(",")}]::uuid[],${pairArgument}${quote(JSON.stringify(config))}::jsonb,${quote(JSON.stringify(schedule))}::jsonb,${duplicateOf?quote(duplicateOf):"NULL"}::uuid,${sourceLeague?quote(sourceLeague):"NULL"}::uuid,${sourceSeason?quote(sourceSeason):"NULL"}::uuid)`
+  const pairArgument = fixed ? `ARRAY[${(pairNumbers ?? Array.from({length:players},(_,i)=>Math.floor(i/2)+1)).join(",")}]::smallint[],` : config.breakMinutes ? "NULL::smallint[]," : ""
+  return `SELECT public.${config.breakMinutes ? "create_planned_rapid_tournament" : fixed ? "create_fixed_rapid_tournament" : "create_configurable_rapid_tournament"}(${quote(owner)}::uuid,'Fixture only','',now()+interval '1 day',ARRAY['Court 1'],ARRAY[${Array.from({length:players},(_,i)=>quote(`Fixture ${i}`)).join(",")}],ARRAY[${(accounts ?? Array(players).fill(null)).map(id=>id?quote(id):"NULL").join(",")}]::uuid[],${pairArgument}${quote(JSON.stringify(config))}::jsonb,${quote(JSON.stringify(schedule))}::jsonb,${duplicateOf?quote(duplicateOf):"NULL"}::uuid,${sourceLeague?quote(sourceLeague):"NULL"}::uuid,${sourceSeason?quote(sourceSeason):"NULL"}::uuid)`
 }
 function rejects(statement, message) {
   assert.throws(() => sql(statement), error => String(error.stderr).includes(message), message)
@@ -84,6 +84,13 @@ try {
   rejects(dynamicRoundCall(2,mixedDynamic), "invalid_fixed_match")
   assert.equal(sql(dynamicRoundCall(2)), "t")
   assert.equal(sql(dynamicRoundCall(2)), "t", "round generation is idempotent")
+  for(const fixed of [false,true])for(const format of ["balanced_americana","dynamic_mexicano"]){
+    const breakId=sql(`SET ROLE service_role; ${create({fixed,configuration:{format,breakMinutes:20,breakEveryRounds:1},matches:format==="dynamic_mexicano"?[]:undefined})}`).split(/\r?\n/).at(-1)
+    assert.equal(sql(`SELECT starts_at-(SELECT ends_at FROM rapid_tournament_rounds WHERE tournament_id='${breakId}' AND round_number=1) FROM rapid_tournament_rounds WHERE tournament_id='${breakId}' AND round_number=2`),"00:23:00")
+    assert.equal(sql(`SELECT safety_margin_minutes-preparation_minutes FROM rapid_tournaments WHERE id='${breakId}'`),"15")
+  }
+  rejects(create({configuration:{breakMinutes:40,breakEveryRounds:1}}),"invalid_tournament_configuration")
+  rejects(`SET ROLE authenticated; ${create({configuration:{breakMinutes:20,breakEveryRounds:1}})}`,"permission denied")
   rejects(`SET ROLE authenticated; ${create({fixed:true})}`, "permission denied")
   const originalCount = sql("SELECT count(*) FROM rapid_tournaments")
   rejects(create({ players:25 }), "invalid_tournament_configuration")
