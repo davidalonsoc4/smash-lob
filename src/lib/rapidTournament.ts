@@ -1,3 +1,5 @@
+import { parseTournamentPoints } from "./tournamentResult"
+
 export const RAPID_TOURNAMENT = {
   players: 12,
   courts: 2,
@@ -124,15 +126,15 @@ export function buildRapidScheduleChecks(
     playedRounds: [] as number[], rests: [] as number[], partners: new Set<string>(),
     opponents: new Set<string>(), courts: Array(config.courts).fill(0) as number[],
   }]))
-  let validRounds = true
+  let validRounds = ids.size === players.length && matches.every(match => Number.isInteger(match.round) && match.round >= 1 && match.round <= config.rounds)
   const courtMatchCounts = Array(config.courts).fill(0) as number[]
   const courtsPerRound = getRapidActiveCourtCount(config.players, config.courts), expectedGames = Math.floor(config.rounds * courtsPerRound * 4 / config.players)
   for (let round = 1; round <= config.rounds; round += 1) {
     const roundMatches = matches.filter((match) => match.round === round)
     const participants = roundMatches.flatMap((match) => [...match.teamAIds, ...match.teamBIds])
-    if (roundMatches.length !== courtsPerRound || new Set(participants).size !== participants.length || participants.some((id) => !ids.has(id))) validRounds = false
+    if (roundMatches.length !== courtsPerRound || new Set(roundMatches.map(match => match.court)).size !== roundMatches.length || new Set(participants).size !== participants.length || participants.some((id) => !ids.has(id))) validRounds = false
     for (const match of roundMatches) {
-      if (match.court < 1 || match.court > courtsPerRound) validRounds = false
+      if (!Number.isInteger(match.court) || match.court < 1 || match.court > courtsPerRound) validRounds = false
       else courtMatchCounts[match.court - 1] += 1
       if (match.teamAIds.length !== 2 || match.teamBIds.length !== 2) validRounds = false
       for (const [team, rivals] of [[match.teamAIds, match.teamBIds], [match.teamBIds, match.teamAIds]] as const) {
@@ -227,7 +229,7 @@ export function calculateRapidStandings(names: readonly string[], matches: reado
   const scheduled = new Map(names.map((player) => [player, 0]))
   for (const match of matches) {
     for (const player of [...match.teamA, ...match.teamB]) scheduled.set(player, (scheduled.get(player) ?? 0) + 1)
-    if (match.scoreA === null || match.scoreB === null) continue
+    if (!parseTournamentPoints(match.scoreA, match.scoreB) || match.scoreA === null || match.scoreB === null) continue
     const total = match.scoreA + match.scoreB
     if (total <= 0 || !Number.isInteger(match.scoreA) || !Number.isInteger(match.scoreB)) continue
     for (const player of match.teamA) {

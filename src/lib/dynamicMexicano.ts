@@ -1,3 +1,5 @@
+import { parseTournamentPoints } from "./tournamentResult"
+
 export type MexicanoPlayer = { id: string; name: string }
 export type MexicanoMatch = {
   round: number
@@ -46,7 +48,7 @@ export function calculateMexicanoStandings(players: readonly MexicanoPlayer[], m
   for (const match of matches) {
     const participants = [...match.teamAIds, ...match.teamBIds]
     for (const id of participants) { const item = stats.get(id); if (item) item.rests = Math.max(0, item.rests - 1) }
-    if (match.scoreA === null || match.scoreB === null || !Number.isInteger(match.scoreA) || !Number.isInteger(match.scoreB) || match.scoreA + match.scoreB <= 0) continue
+    if (!parseTournamentPoints(match.scoreA, match.scoreB) || match.scoreA === null || match.scoreB === null) continue
     const update = (ids: readonly string[], pointsFor: number, pointsAgainst: number) => ids.forEach((id) => {
       const item = stats.get(id); if (!item) return
       item.played += 1; item.pointsFor += pointsFor; item.pointsAgainst += pointsAgainst

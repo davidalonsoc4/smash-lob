@@ -8,6 +8,7 @@ import { validateUuid } from "@/lib/serverRequest"
 import { getRapidTournamentSelectablePeople } from "@/lib/serverRapidTournamentPeople"
 import { getServerLeagueViewer } from "@/lib/serverLeagueAccess"
 import { getTournamentLeagueRoster } from "@/lib/serverTournamentLeagueRoster"
+import { planRapidTournament } from "@/lib/tournamentConfiguration"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 const isMissingAccountLinkSchema = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "42703" || error.code === "PGRST204") && /user_id/i.test(error.message ?? ""))
@@ -81,6 +82,8 @@ export async function POST(request: Request) {
   const entries = canonicalNames.map((playerName, index) => ({ name: playerName, userId: accountIds[index] }))
   const shuffled = format === "balanced_americana" ? shuffleTournamentEntries(entries) : entries
   const configuration = { players: playerCount, courts: courtNames.length, reservationMinutes, rounds: roundCount, roundMinutes: 16, transitionMinutes: 3, preparationMinutes }
+  const plan = planRapidTournament({ ...configuration, pairing: "rotating" })
+  if (!plan.ok) return NextResponse.json({ error: plan.error }, { status: 400 })
   const rounds = buildRapidRounds(new Date(Date.parse(startsAt) + preparationMinutes * 60_000), configuration)
   const fixtures = format === "balanced_americana" ? generateBalancedAmericanaFixtures(playerCount, courtNames.length, roundCount) : []
   if (format === "balanced_americana") {

@@ -9,6 +9,8 @@
 
 ## Matriz de aceptación final (pendiente)
 
+T02 PASS: 114 pruebas focalizadas/10 archivos; `npm run validate` completo (267 archivos, 1156 tests), 0 errores lint/5 warnings existentes, typecheck/build/presupuestos (1220695 bytes gzip, 104 chunks). Log: `.quality-artifacts/tournaments-t02-validate.log`. `npx playwright test tests/e2e/rapid-tournament.spec.ts --workers=2`: 8/8 móvil/escritorio claro/oscuro incluyendo creación, importación, Americana completa, Mexicano y Axe. Sin migraciones nuevas, sin afirmar DB nueva verificada.
+
 - Rápidos: Americana/Mexicano × rotativas/fijas × tamaños viables hasta 24; participación/descansos/pistas, repeticiones auditadas, reserva/timing/audio.
 - Tradicionales: eliminación/grupos/mixto, byes/semillas/manual, tercer puesto/consolación, avance idempotente sin empate eliminatorio inválido.
 - Resultados: puntos/juegos/sets/tie-breaks, reglas de cierre, desempates ordenables, confirmación/aprobación y correcciones con historial.

@@ -3049,3 +3049,11 @@ Reproducidos HTTP 500 en /leagues y /api/health. Proceso next dev previo a la ac
 
 Inventario y plan persistentes en docs/tournaments. T01 completado: corregida validación de nombres canónicos que exigía 12 jugadores al seleccionar cuentas; ahora respeta el tamaño válido elegido. Sesenta pruebas de motores/API/invitaciones/timing/audio, typecheck, lint focalizado y diff correctos. Auto-Resume activo, watcher ejecutando la recuperación exacta; compatibilidad estructural, sin prometer continuación de objetivos. Primer hito incompleto T02. Sin datos remotos, migraciones ni despliegue.
 
+## Torneos integrales — T02 checkpoint (24/10/2026)
+
+Contratos de configuración y puntuación compartidos integrados en rutas/rankings legacy; adaptador de configuración en UI y comprobación de integridad simultánea de pistas/jugadores. 114 pruebas focalizadas, tipos/lint/i18n correctos. Validate completo y E2E en curso; T02 sigue abierto. Presupuesto fuente +150 líneas para nuevos módulos puros, sin nuevos clientes. Sin cambios de DB ni operaciones remotas.
+
+## Torneos integrales — T02 cerrado (24/10/2026)
+
+Validate completo PASS: 267 archivos/1156 pruebas, typecheck/build/presupuesto correctos; lint 0 errores y 5 avisos previos. E2E torneos 8/8 móvil/escritorio claro/oscuro con Axe. Nuevo primer hito incompleto T03. Contratos integrados sin activar opciones aún incompatibles con SQL; no hay migraciones nuevas ni despliegue.
+

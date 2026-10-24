@@ -5,7 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { RapidTournamentCreateForm } from "@/components/tournament/RapidTournamentCreateForm"
 import { useI18n } from "@/i18n/I18nProvider"
-import { buildRapidScheduleChecks, calculateRapidStandings, getRapidRoundAt, getTournamentChampions, type RapidStanding, type RapidTournamentConfig } from "@/lib/rapidTournament"
+import { buildRapidScheduleChecks, calculateRapidStandings, getRapidRoundAt, getTournamentChampions, type RapidStanding } from "@/lib/rapidTournament"
+import { readLegacyRapidConfiguration } from "@/lib/tournamentConfiguration"
 import { calculateMexicanoStandings } from "@/lib/dynamicMexicano"
 import styles from "./Tournament.module.css"
 import { RapidTournamentLive } from "./RapidTournamentLive"
@@ -123,7 +124,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
   const complete = isDynamic ? generatedRoundCount === Number(tournament.configuration.rounds) && currentRoundComplete : data.matches.length > 0 && scoredMatches === data.matches.length
   const canGenerateNextRound = isDynamic && tournament.status === "in_progress" && generatedRoundCount < Number(tournament.configuration.rounds) && currentRoundComplete
   const displayStart = tournament.startedAt ?? tournament.startsAt
-  const config = data.tournament.configuration as unknown as RapidTournamentConfig
+  const config = readLegacyRapidConfiguration(data.tournament.configuration)
   const formatLabel = isDynamic ? tx("Torneo rápido · Mexicano dinámico") : tx("Torneo rápido · Americana equilibrada")
   const visibleRounds = isDynamic ? data.rounds.filter((round) => round.round <= generatedRoundCount) : data.rounds
   const expectedMatchCount = Number(config.rounds) * Math.min(Number(config.courts), Math.floor(data.players.length / 4))

@@ -7,8 +7,8 @@ Trabajar exclusivamente en el primer hito incompleto. Cada checkpoint actualiza 
 | Hito | Entrega verificable | Estado |
 | --- | --- | --- |
 | T01 | Inventario real y regresión de base; corregir defectos confirmados que impiden preservar flujos existentes | COMPLETO |
-| T02 | Contratos compartidos de configuración, participantes, equipos, resultados, permisos y presentación; adaptadores compatibles para torneos guardados | EN CURSO |
-| T03 | Creación guiada, identidad/logo/acento, 4–24 participantes según viabilidad, individual/parejas, origen de liga y duplicación; preview y validación servidor | PENDIENTE |
+| T02 | Contratos compartidos de configuración, participantes, equipos, resultados, permisos y presentación; adaptadores compatibles para torneos guardados | COMPLETO |
+| T03 | Creación guiada, identidad/logo/acento, 4–24 participantes según viabilidad, individual/parejas, origen de liga y duplicación; preview y validación servidor | EN CURSO |
 | T04 | Americana y Mexicano rotativos/fijos: parámetros configurables, balance auditable, generación segura, seguimiento/audio existentes | PENDIENTE |
 | T05 | Tradicionales: eliminación, tercer puesto/consolación, grupos y grupos+cuadro; semillas, byes, sorteo manual/automático, calendarios editables/manuales | PENDIENTE |
 | T06 | Gestión: administradores/espectadores, inscripción e invitaciones, reglas de resultado/confirmación/aprobación, historial, incidencias, sustituciones/bajas/aplazamientos y recálculos seguros | PENDIENTE |
