@@ -3045,3 +3045,7 @@ Reproducidos HTTP 500 en /leagues y /api/health. Proceso next dev previo a la ac
 - Smoke público directo bloqueado por la protección de Vercel (302); la comprobación autenticada de Vercel fue correcta.
 - Rama de trabajo creada desde `origin/staging`: `codex/tournament-development`.
 
+## Torneos integrales — T01 (24/10/2026)
+
+Inventario y plan persistentes en docs/tournaments. T01 completado: corregida validación de nombres canónicos que exigía 12 jugadores al seleccionar cuentas; ahora respeta el tamaño válido elegido. Sesenta pruebas de motores/API/invitaciones/timing/audio, typecheck, lint focalizado y diff correctos. Auto-Resume activo, watcher ejecutando la recuperación exacta; compatibilidad estructural, sin prometer continuación de objetivos. Primer hito incompleto T02. Sin datos remotos, migraciones ni despliegue.
+

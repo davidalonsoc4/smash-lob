@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     const peopleById = new Map(available.people.map((person) => [person.userId, person.displayName]))
     if (linkedIds.some((id) => !peopleById.has(id))) return NextResponse.json({ error: "invalid_tournament_player_account" }, { status: 400 })
     canonicalNames = participants.names.map((personName, index) => accountIds[index] ? peopleById.get(accountIds[index]!)! : personName)
-    const canonicalValidation = validateTournamentParticipants(canonicalNames)
+    const canonicalValidation = validateTournamentParticipants(canonicalNames, playerCount)
     if (!canonicalValidation.ok) return NextResponse.json({ error: canonicalValidation.error }, { status: 400 })
     canonicalNames = canonicalValidation.names
   }

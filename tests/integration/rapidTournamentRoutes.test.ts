@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), rpc: vi.fn(), maybeSingle: vi.fn(), single: vi.fn(), generate: vi.fn() }))
+const people = vi.hoisted(() => ({ selectable: vi.fn() }))
+vi.mock("@/lib/serverRapidTournamentPeople", () => ({ getRapidTournamentSelectablePeople: people.selectable }))
 vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.auth }))
 vi.mock("@/lib/serverRateLimit", () => ({ enforceRequestRateLimit: vi.fn(async () => null) }))
 vi.mock("@/lib/serverDynamicMexicano", () => ({ generateAndPersistMexicanoRound: mocks.generate }))
@@ -130,6 +132,34 @@ describe("rapid tournament creator routes", () => {
     expect(response.status).toBe(201)
     expect(mocks.rpc).toHaveBeenCalledWith("create_dynamic_mexicano_tournament", expect.objectContaining({ p_player_names: names, p_round_count: 6, p_generation_seed: expect.any(Number) }))
     expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("p_matches")
+  })
+
+  it.each([8, 10, 16])("creates a %i-player tournament with canonical registered names", async (count) => {
+    const userId = "5b028680-92f9-4cc3-80a6-59e34fab0529"
+    people.selectable.mockResolvedValue({ people: [{ userId, displayName: "Nombre registrado" }], error: null })
+    mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Mexicano con cuentas", startsAt: "2027-01-01T09:00:00Z", format: "dynamic_mexicano",
+      players: Array.from({ length: count }, (_, i) => `Manual ${i}`), playerCount: count,
+      playerUserIds: [userId, ...Array(count - 1).fill(null)], courtNames: ["Pista 1", "Pista 2"],
+    }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_dynamic_mexicano_tournament", expect.objectContaining({
+      p_player_names: ["Nombre registrado", ...Array.from({ length: count - 1 }, (_, i) => `Manual ${i + 1}`)],
+    }))
+  })
+
+  it("rejects duplicate names introduced by canonical account resolution", async () => {
+    const userId = "5b028680-92f9-4cc3-80a6-59e34fab0529"
+    people.selectable.mockResolvedValue({ people: [{ userId, displayName: "Manual 1" }], error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Cuentas", startsAt: "2027-01-01T09:00:00Z", format: "dynamic_mexicano",
+      players: Array.from({ length: 8 }, (_, i) => `Manual ${i}`), playerCount: 8,
+      playerUserIds: [userId, ...Array(7).fill(null)], courtNames: ["Pista 1"],
+    }))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: "duplicate_player_names" })
+    expect(mocks.rpc).not.toHaveBeenCalled()
   })
 
   it("allows reroll and start only through creator-bound state RPCs", async () => {
