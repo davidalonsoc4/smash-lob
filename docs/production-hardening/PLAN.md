@@ -1,3 +1,9 @@
+## T05c — Ligas por parejas fijas
+- Estado: COMPLETO LOCAL + DB PRE (25/10/2026), commit47320b27 y cierre en docs/tournaments/STATUS.md.
+- Alcance: petición posterior del usuario, antes de T06 de docs/tournaments/PLAN.md. Modalidad al crear liga; 2–16 parejas, calendario por vueltas/personalizado/manual y clasificación conjunta. Preservar ligas individuales.
+- Gates: npm run validate, pruebas focalizadas de API/motor/invitaciones/espectadores, PostgreSQL aislado y E2E móvil/escritorio/Axe; ver docs/tournaments/VALIDATION.md.
+- Remoto: exclusivamente migración nueva en Supabase PRE autorizado y verificación de historial/datos; código solo local. Main, Production y v1.0.0 intactos.
+
 ## MC40 — Ayuda al pulsar la posición cambiada
 - Status: DONE locally (2026-10-23; ocho pruebas de interacción, tipos, lint y cuatro casos de navegador correctos)
 - Objective: texto rojo y símbolo de cambio abren la misma ayuda que el icono de Jornada, con teclado y sin navegar al perfil. Centrar el símbolo equivalente mediante SVG, por nueva indicación del usuario.
