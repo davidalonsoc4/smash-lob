@@ -3107,3 +3107,5 @@ Descansos T04: validate PASS 272 archivos/1235 tests, móvil mixto 9/9 y matriz 
 
 Cuadros, grupos y mixto puros hasta 24 jugadores por parejas fijas, semillas/byes/manual, tercer puesto/consolación y calendarios manuales/automáticos. Protege resultados ya disputados y empates ambiguos de clasificación. 122 tests focalizados, tipos/lint/fuente PASS; matriz mixta ampliada en curso. Presupuesto fuente +450 para dos módulos nuevos, sin clientes/dependencias. Sin migración/API/UI todavía; opciones siguen bloqueadas, T05 permanece abierto. Próximo paso y decisiones en docs/tournaments/STATUS.md. Sin PRE/PROD.
 
+T05 persistencia parcial: 194 pruebas de motores/regresiones PASS; PostgreSQL aislado 14 migraciones PASS con tres tradicionales completos, byes, grupo de 24 jugadores, revisión concurrente y permisos/rollback/correcciones protegidos. Nueva migración aditiva solo local; identidad, roster, fuentes e invitaciones compartidas. Sin API/UI integrada todavía, no cerrar T05 ni anunciar disponible. Estado y siguiente acción detallados en docs/tournaments/STATUS.md.
+

@@ -2,6 +2,8 @@
 
 ## Evidencia inicial
 
+T05 persistencia (parcial): `npm run database:tournaments` PASS con 14 migraciones y datos sintéticos, ahora incluye los tres tradicionales hasta final, fuentes/participantes/resultados, terceros/consolación, byes, 24 jugadores/66 partidos, empates explícitos, conflictos/revisión/aislamiento y rollback. Nueva tabla con RLS e invoker/search_path comprobados. Las RPC legacy de estado rechazan tradicional; ninguna migración remota aplicada. Motor/regresiones siguen 194 tests PASS. Sin E2E tradicional todavía: UI no habilitada, T05 abierto.
+
 T05 motor (parcial): 194 tests/4 archivos PASS con `npx vitest run tests/unit/traditionalTournament.test.ts tests/unit/fixedRapidTournament.test.ts tests/unit/tournamentConfiguration.test.ts tests/unit/dynamicMexicano.test.ts`. Incluye 130 casos tradicionales, todas las combinaciones mixtas viables hasta doce parejas, semifinales/consolación/byes, empates, identidad de resultados y calendario sin solapamientos; 64 regresiones de rápidos/planificador. TypeScript, ESLint focalizado, fuente (136251/136450 líneas) y diff PASS. Sin migración ni interfaz tradicional en este checkpoint, por tanto no afirmar SQL/E2E de tradicionales ni T05 completo.
 
 - Base staging b67df81a: la entrega anterior pasó validate (264 archivos / 1098 tests), workflow remoto #410 y health PRE. Evidencia heredada, no afirmar que cubre este objetivo nuevo.

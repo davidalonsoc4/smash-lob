@@ -35,7 +35,7 @@ describe("traditional knockout", () => {
     expect(schedule).toHaveLength(count - 1)
     expect(validateTraditionalSchedule(plan, schedule, options)).toMatchObject({ complete: true, pending: 0 })
   })
-  it.each([4,6,7,8,10,11,12])("plays bronze and consolation without including byes (%i teams)", count => {
+  it.each([6,7,8,10,11,12])("plays bronze and consolation without including byes (%i teams)", count => {
     const { state, results } = finish(draw(count, { ...knockout, thirdPlace: true, consolation: true }))
     const consolationTeams = count - 2 ** Math.ceil(Math.log2(count)) / 2
     expect(state.thirdPlaceId).toBe("team-3")
@@ -157,6 +157,7 @@ describe("traditional groups and qualifying brackets", () => {
 describe("traditional validation and manual calendars", () => {
   it.each([
     [3,{ ...knockout, thirdPlace: true },"third_place_requires_semifinals"],
+    [4,{ ...knockout, thirdPlace: true, consolation: true },"consolation_duplicates_third_place"],
     [5,{ ...knockout, consolation: true },"consolation_requires_two_teams"],
     [9,{ ...knockout, consolation: true },"consolation_requires_two_teams"],
     [5,{ ...knockout, format: "groups", groupCount: 3 },"invalid_traditional_groups"],

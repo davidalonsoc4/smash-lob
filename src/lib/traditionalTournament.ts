@@ -66,6 +66,7 @@ export function validateTraditionalConfiguration(teamCount: number, config: Trad
   // Byes never count as a defeat and never invent a consolation participant.
   const consolationTeams = grouped ? teamCount - finalists : teamCount - sizeOfBracket(teamCount) / 2
   if (config.consolation && consolationTeams < 2) fail("consolation_requires_two_teams")
+  if (config.format === "knockout" && teamCount === 4 && config.thirdPlace && config.consolation) fail("consolation_duplicates_third_place")
   return { knockoutTeams: finalists, consolationTeams }
 }
 

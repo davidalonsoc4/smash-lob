@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process"
 import { readdirSync } from "node:fs"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
+import { checkTraditionalDatabase } from "./tournament-traditional-database-cases.mjs"
 
 // Dedicated disposable PostgreSQL, never environment database URLs or Supabase credentials.
 const binary = process.env.TOURNAMENT_TEST_PSQL ?? path.resolve(".quality-artifacts/postgres-tools/pgsql/bin/psql.exe")
@@ -140,7 +141,8 @@ try {
   rejects(create({ duplicateOf:id,accounts:[invited,null,null,null] }), "invalid_player_accounts")
   rejects(`SET ROLE authenticated; ${create()}`, "permission denied")
   rejects(`SET ROLE anon; SELECT * FROM rapid_tournaments`, "permission denied")
-  console.log(`Tournament PostgreSQL checks PASS: ${files.length} migrations, atomic creation, 24 players, fixed pairs, dynamic rounds, timing, copy, source snapshot, suspension and role isolation.`)
+  checkTraditionalDatabase({ sql, quote, creator, other })
+  console.log(`Tournament PostgreSQL checks PASS: ${files.length} migrations, rapid and traditional creation/results, byes/groups/qualification, 24 players, revision conflicts, fixed pairs, timing, copy, source snapshot, suspension and role isolation.`)
 } finally {
   // Only this freshly generated database, on the cluster verified above.
   sql(`DROP DATABASE ${database}`, "postgres")
