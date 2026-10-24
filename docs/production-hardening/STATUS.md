@@ -3119,3 +3119,11 @@ T05 presentación, parcial: extraída tarjeta/editor de resultados a componente 
 
 Editor T05 confirmado: tipos PASS y E2E fijo móvil 4/4 PASS tras extracción, Americana/Mexicano claro/oscuro hasta campeón/copia. Guardar commit de presentación reutilizable y continuar formulario/vistas tradicionales; T05 abierto, sin pendientes de validación en este checkpoint ni operaciones remotas.
 
+T05 interfaz integrada en desarrollo: formulario común habilita eliminación/grupos/mixto con opciones reales y preview; cinco rutas muestran cuadros/grupos/partidos y resultados con componentes existentes. Copia y ajustes adaptados; sin navbar/tema global nuevos. Lint/i18n/fuente PASS tras reparar dependencia mutable y añadir traducciones; tipos y pruebas del recorrido pendientes. No declarar terminado ni publicar antes de E2E/SQL/gates completos. Detalle y siguiente paso en docs/tournaments/STATUS.md.
+
+T05 checkpoint final: E2E rápidos/tradicionales móvil/escritorio **44/44 PASS**, incluyendo los tres recorridos completos, permisos de participante, empates/correcciones, manual/calendario y Axe. PostgreSQL aislado de 14 migraciones PASS con roundtrip de motores reales. Validate completo secuencial en curso (13524); después regresiones de ligas/amistosos/hub. No cerrar antes de confirmar ni publicar en remoto. Estado reanudable en docs/tournaments/STATUS.md.
+
+T05 validate final confirmado PASS: **279 archivos / 1411 tests**, TypeScript/build/i18n/fuente correctos, lint sin errores/cinco avisos previos, 1242275 bytes gzip/103 chunks. Regresiones focalizadas de ligas/amistosos/hub en curso (97540); después guardar commits y cierre del hito si pasan. Sin operaciones remotas.
+
+**T05 completo localmente:** regresiones ligas/amistosos/hub **9/9 PASS**, salida 0; matriz rápidos/tradicionales **44/44 PASS**, validate **1411 tests PASS**, SQL aislado de catorce migraciones PASS y capturas móviles revisadas. Guardar interfaz/checkpoint local, sin PRE/PROD ni datos reales modificados. Primer hito incompleto T06; el objetivo integral sigue pendiente por gestión/reglas, integración, economía y validación final. La última petición deja este hito listo para pruebas; migraciones y publicación de PRE requieren la autorización explícita prevista en GOAL/AGENTS.
+

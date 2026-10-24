@@ -164,3 +164,38 @@ Checkpoint API validado: E2E móvil 9/9 PASS, Americana/Mexicano fijos y rotativ
 - T05 sigue abierto; formulario y vistas tradicionales aún no activados. Siguiente: presentar datos tradicionales con este editor y el tema/nav actuales, terminar configuración/orden manual/calendario y E2E antes de habilitar creación.
 
 Editor compartido validado: último typecheck PASS, E2E fijo móvil 4/4 PASS (Americana/Mexicano, claro/oscuro, creación/resultados/ranking/copia y Axe). Log confirmado. Guardar commit y continuar presentación tradicional; ningún gate pendiente del checkpoint, sin declarar T05 completo.
+
+## T05 integración visual en curso — 24/10
+
+- Formulario común ya conecta tres formatos tradicionales: parejas existentes, fuente/cuentas, grupos/clasificados, tercer puesto/consolación, semillas/orden manual, reparto manual de grupos, horarios automáticos o pendientes, tiempos estimados y preview. Controles de selección/numéricos reutilizados de rápidos; copia tradicional conserva configuración/parejas sin resultados.
+- Rutas existentes adaptadas mediante `TraditionalTournamentPage`: inicio, cuadro/calendario, grupos y avance, consulta de jugador y seguimiento por resultados; editor de marcador compartido, campeón solo al finalizar. Calendario editable con bloqueos de partidos disputados y validación de dependencias/solapamientos; desempate explícito entre parejas empatadas, manteniendo sus estadísticas.
+- Ajustes tradicional enlaza calendario/ranking y no ofrece temporizador rápido ni cierre legacy incompatible. Invitaciones, borrado terminado, navbar y tema siguen compartidos; no se modifica la navegación global.
+- Lint inicial detectó memoización de fecha mutable: corregido usando date/time primitivos dentro del memo. Lint e i18n PASS tras traducciones es/en/eu; fuente 136900/137150, presupuesto +650 por presentaciones/controles y traducciones. Sin nuevos clientes/directivas ni dependencias. Tipos en curso, terminal 49860.
+- Próximo inmediato: pruebas unitarias de setup/copia/edición y E2E sintéticos de crear→revisar→iniciar→resultados→final de los tres formatos (móvil/escritorio claro/oscuro), manual/grupos/semillas/byes/corrección y permisos; validar SQL y gates completos antes de declarar listo para pruebas. T05 sigue EN CURSO.
+
+## T05 checkpoint final — interfaz y persistencia verificadas
+
+- Matriz de navegador final PASS **44/44**: tres tradicionales claro/oscuro y rápidos fijos/rotativos, móvil/escritorio. Incluye crear→sortear→iniciar→resultados→campeón→recargar→duplicar, manual/grupos/semillas/byes, calendario entre semanas, empates y correcciones protegidas, participante sin controles administrativos, Axe y móvil de 320 px en inglés/euskera. Log `.quality-artifacts/tournaments-t05-final-e2e-retry.log`.
+- PostgreSQL local PASS con **14 migraciones**, permisos/revisiones/rollback y recorridos usando los motores reales de la aplicación→SQL→lectura canónica→resultados→fin. Log `.quality-artifacts/tournaments-t05-canonical-sql.log`. No sustituye el gate completo Supabase/pgTAP/restore de T09 ni las pruebas OAuth/PWA físicas.
+- Regresión inicial detectó referencias aria-describedby retiradas en el formulario rápido: restauradas; solo se actualizó la expectativa intencional de que Tradicional ya está disponible. Repetición 44/44 correcta. Inicio bloqueado mientras haya cambios de sorteo sin aplicar. Calendario disputado bloqueado también en servidor, además de SQL.
+- Revisión visual móvil 393 px realizada, capturas conservadas en `.quality-artifacts/t05-mobile-*.png`. Sin dependencias nuevas ni datos remotos. Auto-Resume habilitado y watcher activo; la recuperación actual está en ejecución.
+- Pendiente inmediato: confirmar `npm run validate` (terminal 13524, log `.quality-artifacts/tournaments-t05-final-validate-retry.log`), luego regresiones focalizadas de ligas/amistosos/hub. No ejecutar Playwright mientras lint recorre test-results: un primer intento coincidió con la limpieza de artefactos y falló por ENOENT; se repite secuencialmente. Cerrar T05 solo tras estos gates y guardar commits locales.
+
+### Prueba manual del hito T05
+
+1. Con las migraciones de la rama aplicadas en un entorno de pruebas autorizado, abrir `/tournaments/new`, elegir **Torneo tradicional** y eliminación, grupos o grupos y eliminatorias. Introducir parejas completas (4–24 jugadores, cantidad par); elegir origen de liga/cuentas/manual como en rápidos.
+2. Configurar grupos/clasificados cuando corresponda, tercer puesto o consolación si son viables, semillas/sorteo manual y calendario automático o manual. Comprobar preview y crear; revisar calendario, volver a sortear opcionalmente e iniciar.
+3. Registrar resultados desde Seguimiento o Calendario. En grupos con igualdad que impida resolver un cruce, confirmar el orden explícito de las parejas empatadas en Ranking. Completar todos los encuentros obligatorios y finalizar; comprobar campeón/ganadores de grupo y recargar.
+4. Comprobar Jugador y su pareja, Ajustes sin navbar, duplicación como borrador nuevo sin marcadores y eliminación de un torneo terminado. Verificar también un rápido, una liga y un amistoso existentes.
+
+**PRE no modificado.** Para una prueba real desde PWA faltan autorización remota, aplicación de las migraciones nuevas en orden y publicación verificada. Migraciones pendientes de este objetivo: `20261024003812_configurable_rapid_tournaments.sql`, `20261024011921_fixed_pair_rapid_tournaments.sql`, `20261024053002_rapid_tournament_break_schedule.sql` y `20261024082119_traditional_tournament_state.sql`. Comprobar primero el historial real de PRE, sin reaplicar ni modificar migraciones ya aplicadas. OAuth/PWA/audio físicos permanecen gates manuales.
+
+No confundir T05 con el objetivo integral: reglas deportivas adicionales, permisos delegados/espectadores, incidencias e historial son T06; integración global/social T07; economía T08; cierre integral T09. Ninguna se anuncia como completada.
+
+Gates finales T05: `npm run validate` confirmado **PASS**, salida 0: **279 archivos / 1411 pruebas**, TypeScript/build/i18n/presupuestos correctos; lint 0 errores y cinco avisos previos. Build 1242275 bytes gzip/103 chunks. Regresiones focalizadas de liga/amistosos/hub en ejecución: terminal 97540, log `.quality-artifacts/tournaments-t05-league-regressions.log`. Confirmar antes de marcar completo o guardar el cierre. No repetir la matriz de torneos ya correcta si no hay nuevos cambios funcionales.
+
+## T05 COMPLETO LOCAL — listo para pruebas del hito
+
+Regresiones finales confirmadas **9/9 PASS, salida 0**: programación/resultados de liga claro/oscuro, calendario, reservas de amistosos, Mis Partidos, hub y rutas sin liga/espectador. Validate 1411 pruebas, matriz de torneos 44/44, SQL de 14 migraciones y revisión visual correctos. No queda un gate local fallido del hito. Harness canónico guardado en `15270e02`; interfaz, traducciones, copia y pruebas en `f62e782d`. Documentación de cierre en commit separado. Sin cambios funcionales posteriores a los gates.
+
+Primer hito incompleto **T06**. Siguiente desarrollo del objetivo integral: ampliar reglas/puntuación y gestión con migraciones aditivas e historial, conservando estos motores y recorridos. La petición más reciente es dejar tradicionales listos para probar: entrega verificable de T05, sin afirmar completo T06–T09. Para PWA real en PRE se requiere autorización explícita de publicación y migraciones, según el GOAL/AGENTS; no ejecutar operaciones remotas por inferencia. Guía manual y migraciones arriba.
