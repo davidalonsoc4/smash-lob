@@ -5,6 +5,17 @@ import { parseTournamentPoints } from "./tournamentResult"
 export type FixedTournamentTeam = { id: string; playerIds: readonly [string, string] }
 type FixedFormat = "balanced_americana" | "dynamic_mexicano"
 
+export function fixedTeamsFromPlayers(players: readonly { id: string; pairNumber?: number | null }[]): FixedTournamentTeam[] {
+  const groups = new Map<number, string[]>()
+  for (const player of players) {
+    if (!Number.isInteger(player.pairNumber) || player.pairNumber! < 1 || player.pairNumber! > Math.min(12, players.length/2)) throw new Error("invalid_fixed_teams")
+    groups.set(player.pairNumber!, [...(groups.get(player.pairNumber!) ?? []), player.id])
+  }
+  const teams = [...groups].sort(([a],[b]) => a-b).map(([number, ids]) => ({ id: `pair-${number}`, playerIds: ids as [string,string] }))
+  if (!validateFixedTournamentTeams(players.map(player => player.id), teams)) throw new Error("invalid_fixed_teams")
+  return teams
+}
+
 export function validateFixedTournamentTeams(playerIds: readonly string[], teams: readonly FixedTournamentTeam[]) {
   const members = teams.flatMap(team => [...team.playerIds])
   return playerIds.length >= 4 && playerIds.length <= 24 && playerIds.length % 2 === 0 &&
@@ -45,7 +56,7 @@ export function calculateFixedRapidStandings(teams: readonly FixedTournamentTeam
   const percentById = new Map(percentages.map(row => [row.player, row])), ratingById = new Map(ratings.map(row => [row.id, row]))
   const order = format === "dynamic_mexicano" ? ratings.map(row => row.id) : percentages.map(row => row.player)
   return order.map(id => ({ ...percentById.get(id)!, id, playerIds: teams.find(team => team.id === id)!.playerIds,
-    rating: ratingById.get(id)!.rating, rests: ratingById.get(id)!.rests,
+    rating: ratingById.get(id)!.rating, rests: ratingById.get(id)!.rests, draws: ratingById.get(id)!.draws, losses: ratingById.get(id)!.losses, difference: ratingById.get(id)!.difference,
     position: format === "dynamic_mexicano" ? ratingById.get(id)!.position : percentById.get(id)!.position }))
 }
 

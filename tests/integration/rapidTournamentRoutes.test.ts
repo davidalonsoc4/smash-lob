@@ -347,4 +347,36 @@ describe("rapid tournament creator routes", () => {
     expect(payload.p_player_names[accountIndex]).toBe("Invitado original")
     expect(payload.p_player_names).not.toContain("Nombre manipulado")
   })
+  it.each(["balanced_americana", "dynamic_mexicano"])("creates %s with fixed partners without shuffling the roster apart", async format => {
+    mocks.rpc.mockResolvedValueOnce({ data: tournamentId, error: null })
+    const pairNumbers = [2,1,1,2,3,3,4,4]
+    const response = await createTournament(request("/api/tournaments", { name: "Parejas", startsAt: "2027-01-01T09:00:00Z", players: names.slice(0,8), playerCount: 8, courtNames: ["Uno","Dos"], pairing: "fixed", pairNumbers, format, roundCount: 3, roundMinutes: 10, reservationMinutes: 60 }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_fixed_rapid_tournament", expect.objectContaining({ p_player_pair_numbers: pairNumbers, p_player_names: names.slice(0,8) }))
+    const payload = mocks.rpc.mock.calls[0][1]
+    expect(payload.p_matches).toHaveLength(format === "balanced_americana" ? 6 : 0)
+    for (const match of payload.p_matches) for (const pair of [match.team_a, match.team_b]) {
+      expect(pairNumbers[pair[0].charCodeAt(0)-65]).toBe(pairNumbers[pair[1].charCodeAt(0)-65])
+    }
+  })
+  it.each([[1,1,1,2],[1,2,3,4],[0,0,1,1],[1,1,3,3],["1","1",2,2],[1,1,2]].map(pairNumbers => [pairNumbers]))("rejects incomplete or invalid fixed pair allocation %j", async pairNumbers => {
+    const response = await createTournament(request("/api/tournaments", { name: "Parejas", startsAt: "2027-01-01T09:00:00Z", players: names.slice(0,4), playerCount: 4, courtNames: ["Uno"], pairing: "fixed", pairNumbers }))
+    expect(response.status).toBe(400)
+    expect(mocks.rpc).not.toHaveBeenCalled()
+  })
+  it("redraws fixtures while preserving fixed partners and participant IDs", async () => {
+    const roster = names.slice(0,8).map((full_name,i) => ({ id: `player-${i}`, full_name, pair_number: Math.floor(i/2)+1 }))
+    const from = vi.fn(() => {
+      const query = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: tournamentId, created_by_user_id: "creator-uuid", pairing: "fixed", format: "balanced_americana", status: "draft", player_count: 8, court_count: 2, round_count: 3 }, error: null }),
+        order: vi.fn().mockResolvedValue({ data: roster, error: null }),
+      }; return query
+    })
+    mocks.auth.mockResolvedValue({ ok: true, actor: { supabase: { from, rpc: mocks.rpc }, user: { id: "creator-uuid" } } })
+    mocks.rpc.mockResolvedValueOnce({ data: true, error: null })
+    expect((await drawTournament(request(`/api/tournaments/${tournamentId}/draw`), params({ id: tournamentId }))).status).toBe(200)
+    expect(mocks.rpc.mock.calls[0][0]).toBe("redraw_configurable_rapid_tournament")
+    const pairById = new Map(roster.map(player => [player.id, player.pair_number]))
+    for (const match of mocks.rpc.mock.calls[0][1].p_matches) for (const team of [match.team_a,match.team_b]) expect(pairById.get(team[0])).toBe(pairById.get(team[1]))
+  })
 })

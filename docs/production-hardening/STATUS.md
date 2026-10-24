@@ -3085,3 +3085,11 @@ Motor puro de Americana/Mexicano por parejas fijas y ranking de equipo sobre cá
 
 Checkpoint T04 confirmado: typecheck/lint PASS y 90 tests complementarios PASS. Contrato conserva campos opcionales de partidos legacy tras detectar y resolver incompatibilidad de tipos. Próxima acción: persistencia e integración fija; no cerrar T04 todavía.
 
+### T04 — parejas fijas conectadas, verificación en curso
+
+Nueva migración aditiva pairing/pair_number y RPC protegida sobre validación común; doce migraciones y pruebas PostgreSQL locales PASS (pares, cruces, bloqueo, idempotencia y permisos). Formulario/API/copia/ranking conectados; 57 tests focalizados, i18n y lint PASS. Faltan E2E fijo y gates completos, T04 abierto, sin cambios remotos. Ver docs/tournaments/STATUS para continuar tras interrupción.
+
+T04 integración: 69 tests focalizados, SQL de doce migraciones y E2E móvil 9/9 PASS. Validate completo PASS (271 archivos/1223 tests, tipos/lint/build/presupuestos; cinco warnings previos). Transición cero sin avisos duplicados y marcador vacío rechazado. Repetición final fija móvil/escritorio en curso. T04 sigue abierto para terminar verificación y descansos configurables, sin retirar alcance ni operaciones remotas.
+
+Repetición final T04 fija 8/8 PASS en móvil/escritorio y claro/oscuro, con los seis resultados, clasificación por equipos, campeón y copia. Guardar checkpoint y continuar T04 por descansos configurables; no pasar aún a tradicionales ni declarar terminado el módulo.
+

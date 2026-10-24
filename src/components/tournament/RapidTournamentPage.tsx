@@ -10,6 +10,8 @@ import { readLegacyRapidConfiguration } from "@/lib/tournamentConfiguration"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { tournamentAccentStyle } from "@/lib/tournamentStyles"
 import { calculateMexicanoStandings } from "@/lib/dynamicMexicano"
+import { calculateFixedRapidStandings, fixedTeamsFromPlayers } from "@/lib/fixedRapidTournament"
+import { parseTournamentPoints } from "@/lib/tournamentResult"
 import styles from "./Tournament.module.css"
 import { RapidTournamentLive } from "./RapidTournamentLive"
 import { disableRapidAudio, enableRapidAudio } from "@/lib/rapidTournamentAudio"
@@ -19,7 +21,7 @@ type TournamentData = {
   serverNow?: string
   canRestartForTesting?: boolean
   tournament: { id: string; name: string; description: string; logoUrl?: string | null; accentColor?: string | null; startsAt: string; startedAt: string | null; courtNames: string[]; status: "draft" | "in_progress" | "finished"; createdByUserId: string; finishedAt: string | null; configuration: Record<string, number | string> }
-  players: Array<{ id: string; slot: string; name: string; userId?: string | null; hasAccount?: boolean }>
+  players: Array<{ id: string; slot: string; name: string; userId?: string | null; hasAccount?: boolean; pairNumber?: number | null }>
   rounds: Array<{ id: string; round: number; startsAt: string; endsAt: string; status?: "pending" | "generated" | "completed" }>
   matches: Array<{ id: string; round: number; court: number; courtName: string; teamA: [string, string]; teamB: [string, string]; teamAIds: [string, string]; teamBIds: [string, string]; scoreA: number | null; scoreB: number | null }>
 }
@@ -45,7 +47,7 @@ function MatchResult({ tournamentId, match, status, onSaved, canManage }: { tour
   const canEdit = canManage && status === "in_progress"
   async function save() {
     const a = Number(scoreA), b = Number(scoreB)
-    if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0 || a + b <= 0) { setError(tx("Introduce dos números enteros no negativos y una suma mayor que cero.")); return }
+    if (!scoreA.trim() || !scoreB.trim() || !parseTournamentPoints(a,b)) { setError(tx("Introduce dos números enteros no negativos y una suma mayor que cero.")); return }
     setBusy(true); setError("")
     try {
       const response = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}/matches/${encodeURIComponent(match.id)}/result`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scoreA: a, scoreB: b }) })
@@ -86,9 +88,17 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
     return () => controller.abort()
   }, [refreshKey, tournamentId])
   const isDynamic = data?.tournament.configuration.format === "dynamic_mexicano"
+  const isFixed = data?.tournament.configuration.pairing === "fixed"
   const generatedRoundCount = data?.matches.reduce((maximum, match) => Math.max(maximum, match.round), 0) ?? 0
-  const mexicanoStandings = useMemo(() => data && isDynamic ? calculateMexicanoStandings(data.players, data.matches, generatedRoundCount) : [], [data, generatedRoundCount, isDynamic])
-  const standings = useMemo(() => data && !isDynamic ? calculateRapidStandings(data.players.map((player) => player.name), data.matches) : [], [data, isDynamic])
+  const fixedRanking = useMemo(() => {
+    if (!data || !isFixed) return null
+    try {
+      const teams = fixedTeamsFromPlayers(data.players), names = new Map(data.players.map(player => [player.id,player.name]))
+      return calculateFixedRapidStandings(teams, data.matches, isDynamic ? "dynamic_mexicano" : "balanced_americana", generatedRoundCount).map(row => ({ ...row, name: row.playerIds.map(id => names.get(id) ?? "").join(" / ") }))
+    } catch { return null }
+  }, [data,isFixed,isDynamic,generatedRoundCount])
+  const mexicanoStandings = useMemo(() => data && isDynamic ? isFixed ? fixedRanking ?? [] : calculateMexicanoStandings(data.players, data.matches, generatedRoundCount) : [], [data, generatedRoundCount, isDynamic,isFixed,fixedRanking])
+  const standings = useMemo(() => data && !isDynamic ? isFixed ? (fixedRanking ?? []).map((row): RapidStanding => ({ player: row.name, played: row.played, pending: row.pending, wins: row.wins, pointsFor: row.pointsFor, pointsAgainst: row.pointsAgainst, averagePercent: row.averagePercent, globalPercent: row.globalPercent, position: row.position })) : calculateRapidStandings(data.players.map((player) => player.name), data.matches) : [], [data, isDynamic,isFixed,fixedRanking])
   const scoredMatches = data?.matches.filter((match) => match.scoreA !== null && match.scoreB !== null).length ?? 0
   const champions = data ? isDynamic ? data.tournament.status === "finished" ? mexicanoStandings.filter((item) => item.position === 1) : [] : getTournamentChampions(standings, data.tournament.status, scoredMatches, data.matches.length) : []
   const championNames = champions.map((item) => "name" in item ? item.name : item.player)
@@ -112,6 +122,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
     finally { setBusyAction("") }
   }
   if (!data) return <div className="space-y-3 py-8"><Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500"><span aria-hidden="true" className="mr-1 inline-block">←</span>{tx("Competiciones")}</Link><AppCard><p role={error ? "alert" : "status"} className="text-sm font-semibold text-neutral-600">{error ? tx("No se ha podido cargar este torneo o no tienes acceso.") : tx("Cargando torneo…")}</p>{error ? <button className={`${buttonClass} mt-3`} onClick={refresh}>{tx("Reintentar")}</button> : null}</AppCard></div>
+  if (isFixed && !fixedRanking) return <AppCard><p role="alert">{tx("Las parejas guardadas no son válidas. Revisa la configuración del torneo.")}</p></AppCard>
   const tournament = data.tournament
   const canManage = data.access.role === "creator"
   const venue = [...new Set(tournament.courtNames.flatMap((courtName) => {
@@ -127,10 +138,12 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
   const canGenerateNextRound = isDynamic && tournament.status === "in_progress" && generatedRoundCount < Number(tournament.configuration.rounds) && currentRoundComplete
   const displayStart = tournament.startedAt ?? tournament.startsAt
   const config = readLegacyRapidConfiguration(data.tournament.configuration)
-  const formatLabel = isDynamic ? tx("Torneo rápido · Mexicano dinámico") : tx("Torneo rápido · Americana equilibrada")
+  const formatLabel = `${isDynamic ? tx("Torneo rápido · Mexicano dinámico") : tx("Torneo rápido · Americana equilibrada")}${isFixed ? ` · ${tx("Parejas fijas")}` : ""}`
   const visibleRounds = isDynamic ? data.rounds.filter((round) => round.round <= generatedRoundCount) : data.rounds
   const expectedMatchCount = Number(config.rounds) * Math.min(Number(config.courts), Math.floor(data.players.length / 4))
-  const scheduleChecks = isDynamic ? { passed: true, allPassed: true, checks: [], players: [] } : buildRapidScheduleChecks(data.players, data.matches, config)
+  const rawChecks = isDynamic ? { passed: true, allPassed: true, checks: [], players: [] } : buildRapidScheduleChecks(data.players, data.matches, config)
+  const auditChecks = rawChecks.checks.map(check => isFixed && check.id === "partners-and-opponents" ? { id: "fixed-pairs", passed: Boolean(fixedRanking) } : check)
+  const scheduleChecks = { ...rawChecks, checks: auditChecks, allPassed: auditChecks.every(check => check.passed) }
   const configMatches = data.matches.length
   const checkLabels: Record<string, string> = {
     "complete-calendar": `${configMatches} ${tx("partidos")} · ${data.rounds.length} ${tx("rondas")} · ${tx("sin jugadores duplicados")}`,
@@ -138,6 +151,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
     "breaks-and-streaks": tx("Descansos y rachas de juego equilibrados"),
     "partners-and-opponents": tx("Se minimizan repeticiones de compañeros y rivales"),
     "court-balance": tx("Mismo número de partidos programados en cada pista"),
+    "fixed-pairs": tx("Las parejas se mantienen durante todo el torneo"),
   }
       const scheduleValidation = <section className={`${styles.panel} p-3`} aria-labelledby="schedule-validation"><div className="flex items-center justify-between gap-2"><h2 id="schedule-validation" className="type-panel-title font-black">{tx("Validación del sorteo")}</h2><span className={`${styles.chip} ${scheduleChecks.allPassed ? "text-emerald-800" : scheduleChecks.passed ? "text-amber-800" : "text-red-800"}`}>{scheduleChecks.allPassed ? tx("Todo correcto") : tx("Revisar")}</span></div><ul className="mt-2 space-y-1.5">{scheduleChecks.checks.map((check) => <li key={check.id} className="flex items-start gap-2 text-xs font-semibold"><span aria-hidden="true" className={check.passed ? "text-emerald-700" : "text-red-700"}>{check.passed ? "✓" : "!"}</span><span>{checkLabels[check.id]}</span></li>)}</ul><details className="mt-2"><summary className="cursor-pointer text-xs font-bold">{tx("Detalle por jugador")}</summary><div className="mt-2 overflow-x-auto" role="region" aria-label={tx("Detalle por jugador")} tabIndex={0}><table className="w-full min-w-[430px] text-left text-xs"><thead><tr>{[tx("Jugador"),tx("Partidos"),tx("Descansos"),tx("Minutos"),tx("Máx. seguidos"),`${tx("Compañeros")} / ${tx("Rivales")}`,tx("Pistas")].map((label) => <th className="px-1 py-1 font-black" key={label}>{label}</th>)}</tr></thead><tbody>{scheduleChecks.players.map((player) => <tr key={player.id} className="border-t border-neutral-100"><td className="px-1 py-1 font-bold">{player.name}</td><td className="px-1 py-1">{player.played}</td><td className="px-1 py-1">{player.rested}</td><td className="px-1 py-1">{player.playedMinutes}</td><td className="px-1 py-1">{player.maxConsecutivePlayed} / {player.maxConsecutiveRested}</td><td className="px-1 py-1">{player.uniquePartners} / {player.uniqueOpponents}</td><td className="px-1 py-1">{player.courts.slice(0, Math.min(tournament.courtNames.length, Math.floor(data.players.length / 4))).join(" / ")}</td></tr>)}</tbody></table></div><p className="mt-1 text-xs text-neutral-500">{tx("Máx. seguidos: jugando / descansando · Pistas en orden")}</p></details></section>
   return <div className={`${styles.theme} ${styles.page}`} style={tournamentAccentStyle(tournament.accentColor)}>
@@ -167,7 +181,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
     </> : null}
     {view === "standings" ? <>
       <AppCard><p className="text-sm font-black">{complete ? tx("Clasificación final") : tx("Clasificación provisional")}</p><p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Resultados registrados")} · {scoredMatches}/{isDynamic ? expectedMatchCount : configMatches}</p></AppCard>
-      <div className={`${styles.standingsTable} overflow-x-auto`}><table className="w-full min-w-[520px] border-collapse text-left text-xs"><thead><tr>{(isDynamic ? [tx("Pos."), tx("Jugador"), tx("PJ"), tx("Descansos"), tx("V/E/D"), tx("A favor"), tx("En contra"), tx("Dif."), tx("Rendimiento")] : [tx("Pos."), tx("Jugador"), tx("PJ"), tx("Victorias"), tx("A favor"), tx("En contra"), tx("% medio")]).map((label) => <th key={label} className="px-2 py-3 font-black">{label}</th>)}</tr></thead><tbody>{isDynamic ? mexicanoStandings.map((item) => <tr key={item.id} className={`${styles.standingRow} ${item.position === 1 ? styles.standingLeader : ""} font-semibold`}><td className="px-2 py-2.5">{item.position}</td><td className="px-2 py-2.5">{item.name}</td><td className="px-2 py-2.5">{item.played}</td><td className="px-2 py-2.5">{item.rests}</td><td className="px-2 py-2.5">{item.wins}/{item.draws}/{item.losses}</td><td className="px-2 py-2.5">{item.pointsFor}</td><td className="px-2 py-2.5">{item.pointsAgainst}</td><td className="px-2 py-2.5">{item.difference}</td><td className="px-2 py-2.5 tabular-nums">{item.rating.toFixed(2)}</td></tr>) : standings.map((item: RapidStanding) => <tr key={item.player} className={`${styles.standingRow} ${item.position === 1 ? styles.standingLeader : ""} font-semibold`}><td className="px-2 py-2.5">{item.position}</td><td className="px-2 py-2.5">{item.player}</td><td className="px-2 py-2.5">{item.played}/{data.players.length ? Math.ceil(configMatches * 4 / data.players.length) : 0}</td><td className="px-2 py-2.5">{item.wins}</td><td className="px-2 py-2.5">{item.pointsFor}</td><td className="px-2 py-2.5">{item.pointsAgainst}</td><td className="px-2 py-2.5 tabular-nums">{item.averagePercent.toFixed(2)}%</td></tr>)}</tbody></table></div>
+      <div className={`${styles.standingsTable} overflow-x-auto`}><table className="w-full min-w-[520px] border-collapse text-left text-xs"><thead><tr>{(isDynamic ? [tx("Pos."), tx(isFixed ? "Pareja" : "Jugador"), tx("PJ"), tx("Descansos"), tx("V/E/D"), tx("A favor"), tx("En contra"), tx("Dif."), tx("Rendimiento")] : [tx("Pos."), tx(isFixed ? "Pareja" : "Jugador"), tx("PJ"), tx("Victorias"), tx("A favor"), tx("En contra"), tx("% medio")]).map((label) => <th key={label} className="px-2 py-3 font-black">{label}</th>)}</tr></thead><tbody>{isDynamic ? mexicanoStandings.map((item) => <tr key={item.id} className={`${styles.standingRow} ${item.position === 1 ? styles.standingLeader : ""} font-semibold`}><td className="px-2 py-2.5">{item.position}</td><td className="px-2 py-2.5">{item.name}</td><td className="px-2 py-2.5">{item.played}</td><td className="px-2 py-2.5">{item.rests}</td><td className="px-2 py-2.5">{item.wins}/{item.draws}/{item.losses}</td><td className="px-2 py-2.5">{item.pointsFor}</td><td className="px-2 py-2.5">{item.pointsAgainst}</td><td className="px-2 py-2.5">{item.difference}</td><td className="px-2 py-2.5 tabular-nums">{item.rating.toFixed(2)}</td></tr>) : standings.map((item: RapidStanding) => <tr key={item.player} className={`${styles.standingRow} ${item.position === 1 ? styles.standingLeader : ""} font-semibold`}><td className="px-2 py-2.5">{item.position}</td><td className="px-2 py-2.5">{item.player}</td><td className="px-2 py-2.5">{item.played}/{data.players.length ? Math.ceil(configMatches * 4 / data.players.length) : 0}</td><td className="px-2 py-2.5">{item.wins}</td><td className="px-2 py-2.5">{item.pointsFor}</td><td className="px-2 py-2.5">{item.pointsAgainst}</td><td className="px-2 py-2.5 tabular-nums">{item.averagePercent.toFixed(2)}%</td></tr>)}</tbody></table></div>
       {champions.length ? <AppCard className="border-amber-300 bg-amber-50"><p className="text-xs font-black uppercase text-amber-900">{champions.length > 1 ? tx("Campeones") : tx("Campeón")}</p><p className="mt-1 text-lg font-black">{championNames.join(" · ")}</p></AppCard> : null}
     </> : null}
     {view === "players" ? <>

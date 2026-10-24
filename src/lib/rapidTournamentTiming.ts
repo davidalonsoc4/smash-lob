@@ -14,7 +14,7 @@ export function buildRapidCues(startedAt: string, countdown = false, config: Rap
   const cues: RapidCue[] = [...(config.preparationMinutes > 0 ? [{ id: "preparation", at: start, kind: "preparation" as const, round: 1 }] : []), ...rounds.flatMap((round): RapidCue[] => [
     { id: `start-${round.round}`, at: Date.parse(round.startsAt), kind: "start", round: round.round },
     ...(config.roundMinutes > 2 ? [{ id: `two-${round.round}`, at: Date.parse(round.endsAt) - 120_000, kind: "two_minutes" as const, round: round.round }] : []),
-    { id: `end-${round.round}`, at: Date.parse(round.endsAt), kind: round.round === config.rounds ? "finished" : "end", round: round.round },
+    ...(round.round === config.rounds || config.transitionMinutes > 0 ? [{ id: `end-${round.round}`, at: Date.parse(round.endsAt), kind: round.round === config.rounds ? "finished" as const : "end" as const, round: round.round }] : []),
   ])]
   if (countdown) for (const cue of [...cues]) if (cue.kind === "start" || cue.kind === "end" || cue.kind === "finished") for (const count of [3, 2, 1]) cues.push({ id: `count-${cue.id}-${count}`, at: cue.at - count * 1000, kind: "countdown", round: cue.round, count })
   return cues.filter(cue => cue.at >= start).sort((a, b) => a.at - b.at)
@@ -24,7 +24,7 @@ export function getDueRapidCues(cues: readonly RapidCue[], previous: number, now
 }
 export function getRapidCueAnnouncement(cue: RapidCue, config: RapidTournamentTimingConfig) {
   if (cue.kind === "preparation") return { source: config.preparationMinutes === 2 ? "Dos minutos de preparación" : "Calentamiento: {} minutos.", number: config.preparationMinutes === 2 ? undefined : config.preparationMinutes }
-  if (cue.kind === "start") return { source: "Comienza la ronda {}", number: cue.round }
+  if (cue.kind === "start") return { source: cue.round > 1 && config.transitionMinutes === 0 ? "Fin de ronda. Termina el punto en juego. Comienza la ronda {}" : "Comienza la ronda {}", number: cue.round }
   if (cue.kind === "two_minutes") return { source: "Quedan dos minutos" }
   if (cue.kind === "finished") return { source: "Tiempo de torneo finalizado. Termina el punto en juego." }
   if (config.transitionMinutes === 0) return { source: "Fin de ronda. Termina el punto en juego." }

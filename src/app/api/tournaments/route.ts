@@ -11,11 +11,12 @@ import { getTournamentLeagueRoster } from "@/lib/serverTournamentLeagueRoster"
 import { planRapidTournament } from "@/lib/tournamentConfiguration"
 import { requireRapidTournamentCreator } from "@/lib/serverRapidTournaments"
 import { normalizeStoredImageUrl } from "@/lib/serverImageValidation"
+import { fixedTeamsFromPlayers, generateFixedAmericanaFixtures } from "@/lib/fixedRapidTournament"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 const isMissingAccountLinkSchema = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "42703" || error.code === "PGRST204") && /user_id/i.test(error.message ?? ""))
 const isMissingFlexibleCreateRpc = (error: { code?: string; message?: string } | null) => Boolean(error && (error.code === "PGRST202" || error.code === "42883") && /create_rapid_tournament_flexible/i.test(error.message ?? ""))
-type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; roundCount?: unknown; roundMinutes?: unknown; transitionMinutes?: unknown; logoUrl?: unknown; accentColor?: unknown; format?: unknown; duplicateOf?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
+type CreateTournamentBody = { name?: unknown; description?: unknown; startsAt?: unknown; courtNames?: unknown; players?: unknown; playerUserIds?: unknown; playerCount?: unknown; reservationMinutes?: unknown; preparationMinutes?: unknown; roundCount?: unknown; roundMinutes?: unknown; transitionMinutes?: unknown; logoUrl?: unknown; accentColor?: unknown; format?: unknown; pairing?: unknown; pairNumbers?: unknown; duplicateOf?: unknown; source?: { leagueId?: unknown; seasonId?: unknown; playerIds?: unknown } | null }
 const numericOption = (value: unknown, fallback: number) => value === undefined ? fallback : typeof value === "number" ? value : NaN
 export async function GET(request: Request) {
   const rateLimited = await enforceRequestRateLimit({ request, scope: "rapid_tournaments_list", limit: 120, windowMs: 60_000 })
@@ -51,16 +52,22 @@ export async function POST(request: Request) {
   const roundMinutes = numericOption(body?.roundMinutes, 16), transitionMinutes = numericOption(body?.transitionMinutes, 3)
   const preparationMinutes = numericOption(body?.preparationMinutes, 2)
   const format = body?.format === "dynamic_mexicano" ? "dynamic_mexicano" : body?.format === undefined || body.format === "balanced_americana" ? "balanced_americana" : null
-  const extended = body?.roundCount !== undefined || body?.roundMinutes !== undefined || body?.transitionMinutes !== undefined || body?.logoUrl !== undefined || body?.accentColor !== undefined || playerCount < 8 || playerCount > 16
+  const pairing = body?.pairing === "fixed" ? "fixed" : body?.pairing === undefined || body.pairing === "rotating" ? "rotating" : null
+  const extended = pairing === "fixed" || body?.roundCount !== undefined || body?.roundMinutes !== undefined || body?.transitionMinutes !== undefined || body?.logoUrl !== undefined || body?.accentColor !== undefined || playerCount < 8 || playerCount > 16
   const configuration = { players: playerCount, courts: Array.isArray(body?.courtNames) ? body.courtNames.length : 0, reservationMinutes, rounds: roundCount, roundMinutes, transitionMinutes, preparationMinutes }
-  const configurationValidation = extended ? planRapidTournament({ ...configuration, pairing: "rotating" }) : validateRapidTournamentConfiguration(playerCount, configuration.courts, reservationMinutes)
+  const configurationValidation = extended ? planRapidTournament({ ...configuration, pairing: pairing ?? "rotating" }) : validateRapidTournamentConfiguration(playerCount, configuration.courts, reservationMinutes)
   const logoUrl = typeof body?.logoUrl === "string" ? normalizeStoredImageUrl(body.logoUrl) : null
   const accentColor = typeof body?.accentColor === "string" && /^#[0-9a-f]{6}$/i.test(body.accentColor) ? body.accentColor : null
   const courtNames = Array.isArray(body?.courtNames) ? body.courtNames.map((item) => normalizeBoundedText(item, 80)) : []
   const participants = validateTournamentParticipants(body?.players, playerCount)
   const playerUserIds = Array.isArray(body?.playerUserIds) ? body.playerUserIds : Array(Number.isInteger(playerCount) && playerCount >= 4 && playerCount <= 24 ? playerCount : 0).fill(null)
-  if (!body || !name || !startsAt || !format || (extended && Date.parse(startsAt) <= Date.now()) || !configurationValidation.ok || configuration.courts > 4 || reservationMinutes < 30 || reservationMinutes > 1440 || roundMinutes > 120 || transitionMinutes > 30 || courtNames.some((court) => !court) || !participants.ok || playerUserIds.length !== playerCount || playerUserIds.some((id) => id !== null && !validateUuid(id)) || !Number.isSafeInteger(preparationMinutes) || preparationMinutes < 0 || (!extended && preparationMinutes > getRapidPreparationMax(reservationMinutes)) || (body.logoUrl != null && !logoUrl) || (body.accentColor != null && !accentColor)) {
+  if (!body || !name || !startsAt || !format || !pairing || (extended && Date.parse(startsAt) <= Date.now()) || !configurationValidation.ok || configuration.courts > 4 || reservationMinutes < 30 || reservationMinutes > 1440 || roundMinutes > 120 || transitionMinutes > 30 || courtNames.some((court) => !court) || !participants.ok || playerUserIds.length !== playerCount || playerUserIds.some((id) => id !== null && !validateUuid(id)) || !Number.isSafeInteger(preparationMinutes) || preparationMinutes < 0 || (!extended && preparationMinutes > getRapidPreparationMax(reservationMinutes)) || (body.logoUrl != null && !logoUrl) || (body.accentColor != null && !accentColor)) {
     return NextResponse.json({ error: !participants.ok ? participants.error : !configurationValidation.ok ? configurationValidation.error : "invalid_tournament_details" }, { status: 400 })
+  }
+  const pairNumbers: number[] = Array.isArray(body.pairNumbers) ? body.pairNumbers : []
+  if (pairing === "fixed") {
+    try { if (pairNumbers.length !== playerCount) throw new Error("invalid_fixed_teams"); fixedTeamsFromPlayers(pairNumbers.map((pairNumber,index) => ({ id: RAPID_TOURNAMENT_SLOTS[index], pairNumber }))) }
+    catch { return NextResponse.json({ error: "invalid_fixed_teams" }, { status: 400 }) }
   }
   const accountIds = playerUserIds.map((id) => typeof id === "string" ? validateUuid(id) : null), linkedIds = accountIds.filter((id): id is string => Boolean(id))
   if (new Set(linkedIds).size !== linkedIds.length) return NextResponse.json({ error: "duplicate_player_accounts" }, { status: 400 })
@@ -100,12 +107,15 @@ export async function POST(request: Request) {
     if (!canonicalValidation.ok) return NextResponse.json({ error: canonicalValidation.error }, { status: 400 })
     canonicalNames = canonicalValidation.names
   }
-  const entries = canonicalNames.map((playerName, index) => ({ name: playerName, userId: accountIds[index] }))
-  const shuffled = format === "balanced_americana" ? shuffleTournamentEntries(entries) : entries
-  const plan = planRapidTournament({ ...configuration, pairing: "rotating" })
+  const entries = canonicalNames.map((playerName, index) => ({ name: playerName, userId: accountIds[index], pairNumber: pairNumbers[index] }))
+  const shuffled = format === "balanced_americana" && pairing === "rotating" ? shuffleTournamentEntries(entries) : entries
+  const plan = planRapidTournament({ ...configuration, pairing })
   if (!plan.ok) return NextResponse.json({ error: plan.error }, { status: 400 })
   const rounds = buildRapidRounds(new Date(Date.parse(startsAt) + preparationMinutes * 60_000), configuration)
-  const fixtures = format === "balanced_americana" ? generateBalancedAmericanaFixtures(playerCount, courtNames.length, roundCount) : []
+  const seed = randomInt(1,2_147_483_647)
+  const fixtures = format !== "balanced_americana" ? [] : pairing === "fixed"
+    ? generateFixedAmericanaFixtures(fixedTeamsFromPlayers(entries.map((entry,index) => ({ id: RAPID_TOURNAMENT_SLOTS[index], pairNumber: entry.pairNumber }))), courtNames.length, roundCount, seed).map(match => ({ round: match.round, court: match.court, teamA: match.teamAIds, teamB: match.teamBIds }))
+    : generateBalancedAmericanaFixtures(playerCount, courtNames.length, roundCount)
   if (format === "balanced_americana") {
     const schedule = buildRapidScheduleChecks(RAPID_TOURNAMENT_SLOTS.slice(0, playerCount).map((id, index) => ({ id, name: shuffled[index].name })), fixtures.map((match) => ({ round: match.round, court: match.court, teamAIds: match.teamA, teamBIds: match.teamB })), configuration)
     if (!schedule.passed) return NextResponse.json({ error: "tournament_schedule_validation_failed" }, { status: 422 })
@@ -116,10 +126,11 @@ export async function POST(request: Request) {
     p_reservation_minutes: reservationMinutes, p_preparation_minutes: preparationMinutes, p_round_count: roundCount,
     p_rounds: rounds.map((round) => ({ round_number: round.round, starts_at: round.startsAt, ends_at: round.endsAt })),
   }
-  const result = extended ? await auth.actor.supabase.rpc("create_configurable_rapid_tournament", {
+  const result = extended ? await auth.actor.supabase.rpc(pairing === "fixed" ? "create_fixed_rapid_tournament" : "create_configurable_rapid_tournament", {
     p_creator_user_id: auth.actor.user.id, p_name: name, p_description: description, p_starts_at: startsAt,
     p_court_names: courtNames, p_player_names: shuffled.map(entry => entry.name), p_player_user_ids: shuffled.map(entry => entry.userId),
-    p_configuration: { ...configuration, format, generationSeed: randomInt(1, 2_147_483_647) },
+    p_configuration: { ...configuration, format, generationSeed: seed },
+    ...(pairing === "fixed" ? { p_player_pair_numbers: entries.map(entry => entry.pairNumber) } : {}),
     p_matches: fixtures.map(match => ({ round_number: match.round, court_number: match.court, team_a: match.teamA, team_b: match.teamB })),
     p_duplicate_of: validateUuid(body.duplicateOf), p_source_league_id: sourceLeagueId, p_source_season_id: sourceSeasonId,
     p_logo_url: logoUrl, p_accent_color: accentColor,

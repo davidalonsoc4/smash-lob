@@ -45,4 +45,13 @@ describe("configurable rapid tournaments", () => {
     expect(buildRapidScheduleChecks(players, matches, config)).toMatchObject({ passed: true, allPassed: false })
     expect(buildRapidScheduleChecks(players, [...matches, matches[0]], config).passed).toBe(false)
   })
+  it("uses one countdown and a combined announcement when consecutive rounds have no transition", () => {
+    const config={rounds:2,roundMinutes:1,transitionMinutes:0,preparationMinutes:0}
+    const cues=buildRapidCues("2027-01-01T10:00:00Z",true,config)
+    expect(cues.filter(cue=>cue.kind==="end")).toHaveLength(0)
+    expect(cues.filter(cue=>cue.kind==="countdown")).toHaveLength(6)
+    const second=cues.find(cue=>cue.kind==="start"&&cue.round===2)!
+    expect(getRapidCueAnnouncement(second,config)).toEqual({source:"Fin de ronda. Termina el punto en juego. Comienza la ronda {}",number:2})
+    expect(new Set(cues.map(cue=>cue.at)).size).toBe(cues.length)
+  })
 })

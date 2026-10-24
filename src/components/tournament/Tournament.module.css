@@ -23,6 +23,7 @@
 .selectWrap { position: relative; display: block; width: 100%; }
 .selectField { appearance: none; padding-right: 2.75rem; }
 .selectChevron { position: absolute; top: 50%; right: .8rem; width: 1.1rem; height: 1.1rem; color: var(--t-muted); pointer-events: none; transform: translateY(-50%); }
+.pairChooser { display: grid; grid-template-columns: minmax(0,1fr) 8rem; align-items: center; gap: .5rem; min-width: 0; }
 .field:focus-visible, .navItem:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 3px; }
 .field:disabled { opacity: .65; cursor: not-allowed; }
 .stepperRow { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; padding: .25rem 0; }

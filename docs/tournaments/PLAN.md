@@ -11,7 +11,7 @@ Trabajar exclusivamente en el primer hito incompleto. Cada checkpoint actualiza 
 | T03 | Creación común guiada, identidad/logo/acento, 4–24 participantes según viabilidad para rotativas existentes, origen de liga y duplicación; preview y validación servidor | COMPLETO |
 | T04 | Americana y Mexicano rotativos/fijos: creación e inscripción por parejas fijas, parámetros configurables, balance auditable, generación segura, seguimiento/audio existentes | EN CURSO |
 | T05 | Tradicionales: eliminación, tercer puesto/consolación, grupos y grupos+cuadro; semillas, byes, sorteo manual/automático, calendarios editables/manuales | PENDIENTE |
-| T06 | Gestión: administradores/espectadores, inscripción e invitaciones, reglas de resultado/confirmación/aprobación, historial, incidencias, sustituciones/bajas/aplazamientos y recálculos seguros | PENDIENTE |
+| T06 | Gestión y reglas: puntuaciones/desempates configurables, administradores/espectadores, inscripción e invitaciones, resultado/confirmación/aprobación, historial, incidencias, sustituciones/bajas/aplazamientos y recálculos seguros | PENDIENTE |
 | T07 | Mis Partidos y perfil global con métricas compatibles, filtros y RACHA/FORMA; chats y notificaciones configurables; navegación contextual | PENDIENTE |
 | T08 | Economía opcional: cuotas, cobros, gastos, bolas, premios, balances y permisos reutilizados | PENDIENTE |
 | T09 | Validación integral DB/API/E2E/Axe/PWA/móvil/i18n y regresiones de ligas; informe y acciones manuales | PENDIENTE |

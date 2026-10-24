@@ -42,7 +42,7 @@ export function mapTournamentData(
 ) {
   return Promise.all([
     actor.supabase.from("rapid_tournaments").select("*").eq("id", tournamentId).single(),
-    actor.supabase.from("rapid_tournament_players").select("id,slot,full_name,user_id").eq("tournament_id", tournamentId).order("slot"),
+    actor.supabase.from("rapid_tournament_players").select("*").eq("tournament_id", tournamentId).order("slot"),
     actor.supabase.from("rapid_tournament_rounds").select("id,round_number,starts_at,ends_at").eq("tournament_id", tournamentId).order("round_number"),
     actor.supabase.from("rapid_tournament_matches").select("id,round_id,round_number,court_number,court_name,team_a_one_id,team_a_two_id,team_b_one_id,team_b_two_id,score_a,score_b").eq("tournament_id", tournamentId).order("round_number").order("court_number"),
   ]).then(async ([tournamentResult, initialPlayersResult, roundsResult, matchesResult]) => {
@@ -69,6 +69,7 @@ export function mapTournamentData(
           finishedAt: tournamentResult.data.finished_at,
           configuration: {
             format: tournamentResult.data.format,
+            pairing: tournamentResult.data.pairing ?? "rotating",
             generationSeed: tournamentResult.data.generation_seed ?? 0,
             players: tournamentResult.data.player_count,
             courts: tournamentResult.data.court_count,
@@ -84,7 +85,7 @@ export function mapTournamentData(
         },
         players: (playersResult.data ?? []).map((player) => {
           const userId = "user_id" in player ? player.user_id : null
-          return { id: player.id, slot: player.slot, name: player.full_name, ...(canManage ? { userId } : { hasAccount: Boolean(userId) }) }
+          return { id: player.id, slot: player.slot, name: player.full_name, ...("pair_number" in player && player.pair_number != null ? { pairNumber: player.pair_number } : {}), ...(canManage ? { userId } : { hasAccount: Boolean(userId) }) }
         }),
         rounds: getEffectiveRapidRounds((roundsResult.data ?? []).map((round) => ({ id: round.id, round: round.round_number, startsAt: round.starts_at, endsAt: round.ends_at })), tournamentResult.data.started_at ?? tournamentResult.data.starts_at, {
           rounds: tournamentResult.data.round_count, roundMinutes: tournamentResult.data.round_minutes,
