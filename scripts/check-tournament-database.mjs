@@ -19,10 +19,11 @@ const quote = value => `'${String(value).replaceAll("'", "''")}'`
 const creator = "10000000-0000-4000-8000-000000000001"
 const invited = "10000000-0000-4000-8000-000000000002"
 const other = "10000000-0000-4000-8000-000000000003"
-function create({ players = 4, configuration = {}, matches, accounts, duplicateOf = null, owner = creator, sourceLeague = null, sourceSeason = null } = {}) {
+function create({ players = 4, configuration = {}, matches, accounts, duplicateOf = null, owner = creator, sourceLeague = null, sourceSeason = null, fixed = false, pairNumbers } = {}) {
   const config = { format: "balanced_americana", rounds: 2, roundMinutes: 10, transitionMinutes: 3, preparationMinutes: 2, reservationMinutes: 60, ...configuration }
   const schedule = matches ?? [1, 2].map(round => ({ round_number: round, court_number: 1, team_a: ["A", "B"], team_b: ["C", "D"] }))
-  return `SELECT public.create_configurable_rapid_tournament(${quote(owner)}::uuid,'Fixture only','',now()+interval '1 day',ARRAY['Court 1'],ARRAY[${Array.from({length:players},(_,i)=>quote(`Fixture ${i}`)).join(",")}],ARRAY[${(accounts ?? Array(players).fill(null)).map(id=>id?quote(id):"NULL").join(",")}]::uuid[],${quote(JSON.stringify(config))}::jsonb,${quote(JSON.stringify(schedule))}::jsonb,${duplicateOf?quote(duplicateOf):"NULL"}::uuid,${sourceLeague?quote(sourceLeague):"NULL"}::uuid,${sourceSeason?quote(sourceSeason):"NULL"}::uuid)`
+  const pairArgument = fixed ? `ARRAY[${(pairNumbers ?? Array.from({length:players},(_,i)=>Math.floor(i/2)+1)).join(",")}]::smallint[],` : ""
+  return `SELECT public.${fixed ? "create_fixed_rapid_tournament" : "create_configurable_rapid_tournament"}(${quote(owner)}::uuid,'Fixture only','',now()+interval '1 day',ARRAY['Court 1'],ARRAY[${Array.from({length:players},(_,i)=>quote(`Fixture ${i}`)).join(",")}],ARRAY[${(accounts ?? Array(players).fill(null)).map(id=>id?quote(id):"NULL").join(",")}]::uuid[],${pairArgument}${quote(JSON.stringify(config))}::jsonb,${quote(JSON.stringify(schedule))}::jsonb,${duplicateOf?quote(duplicateOf):"NULL"}::uuid,${sourceLeague?quote(sourceLeague):"NULL"}::uuid,${sourceSeason?quote(sourceSeason):"NULL"}::uuid)`
 }
 function rejects(statement, message) {
   assert.throws(() => sql(statement), error => String(error.stderr).includes(message), message)
@@ -57,6 +58,33 @@ try {
   assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${dynamicId}'`), "24")
   assert.equal(sql(`SELECT count(*) FROM rapid_tournament_rounds WHERE tournament_id='${dynamicId}' AND ends_at-starts_at=interval '10 minutes'`), "8")
   assert.equal(sql(`SELECT count(*) FROM rapid_tournament_matches WHERE tournament_id='${dynamicId}'`), "0")
+  const fixedId = sql(`SET ROLE service_role; ${create({fixed:true})}`).split(/\r?\n/).at(-1)
+  assert.equal(sql(`SELECT pairing FROM rapid_tournaments WHERE id='${fixedId}'`), "fixed")
+  assert.equal(sql(`SELECT count(*) FROM rapid_tournament_players WHERE tournament_id='${fixedId}' AND pair_number IS NOT NULL`), "4")
+  sql(`UPDATE rapid_tournament_players SET pair_number=CASE WHEN slot IN ('A','C') THEN 1 ELSE 2 END WHERE tournament_id='${fixedId}'`)
+  rejects(`SELECT public.start_rapid_tournament('${fixedId}','${creator}')`, "invalid_fixed_teams")
+  assert.equal(sql(`SELECT status FROM rapid_tournaments WHERE id='${fixedId}'`), "draft")
+  sql(`UPDATE rapid_tournament_players SET pair_number=CASE WHEN slot IN ('A','B') THEN 1 ELSE 2 END WHERE tournament_id='${fixedId}'`)
+  assert.equal(sql(`SELECT public.start_rapid_tournament('${fixedId}','${creator}')`), "t")
+  rejects(create({fixed:true,players:5}), "invalid_fixed_teams")
+  rejects(create({fixed:true,pairNumbers:[1,1,1,2]}), "invalid_fixed_teams")
+  const mixedPairs = [1,2].map(round=>({round_number:round,court_number:1,team_a:["A","C"],team_b:["B","D"]}))
+  rejects(create({fixed:true,matches:mixedPairs}), "invalid_fixed_match")
+  const fixedDynamicId = sql(create({fixed:true,configuration:{format:"dynamic_mexicano"},matches:[]}))
+  const fixedPlayers = JSON.parse(sql(`SELECT json_agg(row_to_json(p) ORDER BY slot) FROM rapid_tournament_players p WHERE tournament_id='${fixedDynamicId}'`))
+  const roundMatch = [{court_number:1,team_a:[fixedPlayers[0].id,fixedPlayers[1].id],team_b:[fixedPlayers[2].id,fixedPlayers[3].id]}]
+  const dynamicRoundCall = (round, matches=roundMatch) => `SELECT public.generate_dynamic_mexicano_round('${fixedDynamicId}','${creator}',${round}::smallint,${quote(JSON.stringify(matches))}::jsonb)`
+  assert.equal(sql(dynamicRoundCall(1)), "t")
+  assert.equal(sql(dynamicRoundCall(2)), "f", "cannot generate fixed dynamic rounds before results")
+  rejects(`UPDATE rapid_tournament_players SET pair_number=2 WHERE id='${fixedPlayers[0].id}'`, "tournament_pairing_locked")
+  rejects(`UPDATE rapid_tournaments SET pairing='rotating' WHERE id='${fixedDynamicId}'`, "tournament_pairing_locked")
+  const fixedMatchId = sql(`SELECT id FROM rapid_tournament_matches WHERE tournament_id='${fixedDynamicId}'`)
+  assert.equal(sql(`SELECT public.record_rapid_tournament_result('${fixedDynamicId}','${fixedMatchId}','${creator}',16,12)`), "t")
+  const mixedDynamic = [{court_number:1,team_a:[fixedPlayers[0].id,fixedPlayers[2].id],team_b:[fixedPlayers[1].id,fixedPlayers[3].id]}]
+  rejects(dynamicRoundCall(2,mixedDynamic), "invalid_fixed_match")
+  assert.equal(sql(dynamicRoundCall(2)), "t")
+  assert.equal(sql(dynamicRoundCall(2)), "t", "round generation is idempotent")
+  rejects(`SET ROLE authenticated; ${create({fixed:true})}`, "permission denied")
   const originalCount = sql("SELECT count(*) FROM rapid_tournaments")
   rejects(create({ players:25 }), "invalid_tournament_configuration")
   rejects(create({ configuration:{roundMinutes:40} }), "invalid_tournament_configuration")
@@ -105,7 +133,7 @@ try {
   rejects(create({ duplicateOf:id,accounts:[invited,null,null,null] }), "invalid_player_accounts")
   rejects(`SET ROLE authenticated; ${create()}`, "permission denied")
   rejects(`SET ROLE anon; SELECT * FROM rapid_tournaments`, "permission denied")
-  console.log(`Tournament PostgreSQL checks PASS: ${files.length} migrations, atomic creation, 24 players, timing, copy, source snapshot, suspension and role isolation.`)
+  console.log(`Tournament PostgreSQL checks PASS: ${files.length} migrations, atomic creation, 24 players, fixed pairs, dynamic rounds, timing, copy, source snapshot, suspension and role isolation.`)
 } finally {
   // Only this freshly generated database, on the cluster verified above.
   sql(`DROP DATABASE ${database}`, "postgres")
