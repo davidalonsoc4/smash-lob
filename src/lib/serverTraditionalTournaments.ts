@@ -63,6 +63,10 @@ export async function executeTraditionalTournamentCommand(actor: AuthenticatedAp
       tieOrders = body.tieOrders as Record<string, string[]>
     }
     const state = readTraditionalStoredState({ draw,results,schedule,tie_orders:tieOrders,revision:stored.data.revision }, options)
+    if(action==="schedule"&&results.some(result=>{
+      const before=stored.data.schedule.find(slot=>slot.matchId===result.matchId),after=state.schedule.find(slot=>slot.matchId===result.matchId)
+      return before?.startsAt!==after?.startsAt||before?.endsAt!==after?.endsAt||before?.court!==after?.court
+    }))return invalid("played_traditional_schedule_locked",409)
     if (action === "finish" && !resolveTraditionalTournament(draw, results, tieOrders).complete) return invalid("traditional_tournament_incomplete", 409)
     const saved = await actor.supabase.rpc("update_traditional_tournament", {
       p_tournament_id: tournamentId, p_actor_user_id: actor.user.id, p_expected_revision: body.revision, p_action: action,

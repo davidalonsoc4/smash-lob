@@ -16,7 +16,10 @@ import styles from "./Tournament.module.css"
 import { RapidTournamentLive } from "./RapidTournamentLive"
 import { disableRapidAudio, enableRapidAudio } from "@/lib/rapidTournamentAudio"
 import { signIn, useSession } from "next-auth/react"
-type TournamentData = {
+import { TraditionalTournamentPage } from "./TraditionalTournamentPage"
+import type { TraditionalStoredState } from "@/lib/traditionalTournamentState"
+export type TournamentData = {
+  traditional?: TraditionalStoredState | null
   access: { role: "creator" | "participant" }
   serverNow?: string
   canRestartForTesting?: boolean
@@ -25,7 +28,7 @@ type TournamentData = {
   rounds: Array<{ id: string; round: number; startsAt: string; endsAt: string; status?: "pending" | "generated" | "completed" }>
   matches: Array<{ id: string; round: number; court: number; courtName: string; teamA: [string, string]; teamB: [string, string]; teamAIds: [string, string]; teamBIds: [string, string]; scoreA: number | null; scoreB: number | null }>
 }
-type View = "summary" | "calendar" | "standings" | "players" | "live"
+export type View = "summary" | "calendar" | "standings" | "players" | "live"
 const buttonClass = "inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-sm font-black text-neutral-900 active:bg-neutral-100 disabled:opacity-50"
 const primaryClass = "inline-flex min-h-11 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:opacity-50"
 function formatTime(value: string, locale: string) {
@@ -72,7 +75,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
     return () => controller.abort()
   }, [refreshKey, tournamentId])
   const isDynamic = data?.tournament.configuration.format === "dynamic_mexicano"
-  const isFixed = data?.tournament.configuration.pairing === "fixed"
+  const isFixed = !data?.traditional && data?.tournament.configuration.pairing === "fixed"
   const generatedRoundCount = data?.matches.reduce((maximum, match) => Math.max(maximum, match.round), 0) ?? 0
   const fixedRanking = useMemo(() => {
     if (!data || !isFixed) return null
@@ -107,6 +110,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
     finally { setBusyAction("") }
   }
   if (!data) return <div className="space-y-3 py-8"><Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500"><span aria-hidden="true" className="mr-1 inline-block">←</span>{tx("Competiciones")}</Link><AppCard><p role={error ? "alert" : "status"} className="text-sm font-semibold text-neutral-600">{error ? tx("No se ha podido cargar este torneo o no tienes acceso.") : tx("Cargando torneo…")}</p>{error ? <button className={`${buttonClass} mt-3`} onClick={refresh}>{tx("Reintentar")}</button> : null}</AppCard></div>
+  if (data.traditional) return <TraditionalTournamentPage key={tournamentId} data={data} state={data.traditional} view={view} onRefresh={refresh}/>
   if (isFixed && !fixedRanking) return <AppCard><p role="alert">{tx("Las parejas guardadas no son válidas. Revisa la configuración del torneo.")}</p></AppCard>
   const tournament = data.tournament
   const canManage = data.access.role === "creator"

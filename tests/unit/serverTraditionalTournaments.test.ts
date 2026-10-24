@@ -66,6 +66,12 @@ describe("traditional server commands",()=>{
     expect(await executeTraditionalTournamentCommand(actor,"tournament",{action:"schedule",revision:3,schedule:bad})).toMatchObject({ok:false,status:400})
     expect(rpc).not.toHaveBeenCalled()
   })
+  it("does not remove a played match's schedule before reaching the RPC",async()=>{
+    const {actor,row,rpc}=fixture()
+    row.results=[score(resolveTraditionalTournament(row.draw,[]).matches[0])]
+    expect(await executeTraditionalTournamentCommand(actor,"tournament",{action:"schedule",revision:3,schedule:[]})).toEqual({ok:false,status:409,error:"played_traditional_schedule_locked"})
+    expect(rpc).not.toHaveBeenCalled()
+  })
   it("rejects actions in an incompatible status and never modifies rapid tournaments",async()=>{
     const {actor,rpc,metadata}=fixture("draft")
     expect(await executeTraditionalTournamentCommand(actor,"tournament",{action:"result",revision:3})).toMatchObject({ok:false,status:409})

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getLeagueLocationOptionLabel, sortLeagueLocationsByOptionLabel, type LeagueLocation } from "@/lib/leagueLocations"
 import { buildRapidRounds, getRapidActiveCourtCount, getRapidBreakOffsetMinutes, validateTournamentParticipants } from "@/lib/rapidTournament"
@@ -11,21 +11,18 @@ import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { readFileAsDataUrl, validateImageFile } from "@/lib/clientImages"
 import { tournamentAccentStyle } from "@/lib/tournamentStyles"
 import { fixedTeamsFromPlayers } from "@/lib/fixedRapidTournament"
+import { RAPID_TOURNAMENT_SLOTS } from "@/lib/rapidTournament"
+import { defaultTraditionalSetup, previewTraditionalSetup, traditionalDrawOptions, traditionalErrorText, type TraditionalSetup } from "@/lib/traditionalTournamentSetup"
+import { buildTraditionalSchedule } from "@/lib/traditionalTournamentSchedule"
+import { TraditionalTournamentFields } from "./TraditionalTournamentFields"
+import { TraditionalTournamentPreview } from "./TraditionalTournamentPreview"
 import styles from "./Tournament.module.css"
 import { tournamentDraftFromCopy, type TournamentDraft } from "@/lib/tournamentDraft"
 type TournamentPerson = { userId: string; displayName: string }
 type LeagueRosterPerson = { playerId: string; displayName: string; userId: string | null }
 type TournamentSource = { leagueId: string; seasonId: string; leagueName?: string; seasonName?: string }
+import { SelectChevron, NumberStepper } from "./TournamentFormControls"
 const fieldClass = styles.field
-function SelectChevron({ children }: { children: ReactNode }) { return <span className={styles.selectWrap}>{children}<svg aria-hidden="true" viewBox="0 0 20 20" className={styles.selectChevron}><path d="m5 7.5 5 5 5-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg></span> }
-function NumberStepper({ label, value, values, onChange, tx, editable = false }: { label: string; value: number; values: readonly number[]; onChange: (value: number) => void; tx: (text: string) => string; editable?: boolean }) {
-  const previous = [...values].reverse().find(option => option < value), next = values.find(option => option > value)
-  return <div className={styles.stepperRow}><span className={styles.stepperLabel}>{label}</span><div className={styles.stepper}>
-    <button type="button" aria-label={`${tx("Disminuir")} ${label}`} disabled={previous === undefined} onClick={() => previous !== undefined && onChange(previous)}>‹</button>
-    {editable ? <input type="number" inputMode="numeric" aria-label={`${label}: ${value}`} min={values[0]} max={values.at(-1)} step={1} value={value} onChange={event => { const number = Number(event.target.value); if (Number.isInteger(number) && number >= values[0] && number <= values[values.length - 1]) onChange(number) }} /> : <output aria-label={`${label}: ${value}`} aria-live="polite">{value}</output>}
-    <button type="button" aria-label={`${tx("Aumentar")} ${label}`} disabled={next === undefined} onClick={() => next !== undefined && onChange(next)}>›</button>
-  </div></div>
-}
 function defaultStart() {
   const date = new Date()
   date.setHours(date.getHours() + 1, 0, 0, 0)
@@ -57,7 +54,8 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
   const [name, setName] = useState(() => initialDraft?.name ?? (initialSource?.leagueName ? `TORNEO RÁPIDO DE ${initialSource.leagueName}` : "TORNEO RÁPIDO"))
   const nameEdited = useRef(false)
   const [description, setDescription] = useState(initialDraft?.description ?? "")
-  const [format, setFormat] = useState<"balanced_americana" | "dynamic_mexicano">(initialDraft?.format ?? "balanced_americana")
+  const [format, setFormat] = useState<"balanced_americana" | "dynamic_mexicano">("balanced_americana")
+  const [isTraditional,setIsTraditional]=useState(false),[traditionalSetup,setTraditionalSetup]=useState<TraditionalSetup>(defaultTraditionalSetup)
   const [pairing, setPairing] = useState<"rotating" | "fixed">("rotating")
   const [pairNumbers, setPairNumbers] = useState(() => Array.from({ length: 24 },(_,index) => Math.floor(index/2)+1))
   const [roundMinutes, setRoundMinutes] = useState(16), [transitionMinutes, setTransitionMinutes] = useState(3)
@@ -93,7 +91,8 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
         if (data.access?.role !== "creator") throw new Error("copy_forbidden")
         if (controller.signal.aborted) return
         const draft = tournamentDraftFromCopy(data)
-        setInitialDraft(draft); setName(draft.name); setDescription(draft.description); setFormat(draft.format)
+        setInitialDraft(draft); setName(draft.name); setDescription(draft.description)
+        if(draft.traditional){setIsTraditional(true);setTraditionalSetup(draft.traditional)}else if(draft.format==="balanced_americana"||draft.format==="dynamic_mexicano")setFormat(draft.format)
         setPairing(draft.pairing); setPairNumbers(Array.from({ length: 24 },(_,index) => draft.pairNumbers[index] ?? Math.floor(index/2)+1))
         setPlayerCount(draft.players.length); setCourtCount(draft.courtNames.length)
         setReservationMinutes(draft.reservationMinutes); setPreparationMinutes(draft.preparationMinutes)
@@ -155,7 +154,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
       .then(payload => {
         if (controller.signal.aborted) return
         const items = (payload.players ?? []) as LeagueRosterPerson[]
-        if (!nameEdited.current && payload.leagueName) setName(`TORNEO RÁPIDO DE ${String(payload.leagueName).slice(0, 80)}`)
+        if (!nameEdited.current && payload.leagueName) setName(current=>`${current.startsWith("TORNEO TRADICIONAL")?"TORNEO TRADICIONAL":"TORNEO RÁPIDO"} DE ${String(payload.leagueName).slice(0,80)}`)
         setSourcePlayers(items); setSelectedSourcePlayerIds(items.slice(0, 24).map(item => item.playerId))
         setPlayerCount(Math.max(4, Math.min(24, items.length))); setSourceError("")
       })
@@ -166,7 +165,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
   function changeSource(value: string) {
     const nextSource = sources.find(item => item.seasonId === value) ?? null
     setSource(nextSource); setSourcePlayers([]); setSelectedSourcePlayerIds([]); setSourceError(""); setSourceLoading(Boolean(nextSource))
-    if (!nameEdited.current) setName(nextSource?.leagueName ? `TORNEO RÁPIDO DE ${nextSource.leagueName}` : "TORNEO RÁPIDO")
+    if (!nameEdited.current) {const prefix=isTraditional?"TORNEO TRADICIONAL":"TORNEO RÁPIDO";setName(nextSource?.leagueName ? `${prefix} DE ${nextSource.leagueName}` : prefix)}
   }
   const selectedSourcePlayers = sourcePlayers.filter((player) => selectedSourcePlayerIds.includes(player.playerId)), manualSourceSlots = Math.max(0, playerCount - selectedSourcePlayers.length), formPlayers = source ? [...selectedSourcePlayers.map((player) => player.displayName), ...players.slice(0, manualSourceSlots)] : players.slice(0, playerCount), formPlayerUserIds = source ? [...selectedSourcePlayers.map((player) => player.userId), ...Array<string | null>(manualSourceSlots).fill(null)] : playerUserIds.slice(0, playerCount)
   const participants = validateTournamentParticipants(formPlayers, playerCount)
@@ -174,6 +173,14 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
   if (pairing === "fixed") {
     try { fixedTeamsFromPlayers(formPlayers.map((_,index) => ({ id: String(index), pairNumber: pairNumbers[index] }))) }
     catch { fixedTeamsValid = false }
+  }
+  const traditionalTeams=useMemo(()=>{try{return fixedTeamsFromPlayers(Array.from({length:playerCount},(_,index)=>({id:RAPID_TOURNAMENT_SLOTS[index],pairNumber:pairNumbers[index]})))}catch{return []}},[playerCount,pairNumbers])
+  const traditionalPreview=useMemo(()=>isTraditional?previewTraditionalSetup(traditionalTeams,traditionalSetup):{plan:null,error:null},[isTraditional,traditionalTeams,traditionalSetup])
+  const traditionalNames=new Map(traditionalTeams.map(team=>[team.id,team.playerIds.map(id=>formPlayers[id.charCodeAt(0)-65]?.trim()||`${tx("Jugador")} ${id.charCodeAt(0)-64}`).join(" / ")]))
+  function changeMode(traditional:boolean){
+    setIsTraditional(traditional);setPairing(traditional?"fixed":"rotating");setRoundMinutes(traditional?30:16);setTransitionMinutes(traditional?5:3)
+    if(traditional&&playerCount%2)setPlayerCount(Math.min(24,playerCount+1))
+    if(!nameEdited.current)setName(current=>current.replace(traditional?"TORNEO RÁPIDO":"TORNEO TRADICIONAL",traditional?"TORNEO TRADICIONAL":"TORNEO RÁPIDO"))
   }
   const selectedPeople = playerUserIds.map((userId) => people.find((person) => person.userId === userId) ?? null).filter((person): person is TournamentPerson => person !== null)
   const emptyPlayerSlot = players.slice(0, playerCount).findIndex((player) => !player.trim())
@@ -191,18 +198,23 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
   const activeCourtCount = getRapidActiveCourtCount(playerCount, courtCount), preparationMax = Math.max(0, reservationMinutes - 2 - roundCount * roundMinutes - Math.max(0, roundCount - 1) * transitionMinutes - totalBreakMinutes), effectivePreparationMinutes = Math.min(preparationMinutes, preparationMax)
   const configurationValidation = planRapidTournament({ players: playerCount, courts: courtCount, reservationMinutes, rounds: roundCount, roundMinutes, transitionMinutes, preparationMinutes: effectivePreparationMinutes, pairing,...breakSettings })
   const rounds = startsAt && Number.isFinite(startsAt.getTime()) ? buildRapidRounds(new Date(startsAt.getTime() + effectivePreparationMinutes * 60_000), { rounds: roundCount, roundMinutes, transitionMinutes,...breakSettings }) : []
+  const traditionalPlanning=useMemo(()=>{
+    const start=localDateTime(date,time),startsIso=start&&Number.isFinite(start.getTime())?start.toISOString():null
+    if(!traditionalPreview.plan||!startsIso||traditionalSetup.scheduleMode==="manual")return {schedule:[],error:false}
+    try{return {schedule:buildTraditionalSchedule(traditionalPreview.plan,{startsAt:startsIso,courts:courtCount,matchMinutes:roundMinutes,transitionMinutes}),error:false}}catch{return {schedule:[],error:true}}
+  },[traditionalPreview.plan,date,time,courtCount,roundMinutes,transitionMinutes,traditionalSetup.scheduleMode])
   const formatTimeRange = (minimum: number, maximum: number) => `${minimum}${minimum === maximum ? "" : `–${maximum}`}`
   const totalMatches = roundCount * activeCourtCount, totalPlayerMatchSlots = totalMatches * 4, minimumMatches = Math.floor(totalPlayerMatchSlots / playerCount), maximumMatches = Math.ceil(totalPlayerMatchSlots / playerCount), matchesPerPlayer = formatTimeRange(minimumMatches, maximumMatches), restsPerPlayer = formatTimeRange(roundCount - maximumMatches, roundCount - minimumMatches), minutesPerPlayer = formatTimeRange(minimumMatches * roundMinutes, maximumMatches * roundMinutes), plannedTotalMinutes = effectivePreparationMinutes + roundCount * roundMinutes + Math.max(0, roundCount - 1) * transitionMinutes + totalBreakMinutes, safetyMarginMinutes = reservationMinutes - plannedTotalMinutes
   const activeCourtNote = tx("Con {} jugadores se podrán usar {} pistas de forma simultánea.").replace("{}", String(playerCount)).replace("{}", String(activeCourtCount))
   const dateFormat = new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { dateStyle: "medium" })
   const timeFormat = new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { hour: "2-digit", minute: "2-digit" })
   const duplicateMessage = !participants.ok && participants.error === "duplicate_player_names"
-  const ready = Boolean(!copyLoading && !copyError && fixedTeamsValid && name.trim() && startsAt && startsAt.getTime() > nowTimestamp && configurationValidation.ok && participants.ok && (!source || (!sourceLoading && !sourceError && selectedSourcePlayers.length <= playerCount)))
+  const ready = Boolean(!copyLoading && !copyError && fixedTeamsValid && name.trim() && startsAt && startsAt.getTime() > nowTimestamp && (isTraditional ? Boolean(traditionalPreview.plan)&&!traditionalPlanning.error : configurationValidation.ok) && participants.ok && (!source || (!sourceLoading && !sourceError && selectedSourcePlayers.length <= playerCount)))
   async function createTournament() {
     if (!ready || !startsAt) return
     setSaving(true); setError("")
     try {
-      const response = await fetch("/api/tournaments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, description, startsAt: startsAt.toISOString(), courtNames, players: formPlayers, playerUserIds: formPlayerUserIds, playerCount, reservationMinutes, preparationMinutes: effectivePreparationMinutes, roundCount, roundMinutes, transitionMinutes,...breakSettings, logoUrl, accentColor, format, pairing, ...(pairing === "fixed" ? { pairNumbers: pairNumbers.slice(0,playerCount) } : {}), duplicateOf: initialDraft?.duplicateOf, source: source ? { ...source, playerIds: selectedSourcePlayers.map((player) => player.playerId) } : null }) })
+      const response = await fetch("/api/tournaments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, description, startsAt: startsAt.toISOString(), courtNames, players: formPlayers, playerUserIds: formPlayerUserIds, playerCount, reservationMinutes, preparationMinutes: effectivePreparationMinutes, roundCount, roundMinutes, transitionMinutes,...breakSettings, logoUrl, accentColor, format:isTraditional?traditionalSetup.format:format, pairing, ...(isTraditional?{traditional:{...traditionalSetup,...traditionalDrawOptions(traditionalTeams,traditionalSetup)}}:{}), ...(pairing === "fixed" ? { pairNumbers: pairNumbers.slice(0,playerCount) } : {}), duplicateOf: initialDraft?.duplicateOf, source: source ? { ...source, playerIds: selectedSourcePlayers.map((player) => player.playerId) } : null }) })
       const result = await response.json().catch(() => null)
       if (!response.ok || typeof result?.id !== "string") {
         const message = result?.error === "duplicate_player_names" ? "Hay nombres de jugadores duplicados." : result?.error === "invalid_player_count" ? "Elige entre cuatro y veinticuatro jugadores y completa todos los nombres." : result?.error === "tournament_account_access_not_ready" ? "La configuración de torneos necesita actualizarse. Contacta con el administrador." : "No se ha podido crear el torneo. Revisa los datos e inténtalo de nuevo."
@@ -230,14 +242,20 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
   if (copyLoading || copyError) return <div className={`${styles.theme} ${styles.page}`}><Link href="/leagues" className="app-top-back-control">{tx("Competiciones")}</Link><p role={copyError ? "alert" : "status"}>{tx(copyError ? "No se ha podido cargar este torneo o no tienes acceso." : "Cargando ajustes del torneo…")}</p></div>
   return <div className={`${styles.theme} ${styles.page}`} style={tournamentAccentStyle(accentColor)}>
     {initialDraft ? <p role="status" className="rounded-xl bg-neutral-100 p-3 text-sm text-neutral-700">{tx("Revisa la copia y elige una nueva fecha. Los resultados y el progreso empezarán de cero.")}</p> : null}
-    <header className={`app-page-header ${styles.header}`}><Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500"><span aria-hidden="true" className="mr-1 inline-block">←</span>{tx("Competiciones")}</Link><h1 className={`type-page-title font-black ${styles.headerTitle}`}>{tx("Crear torneo rápido")}</h1></header>
+    <header className={`app-page-header ${styles.header}`}><Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500"><span aria-hidden="true" className="mr-1 inline-block">←</span>{tx("Competiciones")}</Link><h1 className={`type-page-title font-black ${styles.headerTitle}`}>{tx(isTraditional?"Crear torneo tradicional":"Crear torneo rápido")}</h1></header>
     <section aria-labelledby="tournament-mode"><details open className={`${styles.panel} ${styles.section}`}><summary id="tournament-mode"><span className={styles.step} aria-hidden="true">1</span>{tx("Modalidad de torneo")}</summary><div className={styles.sectionBody}>
-      <label className="block space-y-1"><span className="text-sm font-bold">{tx("Modalidad")}</span><SelectChevron><select className={`${fieldClass} ${styles.selectField}`} defaultValue="rapid" aria-describedby="tournament-mode-help"><option value="rapid">{tx("Torneo rápido")} · {tx("Activo")}</option><option value="traditional" disabled>{tx("Torneo tradicional")} · {tx("Disponible próximamente")}</option></select></SelectChevron></label>
-      <p id="tournament-mode-help" className={styles.help}>{tx("Competición adaptada a las pistas y al tiempo disponibles.")}</p>
-      <label className="block space-y-1"><span className="text-sm font-bold">{tx("Formato")}</span><SelectChevron><select className={`${fieldClass} ${styles.selectField}`} value={format} onChange={(event) => setFormat(event.target.value as typeof format)} aria-describedby="tournament-format-help"><option value="balanced_americana">{tx("Americana equilibrada")}</option><option value="dynamic_mexicano">{tx("Mexicano dinámico")}</option></select></SelectChevron></label>
-      <p id="tournament-format-help" className={styles.help}>{tx(pairing === "fixed" ? format === "dynamic_mexicano" ? "Las parejas se mantienen y los rivales se recalculan según la clasificación." : "Las parejas se mantienen durante todo el calendario, generado antes de empezar." : format === "dynamic_mexicano" ? "Los enfrentamientos se generan después de cada ronda según los resultados, buscando partidos igualados y rotación de parejas." : "Parejas rotativas y calendario fijo generado previamente.")}</p>
-      <label className="block space-y-1"><span className="text-sm font-bold">{tx("Parejas")}</span><SelectChevron><select className={`${fieldClass} ${styles.selectField}`} value={pairing} onChange={event => setPairing(event.target.value as typeof pairing)}><option value="rotating">{tx("Parejas rotativas")}</option><option value="fixed">{tx("Parejas fijas")}</option></select></SelectChevron></label>
-      <details className={styles.help}><summary>{tx("Disponible próximamente")}</summary><p>{tx("Torneo tradicional")}: {tx("Eliminatorias, grupos y otras competiciones sin duración limitada.")}</p></details>
+      <label className="grid gap-1 text-sm font-bold">{tx("Modalidad")}<SelectChevron><select className={`${fieldClass} ${styles.selectField}`} aria-describedby="tournament-mode-help" value={isTraditional?"traditional":"rapid"} onChange={event=>changeMode(event.target.value==="traditional")}><option value="rapid">{tx("Torneo rápido")} · {tx("Activo")}</option><option value="traditional">{tx("Torneo tradicional")}</option></select></SelectChevron></label>
+      {isTraditional?<>
+        <label className="grid gap-1 text-sm font-bold">{tx("Formato")}<SelectChevron><select className={`${fieldClass} ${styles.selectField}`} aria-describedby="tournament-format-help" value={traditionalSetup.format} onChange={event=>{const next=event.target.value as TraditionalSetup["format"];setTraditionalSetup({...defaultTraditionalSetup,format:next,groupCount:next==="knockout"?0:Math.max(1,Math.min(2,Math.floor(playerCount/4))),qualifiersPerGroup:next==="groups_knockout"?1:0})}}><option value="knockout">{tx("Eliminación directa")}</option><option value="groups">{tx("Fase de grupos")}</option><option value="groups_knockout">{tx("Grupos y eliminatorias")}</option></select></SelectChevron></label>
+        <p id="tournament-mode-help" className={styles.help}>{tx("Parejas fijas, cruces por resultados y calendario de uno o varios días.")}</p><p id="tournament-format-help" className={styles.help}>{tx("Se registra un marcador final por puntos. En las eliminatorias no se admiten empates; en grupos se ordena por victorias, diferencia y puntos a favor.")}</p>
+        <TraditionalTournamentFields setup={traditionalSetup} onChange={setTraditionalSetup} teams={traditionalTeams} names={traditionalNames} plan={traditionalPreview.plan}/>
+        {traditionalPreview.error?<p role="alert" className="text-sm font-semibold text-red-700">{tx(traditionalErrorText(traditionalPreview.error))}</p>:null}
+      </>:<>
+        <p id="tournament-mode-help" className={styles.help}>{tx("Competición adaptada a las pistas y al tiempo disponibles.")}</p>
+        <label className="grid gap-1 text-sm font-bold">{tx("Formato")}<SelectChevron><select className={`${fieldClass} ${styles.selectField}`} aria-describedby="tournament-format-help" value={format} onChange={event=>setFormat(event.target.value as typeof format)}><option value="balanced_americana">{tx("Americana equilibrada")}</option><option value="dynamic_mexicano">{tx("Mexicano dinámico")}</option></select></SelectChevron></label>
+        <p id="tournament-format-help" className={styles.help}>{tx(pairing==="fixed"?format==="dynamic_mexicano"?"Las parejas se mantienen y los rivales se recalculan según la clasificación.":"Las parejas se mantienen durante todo el calendario, generado antes de empezar.":format==="dynamic_mexicano"?"Los enfrentamientos se generan después de cada ronda según los resultados, buscando partidos igualados y rotación de parejas.":"Parejas rotativas y calendario fijo generado previamente.")}</p>
+        <label className="grid gap-1 text-sm font-bold">{tx("Parejas")}<SelectChevron><select className={`${fieldClass} ${styles.selectField}`} value={pairing} onChange={event=>setPairing(event.target.value as typeof pairing)}><option value="rotating">{tx("Parejas rotativas")}</option><option value="fixed">{tx("Parejas fijas")}</option></select></SelectChevron></label>
+      </>}
     </div></details></section>
     <section aria-labelledby="tournament-general"><details open className={`${styles.panel} ${styles.section}`}><summary id="tournament-general"><span className={styles.step} aria-hidden="true">2</span>{tx("Información general")}</summary><div className={styles.sectionBody}>
       {!duplicateOf ? <label className="block space-y-1"><span className="text-sm font-bold">{tx("Origen de los participantes")}</span><SelectChevron><select className={`${fieldClass} ${styles.selectField}`} value={source?.seasonId ?? ""} onChange={event => changeSource(event.target.value)}>
@@ -257,6 +275,12 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
       <label className="flex items-center justify-between gap-3 text-sm font-bold">{tx("Color de acento")}<input type="color" value={accentColor ?? DEFAULT_LEAGUE_ACCENT} onChange={event => setAccentColor(event.target.value)} className="h-11 w-14 rounded-lg" /></label>
       {accentColor ? <button type="button" className={styles.secondary} onClick={() => setAccentColor(null)}>{tx("Usar el color de la app")}</button> : null}
     </div></details>
+    {isTraditional?<section aria-labelledby="traditional-resources"><details open className={`${styles.panel} ${styles.section}`}><summary id="traditional-resources">{tx("Pistas y horarios")}</summary><div className={styles.sectionBody}>
+      <NumberStepper label={tx("Número de pistas")} value={courtCount} values={[1,2,3,4]} onChange={setCourtCount} tx={tx}/>
+      <NumberStepper label={tx("Duración estimada de partido (minutos)")} value={roundMinutes} values={Array.from({length:120},(_,i)=>i+1)} onChange={setRoundMinutes} tx={tx} editable/>
+      <NumberStepper label={tx("Transición entre partidos (minutos)")} value={transitionMinutes} values={Array.from({length:31},(_,i)=>i)} onChange={setTransitionMinutes} tx={tx} editable/>
+      <p className={styles.help}>{tx("Los horarios son orientativos y se pueden editar por partido, también en días diferentes.")}</p>
+    </div></details></section>:<>
     <section aria-labelledby="tournament-resources"><details open className={`${styles.panel} ${styles.section}`}><summary id="tournament-resources"><span className={styles.step} aria-hidden="true">3</span>{tx("Pistas y reserva")}<span className={styles.chip}>{courtCount} {tx("pistas")} · {reservationMinutes} {tx("minutos")}</span></summary><div className={styles.sectionBody}>
       <NumberStepper label={tx("Número de pistas")} value={courtCount} values={[1, 2, 3, 4]} onChange={setCourtCount} tx={tx} />
       <NumberStepper label={tx("Tiempo de reserva (minutos)")} value={reservationMinutes} values={[30, 60, 90, 120, 180, 240, 360, 480, 720, 1440]} onChange={setReservationMinutes} tx={tx} editable />
@@ -271,6 +295,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
         {manualRoundCount !== null ? <NumberStepper label={tx("Número de rondas en el torneo")} value={manualRoundCount} values={Array.from({ length: 100 }, (_, i) => i + 1)} onChange={setManualRoundCount} tx={tx} editable /> : null}
       </div></details>
     </div></details></section>
+    </>}
     <section aria-labelledby="tournament-participants"><details open className={`${styles.panel} ${styles.section}`}><summary id="tournament-participants"><span className={styles.step} aria-hidden="true">4</span>{tx("Participantes")}<span className={styles.chip}>{filledPlayers}/{playerCount}</span></summary><div className={styles.sectionBody}>
       <NumberStepper label={tx("Número de jugadores")} value={playerCount} values={pairing === "fixed" ? Array.from({ length: 11 },(_,index) => index*2+4) : Array.from({ length: 21 }, (_, index) => index + 4)} onChange={setPlayerCount} tx={tx} />
       <progress className={styles.progress} value={filledPlayers} max={playerCount} aria-label={tx("Participantes")} />
@@ -300,6 +325,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
       </details> : null}
       <details className={styles.help}><summary>{tx("Próximamente: más opciones de inscripción")}</summary>{locked(tx("Inscripción abierta mediante invitación"), tx("Desactivada"), tx("Disponible próximamente"))}{locked(tx("Equilibrio por nivel de juego"), tx("Desactivado"), tx("Disponible próximamente"))}</details>
     </div></details></section>
+    {!isTraditional ? <>
     <section aria-labelledby="tournament-logistics"><details className={`${styles.panel} ${styles.section}`}><summary id="tournament-logistics">{tx("Logística calculada")}<span className={styles.chip}>{roundCount} {tx("rondas")} · {activeCourtCount} {tx("pistas activas")}</span></summary><div className={styles.sectionBody}>
       <div className="grid gap-2 sm:grid-cols-2">{locked(tx("Número de rondas en el torneo"), String(roundCount), tx("Se calcula a partir del tiempo de reserva."))}{locked(tx("Partidos por ronda y pista"), `${roundMinutes} ${tx("minutos")}`, tx("Cada pista juega una ronda a la vez."))}{locked(tx("Juego programado en cada pista"), `${roundCount * roundMinutes} ${tx("minutos")}`, tx("Suma del tiempo de juego de una pista a lo largo de todas las rondas."))}{locked(tx("Transición entre rondas"), `${transitionMinutes} ${tx("minutos")}`, tx("Pausa entre rondas."))}{locked(tx("Partidos programados en el torneo"), String(totalMatches), tx("Suma de todas las pistas y rondas."))}{locked(tx("Margen de seguridad de la reserva"), `${safetyMarginMinutes} ${tx("minutos")}`, tx("Tiempo que queda al final de la reserva."))}</div>{activeCourtCount < courtCount ? <p className={styles.help}>{activeCourtNote}</p> : null}
       {!configurationValidation.ok ? <p role="alert" className="text-sm font-bold text-red-700">{tx(configurationValidation.error === "insufficient_safety_margin" ? "La configuración supera la reserva. Reduce rondas o duración, o amplía la reserva." : "Con esta combinación de jugadores, pistas y tiempo no todos podrían jugar. Añade pistas o elige una reserva más larga.")}</p> : null}
@@ -318,6 +344,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
       <label className="block space-y-1"><span className="text-sm font-bold">{tx("Clasificación")}</span><SelectChevron><select className={`${fieldClass} ${styles.selectField}`} value={format === "dynamic_mexicano" ? "rating" : "average"} disabled><option value="average">{tx("Por porcentaje de puntos ganados")}</option><option value="rating">{tx("Por rendimiento normalizado")}</option><option disabled>{tx("Por puntos acumulados")} · {tx("Disponible próximamente")}</option></select></SelectChevron></label>
       <p className={styles.help}>{roundMinutes} {tx("minutos")} · {tx("Empates permitidos")} · {tx("Sí")}</p><p className={styles.help}>{tx(format === "dynamic_mexicano" ? "El rendimiento se calcula con los puntos a favor y en contra: R = 100 × (F + 3) / (F + C + 6). Los nuevos enfrentamientos utilizan esta clasificación." : pairing === "fixed" ? "Cada punto suma para la pareja. La clasificación usa la media de los porcentajes ganados en cada partido; los puntos no se duplican por jugador." : "Se anota cada punto ganado. Al terminar los 16 minutos se completa el punto en juego; no se usan juegos ni sets. Cada jugador suma el porcentaje de puntos ganados por su pareja en cada partido y la clasificación usa la media de sus partidos.").replace("16", String(roundMinutes))}</p>
     </div></details></section>
+    </> : null}
     <section aria-labelledby="tournament-visibility"><details className={`${styles.panel} ${styles.section}`}><summary id="tournament-visibility">{tx("Visibilidad y administración")}</summary><div className={styles.sectionBody}>
       {locked(tx("Torneo privado"), tx("Activo"), tx("Solo tú, desde la cuenta organizadora, puedes consultar y gestionar este torneo."))}
       {locked(tx("Organizador: usuario creador"), tx("Activo"), tx("Consulta y gestión desde la cuenta del organizador"))}
@@ -327,14 +354,14 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
       {locked(tx("Cuenta atrás previa al torneo"), tx("Desactivada"), tx("Disponible próximamente"))}
       {locked(tx("Ocultar calendario a los jugadores antes de empezar"), tx("Desactivado"), tx("Disponible próximamente"))}
     </div></details></section>
-    <section aria-labelledby="tournament-summary" className={`${styles.panel} ${styles.summary}`}><p className={styles.eyebrow}>{tx("Resumen del torneo")}</p><h2 id="tournament-summary" className="mt-2 break-words text-lg font-black">{name.trim() || tx("Nombre del torneo")}</h2>{selectedLocation ? <p className="mt-2 text-sm font-semibold">{getLeagueLocationOptionLabel(selectedLocation)}</p> : null}<p className="mt-1 text-sm font-bold">{startsAt && Number.isFinite(startsAt.getTime()) ? `${dateFormat.format(startsAt)} · ${timeFormat.format(startsAt)}` : tx("Elige fecha y hora")}</p><div className={styles.summaryGrid}><div className={styles.metric}><span>{tx("Modalidad")}</span><strong>{tx("Torneo rápido")} · {tx(format === "dynamic_mexicano" ? "Mexicano dinámico" : "Americana equilibrada")}</strong></div><div className={styles.metric}><span>{tx("Participantes")}</span><strong>{playerCount} {tx("jugadores")}</strong></div><div className={styles.metric}><span>{tx("Pistas (totales · simultáneas)")}</span><strong>{courtCount} · {activeCourtCount}</strong></div><div className={styles.metric}><span>{tx("Tiempo de reserva (minutos)")}</span><strong>{reservationMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Calentamiento (minutos)")}</span><strong>{effectivePreparationMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Planificación automática")}</span><strong>{tx("Activada")}</strong></div><div className={styles.metric}><span>{tx("Número de rondas en el torneo")}</span><strong>{roundCount}</strong></div><div className={styles.metric}><span>{tx("Partidos por ronda y pista")}</span><strong>{roundMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Juego programado en cada pista")}</span><strong>{roundCount * roundMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Transición entre rondas")}</span><strong>{transitionMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Datos por jugador")}</span><strong>{matchesPerPlayer} {tx("partidos")} · {restsPerPlayer} {tx("descansos")}</strong></div><div className={styles.metric}><span>{tx("Minutos de juego por jugador")}</span><strong>{minutesPerPlayer} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Partidos programados en el torneo")}</span><strong>{totalMatches} {tx("partidos")}</strong></div><div className={styles.metric}><span>{tx("Margen de seguridad de la reserva")}</span><strong>{safetyMarginMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Puntuación")}</span><strong>{tx("Puntuación por tiempo")} · {tx(format === "dynamic_mexicano" ? "Por rendimiento normalizado" : "Por porcentaje de puntos ganados")}</strong></div></div><p className={`${styles.help} mt-2`}>{tx("La participación y los tiempos por jugador se calculan con la configuración actual.")}</p>
+    <section aria-labelledby="tournament-summary" className={`${styles.panel} ${styles.summary}`}><p className={styles.eyebrow}>{tx("Resumen del torneo")}</p><h2 id="tournament-summary" className="mt-2 break-words text-lg font-black">{name.trim() || tx("Nombre del torneo")}</h2>{selectedLocation ? <p className="mt-2 text-sm font-semibold">{getLeagueLocationOptionLabel(selectedLocation)}</p> : null}<p className="mt-1 text-sm font-bold">{startsAt && Number.isFinite(startsAt.getTime()) ? `${dateFormat.format(startsAt)} · ${timeFormat.format(startsAt)}` : tx("Elige fecha y hora")}</p>{isTraditional ? traditionalPreview.plan ? <TraditionalTournamentPreview plan={traditionalPreview.plan} names={traditionalNames} schedule={traditionalPlanning.schedule} courts={courtCount} matchMinutes={roundMinutes} transitionMinutes={transitionMinutes}/> : <p className={styles.help}>{tx("Completa una configuración válida para ver el resumen.")}</p> : <><div className={styles.summaryGrid}><div className={styles.metric}><span>{tx("Modalidad")}</span><strong>{tx("Torneo rápido")} · {tx(format === "dynamic_mexicano" ? "Mexicano dinámico" : "Americana equilibrada")}</strong></div><div className={styles.metric}><span>{tx("Participantes")}</span><strong>{playerCount} {tx("jugadores")}</strong></div><div className={styles.metric}><span>{tx("Pistas (totales · simultáneas)")}</span><strong>{courtCount} · {activeCourtCount}</strong></div><div className={styles.metric}><span>{tx("Tiempo de reserva (minutos)")}</span><strong>{reservationMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Calentamiento (minutos)")}</span><strong>{effectivePreparationMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Planificación automática")}</span><strong>{tx("Activada")}</strong></div><div className={styles.metric}><span>{tx("Número de rondas en el torneo")}</span><strong>{roundCount}</strong></div><div className={styles.metric}><span>{tx("Partidos por ronda y pista")}</span><strong>{roundMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Juego programado en cada pista")}</span><strong>{roundCount * roundMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Transición entre rondas")}</span><strong>{transitionMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Datos por jugador")}</span><strong>{matchesPerPlayer} {tx("partidos")} · {restsPerPlayer} {tx("descansos")}</strong></div><div className={styles.metric}><span>{tx("Minutos de juego por jugador")}</span><strong>{minutesPerPlayer} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Partidos programados en el torneo")}</span><strong>{totalMatches} {tx("partidos")}</strong></div><div className={styles.metric}><span>{tx("Margen de seguridad de la reserva")}</span><strong>{safetyMarginMinutes} {tx("minutos")}</strong></div><div className={styles.metric}><span>{tx("Puntuación")}</span><strong>{tx("Puntuación por tiempo")} · {tx(format === "dynamic_mexicano" ? "Por rendimiento normalizado" : "Por porcentaje de puntos ganados")}</strong></div></div><p className={`${styles.help} mt-2`}>{tx("La participación y los tiempos por jugador se calculan con la configuración actual.")}</p>
       <p className={`${styles.help} mt-2`}>{tx(pairing === "fixed" ? "Parejas fijas" : "Parejas rotativas")} · {tx(pairing === "fixed" ? "Clasificación por equipos" : "Clasificación individual")}</p>
       {breakMinutes>0?<p className={`${styles.help} mt-2`}>{tx("Descanso general")}: {breakMinutes} {tx("minutos")} · {tx("Descanso cada (rondas)")}: {breakEveryRounds} · {tx("Pausas programadas")}: {breakCount}</p>:null}
-      <details className={`${styles.help} mt-3`}><summary>{tx("Previsualización de horarios")}</summary><ol className={styles.schedulePreview}>{rounds.map((round) => <li key={round.round}><span className="font-black">{tx("Ronda")} {round.round}</span><span className="tabular-nums">{timeFormat.format(new Date(round.startsAt))}–{timeFormat.format(new Date(round.endsAt))}</span></li>)}</ol></details>
+      <details className={`${styles.help} mt-3`}><summary>{tx("Previsualización de horarios")}</summary><ol className={styles.schedulePreview}>{rounds.map((round) => <li key={round.round}><span className="font-black">{tx("Ronda")} {round.round}</span><span className="tabular-nums">{timeFormat.format(new Date(round.startsAt))}–{timeFormat.format(new Date(round.endsAt))}</span></li>)}</ol></details> </>}
     {error ? <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p> : null}
     {startsAt && startsAt.getTime() <= nowTimestamp ? <p className="text-sm font-semibold text-amber-700">{tx("La fecha y hora de inicio deben ser futuras.")}</p> : null}
     {logoCropSource ? <ImageCropDialog src={logoCropSource} title={tx("Recortar logo")} description={tx("Ajusta el encuadre. Los PNG transparentes conservarán el fondo transparente.")} shape="square" outputSize={512} outputType="auto" maxOutputBytes={512 * 1024} onCancel={() => setLogoCropSource(null)} onConfirm={dataUrl => { setLogoUrl(dataUrl); setLogoCropSource(null) }} /> : null}
-    <button type="button" onClick={() => void createTournament()} className={`${styles.primary} mt-4 w-full`} disabled={!ready || saving}>{saving ? tx("Creando torneo…") : tx(format === "dynamic_mexicano" ? "Crear torneo" : "Crear y generar calendario")}</button>
+    <button type="button" onClick={() => void createTournament()} className={`${styles.primary} mt-4 w-full`} disabled={!ready || saving}>{saving ? tx("Creando torneo…") : tx(isTraditional&&traditionalSetup.scheduleMode==="manual" || format === "dynamic_mexicano" ? "Crear torneo" : "Crear y generar calendario")}</button>
     </section>
   </div>
 }
