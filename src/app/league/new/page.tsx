@@ -1,5 +1,5 @@
-import { LeagueCreationForm } from "@/components/league/LeagueCreationForm"
+import { LeagueCreationWizard } from "@/components/league/LeagueCreationWizard"
 
 export default function NewLeaguePage() {
-  return <LeagueCreationForm />
+  return <LeagueCreationWizard />
 }

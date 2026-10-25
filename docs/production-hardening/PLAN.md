@@ -1,3 +1,9 @@
+## MC65 — Borrador completo de creación y correcciones de uso
+- Estado: COMPLETO LOCAL (26/10/2026); validate1641 pruebas,42 casos E2E verificados y cierre de tipos/lint/build PASS. Sin publicación.
+- Alcance: identidad sin persistir hasta confirmar temporada; salida libre a Competiciones, nombre propio precargado, cabeceras compactas, avanzada visible, Editar abre su bloque y color automático del logo reutilizado. Sin despliegues.
+- Gates: pruebas de borrador/guardado/reintento, directorio/permisos, i18n/tipos/lint/build y navegador móvil claro/oscuro; regresiones individuales/parejas.
+
+
 ## MC64 — Creación guiada de ligas y temporadas
 - Estado: COMPLETO LOCAL (25/10/2026); validate1635 pruebas,60 focalizadas,40 E2E y12 revisiones finales PASS. Sin publicación.
 - Entrega: identidad con logo y modalidad explicada; configuración básica compartida, avanzada opcional y resumen; Atrás sin pérdida, participantes compactos, validación clara y estándares acordados. Reutilizar servicios/componentes; sin despliegue ni migraciones.

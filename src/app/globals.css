@@ -14,7 +14,9 @@
 .league-creation-details > summary::after { content:""; grid-column:2; grid-row:1 / span 2; width:.5rem; height:.5rem; margin-right:.25rem; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); opacity:.6; }
 .league-creation-details[open] > summary::after { transform:rotate(225deg); }
 .league-creation-edit { min-height:44px; padding:.25rem .5rem; color:inherit; font-size:.75rem; font-weight:700; text-decoration:underline; text-underline-offset:3px; }
-.league-creation-progress { display:flex; align-items:center; min-height:44px; padding-right:var(--app-floating-top-reserved-width,180px); font-size:.75rem; font-weight:600; }
+.league-creation-progress { display:flex; align-items:center; min-height:44px; padding-right:var(--app-floating-top-reserved-width,180px); font-size:.6875rem; font-weight:600; white-space:nowrap; }
+.app-page-header .type-page-title.league-creation-title { font-size:clamp(.875rem,4.3vw,1.25rem) !important; line-height:1.3 !important; letter-spacing:-.02em; white-space:nowrap; }
+.league-creation-advanced { border-color:var(--app-accent,#737373); background:color-mix(in srgb,var(--app-accent,#737373) 14%,transparent); font-size:.75rem; }
 :is(.league-creation-input, .league-creation-primary, .league-creation-secondary, .league-creation-edit):focus-visible, .league-creation-details > summary:focus-visible { outline:2px solid var(--app-accent,#737373); outline-offset:3px; }
 html.dark :is(.league-creation-footer,.league-creation-details,.league-creation-input) { background:var(--competition-surface,#18181b); color:#f5f5f5; border-color:#404040; }
 html.dark .league-creation-secondary { border-color:#525252; }

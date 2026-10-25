@@ -3,7 +3,8 @@ import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import jsQR from "jsqr"
 import sharp from "sharp"
-import { playerProfiles, allMatches as fixtureMatches, seasons as fixtureSeasons, leagues as fixtureLeagues } from "@/data/fakeData"
+import type { SeasonSnapshot } from "@/context/SeasonSettingsProvider"
+import { seasonRoundSettings, playerProfiles, allMatches as fixtureMatches, seasons as fixtureSeasons, leagues as fixtureLeagues } from "@/data/fakeData"
 
 const screens = [
   { name: "home", path: "/" },
@@ -672,7 +673,9 @@ test("new league asks its format and opens the corresponding fixed-pair season f
   const id = "40000000-0000-4000-8000-000000000001"
   let created: typeof fixtureLeagues[number] | null = null
   let creationCount = 0
-  await page.route("**/api/access**", route => route.fulfill({ json: { isSuperuser: false, canCreateLeagues: true, leagues: [...fixtureLeagues, ...(created ? [created] : [])], memberships: [{ userId: "qa-v1-1@example.test", leagueId: id, role: "creator", playerId: "" }], spectatorLeagueIds: [], matches: [], seasonSnapshot: { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: {} } } }))
+  let seasonCount = 0
+  let snapshot: SeasonSnapshot = { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: {} }
+  await page.route("**/api/access**", route => route.fulfill({ json: { isSuperuser: false, canCreateLeagues: true, leagues: [...fixtureLeagues, ...(created ? [created] : [])], memberships: [{ userId: "qa-v1-1@example.test", leagueId: id, role: "creator", playerId: "" }], spectatorLeagueIds: [], matches: [], seasonSnapshot: snapshot } }))
   await page.route("**/api/leagues", async route => {
     creationCount += 1
     const body = route.request().postDataJSON()
@@ -686,6 +689,15 @@ test("new league asks its format and opens the corresponding fixed-pair season f
     await route.fulfill({ json: { leagueId: id, ...created } })
   })
   await page.route("**/player-directory", route => route.fulfill({ json: { people: [] } }))
+  await page.route(`**/api/leagues/${id}/seasons`, async route => {
+    seasonCount++
+    const body = route.request().postDataJSON()
+    const seasonId = "40000000-0000-4000-8000-000000000003"
+    const profiles = body.newPlayerNames.map((displayName: string, i: number) => ({ id: `qa-player-${i}`, leagueId: id, slug: `qa-${i}`, displayName, avatarInitials: "QA" }))
+    snapshot = { seasons: [{ id: seasonId, leagueId: id, name: body.name, status: "upcoming", totalRounds: body.targetRoundCount, completedRounds: 0 }], playerProfiles: profiles, seasonPlayers: profiles.map((p: { id: string }, i: number) => ({ seasonId, playerId: p.id, pairNumber: Math.floor(i / 2) + 1 })), seasonSettings: [{ ...seasonRoundSettings[0], ...body, leagueId: id, seasonId }], activeSeasonIds: { [id]: seasonId } }
+    created = { ...created!, activeSeasonId: seasonId }
+    await route.fulfill({ json: { matches: [], seasonSnapshot: snapshot, linkedMembership: { userId: "qa-v1-1@example.test", leagueId: id, playerId: profiles[0].id, role: "creator" } } })
+  })
   await page.goto("/league/new")
   const modality = page.getByRole("combobox", { name: "Modalidad de liga", exact: true })
   await expect(modality).toHaveValue("individual")
@@ -693,13 +705,19 @@ test("new league asks its format and opens the corresponding fixed-pair season f
   await expect(page.getByText(/Cada pareja mantiene sus jugadores/)).toBeVisible()
   await page.locator('form input').first().fill("League pairs fixture")
   await page.locator("summary").filter({ hasText: "Personalizar liga" }).click()
-  await page.locator('input[type="file"]').setInputFiles("public/icon-192.png")
+  await page.locator('input[type="file"]').setInputFiles({ name: "logo-azul.png", mimeType: "image/png", buffer: await sharp({ create: { width: 128, height: 128, channels: 4, background: "#2070B0" } }).png().toBuffer() })
   await page.getByRole("button", { name: "Usar imagen", exact: true }).click()
-  await page.getByRole("button", { name: "Crear liga y continuar", exact: true }).click()
-  await expect(page).toHaveURL(/admin\/season$/)
+  await expect(page.locator('input[type="color"]')).toHaveValue("#2070b0")
+  await page.locator('input[type="color"]').fill("#ff2200")
+  await page.getByRole("button", { name: "Asignar color de liga automáticamente", exact: true }).click()
+  await expect(page.locator('input[type="color"]')).toHaveValue("#2070b0")
+  await page.locator("summary").filter({ hasText: "Personalizar liga" }).click()
+  await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  await expect(page).toHaveURL(/league\/new$/)
   await expect(page.getByText("Parejas de la temporada", { exact: true })).toBeVisible()
   await expect(page.getByRole("combobox", { name: "Pareja 1 · Jugador 1", exact: true })).toBeVisible()
-  expect(created!.logoUrl).toMatch(/^data:image\//)
+  expect(created).toBeNull()
+  expect(creationCount).toBe(0)
   const names = page.locator("[data-season-pairs] input")
   await names.nth(1).fill("Nombre conservado")
   const registration = page.getByRole("combobox", { name: "¿Cómo se formará la plantilla?", exact: true })
@@ -707,13 +725,47 @@ test("new league asks its format and opens the corresponding fixed-pair season f
   await expect(names).toHaveCount(0)
   await registration.selectOption("fixed")
   await expect(names.nth(1)).toHaveValue("Nombre conservado")
-  await page.getByRole("button", { name: "Atrás", exact: true }).click()
-  await expect(page.getByRole("combobox", { name: "Modalidad de liga", exact: true })).toBeDisabled()
+  await expect(names.nth(0)).toHaveValue("QA v1.1")
+  await names.nth(0).fill("Alias organizador")
+  await page.getByRole("button", { name: "Atrás", exact: true }).last().click()
+  await expect(page.getByRole("combobox", { name: "Modalidad de liga", exact: true })).toBeEnabled()
   await page.getByRole("textbox", { name: "Nombre de la liga", exact: true }).fill("Liga revisada")
   await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
   await expect(names.nth(1)).toHaveValue("Nombre conservado")
-  expect(created!.name).toBe("Liga revisada")
+  expect(created).toBeNull()
+  expect(creationCount).toBe(0)
+  const manualNames = page.locator("[data-season-pairs] input")
+  await expect(manualNames.nth(0)).toHaveValue("Alias organizador")
+  for (let i = 2; i < await manualNames.count(); i++) await manualNames.nth(i).fill(`Jugador QA ${i + 1}`)
+  await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  await page.getByRole("button", { name: "Editar Liga", exact: true }).click()
+  await expect(page.locator("[data-league-creation] details")).toHaveAttribute("open", "")
+  await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  for (const [index, title] of ["Calendario y duración", "Inicio y visibilidad", "Reglas de juego", "Organización y pagos"].entries()) {
+    await page.getByRole("button", { name: `Editar ${title}`, exact: true }).click()
+    await expect(page.locator("[data-season-creation-advanced] > details").nth(index)).toHaveAttribute("open", "")
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  }
+  await expect(page.getByRole("button", { name: "Crear liga y primera temporada", exact: true })).toBeEnabled()
+  expect(creationCount).toBe(0)
+  for (const width of [320, 393]) {
+    await page.setViewportSize({ width, height: 852 })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    const header = page.locator("[data-season-creation-step] .app-page-header")
+    expect(await header.locator("h1").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
+  }
+  const axe = await new AxeBuilder({ page }).analyze()
+  expect(axe.violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
+  await page.getByRole("button", { name: "Crear liga y primera temporada", exact: true }).click()
+  await expect(page).toHaveURL(/\/$/)
   expect(creationCount).toBe(1)
+  expect(seasonCount).toBe(1)
+  expect(created!.name).toBe("Liga revisada")
+  expect(created!.logoUrl).toMatch(/^data:image\//)
+  await page.reload()
+  await expect(page).toHaveURL(/\/$/)
+  expect(creationCount).toBe(1)
+  expect(seasonCount).toBe(1)
 })
 
 for (const theme of ["light", "dark"]) for (const modality of ["individual", "fixed_pairs"] as const) {
@@ -747,6 +799,7 @@ for (const theme of ["light", "dark"]) for (const modality of ["individual", "fi
     await expect(summary.getByText("Sin confirmación adicional", { exact: true })).toBeVisible()
     await page.getByRole("button", { name: "Editar Calendario y duración", exact: true }).click()
     await expect(wizard).toHaveAttribute("data-season-creation-step", "advanced")
+    await expect(page.locator("[data-season-creation-advanced] > details").first()).toHaveAttribute("open", "")
     await page.getByRole("button", { name: "Atrás", exact: true }).last().click()
     await expect(wizard).toHaveAttribute("data-season-creation-step", "basic")
     await openSeasonAdvanced(page)
@@ -760,7 +813,7 @@ for (const theme of ["light", "dark"]) for (const modality of ["individual", "fi
     await expect(summary.getByText("Doble vuelta", { exact: true })).toBeVisible()
     for (const width of [320,393]) {
       await page.setViewportSize({ width, height:852 })
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
     }
     const axe = await new AxeBuilder({ page }).analyze()
     expect(axe.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])

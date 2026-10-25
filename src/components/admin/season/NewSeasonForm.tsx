@@ -18,6 +18,8 @@ import { SeasonPlayerCountSelector } from "@/components/season/SeasonPlayerCount
 import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown"
 import { BallCustodianChoice } from "@/components/admin/season/OrganizationBallsSettingsPanel"
 import { AppCard } from "@/components/ui/AppCard"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import type { League } from "@/data/fakeData"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { RoundWindowMode, useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -517,7 +519,7 @@ export function NewSeasonForm({
   activeSeasonId,
   currentPlayers,
   initialLocations,
-  onExit,
+  onExit, draftLeague, onEditLeague, onPrepareLeague, onCreated,
 }: {
   activeLeagueId: string;
   activeLeagueName: string;
@@ -525,11 +527,17 @@ export function NewSeasonForm({
   currentPlayers: SeasonPlayerSummary[];
   initialLocations: LeagueLocation[];
   onExit?: () => void;
+  draftLeague?: League;
+  onEditLeague?: (fromSummary: boolean) => void;
+  onPrepareLeague?: (locations: LeagueLocation[]) => Promise<string>;
+  onCreated?: (leagueId: string) => void;
 }) {
   const { tx, locale } = useI18n()
   const { t } = useI18n();
   const router = useRouter();
   const { data: session } = useSession();
+  const { profile } = useAccountProfile();
+  const ownName = profile?.displayName?.trim() || [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || session?.user?.name?.trim() || "";
   const { hydrateSeasonSnapshot, playerProfiles, seasons, startNewSeason } =
     useSeasonSettings();
   const { createSeasonMatches, hydrateMatches } = useMatchData();
@@ -542,7 +550,7 @@ export function NewSeasonForm({
     updateLeagueLocations,
     userId,
   } = useLeagueAccess();
-  const modality = accessibleLeagues.find(league => league.id === activeLeagueId)?.modality ?? "individual";
+  const modality = (draftLeague ?? accessibleLeagues.find(league => league.id === activeLeagueId))?.modality ?? "individual";
   const isPairLeague = modality === "fixed_pairs";
   const getSeasonBaseRoundCount = (count: number) => baseRounds(count, modality);
   const getSeasonMaxBalancedLegCount = (count: number) => maxLegs(count, modality);
@@ -643,19 +651,27 @@ export function NewSeasonForm({
   const creationHeading = useRef<HTMLDivElement>(null);
   const creationSubmitLock = useRef(false);
   const preparedCalendarMode = useRef<CalendarMode>("balanced");
-  function goToCreationStep(step: typeof creationStep) {
+  function goToCreationStep(step: typeof creationStep, section?: string) {
+    if (step === "league" && onEditLeague) { onEditLeague(creationStep === "summary"); return; }
     setError(null);
     setCreationStep(step);
-    requestAnimationFrame(() => { creationHeading.current?.scrollIntoView({ block: "start" }); creationHeading.current?.focus({ preventScroll: true }); });
+    requestAnimationFrame(() => {
+      creationHeading.current?.scrollIntoView({ block: "start" }); creationHeading.current?.focus({ preventScroll: true });
+      if (step === "advanced" && section) {
+        const index = ["Calendario y duración", "Inicio y visibilidad", "Reglas de juego", "Organización y pagos"].indexOf(section);
+        const detail = document.querySelectorAll<HTMLDetailsElement>("[data-season-creation-advanced] > details")[index];
+        if (detail) { detail.open = true; detail.scrollIntoView({ block: "start" }); detail.querySelector("summary")?.focus({ preventScroll: true }); }
+      }
+    });
   }
   const inviteCode = getLeagueInviteCode(activeLeagueId);
   const canLinkSelfPlayer = Boolean(isFirstLeagueSeason && userId && !isSuperuser);
 
   useEffect(() => {
-    if (!isSupabaseBackedId(activeLeagueId)) return;
+    if (!draftLeague && !isSupabaseBackedId(activeLeagueId)) return;
 
     let cancelled = false;
-    void fetch(`/api/leagues/${activeLeagueId}/player-directory`, { cache: "no-store" })
+    void fetch(`/api/leagues/${draftLeague ? "new" : activeLeagueId}/player-directory`, { cache: "no-store" })
       .then(async (response) => {
         const payload = (await response.json().catch(() => null)) as
           | { people?: SeasonAppDirectoryPerson[] }
@@ -678,7 +694,7 @@ export function NewSeasonForm({
     return () => {
       cancelled = true;
     };
-  }, [activeLeagueId]);
+  }, [activeLeagueId, draftLeague]);
 
   const parsedRoundWindowDays = Number(roundWindowDays);
   const parsedRegistrationFeeAmount = Number(registrationFeeAmount);
@@ -738,6 +754,8 @@ export function NewSeasonForm({
   const fixedOccupiedPlayerCount = selectedPlayerIds.length + selectedAppUsers.length;
   const newPlayerSlotCount = Math.max(playerCount - fixedOccupiedPlayerCount, 0);
   const visibleNewPlayerNames = resizePlayerNames(newPlayerNames, newPlayerSlotCount);
+  const ownSlot = selfPlayerValue ? getNewPlayerIndexFromToken(selfPlayerValue) : null;
+  if (canLinkSelfPlayer && ownSlot !== null && ownSlot < newPlayerSlotCount && newPlayerNames[ownSlot] === undefined) visibleNewPlayerNames[ownSlot] = ownName;
   const cleanNewPlayerNames = visibleNewPlayerNames.map((playerName) =>
     playerName.trim(),
   );
@@ -867,7 +885,7 @@ export function NewSeasonForm({
         Number.isFinite(parsedRoundWindowDays) &&
         parsedRoundWindowDays >= 1));
 
-  const leagueIdentity = accessibleLeagues.find(league => league.id === activeLeagueId);
+  const leagueIdentity = draftLeague ?? accessibleLeagues.find(league => league.id === activeLeagueId);
   const formatCreationDate = (value: string | null) => value && Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat(getIntlLocale(locale), { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Madrid" }).format(new Date(value)) : "—";
   const yesNo = (value: boolean) => tx(value ? "Sí" : "No");
   const hasValidPairs = !isPairLeague || rosterMode === "self_registration" || validateLeaguePairs(fixedPairs, manualPlayerOptions.map(option => option.value));
@@ -885,8 +903,8 @@ export function NewSeasonForm({
   const completedPlayerCount = selectedPlayerIds.length + selectedAppUsers.length + cleanNewPlayerNames.filter(Boolean).length;
   const customized = calendarMode !== "balanced" || effectiveScheduleMode !== "single" || durationMode !== "complete" || calendarVisibilityMode !== "full" || roundWindowMode !== "none" || Boolean(scheduledStartAt) || openingRoundEnabled || !requiresThreeSets || mvpSystem !== "automatic" || resultConfirmationMode !== "none" || availabilityRecommendationsEnabled || organizationBallsAssigned || hasRegistrationFee;
   const summaryGroups: SeasonCreationSummaryGroup[] = [
-    { title: "Liga y temporada", target: isFirstLeagueSeason ? "league" : "basic", rows: [["Liga", leagueIdentity?.name ?? activeLeagueName], ["Modalidad de liga", tx(isPairLeague ? "Por parejas fijas" : "Individual de Smash & Lob")], ["Descripción", leagueIdentity?.description || "—"], ["Logo", <LeagueLogo key="league-logo" league={leagueIdentity} previewable={false} />], ["Color", <span key="league-color" role="img" aria-label={leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT} className="inline-block h-6 w-6 rounded-full border border-neutral-200" style={{ backgroundColor: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT }} />], ["Temporada", newSeasonName], ["Recomendaciones de la liga", leagueIdentity?.recommendations || "—"]] },
-    { title: "Participantes", target: "basic", rows: [["Jugadores", playerCount], ...(isPairLeague ? [["Parejas", playerCount / 2] as [string, number]] : []), ["Inscripción", rosterMode === "fixed" ? t.adminSeason.rosterModeFixedTitle : t.adminSeason.rosterModeSelfTitle]] },
+    { title: "Liga", target: isFirstLeagueSeason ? "league" : "basic", rows: [["Liga", leagueIdentity?.name ?? activeLeagueName], ["Modalidad de liga", tx(isPairLeague ? "Por parejas fijas" : "Individual de Smash & Lob")], ["Descripción", leagueIdentity?.description || "—"], ["Logo", <LeagueLogo key="league-logo" league={leagueIdentity} previewable={false} />], ["Color", <span key="league-color" role="img" aria-label={leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT} className="inline-block h-6 w-6 rounded-full border border-neutral-200" style={{ backgroundColor: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT }} />], ["Recomendaciones de la liga", leagueIdentity?.recommendations || "—"]] },
+    { title: "Participantes", target: "basic", rows: [["Temporada", newSeasonName], ["Jugadores", playerCount], ...(isPairLeague ? [["Parejas", playerCount / 2] as [string, number]] : []), ["Inscripción", rosterMode === "fixed" ? t.adminSeason.rosterModeFixedTitle : t.adminSeason.rosterModeSelfTitle]] },
     { title: "Calendario y duración", target: "advanced", rows: [["Calendario", calendarMode === "manual" ? t.adminSeason.manualCalendar : t.adminSeason.balancedCalendar], ["Duración", durationMode === "custom" ? t.adminSeason.durationCustomTitle : effectiveScheduleMode === "single" ? t.adminSeason.singleRoundCalendar : effectiveScheduleMode === "double" ? t.adminSeason.doubleRoundCalendar : `${t.adminSeason.extendedCalendar} ×${longMultiplier}`], ["Jornadas", totalSeasonRounds], ["Partidos por jornada", getSeasonMatchesPerRound(playerCount, modality)], ["Descansos por jornada", playerCount - 4 * getSeasonMatchesPerRound(playerCount, modality)]] },
     { title: "Inicio y visibilidad", target: "advanced", rows: [["Inicio", scheduledStartAt ? `${formatCreationDate(scheduledStartIso)} (${tx("Hora de Madrid")})` : tx("Manual, cuando esté todo preparado")], ["Calendario visible", calendarVisibilityMode === "full" ? t.adminSeason.calendarVisibilityFullTitle : t.adminSeason.calendarVisibilityProgressiveTitle], ["Plazo por jornada", roundWindowMode === "none" ? tx("Sin plazo fijo") : `${roundWindowDays} ${tx("días")}`], ...(roundWindowMode !== "none" ? [["Fecha de comienzo", seasonStartsAt] as [string, string]] : []), ["Jornada inaugural", openingRoundEnabled ? `${formatCreationDate(effectiveOpeningRoundIso)} · ${selectedOpeningRoundLocation ? getLeagueLocationTownNameLabel(selectedOpeningRoundLocation) : "—"}` : tx("No")], ["Fase secretos", secretPhaseEnabled && scheduledStartAt ? `${secretDaysBefore} ${tx("días antes")}` : tx("No")], ["Ubicaciones de la liga", leagueLocations.map(location => getLeagueLocationTownNameLabel(location)).join(" · ") || "—"]] },
     { title: "Reglas de juego", target: "advanced", rows: [["Resultado", tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")], ["Sistema MVP", tx(mvpSystem === "automatic" ? "Automático" : mvpSystem === "none" ? "Desactivado" : mvpSystem === "automatic_advanced" ? "Automático avanzado" : "Votación")], ["Confirmación de resultados", tx(resultConfirmationMode === "none" ? "Sin confirmación adicional" : resultConfirmationMode === "required" ? "Obligatoria" : "Opcional")], ["Disponibilidad y recomendaciones", yesNo(availabilityRecommendationsEnabled)]] },
@@ -1065,6 +1083,7 @@ export function NewSeasonForm({
       return;
     }
 
+    if (draftLeague) { onExit?.(); return; }
     const confirmed = window.confirm(
       tx(`¿Cancelar la creación de ${activeLeagueName}? Se eliminará la liga completa porque todavía no tiene ninguna temporada.`),
     );
@@ -1143,7 +1162,12 @@ export function NewSeasonForm({
     setCreationFeedback(null);
     setError(null);
 
-    if (isFirstLeagueSeason) {
+    let mutationLeagueId = activeLeagueId;
+    if (onPrepareLeague) {
+      try { mutationLeagueId = await onPrepareLeague(leagueLocations); settings.leagueId = mutationLeagueId; }
+      catch (cause) { setError(cause instanceof Error ? cause.message : tx("No se han podido guardar los datos de la liga.")); setIsSaving(false); return; }
+    }
+    if (isFirstLeagueSeason && !onPrepareLeague) {
       const locationsUpdated = await updateLeagueLocations(
         activeLeagueId,
         leagueLocations,
@@ -1156,7 +1180,7 @@ export function NewSeasonForm({
       }
     }
 
-    if (isSupabaseBackedId(activeLeagueId)) {
+    if (isSupabaseBackedId(mutationLeagueId)) {
       try {
         const result = await startSupabaseSeason({
           ...settings,
@@ -1244,7 +1268,7 @@ export function NewSeasonForm({
 
     try {
       await recordActivityEvent({
-        leagueId: activeLeagueId,
+        leagueId: mutationLeagueId,
         seasonId: undefined,
         ...getActorFromSession(session),
         type: "season_created",
@@ -1286,6 +1310,7 @@ export function NewSeasonForm({
     setCreationFeedback(successMessage);
     showSavedFeedback(successMessage);
     setIsSaving(false);
+    onCreated?.(mutationLeagueId);
     router.replace("/");
   }
 
@@ -1330,7 +1355,7 @@ export function NewSeasonForm({
   return (
     <form onSubmit={event => { event.preventDefault(); if (creationStep !== "summary") { if (validationIssues.some(([step]) => step === "basic")) return; setSummaryBackStep(creationStep === "advanced" ? "advanced" : "basic"); goToCreationStep("summary"); return; } if (creationSubmitLock.current) return; creationSubmitLock.current = true; void handleStartSeason(event).finally(() => { creationSubmitLock.current = false; }); }} noValidate className="compact-page space-y-3" data-season-creation-step={creationStep}>
       <fieldset disabled={isSaving} className="min-w-0 space-y-3 border-0 p-0">
-      <div ref={creationHeading} tabIndex={-1} className="app-page-header outline-none"><p className="league-creation-progress text-neutral-500">{tx("Liga · Temporada · Resumen")}</p><CreationTitle className="type-page-title mt-1 text-xl font-black">{tx(creationStep === "summary" ? "Resumen y confirmación" : creationStep === "advanced" ? "Configuración avanzada de temporada" : "Configuración de temporada")}</CreationTitle></div>
+      <div ref={creationHeading} tabIndex={-1} className="app-page-header outline-none"><div className="league-creation-progress text-neutral-500">{draftLeague ? <button type="button" onClick={onExit} className="app-top-back-control flex min-h-11 items-center gap-2"><span aria-hidden="true">←</span>{tx("Competiciones")}</button> : tx("Liga · Temporada")}</div><CreationTitle className="league-creation-title type-page-title mt-1 text-xl font-black">{tx(creationStep === "summary" ? "Revisar y confirmar" : creationStep === "advanced" ? "Ajustes avanzados" : "Configurar temporada")}</CreationTitle></div>
       <div hidden={creationStep !== "basic"} className="space-y-3" data-season-creation-basic>
       <AppCard>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
@@ -2578,11 +2603,12 @@ export function NewSeasonForm({
 </div></details>
 </div>
 {creationStep === "summary" ? <SeasonCreationSummary groups={summaryGroups} participants={summaryParticipants} onEdit={goToCreationStep} /> : null}
-      {creationStep === "basic" ? <AppCard><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-bold">{tx(customized ? "Ajustes personalizados" : "Configuración básica")}</h3><button type="button" onClick={() => goToCreationStep("advanced")} className="league-creation-edit">{tx("Personalizar ajustes avanzados")}</button></div><p className="mt-2 text-xs leading-5 text-neutral-500">{totalSeasonRounds} {t.adminSeason.roundsShortLabel} · {tx(calendarMode === "balanced" ? "Calendario automático" : "Calendario manual")} · {tx(calendarVisibilityMode === "full" ? "Calendario completo visible" : "Publicación progresiva")} · {tx(scheduledStartAt ? "Inicio programado" : "Inicio manual")}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")} · {tx(mvpSystem === "automatic" ? "MVP automático" : "MVP personalizado")} · {tx(hasRegistrationFee ? "Con cuota" : "Sin cuota")}</p></AppCard> : null}
+      {creationStep === "basic" ? <AppCard><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-bold">{tx(customized ? "Ajustes personalizados" : "Configuración básica")}</h3><button type="button" onClick={() => goToCreationStep("advanced")} className="league-creation-secondary league-creation-advanced">{tx("Personalizar ajustes avanzados")}</button></div><p className="mt-2 text-xs leading-5 text-neutral-500">{totalSeasonRounds} {t.adminSeason.roundsShortLabel} · {tx(calendarMode === "balanced" ? "Calendario automático" : "Calendario manual")} · {tx(calendarVisibilityMode === "full" ? "Calendario completo visible" : "Publicación progresiva")} · {tx(scheduledStartAt ? "Inicio programado" : "Inicio manual")}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")} · {tx(mvpSystem === "automatic" ? "MVP automático" : "MVP personalizado")} · {tx(hasRegistrationFee ? "Con cuota" : "Sin cuota")}</p></AppCard> : null}
       {validationIssues.filter(([step]) => creationStep !== "basic" || step === "basic").length ? <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="mb-1 font-bold">{tx("Antes de continuar")}</p>{validationIssues.filter(([step]) => creationStep !== "basic" || step === "basic").map(([step, message]) => <button type="button" className="block py-1 text-left underline underline-offset-2" key={message} onClick={() => { goToCreationStep(step as typeof creationStep); if(step === "advanced") requestAnimationFrame(() => document.querySelectorAll<HTMLDetailsElement>("[data-season-creation-advanced] > details").forEach(detail => detail.open = true)); }}>{tx(message)}</button>)}</div> : null}
       {creationStep === "summary" ? <p className="text-sm text-neutral-500">{scheduledStartAt ? tx("La temporada quedará preparada hasta el inicio programado.") : tx("La temporada quedará preparada. Podrás iniciarla cuando quieras.")}</p> : null}
+      </fieldset>
       <div className="league-creation-footer"><button type="button" disabled={isSaving} onClick={() => creationStep === "summary" ? goToCreationStep(summaryBackStep) : creationStep === "advanced" ? goToCreationStep("basic") : isFirstLeagueSeason ? goToCreationStep("league") : onExit ? onExit() : router.back()} className="league-creation-secondary">{tx("Atrás")}</button>
-      <button type="submit" disabled={isSaving || (creationStep === "summary" ? !canStartSeason : validationIssues.some(([step]) => step === "basic"))} className="league-creation-primary">{isSaving ? tx("Guardando...") : tx(creationStep === "summary" ? "Confirmar y crear temporada" : "Siguiente paso")}</button></div>
+      <button type="submit" disabled={isSaving || (creationStep === "summary" ? !canStartSeason : validationIssues.some(([step]) => step === "basic"))} className="league-creation-primary">{isSaving ? tx("Guardando...") : tx(creationStep === "summary" ? draftLeague ? "Crear liga y primera temporada" : "Confirmar y crear temporada" : "Siguiente paso")}</button></div>
 
       {isFirstLeagueSeason ? <div className="border-t border-neutral-200 pt-2">
               <button
@@ -2606,7 +2632,7 @@ export function NewSeasonForm({
           leagueName={activeLeagueName}
         />
       ) : null}
-      </fieldset>
+
     </form>
   );
 }

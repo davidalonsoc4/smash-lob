@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerLeagueActor } from "@/lib/serverLeagueAccess"
 import { validateUuid } from "@/lib/serverRequest"
+import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -10,13 +11,17 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: leagueId } = await params
-  if (!validateUuid(leagueId)) {
+  const isDraft = leagueId === "new"
+  if (!isDraft && !validateUuid(leagueId)) {
     return NextResponse.json({ error: "invalid_league_id" }, { status: 400 })
   }
 
-  const access = await getServerLeagueActor(leagueId, { requireAdmin: true })
+  const access = isDraft ? await requireAuthenticatedAppUser() : await getServerLeagueActor(leagueId, { requireAdmin: true })
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
+  }
+  if (isDraft && !access.actor.user.isSuperuser && !("canCreateLeagues" in access.actor.user && access.actor.user.canCreateLeagues)) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
   const [usersResult, membershipsResult] = await Promise.all([
@@ -24,7 +29,7 @@ export async function GET(
       .from("app_users")
       .select("id,display_name,first_name,last_name,avatar_url,profile_completed_at")
       .not("profile_completed_at", "is", null),
-    access.actor.supabase
+    isDraft ? Promise.resolve({ data: [], error: null }) : access.actor.supabase
       .from("league_memberships")
       .select("user_id,player_id")
       .eq("league_id", leagueId),

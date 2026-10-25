@@ -7,6 +7,15 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+    "Revisar y confirmar": "Review and confirm",
+    "Liga · Temporada": "League · Season",
+    "Asignar color de liga automáticamente": "Assign league color automatically",
+    "Calculando color...": "Calculating color...",
+    "No se ha podido obtener el color del logo. Puedes elegirlo manualmente.": "Could not read the logo color. You can choose it manually.",
+    "Usamos el color del logo; sin logo, el color recomendado de la aplicación.": "We use the logo color; without a logo, the recommended app color.",
+    "La liga y su primera temporada se guardarán al confirmar el resumen.": "The league and its first season will be saved when you confirm the review.",
+    "Crear liga y primera temporada": "Create league and first season",
+    "Revisa los datos de la liga.": "Review the league details.",
     "Color": "Color",
     "Logo": "Logo",
     "Atrás": "Back",
@@ -1278,6 +1287,15 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "Revisar y confirmar": "Berrikusi eta baieztatu",
+    "Liga · Temporada": "Liga · Denboraldia",
+    "Asignar color de liga automáticamente": "Ligaren kolorea automatikoki esleitu",
+    "Calculando color...": "Kolorea kalkulatzen...",
+    "No se ha podido obtener el color del logo. Puedes elegirlo manualmente.": "Ezin izan da logoaren kolorea eskuratu. Eskuz aukera dezakezu.",
+    "Usamos el color del logo; sin logo, el color recomendado de la aplicación.": "Logoaren kolorea erabiltzen dugu; logorik gabe, aplikazioaren gomendatutako kolorea.",
+    "La liga y su primera temporada se guardarán al confirmar el resumen.": "Liga eta lehen denboraldia laburpena baieztatzean gordeko dira.",
+    "Crear liga y primera temporada": "Liga eta lehen denboraldia sortu",
+    "Revisa los datos de la liga.": "Berrikusi ligaren datuak.",
     "Color": "Kolorea",
     "Logo": "Logoa",
     "Atrás": "Atzera",
