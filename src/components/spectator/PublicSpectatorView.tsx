@@ -189,7 +189,7 @@ export function PublicSpectatorView({ code }: { code: string }) {
                   {view.ranking.map((player) => (
                     <div key={`${player.position}-${player.name}`} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2 py-2.5">
                       <span className="text-sm font-black text-neutral-400">{player.position}</span>
-                      <span className="min-w-0 truncate text-sm font-bold">{player.name}</span>
+                      <span className="min-w-0 truncate text-sm font-bold">{player.members?.length ? player.members.map((name, index) => <span key={index} className="block truncate">{name}</span>) : player.name}</span>
                       <span className="text-right text-sm font-black tabular-nums">{player.points} <span className="type-micro text-neutral-400">{tx("PTS")}</span></span>
                     </div>
                   ))}

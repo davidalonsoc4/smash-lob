@@ -26,13 +26,16 @@ export default function StatisticsStandingsPage() {
     selectSeason,
     buildStatisticsHref,
     statistics,
+    pairRanking,
     isLeagueWide,
   } = useStatisticsWorkspace()
 
+  const ranking = pairRanking ?? statistics.ranking
+  const leaders = pairRanking ? pairRanking.filter(row => row.points === pairRanking[0]?.points && row.gamesDiff === pairRanking[0]?.gamesDiff && row.gamesFor === pairRanking[0]?.gamesFor) : statistics.leaders
   return (
     <div className="compact-page space-y-3">
       <StatisticsPageHeader
-        title={isLeagueWide ? tx("Clasificación histórica") : tx("Clasificación")}
+        title={isLeagueWide ? activeLeague.modality === "fixed_pairs" ? tx("Histórico individual") : tx("Clasificación histórica") : tx("Clasificación")}
         description={
           isLeagueWide
             ? tx("Puntos, victorias y balance acumulados en todas las temporadas de la liga.")
@@ -57,8 +60,8 @@ export default function StatisticsStandingsPage() {
         </AppCard>
         <AppCard>
           <p className="type-caption font-black uppercase tracking-wide text-neutral-400">
-            {tx("Jugadores")}{" "}</p>
-          <p className="mt-1 text-2xl font-black">{statistics.ranking.length}</p>
+            {pairRanking ? tx("Parejas") : tx("Jugadores")}{" "}</p>
+          <p className="mt-1 text-2xl font-black">{ranking.length}</p>
           <p className="mt-0.5 type-caption font-semibold text-neutral-500">
             {tx("con clasificación")}{" "}</p>
         </AppCard>
@@ -74,19 +77,20 @@ export default function StatisticsStandingsPage() {
             {isLeagueWide ? tx("Liderato histórico") : tx("Liderato")}
           </p>
           <p className="mt-1 break-words text-base font-black">
-            {statistics.leaders.length > 0
-              ? statistics.leaders.map((player) => player.displayName).join(" / ")
+            {leaders.length > 0
+              ? leaders.map((player) => player.displayName).join(" / ")
               : "—"}
           </p>
           <p className="mt-0.5 type-caption font-semibold text-neutral-500">
-            {statistics.leader ? tx(`${statistics.leader.points} puntos`) : tx("Sin datos")}
+            {ranking[0] ? tx(`${ranking[0].points} puntos`) : tx("Sin datos")}
           </p>
         </AppCard>
       </div>
 
-      {statistics.ranking.length > 0 ? (
+      {ranking.length > 0 ? (
         <RankingTable
-          players={statistics.ranking}
+          paired={Boolean(pairRanking)}
+          players={ranking}
           showAvatars={activeLeague.showRankingAvatars !== false}
         />
       ) : (

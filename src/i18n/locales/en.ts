@@ -1097,7 +1097,7 @@ export const en = {
     decreasePlayerCount: "Decrease number of players",
     increasePlayerCount: "Increase number of players",
     playersShortLabel: "players",
-    playerCountRangeDescription: "Choose between 8 and 24 players. You can adjust the size one player at a time.",
+    playerCountRangeDescription: "Choose between 8 and 32 players. You can adjust the size one player at a time.",
     playerCountBalancedDescription: "This size allows a perfectly balanced calendar: everyone plays every round, with no byes.",
     playerCountRequiresByesDescription: "Balanced calendar with byes: {count} players sit out each round and everyone has the same number of byes.",
     newPlayerName: "New player",

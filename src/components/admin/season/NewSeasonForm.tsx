@@ -1,9 +1,13 @@
 "use client"
+import { validateLeaguePairs, areLeagueMatchesPaired, type LeaguePair } from "@/lib/fixedPairLeague"
+import { getSeasonBaseRoundCount as baseRounds } from "@/lib/seasonPlayerCount"
+import { getSeasonScheduleRoundCount as scheduleRounds, getSeasonMaxBalancedLegCount as maxLegs, getSeasonMaxRoundCount as maxRounds, isValidSeasonScheduleTarget as validTarget } from "@/lib/calendar"
 
 import { FormEvent, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
+import { SeasonPairFields } from "@/components/season/SeasonPairFields"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { SeasonPlayerCountSelector } from "@/components/season/SeasonPlayerCountSelector"
 import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown"
@@ -14,7 +18,7 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { RoundWindowMode, useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { startSupabaseSeason } from "@/lib/supabaseSeasons"
-import { generateBalancedCalendar, generateManualCalendar, getNewPlayerIndexFromToken, getNewPlayerToken, getSeasonMaxBalancedLegCount, getSeasonMaxRoundCount, getSeasonScheduleRoundCount, isValidSeasonScheduleTarget, resolveManualCalendarDraft, type ManualCalendarMatchDraft, type SeasonScheduleMode } from "@/lib/calendar"
+import { generateBalancedCalendar, generateManualCalendar, getNewPlayerIndexFromToken, getNewPlayerToken, getSeasonScheduleRoundCount, resolveManualCalendarDraft, type ManualCalendarMatchDraft, type SeasonScheduleMode } from "@/lib/calendar"
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import type { MvpSystem } from "@/lib/mvp"
 import { type LeagueLocation, createScheduledLeagueLocationValue, getLeagueLocationTownNameLabel, sortLeagueLocationsByTownNameLabel } from "@/lib/leagueLocations"
@@ -529,6 +533,14 @@ export function NewSeasonForm({
     updateLeagueLocations,
     userId,
   } = useLeagueAccess();
+  const modality = accessibleLeagues.find(league => league.id === activeLeagueId)?.modality ?? "individual";
+  const isPairLeague = modality === "fixed_pairs";
+  const getSeasonBaseRoundCount = (count: number) => baseRounds(count, modality);
+  const getSeasonMaxBalancedLegCount = (count: number) => maxLegs(count, modality);
+  const getSeasonMaxRoundCount = (count: number) => maxRounds(count, modality);
+  const getSeasonScheduleRoundCount = (input: Parameters<typeof scheduleRounds>[0]) => scheduleRounds({ ...input, modality });
+  const isValidSeasonScheduleTarget = (input: Parameters<typeof validTarget>[0]) => validTarget({ ...input, modality });
+  const [pairOrder, setPairOrder] = useState<string[]>([]);
   const leaguePlayers = playerProfiles.filter(
     (player) => player.leagueId === activeLeagueId,
   );
@@ -542,7 +554,7 @@ export function NewSeasonForm({
     (season) => season.leagueId === activeLeagueId,
   ).length;
   const isFirstLeagueSeason = leagueSeasonCount === 0;
-  const defaultPlayerCount = getNextPlayerCount(currentPlayers.length);
+  const defaultPlayerCount = isPairLeague ? Math.min(32, Math.max(4, Math.ceil((currentPlayers.length || 8) / 2) * 2)) : getNextPlayerCount(currentPlayers.length);
   const [newSeasonName, setNewSeasonName] = useState(
     getDefaultNewSeasonName({ seasonCount: leagueSeasonCount }),
   );
@@ -767,6 +779,8 @@ export function NewSeasonForm({
       label: person.displayName,
     })),
   ];
+  const currentPairValues = [...pairOrder.filter(id => manualPlayerOptions.some(option => option.value === id)), ...manualPlayerOptions.map(option => option.value).filter(id => !pairOrder.includes(id))];
+  const fixedPairs: LeaguePair[] = Array.from({ length: playerCount / 2 }, (_, index) => [currentPairValues[index * 2], currentPairValues[index * 2 + 1]]);
   const validManualPlayerValues = new Set(
     manualPlayerOptions.map((option) => option.value),
   );
@@ -804,7 +818,7 @@ export function NewSeasonForm({
       validPlayerValues: validManualPlayerValues,
     });
   const hasValidPlayers =
-    isSeasonPlayerCountInRange(playerCount) &&
+    isSeasonPlayerCountInRange(playerCount, modality) &&
     (rosterMode === "self_registration"
       ? selectedPlayerIds.length <= playerCount
       : selectedPlayerIds.length <= playerCount &&
@@ -818,6 +832,7 @@ export function NewSeasonForm({
     !isSaving &&
     newSeasonName.trim().length > 0 &&
     hasValidPlayers &&
+    (!isPairLeague || rosterMode === "self_registration" || (validateLeaguePairs(fixedPairs, manualPlayerOptions.map(option => option.value)) && (calendarMode !== "manual" || areLeagueMatchesPaired(manualCalendarMatches, fixedPairs)))) &&
     hasValidDuration &&
     isManualCalendarReady &&
     hasValidRegistrationFee &&
@@ -843,6 +858,14 @@ export function NewSeasonForm({
     mode?: SeasonScheduleMode;
     targetRounds?: number;
   }) {
+    if (isPairLeague) {
+      const values = getDraftPlayerValues({ selectedPlayerIds: selectedIds, playerCount: count });
+      const order = [...currentPairValues.filter(id => values.includes(id)), ...values.filter(id => !currentPairValues.includes(id))];
+      const pairs: LeaguePair[] = Array.from({ length: count / 2 }, (_, i) => [order[i * 2], order[i * 2 + 1]]);
+      const generated = generateBalancedCalendar({ leagueId: "draft", seasonId: "draft", playerIds: values, fixedPairs: pairs, scheduleMode: mode === "double" ? "single" : mode, targetRoundCount: mode === "double" ? getSeasonBaseRoundCount(count) : targetRounds });
+      setManualCalendar(Array.from({ length: mode === "double" ? getSeasonBaseRoundCount(count) : targetRounds }, (_, i) => ({ round: i + 1, matches: generated.filter(match => match.round === i + 1).map(match => ({ teamA: match.teamA, teamB: match.teamB })) })));
+      return;
+    }
     setManualCalendar(
       createBalancedManualCalendar(
         getDraftPlayerValues({
@@ -1027,6 +1050,7 @@ export function NewSeasonForm({
     const manualMatches =
       calendarMode === "manual" ? manualCalendarMatches : undefined;
     const settings = {
+      fixedPairs: isPairLeague && rosterMode === "fixed" ? fixedPairs : undefined,
       leagueId: activeLeagueId,
       name: newSeasonName.trim(),
       playerIds: selectedPlayerIds,
@@ -1141,6 +1165,7 @@ export function NewSeasonForm({
           leagueId: activeLeagueId,
           seasonId: result.season.id,
           matches: resolvedManualMatches,
+          fixedPairs: isPairLeague ? fixedPairs.map(pair => pair.map(id => { const i = getNewPlayerIndexFromToken(id); return i === null ? id : result.newPlayerIds[i]; }) as LeaguePair) : undefined,
           scheduleMode: effectiveScheduleMode,
           targetRoundCount: totalSeasonRounds,
         }).map((match) => ({
@@ -1162,6 +1187,7 @@ export function NewSeasonForm({
         createSeasonMatches({
           leagueId: activeLeagueId,
           seasonId: result.season.id,
+          fixedPairs: isPairLeague ? fixedPairs.map(pair => pair.map(id => { const i = getNewPlayerIndexFromToken(id); return i === null ? id : result.newPlayerIds[i]; }) as LeaguePair) : undefined,
           playerIds: result.playerIds,
           scheduleMode: effectiveScheduleMode,
           targetRoundCount: totalSeasonRounds,
@@ -1214,6 +1240,42 @@ export function NewSeasonForm({
     showSavedFeedback(successMessage);
     setIsSaving(false);
     router.replace("/");
+  }
+
+  function renderManualPlayer(index: number) {
+    const playerName = visibleNewPlayerNames[index];
+    if (playerName === undefined) return null;
+    return (
+              <label key={index} className="block">
+                <span className="flex items-center justify-between gap-2 text-xs font-semibold text-neutral-500">
+                  <span>
+                    {t.adminSeason.newPlayerName} {index + 1}
+                  </span>
+                  {canLinkSelfPlayer &&
+                  selectedSelfPlayerValue === getNewPlayerToken(index) ? (
+                    <span className="rounded-full bg-amber-300 px-2.5 py-0.5 type-caption font-black text-neutral-950">
+                      {tx("Tú")}{" "}</span>
+                  ) : null}
+                </span>
+                <input
+                  value={playerName}
+                  placeholder={
+                    isFirstLeagueSeason
+                      ? selectedSelfPlayerValue === getNewPlayerToken(index)
+                        ? tx("Tu nombre")
+                        : tx(`Jugador ${selectedPlayerIds.length + index + 1}`)
+                      : `Sustituto ${index + 1}`
+                  }
+                  onChange={(event) => {
+                    const nextNames = [...visibleNewPlayerNames];
+                    nextNames[index] = event.target.value;
+                    setNewPlayerNames(nextNames);
+                    setCreationFeedback(null);
+                  }}
+                  className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+                />
+              </label>
+    );
   }
 
   return (
@@ -1290,13 +1352,7 @@ export function NewSeasonForm({
                 />
               </div>
 
-              <button
-                type="button"
-                onClick={handleCancelLeagueCreation}
-                disabled={isSaving}
-                className="flex mt-3 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
-              >
-                {tx("Cancelar creación de la liga")}{" "}</button>
+
             </div>
           ) : null}
 
@@ -1368,6 +1424,7 @@ export function NewSeasonForm({
           </div>
 
           <SeasonPlayerCountSelector
+            modality={modality}
             playerCount={playerCount}
             onChange={handlePlayerCountChange}
           />
@@ -1540,41 +1597,16 @@ export function NewSeasonForm({
           </div>
         ) : null}
 
-        {newPlayerSlotCount > 0 ? (
+        {!isPairLeague && newPlayerSlotCount > 0 ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {visibleNewPlayerNames.map((playerName, index) => (
-              <label key={index} className="block">
-                <span className="flex items-center justify-between gap-2 text-xs font-semibold text-neutral-500">
-                  <span>
-                    {t.adminSeason.newPlayerName} {index + 1}
-                  </span>
-                  {canLinkSelfPlayer &&
-                  selectedSelfPlayerValue === getNewPlayerToken(index) ? (
-                    <span className="rounded-full bg-amber-300 px-2.5 py-0.5 type-caption font-black text-neutral-950">
-                      {tx("Tú")}{" "}</span>
-                  ) : null}
-                </span>
-                <input
-                  value={playerName}
-                  placeholder={
-                    isFirstLeagueSeason
-                      ? selectedSelfPlayerValue === getNewPlayerToken(index)
-                        ? tx("Tu nombre")
-                        : tx(`Jugador ${selectedPlayerIds.length + index + 1}`)
-                      : `Sustituto ${index + 1}`
-                  }
-                  onChange={(event) => {
-                    const nextNames = [...visibleNewPlayerNames];
-                    nextNames[index] = event.target.value;
-                    setNewPlayerNames(nextNames);
-                    setCreationFeedback(null);
-                  }}
-                  className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
-                />
-              </label>
-            ))}
+            {visibleNewPlayerNames.map((_, index) => renderManualPlayer(index))}
           </div>
         ) : null}
+        {isPairLeague ? <div className="mt-4" data-season-pairs>
+          <p className="mb-2 text-sm font-bold">{tx("Parejas de la temporada")}</p>
+          <p className="mb-3 text-xs text-neutral-500">{tx("Elige los dos jugadores de cada pareja. Se mantendrán juntos durante toda la temporada.")}</p>
+          <SeasonPairFields pairs={fixedPairs} options={manualPlayerOptions} onChange={pairs => { setPairOrder(pairs.flat()); setCreationFeedback(null); }} renderPlayerDetails={id => { const index = getNewPlayerIndexFromToken(id); return index === null || index >= visibleNewPlayerNames.length ? null : renderManualPlayer(index); }} />
+        </div> : null}
       </AppCard>
       ) : (
         <AppCard className="border-emerald-200 bg-emerald-50">
@@ -1645,7 +1677,7 @@ export function NewSeasonForm({
         {rosterMode === "fixed" ? (
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {([
-              ["balanced", t.adminSeason.balancedCalendar, t.adminSeason.balancedCalendarDescription],
+              ["balanced", t.adminSeason.balancedCalendar, isPairLeague ? tx("Cada pareja se enfrenta a las demás una vez por vuelta, sin cambiar de compañero.") : t.adminSeason.balancedCalendarDescription],
               ["manual", t.adminSeason.manualCalendar, t.adminSeason.manualCalendarDescription],
             ] as const).map(([mode, title, description]) => {
               const isSelected = calendarMode === mode;
@@ -1655,6 +1687,7 @@ export function NewSeasonForm({
                   type="button"
                   onClick={() => {
                     setCalendarMode(mode);
+                    if (isPairLeague && mode === "manual") refreshManualCalendarFromPlayers({ selectedIds: selectedPlayerIds, count: playerCount });
                     setCreationFeedback(null);
                   }}
                   className={`rounded-2xl border p-3 text-left transition ${
@@ -1800,10 +1833,10 @@ export function NewSeasonForm({
                       </span>
                       <span className="mt-1 block text-xs font-semibold text-neutral-500">
                         {mode === "single"
-                          ? t.adminSeason.singleRoundCalendarDescription
+                          ? isPairLeague ? tx("Una jornada contra cada pareja rival.") : t.adminSeason.singleRoundCalendarDescription
                           : mode === "double"
-                            ? t.adminSeason.doubleRoundCalendarDescription
-                            : t.adminSeason.extendedCalendarDescription}
+                            ? isPairLeague ? tx("Dos partidos contra cada pareja rival, con ida y vuelta.") : t.adminSeason.doubleRoundCalendarDescription
+                            : isPairLeague ? tx("Repite vueltas completas conservando las mismas parejas.") : t.adminSeason.extendedCalendarDescription}
                       </span>
                     </button>
                   );
@@ -1934,14 +1967,17 @@ export function NewSeasonForm({
         </div>
       </AppCard>
 
+
+
+      {isPairLeague && rosterMode === "fixed" && calendarMode === "manual" && !areLeagueMatchesPaired(manualCalendarMatches, fixedPairs) ? <p role="status" className="text-sm font-semibold text-amber-700">{tx("Los cruces manuales deben respetar las parejas elegidas. Ajusta los jugadores o restaura el calendario automático.")}</p> : null}
       {rosterMode === "fixed" && calendarMode === "manual" ? (
         <AppCard data-season-manual-calendar>
           <div className="space-y-4">
             <div className="rounded-2xl bg-neutral-100 px-3 py-2.5 text-sm text-neutral-700">
               <p className="font-black">
                 {totalSeasonRounds} {tx("jornadas ·")}{" "}
-                {getMatchesPerRound(playerCount)}{" "}
-                {getMatchesPerRound(playerCount) === 1 ? tx("partido") : "partidos"}{" "}
+                {getSeasonMatchesPerRound(playerCount, modality)}{" "}
+                {getSeasonMatchesPerRound(playerCount, modality) === 1 ? tx("partido") : "partidos"}{" "}
                 {tx("por jornada")}{" "}</p>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
                 {effectiveScheduleMode === "double"
@@ -2566,6 +2602,16 @@ export function NewSeasonForm({
       >
         {isSaving ? "Guardando..." : tx("Crear temporada")}
       </button>
+
+      {isFirstLeagueSeason ? <div className="border-t border-neutral-200 pt-2">
+              <button
+                type="button"
+                onClick={handleCancelLeagueCreation}
+                disabled={isSaving}
+                className="flex mt-3 w-full rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:text-red-300 items-center justify-center text-center"
+              >
+                {tx("Cancelar creación de la liga")}{" "}</button>
+      </div> : null}
 
       {error ? (
         <p className="text-center text-sm font-semibold text-red-600">

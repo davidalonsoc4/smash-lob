@@ -27,6 +27,10 @@ describe("competition overview", () => {
     const last = match("last", { status: "finished", scheduledAt: "2026-10-15T12:00:00Z", resultRecordedAt: "2026-10-15T15:00:00Z" })
     expect(selectCompetitionHighlight([match("overdue", { scheduledAt: "2026-10-16T08:00:00Z" }), match("invalid", { scheduledAt: "invalid" }), last], now)).toEqual({ kind: "last", match: last })
   })
+  it("does not present an already dated overdue result as the next fixture even with a round window",()=>{
+    const old=match("result-pending",{scheduledAt:"2026-10-16T08:00:00Z",preview:{startsAt:"2026-10-16",endsAt:"2026-10-22",currentRound:true,hidden:false}})
+    expect(selectCompetitionHighlight([old],now)).toBeNull()
+  })
   it("does not invent an encounter when only unscheduled or overdue fixtures exist", () => {
     expect(selectCompetitionHighlight([match("none", { scheduledAt: null }), match("old", { scheduledAt: "2026-10-01T12:00:00Z" })], now)).toBeNull()
     expect(selectCompetitionHighlight([], now)).toBeNull()

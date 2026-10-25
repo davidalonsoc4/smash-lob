@@ -29,6 +29,11 @@ export function selectCompetitionHighlight(items: PersonalMatchItem[], now: Date
   if (live) return { kind: "live" as const, match: live }
   const next = own.filter(item => item.status === "scheduled" && time(item) > now.getTime()).sort((a, b) => time(a) - time(b))[0]
   if (next) return { kind: "next" as const, match: next }
+  const pending = own.filter(item => item.status !== "finished" && !item.scheduledAt && item.preview).sort((a,b) => {
+    const priority = (item: PersonalMatchItem) => item.preview?.currentRound ? 0 : item.preview?.startsAt ? 1 : 2
+    return priority(a)-priority(b) || (Date.parse(a.preview?.startsAt ?? "") || Infinity)-(Date.parse(b.preview?.startsAt ?? "") || Infinity) || (a.round ?? 0)-(b.round ?? 0)
+  })[0]
+  if (pending) return { kind: "next" as const, match: pending }
   const lastTime = (item: PersonalMatchItem) => parseMatchScheduleDate(item.resultRecordedAt)?.getTime() || time(item)
   const last = own.filter(item => item.status === "finished" && lastTime(item) > 0 && lastTime(item) <= now.getTime()).sort((a, b) => lastTime(b) - lastTime(a))[0]
   return last ? { kind: "last" as const, match: last } : null

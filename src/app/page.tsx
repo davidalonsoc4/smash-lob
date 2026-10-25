@@ -15,6 +15,7 @@ import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
+import { getLeaguePairGroups } from "@/lib/fixedPairLeague";
 import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
@@ -382,7 +383,7 @@ export default function Home() {
   const { t } = useI18n();
   const { visualStyle } = useTheme();
   const { data: session } = useSession();
-  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings, seasons } = useSeasonSettings();
+  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings, seasons, seasonPlayers } = useSeasonSettings();
   const { replaceSeasonMatches } = useMatchData();
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
@@ -413,6 +414,7 @@ export default function Home() {
     roundSettings,
     players,
     leaguePlayers,
+    rankingPairs,
     rankingPlayers: seasonRankingPlayers,
     matches,
     rounds,
@@ -531,7 +533,8 @@ export default function Home() {
     !isSelfRegistrationSeason ||
     (typeof playerCapacity === "number" &&
       playerCapacity > 0 &&
-      seasonRankingPlayers.length >= playerCapacity);
+      seasonRankingPlayers.length >= playerCapacity &&
+      (activeLeague.modality !== "fixed_pairs" || getLeaguePairGroups(seasonPlayers.filter(row => row.seasonId === activeSeason.id)).pending.length === 0));
   const hasRegistrationFee =
     roundSettings.registrationFee.enabled && roundSettings.registrationFee.amount > 0;
   const scheduledHomeStage = getScheduledSeasonHomeStage({
@@ -623,15 +626,16 @@ export default function Home() {
     }
   }
 
-  const rankingPlayers = [...seasonRankingPlayers].sort((a, b) => {
+  const rankingPlayers = [...(activeLeague.modality === "fixed_pairs" ? rankingPairs : seasonRankingPlayers)].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     if (b.gamesDiff !== a.gamesDiff) return b.gamesDiff - a.gamesDiff;
     return b.gamesFor - a.gamesFor;
   });
 
   const leader = rankingPlayers[0];
+  const rankingUserId = activeLeague.modality === "fixed_pairs" ? rankingPairs.find(pair => pair.members.some(member => member.id === currentUserId))?.id ?? currentUserId : currentUserId;
   const currentUserRankingIndex = rankingPlayers.findIndex(
-    (player) => player.id === currentUserId,
+    (player) => player.id === rankingUserId,
   );
   const rankingPreviewStart =
     currentUserRankingIndex <= 0
@@ -748,7 +752,7 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-4">
+    <div data-countdown-home={showScheduledCountdownHero ? "true" : undefined} className="space-y-4">
       <header data-tour="home-header" className="app-page-header">
         <Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500" style={{ maxWidth: "min(8rem, calc(100% - var(--app-top-controls-width, 202px) - 28px))" }}>
           <span aria-hidden="true" className="mr-1 inline-block shrink-0">←</span>
@@ -870,7 +874,7 @@ export default function Home() {
                   players={[leader]}
                   badge="🏆"
                   tone="winner"
-                  href={`/player/${leader.slug ?? leader.id}`}
+                  href={activeLeague.modality === "fixed_pairs" ? "/ranking" : `/player/${leader.slug ?? leader.id}`}
                   meta={`${leader.points} ${t.common.pointsShort}`}
                 />
                 {seasonMvp ? (
@@ -1064,7 +1068,7 @@ export default function Home() {
                 <div
                   key={player.id}
                   className={`flex items-center justify-between gap-3 rounded-xl py-1.5 pl-2 pr-3 ${
-                    player.id === currentUserId ? "bg-neutral-100" : ""
+                    player.id === rankingUserId ? "bg-neutral-100" : ""
                   }`}
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -1075,12 +1079,12 @@ export default function Home() {
                       {getRankingDisplayPosition(rankingPlayers, player.id)}
                     </div>
 
-                    {activeLeague.showRankingAvatars !== false ? (
+                    {activeLeague.showRankingAvatars !== false && activeLeague.modality !== "fixed_pairs" ? (
                       <PlayerAvatar player={player} size="sm" />
                     ) : null}
 
                     <Link
-                      href={`/player/${player.slug ?? player.id}`}
+                      href={activeLeague.modality === "fixed_pairs" ? "/ranking" : `/player/${player.slug ?? player.id}`}
                       className="min-w-0 font-semibold leading-tight text-neutral-950 underline-offset-2 truncate whitespace-nowrap active:underline"
                     >
                       {player.displayName}

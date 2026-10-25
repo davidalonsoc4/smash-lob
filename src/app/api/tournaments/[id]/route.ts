@@ -14,7 +14,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status, headers: { "Cache-Control": "no-store" } })
   const result = await mapTournamentData(access.actor, access.tournamentId, access.role === "creator")
   if (result.error || !result.data) return NextResponse.json({ error: "tournament_read_failed" }, { status: 500, headers: { "Cache-Control": "no-store" } })
-  return NextResponse.json({ ...result.data, access: { role: access.role }, canRestartForTesting: access.role === "creator" && canRestartRapidTournamentForTesting(), serverNow: new Date().toISOString() }, { headers: { "Cache-Control": "no-store" } })
+  return NextResponse.json({ ...result.data, access: { role: access.role }, canRestartForTesting: !result.data.traditional && access.role === "creator" && canRestartRapidTournamentForTesting(), serverNow: new Date().toISOString() }, { headers: { "Cache-Control": "no-store" } })
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {

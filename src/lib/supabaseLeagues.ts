@@ -11,6 +11,7 @@ export async function createSupabaseLeague({
   locations,
   leagueRecommendations,
   accentColor,
+  modality,
 }: {
   leagueName: string
   leagueDescription: string
@@ -18,6 +19,7 @@ export async function createSupabaseLeague({
   inviteCode: string
   locations: LeagueLocation[]
   leagueRecommendations: string
+  modality?: "individual" | "fixed_pairs"
   accentColor?: string
 }) {
   const response = await fetch("/api/leagues", {
@@ -31,6 +33,7 @@ export async function createSupabaseLeague({
       locations,
       leagueRecommendations,
       accentColor,
+      modality,
     }),
     cache: "no-store",
   })

@@ -11,6 +11,7 @@ type LeagueLogoProps = {
   size?: "sm" | "md" | "lg" | "xl" | "xxl"
   className?: string
   previewable?: boolean
+  label?: string
 }
 
 const sizeClasses = {
@@ -38,6 +39,7 @@ export function LeagueLogo({
   size = "md",
   className = "",
   previewable = false,
+  label,
 }: LeagueLogoProps) {
   const { t } = useI18n()
   const previewTriggerRef = useRef<HTMLDivElement>(null)
@@ -48,7 +50,7 @@ export function LeagueLogo({
   const canPreview = Boolean(previewable && imageUrl)
   const leagueName = league?.name?.trim() || "Smash & Lob"
   const openLabel = t.imageViewer.openLeagueLogo.replace("{name}", leagueName)
-  const imageAlt = t.imageViewer.leagueLogoAlt.replace("{name}", leagueName)
+  const imageAlt = label ?? t.imageViewer.leagueLogoAlt.replace("{name}", leagueName)
   const closePreview = useCallback(() => {
     setIsPreviewOpen(false)
     window.requestAnimationFrame(() => previewTriggerRef.current?.focus())

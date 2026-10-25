@@ -1,3 +1,4 @@
+import { getServerLeagueModality } from "@/lib/serverLeagueModality"
 import { NextResponse } from "next/server"
 import {
   getSeasonScheduleRoundCount,
@@ -74,6 +75,7 @@ export async function POST(
   }
 
   try {
+    const modality = await getServerLeagueModality(access.actor.supabase, leagueId)
     const validatedPlayerIds = await assertLeaguePlayerIds({
       supabase: access.actor.supabase,
       leagueId,
@@ -84,12 +86,14 @@ export async function POST(
       (reroll
         ? access.season.totalRounds
         : getSeasonScheduleRoundCount({
-            playerCount: validatedPlayerIds.length,
+            modality,
+        playerCount: validatedPlayerIds.length,
             mode: scheduleMode,
           }))
 
     if (
       !isValidSeasonScheduleTarget({
+        modality,
         playerCount: validatedPlayerIds.length,
         mode: scheduleMode,
         targetRoundCount,

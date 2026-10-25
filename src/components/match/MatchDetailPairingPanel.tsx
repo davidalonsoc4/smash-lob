@@ -12,7 +12,7 @@ import { getMatchSubstituteLabels } from "@/lib/substitutes"
 import { useI18n } from "@/i18n/I18nProvider"
 import { StatusHelp } from "@/components/ui/StatusHelp"
 import { FitText } from "@/components/ui/FitText"
-import { recommendPairSides, type RecommendedSide } from "@/lib/matchSideRecommendations"
+import { recommendPairSides, type RecommendedSide, type SideStatistics } from "@/lib/matchSideRecommendations"
 
 type MatchDetailPairingPanelProps = {
   teamA: string[]
@@ -24,6 +24,7 @@ type MatchDetailPairingPanelProps = {
   substitutions?: MatchSubstitution[]
   highlightedPlayerIds?: string[]
   rankingPositions?: Record<string, number | null | undefined>
+  sideStatistics?: Record<string, SideStatistics>
   linkPlayers?: boolean
   showPlayerMetadata?: boolean
   showPendingPlayerMetadata?: boolean
@@ -150,6 +151,7 @@ function PairDetails({
   showMetadata,
   showRankingPosition,
   recommendSides,
+  statistics,
 }: {
   playerIds: string[]
   players?: PlayerProfile[]
@@ -161,8 +163,9 @@ function PairDetails({
   showMetadata: boolean
   showRankingPosition: boolean
   recommendSides: boolean
+  statistics: Record<string, SideStatistics>
 }) {
-  const recommendations = recommendSides ? recommendPairSides(playerIds.map(playerId => ({ preferredSide: getPlayerById(playerId, players)?.preferredSide, rankingPosition: positions[playerId] }))) : [null, null]
+  const recommendations = recommendSides ? recommendPairSides(playerIds.map(playerId => ({ preferredSide: getPlayerById(playerId, players)?.preferredSide, rankingPosition: positions[playerId], statistics: statistics[playerId] }))) : [null, null]
   const displayPlayers = playerIds.map((playerId, index) => ({ playerId, recommendedSide: recommendations[index] }))
   if (recommendSides && recommendations[0] && recommendations[1] && recommendations[0] !== recommendations[1]) {
     const topSide = alignment === "left" ? "reves" : "drive"
@@ -170,7 +173,7 @@ function PairDetails({
   }
   return (
     <div
-      className={`rounded-xl bg-neutral-50 px-2.5 py-3 ${
+      className={`app-match-pair-surface rounded-xl border border-neutral-200 bg-white px-3 py-4 ${
         alignment === "right" ? "text-right" : "text-left"
       }`}
     >
@@ -331,6 +334,7 @@ export function MatchDetailPairingPanel({
   substitutions = [],
   highlightedPlayerIds = [],
   rankingPositions = {},
+  sideStatistics = {},
   linkPlayers = true,
   showPlayerMetadata = false,
   showPendingPlayerMetadata,
@@ -380,7 +384,7 @@ export function MatchDetailPairingPanel({
           </div>
         ) : (
           <>
-            <div className="relative grid grid-cols-2 items-stretch gap-6 sm:gap-8">
+            <div className="relative grid grid-cols-2 items-stretch gap-3">
               <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-950 type-caption font-black uppercase tracking-wide text-white shadow-sm">
                   VS
@@ -391,6 +395,7 @@ export function MatchDetailPairingPanel({
                 playerIds={teamA}
                 players={players}
                 positions={rankingPositions}
+                statistics={sideStatistics}
                 highlightedPlayerIds={highlightedPlayerIds}
                 substituteLabels={substituteLabels}
                 linkPlayers={linkPlayers}
@@ -404,6 +409,7 @@ export function MatchDetailPairingPanel({
                 playerIds={teamB}
                 players={players}
                 positions={rankingPositions}
+                statistics={sideStatistics}
                 highlightedPlayerIds={highlightedPlayerIds}
                 substituteLabels={substituteLabels}
                 linkPlayers={linkPlayers}
@@ -428,9 +434,10 @@ export function MatchSideHelp({ children, label, className = "flex h-7 w-7 shrin
       description={<span className="block space-y-2">
         <span className="block font-black">{tx("Un lado para cada uno")}</span>
         <span className="block">{tx("Respetamos las preferencias compatibles. Si uno es versátil, le sugerimos el lado contrario al de su compañero.")}</span>
-        <span className="block">{tx("Si preferís el mismo lado, lo conserva quien esté mejor clasificado esta temporada. El cambio se marca en rojo con ↔.")}</span>
+        <span className="block">{tx("Si preferís el mismo lado, comparamos vuestro historial de ligas: porcentaje de victorias y después proporción de juegos ganados. Si siguen iguales, usamos la clasificación de esta temporada. El cambio se marca en rojo con ↔.")}</span>
+        <span className="block">{tx("Quien todavía no tiene resultados cede la preferencia a quien sí los tiene.")}</span>
         <span className="block">{tx("Con dos versátiles, un empate o datos insuficientes, acordad los lados entre vosotros.")}</span>
-        <span className="block border-t border-neutral-200 pt-2 text-xs">{tx("Es una sugerencia: vosotros decidís. Puede cambiar con la clasificación antes del partido.")}</span>
+        <span className="block border-t border-neutral-200 pt-2 text-xs">{tx("Es una sugerencia: vosotros decidís. Puede cambiar con los resultados antes del partido.")}</span>
       </span>}
       className={className}
     >

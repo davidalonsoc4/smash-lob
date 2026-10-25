@@ -5,7 +5,7 @@ import { StatusDot } from "@/components/ui/StatusDot"
 
 import { useI18n } from "@/i18n/I18nProvider"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
-import { getMatchStatusBadgeClassName } from "@/lib/statusStyles"
+import { getMatchStatusBadgeClassName, softStatusBadgeClassName } from "@/lib/statusStyles"
 
 type MatchStatusBadgeProps = {
   status: string
@@ -52,7 +52,7 @@ export function MatchStatusBadge({
   const helpStatus = displayStatus === "result_pending" && isParticipant && canRecordResult ? "record_result" : displayStatus
   if (variant === "dot") return <StatusDot status={displayStatus} kind={kind} helpStatus={helpStatus} label={labelByStatus[displayStatus] ?? displayStatus} />
   return (
-    <StatusHelp kind={kind} status={helpStatus} label={labelByStatus[displayStatus] ?? displayStatus} className={`${getMatchStatusBadgeClassName(displayStatus)} ml-auto text-right ${variant === "soft" ? "!ring-0 !border-0 !normal-case !tracking-normal !font-semibold !px-2 !py-0.5" : ""}`}>
+    <StatusHelp kind={kind} status={helpStatus} label={labelByStatus[displayStatus] ?? displayStatus} className={`${getMatchStatusBadgeClassName(displayStatus)} ml-auto text-right ${variant === "soft" ? softStatusBadgeClassName : ""}`}>
       {labelByStatus[displayStatus] ?? displayStatus}
     </StatusHelp>
   )

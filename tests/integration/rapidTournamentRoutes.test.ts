@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), rpc: vi.fn(), maybeSingle: vi.fn(), single: vi.fn(), generate: vi.fn() }))
+const people = vi.hoisted(() => ({ selectable: vi.fn() }))
+vi.mock("@/lib/serverRapidTournamentPeople", () => ({ getRapidTournamentSelectablePeople: people.selectable }))
 vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.auth }))
 vi.mock("@/lib/serverRateLimit", () => ({ enforceRequestRateLimit: vi.fn(async () => null) }))
 vi.mock("@/lib/serverDynamicMexicano", () => ({ generateAndPersistMexicanoRound: mocks.generate }))
@@ -110,6 +112,24 @@ describe("rapid tournament creator routes", () => {
     )
   })
 
+  it.each(["knockout","groups","groups_knockout"])("creates %s through traditional persistence while retaining the shared roster",async format=>{
+    mocks.rpc.mockResolvedValueOnce({data:tournamentId,error:null})
+    const response=await createTournament(request("/api/tournaments",{name:"Tradicional",startsAt:"2027-01-01T09:00:00Z",courtNames:["Uno","Dos"],players:names.slice(0,8),pairing:"fixed",pairNumbers:[1,1,2,2,3,3,4,4],format,roundMinutes:30,transitionMinutes:5,traditional:{groupCount:format==="knockout"?0:2,qualifiersPerGroup:format==="groups_knockout"?1:0,thirdPlace:false,consolation:false}}))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_traditional_tournament",expect.objectContaining({p_player_names:names.slice(0,8),p_player_pair_numbers:[1,1,2,2,3,3,4,4],p_draw:expect.objectContaining({configuration:expect.objectContaining({format})}),p_match_minutes:30,p_transition_minutes:5}))
+    expect(mocks.rpc.mock.calls[0][1].p_schedule.length).toBeGreaterThan(0)
+  })
+
+  it("supports a manually scheduled traditional draw and rejects impossible or rotating entries",async()=>{
+    const body={name:"Manual",startsAt:"2027-01-01T09:00:00Z",courtNames:["Uno"],players:names.slice(0,8),pairing:"fixed",pairNumbers:[1,1,2,2,3,3,4,4],format:"knockout",roundMinutes:30,traditional:{groupCount:0,qualifiersPerGroup:0,thirdPlace:false,consolation:false,scheduleMode:"manual"}}
+    mocks.rpc.mockResolvedValueOnce({data:tournamentId,error:null})
+    expect((await createTournament(request("/api/tournaments",body))).status).toBe(201)
+    expect(mocks.rpc.mock.calls[0][1].p_schedule).toEqual([])
+    mocks.rpc.mockClear()
+    for(const changed of [{...body,pairing:"rotating"},{...body,traditional:{...body.traditional,thirdPlace:true,consolation:true}},{...body,courtNames:[]},{...body,roundMinutes:0}])expect((await createTournament(request("/api/tournaments",changed))).status).toBe(400)
+    expect(mocks.rpc).not.toHaveBeenCalled()
+  })
+
   it("accepts only supported rapid tournament sizes, courts, booking times and preparation windows", async () => {
     mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
     const base = { name: "Americana flexible", startsAt: "2026-10-17T07:00:00Z", players: Array.from({ length: 8 }, (_, index) => `Jugador ${index + 1}`) }
@@ -130,6 +150,85 @@ describe("rapid tournament creator routes", () => {
     expect(response.status).toBe(201)
     expect(mocks.rpc).toHaveBeenCalledWith("create_dynamic_mexicano_tournament", expect.objectContaining({ p_player_names: names, p_round_count: 6, p_generation_seed: expect.any(Number) }))
     expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("p_matches")
+  })
+
+  it.each([4,7,17,24,25,28,31,32])("persists configurable Americana with %i players and arbitrary timings", async count => {
+    mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Configurable", startsAt: "2027-01-01T09:00:00Z", playerCount: count,
+      players: Array.from({length:count},(_,i)=>`Player ${i}`), courtNames:["One","Two"],
+      roundCount:8, roundMinutes:10, transitionMinutes:2, preparationMinutes:4, reservationMinutes:120,
+      accentColor:"#336699", logoUrl:null,
+    }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_configurable_rapid_tournament", expect.objectContaining({
+      p_configuration:expect.objectContaining({players:count,rounds:8,roundMinutes:10,transitionMinutes:2}),
+      p_accent_color:"#336699",p_logo_url:null,
+    }))
+  })
+
+  it.each([{playerCount:-1},{playerCount:1.5},{roundCount:0},{roundMinutes:0},{transitionMinutes:-1},{roundMinutes:120},{accentColor:"red"},{logoUrl:"javascript:alert(1)"}])("rejects invalid configurable input before persistence: %j", patch => {
+    return createTournament(request("/api/tournaments", {
+      name:"Configurable",startsAt:"2027-01-01T09:00:00Z",players:names,courtNames:["One","Two"],
+      roundCount:6,roundMinutes:16,transitionMinutes:3, ...patch,
+    })).then(async response => { expect(response.status).toBe(400); expect(mocks.rpc).not.toHaveBeenCalled() })
+  })
+
+  it("denies copying another organizer's tournament before writing", async () => {
+    mocks.maybeSingle.mockResolvedValueOnce({ data: null, error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Copia", startsAt: "2027-01-01T09:00:00Z", players: names,
+      courtNames: ["Pista 1", "Pista 2"], duplicateOf: tournamentId,
+    }))
+    expect(response.status).toBe(404)
+    expect(mocks.rpc).not.toHaveBeenCalled()
+  })
+
+  it("keeps permitted account links after authorizing the original creator", async () => {
+    const userId = "5b028680-92f9-4cc3-80a6-59e34fab0529"
+    const query = {
+      select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), maybeSingle: mocks.maybeSingle,
+      then: (resolve: (value: unknown) => void) => Promise.resolve({ data: [{ user_id: userId, full_name: "Ana vinculada" }], error: null }).then(resolve),
+    }
+    const actor = { supabase: { from: vi.fn(() => query), rpc: mocks.rpc }, user: { id: "creator-uuid" } }
+    mocks.auth.mockResolvedValue({ ok: true, actor })
+    people.selectable.mockResolvedValue({ people: [{ userId, displayName: "Ana vinculada" }], error: null })
+    mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Copia", startsAt: "2027-01-01T09:00:00Z", players: names,
+      courtNames: ["Pista 1", "Pista 2"], duplicateOf: tournamentId, format: "dynamic_mexicano",
+      playerUserIds: [userId, ...Array(11).fill(null)],
+    }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_dynamic_mexicano_tournament", expect.objectContaining({ p_player_names: ["Ana vinculada", ...names.slice(1)] }))
+  })
+
+  it.each([8, 10, 16])("creates a %i-player tournament with canonical registered names", async (count) => {
+    const userId = "5b028680-92f9-4cc3-80a6-59e34fab0529"
+    people.selectable.mockResolvedValue({ people: [{ userId, displayName: "Nombre registrado" }], error: null })
+    mocks.rpc.mockResolvedValue({ data: tournamentId, error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Mexicano con cuentas", startsAt: "2027-01-01T09:00:00Z", format: "dynamic_mexicano",
+      players: Array.from({ length: count }, (_, i) => `Manual ${i}`), playerCount: count,
+      playerUserIds: [userId, ...Array(count - 1).fill(null)], courtNames: ["Pista 1", "Pista 2"],
+    }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_dynamic_mexicano_tournament", expect.objectContaining({
+      p_player_names: ["Nombre registrado", ...Array.from({ length: count - 1 }, (_, i) => `Manual ${i + 1}`)],
+    }))
+  })
+
+  it("rejects duplicate names introduced by canonical account resolution", async () => {
+    const userId = "5b028680-92f9-4cc3-80a6-59e34fab0529"
+    people.selectable.mockResolvedValue({ people: [{ userId, displayName: "Manual 1" }], error: null })
+    const response = await createTournament(request("/api/tournaments", {
+      name: "Cuentas", startsAt: "2027-01-01T09:00:00Z", format: "dynamic_mexicano",
+      players: Array.from({ length: 8 }, (_, i) => `Manual ${i}`), playerCount: 8,
+      playerUserIds: [userId, ...Array(7).fill(null)], courtNames: ["Pista 1"],
+    }))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: "duplicate_player_names" })
+    expect(mocks.rpc).not.toHaveBeenCalled()
   })
 
   it("allows reroll and start only through creator-bound state RPCs", async () => {
@@ -243,5 +342,70 @@ describe("rapid tournament creator routes", () => {
     expect(result.players).toEqual([{ id: "player-a", slot: "A", name: "Jugador A", hasAccount: false }])
     expect(result.rounds).toEqual([{ id: "round-1", round: 1, startsAt: "2026-10-17T07:07:00.000Z", endsAt: "2026-10-17T07:23:00.000Z" }, { id: "round-6", round: 6, startsAt: "2026-10-17T08:42:00.000Z", endsAt: "2026-10-17T08:58:00.000Z" }])
     expect(Number.isFinite(Date.parse(result.serverNow))).toBe(true)
+  })
+  it("copies an invited account outside the league directory using its authorized original identity", async () => {
+    const accountId = "c1255e07-a318-4a17-b9ea-b366b32e5082"
+    const from = vi.fn((table: string) => {
+      const query = {
+        select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: tournamentId, created_by_user_id: "creator-uuid" }, error: null }),
+        then: (resolve: (result: unknown) => void) => Promise.resolve({ data: table === "rapid_tournament_players" ? [{ full_name: "Invitado original", user_id: accountId }] : [], error: null }).then(resolve),
+      }
+      return query
+    })
+    mocks.auth.mockResolvedValue({ ok: true, actor: { supabase: { from, rpc: mocks.rpc }, user: { id: "creator-uuid" } } })
+    people.selectable.mockResolvedValueOnce({ people: [], error: null })
+    mocks.rpc.mockResolvedValueOnce({ data: matchId, error: null })
+    const response = await createTournament(request("/api/tournaments", { name: "Copia", startsAt: "2027-01-01T09:00:00Z", courtNames: ["Pista"], playerCount: 4, players: ["Nombre manipulado", "Dos", "Tres", "Cuatro"], playerUserIds: [accountId, null, null, null], reservationMinutes: 60, roundCount: 2, roundMinutes: 10, transitionMinutes: 2, duplicateOf: tournamentId }))
+    expect(response.status).toBe(201)
+    const [rpcName, payload] = mocks.rpc.mock.calls[0]
+    expect(rpcName).toBe("create_configurable_rapid_tournament")
+    expect(payload.p_duplicate_of).toBe(tournamentId)
+    const accountIndex = payload.p_player_user_ids.indexOf(accountId)
+    expect(payload.p_player_names[accountIndex]).toBe("Invitado original")
+    expect(payload.p_player_names).not.toContain("Nombre manipulado")
+  })
+  it.each(["balanced_americana", "dynamic_mexicano"])("creates %s with fixed partners without shuffling the roster apart", async format => {
+    mocks.rpc.mockResolvedValueOnce({ data: tournamentId, error: null })
+    const pairNumbers = [2,1,1,2,3,3,4,4]
+    const response = await createTournament(request("/api/tournaments", { name: "Parejas", startsAt: "2027-01-01T09:00:00Z", players: names.slice(0,8), playerCount: 8, courtNames: ["Uno","Dos"], pairing: "fixed", pairNumbers, format, roundCount: 3, roundMinutes: 10, reservationMinutes: 60 }))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_fixed_rapid_tournament", expect.objectContaining({ p_player_pair_numbers: pairNumbers, p_player_names: names.slice(0,8) }))
+    const payload = mocks.rpc.mock.calls[0][1]
+    expect(payload.p_matches).toHaveLength(format === "balanced_americana" ? 6 : 0)
+    for (const match of payload.p_matches) for (const pair of [match.team_a, match.team_b]) {
+      expect(pairNumbers[pair[0].charCodeAt(0)-65]).toBe(pairNumbers[pair[1].charCodeAt(0)-65])
+    }
+  })
+  it.each([[1,1,1,2],[1,2,3,4],[0,0,1,1],[1,1,3,3],["1","1",2,2],[1,1,2]].map(pairNumbers => [pairNumbers]))("rejects incomplete or invalid fixed pair allocation %j", async pairNumbers => {
+    const response = await createTournament(request("/api/tournaments", { name: "Parejas", startsAt: "2027-01-01T09:00:00Z", players: names.slice(0,4), playerCount: 4, courtNames: ["Uno"], pairing: "fixed", pairNumbers }))
+    expect(response.status).toBe(400)
+    expect(mocks.rpc).not.toHaveBeenCalled()
+  })
+  it("redraws fixtures while preserving fixed partners and participant IDs", async () => {
+    const roster = names.slice(0,8).map((full_name,i) => ({ id: `player-${i}`, full_name, pair_number: Math.floor(i/2)+1 }))
+    const from = vi.fn(() => {
+      const query = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: tournamentId, created_by_user_id: "creator-uuid", pairing: "fixed", format: "balanced_americana", status: "draft", player_count: 8, court_count: 2, round_count: 3 }, error: null }),
+        order: vi.fn().mockResolvedValue({ data: roster, error: null }),
+      }; return query
+    })
+    mocks.auth.mockResolvedValue({ ok: true, actor: { supabase: { from, rpc: mocks.rpc }, user: { id: "creator-uuid" } } })
+    mocks.rpc.mockResolvedValueOnce({ data: true, error: null })
+    expect((await drawTournament(request(`/api/tournaments/${tournamentId}/draw`), params({ id: tournamentId }))).status).toBe(200)
+    expect(mocks.rpc.mock.calls[0][0]).toBe("redraw_configurable_rapid_tournament")
+    const pairById = new Map(roster.map(player => [player.id, player.pair_number]))
+    for (const match of mocks.rpc.mock.calls[0][1].p_matches) for (const team of [match.team_a,match.team_b]) expect(pairById.get(team[0])).toBe(pairById.get(team[1]))
+  })
+  it.each(["fixed","rotating"])("creates a %s tournament with persisted general break scheduling",async pairing=>{
+    mocks.rpc.mockResolvedValueOnce({data:tournamentId,error:null})
+    const response=await createTournament(request("/api/tournaments",{name:"Descanso",startsAt:"2027-01-01T09:00:00Z",players:names.slice(0,4),playerCount:4,courtNames:["Uno"],pairing,pairNumbers:[1,1,2,2],roundCount:2,roundMinutes:10,reservationMinutes:60,breakMinutes:20,breakEveryRounds:1}))
+    expect(response.status).toBe(201)
+    expect(mocks.rpc).toHaveBeenCalledWith("create_planned_rapid_tournament",expect.objectContaining({p_configuration:expect.objectContaining({pairing,breakMinutes:20,breakEveryRounds:1}),p_player_pair_numbers:pairing==="fixed"?[1,1,2,2]:null}))
+  })
+  it.each([{breakMinutes:40,breakEveryRounds:1},{breakMinutes:5,breakEveryRounds:0},{breakMinutes:0,breakEveryRounds:2}])("rejects breaks outside the reservation or inconsistent settings %j",async settings=>{
+    const response=await createTournament(request("/api/tournaments",{name:"Descanso",startsAt:"2027-01-01T09:00:00Z",players:names.slice(0,4),playerCount:4,courtNames:["Uno"],roundCount:2,roundMinutes:10,reservationMinutes:60,...settings}))
+    expect(response.status).toBe(400)
+    expect(mocks.rpc).not.toHaveBeenCalled()
   })
 })

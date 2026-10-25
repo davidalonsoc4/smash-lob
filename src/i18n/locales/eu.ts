@@ -1106,7 +1106,7 @@ export const eu = {
     decreasePlayerCount: "Jokalari kopurua murriztu",
     increasePlayerCount: "Jokalari kopurua handitu",
     playersShortLabel: "jokalari",
-    playerCountRangeDescription: "Aukeratu 8 eta 24 jokalari artean. Tamaina jokalariz jokalari doi dezakezu.",
+    playerCountRangeDescription: "Aukeratu 8 eta 32 jokalari artean. Tamaina jokalariz jokalari doi dezakezu.",
     playerCountBalancedDescription: "Tamaina honek egutegi guztiz orekatua ahalbidetzen du: denek jardunaldi guztietan jokatzen dute, atsedenik gabe.",
     playerCountRequiresByesDescription: "Atsedenak dituen egutegi orekatua: jardunaldi bakoitzean {count} jokalarik atseden hartzen dute eta denek atseden kopuru bera dute.",
     newPlayerName: "Jokalari berria",

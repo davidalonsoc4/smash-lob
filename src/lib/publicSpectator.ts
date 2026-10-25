@@ -1,3 +1,4 @@
+import { calculateLeaguePairRanking } from "@/lib/leaguePairRanking"
 import { calculateSeasonRanking } from "@/lib/ranking"
 import { sortRankingRows } from "@/lib/rankingOrder"
 import type { MatchData } from "@/context/MatchDataProvider"
@@ -14,6 +15,7 @@ export type PublicSpectatorMatch = {
 }
 
 export type PublicSpectatorRankingRow = {
+  members?: string[]
   position: number
   name: string
   points: number
@@ -67,18 +69,21 @@ export function sanitizePublicSpectatorMatch({
 }
 
 export function buildPublicSpectatorRanking({
+  modality = "individual",
   seasonId,
   players,
   seasonPlayers,
   matches,
 }: {
+  modality?: "individual" | "fixed_pairs"
   seasonId: string
   players: PlayerProfile[]
   seasonPlayers: SeasonPlayer[]
   matches: MatchData[]
 }): PublicSpectatorRankingRow[] {
+  const pairRanking = modality === "fixed_pairs" ? calculateLeaguePairRanking({ seasonId, playerProfiles: players, seasonPlayers, matches: matches.map(match => ({ ...match, resultCounts: match.rankingCounts !== false })) }) : null
   const ranking = sortRankingRows(
-    calculateSeasonRanking({
+    pairRanking ?? calculateSeasonRanking({
       seasonId,
       playerProfiles: players,
       seasonPlayers,
@@ -89,6 +94,7 @@ export function buildPublicSpectatorRanking({
   return ranking.map((player, index) => ({
     position: index + 1,
     name: player.displayName,
+    ...(pairRanking ? { members: pairRanking.find(pair => pair.id === player.id)?.members.map(member => member.displayName) ?? [] } : {}),
     points: player.points,
     gamesDiff: player.gamesDiff,
     matchesPlayed: player.matchesPlayed,

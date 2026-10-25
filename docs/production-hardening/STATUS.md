@@ -3037,3 +3037,204 @@ Reproducidos HTTP 500 en /leagues y /api/health. Proceso next dev previo a la ac
 ### MC52 — presupuesto de componentes cliente
 
 - Ajustado el límite de componentes cliente de 195 a 196 para cubrir el nuevo `DirectionsPicker`, un componente reutilizable compartido por las acciones de navegación.
+## MC53 — publicación en PRE y rama de desarrollo de torneos
+
+- Status: PRE READY (2026-10-24)
+- PR #55 fusionado en `staging` como `b67df81af4aa63c249feeb53dd845f06fa7acd4e`.
+- Vercel deployment `smash-d0mnws415-davidalonsoc4` listo con alias `pre.smashandlob.com`; `/api/health` verificado con `vercel curl` y versión `1.15.34` en entorno `pre`.
+- Smoke público directo bloqueado por la protección de Vercel (302); la comprobación autenticada de Vercel fue correcta.
+- Rama de trabajo creada desde `origin/staging`: `codex/tournament-development`.
+
+## Torneos integrales — T01 (24/10/2026)
+
+Inventario y plan persistentes en docs/tournaments. T01 completado: corregida validación de nombres canónicos que exigía 12 jugadores al seleccionar cuentas; ahora respeta el tamaño válido elegido. Sesenta pruebas de motores/API/invitaciones/timing/audio, typecheck, lint focalizado y diff correctos. Auto-Resume activo, watcher ejecutando la recuperación exacta; compatibilidad estructural, sin prometer continuación de objetivos. Primer hito incompleto T02. Sin datos remotos, migraciones ni despliegue.
+
+## Torneos integrales — T02 checkpoint (24/10/2026)
+
+Contratos de configuración y puntuación compartidos integrados en rutas/rankings legacy; adaptador de configuración en UI y comprobación de integridad simultánea de pistas/jugadores. 114 pruebas focalizadas, tipos/lint/i18n correctos. Validate completo y E2E en curso; T02 sigue abierto. Presupuesto fuente +150 líneas para nuevos módulos puros, sin nuevos clientes. Sin cambios de DB ni operaciones remotas.
+
+## Torneos integrales — T02 cerrado (24/10/2026)
+
+Validate completo PASS: 267 archivos/1156 pruebas, typecheck/build/presupuesto correctos; lint 0 errores y 5 avisos previos. E2E torneos 8/8 móvil/escritorio claro/oscuro con Axe. Nuevo primer hito incompleto T03. Contratos integrados sin activar opciones aún incompatibles con SQL; no hay migraciones nuevas ni despliegue.
+
+## Torneos integrales — T03 checkpoint (24/10/2026)
+
+Duplicación independiente sobre el formulario actual y POST existente, protegida por creador; participantes y cuentas conservados sin copiar resultados/progreso. 22 tests pasan; tipos, lint e i18n correctos, E2E móvil claro/oscuro en curso. Sin migración ni operaciones remotas. Hito T03 sigue abierto.
+
+## Torneos integrales — T03 duplicación validada (24/10/2026)
+
+23 pruebas unitarias/API y dos E2E móviles claro/oscuro PASS, tipos/lint/i18n correctos. Copia independiente mediante formulario existente con original intacto. Limitación SQL detectada: cuentas vinculadas solo por invitación necesitan extensión futura, no se amplían permisos ficticiamente en TS. T03 permanece abierto; siguiente paso persistencia/configuración ampliada y pruebas de DB aisladas.
+
+## Torneos integrales — T03 SQL/configuración (24/10/2026)
+
+PostgreSQL portátil 17.11 con checksum verificado, clúster local aislado. Migración nueva creada por CLI (no remota) para 4–24 jugadores, tiempos/rondas, identidad y creación/sorteo atómicos. Once migraciones de torneos y tests reales de transacciones/roles/copias/sorteo pasan con fixtures mínimos. Formulario ampliado y algoritmos compatibles en desarrollo; 53 tests pasan, i18n correcto. Fallo de tipos de allPassed detectado y corregido, repetición pendiente; no se cierra T03 ni se publica. Ver docs/tournaments/STATUS para reanudar.
+
+### T03 — origen integrado
+
+TypeScript PASS confirmado. Importación automática hasta 24 y selector de temporada autorizado integrados; consultas cancelables. DB aislada PASS para procedencia/snapshot y permisos, 53 tests/i18n correctos. Inventario de API actualizado tras detectar desfase, check PASS (111 rutas/156 métodos). E2E de configuración ampliada en curso; T03 abierto, sin operaciones remotas.
+
+T03: E2E ampliado 10/10 PASS y SQL repetido PASS, incluidos resultados/correcciones y aislamiento. Avisos de voz ajustados a tiempos configurados tras encontrar textos fijos. 22 tests de timing/audio y 54 de API/configuración PASS. E2E final añade logo/crop/acento y validate completo sigue en curso; no se cierra todavía el hito.
+
+### T03 cerrado localmente
+
+Validate PASS (270 archivos/1192 tests; tipos/build/presupuestos, lint 0 errores y cinco warnings previos), E2E 10/10 más repetición móvil del happy path y logo/crop/acento correctos. SQL dedicado PASS con 11 migraciones, seis tablas con RLS y roles reales aislados. Captura de resumen móvil revisada. Sin operaciones remotas; migración nueva pendiente fuera del clúster de prueba. Primer hito incompleto T04, parejas fijas con creación/engine/ranking integrados antes de desbloquear controles. Objetivo integral sigue activo.
+
+### T04 — motor fijo inicial
+
+Motor puro de Americana/Mexicano por parejas fijas y ranking de equipo sobre cálculos compartidos; 41 tests con regresiones PASS. Corregido desbordamiento de conversión de porcentajes en torneos largos sin alterar comparación exacta. Aún sin UI/SQL, controles bloqueados, T04 abierto. Tipos/lint/pruebas complementarias en curso. Sin operaciones remotas.
+
+Checkpoint T04 confirmado: typecheck/lint PASS y 90 tests complementarios PASS. Contrato conserva campos opcionales de partidos legacy tras detectar y resolver incompatibilidad de tipos. Próxima acción: persistencia e integración fija; no cerrar T04 todavía.
+
+### T04 — parejas fijas conectadas, verificación en curso
+
+Nueva migración aditiva pairing/pair_number y RPC protegida sobre validación común; doce migraciones y pruebas PostgreSQL locales PASS (pares, cruces, bloqueo, idempotencia y permisos). Formulario/API/copia/ranking conectados; 57 tests focalizados, i18n y lint PASS. Faltan E2E fijo y gates completos, T04 abierto, sin cambios remotos. Ver docs/tournaments/STATUS para continuar tras interrupción.
+
+T04 integración: 69 tests focalizados, SQL de doce migraciones y E2E móvil 9/9 PASS. Validate completo PASS (271 archivos/1223 tests, tipos/lint/build/presupuestos; cinco warnings previos). Transición cero sin avisos duplicados y marcador vacío rechazado. Repetición final fija móvil/escritorio en curso. T04 sigue abierto para terminar verificación y descansos configurables, sin retirar alcance ni operaciones remotas.
+
+Repetición final T04 fija 8/8 PASS en móvil/escritorio y claro/oscuro, con los seis resultados, clasificación por equipos, campeón y copia. Guardar checkpoint y continuar T04 por descansos configurables; no pasar aún a tradicionales ni declarar terminado el módulo.
+
+### T04 — descanso general adicional
+
+Duración/frecuencia editables conectadas a planificación, reserva, horarios, copia, API y seguimiento/audio. Nueva migración aditiva, 13 migraciones SQL aisladas PASS, 55 tests de planificación/timing y 58 de API/copia PASS, i18n/fuente/tipos correctos. E2E de pausa real y validate completo en curso; T04 abierto, sin cambios remotos. Ver terminales/logs en docs/tournaments/STATUS.
+
+Descansos T04: validate PASS 272 archivos/1235 tests, móvil mixto 9/9 y matriz fija con pausas móvil/escritorio 8/8 PASS; trece migraciones SQL verificadas. Resumen ahora cambia de ronda en los límites horarios, con pausa de tareas al ocultarse. Última comprobación de resumen/preview y tipos en curso antes de cerrar hito. Sin PRE/PROD ni datos personales.
+
+### T04 cerrado localmente
+
+Última comprobación de resumen/pausa 4/4 móvil PASS, tipos/lint y 24 tests focalizados correctos; se precisó el selector de Seguimiento al existir acceso de tarjeta y navbar. Validate de descansos 1235 tests, SQL de trece migraciones y E2E 9/9 más 8/8 correctos. Americana/Mexicano × parejas fijas/rotativas integrados con configuración y pausas, sin datos remotos. Primer hito incompleto T05; el objetivo integral continúa por tradicionales, sin declarar terminadas las reglas/roles/economía/integración global pendientes.
+
+### T05 — motores tradicionales, primer checkpoint
+
+Cuadros, grupos y mixto puros hasta 24 jugadores por parejas fijas, semillas/byes/manual, tercer puesto/consolación y calendarios manuales/automáticos. Protege resultados ya disputados y empates ambiguos de clasificación. 122 tests focalizados, tipos/lint/fuente PASS; matriz mixta ampliada en curso. Presupuesto fuente +450 para dos módulos nuevos, sin clientes/dependencias. Sin migración/API/UI todavía; opciones siguen bloqueadas, T05 permanece abierto. Próximo paso y decisiones en docs/tournaments/STATUS.md. Sin PRE/PROD.
+
+T05 persistencia parcial: 194 pruebas de motores/regresiones PASS; PostgreSQL aislado 14 migraciones PASS con tres tradicionales completos, byes, grupo de 24 jugadores, revisión concurrente y permisos/rollback/correcciones protegidos. Nueva migración aditiva solo local; identidad, roster, fuentes e invitaciones compartidas. Sin API/UI integrada todavía, no cerrar T05 ni anunciar disponible. Estado y siguiente acción detallados en docs/tournaments/STATUS.md.
+
+T05 API parcial: creación/lectura común y PATCH tradicional con revisión, motor canónico, autoría y validación de resultados/calendario/empates; 211 tests/5 archivos, tipos/lint focalizado e inventario/fuente PASS. Validate completo en curso (terminal/log en docs/tournaments/STATUS). Sin formulario/vistas tradicionales visibles ni E2E aún, hito abierto. Sin operaciones remotas.
+
+Backend T05 validate confirmado: 1398 tests/276 archivos PASS, tipos/lint/build/presupuestos correctos; tres tests adicionales de lectura/privacidad PASS. E2E rápidos móvil en curso, detalles en STATUS de torneos. Se conserva el presupuesto fuente anterior (136439/136450); no nuevas dependencias/clientes. T05 no cerrado y sin PRE/PROD.
+
+E2E backend T05: regresiones rápidas móvil 9/9 PASS y último typecheck PASS. Auto-Resume sigue habilitado con watcher y cero pendientes. Guardar checkpoint y continuar T05 por formulario/presentación/E2E tradicionales; todavía no disponible en UI ni completo. Sin cambios remotos.
+
+T05 presentación, parcial: extraída tarjeta/editor de resultados a componente compartido con endpoint legacy intacto y callback tradicional. 15 pruebas focalizadas (seis nuevas de interacción), lint/i18n/fuente PASS; tipos y regresión E2E móvil en curso, terminales en STATUS de torneos. Sin activar tradicionales todavía ni tocar otras pantallas. Presupuesto +50 por interfaz de presentación compartida, no nuevos clientes/dependencias.
+
+Editor T05 confirmado: tipos PASS y E2E fijo móvil 4/4 PASS tras extracción, Americana/Mexicano claro/oscuro hasta campeón/copia. Guardar commit de presentación reutilizable y continuar formulario/vistas tradicionales; T05 abierto, sin pendientes de validación en este checkpoint ni operaciones remotas.
+
+T05 interfaz integrada en desarrollo: formulario común habilita eliminación/grupos/mixto con opciones reales y preview; cinco rutas muestran cuadros/grupos/partidos y resultados con componentes existentes. Copia y ajustes adaptados; sin navbar/tema global nuevos. Lint/i18n/fuente PASS tras reparar dependencia mutable y añadir traducciones; tipos y pruebas del recorrido pendientes. No declarar terminado ni publicar antes de E2E/SQL/gates completos. Detalle y siguiente paso en docs/tournaments/STATUS.md.
+
+T05 checkpoint final: E2E rápidos/tradicionales móvil/escritorio **44/44 PASS**, incluyendo los tres recorridos completos, permisos de participante, empates/correcciones, manual/calendario y Axe. PostgreSQL aislado de 14 migraciones PASS con roundtrip de motores reales. Validate completo secuencial en curso (13524); después regresiones de ligas/amistosos/hub. No cerrar antes de confirmar ni publicar en remoto. Estado reanudable en docs/tournaments/STATUS.md.
+
+T05 validate final confirmado PASS: **279 archivos / 1411 tests**, TypeScript/build/i18n/fuente correctos, lint sin errores/cinco avisos previos, 1242275 bytes gzip/103 chunks. Regresiones focalizadas de ligas/amistosos/hub en curso (97540); después guardar commits y cierre del hito si pasan. Sin operaciones remotas.
+
+**T05 completo localmente:** regresiones ligas/amistosos/hub **9/9 PASS**, salida 0; matriz rápidos/tradicionales **44/44 PASS**, validate **1411 tests PASS**, SQL aislado de catorce migraciones PASS y capturas móviles revisadas. Guardar interfaz/checkpoint local, sin PRE/PROD ni datos reales modificados. Primer hito incompleto T06; el objetivo integral sigue pendiente por gestión/reglas, integración, economía y validación final. La última petición deja este hito listo para pruebas; migraciones y publicación de PRE requieren la autorización explícita prevista en GOAL/AGENTS.
+
+### T05 — autorización de base PRE y prueba local
+
+El usuario autoriza Supabase PRE y excluye expresamente publicar código en PRE. Proyecto `smash-lob-staging` / `miadjotkucgluwbrgeih` verificado frente a enlace CLI y configuración local. Cuatro migraciones versionadas aplicadas con CLI existente, dry-run antes/después e historial SQL correctos; cero pendientes. Checksums de datos existentes idénticos (5 torneos/56 participantes/30 rondas/60 partidos), RLS/grants/RPC protegidos y advisor sin WARN/ERROR. Probe REST de nuevas columnas/tablas con limit=0 HTTP 200, acceso anónimo tradicional 401, health local 200. Sin código desplegado, sin push de rama ni cambios en Producción. Guía y evidencia en docs/tournaments/STATUS y VALIDATION. Primer hito incompleto T06, no iniciado en esta operación.
+
+Nuevo hito primero T05b por petición expresa: ampliar ligas y modalidades de torneo hasta32 jugadores totales/16 parejas, antes de T06. Auditados límites y starters; motores/slots/plantillas se validan antes de habilitar UI o aplicar migración aditiva en PRE. Código exclusivamente local, Producción excluida. Estado reanudable en docs/tournaments/STATUS.
+
+T05b integración en curso: ligas25–32 con starters y techos de vueltas verificados, torneos32/16 parejas, slots/copia/origen y nueva migración local aditiva para grupos8/grafo120. 430 pruebas iniciales y 257 posteriores PASS tras ajustar límites/rendimiento Mexicano; tipos/lint/i18n/fuente PASS. SQL15 migraciones y grupo120 resultados PASS; repetición ampliada SQL y E2E64 casos en curso, logs/terminales en STATUS de torneos. No publicar ni aplicar PRE antes de confirmar gates. No hay cambios remotos de este hito todavía.
+
+T05b SQL final **15 migraciones PASS**, tipos correctos y dos tests de paginación de1488 partidos PASS. E2E64 inicial60PASS/4 fallos de fixtures/aserciones corregidos (espera de siguiente ronda y minutos variables10–20); repetición30 casos en curso (93799), ya selector32/resumen móvil correctos. Añadida paginación autorizada de snapshot para no truncar temporadas largas, sin permisos nuevos. Pendiente validate completo y cierre local antes de migración PRE. Estado/evidencia en STATUS de torneos; ningún cambio remoto de este hito aún.
+
+T05b navegador final: 28/30 en repetición, incluidos resumen32/selector32/regresiones, más repetición Mexicano32 **4/4 PASS** tras diagnosticar el clic de escritorio contra el borde de navbar y centrar/verificar geométricamente el control en el test. Todos los casos iniciales y repeticiones resueltos; SQL15 migraciones PASS. Validate completo secuencial en curso51947 (`capacity-32-validate.log`), no aplicar migración PRE hasta confirmar. Sin cambios remotos T05b ni publicación de código.
+
+**T05b completo:** validate **281 archivos/1570 tests PASS**, tipos/lint/build/presupuestos correctos; SQL15 migraciones y E2E con repeticiones resueltas, sin fallos pendientes. Migración32 aplicada en SupabasePRE autorizado, historial/constraints/RPC/dry-run posterior verificados. Checksums de5 torneos/56 participantes/30 rondas/60 partidos idénticos, advisor sin WARN/ERROR, RESTlimit0 200/anónimo401 y healthlocal200. Código exclusivamente local; ningún push/despliegue ni cambio enProducción. Guardar commits por dominio; primer hito incompletoT06, siguiente desarrollo pendiente de retomar tras esta entrega para pruebas. Ver docs/tournaments/VALIDATION y STATUS.
+
+
+## T05c — ligas por parejas solicitado
+
+Nuevo primer hito incompleto por petición expresa, anterior a T06. Liga elige modalidad Individual de Smash & Lob o parejas fijas; hasta32 personas/16 parejas. Parejas por temporada, calendario round-robin y modos simple/doble/extendida/personalizada. Reutilizar identidad, resultados, invitaciones y pagos. Verificar sustituciones, sorteos y clasificación sin alterar temporadas existentes. Código solo local; migración aditiva antes de PRE autorizado tras gates. Implementación en curso, no disponible todavía.
+
+T05c checkpoint: modalidad inmutable al crear liga, parejas por temporada persistidas con pair_number y herencia en sustituciones; calendarios round-robin 2–16 parejas, simple/doble/extendida/personalizada, clasificación conjunta sin duplicar puntos y perfiles individuales conservados. API/duplicación/sorteo/origen y UI integrados. 30 pruebas nuevas de motor/API y seis de regresión PASS; PostgreSQL aislado de nueva migración PASS (RLS/roles reales, resultados/correcciones y sustitución). Primer E2E detectó reinicialización del fixture de temporada en cada navegación; corregido seed a una sola vez por sesión, repetición12 casos en curso37360. Tipos PASS; lint sin errores/cinco avisos previos, i18n/fuente PASS antes de últimas dos traducciones. Presupuesto +400 líneas para módulos puros/presentación y +5 techo de MatchDataProvider, sin dependencias ni nuevos clientes. No cerrar ni aplicar PRE antes de validar recorrido/gates completos.
+
+T05c validación: E2E20/20 PASS móvil/escritorio, parejas simple/doble/personalizada, alta de liga y regresiones de partido/selector32, Axe sin violaciones graves. Validate general:1600/1601 PASS, fallo de coherencia en tres botones nuevos sin centrado explícito; corregidos y repetición37 tests PASS. Al revisar captura se detectó que el seed de tema se perdía al navegar: corregido fixture y añadida aserción real dark antes de capturar; repetir E2E. No cerrar ni migrar PRE hasta validate completo correcto.
+
+T05c cierre en verificación: validate general PASS1601 tests/283 archivos, tipos/lint/build/presupuesto1248616bytes gzip/103chunks. Dos casos adicionales incorporan clasificación con dos suplentes temporales y nombres de pareja retirada, 37 pruebas focalizadas PASS; nueva repetición completa en curso50592 sustituida por terminal actual (ver pair-leagues-validate-verified.log). PostgreSQL real aislado PASS con resultados/correcciones, sustituciones permanentes y temporales, rechazo de equipos inválidos y escrituras sin permiso. E2E40 en curso96052, ligas/calendario manual/oscuro real ya correctos, último rápido de escritorio pendiente. No migración remota todavía; dry-run PRE solo20261024195529_fixed_pair_leagues.sql.
+
+## T05c COMPLETO — listo para pruebas locales (25/10/2026)
+
+Modalidad al crear liga: «Individual de Smash & Lob» o «Por parejas fijas». Parejas por temporada2–16equipos/4–32personas; simple/doble/hasta6vueltas/personalizada/manual, descansos con número impar, resorteo sin cambiar compañeros, duplicación y clasificación conjunta. Home/Ranking/estadísticas de temporada/espectadores e invitaciones conservan contexto y metadatos; perfiles e histórico agregado siguen individuales. Resultados contados una sola vez por equipo; historial conserva identidad en reemplazos/suplentes y nombres de una pareja retirada. Ligas previas intactas e individuales. No hay autoinscripción abierta en el modo nuevo: la organización define parejas y cada persona reclama su perfil con las invitaciones existentes.
+
+Gates confirmados: validate PASS283archivos/1603pruebas, tipos/lint/build/presupuestos, cinco warnings previos;44 pruebas focalizadas posteriores de metadatos públicos/invitaciones PASS y lint final selectivo PASS; i18n/fuente final137479/137550 PASS. E2E40/40 PASS con móvil/escritorio/tema oscuro real/manual/Axe/regresiones rápidas y tradicionales. PostgreSQL aislado PASS con roles reales, resultados/correcciones, reemplazos/suplentes y rechazos. Todos los fallos anteriores corregidos; evidencia y comandos en VALIDATION.
+
+Aplicada y verificada solo la migración nueva20261024195529_fixed_pair_leagues.sql en smash-lob-staging/miadjotkucgluwbrgeih, con autorización PRE vigente. Historial, columnas/defaults/restricciones y cuatro funciones invoker/search_path fijo/servicio verificados. Dry-run posterior sin pendientes, advisor sin WARN/ERROR, RESTlimit0 HTTP200 y healthlocal200. Checksums de8ligas/16temporadas/142participantes/328partidos/5torneos idénticos antes/después; las8ligas siguen individuales y ninguna temporada previa tiene pair_number. Sin fixtures/datos personales de prueba enPRE, push, merge, despliegue ni Producción. Commit funcional local47320b27.
+
+Para probar: recargar local, Mis ligas→Crear liga→Por parejas fijas y preparar una temporada. Ver pasos en VALIDATION. Primer hito pendiente vuelve aT06; esta entrega cierra únicamente la modalidad de ligas solicitada, no el objetivo integral de torneos. No comenzar otro dominio durante la entrega para pruebas.
+
+## MC54 — Mis ligas sin selección destacada (25/10/2026)
+
+Petición visual acotada antes de T06. Retirados Actual y el reborde de selección de la tarjeta del listado completo; todas las ligas tienen el mismo tratamiento. Estado de temporada conservado, usando En curso en vez de Activa. Sin cambios en selección al entrar, permisos, navegación ni resumen de Competiciones. Rediseño pendiente de propuesta al usuario, no aplicado. Validación confirmada: diez pruebas existentes de competiciones/navegación PASS, ESLint focalizado PASS, TypeScript PASS e i18n PASS. Sin operaciones remotas. El primer hito incompleto general vuelve a T06; no iniciado durante esta petición visual.
+
+## MC55 — Identidad visual de Mis ligas (25/10/2026)
+
+Nueva petición acotada anterior a T06. Tarjetas con degradado lateral estrecho del acento propio, nombre/logo destacados, temporada y modalidad, descripción conservada, estadísticas sin subpaneles y progreso por resultados registrados. Roles discretos y estados sin borde ni mayúsculas mediante el estilo suave compartido con partidos; próxima temporada mantiene cuenta atrás. Retirado título duplicado, navegación y permisos preservados. Resumen compacto conserva su diseño. Validación pendiente: pruebas existentes, tipos/lint/i18n/presupuesto y navegador 320/393px, claro/oscuro, Clásico/Competition y Axe. Sin operaciones remotas.
+
+MC55 checkpoint: 23 pruebas existentes de competiciones/navegación/estados/previews PASS, tipos y lint focalizado PASS, i18n PASS, fuente137486/137550 PASS. Estilo suave extraído a constante compartida y regla documentada en docs/ui-style-guide.md. Matriz E2E ocho recorridos móvil/escritorio × claro/oscuro × Clásico/Competition en curso, con comprobación de tema real, anchos320/393 y Axe; log .quality-artifacts/mc55-league-cards-e2e.log. No cerrar antes de verificar salida y capturas.
+
+MC55 COMPLETO LOCAL: E2E8/8 PASS y salida0, móvil/escritorio × claro/oscuro × Clásico/Competition, con tema real verificado, anchos320/393 sin desbordamiento, etiquetas sin borde/mayúsculas, un solo título, Axe sin incidencias graves y navegación completa hasta perfiles/liga. Build de Playwright PASS. Capturas móviles claro Clásico y oscuro Competition revisadas visualmente; degradado estrecho antes del logo, jerarquía/estadísticas/progreso legibles. 23 pruebas focalizadas, TypeScript, ESLint e i18n PASS; presupuesto fuente137486/137550 PASS. Evidencia .quality-artifacts/mc55-league-cards-e2e.log y test-results/competitions-hub-*/league-list-*.png. Sin migraciones, operaciones remotas ni despliegues. Primer hito general pendiente T06; no iniciado.
+
+## MC56 — Degradado solo en Competiciones (25/10/2026)
+
+Retirada la clase que genera el degradado lateral únicamente en el listado completo Mis ligas. El resumen de Competiciones conserva el degradado aprobado; progreso, estadísticas, estados y navegación intactos. Validación: diez pruebas existentes PASS y ESLint focalizado PASS. Guía de estilos actualizada. Sin operaciones remotas; primer hito general pendiente T06.
+
+## MC57 — Prueba de marco de color del logo (25/10/2026)
+
+Prueba visual solicitada: Mis ligas muestra un contorno de2px del acento propio separado3px del logo, suavizado en oscuro y sin cambiar dimensiones. Reutiliza className de LeagueLogo; resumen de Competiciones intacto. Validación confirmada: diez pruebas existentes PASS, ESLint focalizado PASS y navegador móvil claro/oscuro2/2 PASS, con build,320/393px y Axe. Capturas revisadas: marco separado, sin degradado en Mis ligas y dimensiones conservadas. Log .quality-artifacts/mc57-logo-border-e2e.log. Sin operaciones remotas; diseño pendiente de valoración del usuario. Primer hito general pendiente T06.
+
+## MC58 — Centrado vertical de cabeceras Competition (25/10/2026)
+
+Hallazgo: padding-top global .5rem!important gana a los paddings de Competition (.75rem debajo, .85rem en Home), desplazando el contenido unos2px hacia arriba. Regla compartida simétrica .625rem arriba/abajo mantiene la altura compacta habitual. Alcance: Competiciones, Mis ligas/torneos, partidos/calendario/ranking/estadísticas/perfiles/ajustes/notificaciones/ayuda y creación de torneos. Clásico intacto; chats inmersivos excluidos para conservar safe area. Validación de geometría y regresiones en curso. Sin operaciones remotas.
+
+MC58 checkpoint:29 pruebas focalizadas PASS, tipografía y ESLint PASS. Primer E2E4/4 PASS:17 rutas por tema y chats con inset24px simulado; capturas de Competiciones revisadas y título centrado. Detectado que la prueba de320/393px mantenía ancho móvil en las rutas posteriores del proyecto escritorio: restaurado viewport tras captura. Repetir matriz con ancho de escritorio real y regresiones Clásico antes de cerrar. Sin fallos funcionales ni operaciones remotas.
+
+MC58 COMPLETO LOCAL: repetición final8/8 PASS, salida0 y buildPASS, con17 pantallas en claro/oscuro y móvil/escritorio real; Clásico conserva sus recorridos previos. Competiciones/Mis ligas medidos a320/393px: centro de título a menos de0.5px del centro del panel y sin desbordamiento. Home/Calendario/Ranking/Estadísticas/perfiles/Mis partidos/chats globales/Ajustes/Temas/Notificaciones/Ayuda/torneos-listado-y-creación con paddings simétricos. Chat de partido conserva inset seguro simulado24px y padding-top mínimo32px, sin modificar su geometría. Capturas móviles de Competiciones/Mis ligas revisadas. 29 pruebas focalizadas, tipografía y lint PASS. Logs .quality-artifacts/mc58-header-alignment-verified.log; guía de estilos actualizada. Sin cambios remotos. Primer hito general pendiente T06, no iniciado durante esta corrección.
+
+## MC59 — Borde superior de color (25/10/2026)
+
+Prueba solicitada: eliminado el marco del logo y sustituido por borde superior2px del acento propio, adaptado a claro/oscuro, manteniendo el resto del borde neutro. No cambia el resumen compacto ni datos/navegación/estados/progreso. Se elimina CSS del marco anterior. Validación confirmada: diez pruebas existentes PASS, ESLint focalizado PASS, build y navegador móvil claro/oscuro2/2 PASS,320/393px y Axe. Capturas revisadas: borde superior fino, laterales neutros y logo sin marco; resumen conservado. Log .quality-artifacts/mc59-league-top-border-e2e.log. Sin operaciones remotas; diseño pendiente de valoración del usuario. Primer hito general pendiente T06.
+
+MC59 diseño aprobado expresamente por el usuario: conservar borde superior2px del color de liga, laterales neutros y logo sin marco. Registrado como referencia en docs/ui-style-guide.md. Sin cambios funcionales adicionales, nuevas pruebas necesarias ni operaciones remotas.
+
+## MC60 — Creación global y calendario (25/10/2026)
+
+Hallazgos: AppShell no incluía /league/new entre rutas globales permitidas por la cuenta atrás, y Mis ligas/buscador supeditaban crear liga a permisos sobre la última seleccionada. Ruta de creación excluida del bloqueo de temporada y acceso dependiente solo de canCreateLeagues (permiso global ya validado por API). No se elimina el contexto necesario al entrar en una liga ni la privacidad de temporadas programadas. Calendario: icono de jornada activa centrado con flex sobre título+selector de temporada, manteniendo scroll y condiciones de visibilidad. Regresiones y validación en curso; sin cambios remotos.
+
+MC60 checkpoint:40 pruebas de navegación, calendario, temporadas, ayuda y API de ligas PASS; TypeScript, ESLint focalizado, tipografía, i18n y presupuesto fuente137488/137550 PASS. Regresión añadida: creator global sin permisos administrativos sobre la última liga conserva acceso; sin creator no aparece creación. E2E con cuenta atrás, ruta directa/recarga/creación y geometría/scroll en ambos estilos en curso. Sin operaciones remotas.
+
+MC60 COMPLETO LOCAL:12/12 E2E PASS, salida0 y buildPASS. Creator global que es solo jugador en la liga programada puede entrar desde Mis ligas, recargar /league/new, crear otra liga y pasar a su configuración; el ranking de la liga original sigue bloqueado. Cuenta sin creator no ve crear y la ruta directa conserva denegación explícita. Calendario claro/oscuro × Clásico/Competition en ambos proyectos: icono/centro de su bloque y SVG a menos de0.5px,320/393px sin desbordamiento y scroll a jornada activa correcto. Captura móvil Competition oscuro revisada. 40 pruebas focalizadas, TypeScript, lint, tipografía, i18n y presupuesto137488/137550 PASS. Evidencia .quality-artifacts/mc60-creation-calendar-e2e.log. No cambios de API/RLS/base de datos ni operaciones remotas. Primer hito general pendiente T06.
+
+## MC61 — Plantillas por parejas e inscripción (25/10/2026)
+
+Petición anterior a T06. Auditoría acotada: editor de parejas separado al final de NewSeasonForm; self_registration bloqueado en UI y API; trigger exige pair_number aun en borrador y lo hace inmutable. Reutilizar pair_number sin tabla nueva: pendiente=null solo para autoinscripción upcoming; quien se inscribe elige compañero disponible o aún no registrado. Asignación atómica: elegir a un pendiente forma pareja para ambos; parejas completas no aparecen disponibles, conflicto concurrente revierte inscripción. Organización puede revisar/corregir antes de comenzar mediante endpoint admin y RPC con bloqueo/versión de plantilla, invalidando solo calendario sin resultados. Sin parejas completas no se prepara ni inicia calendario. Reutilizar editor de parejas en creación y sala de espera; inscripción individual conserva su RPC/flujo. Cancelar creación se mueve de Ubicaciones al pie, conservando confirmación. Necesaria migración aditiva de funciones/triggers, sin tocar migraciones aplicadas. Lectura de skill Supabase, changelog y RLS actual completada (web markdown no compatible, fetch directo HTTP200). Estado en curso, ningún cambio funcional ni remoto todavía.
+
+MC61 checkpoint: interfaz/servidor integrados; editor reutilizado en creación y revisión, elección de compañero compartida con invitación y sala de espera. Tipos y lint sin errores (cuatro avisos previos). Primera validación detectó expectativa antigua que prohibía autoinscripción y columna ausente en fixture SQL de inicio; corregidos ambos, regresiones focalizadas repetidas. Fuente137724 supera el techo anterior137550 por nuevo flujo y dos componentes compartidos pequeños; presupuesto ampliado250 líneas a137800, manteniendo196 clientes y sin dependencias. No cerrar hasta SQL/E2E/validate. Ningún cambio remoto.
+
+MC61 validación:17 pruebas nuevas de API/componentes y33 regresiones de parejas PASS. PostgreSQL aislado repetido PASS:4/6/8/10/32, retirada y nueva vinculación, conflicto concurrente con rollback completo, edición obsoleta, protección de calendario disputado, inicio y permisos service-only/RLS. Home conserva sala de espera con cupo lleno si faltan parejas. E2E integrado añadido con identidades ficticias, pendiente de completar; se corrigieron campos obligatorios ausentes en su fixture durante compilación. Suite completa en curso. Sin cambios remotos.
+
+MC61 checkpoint verificado:TypeScript y1.622 pruebas unitarias/integración PASS.8/8 E2E nuevos PASS móvil/escritorio × claro/oscuro,320/393px sin overflow y Axe sin incidencias graves/críticas. Nombres agrupados, inscripción por invitación, pendientes visibles con cupo lleno, vinculación posterior, revisión, recálculo y comienzo comprobados. Capturas revisadas. Validate completo y18 regresiones anteriores por vueltas/manual en curso. Conexión local/proyecto vinculado confirmados PRE miadjotkucgluwbrgeih; migración nueva aún sin aplicar.
+
+MC61 regresiones:18/18 E2E anteriores PASS móvil/escritorio × claro/oscuro, vueltas simple/doble, personalizado/manual, resultados y clasificación persistida.8/8 del flujo nuevo PASS;26 recorridos totales. npm run validate ha pasado controles estáticos, seguridad, i18n, presupuesto, lint sin errores y tipos; suite completa/build en curso. Dry-run PRE confirma exclusivamente20261025092147_fixed_pair_self_registration.sql pendiente. Sin cambios remotos todavía.
+
+MC61 COMPLETO LOCAL + DB PRE: npm run validate salida0 (1.622 pruebas/286 archivos, tipos, lint sin errores y5 avisos previos, seguridad/i18n/fuente y build1.255.355 bytes gzip/103 chunks).26/26 E2E PASS, Axe y móvil320/393px correctos. PostgreSQL aislado PASS. Migración20261025092147_fixed_pair_self_registration.sql aplicada exclusivamente en miadjotkucgluwbrgeih, historial/funciones/ACL verificados: SECURITY INVOKER, search_path fijado, anon/authenticated sin EXECUTE, service_role autorizado. Dry-run posterior sin pendientes. Conteos y checksums de ligas, temporadas, plantilla, partidos y torneos idénticos antes/después (.quality-artifacts/mc61-pre-integrity.json); ningún dato reescrito. Asesores sin WARN/ERROR nuevos;45 INFO previos RLS sin policies corresponden al acceso exclusivamente servidor ya existente. Ninguna subida de código, commit ni operación en Production/main/v1.0.0. OAuth real y prueba humana quedan para comprobación local del usuario, no realizados con cuentas personales en automatización. Primer hito general pendiente T06, sin ampliar esta petición.
+
+## MC62 — Calendario, Partido, actividad y chats (25/10/2026)
+
+Ocho peticiones nuevas previas a T06; alcance y gates al inicio de PLAN. Auto-Resume skill leída y get_status confirma enabled/watch_running, sin pendientes. Recupera límites de uso y fallos temporales; checkpoints para contexto. Hallazgos iniciales: etiqueta upcoming se oculta solo con ventana fechada; emparejamiento gap6/8 y sin borde; recomendaciones solo ranking; Actividad excluye scheduling y temporadas upcoming; chats globales consideran activos todos los no fechados aunque de jornadas lejanas; Competition remapea bg-white a raised gris. Corregir reutilizando datos/permisos/tokens existentes, no ampliar a estadísticas incompatibles ni modificar datos. Estado en curso.
+
+MC62 checkpoint: sin Próxima/Completada en cabeceras de jornadas con o sin fechas; parejas con borde y gap12px; recomendaciones comparan historial de ligas disponible por identidad registrada (victorias/juegos, ranking solo desempate; sin historial no desplaza). Reutiliza calculateSeasonRanking y confirmaciones. Actividad admite scheduling y ventanas de jornada sin inventar reservas, oculta parejas de próximas/progresivas incluso para admin y muestra aviso de fechas públicas. Chats globales búsqueda/competición/mensajes/sin leer, proximidad máximo jornada actual+2, ligas por color suave. Hero usa alto restante y explica bloqueo. Estilos compartidos de acciones y paneles blancos claros en curso de validación. TypeScript e i18n PASS; pruebas/regresiones y móvil pendientes; sin operaciones remotas.
+
+MC62 validación inicial:47 pruebas focalizadas PASS, TypeScript/i18n/lint focalizado PASS. Presupuesto fuente137872 supera137800 en72 líneas por nuevas reglas puras de actividad/chats; techo ampliado200 a138000 (sin dependencias ni clientes nuevos), con gates completos y E2E pendientes. Auto-Resume ha reanudado la interrupción por límite de uso; continuar desde este punto, no repetir MC61.
+
+MC62 móvil: Calendario/Partido4/4 PASS en320/393px, ambos estilos/temas, Axe y geometría. Actividad/privacidad/chats pasan recorrido; Clásico sin scroll sobrante. Detectado min-height antiguo Competition!important con mayor especificidad que la regla nueva: sobraban10px reales en hero del jugador. Corregida especificidad conservando scroll natural si hay contenido, repetir Competition y cierre completo. Fixture ahora distingue admin con contenido de jugador bloqueado; color de prueba normalizado por mayúsculas. Sin operaciones remotas.
+
+MC62 verificación: npm run validate PASS (1.631 pruebas/288 archivos, tipos, lint0errores/5avisos previos, i18n/seguridad/presupuestos y build).26/26 E2E finales PASS: móvil/escritorio, Clásico/Competition × claro/oscuro,320/393px, Axe, programación/pagos/resultados, ayuda, estados, actividad privada, búsquedas y filtros. Capturas de Partido/Chats/cuenta atrás revisadas. Refuerzo final: un partido fechado ya vencido no vuelve a ser próximo por tener ventana; placeholder oculto no promete jugar en una posible jornada de descanso.49 pruebas focalizadas finales PASS y última compilación en curso tras estos ajustes y conservación de superficies explícitas de texto blanco. Sin operaciones remotas.
+
+MC62 CERRADO LOCAL: última compilación y presupuesto PASS; lint focalizado sin errores,49 pruebas finales y26 E2E correctos, validate completo previamente PASS. Conservados datos, rutas/permisos, ligas individuales/parejas, amistosos, temas y navegación. Recomendaciones usan historial de ligas disponible y cuentas vinculadas por userId; no infieren identidad por nombre ni mezclan puntuaciones incompatibles de torneos. Creación y cambios MC61 conservados, sin commits ni despliegues ni modificaciones remotas. T06 continúa como primer hito general pendiente; no iniciado en esta petición.
+
+## MC63 — Preparación de PRE v1.15.35 (25/10/2026)
+Usuario autoriza publicar todos los cambios pendientes. Rama codex/tournament-development parte de origin/staging b67df81a (25 commits de avance, sin divergencia). Proyecto Vercel smash-lob/prj_KKbbsbzdVsZQNvNfU1ZNvAbqwPvM, team_9FDFsuGEGKGlPlHG4Aa2xRwz y alias PRE confirmados: deployment dpl_DhJcYbRHix68odXUuubdZrRjwh4Z READY/preview en staging. Main9578fe00 y tagv1.0.0e9152940 conservados. Versión/cache/changelog actualizados a1.15.35; ejecución de release:check antes de integrar staging.
+
+MC63 checkpoint: candidata f4065847 subida y SHA remoto verificado; PR56 draft hacia staging creada/adjunta. CI412/40202862776 supera código/build, Lighthouse y migraciones/pgTAP/restore. Validate local PASS1632 pruebas/288archivos; navegador completo en curso. Dos referencias visuales móviles muestran cambios solicitados de estados/espaciado de calendario y botones negros en claro; revisadas antes de actualizarlas. Prueba antigua de último encuentro adapta el desplazamiento a la nueva tarjeta de jornada sin reserva. No integrar staging hasta cerrar navegador. Catálogo PRE confirma las siete migraciones nuevas hasta20261025092147, sin cambios de datos en esta publicación.
+
+MC63 referencias: revisadas también las diferencias de escritorio; se actualizan únicamente las cuatro capturas de Calendario/Administrar temporada afectadas por los cambios solicitados. Se conserva el resto de referencias y tolerancias. Ajuste de la prueba de último encuentro espera el historial y cambia de tarjeta cuando existe una jornada pendiente; no modifica código funcional. Nueva CI requerida antes del merge.

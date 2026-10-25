@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
+import { getLeaguePairGroups } from "@/lib/fixedPairLeague";
 import { SeasonAdminSection } from "@/components/admin/season/SeasonAdminSection";
 import { SeasonDangerZone } from "@/components/admin/season/SeasonDangerZone";
 import { OrganizationBallsSettingsPanel } from "@/components/admin/season/OrganizationBallsSettingsPanel";
@@ -1700,7 +1701,7 @@ export default function AdminSeasonPage() {
   const { tx } = useI18n()
   const { t } = useI18n();
   const { getLeagueInviteCode, hasLeagueAdminRole, isSuperuser } = useLeagueAccess();
-  const { hydrateSeasonSnapshot, playerProfiles, seasons } = useSeasonSettings();
+  const { hydrateSeasonSnapshot, playerProfiles, seasons, seasonPlayers } = useSeasonSettings();
   const { replaceSeasonMatches } = useMatchData();
   const {
     activeLeague,
@@ -1764,6 +1765,7 @@ export default function AdminSeasonPage() {
   });
   const canAuditCalendar =
     isValidSeasonScheduleTarget({
+      modality: activeLeague.modality,
       playerCount: players.length,
       mode: "extended",
       targetRoundCount: activeSeason.totalRounds,
@@ -2016,7 +2018,7 @@ export default function AdminSeasonPage() {
               scheduledStartAt={roundSettings.scheduledStartAt}
               canStartBecauseRosterComplete={
                 roundSettings.rosterMode !== "self_registration" ||
-                (Boolean(roundSettings.playerCapacity) &&
+                ((activeLeague.modality !== "fixed_pairs" || getLeaguePairGroups(seasonPlayers.filter(row => row.seasonId === activeSeason.id)).pending.length === 0) && Boolean(roundSettings.playerCapacity) &&
                   players.length === roundSettings.playerCapacity)
               }
             />

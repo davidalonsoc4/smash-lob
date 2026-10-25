@@ -4,6 +4,9 @@ export const badgeBaseClassName =
 export const compactBadgeBaseClassName =
   "shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 type-caption font-black uppercase tracking-[0.14em] leading-none"
 
+export const softStatusBadgeClassName =
+  "!ring-0 !border-0 !normal-case !tracking-normal !font-semibold !px-2 !py-0.5"
+
 type MatchDisplayStatus =
   | "finished"
   | "scheduled"

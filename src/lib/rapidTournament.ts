@@ -1,3 +1,5 @@
+import { parseTournamentPoints } from "./tournamentResult"
+
 export const RAPID_TOURNAMENT = {
   players: 12,
   courts: 2,
@@ -10,8 +12,17 @@ export const RAPID_TOURNAMENT = {
   matchesPerPlayer: 4,
   restsPerPlayer: 2,
 } as const
-export const RAPID_TOURNAMENT_SLOTS = "ABCDEFGHIJKLMNOP".split("")
-export type RapidTournamentConfig = { players: number; courts: number; reservationMinutes: number; rounds: number; roundMinutes: number; transitionMinutes: number; preparationMinutes: number }
+// Preserve existing A–X identities; new participants use the remaining letters.
+export const RAPID_TOURNAMENT_SLOTS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef".split("")
+export type RapidBreakConfig = { breakMinutes?: number; breakEveryRounds?: number }
+export type RapidTournamentConfig = { players: number; courts: number; reservationMinutes: number; rounds: number; roundMinutes: number; transitionMinutes: number; preparationMinutes: number } & RapidBreakConfig
+export function getRapidBreakOffsetMinutes(round: number, config: RapidBreakConfig) {
+  const every = config.breakEveryRounds ?? 0
+  return every > 0 ? Math.floor(Math.max(0,round-1)/every)*(config.breakMinutes ?? 0) : 0
+}
+export function getRapidPauseMinutes(round: number, config: Pick<RapidTournamentConfig,"rounds"|"transitionMinutes"> & RapidBreakConfig) {
+  return round >= config.rounds ? 0 : config.transitionMinutes + getRapidBreakOffsetMinutes(round+1,config)-getRapidBreakOffsetMinutes(round,config)
+}
 export function getRapidRoundCount(reservationMinutes: number) { return Math.floor((reservationMinutes + RAPID_TOURNAMENT.transitionMinutes - RAPID_TOURNAMENT.safetyMinutes) / (RAPID_TOURNAMENT.roundMinutes + RAPID_TOURNAMENT.transitionMinutes)) }
 export function getRapidPreparationMax(reservationMinutes: number, rounds = getRapidRoundCount(reservationMinutes)) { return Math.max(0, reservationMinutes - RAPID_TOURNAMENT.safetyMinutes - rounds * RAPID_TOURNAMENT.roundMinutes - Math.max(0, rounds - 1) * RAPID_TOURNAMENT.transitionMinutes) }
 export function getRapidActiveCourtCount(players: number, courts: number) { return Math.min(courts, Math.floor(players / 4)) }
@@ -44,7 +55,7 @@ export function normalizeTournamentName(value: string) {
   return value.trim().replace(/\s+/g, " ")
 }
 export function validateTournamentParticipants(values: unknown, expectedCount: number = RAPID_TOURNAMENT.players) {
-  if (!Array.isArray(values) || values.length < 8 || values.length > 16 || values.length !== expectedCount) {
+  if (!Array.isArray(values) || values.length < 4 || values.length > 32 || values.length !== expectedCount) {
     return { ok: false as const, error: "invalid_player_count" }
   }
   const names = values.map((value) => typeof value === "string" ? normalizeTournamentName(value) : "")
@@ -69,7 +80,7 @@ export function buildRapidFixtures() {
   return template.flatMap((round) => round.matches)
 }
 export function generateBalancedAmericanaFixtures(playerCount: number, courtCount: number, roundCount: number, random = Math.random) {
-  if (playerCount < 8 || playerCount > 16 || courtCount < 1 || courtCount > 4 || roundCount < 1 || roundCount > 6) throw new Error("invalid_tournament_configuration")
+  if (![playerCount, courtCount, roundCount].every(Number.isSafeInteger) || playerCount < 4 || playerCount > 32 || courtCount < 1 || courtCount > 4 || roundCount < 1 || roundCount > 100) throw new Error("invalid_tournament_configuration")
   if (playerCount === 12 && courtCount === 2 && roundCount === 6) return buildRapidFixtures()
   const players = RAPID_TOURNAMENT_SLOTS.slice(0, playerCount), courtsPerRound = Math.min(courtCount, Math.floor(playerCount / 4)), played = new Map(players.map((id) => [id, 0])), restStreaks = new Map(players.map((id) => [id, 0])), partnerCounts = new Map<string, number>(), rivalCounts = new Map<string, number>(), courtCounts = new Map(players.map((id) => [id, new Map<number, number>()]))
   const fixtures: RapidFixture[] = []
@@ -124,15 +135,15 @@ export function buildRapidScheduleChecks(
     playedRounds: [] as number[], rests: [] as number[], partners: new Set<string>(),
     opponents: new Set<string>(), courts: Array(config.courts).fill(0) as number[],
   }]))
-  let validRounds = true
+  let validRounds = ids.size === players.length && matches.every(match => Number.isInteger(match.round) && match.round >= 1 && match.round <= config.rounds)
   const courtMatchCounts = Array(config.courts).fill(0) as number[]
   const courtsPerRound = getRapidActiveCourtCount(config.players, config.courts), expectedGames = Math.floor(config.rounds * courtsPerRound * 4 / config.players)
   for (let round = 1; round <= config.rounds; round += 1) {
     const roundMatches = matches.filter((match) => match.round === round)
     const participants = roundMatches.flatMap((match) => [...match.teamAIds, ...match.teamBIds])
-    if (roundMatches.length !== courtsPerRound || new Set(participants).size !== participants.length || participants.some((id) => !ids.has(id))) validRounds = false
+    if (roundMatches.length !== courtsPerRound || new Set(roundMatches.map(match => match.court)).size !== roundMatches.length || new Set(participants).size !== participants.length || participants.some((id) => !ids.has(id))) validRounds = false
     for (const match of roundMatches) {
-      if (match.court < 1 || match.court > courtsPerRound) validRounds = false
+      if (!Number.isInteger(match.court) || match.court < 1 || match.court > courtsPerRound) validRounds = false
       else courtMatchCounts[match.court - 1] += 1
       if (match.teamAIds.length !== 2 || match.teamBIds.length !== 2) validRounds = false
       for (const [team, rivals] of [[match.teamAIds, match.teamBIds], [match.teamBIds, match.teamAIds]] as const) {
@@ -170,16 +181,19 @@ export function buildRapidScheduleChecks(
     { id: "complete-calendar", passed: players.length === config.players && matches.length === config.rounds * courtsPerRound && validRounds },
     { id: "equal-participation", passed: Math.max(...playerChecks.map((p) => p.played)) - Math.min(...playerChecks.map((p) => p.played)) <= 1 && playerChecks.every((p) => p.played >= expectedGames) },
     { id: "breaks-and-streaks", passed: playerChecks.every((player) => player.maxConsecutiveRested <= Math.ceil(player.rested / (player.played + 1)) + 1 && player.maxConsecutivePlayed <= config.rounds) },
-    { id: "partners-and-opponents", passed: playerChecks.every((player) => player.uniquePartners >= Math.min(player.played, Math.max(2, Math.ceil(player.played / 2))) && player.uniqueOpponents >= Math.min(config.players - 1, Math.ceil(player.played / 2))) },
+    { id: "partners-and-opponents", passed: playerChecks.every((player) => player.uniquePartners >= Math.min(config.players - 1, player.played, Math.max(2, Math.ceil(player.played / 2))) && player.uniqueOpponents >= Math.min(config.players - 1, Math.ceil(player.played / 2))) },
     { id: "court-balance", passed: Math.max(...courtMatchCounts.slice(0, courtsPerRound)) - Math.min(...courtMatchCounts.slice(0, courtsPerRound)) <= 1 },
+    { id: "player-court-balance", passed: playerChecks.every(player => Math.max(...player.courts.slice(0,courtsPerRound))-Math.min(...player.courts.slice(0,courtsPerRound))<=1) },
   ]
-  return { passed: checks.every((check) => check.passed), checks, players: playerChecks }
+  // Integrity/participation are mandatory. Variety and streaks are audited
+  // optimizations, not proof that a mathematically viable tournament is impossible.
+  return { passed: checks.filter(check => check.id === "complete-calendar" || check.id === "equal-participation").every(check => check.passed), allPassed: checks.every(check => check.passed), checks, players: playerChecks }
 }
-export function buildRapidRounds(startAt: string | Date, config: Pick<RapidTournamentConfig, "rounds" | "roundMinutes" | "transitionMinutes"> = RAPID_TOURNAMENT) {
+export function buildRapidRounds(startAt: string | Date, config: Pick<RapidTournamentConfig, "rounds" | "roundMinutes" | "transitionMinutes"> & RapidBreakConfig = RAPID_TOURNAMENT) {
   const start = startAt instanceof Date ? startAt.getTime() : Date.parse(startAt)
   if (!Number.isFinite(start)) throw new Error("invalid_tournament_start")
   return Array.from({ length: config.rounds }, (_, index) => {
-    const startTime = start + index * (config.roundMinutes + config.transitionMinutes) * 60_000
+    const startTime = start + (index * (config.roundMinutes + config.transitionMinutes) + getRapidBreakOffsetMinutes(index+1,config)) * 60_000
     return { round: index + 1, startsAt: new Date(startTime).toISOString(), endsAt: new Date(startTime + config.roundMinutes * 60_000).toISOString() }
   })
 }
@@ -222,12 +236,18 @@ function addPercentage(stats: { percentNumerator: bigint; percentDenominator: bi
   stats.percentNumerator = numerator / divisor
   stats.percentDenominator = denominator / divisor
 }
-export function calculateRapidStandings(names: readonly string[], matches: readonly RapidTournamentMatch[]) {
+function finiteRatio(numerator: bigint, denominator: bigint) {
+  // Ranking keeps the exact fractions. Convert only the display ratio, without
+  // overflowing Number when many different score totals multiply denominators.
+  const scale = BigInt(1_000_000_000_000_000)
+  return Number(numerator / denominator) + Number((numerator % denominator) * scale / denominator) / Number(scale)
+}
+export function calculateRapidStandings(names: readonly string[], matches: readonly { id?: string; round?: number; court?: number; teamA: readonly string[]; teamB: readonly string[]; scoreA: number | null; scoreB: number | null }[]) {
   const stats = new Map(names.map((player) => [player, { played: 0, wins: 0, pointsFor: 0, pointsAgainst: 0, percentNumerator: BigInt(0), percentDenominator: BigInt(1) }]))
   const scheduled = new Map(names.map((player) => [player, 0]))
   for (const match of matches) {
     for (const player of [...match.teamA, ...match.teamB]) scheduled.set(player, (scheduled.get(player) ?? 0) + 1)
-    if (match.scoreA === null || match.scoreB === null) continue
+    if (!parseTournamentPoints(match.scoreA, match.scoreB) || match.scoreA === null || match.scoreB === null) continue
     const total = match.scoreA + match.scoreB
     if (total <= 0 || !Number.isInteger(match.scoreA) || !Number.isInteger(match.scoreB)) continue
     for (const player of match.teamA) {
@@ -246,7 +266,7 @@ export function calculateRapidStandings(names: readonly string[], matches: reado
   const sorted = [...stats].map(([player, item]) => ({
     player, played: item.played, pending: Math.max(0, (scheduled.get(player) ?? 0) - item.played), wins: item.wins,
     pointsFor: item.pointsFor, pointsAgainst: item.pointsAgainst,
-    averagePercent: item.played ? Number(item.percentNumerator) / Number(item.percentDenominator) / item.played * 100 : 0,
+    averagePercent: item.played ? finiteRatio(item.percentNumerator, item.percentDenominator) / item.played * 100 : 0,
     globalPercent: item.pointsFor + item.pointsAgainst ? item.pointsFor / (item.pointsFor + item.pointsAgainst) * 100 : 0,
     rankNumerator: item.percentNumerator,
     rankDenominator: item.percentDenominator,

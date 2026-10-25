@@ -7,20 +7,20 @@ import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import LeaguesPage from "@/app/leagues/page"
 import { CompetitionsOverview } from "@/components/competitions/CompetitionsOverview"
 
-const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es", matches: [] as MatchData[], leagues: [
+const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es", canCreateLeagues: true, matches: [] as MatchData[], leagues: [
   { id: "a", name: "Liga A", status: "active" }, { id: "b", name: "Liga B", status: "active" },
   { id: "c", name: "Liga C", status: "upcoming" }, { id: "d", name: "Liga D", status: "finished" },
 ] }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: state.refresh }) }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: state.locale, tx: (text: string) => text, t: { common: { refreshApp: "Actualizar", back: "Volver" } } }) }))
 vi.mock("@/context/ActiveLeagueProvider", () => ({ useActiveLeague: () => ({ activeLeagueId: "a", changeActiveLeague: state.enter }) }))
-vi.mock("@/context/LeagueAccessProvider", () => ({ useLeagueAccess: () => ({ userLeagues: state.leagues, canCreateLeagues: true, canAccessLeagueAdminTools: () => true, getMembershipForLeague: () => ({ playerId: "own" }), isLeagueAdmin: () => false, isLeagueSpectator: () => false }) }))
+vi.mock("@/context/LeagueAccessProvider", () => ({ useLeagueAccess: () => ({ userLeagues: state.leagues, canCreateLeagues: state.canCreateLeagues, canAccessLeagueAdminTools: () => false, getMembershipForLeague: () => ({ playerId: "own" }), isLeagueAdmin: () => false, isLeagueSpectator: () => false }) }))
 vi.mock("@/context/MatchDataProvider", () => ({ useMatchData: () => ({ matches: state.matches, resultConfirmations: [] }) }))
 vi.mock("@/context/SeasonSettingsProvider", () => ({ useSeasonSettings: () => ({ playerProfiles: [], seasonPlayers: [], seasons: state.leagues.map(item => ({ id: item.id, leagueId: item.id, status: item.status, totalRounds: 3 })), getActiveSeasonByLeagueId: (id: string) => ({ id, name: `Temporada ${id}`, status: state.leagues.find(item => item.id === id)?.status, totalRounds: 3, completedRounds: 1 }), getSeasonRoundSettings: () => ({ calendarVisibilityMode: "full", resultConfirmationMode: "optional" }) }) }))
 vi.mock("@/components/league/LeagueLogo", () => ({ LeagueLogo: () => <span /> }))
 vi.mock("@/components/personal/PersonalMatchCard", () => ({ PersonalMatchCard: ({ match }: { match: PersonalMatchItem }) => <div data-testid="highlight">{match.id}</div> }))
 const empty = { items: [], upcoming: [], hasMore: false, nextOffset: null }
-beforeEach(() => { state.locale = "es"; state.matches = []; vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => empty })) })
+beforeEach(() => { state.locale = "es"; state.canCreateLeagues = true; state.matches = []; vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => empty })) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.clearAllMocks() })
 
 it("limits the summary to two leagues and links to separate lists without changing context", async () => {
@@ -49,6 +49,12 @@ it("retains complete league listings, archived seasons, permissions and explicit
   fireEvent.click(screen.getByRole("button", { name: "Entrar en Liga C" }))
   expect(state.enter).toHaveBeenCalledWith("c")
   expect(fetch).not.toHaveBeenCalled()
+})
+it("hides league creation without the global creator permission", () => {
+  state.canCreateLeagues = false
+  render(<CompetitionsOverview view="leagues" />)
+  expect(screen.queryByRole("link", { name: "Crear nueva liga" })).toBeNull()
+  expect(screen.getByRole("link", { name: "Unirme con invitación" })).toBeVisible()
 })
 it("keeps complete tournaments and creation on their existing routes", async () => {
   render(<CompetitionsOverview view="tournaments" />)

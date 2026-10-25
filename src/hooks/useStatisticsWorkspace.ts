@@ -1,5 +1,6 @@
 "use client"
 
+import { calculateLeaguePairRanking } from "@/lib/leaguePairRanking"
 import { useCallback, useMemo } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useMatchData, type MatchData } from "@/context/MatchDataProvider"
@@ -344,6 +345,7 @@ export function useStatisticsWorkspace() {
     seasonOptions,
     selectSeason,
     statistics,
+    pairRanking: activeLeague.modality === "fixed_pairs" && !isLeagueWide ? calculateLeaguePairRanking({ seasonId: selectedSeason.id, playerProfiles: leaguePlayers, seasonPlayers, matches: countedMatches }) : null,
     countedMatches,
     statisticsMatches,
     leaguePlayers,

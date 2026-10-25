@@ -57,6 +57,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/seasons/[seasonId]/expenses` | DELETE | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/finish` | POST | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/mvp-selection` | PUT | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
+| `/api/leagues/[id]/seasons/[seasonId]/pairs` | PATCH | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/registration` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/seasons/[seasonId]/registration` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/seasons/[seasonId]/registration-payment` | PUT | Protegido | getServerLeagueActor / getServerLeagueViewer |
@@ -158,7 +159,9 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/tournaments/[id]/next-round` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/restart` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/[id]/start` | POST | Protegido | requireRapidTournamentCreator (authenticated creator) |
+| `/api/tournaments/[id]/traditional` | PATCH | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/people` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
+| `/api/tournaments/sources` | GET | Protegido | requireAuthenticatedAppUser |
 
 ## Reglas
 

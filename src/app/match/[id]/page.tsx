@@ -23,6 +23,9 @@ import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { getPlayerDisplayName } from "@/lib/players"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
+import { buildSideStatistics } from "@/lib/matchSideRecommendations"
+import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
@@ -55,6 +58,7 @@ export default function MatchDetailPage() {
     setMatchResultConfirmation,
     matches: storedMatches,
   } = useMatchData()
+  const { playerProfiles, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
   const { votes, clearVotesForMatch } = useMvp()
   const params = useParams<{ id: string }>()
   const isResolvingLeague = useMatchLeagueContext(params.id)
@@ -547,6 +551,7 @@ export default function MatchDetailPage() {
         substitutions: match.substitutions,
         highlightedPlayerIds: roundMvpPlayerIds,
         rankingPositions,
+        sideStatistics: buildSideStatistics(storedMatches.map(item => ({ ...item, resultCounts: item.rankingCounts !== false && getMatchResultConfirmationState({ matchId: item.id, participantIds: [...item.teamA, ...item.teamB], reporterPlayerId: item.resultReportedByPlayerId, resultRecordedAt: item.resultRecordedAt, resultLocked: item.resultLocked, confirmations: resultConfirmations, mode: getSeasonRoundSettings(item.seasonId).resultConfirmationMode }).countsForRanking })), playerProfiles, seasonPlayers),
       }}
     >
       <MatchActionsContent

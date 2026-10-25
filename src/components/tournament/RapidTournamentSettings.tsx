@@ -10,6 +10,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { disableRapidAudio } from "@/lib/rapidTournamentAudio"
 
 type TournamentSettingsData = {
+  traditional?: { results: unknown[] } | null
   access: { role: "creator" | "participant" }
   tournament: { id: string; name: string; status: "draft" | "in_progress" | "finished" }
   matches: Array<{ scoreA: number | null; scoreB: number | null }>
@@ -93,8 +94,8 @@ export function RapidTournamentSettings({ tournamentId }: { tournamentId: string
 
   const isCreator = data.access.role === "creator"
   const canDelete = isCreator && data.tournament.status === "finished"
-  const hasResults = data.matches.some((match) => match.scoreA !== null || match.scoreB !== null)
-  const canFinishEmpty = isCreator && data.tournament.status !== "finished" && !hasResults
+  const hasResults = Boolean(data.traditional?.results.length) || data.matches.some((match) => match.scoreA !== null || match.scoreB !== null)
+  const canFinishEmpty = !data.traditional && isCreator && data.tournament.status !== "finished" && !hasResults
   const statusLabel = data.tournament.status === "draft" ? tx("Borrador") : data.tournament.status === "in_progress" ? tx("En curso") : tx("Finalizado")
   return (
     <div className="compact-page space-y-4">
@@ -107,15 +108,21 @@ export function RapidTournamentSettings({ tournamentId }: { tournamentId: string
         <p className="type-panel-title font-black">{tx("Invitaciones")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Comparte el QR del torneo para que cada participante entre con su cuenta y elija su perfil.")}</p>
 <div className="mt-3"><TournamentShareButton tournamentId={tournamentId} inline /></div>
-      </AppCard> : null}      <AppCard accentStrip>
+      </AppCard> : null}      {!data.traditional ? <AppCard accentStrip>
         <p className="type-panel-title font-black">{tx("Avisos de ronda")}</p>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Configura los sonidos y avisos que usarás durante el seguimiento de este torneo.")}</p>
         <Link href={`/settings/sounds?returnTo=${encodeURIComponent(`/tournaments/${tournamentId}/settings`)}`} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-center text-sm font-black text-neutral-900 active:bg-neutral-100">{tx("Sonidos y avisos")}</Link>
-      </AppCard>
+      </AppCard> : null}
+      {data.traditional ? <AppCard accentStrip><p className="type-panel-title font-black">{tx("Administrar torneo")}</p><div className="mt-3 grid grid-cols-2 gap-2"><Link className="inline-flex min-h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-center text-sm font-black text-neutral-900" href={`/tournaments/${tournamentId}/calendar`}>{tx("Calendario completo")}</Link><Link className="inline-flex min-h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-center text-sm font-black text-neutral-900" href={`/tournaments/${tournamentId}/standings`}>{tx("Clasificación")}</Link></div></AppCard> : null}
+      {isCreator ? <AppCard accentStrip>
+        <p className="type-panel-title font-black">{tx("Duplicar torneo")}</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">{tx("Reutiliza los participantes y la configuración en un torneo independiente. Los resultados no se copian.")}</p>
+        <Link href={`/tournaments/new?duplicateOf=${encodeURIComponent(tournamentId)}`} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-center text-sm font-black text-neutral-900 active:bg-neutral-100">{tx("Duplicar torneo")}</Link>
+      </AppCard> : null}
       <AppCard className="border-red-200 bg-red-50">
         <p className="type-panel-title font-black text-red-950">{tx("Zona sensible")}</p>
         {isCreator ? <>
-          <p className="mt-1 text-xs font-semibold leading-5 text-red-700">{canDelete ? tx("Elimina definitivamente el torneo, sus participantes, calendario y resultados.") : hasResults ? tx("Registra todos los resultados para finalizar el torneo normalmente.") : tx("Finaliza este torneo de prueba sin resultados para poder eliminarlo.")}</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-red-700">{canDelete ? tx("Elimina definitivamente el torneo, sus participantes, calendario y resultados.") : hasResults || data.traditional ? tx("Registra todos los resultados para finalizar el torneo normalmente.") : tx("Finaliza este torneo de prueba sin resultados para poder eliminarlo.")}</p>
           {canFinishEmpty ? <button type="button" onClick={() => void finishEmptyTournament()} disabled={finishingEmpty} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl border border-red-300 bg-white px-3 text-center text-sm font-black text-red-800 active:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50">{finishingEmpty ? tx("Finalizando…") : tx("Finalizar sin resultados")}</button> : null}
           <button type="button" onClick={() => void deleteTournament()} disabled={!canDelete || deleting} className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-red-600 px-3 text-center text-sm font-black text-white active:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-200">{deleting ? tx("Eliminando…") : tx("Eliminar torneo")}</button>
           {error ? <p role="alert" className="mt-2 text-xs font-bold text-red-700">{error}</p> : null}

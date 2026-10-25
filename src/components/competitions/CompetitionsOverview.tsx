@@ -16,22 +16,23 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { selectCompetitionHighlights, selectCompetitionPreview } from "@/lib/competitionOverview"
+import { calculateLeaguePairRanking } from "@/lib/leaguePairRanking"
 import { calculateSeasonRanking } from "@/lib/ranking"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
-import { getSeasonStatusBadgeClassName } from "@/lib/statusStyles"
+import { getSeasonStatusBadgeClassName, softStatusBadgeClassName } from "@/lib/statusStyles"
 import { isRoundRevealedToPlayers } from "@/lib/progressiveCalendar"
+import { getLeagueActivityMatches } from "@/lib/leagueActivity"
 import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
 import { normalizeAccentColor } from "@/lib/visualStyle"
 import { getSeasonPreviewCountdown, SCHEDULED_SEASON_TIME_ZONE } from "@/lib/seasonScheduling"
 
-const actionClass = "flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-900 transition active:bg-neutral-100"
+const actionClass = "app-action-button flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-900 transition active:bg-neutral-100"
 
 export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | "leagues" | "tournaments" }) {
   const { t, tx, locale } = useI18n()
-  const { activeLeagueId, changeActiveLeague } = useActiveLeague()
-  const { canCreateLeagues, canAccessLeagueAdminTools, getMembershipForLeague, isLeagueAdmin, isLeagueSpectator, userLeagues } = useLeagueAccess()
-  const canCreateLeaguesInCurrentView = canCreateLeagues && canAccessLeagueAdminTools(activeLeagueId)
+  const { changeActiveLeague } = useActiveLeague()
+  const { canCreateLeagues, getMembershipForLeague, isLeagueAdmin, isLeagueSpectator, userLeagues } = useLeagueAccess()
   const canCreateCompetition = canCreateLeagues
   const memberLeagues = userLeagues.filter(league => getMembershipForLeague(league.id))
   const { matches, resultConfirmations } = useMatchData()
@@ -65,10 +66,9 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     return () => { controller.abort() }
   }, [view])
   useEffect(() => {
-    if (view === "leagues") return
     const timer = window.setInterval(() => setNow(new Date()), 60_000)
     return () => window.clearInterval(timer)
-  }, [view])
+  }, [])
   useEffect(() => {
     if (view === "leagues") return
     const controller = new AbortController()
@@ -78,18 +78,17 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       .catch(() => { if (!controller.signal.aborted) setTournamentLoadError(true) })
     return () => controller.abort()
   }, [tournamentRequestVersion, view])
-  const ownLeagueMatches: PersonalMatchItem[] = matches.flatMap(match => {
-    const league = userLeagues.find(item => item.id === match.leagueId)
-    const playerId = getMembershipForLeague(match.leagueId)?.playerId
-    const season = seasons.find(item => item.id === match.seasonId && item.leagueId === match.leagueId)
-    if (!league || !playerId || isLeagueSpectator(league.id) || ![...match.teamA, ...match.teamB].includes(playerId) || !season || season.status === "upcoming") return []
-    if (match.status !== "scheduled" && match.status !== "finished") return []
-    if (!isRoundRevealedToPlayers({ round: match.round, seasonStatus: season.status, totalRounds: season.totalRounds, settings: getSeasonRoundSettings(season.id), matches: matches.filter(item => item.seasonId === season.id), now })) return []
-    return [{ id: match.id, origin: "league", leagueId: league.id, leagueName: league.name, seasonId: season.id, seasonName: season.name, round: match.round,
-      status: match.status, scheduledAt: match.scheduledAt, resultRecordedAt: match.resultRecordedAt, locationName: match.location, sets: match.sets, canManage: false, canDelete: false,
-      participants: [match.teamA, match.teamB].flatMap((team, teamIndex) => team.map((id, slot) => ({ team: (teamIndex + 1) as 1 | 2, slot: (slot + 1) as 1 | 2, displayName: playerProfiles.find(player => player.id === id)?.displayName ?? tx("Jugador"), isCurrentUser: id === playerId }))) }]
+  const ownLeagueMatches: PersonalMatchItem[] = seasons.flatMap(season => {
+    const league = userLeagues.find(item => item.id === season.leagueId), playerId = getMembershipForLeague(season.leagueId)?.playerId
+    if (!league || !playerId || isLeagueSpectator(league.id) || !seasonPlayers.some(row => row.seasonId === season.id && row.playerId === playerId && row.status !== "withdrawn")) return []
+    return getLeagueActivityMatches({ league, season, settings:getSeasonRoundSettings(season.id), matches:matches.filter(match=>match.seasonId===season.id), playerId, profiles:playerProfiles, now })
   })
-  const highlights = selectCompetitionHighlights([...ownLeagueMatches, ...(dashboard?.upcoming ?? []), ...(dashboard?.items ?? [])], now)
+  const dashboardMatches = [...(dashboard?.upcoming ?? []), ...(dashboard?.items ?? [])].filter(item => {
+    if(item.origin !== "league") return true
+    const season=seasons.find(season=>season.id===item.seasonId)
+    return season?.status !== "upcoming" && (!season || isRoundRevealedToPlayers({round:item.round??1,seasonStatus:season.status,totalRounds:season.totalRounds,settings:getSeasonRoundSettings(season.id),matches:matches.filter(match=>match.seasonId===season.id),now}))
+  })
+  const highlights = selectCompetitionHighlights([...ownLeagueMatches, ...dashboardMatches], now)
   const visibleActivityIndex = Math.min(activityIndex, Math.max(0, highlights.length - 1))
   const leagueRows = memberLeagues.map(league => ({ league, season: getActiveSeasonByLeagueId(league.id) }))
   const statusOrder = { active: 0, upcoming: 1, finished: 2 }
@@ -123,47 +122,52 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       <span className="min-w-0 flex-1"><span className="block truncate text-base font-black">{item.name}</span><span className="mt-1 flex items-center justify-between gap-2"><span className="min-w-0 truncate text-xs font-semibold text-neutral-500">{new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.startsAt))}</span><span className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-semibold ${item.status === "in_progress" ? styles.runningStatus : "text-neutral-600"}`}>{item.status === "in_progress" ? <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" /> : null}{label}</span></span></span><span aria-hidden="true" className="text-neutral-400">›</span></Link>
   }
   function leagueRow({ league, season }: (typeof leagueRows)[number]) {
-    const status = season.totalRounds === 0 ? tx("Sin temporada") : season.status === "active" ? tx("Activa") : season.status === "upcoming" ? tx("Próximamente") : tx("Terminada")
+    const status = season.totalRounds === 0 ? tx("Sin temporada") : season.status === "active" ? tx("En curso") : season.status === "upcoming" ? tx("Próximamente") : tx("Terminada")
     const running = season.totalRounds > 0 && season.status === "active"
     const summaryStatus = running ? tx("En curso") : season.totalRounds > 0 && season.status === "upcoming"
-      ? startPreviewLabel(getSeasonRoundSettings(season.id).scheduledStartAt) : status
-    const isActive = activeLeagueId === league.id
+      ? startPreviewLabel(getSeasonRoundSettings(season.id).scheduledStartAt ?? getSeasonRoundSettings(season.id).seasonStartsAt) : status
     const isAdmin = isLeagueAdmin(league.id)
     const isSpectator = isLeagueSpectator(league.id)
     const seasonMatches = countedMatches.filter(match => match.leagueId === league.id && match.seasonId === season.id)
     const finishedMatches = seasonMatches.filter(isMatchCompetitionComplete).length
     const seasonPlayerCount = seasonPlayers.filter(player => player.seasonId === season.id).length
-    const ranking = calculateSeasonRanking({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches })
+    const ranking = (league.modality === "fixed_pairs" ? calculateLeaguePairRanking : calculateSeasonRanking)({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches })
     const leader = ranking.find(player => player.points > 0) ?? null
-    return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} style={view === "summary" ? { "--league-card-accent": normalizeAccentColor(league.accentColor) } as CSSProperties : undefined} className={`${view === "summary" ? styles.league : ""} w-full rounded-2xl border bg-white p-3 text-left shadow-[0_2px_12px_rgba(15,23,42,0.06)] transition active:scale-[0.99] ${view === "leagues" ? isActive ? "border-neutral-950 ring-2 ring-neutral-950" : "border-neutral-200 hover:border-neutral-300" : "border-neutral-200 shadow-sm"}`}>
+    return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} style={{ "--league-card-accent": normalizeAccentColor(league.accentColor) } as CSSProperties} className={`${view === "summary" ? styles.league : styles.topAccent} w-full rounded-2xl border bg-white text-left shadow-[0_2px_12px_rgba(15,23,42,0.06)] transition active:scale-[0.99] ${view === "leagues" ? "border-neutral-200 p-4 hover:border-neutral-300" : "border-neutral-200 p-3 shadow-sm"}`}>
       <span className={`flex min-w-0 gap-3 ${view === "summary" ? "items-center" : "items-start"}`}>
         <LeagueLogo league={league} size={view === "leagues" ? "lg" : "md"} />
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2">
-            <span className={`min-w-0 flex-1 text-base font-black text-neutral-950 ${view === "leagues" ? "break-words" : "truncate"}`}>{league.name}</span>
-            {view === "leagues" && isActive ? <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-1 type-caption font-black uppercase tracking-wide text-white">{tx("Actual")}</span> : null}
+            <span className={`min-w-0 flex-1 font-black text-neutral-950 ${view === "leagues" ? "break-words text-lg leading-tight" : "truncate text-base"}`}>{league.name}</span>
           </span>
           {view === "leagues" ? <>
-            <span className="mt-1 block line-clamp-1 text-xs font-semibold text-neutral-500">{league.description || tx("Sin descripción")}</span>
-            <span className="mt-2 flex flex-wrap items-center gap-2">
-              <span className={getSeasonStatusBadgeClassName(season.status, season.totalRounds)}>{status}</span>
-              {isAdmin ? <span className="rounded-full bg-amber-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-amber-800">{tx("Admin")}</span> : isSpectator ? <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black uppercase tracking-wide text-neutral-600">{tx("Espectador")}</span> : null}
-            </span>
+            <span className="mt-1 block text-xs font-semibold text-neutral-600">{season.name}</span>
+            <span className="mt-1 block text-xs text-neutral-500">{tx(league.modality === "fixed_pairs" ? "Parejas fijas" : "Individual de Smash & Lob")}</span>
           </> : <span className="mt-1 flex items-center justify-between gap-2"><span className="min-w-0 flex-1 truncate text-xs text-neutral-500">{season.name}</span><span className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-semibold ${running ? styles.runningStatus : "text-neutral-600"}`}>{running ? <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" /> : null}{summaryStatus}</span></span>}
         </span>
         {view !== "leagues" ? <span aria-hidden="true" className="self-center text-neutral-400">›</span> : null}
       </span>
-      {view === "leagues" ? <span className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <span className="rounded-2xl bg-neutral-100 px-2 py-2"><span className="block type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Jugadores")}</span><span className="mt-0.5 block text-base font-black text-neutral-950">{seasonPlayerCount || "-"}</span></span>
-        <span className="rounded-2xl bg-neutral-100 px-2 py-2"><span className="block type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Partidos")}</span><span className="mt-0.5 block text-base font-black text-neutral-950">{finishedMatches}/{seasonMatches.length || 0}</span></span>
-        <span className="rounded-2xl bg-neutral-100 px-2 py-2"><span className="block type-caption font-black uppercase tracking-wide text-neutral-500">{tx("Líder")}</span><span className="mt-0.5 block truncate text-xs font-black text-neutral-950">{leader?.displayName ?? "-"}</span></span>
-      </span> : null}
+      {view === "leagues" ? <>
+        {league.description ? <span className="mt-3 block line-clamp-2 text-xs leading-relaxed text-neutral-500">{league.description}</span> : null}
+        <span className="my-3 flex flex-wrap items-center justify-between gap-2">
+          <span className={`${getSeasonStatusBadgeClassName(season.status, season.totalRounds)} ${softStatusBadgeClassName} inline-flex items-center gap-1.5`}>
+            <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${running ? "bg-emerald-500" : season.totalRounds > 0 && season.status === "upcoming" ? "bg-sky-500" : "bg-neutral-400"}`} />{summaryStatus}
+          </span>
+          {isAdmin || isSpectator ? <span className="text-xs font-medium text-neutral-500">{tx(isAdmin ? "Admin" : "Espectador")}</span> : null}
+        </span>
+        <span className="grid grid-cols-[0.8fr_1fr_1.7fr] gap-3 border-t border-neutral-100 pt-3">
+          <span className="min-w-0"><span className="block type-caption font-medium text-neutral-500">{tx("Jugadores")}</span><span className="mt-1 block text-base font-black tabular-nums text-neutral-950">{seasonPlayerCount || "—"}</span></span>
+          <span className="min-w-0"><span className="block type-caption font-medium text-neutral-500">{tx("Partidos")}</span><span className="mt-1 block text-base font-black tabular-nums text-neutral-950">{finishedMatches}<span className="text-xs font-medium text-neutral-500"> / {seasonMatches.length}</span></span></span>
+          <span className="min-w-0"><span className="block type-caption font-medium text-neutral-500">{tx("Líder")}</span><span className="mt-1 block truncate text-sm font-bold leading-6 text-neutral-950">{leader?.displayName ?? "—"}</span></span>
+        </span>
+        {seasonMatches.length > 0 ? <span aria-hidden="true" className="mt-3 block h-1 overflow-hidden rounded-full bg-neutral-100"><span className={`${styles.progress} block h-full rounded-full`} style={{ width: `${Math.min(100, finishedMatches / seasonMatches.length * 100)}%` }} /></span> : null}
+      </> : null}
     </button>
   }
   return <div className="space-y-5">
     <header className="app-page-header">
       {view !== "summary" ? <BackButton fallbackHref="/leagues" label={t.common.back} /> : null}
-      <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">{tx(view === "summary" ? "Mis Competiciones" : view === "leagues" ? "Mis ligas" : "Mis torneos")}</h1>
+      <h1 id="competitions-page-title" className="type-page-title mt-3 text-2xl font-black tracking-tight">{tx(view === "summary" ? "Mis Competiciones" : view === "leagues" ? "Mis ligas" : "Mis torneos")}{view === "leagues" ? <span className="ml-2 text-base font-medium text-neutral-400">{memberLeagues.length}</span> : null}</h1>
     </header>
     {view === "summary" ? <section aria-labelledby="personal-activity" className="space-y-2">
       <div data-activity-heading className="app-section-header flex items-center justify-between gap-2">
@@ -180,15 +184,15 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
         {highlights.length > 1 ? <div className="match-preview-pagination flex justify-center gap-1.5 pt-1" aria-hidden="true">{highlights.map((highlight, index) => <span key={highlight.kind} className={`h-1.5 rounded-full transition-all ${index === visibleActivityIndex ? "w-5 bg-foreground" : "w-1.5 bg-neutral-300"}`} />)}</div> : null}
       </> : <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Todavía no tienes encuentros para mostrar.")}</p></AppCard>}
     </section> : null}
-    {(view === "leagues" || memberLeagues.length > 0 || canCreateCompetition) && (view === "summary" || view === "leagues") ? <section aria-labelledby="competitions-leagues" className="space-y-2">
-      <div className="app-section-header flex items-center justify-between gap-2"><h2 id="competitions-leagues" className="type-panel-title font-black">{tx("Mis ligas")} {view !== "summary" ? <span className="text-neutral-400">· {memberLeagues.length}</span> : null}</h2>
-        {view === "summary" ? <Link href="/leagues/all" className="app-section-action inline-flex items-center gap-1 text-sm font-semibold text-neutral-500">{tx("Ver todas")} <span aria-hidden="true">›</span></Link> : null}</div>
+    {(view === "leagues" || memberLeagues.length > 0 || canCreateCompetition) && (view === "summary" || view === "leagues") ? <section aria-labelledby={view === "summary" ? "competitions-leagues" : "competitions-page-title"} className="space-y-2">
+      {view === "summary" ? <div className="app-section-header flex items-center justify-between gap-2"><h2 id="competitions-leagues" className="type-panel-title font-black">{tx("Mis ligas")}</h2>
+        <Link href="/leagues/all" className="app-section-action inline-flex items-center gap-1 text-sm font-semibold text-neutral-500">{tx("Ver todas")} <span aria-hidden="true">›</span></Link></div> : null}
       {visibleLeagues.map(leagueRow)}
       {!visibleLeagues.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx(memberLeagues.length ? "No tienes ligas activas o próximas." : "Aún no formas parte de ninguna liga.")}</p>{view === "summary" && canCreateCompetition ? <Link href="/league/new" className={`${actionClass} mt-3`}>{tx("Crear nueva liga")}</Link> : null}</AppCard> : null}
       {view === "leagues" ? <>
         {finishedLeagues.length ? <details className="rounded-2xl border border-neutral-200 p-3"><summary className="cursor-pointer py-2 text-sm font-black">{tx("Finalizadas")} · {finishedLeagues.length}</summary><div className="mt-2 space-y-2">{finishedLeagues.map(leagueRow)}</div></details> : null}
         <div className="grid gap-2 pt-2"><Link href="/invite" className={actionClass}>{tx("Unirme con invitación")}</Link>
-          {canCreateLeaguesInCurrentView ? <Link href="/league/new" className={actionClass}>{tx("Crear nueva liga")}</Link> : null}</div>
+          {canCreateLeagues ? <Link href="/league/new" className={actionClass}>{tx("Crear nueva liga")}</Link> : null}</div>
       </> : null}
     </section> : null}
     {(view === "tournaments" || tournaments.length > 0 || canCreateCompetition) && (view === "summary" || view === "tournaments") ? <section aria-labelledby="competitions-tournaments" className="space-y-2">

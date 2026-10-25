@@ -10,6 +10,7 @@ import {
   getNextMatch,
   getPlayersBySeasonId,
 } from "@/lib/leagues"
+import { calculateLeaguePairRanking } from "@/lib/leaguePairRanking"
 import { buildSeasonRounds } from "@/lib/rounds"
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { readSelectedSeasonId, subscribeSeasonSelection } from "@/lib/seasonSelection"
@@ -150,6 +151,7 @@ export function useCurrentLeagueData(selectedSeasonId?: string | null) {
     rounds,
     players,
     rankingPlayers,
+    rankingPairs: activeLeague.modality === "fixed_pairs" ? calculateLeaguePairRanking({ seasonId: baseActiveSeason.id, matches, seasonPlayers, playerProfiles }) : [],
     matches,
     lastMatch,
     nextMatch,

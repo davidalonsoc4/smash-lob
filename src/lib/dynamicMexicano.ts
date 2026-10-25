@@ -1,3 +1,5 @@
+import { parseTournamentPoints } from "./tournamentResult"
+
 export type MexicanoPlayer = { id: string; name: string }
 export type MexicanoMatch = {
   round: number
@@ -41,12 +43,12 @@ function pairKey(left: string, right: string) {
   return left < right ? `${left}|${right}` : `${right}|${left}`
 }
 
-export function calculateMexicanoStandings(players: readonly MexicanoPlayer[], matches: readonly MexicanoMatch[], generatedRounds = Math.max(0, ...matches.map((match) => match.round))) {
+export function calculateMexicanoStandings(players: readonly MexicanoPlayer[], matches: readonly { round: number; court?: number; teamAIds: readonly string[]; teamBIds: readonly string[]; scoreA: number | null; scoreB: number | null }[], generatedRounds = Math.max(0, ...matches.map((match) => match.round))) {
   const stats = new Map(players.map((player) => [player.id, { ...player, played: 0, wins: 0, draws: 0, losses: 0, pointsFor: 0, pointsAgainst: 0, rests: generatedRounds }]))
   for (const match of matches) {
     const participants = [...match.teamAIds, ...match.teamBIds]
     for (const id of participants) { const item = stats.get(id); if (item) item.rests = Math.max(0, item.rests - 1) }
-    if (match.scoreA === null || match.scoreB === null || !Number.isInteger(match.scoreA) || !Number.isInteger(match.scoreB) || match.scoreA + match.scoreB <= 0) continue
+    if (!parseTournamentPoints(match.scoreA, match.scoreB) || match.scoreA === null || match.scoreB === null) continue
     const update = (ids: readonly string[], pointsFor: number, pointsAgainst: number) => ids.forEach((id) => {
       const item = stats.get(id); if (!item) return
       item.played += 1; item.pointsFor += pointsFor; item.pointsAgainst += pointsAgainst
@@ -90,6 +92,14 @@ function selectRoundPlayers(players: readonly MexicanoPlayer[], history: readonl
       else rested.set(player.id, (rested.get(player.id) ?? 0) + 1)
     }
   }
+  // Preserve the exhaustive legacy selection for <=16. For larger rosters avoid
+  // C(24,16) allocations: participation first, then avoid consecutive rests.
+  if (players.length > 16) return [...players].sort((a, b) =>
+    played.get(a.id)! - played.get(b.id)! ||
+    Number(previousPlaying.has(a.id)) - Number(previousPlaying.has(b.id)) ||
+    rested.get(b.id)! - rested.get(a.id)! ||
+    seededHash(seed + round, a.id) - seededHash(seed + round, b.id) || a.id.localeCompare(b.id)
+  ).slice(0, required)
   const candidates = combinations(players, required).map((selected) => {
     const selectedIds = new Set(selected.map((player) => player.id))
     const projected = players.map((player) => (played.get(player.id) ?? 0) + (selectedIds.has(player.id) ? 1 : 0))
@@ -119,7 +129,9 @@ function buildPairings(selected: readonly MexicanoPlayer[], standings: readonly 
   }
   const ordered = selected.map((player) => player.id).sort((left, right) => seededHash(seed + round, left) - seededHash(seed + round, right) || left.localeCompare(right))
   let beam: PairingState[] = [{ remaining: ordered, matches: [], score: [0, 0, 0, 0, 0, 0], tie: 0 }]
-  const width = selected.length <= 8 ? Number.MAX_SAFE_INTEGER : 450
+  // Preserve legacy draws. Larger rosters use a bounded beam so four-court
+  // rounds remain interactive; participation is decided before this search.
+  const width = selected.length <= 8 ? Number.MAX_SAFE_INTEGER : standings.length > 24 ? 32 : 450
   while (beam[0]?.remaining.length) {
     const next: PairingState[] = []
     for (const state of beam) {
@@ -152,7 +164,7 @@ function buildPairings(selected: readonly MexicanoPlayer[], standings: readonly 
 
 export function generateDynamicMexicanoRound(input: { players: readonly MexicanoPlayer[]; history: readonly MexicanoMatch[]; courts: number; round: number; seed: number }) {
   const activeCourts = Math.min(input.courts, Math.floor(input.players.length / 4)), required = activeCourts * 4
-  if (!Number.isInteger(input.round) || input.round < 1 || activeCourts < 1 || new Set(input.players.map((player) => player.id)).size !== input.players.length) throw new Error("invalid_mexicano_configuration")
+  if (!Number.isInteger(input.round) || input.round < 1 || input.round > 100 || !Number.isInteger(input.courts) || input.courts < 1 || input.courts > 4 || input.players.length < 4 || input.players.length > 32 || activeCourts < 1 || new Set(input.players.map((player) => player.id)).size !== input.players.length) throw new Error("invalid_mexicano_configuration")
   const standing = calculateMexicanoStandings(input.players, input.history, input.round - 1)
   const selected = selectRoundPlayers(input.players, input.history, required, input.round, input.seed)
   const matches = buildPairings(selected, standing, input.history, input.round, input.seed)

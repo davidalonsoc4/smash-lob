@@ -14,6 +14,7 @@ type ClaimBody = {
   leagueId?: unknown
   playerId?: unknown
   historicalPlayerId?: unknown
+  partnerPlayerId?: unknown
 }
 
 function isUniqueViolation(error: unknown) {
@@ -52,6 +53,8 @@ export async function POST(
   const leagueId = validateUuid(body?.leagueId)
   const playerId = validateUuid(body?.playerId)
   const historicalPlayerId = validateUuid(body?.historicalPlayerId)
+  const partnerPlayerId = body?.partnerPlayerId === null ? null : body?.partnerPlayerId === undefined ? undefined : validateUuid(body.partnerPlayerId)
+  if (body?.partnerPlayerId !== undefined && body.partnerPlayerId !== null && !partnerPlayerId) return NextResponse.json({ error: "invalid_partner" }, { status: 400 })
 
   if (!normalizedCode || !leagueId) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 })
@@ -163,6 +166,7 @@ export async function POST(
           leagueId,
           seasonId: selfRegistrationSeasonId,
           historicalPlayerId,
+          partnerPlayerId,
         })
         const { data: adminMemberships } = await supabase
           .from("league_memberships")
@@ -208,6 +212,7 @@ export async function POST(
         )
       } catch (joinError) {
         const message = joinError instanceof Error ? joinError.message : "self_registration_join_failed"
+        if (message.includes("partner_unavailable")) return NextResponse.json({ error: "partner-unavailable" }, { status: 409 })
         if (message.includes("profile_incomplete")) {
           return NextResponse.json({ error: "profile-incomplete" }, { status: 409 })
         }
