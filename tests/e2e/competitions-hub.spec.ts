@@ -168,6 +168,11 @@ test("last encounter is compact only in the hub and history stays detailed", asy
   }
   await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [last], upcoming: [], hasMore: false, nextOffset: null } }))
   await page.goto("/leagues")
+  const activity = page.getByRole("region", { name: "Actividad personal", exact: true })
+  // League round windows can now supply the first card without a booked date.
+  await expect(activity.locator('[data-personal-match-origin="friendly"]')).toHaveCount(1)
+  const slider = activity.locator(".match-slides")
+  if (await slider.count()) await slider.evaluate(el => el.scrollTo({ left: el.scrollWidth, behavior: "instant" }))
   await expect(page.getByText("Tu último encuentro", { exact: true })).toBeVisible()
   const origin = page.locator('[data-personal-match-origin="friendly"]').first()
   await expect.poll(() => origin.evaluate(el => {
