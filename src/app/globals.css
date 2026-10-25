@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+/* League creation: one prominent action and quiet, scoped configuration controls. */
+.league-creation-input { display:block; width:100%; min-width:0; min-height:44px; border:1px solid #d4d4d4; border-radius:.75rem; padding:.625rem .75rem; background:#fff; color:#171717; font-size:.875rem; }
+.league-creation-primary, .league-creation-secondary { display:inline-flex; min-height:44px; align-items:center; justify-content:center; gap:.5rem; border-radius:.75rem; padding:.625rem .875rem; font-size:.875rem; font-weight:700; text-align:center; }
+.league-creation-primary { background:#171717; color:#fff; }
+.league-creation-secondary { border:1px solid #d4d4d4; background:transparent; color:inherit; }
+.league-creation-primary:disabled, .league-creation-secondary:disabled { opacity:.45; cursor:not-allowed; }
+.league-creation-footer { position:sticky; bottom:calc(env(safe-area-inset-bottom, 0px) + .5rem); z-index:15; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:.75rem; padding:.5rem; border:1px solid #e5e5e5; border-radius:1rem; background:#fff; box-shadow:0 2px 12px #0000000a; }
+.league-creation-details { min-width:0; border:1px solid #d4d4d4; border-radius:.75rem; background:#fff; }
+.league-creation-details > summary { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:.25rem .75rem; padding:.875rem .75rem; cursor:pointer; list-style:none; font-size:.875rem; font-weight:700; }
+.league-creation-details > summary::-webkit-details-marker { display:none; }
+.league-creation-details > summary > span { grid-column:1; }
+.league-creation-details > summary::after { content:""; grid-column:2; grid-row:1 / span 2; width:.5rem; height:.5rem; margin-right:.25rem; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); opacity:.6; }
+.league-creation-details[open] > summary::after { transform:rotate(225deg); }
+.league-creation-edit { min-height:44px; padding:.25rem .5rem; color:inherit; font-size:.75rem; font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+.league-creation-progress { display:flex; align-items:center; min-height:44px; padding-right:var(--app-floating-top-reserved-width,180px); font-size:.75rem; font-weight:600; }
+:is(.league-creation-input, .league-creation-primary, .league-creation-secondary, .league-creation-edit):focus-visible, .league-creation-details > summary:focus-visible { outline:2px solid var(--app-accent,#737373); outline-offset:3px; }
+html.dark :is(.league-creation-footer,.league-creation-details,.league-creation-input) { background:var(--competition-surface,#18181b); color:#f5f5f5; border-color:#404040; }
+html.dark .league-creation-secondary { border-color:#525252; }
+html.dark .league-creation-primary { background:var(--app-accent,#dbe6f3); color:var(--competition-accent-contrast,#111); }
+html[data-theme][data-visual-style] [data-season-creation-step] button[aria-pressed="true"] { background:color-mix(in srgb,var(--app-accent,#737373) 12%,#fff) !important; color:#171717 !important; border-color:var(--app-accent,#737373) !important; }
+html.dark[data-theme][data-visual-style] [data-season-creation-step] button[aria-pressed="true"] { background:color-mix(in srgb,var(--app-accent,#aaa) 15%,#18181b) !important; color:#fafafa !important; }
+
 :root {
   --app-shell-width: 448px;
   --background: #f5f5f4;

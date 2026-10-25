@@ -1,3 +1,4 @@
+import { openSeasonAdvanced, confirmSeasonCreation } from "./helpers/seasonCreation"
 import { expect, test, type Page } from "@playwright/test"
 import AxeBuilder from "@axe-core/playwright"
 import { getLeaguePairGroups, generateFixedPairLeagueCalendar } from "@/lib/fixedPairLeague"
@@ -57,10 +58,14 @@ for(const theme of ["light","dark"]){
     for(let index=0;index<4;index++)await pairs.locator("input").nth(index).fill(`Jugador ${index+1}`)
     await pairs.getByRole("combobox",{name:"Pareja 1 · Jugador 2",exact:true}).selectOption("__new_player__2")
     await expect(pairs.getByRole("group").first().locator("input").nth(1)).toHaveValue("Jugador 3")
-    const cancel=page.getByRole("button",{name:"Cancelar creación de la liga",exact:true}),submit=page.getByRole("button",{name:"Crear temporada",exact:true})
+    const cancel=page.getByRole("button",{name:"Cancelar creación de la liga",exact:true})
     expect(await cancel.evaluate(el=>Boolean(document.querySelector('button[type="submit"]')!.compareDocumentPosition(el)&Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true)
     await pairs.screenshot({path:info.outputPath(`prepared-pairs-${theme}.png`)})
-    await submit.evaluate(el=>el.scrollIntoView({block:"center"}));await submit.click()
+    await page.getByRole("button",{name:"Siguiente paso",exact:true}).click()
+    const review=page.locator("[data-season-creation-summary]")
+    await expect(review.getByText("Partidos por jornada",{exact:true}).locator("..").locator("dd")).toHaveText("1")
+    await expect(review.getByText("Descansos por jornada",{exact:true}).locator("..").locator("dd")).toHaveText("0")
+    await confirmSeasonCreation(page)
     await expect(page).toHaveURL(/\/$/)
     await page.goto("/matches")
     await expect(page.getByText("Jugador 1",{exact:true}).first()).toBeVisible()
@@ -72,10 +77,11 @@ for(const theme of ["light","dark"]){
     await page.goto("/admin/season")
     const reduce=page.getByRole("button",{name:"Reducir número de jugadores",exact:true})
     await expect(reduce).toBeVisible();await reduce.click();await reduce.click()
-    await page.getByRole("button",{name:/Jugadores se registran al unirse/}).click()
+    await page.getByRole("combobox",{name:"¿Cómo se formará la plantilla?",exact:true}).selectOption("self_registration")
+    await openSeasonAdvanced(page)
     await expect(page.locator("[data-season-pairs]")).toHaveCount(0)
     await page.getByLabel("Fecha y hora de activación",{exact:true}).fill("2099-10-20T09:00")
-    const create=page.getByRole("button",{name:"Crear temporada",exact:true});await expect(create).toBeEnabled();await create.evaluate(el=>el.scrollIntoView({block:"center"}));await create.click()
+    const create=page.getByRole("button",{name:"Siguiente paso",exact:true});await expect(create).toBeEnabled();await confirmSeasonCreation(page)
     await expect(page).toHaveURL(/\/$/)
     for(const [index,partner] of [[1,playerId(0)],[2,"__pending__"],[3,"__pending__"]] as const){
       state.setViewer(index);await page.goto("/invite/PAIRQA")

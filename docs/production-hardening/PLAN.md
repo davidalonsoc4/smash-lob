@@ -1,3 +1,8 @@
+## MC64 — Creación guiada de ligas y temporadas
+- Estado: COMPLETO LOCAL (25/10/2026); validate1635 pruebas,60 focalizadas,40 E2E y12 revisiones finales PASS. Sin publicación.
+- Entrega: identidad con logo y modalidad explicada; configuración básica compartida, avanzada opcional y resumen; Atrás sin pérdida, participantes compactos, validación clara y estándares acordados. Reutilizar servicios/componentes; sin despliegue ni migraciones.
+- Gates: unidad/integración de creación, tipos/lint/i18n/build y E2E móvil claro/oscuro, ambos formatos y registros, navegación Atrás, logo y estándares.
+
 ## MC63 — Publicación de cambios pendientes en PRE
 - Estado: COMPLETO PRE (25/10/2026), v1.15.35 publicada y verificada; CI413 cuatro jobs PASS,1632 pruebas y241 E2E/1skip previsto.
 - Alcance: publicar la rama de desarrollo y cambios locales aceptados como v1.15.35 en staging/PRE; conservar main, Production y v1.0.0. Migraciones PRE ya aplicadas.

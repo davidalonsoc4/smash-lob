@@ -1,3 +1,4 @@
+import { openSeasonAdvanced, confirmSeasonCreation } from "./helpers/seasonCreation"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import jsQR from "jsqr"
@@ -626,16 +627,14 @@ for (const theme of ["light", "dark"]) for (const duration of ["single", "double
     await expect(pairOne).toBeVisible()
     const values = await pairOne.locator("option").evaluateAll(options => options.map(option => (option as HTMLOptionElement).value))
     await pairOne.selectOption(values[2])
+    if (duration !== "single") await openSeasonAdvanced(page)
     if (duration === "manual") await page.getByRole("button", { name: /^Calendario manual/ }).click()
     if (duration === "double") await page.getByRole("button", { name: /^Doble vuelta/ }).click()
     if (duration === "custom") {
       await page.getByRole("button", { name: /^Personalizada/ }).click()
       await page.locator('input[type="number"][max="18"]').fill("4")
     }
-    const submit = page.getByRole("button", { name: "Crear temporada", exact: true })
-    await expect(submit).toBeEnabled()
-    await submit.evaluate(element => element.scrollIntoView({ block: "center" }))
-    await submit.click()
+    await confirmSeasonCreation(page)
     await expect(page).toHaveURL(/\/$/)
     const created = await page.evaluate(() => {
       const data = JSON.parse(localStorage.getItem("smash-lob-season-data")!)
@@ -672,21 +671,111 @@ for (const theme of ["light", "dark"]) for (const duration of ["single", "double
 test("new league asks its format and opens the corresponding fixed-pair season form", async ({ page }) => {
   const id = "40000000-0000-4000-8000-000000000001"
   let created: typeof fixtureLeagues[number] | null = null
+  let creationCount = 0
   await page.route("**/api/access**", route => route.fulfill({ json: { isSuperuser: false, canCreateLeagues: true, leagues: [...fixtureLeagues, ...(created ? [created] : [])], memberships: [{ userId: "qa-v1-1@example.test", leagueId: id, role: "creator", playerId: "" }], spectatorLeagueIds: [], matches: [], seasonSnapshot: { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: {} } } }))
   await page.route("**/api/leagues", async route => {
+    creationCount += 1
     const body = route.request().postDataJSON()
     expect(body.modality).toBe("fixed_pairs")
     created = { id, name: body.leagueName, description: body.leagueDescription, slug: body.leagueSlug, modality: body.modality, inviteCode: body.inviteCode, activeSeasonId: "", joinMode: "closed", locations: [] }
     await route.fulfill({ json: { league: created, membership: { userId: "qa-v1-1@example.test", leagueId: id, playerId: "", role: "creator" }, seasonSnapshot: { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: { [id]: "" } } } })
+  })
+  await page.route(`**/api/leagues/${id}`, async route => {
+    const body = route.request().postDataJSON()
+    created = { ...created!, ...(body.name ? { name: body.name, description: body.description, recommendations: body.recommendations } : {}), ...(Object.hasOwn(body, "logoUrl") ? { logoUrl: body.logoUrl } : {}) }
+    await route.fulfill({ json: { leagueId: id, ...created } })
   })
   await page.route("**/player-directory", route => route.fulfill({ json: { people: [] } }))
   await page.goto("/league/new")
   const modality = page.getByRole("combobox", { name: "Modalidad de liga", exact: true })
   await expect(modality).toHaveValue("individual")
   await modality.selectOption("fixed_pairs")
+  await expect(page.getByText(/Cada pareja mantiene sus jugadores/)).toBeVisible()
   await page.locator('form input').first().fill("League pairs fixture")
-  await page.getByRole("button", { name: "Crear liga", exact: true }).click()
+  await page.locator("summary").filter({ hasText: "Personalizar liga" }).click()
+  await page.locator('input[type="file"]').setInputFiles("public/icon-192.png")
+  await page.getByRole("button", { name: "Usar imagen", exact: true }).click()
+  await page.getByRole("button", { name: "Crear liga y continuar", exact: true }).click()
   await expect(page).toHaveURL(/admin\/season$/)
   await expect(page.getByText("Parejas de la temporada", { exact: true })).toBeVisible()
   await expect(page.getByRole("combobox", { name: "Pareja 1 · Jugador 1", exact: true })).toBeVisible()
+  expect(created!.logoUrl).toMatch(/^data:image\//)
+  const names = page.locator("[data-season-pairs] input")
+  await names.nth(1).fill("Nombre conservado")
+  const registration = page.getByRole("combobox", { name: "¿Cómo se formará la plantilla?", exact: true })
+  await registration.selectOption("self_registration")
+  await expect(names).toHaveCount(0)
+  await registration.selectOption("fixed")
+  await expect(names.nth(1)).toHaveValue("Nombre conservado")
+  await page.getByRole("button", { name: "Atrás", exact: true }).click()
+  await expect(page.getByRole("combobox", { name: "Modalidad de liga", exact: true })).toBeDisabled()
+  await page.getByRole("textbox", { name: "Nombre de la liga", exact: true }).fill("Liga revisada")
+  await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  await expect(names.nth(1)).toHaveValue("Nombre conservado")
+  expect(created!.name).toBe("Liga revisada")
+  expect(creationCount).toBe(1)
 })
+
+for (const theme of ["light", "dark"]) for (const modality of ["individual", "fixed_pairs"] as const) {
+  test(`guided season creation preserves basic and advanced settings (${modality}, ${theme})`, async ({ page }, info) => {
+    await page.addInitScript(({ seasons, leagues, theme, modality }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      if (sessionStorage.getItem("qa-guided-season")) return
+      sessionStorage.setItem("qa-guided-season", "1")
+      localStorage.setItem("smash-lob-leagues", JSON.stringify(leagues.map(league => ({ ...league, modality }))))
+      localStorage.setItem("smash-lob-season-data", JSON.stringify({ seasons: seasons.map(season => ({ ...season, status: "finished" })), activeSeasonIds: { "league-smash-lob": "season-2" } }))
+    }, { seasons: fixtureSeasons, leagues: fixtureLeagues, theme, modality })
+    await page.setViewportSize({ width: 393, height: 852 })
+    await page.goto("/admin/season")
+    await page.getByRole("button", { name: "Configurar nueva temporada", exact: true }).click()
+    const wizard = page.locator("[data-season-creation-step]")
+    await expect(wizard).toHaveAttribute("data-season-creation-step", "basic")
+    const seasonName = wizard.locator("[data-season-creation-basic] input").first()
+    await seasonName.fill("Temporada guiada")
+    await page.getByRole("button", { name: "Atrás", exact: true }).click()
+    await expect(wizard).not.toBeVisible()
+    await page.getByRole("button", { name: "Configurar nueva temporada", exact: true }).click()
+    await expect(seasonName).toHaveValue("Temporada guiada")
+    await page.screenshot({ path: info.outputPath(`guided-basic-${modality}-${theme}.png`), scale: "css" })
+    await expect(page.getByRole("button", { name: "Personalizar ajustes avanzados", exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+    await expect(wizard).toHaveAttribute("data-season-creation-step", "summary")
+    const summary = page.locator("[data-season-creation-summary]")
+    await expect(summary.getByText("Sin cuota", { exact: true })).toBeVisible()
+    await expect(summary.getByText("Tres sets completos", { exact: true })).toBeVisible()
+    await expect(summary.getByText("Sin confirmación adicional", { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Editar Calendario y duración", exact: true }).click()
+    await expect(wizard).toHaveAttribute("data-season-creation-step", "advanced")
+    await page.getByRole("button", { name: "Atrás", exact: true }).last().click()
+    await expect(wizard).toHaveAttribute("data-season-creation-step", "basic")
+    await openSeasonAdvanced(page)
+    const date = page.getByLabel("Fecha y hora de activación", { exact: true })
+    await date.focus()
+    await expect(date).toHaveValue("")
+    await page.getByRole("button", { name: /^Doble vuelta/ }).click()
+    await page.getByRole("button", { name: "Atrás", exact: true }).last().click()
+    await expect(page.getByText("Ajustes personalizados", { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+    await expect(summary.getByText("Doble vuelta", { exact: true })).toBeVisible()
+    for (const width of [320,393]) {
+      await page.setViewportSize({ width, height:852 })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    }
+    const axe = await new AxeBuilder({ page }).analyze()
+    expect(axe.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: info.outputPath(`guided-review-${modality}-${theme}.png`), fullPage: true })
+    await page.getByRole("button", { name: "Confirmar y crear temporada", exact: true }).click()
+    await expect(page).toHaveURL(/\/$/)
+    const stored = await page.evaluate(() => {
+      const data = JSON.parse(localStorage.getItem("smash-lob-season-data")!)
+      const id = data.activeSeasonIds["league-smash-lob"]
+      return { season: data.seasons.find((season: { id: string }) => season.id === id), settings: JSON.parse(localStorage.getItem("smash-lob-season-round-settings")!).find((settings: { seasonId: string }) => settings.seasonId === id) }
+    })
+    expect(stored.season.status).toBe("upcoming")
+    expect(stored.settings.scheduleMode).toBe("double")
+    expect(stored.settings.registrationFee.enabled).toBe(false)
+    expect(stored.settings.requiresThreeSets).toBe(true)
+    expect(stored.settings.calendarVisibilityMode).toBe("full")
+  })
+}
