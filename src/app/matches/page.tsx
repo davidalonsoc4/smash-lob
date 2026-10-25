@@ -115,10 +115,13 @@ export default function MatchesPage() {
     <div className="space-y-4">
       <header data-tour="matches-header" className="app-page-header">
         <BackButton fallbackHref="/" label={t.common.back} />
-        <div className="relative pr-11">
-          <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">{t.matches.subtitle}</h1>
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">{t.matches.subtitle}</h1>
+            <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} />
+          </div>
           {activeRoundId && !isPlayerSeasonLocked ? (
-            <button type="button" aria-label={tx("Ir a jornada en curso")} title={tx("Ir a jornada en curso")} className="absolute right-0 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+            <button type="button" aria-label={tx("Ir a jornada en curso")} title={tx("Ir a jornada en curso")} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
               onClick={() => activeRoundRef.current?.scrollIntoView({
                 behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start",
               })}>
@@ -126,7 +129,6 @@ export default function MatchesPage() {
             </button>
           ) : null}
         </div>
-        <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} />
       </header>
 
       <AppCard data-tour="matches-scope" className="p-2">
@@ -226,7 +228,7 @@ export default function MatchesPage() {
               <h2 className="type-section-title shrink-0">{round.name}</h2>
               <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-x-2 gap-y-1">
                 {roundWindowText ? <span className="type-caption text-neutral-500">{roundWindowText}</span> : null}
-                {roundStatusText && !(round.status === "upcoming" && roundWindowText) ? (
+                {roundStatusText && round.status !== "upcoming" && round.status !== "completed" ? (
                   <StatusHelp kind="round" status={round.status} className={getRoundStatusBadgeClassName(round.status)}>
                     {roundStatusText}
                   </StatusHelp>

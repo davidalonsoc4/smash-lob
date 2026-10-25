@@ -23,6 +23,7 @@ export type PersonalMatchParticipant = {
 }
 
 export type PersonalMatchItem = {
+  preview?: { startsAt: string | null; endsAt: string | null; currentRound: boolean; hidden: boolean }
   id: string
   origin: PersonalMatchOrigin
   status: PersonalMatchStatus

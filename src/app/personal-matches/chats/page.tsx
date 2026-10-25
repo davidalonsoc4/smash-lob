@@ -1,6 +1,11 @@
 "use client"
 
 import Link from "next/link"
+import { useMatchData } from "@/context/MatchDataProvider"
+import { buildSeasonRounds } from "@/lib/rounds"
+import { groupGlobalChats } from "@/lib/globalChatOverview"
+import { getPersonalMatchOriginBadgeStyle } from "@/lib/personalMatches"
+import { normalizeAccentColor } from "@/lib/visualStyle"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -18,6 +23,10 @@ type PersonalChatOverviewItem = {
   id: string
   origin: "friendly" | "league"
   leagueName?: string
+  leagueId?: string
+  seasonId?: string
+  seasonStatus?: string
+  currentRound?: number
   round?: number
   status: string
   scheduledAt: string | null
@@ -74,7 +83,11 @@ function errorMessage(error: string | null) {
 export default function PersonalMatchChatsPage() {
   const { tx } = useI18n()
   const { userLeagues } = useLeagueAccess()
-  const { seasons } = useSeasonSettings()
+  const { seasons, getSeasonRoundSettings } = useSeasonSettings()
+  const { matches } = useMatchData()
+  const [query, setQuery] = useState("")
+  const [scope, setScope] = useState("all")
+  const [conversation, setConversation] = useState("all")
   const [chats, setChats] = useState<PersonalChatOverviewItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -94,7 +107,7 @@ export default function PersonalMatchChatsPage() {
       const params = new URLSearchParams({ leagueId: scope.leagueId, seasonId: scope.seasonId }), leagueResponse = await fetch(`/api/chats?${params.toString()}`, { cache: "no-store" }).catch(() => null)
       if (!leagueResponse?.ok) return [] as PersonalChatOverviewItem[]
       const leaguePayload = await leagueResponse.json().catch(() => null)
-      return Array.isArray(leaguePayload?.chats) ? leaguePayload.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "league" as const, leagueName: scope.leagueName, locationName: null, expired: false, resultRecordedAt: null, realtimeTopic: typeof leaguePayload.realtimeTopic === "string" ? leaguePayload.realtimeTopic : null })) : []
+      return Array.isArray(leaguePayload?.chats) ? leaguePayload.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "league" as const, leagueName: scope.leagueName, leagueId: scope.leagueId, seasonId: scope.seasonId, locationName: null, expired: false, resultRecordedAt: null, realtimeTopic: typeof leaguePayload.realtimeTopic === "string" ? leaguePayload.realtimeTopic : null })) : []
     }))
 
     setChats([...friendlyChats, ...leagueResponses.flat()])
@@ -122,27 +135,18 @@ export default function PersonalMatchChatsPage() {
   )
   const realtimeKey = realtimeTopics.join("|")
   const groupedChats = useMemo(() => {
-    const now = loadedAt
-    const upcomingBoundary = now + 7 * 24 * 60 * 60 * 1000
-    const groups = { active: [] as PersonalChatOverviewItem[], upcoming: [] as PersonalChatOverviewItem[], finished: [] as PersonalChatOverviewItem[] }
-    for (const chat of chats) {
-      if (chat.status === "finished" || chat.readOnly) {
-        groups.finished.push(chat)
-        continue
-      }
-      const scheduled = chat.scheduledAt ? Date.parse(chat.scheduledAt) : Number.NaN
-      if (chat.lastMessage || !Number.isFinite(scheduled) || scheduled <= upcomingBoundary) groups.active.push(chat)
-      else groups.upcoming.push(chat)
-    }
-    const sortByRecent = (left: PersonalChatOverviewItem, right: PersonalChatOverviewItem) => {
-      const timestamp = (item: PersonalChatOverviewItem) => Date.parse(item.lastMessage?.createdAt ?? item.resultRecordedAt ?? item.scheduledAt ?? "") || 0
-      return timestamp(right) - timestamp(left)
-    }
-    groups.active.sort(sortByRecent)
-    groups.upcoming.sort((left, right) => (Date.parse(left.scheduledAt ?? "") || 0) - (Date.parse(right.scheduledAt ?? "") || 0))
-    groups.finished.sort(sortByRecent)
-    return groups
-  }, [chats, loadedAt])
+    const normalizedQuery = query.trim().toLocaleLowerCase()
+    const scoped = chats.filter(chat => (scope === "all" || scope === "friendly" && chat.origin === "friendly" || chat.leagueId === scope)
+      && (conversation === "all" || conversation === "started" && Boolean(chat.lastMessage) || conversation === "empty" && !chat.lastMessage || conversation === "unread" && chat.unread > 0)
+      && (!normalizedQuery || [chat.leagueName, chat.partner, ...chat.rivals, chat.round ? tx("Jornada")+" "+chat.round : "", chat.lastMessage?.body].some(value=>value?.toLocaleLowerCase().includes(normalizedQuery))))
+    return groupGlobalChats(scoped.map(chat => {
+      const season = seasons.find(season=>season.id===chat.seasonId)
+      if(!season) return chat
+      const rounds = buildSeasonRounds({season,settings:getSeasonRoundSettings(season.id),matches:matches.filter(match=>match.seasonId===season.id)})
+      const currentRound = rounds.find(round=>round.status==="active")?.round ?? rounds.find(round=>round.status==="overdue")?.round ?? rounds.find(round=>round.status==="upcoming")?.round ?? 1
+      return {...chat,seasonStatus:season.status,currentRound}
+    }),loadedAt)
+  }, [chats, loadedAt, query, scope, conversation, seasons, getSeasonRoundSettings, matches, tx])
   useEffect(() => {
     if (!realtimeKey) return
     const unsubscribes = realtimeKey
@@ -163,6 +167,14 @@ export default function PersonalMatchChatsPage() {
         <h1 className="type-page-title font-black tracking-tight">Chats</h1>
       </header>
 
+      <div className="space-y-2" role="search" aria-label={tx("Buscar conversaciones")}>
+        <input type="search" aria-label={tx("Buscar conversación")} placeholder={tx("Buscar por jugador, liga o jornada")} value={query} onChange={event=>setQuery(event.target.value)} className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm" />
+        <div className="grid grid-cols-2 gap-2">
+          <label className="min-w-0 text-xs font-semibold text-neutral-500">{tx("Competición")}<select value={scope} onChange={event=>setScope(event.target.value)} className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900"><option value="all">{tx("Todas")}</option><option value="friendly">{tx("Amistosos")}</option>{userLeagues.map(league=><option key={league.id} value={league.id}>{league.name}</option>)}</select></label>
+          <label className="min-w-0 text-xs font-semibold text-neutral-500">{tx("Conversaciones")}<select value={conversation} onChange={event=>setConversation(event.target.value)} className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900"><option value="all">{tx("Todas")}</option><option value="started">{tx("Con mensajes")}</option><option value="empty">{tx("Sin mensajes")}</option><option value="unread">{tx("Sin leer")}</option></select></label>
+        </div>
+      </div>
+      {!loading && chats.length > 0 && Object.values(groupedChats).every(group=>group.length===0) ? <AppCard><p className="text-sm text-neutral-500">{tx("No hay conversaciones con estos filtros.")}</p></AppCard> : null}
       {loading ? (
         <AppCard>
           <p className="text-sm font-semibold text-neutral-500">
@@ -220,7 +232,7 @@ export default function PersonalMatchChatsPage() {
                       <p className="type-panel-title min-w-0 flex-1 truncate font-black">
                         {chat.origin === "friendly" ? tx("Amistoso") : `${tx("Jornada")} ${chat.round ?? ""}`}
                       </p>
-                      {chat.leagueName ? <span className="max-w-[42%] truncate rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-bold text-neutral-600">{chat.leagueName}</span> : null}
+                      {chat.leagueName ? <span className="personal-match-league-origin max-w-[42%] truncate rounded-xl px-2 py-0.5 type-caption font-semibold" style={getPersonalMatchOriginBadgeStyle({origin:"league",leagueId:chat.leagueId??null,leagueName:chat.leagueName},normalizeAccentColor(userLeagues.find(league=>league.id===chat.leagueId)?.accentColor))}>{chat.leagueName}</span> : null}
                       {chat.unread > 0 ? (
                         <span
                           aria-label={tx(`${chat.unread} mensaje${chat.unread === 1 ? "" : "s"} sin leer`)}

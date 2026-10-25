@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import type { Locator, Page } from "@playwright/test"
-import { leagues as fixtureLeagues } from "../../src/data/fakeData"
+import { leagues as fixtureLeagues, seasons as fixtureSeasons, playerProfiles as fixtureProfiles, seasonPlayers as fixturePlayers, seasonRoundSettings as fixtureSettings, allMatches as fixtureMatches } from "../../src/data/fakeData"
 
 async function swipe(page: Page, slider: Locator, direction: "left" | "right", short = false) {
   await slider.scrollIntoViewIfNeeded()
@@ -184,11 +184,12 @@ test("last encounter is compact only in the hub and history stays detailed", asy
 })
 
 for (const theme of ["light", "dark"] as const) {
-  test(`competitions hub keeps each view compact and preserves context (${theme})`, async ({ page, context }, testInfo) => {
-    await context.addInitScript(mode => {
+  for (const visualStyle of ["competition", "classic"] as const) {
+  test(`competitions hub keeps each view compact and preserves context (${theme}, ${visualStyle})`, async ({ page, context }, testInfo) => {
+    await context.addInitScript(({ mode, style }) => {
       localStorage.setItem("smash-lob-theme-mode", mode)
-      localStorage.setItem("smash-lob-visual-style", "competition")
-    }, theme)
+      localStorage.setItem("smash-lob-visual-style", style)
+    }, { mode: theme, style: visualStyle })
     const upcoming = {
       id: "fixture-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2099-10-17T18:00:00Z", resultRecordedAt: null,
       locationName: "Pista ficticia", sets: [], canManage: true, canDelete: true, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null,
@@ -222,13 +223,28 @@ for (const theme of ["light", "dark"] as const) {
     await page.setViewportSize(viewport)
     await page.getByRole("link", { name: "Ver todas", exact: true }).click()
     await expect(page).toHaveURL(/\/leagues\/all$/)
+    await expect(page.locator("html")).toHaveAttribute("data-visual-style", visualStyle)
+    await expect.poll(() => page.locator("html").evaluate(el => el.classList.contains("dark"))).toBe(theme === "dark")
     await expect(page.getByRole("link", { name: "Unirme con invitación" })).toBeVisible()
     const leagueCards = page.getByRole("button", { name: /^Entrar en/ })
-    expect(await leagueCards.evaluateAll(cards => cards.every(card => card.getBoundingClientRect().height >= 128) && cards.filter(card => card.className.includes("ring-2")).length === 1)).toBe(true)
+    expect(await leagueCards.evaluateAll(cards => cards.every(card => card.getBoundingClientRect().height >= 128 && !card.className.includes("ring-2")))).toBe(true)
     await expect(leagueCards.first()).toContainText(/Jugadores/)
     await expect(leagueCards.first()).toContainText(/Partidos/)
     await expect(leagueCards.first()).toContainText(/Líder/)
     await expect(leagueCards).not.toContainText("Toca para entrar")
+    await expect(leagueCards).not.toContainText("Actual")
+    await expect(leagueCards.first()).toContainText("Individual de Smash & Lob")
+    await expect(page.getByRole("heading", { name: /^Mis ligas/ })).toHaveCount(1)
+    for (const width of [320, 393]) {
+      await page.setViewportSize({ width, height: 852 })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+      expect(await leagueCards.first().locator('[class*="status-tone-"]').evaluate(el => {
+        const css = getComputedStyle(el)
+        return css.textTransform === "none" && css.borderWidth === "0px" && css.fontWeight === "600"
+      })).toBe(true)
+    }
+    const listAccessibility = await new AxeBuilder({ page }).analyze()
+    expect(listAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: testInfo.outputPath("league-list-" + theme + ".png"), fullPage: true, scale: "css" })
     await expect(page.getByRole("heading", { name: "Actividad personal" })).toHaveCount(0)
     await expect(navigation).toHaveCount(1)
@@ -264,6 +280,130 @@ for (const theme of ["light", "dark"] as const) {
     await expect(navigation).toHaveCount(0)
     await page.getByRole("link", { name: "Competiciones", exact: true }).click()
     await expect(navigation).toHaveCount(1)
+  })
+  }
+}
+
+for (const theme of ["light", "dark"] as const) {
+  test(`Competition headers remain vertically balanced across screens (${theme})`, async ({ page }, testInfo) => {
+    test.setTimeout(120_000)
+    const viewport = page.viewportSize()!
+    await page.addInitScript(mode => {
+      localStorage.setItem("smash-lob-theme-mode", mode)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([
+        ["app-introduction", 1], ["home", 7], ["matches", 2], ["ranking", 2], ["statistics", 2], ["settings", 4],
+      ].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
+    }, theme)
+    await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [], upcoming: [], hasMore: false, nextOffset: null } }))
+    await page.route("**/api/personal-matches/chats", route => route.fulfill({ json: { chats: [] } }))
+    await page.route("**/api/tournaments/sources", route => route.fulfill({ json: { sources: [] } }))
+    await page.route("**/api/tournaments/people", route => route.fulfill({ json: { people: [] } }))
+    await page.route("**/api/locations", route => route.fulfill({ json: { locations: [] } }))
+    await page.route("**/api/notifications/read-state", route => route.fulfill({ json: { items: [] } }))
+    for (const path of ["/leagues", "/leagues/all", "/tournaments", "/tournaments/new", "/personal-matches", "/personal-matches/profile", "/personal-matches/chats", "/", "/matches", "/ranking", "/statistics", "/profile", "/match/season-2-round-5-match-1", "/settings", "/settings/appearance", "/notifications", "/help"]) {
+      await test.step(path, async () => {
+        await page.goto(path)
+        const header = page.locator(".app-page-header").first()
+        await expect(header).toBeVisible()
+        await expect(page.locator("html")).toHaveAttribute("data-visual-style", "competition")
+        await expect.poll(() => page.locator("html").evaluate(el => el.classList.contains("dark"))).toBe(theme === "dark")
+        const padding = await header.evaluate(el => { const css = getComputedStyle(el); return [parseFloat(css.paddingTop), parseFloat(css.paddingBottom)] })
+        expect(Math.abs(padding[0] - padding[1]), `${path}: symmetric title panel`).toBeLessThanOrEqual(.1)
+        if (path === "/leagues" || path === "/leagues/all") {
+          for (const width of [320, 393]) {
+            await page.setViewportSize({ width, height: 852 })
+            const offset = await header.evaluate(el => { const box = el.getBoundingClientRect(), title = el.querySelector("h1")!.getBoundingClientRect(); return Math.abs((box.top + box.bottom) / 2 - (title.top + title.bottom) / 2) })
+            expect(offset).toBeLessThanOrEqual(.5)
+          }
+          await page.screenshot({ path: testInfo.outputPath(`centered-header-${path === "/leagues" ? "hub" : "leagues"}-${theme}.png`), scale: "css" })
+          await page.setViewportSize(viewport)
+        }
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+      })
+    }
+    await page.goto("/match/season-2-round-5-match-1/chat")
+    const chatHeader = page.locator(".app-match-chat-header")
+    await expect(chatHeader).toBeVisible()
+    await page.evaluate(() => document.documentElement.style.setProperty("--app-safe-top", "24px"))
+    expect(await chatHeader.evaluate(el => parseFloat(getComputedStyle(el).paddingTop))).toBeGreaterThanOrEqual(32)
+  })
+}
+
+for (const canCreate of [true, false]) {
+  test(`scheduled league does not control global league creation (creator=${canCreate})`, async ({ page }) => {
+    const id = "40000000-0000-4000-8000-000000000002"
+    let created: typeof fixtureLeagues[number] | null = null
+    const memberships = [{ userId: "qa-v1-1@example.test", leagueId: "league-smash-lob", role: "player", playerId: "davo" }]
+    const snapshot = {
+      seasons: fixtureSeasons.map(season => season.id === "season-2" ? { ...season, status: "upcoming", completedRounds: 0 } : season),
+      playerProfiles: fixtureProfiles, seasonPlayers: fixturePlayers,
+      seasonSettings: fixtureSettings.map(settings => settings.seasonId === "season-2" ? { ...settings, scheduledStartAt: "2026-10-20T08:00:00Z", seasonStartsAt: "2026-10-20", rosterCompletedAt: "2026-10-15T08:00:00Z" } : settings),
+      activeSeasonIds: { "league-smash-lob": "season-2" },
+    }
+    await page.route("**/api/access**", route => route.fulfill({ json: { isSuperuser: false, canCreateLeagues: canCreate, leagues: [...fixtureLeagues, ...(created ? [created] : [])], memberships: [...memberships, ...(created ? [{ userId: "qa-v1-1@example.test", leagueId: id, role: "creator", playerId: "" }] : [])], spectatorLeagueIds: [], matches: fixtureMatches, seasonSnapshot: snapshot } }))
+    await page.route("**/api/leagues", async route => {
+      expect(canCreate).toBe(true)
+      const body = route.request().postDataJSON()
+      expect(body.leagueName).toBe("Nueva liga independiente")
+      created = { id, name: body.leagueName, description: body.leagueDescription, slug: body.leagueSlug, modality: body.modality, inviteCode: body.inviteCode, activeSeasonId: "", joinMode: "closed", locations: [] }
+      await route.fulfill({ json: { league: created, membership: { userId: "qa-v1-1@example.test", leagueId: id, role: "creator", playerId: "" }, seasonSnapshot: { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: { [id]: "" } } } })
+    })
+    await page.addInitScript(() => {
+      localStorage.setItem("smash-lob-active-league", "league-smash-lob")
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
+    })
+    await page.goto("/")
+    await expect(page.locator('[data-preseason-phase="locked"]')).toBeVisible()
+    await page.goto("/ranking")
+    await expect(page).toHaveURL(/\/$/)
+    await expect(page.locator('[data-preseason-phase="locked"]')).toBeVisible()
+    await page.getByRole("link", { name: "Competiciones", exact: true }).click()
+    await page.getByRole("link", { name: "Ver todas", exact: true }).click()
+    if (!canCreate) {
+      await expect(page.getByRole("link", { name: "Crear nueva liga", exact: true })).toHaveCount(0)
+      await page.goto("/league/new")
+      await expect(page.getByText("No tienes permisos para crear ligas", { exact: true })).toBeVisible()
+      await expect(page).toHaveURL(/\/league\/new$/)
+      await expect(page.getByRole("button", { name: "Crear liga", exact: true })).toHaveCount(0)
+      return
+    }
+    await page.getByRole("link", { name: "Crear nueva liga", exact: true }).click()
+    await expect(page.getByRole("combobox", { name: "Modalidad de liga", exact: true })).toBeVisible()
+    await expect(page).toHaveURL(/\/league\/new$/)
+    await expect(page.locator("[data-scheduled-season-home-lock]")).toHaveCount(0)
+    await page.reload()
+    await expect(page.getByRole("combobox", { name: "Modalidad de liga", exact: true })).toBeVisible()
+    await page.locator("form input").first().fill("Nueva liga independiente")
+    await page.getByRole("button", { name: "Crear liga", exact: true }).click()
+    await expect(page).toHaveURL(/\/admin\/season$/)
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("smash-lob-active-league"))).toBe(id)
+  })
+}
+
+for (const theme of ["light", "dark"] as const) for (const visualStyle of ["classic", "competition"] as const) {
+  test(`calendar locator centers on title and season and still scrolls (${theme}, ${visualStyle})`, async ({ page }, testInfo) => {
+    await page.clock.setFixedTime(new Date("2026-08-01T12:00:00Z"))
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.addInitScript(({ theme, visualStyle }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      localStorage.setItem("smash-lob-visual-style", visualStyle)
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["matches", 2]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
+    }, { theme, visualStyle })
+    await page.goto("/matches")
+    const locator = page.getByRole("button", { name: "Ir a jornada en curso", exact: true })
+    await expect(locator).toBeVisible()
+    await expect(page.locator("html")).toHaveAttribute("data-visual-style", visualStyle)
+    await expect.poll(() => page.locator("html").evaluate(el => el.classList.contains("dark"))).toBe(theme === "dark")
+    for (const width of [320, 393]) {
+      await page.setViewportSize({ width, height: 852 })
+      const offset = await locator.evaluate(el => { const button = el.getBoundingClientRect(), row = el.parentElement!.getBoundingClientRect(), icon = el.querySelector("svg")!.getBoundingClientRect(); return Math.max(Math.abs((button.top + button.bottom - row.top - row.bottom) / 2), Math.abs((button.top + button.bottom - icon.top - icon.bottom) / 2)) })
+      expect(offset).toBeLessThanOrEqual(.5)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    }
+    await page.screenshot({ path: testInfo.outputPath(`calendar-locator-${theme}-${visualStyle}.png`), scale: "css" })
+    await locator.click()
+    await expect.poll(() => page.locator('[data-active-round="true"]').evaluate(el => { const rect = el.getBoundingClientRect(); return rect.top >= 0 && rect.top < window.innerHeight / 2 })).toBe(true)
   })
 }
 

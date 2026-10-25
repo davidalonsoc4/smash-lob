@@ -13,7 +13,7 @@ const players: PlayerProfile[] = [
   { id: "c", leagueId: "league", slug: "c", displayName: "Carla", avatarInitials: "C", preferredSide: "drive" },
   { id: "d", leagueId: "league", slug: "d", displayName: "Dani", avatarInitials: "D", preferredSide: "versatile" },
 ]
-const props = { teamA: ["a", "b"], teamB: ["c", "d"], players, rankingPositions: { a: 1, b: 2 }, showPlayerMetadata: true, showPositionHelp: true, linkPlayers: false }
+const props = { teamA: ["a", "b"], teamB: ["c", "d"], players, sideStatistics: {a:{matchesPlayed:4,wins:2,gamesFor:40,gamesAgainst:40},b:{matchesPlayed:4,wins:2,gamesFor:40,gamesAgainst:40}}, rankingPositions: { a: 1, b: 2 }, showPlayerMetadata: true, showPositionHelp: true, linkPlayers: false }
 afterEach(cleanup)
 
 describe("recommended sides in the pairing panel", () => {

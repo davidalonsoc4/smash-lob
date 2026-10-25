@@ -29,7 +29,7 @@ export type TournamentData = {
   matches: Array<{ id: string; round: number; court: number; courtName: string; teamA: [string, string]; teamB: [string, string]; teamAIds: [string, string]; teamBIds: [string, string]; scoreA: number | null; scoreB: number | null }>
 }
 export type View = "summary" | "calendar" | "standings" | "players" | "live"
-const buttonClass = "inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-sm font-black text-neutral-900 active:bg-neutral-100 disabled:opacity-50"
+const buttonClass = "app-action-button inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-sm font-black text-neutral-900 active:bg-neutral-100 disabled:opacity-50"
 const primaryClass = "inline-flex min-h-11 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2.5 text-sm font-black text-white disabled:opacity-50"
 function formatTime(value: string, locale: string) {
   return new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { hour: "2-digit", minute: "2-digit" }).format(new Date(value))

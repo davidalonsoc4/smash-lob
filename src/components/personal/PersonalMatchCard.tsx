@@ -10,6 +10,7 @@ import { MatchEventMeta } from "@/components/matches/MatchEventMeta"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { AppCard } from "@/components/ui/AppCard"
+import { formatShortDate } from "@/lib/rounds"
 import { FitText } from "@/components/ui/FitText"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -31,7 +32,7 @@ const showPersonalMatchChevron = false
 type PersonalMatchCardProps = { match: PersonalMatchItem; hideEventMeta?: boolean; compactBadges?: boolean }
 
 function MatchCardContent({ match, hideEventMeta = false, compactBadges = false, navigation }: PersonalMatchCardProps & { navigation: ReactNode }) {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const { userLeagues } = useLeagueAccess()
   const league = userLeagues.find(item => item.id === match.leagueId)
   const teamA = getPersonalMatchTeamPlayers(match.participants, 1)
@@ -62,7 +63,7 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
         ) : (
           <MatchStatusBadge
             variant="dot"
-            status={match.status}
+            status={match.preview && !match.scheduledAt ? "scheduling" : match.status}
             scheduledAt={match.scheduledAt}
             resultRecordedAt={match.resultRecordedAt}
             isParticipant={match.participants.some(participant => participant.isCurrentUser)}
@@ -71,7 +72,7 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
       </div>
 
       <div className="flex items-center gap-3">
-        {isFinished ? (
+        {match.preview?.hidden ? <div className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-center"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5 text-neutral-500"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><p className="text-sm font-semibold text-neutral-600">{tx("Emparejamientos por revelar")}</p></div> : isFinished ? (
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
               <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
@@ -180,6 +181,7 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
         {showPersonalMatchChevron ? <ClickableChevron className="shrink-0" /> : null}
       </div>
 
+      {!hideEventMeta && match.preview && !match.scheduledAt ? <div className="mt-3 flex min-h-10 items-center text-xs font-semibold text-neutral-500"><p>{match.preview.currentRound && !match.preview.hidden ? tx("Te toca jugar esta jornada. Acuerda fecha con los demás.") : tx("Próxima jornada")}{match.preview.startsAt ? <span className="mt-1 block">{match.preview.startsAt.includes("T") ? new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale === "eu" ? "eu-ES" : "es-ES",{dateStyle:"medium",timeStyle:"short"}).format(new Date(match.preview.startsAt)) : `${formatShortDate(match.preview.startsAt,locale)}${match.preview.endsAt ? ` · ${formatShortDate(match.preview.endsAt,locale)}` : ""}`}</span> : null}</p></div> : null}
       {!hideEventMeta ? <MatchEventMeta
         eventAt={match.scheduledAt}
         locationText={match.scheduleLocation ?? match.locationName}
@@ -208,7 +210,7 @@ export function PersonalMatchCard({ match, hideEventMeta = false, compactBadges 
       className="absolute inset-0 w-full rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-offset-2"
       onClick={() => {
         if (!match.leagueId || !activateLeague(match.leagueId)) return
-        router.push(`/match/${encodeURIComponent(match.id)}`)
+        router.push(match.preview?.hidden ? "/" : `/match/${encodeURIComponent(match.id)}`)
       }}
       aria-label={tx(`Abrir partido de ${match.leagueName ?? tx("liga")}`)}
     />} />

@@ -15,6 +15,7 @@ import { DashboardMvpCard } from "@/components/mvp/DashboardMvpCard";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { SeasonRegistrationPanel } from "@/components/season/SeasonRegistrationPanel";
 import { SeasonRosterWaitingRoom } from "@/components/season/SeasonRosterWaitingRoom";
+import { getLeaguePairGroups } from "@/lib/fixedPairLeague";
 import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
@@ -382,7 +383,7 @@ export default function Home() {
   const { t } = useI18n();
   const { visualStyle } = useTheme();
   const { data: session } = useSession();
-  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings, seasons } = useSeasonSettings();
+  const { hydrateSeasonSnapshot, startSeason, updateSeasonRoundSettings, seasons, seasonPlayers } = useSeasonSettings();
   const { replaceSeasonMatches } = useMatchData();
   const [isStartingSeason, setIsStartingSeason] = useState(false);
   const [startSeasonError, setStartSeasonError] = useState<string | null>(null);
@@ -532,7 +533,8 @@ export default function Home() {
     !isSelfRegistrationSeason ||
     (typeof playerCapacity === "number" &&
       playerCapacity > 0 &&
-      seasonRankingPlayers.length >= playerCapacity);
+      seasonRankingPlayers.length >= playerCapacity &&
+      (activeLeague.modality !== "fixed_pairs" || getLeaguePairGroups(seasonPlayers.filter(row => row.seasonId === activeSeason.id)).pending.length === 0));
   const hasRegistrationFee =
     roundSettings.registrationFee.enabled && roundSettings.registrationFee.amount > 0;
   const scheduledHomeStage = getScheduledSeasonHomeStage({
@@ -750,7 +752,7 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-4">
+    <div data-countdown-home={showScheduledCountdownHero ? "true" : undefined} className="space-y-4">
       <header data-tour="home-header" className="app-page-header">
         <Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500" style={{ maxWidth: "min(8rem, calc(100% - var(--app-top-controls-width, 202px) - 28px))" }}>
           <span aria-hidden="true" className="mr-1 inline-block shrink-0">←</span>
