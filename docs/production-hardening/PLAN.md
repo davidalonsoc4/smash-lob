@@ -1,5 +1,5 @@
 ## MC63 — Publicación de cambios pendientes en PRE
-- Estado: EN CURSO (25/10/2026), autorización explícita del usuario.
+- Estado: COMPLETO PRE (25/10/2026), v1.15.35 publicada y verificada; CI413 cuatro jobs PASS,1632 pruebas y241 E2E/1skip previsto.
 - Alcance: publicar la rama de desarrollo y cambios locales aceptados como v1.15.35 en staging/PRE; conservar main, Production y v1.0.0. Migraciones PRE ya aplicadas.
 - Gates: release:check local, CI de PR, integración verificada, Vercel READY/alias/commit, health/versión/PWA y rutas sin sesión. OAuth y uso físico de PWA siguen manuales.
 
