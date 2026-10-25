@@ -1,3 +1,55 @@
+## MC63 — Publicación de cambios pendientes en PRE
+- Estado: EN CURSO (25/10/2026), autorización explícita del usuario.
+- Alcance: publicar la rama de desarrollo y cambios locales aceptados como v1.15.35 en staging/PRE; conservar main, Production y v1.0.0. Migraciones PRE ya aplicadas.
+- Gates: release:check local, CI de PR, integración verificada, Vercel READY/alias/commit, health/versión/PWA y rutas sin sesión. OAuth y uso físico de PWA siguen manuales.
+
+## MC62 — Coherencia de calendario, partido, actividad y chats
+- Estado: COMPLETO LOCAL (25/10/2026), validate completo y26 E2E PASS; petición explícita anterior a T06.
+- Bloques: 1) estados de jornada uniformes con/sin fechas;2) parejas protagonistas y espaciado;3) prioridad de posición por estadísticas personales verificables;4) actividad propia por programación/jornada, sin spoilers;5) cuenta atrás sin scroll vacío y aviso de bloqueo;6) filtros y proximidad de chats globales con color de liga;7) botones legibles compartidos;8) paneles blancos en claro.
+- Gates: pruebas unitarias/integración contextual, TypeScript/lint/i18n/build, navegador móvil claro/oscuro × Clásico/Competition, privacidad, permisos y regresiones. Solo local, sin cambios de datos ni despliegues.
+- Reanudación: docs/production-hardening/STATUS.md registra cada bloque; Auto-Resume0.6.13 activo/vigilante funcionando, confirmado por herramienta.
+
+## MC61 — Plantillas por parejas e inscripción con compañero
+- Estado: COMPLETO LOCAL + DB PRE (25/10/2026); validate completo,1.622 pruebas,26 E2E y PostgreSQL aislado PASS.
+- Alcance: parejas visibles dentro de la plantilla al crear temporada, autoinscripción por invitación con elección de compañero ya inscrito o todavía pendiente, revisión de parejas por la organización antes de comenzar y cancelar creación al pie del formulario. Anterior a T06.
+- Persistencia: reutilizar pair_number; permitir pendientes solo en autoinscripción antes de empezar, asignaciones atómicas y validaciones de inicio/calendario. Migración nueva, ninguna aplicada se modifica. PRE de base autorizado previamente; código solo local.
+- Gates: pruebas de API/UI/cálculos, PostgreSQL aislado con roles/concurrencia, TypeScript/lint/i18n/build y recorridos móviles de ambos modos de inscripción y regresiones individuales.
+
+## MC60 — Creación global y acceso a jornada activa
+- Estado: COMPLETO LOCAL (25/10/2026);40 pruebas, TypeScript/lint/tipografía/i18n/presupuesto y12 recorridos de navegador PASS.
+- Alcance: crear liga independiente de la última liga/temporada seleccionada, sin saltarse el permiso creator de la cuenta ni desbloquear competiciones programadas; centrar icono de jornada respecto a título y temporada. Petición anterior a T06.
+- Gates: pruebas de navegación/temporadas/permisos/calendario, TypeScript/lint, tipografía y E2E móvil/escritorio con fixtures, creación desde cuenta atrás y geometría/scroll del calendario. Sin operaciones remotas.
+
+## MC59 — Borde superior de liga aprobado
+- Estado: COMPLETO LOCAL (25/10/2026); diez pruebas, lint y dos recorridos móviles claro/oscuro PASS. Diseño aceptado expresamente por el usuario.
+- Alcance: sustituir el marco del logo por borde superior de2px del color propio en Mis ligas. Mantener laterales neutros, progreso y resumen compacto. Prueba solicitada anterior a T06.
+- Gates: pruebas existentes de competiciones/navegación, ESLint y comprobación móvil claro/oscuro con fixtures. Sin operaciones remotas.
+
+## MC58 — Centrado vertical de cabeceras Competition
+- Estado: COMPLETO LOCAL (25/10/2026);29 pruebas, tipografía/lint y ocho recorridos finales de navegador PASS.
+- Alcance: petición expresa anterior a T06. Corregir el padding vertical asimétrico compartido de Competition; auditar pantallas afectadas, preservar Clásico y cabecera inmersiva de chats con safe area.
+- Gates: tipografía, pruebas de cabecera/Competition/competiciones, lint y navegador móvil/escritorio claro/oscuro, con medidas de centrado y regresión de chats. Sin operaciones remotas.
+
+## MC57 — Prueba de marco de color en el logo
+- Estado: COMPLETO LOCAL (25/10/2026); diez pruebas, lint y dos recorridos móviles claro/oscuro PASS. Diseño de prueba pendiente de valoración.
+- Alcance: prueba visual solicitada anterior a T06. En Mis ligas, contorno de 2px del acento propio separado 3px del logo, suavizado en oscuro, sin cambiar el tamaño de las tarjetas ni Competiciones. Pendiente de valoración del usuario.
+- Gates: pruebas existentes de competiciones/navegación, ESLint y navegador móvil claro/oscuro con fixtures. Sin operaciones remotas.
+
+## MC56 — Degradado solo en el resumen de Competiciones
+- Estado: COMPLETO LOCAL (25/10/2026); diez pruebas existentes y ESLint focalizado PASS.
+- Alcance: retirar únicamente el degradado lateral de Mis ligas por indicación del usuario; conservarlo en las tarjetas compactas de Competiciones, mantener progreso y resto del diseño. Anterior a T06.
+- Gates: pruebas existentes de competiciones/navegación y ESLint focalizado. Sin operaciones remotas.
+
+## MC55 — Identidad visual de Mis ligas
+- Estado: COMPLETO LOCAL (25/10/2026); 23 pruebas focalizadas y ocho recorridos de navegador correctos, tipos/lint/i18n/presupuesto PASS.
+- Alcance: petición expresa anterior a T06. Color propio con degradado lateral, temporada/modalidad, estadísticas integradas y progreso; estados suaves compartidos con partidos. Conservar resumen, navegación, datos y permisos.
+- Gates: pruebas de competiciones/navegación, tipos, lint, i18n, presupuesto y navegador móvil claro/oscuro con fixtures y accesibilidad. Sin operaciones remotas.
+
+## MC54 — Mis ligas sin selección destacada
+- Estado: COMPLETO LOCAL (25/10/2026); diez pruebas existentes, ESLint focalizado, TypeScript e i18n correctos.
+- Alcance: petición expresa anterior a T06; retirar la etiqueta Actual y el reborde de liga seleccionada. Estado real de temporada conservado, con «En curso» para evitar ambigüedad. Proponer mejoras visuales sin aplicar todavía el rediseño.
+- Gates: pruebas existentes de competiciones/navegación, ESLint focalizado, TypeScript e i18n. Sin operaciones remotas.
+
 ## T05c — Ligas por parejas fijas
 - Estado: COMPLETO LOCAL + DB PRE (25/10/2026), commit47320b27 y cierre en docs/tournaments/STATUS.md.
 - Alcance: petición posterior del usuario, antes de T06 de docs/tournaments/PLAN.md. Modalidad al crear liga; 2–16 parejas, calendario por vueltas/personalizado/manual y clasificación conjunta. Preservar ligas individuales.
