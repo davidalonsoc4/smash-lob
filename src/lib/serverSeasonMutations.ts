@@ -1,4 +1,4 @@
-import { getServerLeagueModality, getServerSeasonPairs } from "@/lib/serverLeagueModality"
+import { getServerLeagueModality, getServerSeasonPairs, pairsFromRoster } from "@/lib/serverLeagueModality"
 import { validateLeaguePairs, areLeagueMatchesPaired, type LeaguePair } from "@/lib/fixedPairLeague"
 import "server-only"
 
@@ -589,6 +589,11 @@ export async function reopenServerFinishedSeason({
   }
 }
 
+async function selfRegistrationPairs(supabase: ServerLeagueActor["supabase"], leagueId: string, rows: { player_id: string; pair_number?: number | null; status?: string | null }[]) {
+  if (await getServerLeagueModality(supabase, leagueId) !== "fixed_pairs") return undefined
+  try { return pairsFromRoster(rows) } catch { throw new SeasonMutationError(409, "invalid_fixed_pairs") }
+}
+
 export async function prepareServerSelfRegistrationSeasonCalendar({
   supabase,
   leagueId,
@@ -633,7 +638,7 @@ export async function prepareServerSelfRegistrationSeasonCalendar({
 
   const { data: seasonPlayerRows, error: seasonPlayersError } = await supabase
     .from("season_players")
-    .select("player_id,status")
+    .select("player_id,pair_number,status")
     .eq("season_id", seasonId)
     .eq("status", "active")
 
@@ -659,6 +664,7 @@ export async function prepareServerSelfRegistrationSeasonCalendar({
     leagueId,
     seasonId,
     playerIds,
+    fixedPairs: await selfRegistrationPairs(supabase, leagueId, seasonPlayerRows ?? []),
     scheduleMode,
     targetRoundCount: Number(seasonRow.total_rounds),
   })
@@ -774,7 +780,7 @@ export async function startServerExistingSeason({
 
     const { data: seasonPlayerRows, error: seasonPlayersError } = await supabase
       .from("season_players")
-      .select("player_id,status")
+      .select("player_id,pair_number,status")
       .eq("season_id", seasonId)
       .eq("status", "active")
 
@@ -800,6 +806,7 @@ export async function startServerExistingSeason({
       leagueId,
       seasonId,
       playerIds,
+      fixedPairs: await selfRegistrationPairs(supabase, leagueId, seasonPlayerRows ?? []),
       scheduleMode,
       targetRoundCount: Number(seasonLengthRow.total_rounds),
     })
@@ -1511,7 +1518,7 @@ export async function createServerSeason({
   const modality = await getServerLeagueModality(supabase, leagueId)
   const requestedPairs = input.fixedPairs
   const validValues = [...playerIds, ...Array.from({ length: newPlayerNames.length + appUserIds.length }, (_, i) => `__new_player__${i}`)]
-  if (modality === "fixed_pairs" && (rosterMode !== "fixed" || !validateLeaguePairs(requestedPairs, validValues) || (manualMatches?.length && !areLeagueMatchesPaired(manualMatches, requestedPairs)))) throw new SeasonMutationError(400, "invalid_fixed_pairs")
+  if (modality === "fixed_pairs" && rosterMode === "fixed" && (!validateLeaguePairs(requestedPairs, validValues) || (manualMatches?.length && !areLeagueMatchesPaired(manualMatches, requestedPairs)))) throw new SeasonMutationError(400, "invalid_fixed_pairs")
   const isSelfRegistration = rosterMode === "self_registration"
   const { count: existingSeasonCount, error: seasonCountError } = await supabase
     .from("seasons")
@@ -1815,7 +1822,7 @@ export async function createServerSeason({
       ...appLinkedPlayers.map((player) => player.id),
     ]
   const createdIds = [...(newPlayers ?? []).map(player => player.id), ...appLinkedPlayers.map(player => player.id)]
-  const fixedPairs = modality === "fixed_pairs" ? requestedPairs!.map(pair => pair.map(id => {
+  const fixedPairs = modality === "fixed_pairs" && !isSelfRegistration ? requestedPairs!.map(pair => pair.map(id => {
     const index = getNewPlayerIndexFromToken(id)
     return index === null ? id : createdIds[index]
   }) as LeaguePair) : undefined
@@ -1886,12 +1893,13 @@ export async function createServerSeason({
   }
 
 
-  if (finalPlayerIds.length > 0) {
+  async function insertSeasonPlayers(seasonId: string) {
+    if (finalPlayerIds.length === 0) return
     const { error: seasonPlayersError } = await supabase
       .from("season_players")
       .insert(
         finalPlayerIds.map((playerId) => ({
-          season_id: season.id,
+          season_id: seasonId,
           player_id: playerId,
           pair_number: pairNumberFor(playerId),
         }))
@@ -1901,6 +1909,7 @@ export async function createServerSeason({
       throw new SeasonMutationError(500, "season_players_link_failed")
     }
   }
+  if (!isSelfRegistration) await insertSeasonPlayers(season.id)
 
   const resolvedManualMatches = !isSelfRegistration && manualMatches
     ? resolveManualCalendarDraft({
@@ -2025,6 +2034,7 @@ export async function createServerSeason({
   if (settingsError) {
     throw new SeasonMutationError(500, "season_settings_create_failed")
   }
+  if (isSelfRegistration) await insertSeasonPlayers(season.id)
 
   const { error: leagueUpdateError } = await supabase
     .from("leagues")

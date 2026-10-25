@@ -3,6 +3,21 @@ import type { GeneratedMatch, SeasonScheduleMode } from "@/lib/calendar"
 export type LeagueModality = "individual" | "fixed_pairs"
 export type LeaguePair = [string, string]
 
+export function getLeaguePairGroups(rows: { playerId: string; pairNumber?: number | null; status?: string | null }[]) {
+  const groups = new Map<number, string[]>()
+  const pending: string[] = []
+  for (const row of rows.filter(row => row.status !== "withdrawn")) {
+    if (!Number.isInteger(row.pairNumber) || row.pairNumber! < 1 || row.pairNumber! > 16) pending.push(row.playerId)
+    else groups.set(row.pairNumber!, [...(groups.get(row.pairNumber!) ?? []), row.playerId])
+  }
+  const pairs: { number: number; playerIds: LeaguePair }[] = []
+  for (const [number, ids] of [...groups].sort(([a], [b]) => a - b)) {
+    if (ids.length === 2) pairs.push({ number, playerIds: ids as LeaguePair })
+    else pending.push(...ids)
+  }
+  return { pairs, pending }
+}
+
 export function isLeaguePlayerCountValid(count: number, modality: LeagueModality = "individual") {
   return Number.isInteger(count) && count <= 32 && (modality === "fixed_pairs" ? count >= 4 && count % 2 === 0 : count >= 8)
 }

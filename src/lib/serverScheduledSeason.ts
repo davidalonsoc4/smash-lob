@@ -46,7 +46,7 @@ export async function prepareScheduledSeasonCalendars({
     } catch (prepareError) {
       if (
         isSeasonMutationError(prepareError) &&
-        ["roster_incomplete", "season_not_scheduled", "season_prepare_not_allowed"].includes(
+        ["roster_incomplete", "invalid_fixed_pairs", "season_not_scheduled", "season_prepare_not_allowed"].includes(
           prepareError.code,
         )
       ) {
@@ -97,7 +97,7 @@ export async function activateDueScheduledSeasons({
     } catch (startError) {
       if (
         isSeasonMutationError(startError) &&
-        ["roster_incomplete", "registration_unsettled", "season_calendar_invalid"].includes(startError.code)
+        ["roster_incomplete", "invalid_fixed_pairs", "registration_unsettled", "season_calendar_invalid"].includes(startError.code)
       ) {
         continue
       }
@@ -161,6 +161,7 @@ export async function activateDueScheduledSeasonsFromAutomation({
         isSeasonMutationError(startError) &&
         [
           "roster_incomplete",
+          "invalid_fixed_pairs",
           "registration_unsettled",
           "season_calendar_invalid",
         ].includes(startError.code)

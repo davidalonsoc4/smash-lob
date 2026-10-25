@@ -455,7 +455,7 @@ export async function POST(
       `__new_player__${index}`,
     ),
   ])
-  if (modality === "fixed_pairs" && (rosterMode !== "fixed" || !validateLeaguePairs(body?.fixedPairs, [...validPlayerValues]))) {
+  if (modality === "fixed_pairs" && rosterMode === "fixed" && !validateLeaguePairs(body?.fixedPairs, [...validPlayerValues])) {
     return NextResponse.json({ error: "invalid_fixed_pairs" }, { status: 400 })
   }
   const validSelfPlayerValues = new Set<string>([
@@ -483,7 +483,7 @@ export async function POST(
       actor: access.actor,
       input: {
         leagueId,
-        fixedPairs: modality === "fixed_pairs" ? body!.fixedPairs as [string, string][] : undefined,
+        fixedPairs: modality === "fixed_pairs" && rosterMode === "fixed" ? body!.fixedPairs as [string, string][] : undefined,
         activeSeasonId,
         name,
         playerIds,

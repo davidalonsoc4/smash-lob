@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
+import { SeasonPairFields } from "@/components/season/SeasonPairFields"
+import { SeasonPartnerSelect } from "@/components/season/SeasonPartnerSelect"
+import { getLeaguePairGroups, type LeaguePair } from "@/lib/fixedPairLeague"
+import { showActionFeedback } from "@/lib/actionFeedback"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -18,12 +22,15 @@ export function SeasonRosterWaitingRoom({
 }) {
   const { t, tx } = useI18n()
   const {
+    leagues = [],
     fetchLeagueUsers,
     getMembershipForLeague,
     isLeagueAdmin,
     refreshLeagueAccess,
   } = useLeagueAccess()
   const { playerProfiles, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
+  const [partnerPlayerId, setPartnerPlayerId] = useState("")
+  const [pairDraft, setPairDraft] = useState<{ roster: Record<string, number | null>; pairs: LeaguePair[] } | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [waitlistPosition, setWaitlistPosition] = useState<number | null>(null)
@@ -54,6 +61,12 @@ export function SeasonRosterWaitingRoom({
     membership?.playerId && registeredPlayerIds.includes(membership.playerId),
   )
   const remaining = Math.max(playerCapacity - registeredPlayers.length, 0)
+  const isPairLeague = leagues.find(league => league.id === leagueId)?.modality === "fixed_pairs"
+  const registeredRows = seasonPlayers.filter(row => row.seasonId === seasonId && row.status !== "withdrawn")
+  const groups = getLeaguePairGroups(registeredRows)
+  const ownPending = isCurrentUserRegistered && groups.pending.includes(membership!.playerId)
+  const availablePartners = registeredPlayers.filter(player => groups.pending.includes(player.id) && player.id !== membership?.playerId)
+  const partnerResolved = !isPairLeague || partnerPlayerId === "__pending__" || availablePartners.some(player => player.id === partnerPlayerId)
   const removablePlayerIds =
     rosterPermissions?.leagueId === leagueId
       ? rosterPermissions.removablePlayerIds
@@ -166,7 +179,9 @@ export function SeasonRosterWaitingRoom({
     setError(null)
 
     try {
-      await joinSeasonRoster(leagueId, seasonId)
+      if (!partnerResolved) return
+      await joinSeasonRoster(leagueId, seasonId, isPairLeague ? partnerPlayerId === "__pending__" ? null : partnerPlayerId : undefined)
+      setPartnerPlayerId("")
       await refreshLeagueAccess()
     } catch (joinError) {
       const message = joinError instanceof Error ? joinError.message : t.roster.joinError
@@ -183,7 +198,8 @@ export function SeasonRosterWaitingRoom({
         setError(tx("La plantilla está completa. Te has unido a la lista de espera."))
         return payload
       }
-      setError(message)
+      setError(message.includes("partner_unavailable") ? tx("Ese jugador ya tiene pareja. Actualiza la lista y elige otro compañero.") : message)
+      if (message.includes("partner_unavailable")) { setPartnerPlayerId(""); await refreshLeagueAccess() }
     } finally {
       setIsSaving(false)
     }
@@ -223,28 +239,10 @@ export function SeasonRosterWaitingRoom({
     }
   }
 
-  return (
-    <AppCard className="border-emerald-200 bg-emerald-50/70 p-2.5">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex items-baseline gap-2">
-            <p className="truncate text-sm font-black text-emerald-950">
-              {t.roster.title}
-            </p>
-            <p className="shrink-0 type-caption font-black uppercase tracking-[0.12em] text-emerald-700">
-              {registeredPlayers.length}/{playerCapacity}
-            </p>
-          </div>
-          <p className="mt-0.5 type-caption font-semibold text-emerald-800">
-            {remaining > 0
-              ? t.roster.remaining.replace("{count}", String(remaining))
-              : t.roster.complete}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-2 grid gap-1">
-        {registeredPlayers.map((player, index) => (
+  function renderPlayer(playerId: string, index: number) {
+    const player = registeredPlayers.find(player => player.id === playerId)
+    if (!player) return null
+    return (
           <div
             key={player.id}
             className="flex min-h-9 items-center gap-2 rounded-xl border border-emerald-100 bg-white px-2 py-1"
@@ -269,7 +267,54 @@ export function SeasonRosterWaitingRoom({
               </button>
             ) : null}
           </div>
-        ))}
+    )
+  }
+  function editPairs() {
+    const ids = [...groups.pairs.flatMap(pair => pair.playerIds), ...groups.pending]
+    setPairDraft({ roster: Object.fromEntries(registeredRows.map(row => [row.playerId, row.pairNumber ?? null])), pairs: Array.from({ length: Math.ceil(ids.length / 2) }, (_, index) => [ids[index * 2] ?? "", ids[index * 2 + 1] ?? ""]) })
+    setError(null)
+  }
+  async function savePairs() {
+    if (!pairDraft || isSaving) return
+    setIsSaving(true); setError(null)
+    try {
+      const response = await fetch(`/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/pairs`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roster: pairDraft.roster, pairs: pairDraft.pairs.filter(pair => pair.every(Boolean)) }) })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error ?? "save_pairs_failed")
+      setPairDraft(null)
+      showActionFeedback({ tone: "success", message: payload.calendarInvalidated ? tx("Parejas guardadas. Se recalculará el calendario sin resultados.") : tx("Parejas guardadas.") })
+      await refreshLeagueAccess()
+    } catch (error) {
+      setError(error instanceof Error && error.message === "roster_changed" ? tx("La plantilla ha cambiado. Revisa las parejas de nuevo.") : tx("No se han podido guardar las parejas. Revisa la plantilla e inténtalo de nuevo."))
+      setPairDraft(null); await refreshLeagueAccess()
+    } finally { setIsSaving(false) }
+  }
+
+  return (
+    <AppCard className="border-emerald-200 bg-emerald-50/70 p-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-2">
+            <p className="truncate text-sm font-black text-emerald-950">
+              {t.roster.title}
+            </p>
+            <p className="shrink-0 type-caption font-black uppercase tracking-[0.12em] text-emerald-700">
+              {registeredPlayers.length}/{playerCapacity}
+            </p>
+          </div>
+          <p className="mt-0.5 type-caption font-semibold text-emerald-800">
+            {remaining > 0
+              ? t.roster.remaining.replace("{count}", String(remaining))
+              : isPairLeague && groups.pending.length ? tx("Plantilla completa. Quedan parejas por confirmar.") : t.roster.complete}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-2 grid gap-1">
+        {isPairLeague ? <div className="space-y-3" data-registered-pairs>
+          {groups.pairs.map(pair => <div key={pair.number}><p className="mb-1 text-xs font-bold text-neutral-600">{tx("Pareja")} {pair.number}</p><div className="grid grid-cols-2 gap-2">{pair.playerIds.map(renderPlayer)}</div></div>)}
+          {groups.pending.length ? <div><p className="mb-1 text-xs font-bold text-neutral-600">{tx("Pendientes de compañero")}</p><div className="grid gap-1">{groups.pending.map(renderPlayer)}</div></div> : null}
+        </div> : registeredPlayers.map((player, index) => renderPlayer(player.id, index))}
 
         {Array.from({ length: remaining }, (_, index) => (
           <div
@@ -284,11 +329,21 @@ export function SeasonRosterWaitingRoom({
         ))}
       </div>
 
+      {isPairLeague && canManage && registeredPlayers.length > 1 ? <div className="mt-3">
+        {!pairDraft ? <button type="button" onClick={editPairs} disabled={isSaving} className="flex min-h-9 w-full items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-xs font-bold">{tx("Revisar parejas")}</button> : <div className="space-y-2">
+          <p className="text-xs text-neutral-600">{tx("Revisa quién juega con quién antes de comenzar. Los jugadores sin asignar seguirán pendientes.")}</p>
+          <SeasonPairFields pairs={pairDraft.pairs} options={registeredPlayers.map(player => ({ value: player.id, label: player.displayName }))} allowEmpty disabled={isSaving} onChange={pairs => setPairDraft({ ...pairDraft, pairs })} />
+          <div className="flex gap-2"><button type="button" disabled={isSaving} onClick={() => void savePairs()} className="flex min-h-9 flex-1 items-center justify-center rounded-xl bg-neutral-950 px-3 py-2 text-center text-xs font-bold text-white">{t.common.save}</button><button type="button" disabled={isSaving} onClick={() => setPairDraft(null)} className="flex min-h-9 flex-1 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-center text-xs font-bold">{t.common.cancel}</button></div>
+        </div>}
+      </div> : null}
+      {isPairLeague && ((!isCurrentUserRegistered && settings.registrationOpen) || ownPending) ? <SeasonPartnerSelect players={availablePartners} value={partnerPlayerId} onChange={setPartnerPlayerId} disabled={isSaving} /> : null}
+      {isPairLeague && ownPending ? <button type="button" onClick={() => void handleJoin()} disabled={isSaving || !partnerResolved || partnerPlayerId === "__pending__"} className="mt-2 flex min-h-9 w-full items-center justify-center rounded-xl bg-emerald-700 px-3 py-2 text-center text-xs font-bold text-white disabled:opacity-50">{tx("Vincular compañero")}</button> : null}
+
       {!isCurrentUserRegistered && settings.registrationOpen && !isWaitlisted ? (
         <button
           type="button"
           onClick={handleJoin}
-          disabled={isSaving}
+          disabled={isSaving || !partnerResolved}
           className="flex mt-2 w-full rounded-xl bg-emerald-700 px-3 py-2 text-xs font-black text-white disabled:bg-emerald-200 items-center justify-center text-center"
         >
           {isWaitlisted ? tx("En lista de espera") : isSaving ? t.common.saving : remaining > 0 ? t.roster.joinAction : tx("Entrar en lista de espera")}

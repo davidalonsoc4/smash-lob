@@ -52,15 +52,19 @@ it("creates a three-pair season with a bye, respecting server-side league mode",
   expect(state.createSeason.mock.calls[0][0].input.fixedPairs).toEqual(seasonBody().fixedPairs)
   expect(state.createSeason.mock.calls[0][0].input.targetRoundCount).toBe(3)
 })
-it.each(["duplicate", "missing", "stranger", "odd", "self_registration"])("rejects %s fixed-pair configuration before mutation", async variant => {
+it.each(["duplicate", "missing", "stranger", "odd"])("rejects %s fixed-pair configuration before mutation", async variant => {
   const body = seasonBody()
   if (variant === "duplicate") body.fixedPairs[1][0] = playerIds[0]
   if (variant === "missing") body.fixedPairs.pop()
   if (variant === "stranger") body.fixedPairs[0][0] = "90000000-0000-4000-8000-000000000001"
   if (variant === "odd") body.playerIds = playerIds.slice(0, 5)
-  if (variant === "self_registration") body.rosterMode = "self_registration"
   expect((await createSeason(request(body), { params: Promise.resolve({ id: leagueId }) })).status).toBe(400)
   expect(state.createSeason).not.toHaveBeenCalled()
+})
+it("accepts self-registration pairs without inventing partners before enrollment", async () => {
+  const body = { ...seasonBody(), playerIds: [], fixedPairs: undefined, rosterMode: "self_registration" }
+  expect((await createSeason(request(body), { params: Promise.resolve({ id: leagueId }) })).status).toBe(200)
+  expect(state.createSeason).toHaveBeenCalledWith(expect.objectContaining({ input: expect.objectContaining({ rosterMode: "self_registration", fixedPairs: undefined, playerCapacity: 6 }) }))
 })
 it("preserves the admin guard for season creation", async () => {
   state.allowed = false
