@@ -1,3 +1,8 @@
+## MC76 — Superficies de acento sin bordes
+- Estado: COMPLETO LOCAL (26/10/2026),5 E2E móviles con Axe y1 de resultado PASS; build y capturas revisados. Pendiente valoración visual del usuario; sin publicación.
+- Alcance: tarjeta de actividad sin borde/sombra, fondo sólido de acento más intenso y recuadros de parejas/resultados con el tinte apagado anterior. Solo estilos locales de la home.
+- Gates: móvil320/393px, Clásico/Competition claro/oscuro, Axe/contraste/carrusel/nombres y captura revisada. Sin publicación.
+
 ## MC75 — Acento en la propia tarjeta de actividad
 - Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles PASS con Axe/carrusel/nombres, build PASS y captura revisada. Pendiente valoración visual del usuario; sin publicación.
 - Alcance: retirar la envoltura visual exterior de Actividad personal y trasladar borde de acento/fondo suave a la tarjeta del partido, manteniendo parejas/resultados legibles y sin cambiar otras previews.
