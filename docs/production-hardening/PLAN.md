@@ -1,3 +1,8 @@
+## MC71 — Publicación autorizada de v1.15.36 en PROD
+- Estado: COMPLETO PROD (26/10/2026 21:05 CET), v1.15.36 publicada y verificada en smashandlob.com;18 migraciones aplicadas, CI417 cuatro jobs PASS,18 comprobaciones PROD y13 PRE PASS. v1.0.0 permanece intacta. OAuth real y aceptación PWA física siguen manuales.
+- Alcance: promover el código probado en PRE, revisar/aplicar las18 migraciones versionadas pendientes en PROD, verificar despliegue/alias/versión/PWA/autorización y conservar recuperación. No activar funcionalidades pendientes ni añadir servicios/configuraciones ajenas.
+- Gates: árbol main+staging idéntico al probado, CI de PR cuatro jobs PASS, respaldo fresco/descifrado/hash, dry-run exacto/revisión de compatibilidad, lista de migraciones y advisors posteriores, smoke PROD y estado PRE confirmado. OAuth real/PWA física no se automatizan ni se dan por comprobados.
+
 ## MC70 — Respaldo previo a PROD y recuperación
 - Estado: COMPLETO LOCAL (26/10/2026); copia cifrada con clave separada, seis payloads y hashes verificados, archivo PostgreSQL leído íntegramente y recuperación documentada. Sin restauración real ni autorización de publicar PROD.
 - Alcance: preservar código/despliegue actual de PROD y exportar copia cifrada/verificable de su base y archivos necesarios; documentar recuperación. No migraciones, publicación, restauración sobre datos reales ni cambios de configuración de PROD.
