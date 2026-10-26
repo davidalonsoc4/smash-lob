@@ -3397,3 +3397,7 @@ MC76 cierre final tras corrección de prioridad:5/5 E2EPASS (4temas +últimoencu
 MC77 INICIO LOCAL: aclaración usuario: acento normal al100%, no mezcla24%. Fondo cambiado a var(--app-accent) puro, sin modificar elección de acento ni interiores apagados. Fecha/ubicación/icono calendario usan --competition-accent-contrast calculado por tema, separador suave; origen con superficie opaca teñida para mantener legibilidad.
 
 MC77 CERRADO LOCAL: fondo100% var(--app-accent), sin mezcla ni suavizado; recuadros internos conservan tonoapagado. Texto/íconos de metadatos usan contraste de tema existente y origen conserva superficie legible.4/4E2EmóvilesPASS enClásico/Competitionclaro/oscuro,320/393px,Axe/navegaciónconservados; buildPASS ycapturaCompetitionoscuro confirma fondoexacto del acento del navbar. DiffcheckPASS. Evidenciamc77-browser.log. Sin cambios de datos ni publicación.
+
+MC78 INICIO LOCAL: usuario pide acento suavizado en los recuadros de nombres. Cambiado7% del acento contextual por35% del acento puro mezclado con superficie del tema, más visible; fondo exterior sigue100%. Texto/nombres mantienen contraste contextual y reducción de fuente. Sin otros cambios.
+
+MC78 CERRADO LOCAL: mini paneles con35% del acento ysuperficie contextual, tarjeta exterior100% intacta.4/4E2EmóvilesPASS (Clásico/Competitionclaro/oscuro,320/393px,Axe/navegación); buildPASS ycapturaoscurorevisada. Evidenciamc78-browser.log, diffcheckPASS. Sin lógica ni publicación.

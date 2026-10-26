@@ -1,3 +1,8 @@
+## MC78 — Acento suavizado en nombres
+- Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
+- Alcance: recuadros de parejas/resultados con tinte del acento más visible, manteniendo tarjeta100% y texto contextual legible. Solo CSS local.
+- Gates: navegador móvil Clásico/Competition claro/oscuro con Axe y captura revisada; sin publicación.
+
 ## MC77 — Acento puro en Actividad personal
 - Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
 - Alcance: fondo de tarjeta con el acento configurado al100%, sin mezclarlo; conservar interiores apagados y adaptar metadatos al color de contraste existente del tema.

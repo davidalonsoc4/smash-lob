@@ -103,7 +103,7 @@
 }
 
 :global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) {
-  background: color-mix(in srgb, var(--hub-accent) 7%, var(--hub-surface)) !important;
+  background: color-mix(in srgb, var(--app-accent) 35%, var(--hub-surface)) !important;
 }
 
 :global(html[data-visual-style]) .activityHero :global(.text-neutral-500) {
