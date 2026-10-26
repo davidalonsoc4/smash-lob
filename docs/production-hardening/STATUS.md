@@ -3401,3 +3401,7 @@ MC77 CERRADO LOCAL: fondo100% var(--app-accent), sin mezcla ni suavizado; recuad
 MC78 INICIO LOCAL: usuario pide acento suavizado en los recuadros de nombres. Cambiado7% del acento contextual por35% del acento puro mezclado con superficie del tema, más visible; fondo exterior sigue100%. Texto/nombres mantienen contraste contextual y reducción de fuente. Sin otros cambios.
 
 MC78 CERRADO LOCAL: mini paneles con35% del acento ysuperficie contextual, tarjeta exterior100% intacta.4/4E2EmóvilesPASS (Clásico/Competitionclaro/oscuro,320/393px,Axe/navegación); buildPASS ycapturaoscurorevisada. Evidenciamc78-browser.log, diffcheckPASS. Sin lógica ni publicación.
+
+MC79 INICIO LOCAL: usuario aprueba conservar cajas de nombres invisibles. Fondo transparente/sinborder/sombra en recuadros de parejas de Actividad personal, layout/padding intactos; nombres con --competition-accent-contrast. Tarjeta sigueacento100%, VS y marcadores conservados. Solo CSSmódulo, sin lógica.
+
+MC79 CERRADO LOCAL: cajas transparentes sinborde/sombra conservan geometría; nombres contrastan conacento puro.5/5E2EmóvilesPASS en320/393px Clásico/Competitionclaro/oscuro incluyendo últimoencuentro,Axe/navegación; buildPASS ycapturaoscurorevisada. Evidenciamc79-browser.log, diffcheckPASS. Sin cambios funcionales ni publicación.

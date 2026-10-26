@@ -94,7 +94,7 @@
   padding-inline: .125rem;
 }
 
-/* Flat accent surface; quieter inset surfaces distinguish pairs/results. */
+/* One accent surface; pair boxes keep their layout without visible chrome. */
 :global(html[data-theme][data-visual-style]) .overview .activityHero :global(.app-card) {
   border: 0 !important;
   background: var(--app-accent) !important;
@@ -103,7 +103,13 @@
 }
 
 :global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) {
-  background: color-mix(in srgb, var(--app-accent) 35%, var(--hub-surface)) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.text-neutral-950) {
+  color: var(--competition-accent-contrast) !important;
 }
 
 :global(html[data-visual-style]) .activityHero :global(.text-neutral-500) {

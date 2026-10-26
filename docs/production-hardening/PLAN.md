@@ -1,3 +1,8 @@
+## MC79 — Cajas de nombres transparentes
+- Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
+- Alcance: conservar cajas/alineación/espacios de parejas con fondo transparente sin borde/sombra; nombres con contraste del acento y marcadores con sus superficies propias. Solo CSS local de Actividad personal.
+- Gates: móvil320/393px Clásico/Competition claro/oscuro, Axe y variante con resultado; captura revisada, sin publicación.
+
 ## MC78 — Acento suavizado en nombres
 - Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
 - Alcance: recuadros de parejas/resultados con tinte del acento más visible, manteniendo tarjeta100% y texto contextual legible. Solo CSS local.
