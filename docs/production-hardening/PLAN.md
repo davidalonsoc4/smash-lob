@@ -1,5 +1,5 @@
 ## MC76 — Superficies de acento sin bordes
-- Estado: COMPLETO LOCAL (26/10/2026),5 E2E móviles con Axe y1 de resultado PASS; build y capturas revisados. Pendiente valoración visual del usuario; sin publicación.
+- Estado: COMPLETO LOCAL (26/10/2026), selector de fondo corregido y5/5 gates finales con Axe PASS; capturas claro/oscuro/resultados revisadas. Pendiente valoración visual; sin publicación.
 - Alcance: tarjeta de actividad sin borde/sombra, fondo sólido de acento más intenso y recuadros de parejas/resultados con el tinte apagado anterior. Solo estilos locales de la home.
 - Gates: móvil320/393px, Clásico/Competition claro/oscuro, Axe/contraste/carrusel/nombres y captura revisada. Sin publicación.
 

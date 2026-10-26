@@ -95,7 +95,7 @@
 }
 
 /* Flat accent surface; quieter inset surfaces distinguish pairs/results. */
-:global(html[data-visual-style]) .activityHero :global(.app-card) {
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.app-card) {
   border: 0 !important;
   background: color-mix(in srgb, var(--hub-accent) 24%, var(--hub-surface)) !important;
   box-shadow: none !important;
