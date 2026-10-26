@@ -1,3 +1,8 @@
+## MC69 — Publicación PRE y preparación de PROD
+- Estado: EN CURSO (26/10/2026), petición explícita anterior a T06.
+- Alcance: publicar MC64–68 como v1.15.36 en staging/PRE y emitir diagnóstico documentado de PROD; ninguna modificación de main/Production/v1.0.0 ni datos reales.
+- Gates: release:check completo local, cuatro jobs CI, SHA/árbol staging, Vercel READY/alias PRE, smoke de versión/entorno/PWA/rutas; comparar migraciones y aceptación manual pendiente antes de recomendar PROD.
+
 ## MC68 — Ventanas coherentes y filtros flotantes de Chats global
 - Estado: COMPLETO LOCAL (26/10/2026); validate1656 pruebas y34/34 E2E finales PASS. Sin publicación.
 - Alcance: estructura/estilos y cierre accesible compartidos en búsqueda, acciones, ayuda, ubicaciones y QR/imagen; proteger borradores al cancelar; búsqueda/filtros de Chats en lupa flotante con estado, indicador y limpieza. Mantener lógica de datos y navegación. Sin publicación ni migraciones.
