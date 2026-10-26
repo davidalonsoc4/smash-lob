@@ -7,7 +7,7 @@ import { type CalendarVisibilityMode, RoundWindowMode, type SeasonRoundSettings,
 import { useI18n } from "@/i18n/I18nProvider"
 import { revealSupabaseSeasonRound, updateSupabaseSeasonRoundSettings } from "@/lib/supabaseSeasons"
 import { showActionFeedback } from "@/lib/actionFeedback"
-import { type LeagueLocation, createScheduledLeagueLocationValue, findLeagueLocationByScheduleLocation, getLeagueLocationTownNameLabel, sortLeagueLocationsByTownNameLabel } from "@/lib/leagueLocations"
+import { type LeagueLocation, createScheduledLeagueLocationValue, findLeagueLocationByScheduleLocation, getLeagueLocationTownNameLabel, sortLeagueLocationsByTownNameLabel, normalizeLeagueLocations, normalizeScheduleLocationValue } from "@/lib/leagueLocations"
 import type { MvpSystem } from "@/lib/mvp"
 import type { ResultConfirmationMode } from "@/lib/resultConfirmations"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -254,14 +254,15 @@ export function RoundWindowSettingsPanel({
   const [openingRoundAt, setOpeningRoundAt] = useState(
     toDatetimeLocalValue(roundSettings.openingRoundAt),
   );
+  const openingOptions = normalizeLeagueLocations([...locations, normalizeScheduleLocationValue(roundSettings.openingRoundLocation)]);
   const initialOpeningLocation = findLeagueLocationByScheduleLocation({
-    locations,
+    locations: openingOptions,
     scheduleLocation: roundSettings.openingRoundLocation,
   });
   const [openingRoundLocationId, setOpeningRoundLocationId] = useState(
     initialOpeningLocation?.id ?? "",
   );
-  const sortedOpeningLocations = sortLeagueLocationsByTownNameLabel(locations);
+  const sortedOpeningLocations = sortLeagueLocationsByTownNameLabel(openingOptions);
   const selectedOpeningLocation =
     sortedOpeningLocations.find((location) => location.id === openingRoundLocationId) ?? null;
   const openingRoundLocation = selectedOpeningLocation

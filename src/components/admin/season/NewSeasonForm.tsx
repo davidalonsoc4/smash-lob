@@ -11,7 +11,7 @@ import { LeagueCreationForm } from "@/components/league/LeagueCreationForm"
 import { SeasonCreationSummary, type SeasonCreationSummaryGroup } from "./SeasonCreationSummary"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
+import { PersonalMatchLocationPicker } from "@/components/personal/PersonalMatchLocationPicker"
 import { SeasonPairFields } from "@/components/season/SeasonPairFields"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { SeasonPlayerCountSelector } from "@/components/season/SeasonPlayerCountSelector"
@@ -28,7 +28,7 @@ import { startSupabaseSeason } from "@/lib/supabaseSeasons"
 import { generateBalancedCalendar, generateManualCalendar, getNewPlayerIndexFromToken, getNewPlayerToken, getSeasonScheduleRoundCount, resolveManualCalendarDraft, type ManualCalendarMatchDraft, type SeasonScheduleMode } from "@/lib/calendar"
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import type { MvpSystem } from "@/lib/mvp"
-import { type LeagueLocation, createScheduledLeagueLocationValue, getLeagueLocationTownNameLabel, sortLeagueLocationsByTownNameLabel } from "@/lib/leagueLocations"
+import { type LeagueLocation, createScheduledLeagueLocationValue, getLeagueLocationTownNameLabel, sortLeagueLocationsByTownNameLabel, normalizeLeagueLocations } from "@/lib/leagueLocations"
 import type { ResultConfirmationMode } from "@/lib/resultConfirmations"
 import type { RosterMode } from "@/data/fakeData"
 import { recordActivityEvent } from "@/lib/activity"
@@ -547,7 +547,6 @@ export function NewSeasonForm({
     isSuperuser,
     leagues: accessibleLeagues,
     linkCurrentUserToLeaguePlayer,
-    updateLeagueLocations,
     userId,
   } = useLeagueAccess();
   const modality = (draftLeague ?? accessibleLeagues.find(league => league.id === activeLeagueId))?.modality ?? "individual";
@@ -575,8 +574,20 @@ export function NewSeasonForm({
   const [newSeasonName, setNewSeasonName] = useState(
     getDefaultNewSeasonName({ seasonCount: leagueSeasonCount }),
   );
-  const [leagueLocations, setLeagueLocations] =
-    useState<LeagueLocation[]>(initialLocations);
+  const leagueLocations = initialLocations;
+  const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
+  const [locationsError, setLocationsError] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/locations", { cache: "no-store" }).then(async response => {
+      const body = await response.json();
+      if (!response.ok || !Array.isArray(body.locations)) throw new Error("global_locations_lookup_failed");
+      if (!cancelled) setGlobalLocations(normalizeLeagueLocations(body.locations));
+    }).catch(() => { if (!cancelled) setLocationsError(true); }).finally(() => { if (!cancelled) setLocationsLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+  const openingLocations = sortLeagueLocationsByTownNameLabel(normalizeLeagueLocations([...globalLocations, ...leagueLocations]));
   const [playerCount, setPlayerCount] = useState(defaultPlayerCount);
   const [rosterMode, setRosterMode] = useState<RosterMode>("fixed");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
@@ -702,7 +713,7 @@ export function NewSeasonForm({
   const openingRoundIso = datetimeLocalToIso(openingRoundAt);
   const effectiveOpeningRoundIso = scheduledStartIso ?? openingRoundIso;
   const selectedOpeningRoundLocation =
-    leagueLocations.find((location) => location.id === openingRoundLocationId) ?? null;
+    openingLocations.find((location) => location.id === openingRoundLocationId) ?? null;
   const openingRoundLocation = selectedOpeningRoundLocation
     ? createScheduledLeagueLocationValue(selectedOpeningRoundLocation, null)
     : null;
@@ -903,10 +914,10 @@ export function NewSeasonForm({
   const completedPlayerCount = selectedPlayerIds.length + selectedAppUsers.length + cleanNewPlayerNames.filter(Boolean).length;
   const customized = calendarMode !== "balanced" || effectiveScheduleMode !== "single" || durationMode !== "complete" || calendarVisibilityMode !== "full" || roundWindowMode !== "none" || Boolean(scheduledStartAt) || openingRoundEnabled || !requiresThreeSets || mvpSystem !== "automatic" || resultConfirmationMode !== "none" || availabilityRecommendationsEnabled || organizationBallsAssigned || hasRegistrationFee;
   const summaryGroups: SeasonCreationSummaryGroup[] = [
-    { title: "Liga", target: isFirstLeagueSeason ? "league" : "basic", rows: [["Liga", leagueIdentity?.name ?? activeLeagueName], ["Modalidad de liga", tx(isPairLeague ? "Por parejas fijas" : "Individual de Smash & Lob")], ["Descripción", leagueIdentity?.description || "—"], ["Logo", <LeagueLogo key="league-logo" league={leagueIdentity} previewable={false} />], ["Color", <span key="league-color" role="img" aria-label={leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT} className="inline-block h-6 w-6 rounded-full border border-neutral-200" style={{ backgroundColor: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT }} />], ["Recomendaciones de la liga", leagueIdentity?.recommendations || "—"]] },
+    { title: "Liga", target: isFirstLeagueSeason ? "league" : "basic", accent: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT, featured: <div className="mb-3 flex min-w-0 items-center gap-3"><LeagueLogo league={leagueIdentity} size="lg" previewable={false} /><div className="min-w-0 flex-1"><p className="break-words text-lg font-black">{leagueIdentity?.name ?? activeLeagueName}</p><p className="mt-1 text-xs text-neutral-500">{tx(isPairLeague ? "Por parejas fijas" : "Individual de Smash & Lob")}</p><span className="mt-2 inline-flex items-center gap-1.5 text-xs text-neutral-500"><span role="img" aria-label={leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT} className="h-3 w-3 rounded-full" style={{ backgroundColor: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT }} />{tx("Color de liga")}</span></div></div>, rows: [["Descripción", leagueIdentity?.description || "—"], ["Recomendaciones de la liga", leagueIdentity?.recommendations || "—"]] },
     { title: "Participantes", target: "basic", rows: [["Temporada", newSeasonName], ["Jugadores", playerCount], ...(isPairLeague ? [["Parejas", playerCount / 2] as [string, number]] : []), ["Inscripción", rosterMode === "fixed" ? t.adminSeason.rosterModeFixedTitle : t.adminSeason.rosterModeSelfTitle]] },
     { title: "Calendario y duración", target: "advanced", rows: [["Calendario", calendarMode === "manual" ? t.adminSeason.manualCalendar : t.adminSeason.balancedCalendar], ["Duración", durationMode === "custom" ? t.adminSeason.durationCustomTitle : effectiveScheduleMode === "single" ? t.adminSeason.singleRoundCalendar : effectiveScheduleMode === "double" ? t.adminSeason.doubleRoundCalendar : `${t.adminSeason.extendedCalendar} ×${longMultiplier}`], ["Jornadas", totalSeasonRounds], ["Partidos por jornada", getSeasonMatchesPerRound(playerCount, modality)], ["Descansos por jornada", playerCount - 4 * getSeasonMatchesPerRound(playerCount, modality)]] },
-    { title: "Inicio y visibilidad", target: "advanced", rows: [["Inicio", scheduledStartAt ? `${formatCreationDate(scheduledStartIso)} (${tx("Hora de Madrid")})` : tx("Manual, cuando esté todo preparado")], ["Calendario visible", calendarVisibilityMode === "full" ? t.adminSeason.calendarVisibilityFullTitle : t.adminSeason.calendarVisibilityProgressiveTitle], ["Plazo por jornada", roundWindowMode === "none" ? tx("Sin plazo fijo") : `${roundWindowDays} ${tx("días")}`], ...(roundWindowMode !== "none" ? [["Fecha de comienzo", seasonStartsAt] as [string, string]] : []), ["Jornada inaugural", openingRoundEnabled ? `${formatCreationDate(effectiveOpeningRoundIso)} · ${selectedOpeningRoundLocation ? getLeagueLocationTownNameLabel(selectedOpeningRoundLocation) : "—"}` : tx("No")], ["Fase secretos", secretPhaseEnabled && scheduledStartAt ? `${secretDaysBefore} ${tx("días antes")}` : tx("No")], ["Ubicaciones de la liga", leagueLocations.map(location => getLeagueLocationTownNameLabel(location)).join(" · ") || "—"]] },
+    { title: "Inicio y visibilidad", target: "advanced", rows: [["Inicio", scheduledStartAt ? `${formatCreationDate(scheduledStartIso)} (${tx("Hora de Madrid")})` : tx("Manual, cuando esté todo preparado")], ["Calendario visible", calendarVisibilityMode === "full" ? t.adminSeason.calendarVisibilityFullTitle : t.adminSeason.calendarVisibilityProgressiveTitle], ["Plazo por jornada", roundWindowMode === "none" ? tx("Sin plazo fijo") : `${roundWindowDays} ${tx("días")}`], ...(roundWindowMode !== "none" ? [["Fecha de comienzo", seasonStartsAt] as [string, string]] : []), ["Jornada inaugural", openingRoundEnabled ? `${formatCreationDate(effectiveOpeningRoundIso)} · ${selectedOpeningRoundLocation ? getLeagueLocationTownNameLabel(selectedOpeningRoundLocation) : "—"}` : tx("No")], ["Fase secretos", secretPhaseEnabled && scheduledStartAt ? `${secretDaysBefore} ${tx("días antes")}` : tx("No")]] },
     { title: "Reglas de juego", target: "advanced", rows: [["Resultado", tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")], ["Sistema MVP", tx(mvpSystem === "automatic" ? "Automático" : mvpSystem === "none" ? "Desactivado" : mvpSystem === "automatic_advanced" ? "Automático avanzado" : "Votación")], ["Confirmación de resultados", tx(resultConfirmationMode === "none" ? "Sin confirmación adicional" : resultConfirmationMode === "required" ? "Obligatoria" : "Opcional")], ["Disponibilidad y recomendaciones", yesNo(availabilityRecommendationsEnabled)]] },
     { title: "Organización y pagos", target: "advanced", rows: [["Bolas asignadas por la organización", yesNo(organizationBallsAssigned)], ...(organizationBallsAssigned ? [["Modo de reparto", tx(ballsAssignmentMode === "selected" ? "Custodios seleccionados" : "Por prioridad")], ["Custodios", (ballsAssignmentMode === "selected" ? effectiveBallsAssignmentCustodianRefs : effectiveBallsAssignmentPriority).map(ref => ballsAssignmentPriorityEntries.find(entry => entry.ref === ref)?.name ?? ref).join(" · ")]] as Array<[string, string]> : []), ["Cuota por jugador", hasRegistrationFee ? `${registrationFeeAmount} €` : tx("Sin cuota")], ...(hasRegistrationFee ? [["Concepto de la cuota", registrationFeePurpose] as [string, string]] : [])] },
   ];
@@ -1167,19 +1178,6 @@ export function NewSeasonForm({
       try { mutationLeagueId = await onPrepareLeague(leagueLocations); settings.leagueId = mutationLeagueId; }
       catch (cause) { setError(cause instanceof Error ? cause.message : tx("No se han podido guardar los datos de la liga.")); setIsSaving(false); return; }
     }
-    if (isFirstLeagueSeason && !onPrepareLeague) {
-      const locationsUpdated = await updateLeagueLocations(
-        activeLeagueId,
-        leagueLocations,
-      );
-
-      if (!locationsUpdated) {
-        setError("No se han podido guardar las ubicaciones de la liga.");
-        setIsSaving(false);
-        return;
-      }
-    }
-
     if (isSupabaseBackedId(mutationLeagueId)) {
       try {
         const result = await startSupabaseSeason({
@@ -1620,50 +1618,7 @@ export function NewSeasonForm({
 
 </div>
 <div hidden={creationStep !== "advanced"} className="space-y-3" data-season-creation-advanced>
-<details className="league-creation-details"><summary>{tx("Calendario y duración")}<span className="text-xs font-normal text-neutral-500">{`${totalSeasonRounds} ${t.adminSeason.roundsShortLabel}`}</span></summary><div className="space-y-3 p-3 pt-0">          {isFirstLeagueSeason ? (
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-              <p className="text-sm font-black text-neutral-900">
-                {tx("Ubicaciones de la liga")}{" "}</p>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                {tx("Busca clubes ya guardados o añade uno nuevo. Estas ubicaciones estarán disponibles al programar los partidos.")}{" "}</p>
-
-              <div className="mt-3">
-                <LeagueLocationsEditor
-                  locations={leagueLocations}
-                  onChange={(nextLocations) => {
-                    setLeagueLocations(nextLocations);
-                    setError(null);
-                  }}
-                  disabled={isSaving}
-                  copy={{
-                    emptyLocations: t.adminLeague.emptyLocations,
-                    addLocationTitle: t.adminLeague.addLocationTitle,
-                    locationName: t.adminLeague.locationName,
-                    locationPlaceholder: t.adminLeague.locationPlaceholder,
-                    town: t.adminLeague.town,
-                    townPlaceholder: t.adminLeague.townPlaceholder,
-                    googleLocation: t.adminLeague.googleLocation,
-                    googleLocationPlaceholder: t.adminLeague.googleLocationPlaceholder,
-                    courts: t.adminLeague.courts,
-                    courtsPlaceholder: t.adminLeague.courtsPlaceholder,
-                    duplicatedLocation: t.adminLeague.duplicatedLocation,
-                    addLocation: t.adminLeague.addLocation,
-                    editLocation: t.adminLeague.editLocation,
-                    saveLocation: t.adminLeague.saveLocation,
-                    cancelLocationEdit: t.adminLeague.cancelLocationEdit,
-                    removeLocation: t.adminLeague.removeLocation,
-                    openMaps: t.adminLeague.openMaps,
-                    searchMaps: t.adminLeague.searchMaps,
-                    googleApiMissing: t.adminLeague.googleApiMissing,
-                  }}
-                />
-              </div>
-
-
-            </div>
-          ) : null}
-
-      <AppCard data-season-calendar-type>
+<details className="league-creation-details"><summary>{tx("Calendario y duración")}<span className="text-xs font-normal text-neutral-500">{`${totalSeasonRounds} ${t.adminSeason.roundsShortLabel}`}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard data-season-calendar-type>
         <div className="flex items-center gap-2">
           <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
             1
@@ -1744,108 +1699,26 @@ export function NewSeasonForm({
           </span>
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          {([
-              ["complete", t.adminSeason.durationCompleteTitle, t.adminSeason.durationCompleteDescription],
-              ["custom", t.adminSeason.durationCustomTitle, t.adminSeason.durationCustomDescription],
-            ] as const).map(([mode, title, description]) => {
-              const isSelected = durationMode === mode;
-              return (
-                <button
-                  key={mode}
-                  aria-pressed={isSelected}
-                  type="button"
-                  onClick={() => {
-                    setDurationMode(mode);
-                    const nextMode: SeasonScheduleMode = mode === "custom" ? "extended" : scheduleMode;
-                    const nextTarget = mode === "custom"
-                      ? Math.min(Math.max(customRoundCount, 1), maxSeasonRounds)
-                      : getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode, longMultiplier });
-                    refreshManualCalendarFromPlayers({
-                      selectedIds: selectedPlayerIds,
-                      count: playerCount,
-                      mode: nextMode,
-                      targetRounds: nextTarget,
-                    });
-                    setCreationFeedback(null);
-                  }}
-                  className={`rounded-2xl border px-3 py-2.5 text-left transition ${
-                    isSelected
-                      ? "border-neutral-950 bg-neutral-50 shadow-sm"
-                      : "border-neutral-200 bg-white text-neutral-600"
-                  }`}
-                >
-                  <span className="text-sm font-black">{title}</span>
-                  {mode === "complete" ? (
-                    <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-emerald-800">
-                      {t.adminSeason.durationRecommended}
-                    </span>
-                  ) : null}
-                  <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
-                    {description}
-                  </span>
-                </button>
-              );
-            })}
-        </div>
-
+        <label className="mt-4 block"><span className="text-xs font-bold text-neutral-500">{tx("1. Tipo de duración")}</span>
+          <select aria-label={tx("Tipo de duración")} value={durationMode} className="league-creation-input mt-1" onChange={event => {
+            const mode = event.target.value as SeasonDurationMode;
+            setDurationMode(mode);
+            refreshManualCalendarFromPlayers({ selectedIds: selectedPlayerIds, count: playerCount, mode: mode === "custom" ? "extended" : scheduleMode, targetRounds: mode === "custom" ? Math.min(Math.max(customRoundCount, 1), maxSeasonRounds) : getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode, longMultiplier }) });
+            setCreationFeedback(null);
+          }}><option value="complete">{t.adminSeason.durationCompleteTitle}</option><option value="custom">{t.adminSeason.durationCustomTitle}</option></select>
+          <span className="mt-2 block text-xs leading-5 text-neutral-500">{durationMode === "complete" ? t.adminSeason.durationCompleteDescription : t.adminSeason.durationCustomDescription}</span>
+        </label>
         {durationMode === "complete" ? (
-            <div className="mt-3 grid gap-2">
-              {(["single", "double", "extended"] as SeasonScheduleMode[]).map(
-                (mode) => {
-                  const isSelected = scheduleMode === mode;
-                  return (
-                    <button
-                      key={mode}
-                      aria-pressed={isSelected}
-                      type="button"
-                      onClick={() => {
-                        setScheduleMode(mode);
-                        const nextTarget = getSeasonScheduleRoundCount({
-                          playerCount,
-                          mode,
-                          longMultiplier,
-                        });
-                        refreshManualCalendarFromPlayers({
-                          selectedIds: selectedPlayerIds,
-                          count: playerCount,
-                          mode,
-                          targetRounds: nextTarget,
-                        });
-                        setCreationFeedback(null);
-                      }}
-                      className={`rounded-2xl border px-3 py-2.5 text-left transition ${
-                        isSelected
-                          ? "border-neutral-950 bg-neutral-50 shadow-sm"
-                          : "border-neutral-200 bg-white text-neutral-600"
-                      }`}
-                    >
-                      <span className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-black">
-                          {mode === "single"
-                            ? t.adminSeason.singleRoundCalendar
-                            : mode === "double"
-                              ? t.adminSeason.doubleRoundCalendar
-                              : t.adminSeason.extendedCalendar}
-                        </span>
-                        {isSelected ? (
-                          <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-white">
-                            {tx("Seleccionado")}
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className="mt-1 block text-xs font-semibold text-neutral-500">
-                        {mode === "single"
-                          ? isPairLeague ? tx("Una jornada contra cada pareja rival.") : t.adminSeason.singleRoundCalendarDescription
-                          : mode === "double"
-                            ? isPairLeague ? tx("Dos partidos contra cada pareja rival, con ida y vuelta.") : t.adminSeason.doubleRoundCalendarDescription
-                            : isPairLeague ? tx("Repite vueltas completas conservando las mismas parejas.") : t.adminSeason.extendedCalendarDescription}
-                      </span>
-                    </button>
-                  );
-                },
-              )}
-
+            <div className="season-duration-nested mt-3 space-y-3 rounded-xl border border-neutral-200 p-3" data-season-complete-duration>
+              <p className="text-xs font-semibold text-neutral-500">{tx("Dentro de Equilibrada completa")}</p>
+              <label className="block"><span className="text-sm font-bold">{tx("2. Vueltas completas")}</span>
+                <select aria-label={tx("Vueltas completas")} value={scheduleMode} className="league-creation-input mt-1" onChange={event => {
+                  const mode = event.target.value as SeasonScheduleMode; setScheduleMode(mode);
+                  refreshManualCalendarFromPlayers({ selectedIds: selectedPlayerIds, count: playerCount, mode, targetRounds: getSeasonScheduleRoundCount({ playerCount, mode, longMultiplier }) });
+                  setCreationFeedback(null);
+                }}><option value="single">{t.adminSeason.singleRoundCalendar}</option><option value="double">{t.adminSeason.doubleRoundCalendar}</option><option value="extended">{t.adminSeason.extendedCalendar}</option></select>
+                <span className="mt-2 block text-xs leading-5 text-neutral-500">{scheduleMode === "single" ? isPairLeague ? tx("Una jornada contra cada pareja rival.") : t.adminSeason.singleRoundCalendarDescription : scheduleMode === "double" ? isPairLeague ? tx("Dos partidos contra cada pareja rival, con ida y vuelta.") : t.adminSeason.doubleRoundCalendarDescription : isPairLeague ? tx("Repite vueltas completas conservando las mismas parejas.") : t.adminSeason.extendedCalendarDescription}</span>
+              </label>
               {scheduleMode === "extended" ? (
                 <label className="rounded-2xl border border-neutral-200 bg-white p-3">
                   <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
@@ -2305,24 +2178,8 @@ export function NewSeasonForm({
                   />
                 </label>
               )}
-              <label className="block">
-                <span className="text-sm font-semibold text-neutral-700">{t.adminSeason.openingRoundLocation}</span>
-                <select
-                  value={openingRoundLocationId}
-                  onChange={(event) => {
-                    setOpeningRoundLocationId(event.target.value);
-                    setCreationFeedback(null);
-                  }}
-                  className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
-                >
-                  <option value="">{t.adminSeason.openingRoundLocationPlaceholder}</option>
-                  {sortLeagueLocationsByTownNameLabel(leagueLocations).map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {getLeagueLocationTownNameLabel(location)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div><PersonalMatchLocationPicker locations={openingLocations} loading={locationsLoading} selectedLocationId={openingRoundLocationId} manualLocationName="" onSelectedLocationIdChange={value => { setOpeningRoundLocationId(value); setCreationFeedback(null); }} onManualLocationNameChange={() => {}} disabled={isSaving} allowManualLocation={false} label={t.adminSeason.openingRoundLocation} />
+              {locationsError ? <p role="alert" className="mt-2 text-xs text-red-600">{tx("No se ha podido cargar el catálogo de ubicaciones. Recarga para volver a intentarlo.")}</p> : null}</div>
               <span className="sm:col-span-2 block text-xs font-semibold leading-5 text-neutral-500">
                 {t.adminSeason.openingRoundCreateAutoHelp}
               </span>

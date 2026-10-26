@@ -16,6 +16,8 @@ export function PersonalMatchLocationPicker({
   onSelectedLocationIdChange,
   onManualLocationNameChange,
   disabled = false,
+  allowManualLocation = true,
+  label,
 }: {
   locations: LeagueLocation[]
   loading: boolean
@@ -24,6 +26,8 @@ export function PersonalMatchLocationPicker({
   onSelectedLocationIdChange: (value: string) => void
   onManualLocationNameChange: (value: string) => void
   disabled?: boolean
+  allowManualLocation?: boolean
+  label?: string
 }) {
   const { tx } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
@@ -69,7 +73,7 @@ export function PersonalMatchLocationPicker({
 
   return (
     <div className="min-w-0">
-      <span className="text-xs font-black uppercase tracking-wide text-neutral-600">{tx("Pista o club")}</span>
+      <span className="text-xs font-black uppercase tracking-wide text-neutral-600">{label ?? tx("Pista o club")}</span>
       <button
         type="button"
         aria-haspopup="dialog"
@@ -174,7 +178,7 @@ export function PersonalMatchLocationPicker({
                   )}
                 </div>
 
-                <div className="shrink-0 border-t border-neutral-100 bg-white p-2">
+                {allowManualLocation ? <div className="shrink-0 border-t border-neutral-100 bg-white p-2">
                   <button
                     type="button"
                     onClick={() => setIsAddingLocation((current) => !current)}
@@ -182,7 +186,7 @@ export function PersonalMatchLocationPicker({
                   >
                     {isAddingLocation ? tx("Cancelar nueva ubicación") : tx("+ Añadir nueva ubicación")}
                   </button>
-                </div>
+                </div> : null}
               </section>
             </>,
             document.body,

@@ -6,6 +6,7 @@ import {
   getLeagueLocationIdentityKey,
   getScheduleLocationDisplayText,
   normalizeLeagueLocation,
+  normalizeScheduleLocationValue,
   normalizeLeagueLocations,
   sortLeagueLocationsByOptionLabel,
   type LeagueLocation,
@@ -160,6 +161,15 @@ export async function listGlobalLocations(supabase: SupabaseClient) {
   return sortLeagueLocationsByOptionLabel(
     ((data ?? []) as GlobalLocationRow[]).map(mapGlobalLocationRow),
   )
+}
+
+// Preserve old league locations while accepting the same global catalog as matches.
+export async function resolveOpeningRoundLocation(supabase: SupabaseClient, value: string, legacyLocations: unknown) {
+  const requested = normalizeScheduleLocationValue(value)
+  if (!requested) return null
+  const matches = (location: LeagueLocation) => location.id === requested.id || getLeagueLocationIdentityKey(location) === getLeagueLocationIdentityKey(requested)
+  const location = normalizeLeagueLocations(legacyLocations).find(matches) ?? (await listGlobalLocations(supabase)).find(matches)
+  return location ? createScheduledLeagueLocationValue(location, null) : null
 }
 
 export type ManagedGlobalLocationUsageItem = {

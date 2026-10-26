@@ -1,3 +1,8 @@
+## MC66 — Duración, catálogo global y resumen visual
+- Estado: COMPLETO LOCAL (26/10/2026); validate1650 pruebas y46/46 E2E PASS, sin publicación.
+- Alcance: jerarquía clara tipo de duración/vueltas; retirar recomendaciones de ubicación del asistente; apertura busca en catálogo global con validación compatible con ubicaciones antiguas; resumen visual completo y editable.
+- Gates: integración de ubicación/permisos, componentes, regresión de duración/parejas y apertura en navegador móvil claro/oscuro, TypeScript/lint/i18n/build. Sin migraciones ni publicación.
+
 ## MC65 — Borrador completo de creación y correcciones de uso
 - Estado: COMPLETO LOCAL (26/10/2026); validate1641 pruebas,42 casos E2E verificados y cierre de tipos/lint/build PASS. Sin publicación.
 - Alcance: identidad sin persistir hasta confirmar temporada; salida libre a Competiciones, nombre propio precargado, cabeceras compactas, avanzada visible, Editar abre su bloque y color automático del logo reutilizado. Sin despliegues.

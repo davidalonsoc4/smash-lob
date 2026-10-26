@@ -7,6 +7,14 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+    "Color de liga": "League color",
+    "1. Tipo de duración": "1. Length type",
+    "Tipo de duración": "Length type",
+    "Dentro de Equilibrada completa": "Within Full balanced length",
+    "2. Vueltas completas": "2. Full cycles",
+    "Vueltas completas": "Full cycles",
+    "No se ha podido cargar el catálogo de ubicaciones. Recarga para volver a intentarlo.": "Could not load locations. Reload to try again.",
+    "Ver jugadores": "View players",
     "Revisar y confirmar": "Review and confirm",
     "Liga · Temporada": "League · Season",
     "Asignar color de liga automáticamente": "Assign league color automatically",
@@ -1287,6 +1295,14 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "Color de liga": "Ligaren kolorea",
+    "1. Tipo de duración": "1. Iraupen mota",
+    "Tipo de duración": "Iraupen mota",
+    "Dentro de Equilibrada completa": "Iraupen orekatu osoaren barruan",
+    "2. Vueltas completas": "2. Itzuli osoak",
+    "Vueltas completas": "Itzuli osoak",
+    "No se ha podido cargar el catálogo de ubicaciones. Recarga para volver a intentarlo.": "Ezin izan da kokalekuen katalogoa kargatu. Birkargatu berriro saiatzeko.",
+    "Ver jugadores": "Ikusi jokalariak",
     "Revisar y confirmar": "Berrikusi eta baieztatu",
     "Liga · Temporada": "Liga · Denboraldia",
     "Asignar color de liga automáticamente": "Ligaren kolorea automatikoki esleitu",

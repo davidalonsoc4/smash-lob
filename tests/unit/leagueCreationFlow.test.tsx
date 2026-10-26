@@ -66,6 +66,7 @@ it("reuses image cropping and retries a failed logo without creating a second le
 it("review edit buttons return to the matching context", () => {
   const edit = vi.fn()
   render(<SeasonCreationSummary groups={[{ title: "Calendario y duración", target: "advanced", rows: [["Jornadas", 7]] }]} participants={[["Ana", "Bea"]]} onEdit={edit} />)
+  fireEvent.click(screen.getByText("Ver jugadores"))
   expect(screen.getByText("Ana · Bea")).toBeVisible()
   fireEvent.click(screen.getByRole("button", { name: "Editar Calendario y duración" }))
   expect(edit).toHaveBeenCalledWith("advanced", "Calendario y duración")
