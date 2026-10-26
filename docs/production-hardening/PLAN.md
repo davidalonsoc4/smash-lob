@@ -1,3 +1,8 @@
+## MC72 — Identidad visual de Competiciones y Mis ligas
+- Estado: COMPLETO LOCAL (26/10/2026), rama codex/competition-visual-identity;32 pruebas existentes PASS,23 E2E/1 omisión prevista y8 comprobaciones finales de paletas/logos PASS. TypeScript/lint/i18n/fuente/build PASS; sin publicación ni cambios de datos.
+- Alcance: jerarquía del bloque de actividad, superficies compactas de ligas/torneos y tarjetas completas de Mis ligas. Solo presentación, conservando datos, permisos, selección, navegación, carrusel y temas. Sin despliegues ni base de datos.
+- Gates: pruebas existentes de competiciones y navegación, TypeScript/lint/i18n/fuente/build; navegador con fixtures en móvil320/393px y escritorio, Clásico/Competition claro/oscuro, contraste/Axe, desplazamiento y acceso a listados/ligas. Inspección de capturas locales antes de cerrar.
+
 ## MC71 — Publicación autorizada de v1.15.36 en PROD
 - Estado: COMPLETO PROD (26/10/2026 21:05 CET), v1.15.36 publicada y verificada en smashandlob.com;18 migraciones aplicadas, CI417 cuatro jobs PASS,18 comprobaciones PROD y13 PRE PASS. v1.0.0 permanece intacta. OAuth real y aceptación PWA física siguen manuales.
 - Alcance: promover el código probado en PRE, revisar/aplicar las18 migraciones versionadas pendientes en PROD, verificar despliegue/alias/versión/PWA/autorización y conservar recuperación. No activar funcionalidades pendientes ni añadir servicios/configuraciones ajenas.

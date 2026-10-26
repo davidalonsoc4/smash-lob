@@ -88,6 +88,21 @@ Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento
 - Acciones locales compartidas: league-creation-primary (negro en claro/acento en oscuro), secondary y edit. Pie sticky con Atrás y un único CTA, mínimo44px y safe area. Ajustes avanzados agrupados en details con resumen de valores y chevron.
 - Contador de plazas completadas incluye jugadores existentes, cuentas vinculadas y nombres manuales. Parejas agrupadas de dos en dos; directorio bajo búsqueda y sin vaciar nombres al alternar inscripción.
 
+## Identidad de Competiciones y Mis ligas
+
+- `CompetitionsOverview.module.css` concentra estas variantes de presentación;
+  no modifica `PersonalMatchCard`, `LeagueLogo` ni el carrusel compartido.
+- Actividad personal es el foco de la home: marco y lavado breve del acento
+  configurado, con una superficie opaca para nombres, resultados y metadatos.
+  No añadir estadísticas, mensajes ni acciones para llenar espacio.
+- Previews de liga conservan su degradado lateral estrecho; torneos utilizan
+  copa y un tinte sutil del tema. Los colores de estado mantienen su significado.
+- Mis ligas usa logo destacado sobre un fondo suave del color de la liga,
+  borde superior propio, lateral más evidente en temporadas en curso y una
+  franja inferior para los datos existentes. Finalizadas sigue contraído.
+- Todas las variantes respetan Clásico/Competition, claro/oscuro y movimiento
+  reducido; texto secundario de métricas con contraste suficiente sobre su fondo.
+
 ## Ventanas flotantes y búsqueda
 
 - Reutilizar `FloatingDialog` y las clases `app-dialog-*` de `globals.css`.

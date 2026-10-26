@@ -285,6 +285,48 @@ for (const theme of ["light", "dark"] as const) {
     await expect(navigation).toHaveCount(0)
     await page.getByRole("link", { name: "Competiciones", exact: true }).click()
     await expect(navigation).toHaveCount(1)
+
+    // Exercise the visual hierarchy with real content in every section and a
+    // non-default accent; single-league fixtures cannot expose crowded layouts.
+    const expandedLeagues = [...fixtureLeagues, { ...fixtureLeagues[0], id: "league-archive", name: "Liga histórica", activeSeasonId: "season-archive" }]
+      .map((league, index) => ({ ...league, accentColor: index === 1 ? "#477BD1" : "#8B5FC0", logoUrl: "http://127.0.0.1:3100/fixture-crest.svg" }))
+    await page.route("**/fixture-crest.svg", route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="#477BD1" d="M8 6h48v30L32 59 8 36z"/><path fill="white" d="M20 20h24v6H26v6h18v6H20z"/></svg>' }))
+    await page.route("**/api/access**", route => route.fulfill({ json: {
+      isSuperuser: false, canCreateLeagues: true, leagues: expandedLeagues,
+      memberships: expandedLeagues.map(league => ({ userId: "qa-v1-1@example.test", leagueId: league.id, playerId: "davo", role: "admin" })), spectatorLeagueIds: [], matches: fixtureMatches.filter(match => match.leagueId !== "league-work"),
+      seasonSnapshot: {
+        seasons: [...fixtureSeasons.map(season => season.id === "season-work-1" ? { ...season, status: "upcoming" } : season), { id: "season-archive", leagueId: "league-archive", name: "Temporada anterior", status: "finished", totalRounds: 7, completedRounds: 7 }],
+        playerProfiles: fixtureProfiles, seasonPlayers: fixturePlayers,
+        seasonSettings: fixtureSettings.map(settings => settings.seasonId === "season-work-1" ? { ...settings, scheduledStartAt: "2026-10-20T08:00:00Z", seasonStartsAt: "2026-10-20" } : settings),
+        activeSeasonIds: Object.fromEntries(expandedLeagues.map(league => [league.id, league.activeSeasonId])),
+      },
+    } }))
+    await page.route("**/api/tournaments", route => route.fulfill({ json: { tournaments: [
+      { id: "tournament-running", name: "Americana del club", startsAt: "2026-10-16T12:00:00Z", status: "in_progress" },
+      { id: "tournament-upcoming", name: "Torneo de otoño por parejas", startsAt: "2026-10-20T09:00:00Z", status: "draft" },
+    ] } }))
+    await page.addInitScript(() => {
+      localStorage.setItem("smash-lob-competition-accent", "ice")
+      localStorage.setItem("smash-lob-palette", "indigo")
+    })
+    await page.reload()
+    await expect(page.getByRole("link", { name: /Americana del club/ })).toBeVisible()
+    await expect(page.getByRole("link", { name: /Torneo de otoño/ })).toBeVisible()
+    await expect.poll(() => page.locator('img[src$="fixture-crest.svg"]').evaluateAll(images => images.length >= 2 && images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true)
+    for (const width of [320, 393]) {
+      await page.setViewportSize({ width, height: 852 })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    }
+    const filledAccessibility = await new AxeBuilder({ page }).analyze()
+    expect(filledAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: testInfo.outputPath("hub-filled-custom-accent.png"), fullPage: true, scale: "css" })
+    await page.getByRole("link", { name: "Ver todas", exact: true }).click()
+    await expect(page.getByText("Finalizadas", { exact: false })).toBeVisible()
+    await page.locator("details > summary").click()
+    await expect(page.getByRole("button", { name: "Entrar en Liga histórica", exact: true })).toBeVisible()
+    const filledListAccessibility = await new AxeBuilder({ page }).analyze()
+    expect(filledListAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: testInfo.outputPath("leagues-filled-custom-accent.png"), fullPage: true, scale: "css" })
   })
   }
 }
