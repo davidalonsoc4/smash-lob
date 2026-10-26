@@ -94,8 +94,9 @@ Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento
   no modifica `PersonalMatchCard`, `LeagueLogo` ni el carrusel compartido.
 - Actividad personal es el foco de la home: acento puro al100%, sin borde ni
   sombra en la tarjeta del partido, sin una segunda envoltura visual exterior.
-  Las cajas de parejas conservan sus espacios pero son transparentes, sin borde
-  ni sombra; nombres con contraste del acento y marcadores con fondo propio. No añadir
+  Las cajas de parejas conservan sus espacios y fondo transparente, con borde
+  fino del color de superficie de las tarjetas de competiciones, sin sombra;
+  nombres con contraste del acento y marcadores con fondo propio. No añadir
   estadísticas, mensajes ni acciones para llenar espacio.
 - Los nombres de jugadores en las previews personales reutilizan `FitText`
   en una línea, reduciendo desde14px hasta10px antes de recurrir a elipsis.

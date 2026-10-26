@@ -1,3 +1,8 @@
+## MC80 — Borde contextual en cajas de nombres
+- Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles con Axe/carrusel/nombres PASS, build y captura revisados. Sin publicación.
+- Alcance: borde fino del color de superficie de las tarjetas de ligas/torneos, según aclaración del usuario; conservar fondos transparentes, texto y distribución. Solo CSS local.
+- Gates: móvil320/393px, Clásico/Competition claro/oscuro, Axe/carrusel/nombres y captura visual. Sin publicación.
+
 ## MC79 — Cajas de nombres transparentes
 - Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
 - Alcance: conservar cajas/alineación/espacios de parejas con fondo transparente sin borde/sombra; nombres con contraste del acento y marcadores con sus superficies propias. Solo CSS local de Actividad personal.

@@ -3405,3 +3405,7 @@ MC78 CERRADO LOCAL: mini paneles con35% del acento ysuperficie contextual, tarje
 MC79 INICIO LOCAL: usuario aprueba conservar cajas de nombres invisibles. Fondo transparente/sinborder/sombra en recuadros de parejas de Actividad personal, layout/padding intactos; nombres con --competition-accent-contrast. Tarjeta sigueacento100%, VS y marcadores conservados. Solo CSSmódulo, sin lógica.
 
 MC79 CERRADO LOCAL: cajas transparentes sinborde/sombra conservan geometría; nombres contrastan conacento puro.5/5E2EmóvilesPASS en320/393px Clásico/Competitionclaro/oscuro incluyendo últimoencuentro,Axe/navegación; buildPASS ycapturaoscurorevisada. Evidenciamc79-browser.log, diffcheckPASS. Sin cambios funcionales ni publicación.
+
+MC80 INICIO LOCAL: petición de borde inicialmente negro corregida antes de modificar código: usar color de las cajas inferiores. Borde1px var(--hub-surface), mismo fondo de tarjetas ligas/torneos, dinámico por tema; cajas transparentes. Sin negro fijo ni lógica modificada.
+
+MC80 CERRADO LOCAL: borde1px del color de superficie de tarjetas inferiores; fondos transparentes yacento principal100% conservados.5/5E2EmóvilesPASS,320/393px,Clásico/Competitionclaro/oscuro,Axe/carrusel/nombres; buildPASS ycapturaoscurorevisada. Evidenciamc80-browser.log,diffcheckPASS. Sin lógica/DB/publicación.
