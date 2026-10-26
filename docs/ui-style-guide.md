@@ -102,6 +102,10 @@ Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento
   discreto sin pastilla, ajustado al ancho disponible y con contraste del tema.
   Victoria/Derrota conservan el componente semántico compartido y su ayuda;
   los próximos partidos mantienen el indicador de punto.
+- Sobre el acento, Victoria/Derrota usan verde/rojo opacos y texto blanco.
+  El punto conserva tamaño y color; añade contorno interior del tono de las
+  cajas solo cuando su contraste con el fondo sea inferior a3:1. La medición
+  responde a cambios de tema sin temporizadores y no afecta a otros contextos.
 - Los nombres de jugadores en las previews personales reutilizan `FitText`
   en una línea, reduciendo desde14px hasta10px antes de recurrir a elipsis.
   Respetar la alineación de cada pareja y recalcular al cambiar ancho o tema.

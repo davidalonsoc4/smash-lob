@@ -169,7 +169,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       {view !== "summary" ? <BackButton fallbackHref="/leagues" label={t.common.back} /> : null}
       <h1 id="competitions-page-title" className="type-page-title mt-3 text-2xl font-black tracking-tight">{tx(view === "summary" ? "Mis Competiciones" : view === "leagues" ? "Mis ligas" : "Mis torneos")}{view === "leagues" ? <span className="ml-2 text-base font-medium text-neutral-400">{memberLeagues.length}</span> : null}</h1>
     </header>
-    {view === "summary" ? <section aria-labelledby="personal-activity" className={`${styles.activityHero} space-y-2`}>
+    {view === "summary" ? <section data-activity-accent aria-labelledby="personal-activity" className={`${styles.activityHero} space-y-2`}>
       <div data-activity-heading className="app-section-header flex items-center justify-between gap-2">
         <h2 id="personal-activity" className="type-panel-title min-w-0 font-black">{tx("Actividad personal")}</h2>
         {highlights.length ? <p className="min-w-0 text-right text-xs font-semibold text-neutral-600">{tx(highlights[visibleActivityIndex].kind === "live" ? "Tu partido en curso" : highlights[visibleActivityIndex].kind === "next" ? "Tu próximo partido" : "Tu último encuentro")}</p> : null}

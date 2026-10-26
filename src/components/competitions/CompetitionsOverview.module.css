@@ -138,6 +138,16 @@
   padding-block-start: .125rem;
 }
 
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.bg-green-100) {
+  background: #166534 !important;
+  color: #fff !important;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.bg-red-100) {
+  background: #b91c1c !important;
+  color: #fff !important;
+}
+
 .league:focus-visible,
 .leagueCard:focus-visible,
 .tournament:focus-visible {

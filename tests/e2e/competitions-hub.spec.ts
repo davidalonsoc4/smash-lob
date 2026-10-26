@@ -198,6 +198,22 @@ test("last encounter is compact only in the hub and history stays detailed", asy
   const header = page.locator("#personal-activity").locator("..")
   await expect(header.getByRole("link", { name: "Ver Mis partidos" })).toHaveCount(0)
   await page.screenshot({ path: testInfo.outputPath("hub-last-compact.png"), fullPage: true })
+  await expect(activity.getByRole("button", { name: "Victoria", exact: true })).toBeVisible()
+  for (const result of ["Victoria", "Derrota"]) {
+    if (result === "Derrota") {
+      last.sets = [{ a: 2, b: 6 }, { a: 3, b: 6 }]
+      await page.reload()
+      await expect(activity.locator('[data-personal-match-origin="friendly"]')).toHaveCount(1)
+      const refreshedSlider = activity.locator(".match-slides")
+      if (await refreshedSlider.count()) await refreshedSlider.evaluate(el => el.scrollTo({ left: el.scrollWidth, behavior: "instant" }))
+      await expect(page.getByText("Tu último encuentro", { exact: true })).toBeVisible()
+    }
+    const badge = activity.getByRole("button", { name: result, exact: true })
+    await expect(badge).toBeVisible()
+    expect(await badge.evaluate(el => getComputedStyle(el).color)).toBe("rgb(255, 255, 255)")
+    const resultAccessibility = await new AxeBuilder({ page }).include('section[aria-labelledby="personal-activity"]').analyze()
+    expect(resultAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+  }
   await page.getByRole("navigation", { name: "Navegación global", exact: true }).getByRole("link", { name: "Mis partidos", exact: true }).click()
   await expect(page.getByText(last.locationName)).toBeVisible()
 })
@@ -226,6 +242,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.getByText("Tu próximo partido", { exact: true })).toBeVisible()
     await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
     expect(await page.getByRole("button", { name: /^Entrar en/ }).count()).toBeLessThanOrEqual(2)
+    await expect(page.locator("[data-activity-accent] [data-status-dot]").first()).toHaveAttribute("data-status-dot-outlined", visualStyle === "competition" ? "true" : "false")
     const accessibility = await new AxeBuilder({ page }).analyze()
     expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: testInfo.outputPath("hub-summary-" + theme + ".png"), fullPage: true, scale: "css" })

@@ -1,3 +1,8 @@
+## MC83 — Contraste de estado y resultado sobre acento
+- Estado: COMPLETO LOCAL (26/10/2026),24 pruebas existentes y7 casos E2E verificados (6 iniciales + resultado corregido) PASS; Axe, TypeScript/lint/build/fuente PASS. Sin publicación.
+- Alcance: contorno del punto solo con contraste inferior a3:1 sobre tarjeta de actividad; resultados con fondos verde/rojo opacos y texto legible. Mantener tamaños, semántica y resto de previews.
+- Gates: TypeScript/lint/pruebas existentes y navegador móvil con Axe, temas/acento similar y distinto, Victoria/Derrota. Sin publicación.
+
 ## MC82 — Eliminar contorno residual de competición
 - Estado: COMPLETO LOCAL (26/10/2026), prueba móvil Competition oscuro con Axe PASS, build y captura revisados. Sin publicación.
 - Alcance: anular sombra interior heredada de Competition en la etiqueta integrada de Actividad personal; no modificar otras etiquetas.
