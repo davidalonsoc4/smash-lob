@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
+import { FloatingSearchButton } from "@/components/ui/FloatingSearchButton"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { buildSeasonRounds } from "@/lib/rounds"
 import { groupGlobalChats } from "@/lib/globalChatOverview"
@@ -85,6 +87,8 @@ export default function PersonalMatchChatsPage() {
   const { userLeagues } = useLeagueAccess()
   const { seasons, getSeasonRoundSettings } = useSeasonSettings()
   const { matches } = useMatchData()
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [phase, setPhase] = useState("all")
   const [query, setQuery] = useState("")
   const [scope, setScope] = useState("all")
   const [conversation, setConversation] = useState("all")
@@ -139,14 +143,15 @@ export default function PersonalMatchChatsPage() {
     const scoped = chats.filter(chat => (scope === "all" || scope === "friendly" && chat.origin === "friendly" || chat.leagueId === scope)
       && (conversation === "all" || conversation === "started" && Boolean(chat.lastMessage) || conversation === "empty" && !chat.lastMessage || conversation === "unread" && chat.unread > 0)
       && (!normalizedQuery || [chat.leagueName, chat.partner, ...chat.rivals, chat.round ? tx("Jornada")+" "+chat.round : "", chat.lastMessage?.body].some(value=>value?.toLocaleLowerCase().includes(normalizedQuery))))
-    return groupGlobalChats(scoped.map(chat => {
+    const groups = groupGlobalChats(scoped.map(chat => {
       const season = seasons.find(season=>season.id===chat.seasonId)
       if(!season) return chat
       const rounds = buildSeasonRounds({season,settings:getSeasonRoundSettings(season.id),matches:matches.filter(match=>match.seasonId===season.id)})
       const currentRound = rounds.find(round=>round.status==="active")?.round ?? rounds.find(round=>round.status==="overdue")?.round ?? rounds.find(round=>round.status==="upcoming")?.round ?? 1
       return {...chat,seasonStatus:season.status,currentRound}
     }),loadedAt)
-  }, [chats, loadedAt, query, scope, conversation, seasons, getSeasonRoundSettings, matches, tx])
+    return { active: phase === "all" || phase === "active" ? groups.active : [], upcoming: phase === "all" || phase === "upcoming" ? groups.upcoming : [], finished: phase === "all" || phase === "finished" ? groups.finished : [] }
+  }, [chats, loadedAt, query, scope, conversation, phase, seasons, getSeasonRoundSettings, matches, tx])
   useEffect(() => {
     if (!realtimeKey) return
     const unsubscribes = realtimeKey
@@ -160,6 +165,9 @@ export default function PersonalMatchChatsPage() {
     return () => unsubscribes.forEach((unsubscribe) => unsubscribe())
   }, [load, realtimeKey])
 
+  const hasFilters = Boolean(query.trim() || scope !== "all" || conversation !== "all" || phase !== "all")
+  const resultCount = Object.values(groupedChats).reduce((total, group) => total + group.length, 0)
+  function clearFilters() { setQuery(""); setScope("all"); setConversation("all"); setPhase("all") }
   return (
     <div className="compact-page space-y-3">
       <header className="app-page-header">
@@ -167,14 +175,21 @@ export default function PersonalMatchChatsPage() {
         <h1 className="type-page-title font-black tracking-tight">Chats</h1>
       </header>
 
-      <div className="space-y-2" role="search" aria-label={tx("Buscar conversaciones")}>
+      <FloatingSearchButton label={tx("Buscar y filtrar chats")} open={filterOpen} onClick={() => setFilterOpen(true)} active={hasFilters} activeLabel={tx("Filtros activos")} />
+      <FloatingDialog open={filterOpen} onClose={() => setFilterOpen(false)} title={tx("Buscar y filtrar chats")} variant="search">
+        <div className="flex items-center justify-between gap-3 border-b border-neutral-200 p-3"><h2>{tx("Buscar y filtrar chats")}</h2><DialogCloseButton onClick={() => setFilterOpen(false)} /></div>
+        <div className="min-h-0 space-y-3 overflow-y-auto p-3" role="search" aria-label={tx("Buscar conversaciones")}>
         <input type="search" aria-label={tx("Buscar conversación")} placeholder={tx("Buscar por jugador, liga o jornada")} value={query} onChange={event=>setQuery(event.target.value)} className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm" />
         <div className="grid grid-cols-2 gap-2">
           <label className="min-w-0 text-xs font-semibold text-neutral-500">{tx("Competición")}<select value={scope} onChange={event=>setScope(event.target.value)} className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900"><option value="all">{tx("Todas")}</option><option value="friendly">{tx("Amistosos")}</option>{userLeagues.map(league=><option key={league.id} value={league.id}>{league.name}</option>)}</select></label>
           <label className="min-w-0 text-xs font-semibold text-neutral-500">{tx("Conversaciones")}<select value={conversation} onChange={event=>setConversation(event.target.value)} className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900"><option value="all">{tx("Todas")}</option><option value="started">{tx("Con mensajes")}</option><option value="empty">{tx("Sin mensajes")}</option><option value="unread">{tx("Sin leer")}</option></select></label>
         </div>
-      </div>
-      {!loading && chats.length > 0 && Object.values(groupedChats).every(group=>group.length===0) ? <AppCard><p className="text-sm text-neutral-500">{tx("No hay conversaciones con estos filtros.")}</p></AppCard> : null}
+<label className="block text-xs font-semibold text-neutral-500">{tx("Estado")}<select value={phase} onChange={event=>setPhase(event.target.value)} className="mt-1 w-full rounded-xl border border-neutral-200 bg-white px-2 py-2 text-sm text-neutral-900"><option value="all">{tx("Todos")}</option><option value="active">{tx("Activos")}</option><option value="upcoming">{tx("Próximos")}</option><option value="finished">{tx("Chats finalizados")}</option></select></label>
+          <button type="button" className="app-dialog-option" disabled={!hasFilters} onClick={clearFilters}>{tx("Limpiar filtros")}</button>
+          <p role="status" className="text-xs text-neutral-600">{resultCount} {tx(resultCount === 1 ? "conversación encontrada" : "conversaciones encontradas")}</p>
+        </div><div className="border-t border-neutral-200 p-3"><button type="button" className="app-dialog-primary w-full" onClick={() => setFilterOpen(false)}>{tx("Ver conversaciones")}</button></div>
+      </FloatingDialog>
+      {!loading && chats.length > 0 && Object.values(groupedChats).every(group=>group.length===0) ? <AppCard><p className="text-sm text-neutral-500">{tx("No hay conversaciones con estos filtros.")}</p><button type="button" className="mt-3 app-dialog-option" onClick={clearFilters}>{tx("Limpiar filtros")}</button></AppCard> : null}
       {loading ? (
         <AppCard>
           <p className="text-sm font-semibold text-neutral-500">

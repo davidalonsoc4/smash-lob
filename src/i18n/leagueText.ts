@@ -7,6 +7,15 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+    "conversación encontrada": "conversation found",
+    "Filtros activos": "Active filters",
+    "¿Descartar los cambios sin guardar?": "Discard unsaved changes?",
+    "Buscar y filtrar chats": "Search and filter chats",
+    "Limpiar filtros": "Clear filters",
+    "conversaciones encontradas": "conversations found",
+    "Ver conversaciones": "View conversations",
+    "No se ha podido copiar la ubicación. Inténtalo de nuevo.": "Could not copy the location. Try again.",
+    "No se ha podido abrir el calendario. Inténtalo de nuevo.": "Could not open the calendar. Try again.",
     "Opcional. Si no lo activas, los jugadores se coordinan desde el chat.": "Optional. When disabled, players coordinate in the chat.",
     "Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos.": "Use players’ usual availability to suggest dates when scheduling matches.",
     "Equilibrado": "Balanced",
@@ -1302,6 +1311,15 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "conversación encontrada": "elkarrizketa aurkitu da",
+    "Filtros activos": "Iragazki aktiboak",
+    "¿Descartar los cambios sin guardar?": "Gorde gabeko aldaketak baztertu?",
+    "Buscar y filtrar chats": "Bilatu eta iragazi txatak",
+    "Limpiar filtros": "Garbitu iragazkiak",
+    "conversaciones encontradas": "elkarrizketa aurkitu dira",
+    "Ver conversaciones": "Ikusi elkarrizketak",
+    "No se ha podido copiar la ubicación. Inténtalo de nuevo.": "Ezin izan da kokalekua kopiatu. Saiatu berriro.",
+    "No se ha podido abrir el calendario. Inténtalo de nuevo.": "Ezin izan da egutegia ireki. Saiatu berriro.",
     "Opcional. Si no lo activas, los jugadores se coordinan desde el chat.": "Aukerakoa. Aktibatzen ez baduzu, jokalariak txatetik koordinatzen dira.",
     "Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos.": "Erabili jokalarien ohiko ordutegiak partidak programatzean datak proposatzeko.",
     "Equilibrado": "Orekatua",

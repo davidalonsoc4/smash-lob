@@ -5,15 +5,7 @@ describe("v1.7.0 match detail mobile UI polish", () => {
   it("keeps the location selector compact in a top-level, keyboard-bounded scrollable portal", async () => {
     const schedule = await readFile("src/components/match/MatchScheduleForm.tsx", "utf8")
     for (const token of [
-      'import { createPortal } from "react-dom"',
-      "createPortal(<>",
       'aria-haspopup="dialog"',
-      'aria-label={tx("Buscar ubicación")}',
-      "z-[100]",
-      "z-[110]",
-      "bg-neutral-950/45",
-      "100dvh",
-      "min(440px",
       "min-h-0 flex-1 overflow-y-auto overscroll-contain",
       "Buscar por localidad o nombre...",
       "Recomendadas por la liga",
@@ -21,6 +13,11 @@ describe("v1.7.0 match detail mobile UI polish", () => {
       "+ Añadir nueva ubicación",
       "selectedLocationLabel",
     ]) expect(schedule).toContain(token)
+    expect(schedule).toContain("<FloatingDialog")
+    expect(schedule).toContain('variant="search"')
+    const shared = await readFile("src/components/ui/FloatingDialog.tsx", "utf8")
+    expect(shared).toContain("createPortal")
+    expect(shared).toContain("showModal()")
     expect(schedule).not.toContain("min(620px")
   })
 

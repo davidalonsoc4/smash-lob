@@ -1,3 +1,8 @@
+## MC68 — Ventanas coherentes y filtros flotantes de Chats global
+- Estado: COMPLETO LOCAL (26/10/2026); validate1656 pruebas y34/34 E2E finales PASS. Sin publicación.
+- Alcance: estructura/estilos y cierre accesible compartidos en búsqueda, acciones, ayuda, ubicaciones y QR/imagen; proteger borradores al cancelar; búsqueda/filtros de Chats en lupa flotante con estado, indicador y limpieza. Mantener lógica de datos y navegación. Sin publicación ni migraciones.
+- Gates: pruebas de filtros, foco/cierre/errores/borradores, TypeScript/lint/i18n/fuente/build y navegador móvil/escritorio Clásico/Competition claro/oscuro; regresiones de búsqueda, imágenes y acciones.
+
 ## MC67 — Numeración y claridad del resumen
 - Estado: COMPLETO LOCAL (26/10/2026);9 pruebas y14/14 E2E finales PASS, sin publicación.
 - Alcance: numerar los nueve bloques avanzados y mostrar sus rangos en los desplegables cerrados; evitar numeración secundaria ambigua en Duración; incorporar los ajustes posteriores de textos/orden y plantilla en dos columnas del resumen; panel5 coherente, MVP automático avanzado predeterminado y cabeceras compactas sin solapamiento de acciones. Sin cambios de temporadas existentes ni publicación.

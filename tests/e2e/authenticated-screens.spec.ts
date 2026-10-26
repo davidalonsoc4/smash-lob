@@ -285,12 +285,9 @@ test("league spectator share shows a downloadable QR and shares the league link"
   const { data, info } = await sharp(Buffer.from(qrSvg)).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const decodedQr = jsQR(new Uint8ClampedArray(data), info.width, info.height)
   expect(decodedQr?.data).toBe(spectatorUrl)
-  const popupSurface = dialog.locator(":scope > div")
-  const appSurface = page.locator('.app-shell-frame[data-home-route="true"]')
-  await expect(popupSurface).toHaveClass(/app-shell-frame/)
-  expect(await popupSurface.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(
-    await appSurface.evaluate((element) => getComputedStyle(element).backgroundColor),
-  )
+  await expect(dialog).toHaveClass(/app-dialog-content/)
+  expect(await dialog.evaluate(element => getComputedStyle(element).borderRadius)).toBe("16px")
+  expect(await dialog.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)")
 
   const downloadPromise = page.waitForEvent("download")
   await dialog.getByRole("button", { name: "Descargar" }).click()

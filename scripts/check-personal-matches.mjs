@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises"
 
 const read = (file) => readFile(file, "utf8")
+const dialogBase = await read("src/components/ui/FloatingDialog.tsx")
+const dialogStyles = await read("src/app/globals.css")
 const assert = (condition, message) => {
   if (!condition) throw new Error(message)
 }
@@ -195,8 +197,8 @@ assert(serverHelper.includes('.select("id,avatar_url")') && serverHelper.include
 assert(detailPage.includes("<PersonalMatchSchedulePanel"), "El detalle debe incluir fecha, ubicación y acciones")
 assert(schedulePanel.includes("<MatchScheduleForm"), "La programación personal debe reutilizar MatchScheduleForm de Liga")
 assert(newPage.includes("<PersonalMatchLocationPicker") && schedulePanel.includes("<MatchScheduleForm"), "Alta mantiene su selector y el detalle reutiliza el selector global de MatchScheduleForm")
-assert(locationPicker.includes('role="dialog"') && locationPicker.includes("backdrop-blur"), "La ubicación personal debe abrirse como popup con fondo difuminado")
-assert(participantSelector.includes('createPortal') && participantSelector.includes('aria-modal="true"') && participantSelector.includes('backdrop-blur-[1px]'), "El selector de jugadores debe abrirse como popup flotante con fondo difuminado")
+assert(locationPicker.includes("<FloatingDialog") && dialogBase.includes("showModal()") && dialogStyles.includes(".app-dialog::backdrop"), "La ubicación personal debe abrirse como popup con fondo difuminado")
+assert(participantSelector.includes("<FloatingDialog") && dialogBase.includes('aria-modal="true"') && dialogStyles.includes("backdrop-filter:blur(1px)"), "El selector de jugadores debe abrirse como popup flotante con fondo difuminado")
 assert(personalChatsPage.includes("data-personal-match-chats-list") && personalChatsPage.includes('fetch("/api/personal-matches/chats"') && personalChatsPage.includes("/api/chats?") && personalChatsPage.includes('tx("Activos")') && personalChatsPage.includes('tx("Próximos")') && personalChatsPage.includes('tx("Chats finalizados")'), "Chats global debe reunir amistosos y ligas, agrupando activos, próximos y finalizados")
 assert(personalChatsRoute.includes('.from("personal_matches")') && !personalChatsRoute.includes('.eq("status"'), "La bandeja de amistosos no debe filtrar por estado")
 assert(personalChatsRoute.includes("personal_match_chat_schema_missing"), "La bandeja de amistosos debe distinguir una migración de chat pendiente")

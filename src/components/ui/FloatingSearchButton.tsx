@@ -1,0 +1,4 @@
+export function FloatingSearchButton({ label, open, onClick, active = false, activeLabel, hasBottomNav = true, "data-tour": tour }: { label: string; open: boolean; onClick: () => void; active?: boolean; activeLabel?: string; hasBottomNav?: boolean; "data-tour"?: string }) {
+  return <button type="button" data-tour={tour} aria-label={label} aria-description={active ? activeLabel : undefined} aria-haspopup="dialog" aria-expanded={open} onClick={onClick} className="app-search-trigger" style={{ bottom: hasBottomNav ? "calc(84px + env(safe-area-inset-bottom, 0px))" : "max(14px, env(safe-area-inset-bottom, 0px))" }}><SearchIcon />{active ? <span aria-hidden="true" className="app-search-active" /> : null}</button>
+}
+export function SearchIcon() { return <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg> }

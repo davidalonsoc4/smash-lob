@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
 import { useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getOnboardingCopy } from "@/features/onboarding/types"
@@ -37,15 +38,7 @@ export function FloatingHelpButton() {
         <HelpIcon />
       </button>
 
-      {open ? (
-        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-neutral-950/45 p-3 sm:items-center">
-          <button type="button" aria-label={copy.close} onClick={() => setOpen(false)} className="absolute inset-0" />
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-label={copy.helpTitle}
-            className="relative z-[91] w-full max-w-sm rounded-3xl bg-white p-4 shadow-2xl"
-          >
+      <FloatingDialog open={open} onClose={() => setOpen(false)} title={copy.helpTitle} variant="help">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="type-section-title text-lg font-black tracking-tight">{currentTour?.title ?? copy.noTourTitle}</h2>
@@ -53,7 +46,7 @@ export function FloatingHelpButton() {
                   {currentTour?.description ?? copy.noTourDescription}
                 </p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} className="grid h-8 w-8 place-items-center rounded-full bg-neutral-100 text-lg font-black text-neutral-500">×</button>
+              <DialogCloseButton onClick={() => setOpen(false)} />
             </div>
 
             {currentTour ? (
@@ -63,7 +56,7 @@ export function FloatingHelpButton() {
                   setOpen(false)
                   window.setTimeout(startCurrentTour, 80)
                 }}
-                className="flex mt-4 w-full rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-black text-white items-center justify-center text-center"
+                className="app-dialog-primary mt-4 w-full"
               >
                 {completed ? copy.repeatCurrent : copy.startCurrent}
               </button>
@@ -72,13 +65,11 @@ export function FloatingHelpButton() {
             <Link
               href="/help#tutoriales-visuales"
               onClick={() => setOpen(false)}
-              className="flex mt-2 w-full rounded-2xl bg-neutral-100 px-4 py-3 text-center text-sm font-black text-neutral-800 items-center justify-center"
+              className="app-dialog-option mt-2 justify-center"
             >
               {copy.allTutorials}
             </Link>
-          </section>
-        </div>
-      ) : null}
+      </FloatingDialog>
     </>
   )
 }

@@ -87,3 +87,25 @@ Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento
 - Logo: LeagueLogo + ImageCropDialog existentes; si falla su guardado se conserva el ID creado para reintentar sin duplicados.
 - Acciones locales compartidas: league-creation-primary (negro en claro/acento en oscuro), secondary y edit. Pie sticky con Atrás y un único CTA, mínimo44px y safe area. Ajustes avanzados agrupados en details con resumen de valores y chevron.
 - Contador de plazas completadas incluye jugadores existentes, cuentas vinculadas y nombres manuales. Parejas agrupadas de dos en dos; directorio bajo búsqueda y sin vaciar nombres al alternar inscripción.
+
+## Ventanas flotantes y búsqueda
+
+- Reutilizar `FloatingDialog` y las clases `app-dialog-*` de `globals.css`.
+  Es un diálogo nativo en el portal de `document.body`: foco contenido, fondo
+  inerte, bloqueo del scroll y devolución del foco al cerrar. No duplicar overlays.
+- Variantes: `search` para búsqueda/filtros (posición de Ajustes), `actions` para
+  decisiones breves centradas, `content` para QR/imágenes/edición. La ayuda usa
+  `help`, inferior en móvil y centrada en escritorio. Los tooltips siguen aparte.
+- Borde sutil, radio16px, misma sombra y backdrop; títulos16px y controles44px.
+  Contenido largo con scroll interior y medidas que respetan el viewport/safe area.
+- `DialogCloseButton` para búsquedas/previsualizaciones. Acciones breves conservan
+  Cancelar abajo; edición conserva Cancelar/Guardar. Bloquear cierre al guardar
+  y confirmar descarte si se perderían cambios (por ejemplo encuadre de imagen).
+- `app-dialog-option`, `app-dialog-primary`, `app-dialog-cancel`, `DialogChevron`
+  y `DialogOptionIcon` comparten controles. Principal negro en claro/acento en
+  oscuro; mantener contraste, estados disabled, foco y selección visibles.
+- Cerrar al completar una acción; ante error conservar la ventana con explicación
+  y reintento. Copiar ubicación confirma mediante el aviso compartido de la app.
+- `FloatingSearchButton` coloca la lupa sobre navbar y safe area. Chats conserva
+  consulta/filtros al cerrar, señala filtros activos y ofrece Limpiar filtros;
+  los buscadores de navegación conservan sus propias reglas de consulta reciente.
