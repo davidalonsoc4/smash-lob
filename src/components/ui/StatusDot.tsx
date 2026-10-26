@@ -49,6 +49,6 @@ export function StatusDot({ status, kind = "match", label, helpStatus = status }
     return () => observer.disconnect()
   }, [status])
   return <StatusHelp kind={kind} status={helpStatus} label={label} className="relative z-10 ml-auto flex h-5 w-5 shrink-0 self-start items-start justify-end rounded-full">
-    <span ref={dot} data-status-dot data-status-dot-outlined={outlined} aria-hidden="true" style={outlined ? { boxShadow: "inset 0 0 0 1px var(--hub-surface)" } : undefined} className={`h-1.5 w-1.5 rounded-full ${colors[status] ?? colors.scheduling}`} />
+    <span ref={dot} data-status-dot data-status-dot-outlined={outlined} aria-hidden="true" style={outlined ? { boxShadow: "inset 0 0 0 1px var(--hub-surface)" } : undefined} className={`h-2 w-2 rounded-full ${colors[status] ?? colors.scheduling}`} />
   </StatusHelp>
 }

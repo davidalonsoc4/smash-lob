@@ -1,3 +1,8 @@
+## MC84 — Punto de estado de partido de8px compartido
+- Estado: COMPLETO LOCAL (26/10/2026),14 pruebas existentes y12 E2E móviles PASS; lint/build y captura revisados. Sin publicación.
+- Alcance: ampliar StatusDot compartido a8px en previews, calendarios, perfiles y chats; conservar color, contorno, ayuda y alineación. No alterar indicadores de liga/torneo ni notificaciones.
+- Gates: pruebas existentes/lint y navegador móvil en Competiciones, calendario/partido y chats, claro/oscuro Clásico/Competition. Sin publicación.
+
 ## MC83 — Contraste de estado y resultado sobre acento
 - Estado: COMPLETO LOCAL (26/10/2026),24 pruebas existentes y7 casos E2E verificados (6 iniciales + resultado corregido) PASS; Axe, TypeScript/lint/build/fuente PASS. Sin publicación.
 - Alcance: contorno del punto solo con contraste inferior a3:1 sobre tarjeta de actividad; resultados con fondos verde/rojo opacos y texto legible. Mantener tamaños, semántica y resto de previews.

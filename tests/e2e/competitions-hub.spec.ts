@@ -243,6 +243,10 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
     expect(await page.getByRole("button", { name: /^Entrar en/ }).count()).toBeLessThanOrEqual(2)
     await expect(page.locator("[data-activity-accent] [data-status-dot]").first()).toHaveAttribute("data-status-dot-outlined", visualStyle === "competition" ? "true" : "false")
+    expect(await page.locator("[data-activity-accent] [data-status-dot]").first().evaluate(el => {
+      const rect = el.getBoundingClientRect()
+      return [rect.width, rect.height]
+    })).toEqual([8, 8])
     const accessibility = await new AxeBuilder({ page }).analyze()
     expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: testInfo.outputPath("hub-summary-" + theme + ".png"), fullPage: true, scale: "css" })
