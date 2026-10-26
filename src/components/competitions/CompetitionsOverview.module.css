@@ -131,6 +131,7 @@
   border-radius: 0;
   padding: .125rem 0 !important;
   font-weight: 500 !important;
+  box-shadow: none !important;
 }
 
 .activityHero :global(.match-preview-pagination) {

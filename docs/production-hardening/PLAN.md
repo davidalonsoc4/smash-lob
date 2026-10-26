@@ -1,3 +1,8 @@
+## MC82 — Eliminar contorno residual de competición
+- Estado: COMPLETO LOCAL (26/10/2026), prueba móvil Competition oscuro con Axe PASS, build y captura revisados. Sin publicación.
+- Alcance: anular sombra interior heredada de Competition en la etiqueta integrada de Actividad personal; no modificar otras etiquetas.
+- Gates: prueba móvil Competition oscuro con Axe/captura y diff limpio. Sin publicación.
+
 ## MC81 — Etiquetas integradas en Actividad personal
 - Estado: COMPLETO LOCAL (26/10/2026),8/8 E2E móviles con Axe/carrusel/nombres/etiquetas PASS, build y captura revisados. Sin publicación.
 - Alcance: competición como texto discreto sobre acento, sin pastilla ni borde, menos relleno/peso; conservar Victoria/Derrota compartidas, ayuda de estado y punto de programación. Solo CSS local.

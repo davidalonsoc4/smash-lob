@@ -3413,3 +3413,7 @@ MC80 CERRADO LOCAL: borde1px del color de superficie de tarjetas inferiores; fon
 MC81 INICIO LOCAL: integración de etiquetas pedida. Origen/competición sin fondo/borde/radio, padding horizontal0 y peso500, texto contrastado sobre el acento. Se conserva FitText/nombre completo, Victory/Defeat compartidas y punto/ayuda de estado. Solo regla CSS de Actividad personal; ninguna otra preview ni lógica modificada.
 
 MC81 CERRADO LOCAL: etiquetas de competición integradas como texto sinpastilla/borde, padding reducido/peso500, contraste del acento. Resultados y punto conservados.8/8E2EmóvilesPASS,320/393px Clásico/Competitionclaro/oscuro,Axe/carrusel/nombreslargos/etiquetasligayúltimoencuentro; buildPASS ycapturaoscurorevisada. Evidenciamc81-browser.log,diffcheckPASS. Sin lógica/DB/publicación.
+
+MC82 INICIO LOCAL: usuario detecta recuadro blanquecino en etiqueta de competición. Causa real globals.css2706: box-shadow inset heredado de Competition; border/background ya estaban anulados. Añadido box-shadow:none solo a etiqueta integrada de esta home, sin tocar globals ni otras superficies.
+
+MC82 CERRADO LOCAL: sombra interior residual eliminada. Prueba móvilCompetitionoscuroPASS conAxe/recorridohabitual, buildPASS ycapturarevisada; diffcheckPASS. Evidenciamc82-browser.log. Sin cambios en Victoria/Derrota/punto ni otras pantallas, sin publicación.
