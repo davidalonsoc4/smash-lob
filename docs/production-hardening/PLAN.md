@@ -1,3 +1,8 @@
+## MC81 — Etiquetas integradas en Actividad personal
+- Estado: COMPLETO LOCAL (26/10/2026),8/8 E2E móviles con Axe/carrusel/nombres/etiquetas PASS, build y captura revisados. Sin publicación.
+- Alcance: competición como texto discreto sobre acento, sin pastilla ni borde, menos relleno/peso; conservar Victoria/Derrota compartidas, ayuda de estado y punto de programación. Solo CSS local.
+- Gates: móvil320/393px, Clásico/Competition claro/oscuro, Axe y último encuentro; captura revisada. Sin publicación.
+
 ## MC80 — Borde contextual en cajas de nombres
 - Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles con Axe/carrusel/nombres PASS, build y captura revisados. Sin publicación.
 - Alcance: borde fino del color de superficie de las tarjetas de ligas/torneos, según aclaración del usuario; conservar fondos transparentes, texto y distribución. Solo CSS local.

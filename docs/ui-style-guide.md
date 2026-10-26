@@ -98,6 +98,10 @@ Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento
   fino del color de superficie de las tarjetas de competiciones, sin sombra;
   nombres con contraste del acento y marcadores con fondo propio. No añadir
   estadísticas, mensajes ni acciones para llenar espacio.
+- En esta superficie de acento, el origen/competición aparece como texto
+  discreto sin pastilla, ajustado al ancho disponible y con contraste del tema.
+  Victoria/Derrota conservan el componente semántico compartido y su ayuda;
+  los próximos partidos mantienen el indicador de punto.
 - Los nombres de jugadores en las previews personales reutilizan `FitText`
   en una línea, reduciendo desde14px hasta10px antes de recurrir a elipsis.
   Respetar la alineación de cada pareja y recalcular al cambiar ancho o tema.

@@ -3409,3 +3409,7 @@ MC79 CERRADO LOCAL: cajas transparentes sinborde/sombra conservan geometría; no
 MC80 INICIO LOCAL: petición de borde inicialmente negro corregida antes de modificar código: usar color de las cajas inferiores. Borde1px var(--hub-surface), mismo fondo de tarjetas ligas/torneos, dinámico por tema; cajas transparentes. Sin negro fijo ni lógica modificada.
 
 MC80 CERRADO LOCAL: borde1px del color de superficie de tarjetas inferiores; fondos transparentes yacento principal100% conservados.5/5E2EmóvilesPASS,320/393px,Clásico/Competitionclaro/oscuro,Axe/carrusel/nombres; buildPASS ycapturaoscurorevisada. Evidenciamc80-browser.log,diffcheckPASS. Sin lógica/DB/publicación.
+
+MC81 INICIO LOCAL: integración de etiquetas pedida. Origen/competición sin fondo/borde/radio, padding horizontal0 y peso500, texto contrastado sobre el acento. Se conserva FitText/nombre completo, Victory/Defeat compartidas y punto/ayuda de estado. Solo regla CSS de Actividad personal; ninguna otra preview ni lógica modificada.
+
+MC81 CERRADO LOCAL: etiquetas de competición integradas como texto sinpastilla/borde, padding reducido/peso500, contraste del acento. Resultados y punto conservados.8/8E2EmóvilesPASS,320/393px Clásico/Competitionclaro/oscuro,Axe/carrusel/nombreslargos/etiquetasligayúltimoencuentro; buildPASS ycapturaoscurorevisada. Evidenciamc81-browser.log,diffcheckPASS. Sin lógica/DB/publicación.

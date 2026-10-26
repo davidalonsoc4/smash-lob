@@ -124,8 +124,13 @@
   color: var(--competition-accent-contrast) !important;
 }
 
-:global(html[data-visual-style]) .activityHero :global([data-personal-match-origin]) {
-  background: color-mix(in srgb, var(--personal-league-accent, var(--app-accent)) 12%, var(--hub-surface)) !important;
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global([data-personal-match-origin]) {
+  background: transparent !important;
+  color: var(--competition-accent-contrast) !important;
+  border: 0 !important;
+  border-radius: 0;
+  padding: .125rem 0 !important;
+  font-weight: 500 !important;
 }
 
 .activityHero :global(.match-preview-pagination) {
