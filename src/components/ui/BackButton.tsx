@@ -7,6 +7,7 @@ type BackButtonProps = {
   fallbackHref: string
   label: string
   returnToParam?: string
+  alwaysFallback?: boolean
 }
 
 function getSafeInternalReturnTo(value: string | null) {
@@ -23,11 +24,16 @@ function getSafeInternalReturnTo(value: string | null) {
   return value
 }
 
-export function BackButton({ fallbackHref, label, returnToParam }: BackButtonProps) {
+export function BackButton({ fallbackHref, label, returnToParam, alwaysFallback = false }: BackButtonProps) {
   const router = useRouter()
 
   function handleBack(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault()
+
+    if (alwaysFallback) {
+      router.replace(fallbackHref)
+      return
+    }
 
     const currentUrl = new URL(window.location.href)
     const explicitReturnTo = returnToParam

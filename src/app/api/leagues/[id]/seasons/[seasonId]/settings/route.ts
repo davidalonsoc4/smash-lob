@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server"
+import { resolveOpeningRoundLocation } from "@/lib/serverGlobalLocations"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
 import {
   createScheduledLeagueLocationValue,
-  getLeagueLocationIdentityKey,
-  normalizeLeagueLocations,
   normalizeScheduleLocationValue,
 } from "@/lib/leagueLocations"
 import { getServerSeasonAdmin } from "@/lib/serverSeasonAccess"
@@ -186,7 +185,7 @@ export async function PUT(
   const revealedThroughRound = parseNonNegativeInteger(body?.revealedThroughRound)
   const openingRoundEnabled = body?.openingRoundEnabled === true
   const openingRoundAt = parseOptionalScheduledStart(body?.openingRoundAt)
-  const openingRoundLocation = parseOpeningRoundLocation(body?.openingRoundLocation)
+  let openingRoundLocation = parseOpeningRoundLocation(body?.openingRoundLocation)
   const roundWindowDays =
     roundWindowMode === "fixed-days"
       ? parseOptionalPositiveInteger(body?.roundWindowDays)
@@ -264,18 +263,14 @@ export async function PUT(
     if (leagueError) {
       return NextResponse.json({ error: "league_locations_lookup_failed" }, { status: 500 })
     }
-    const requestedLocation = normalizeScheduleLocationValue(openingRoundLocation)
-    const leagueLocations = normalizeLeagueLocations(leagueRow?.locations)
-    const belongsToLeague = Boolean(
-      requestedLocation &&
-        leagueLocations.some(
-          (location) =>
-            getLeagueLocationIdentityKey(location) === getLeagueLocationIdentityKey(requestedLocation),
-        ),
-    )
-    if (!belongsToLeague) {
-      return NextResponse.json({ error: "opening_round_location_invalid" }, { status: 400 })
+    try {
+      const resolved = await resolveOpeningRoundLocation(access.actor.supabase, openingRoundLocation, leagueRow?.locations)
+      if (!resolved) return NextResponse.json({ error: "opening_round_location_invalid" }, { status: 400 })
+      if (access.season.status === "upcoming") openingRoundLocation = resolved
+    } catch {
+      return NextResponse.json({ error: "global_locations_lookup_failed" }, { status: 500 })
     }
+    if (!openingRoundLocation) return NextResponse.json({ error: "opening_round_location_invalid" }, { status: 400 })
   }
 
 

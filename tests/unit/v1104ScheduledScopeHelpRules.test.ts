@@ -14,8 +14,8 @@ describe("v1.10.4 scheduled-season personal scope and guidance", () => {
     expect(shell).toContain("scheduledSeasonHomeOnly")
     expect(shell).toContain('homeOnlyLocked={scheduledSeasonHomeOnly}')
     expect(shell).toContain("readSelectedSeasonId")
-    expect(shell).toContain('const shouldShowLeagueSearch =\n    pathname === "/leagues"')
-    expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    isPersonalMatchesRoute')
+    expect(shell).toContain('const shouldShowLeagueSearch =\n    (pathname === "/leagues" || pathname === "/leagues/all")')
+    expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    (isPersonalMatchesRoute || isCompetitionOverview)')
     expect(shell).toContain("{children}")
   })
   it("documents personal scope and the scheduled-season boundary in Help", () => {
@@ -29,7 +29,7 @@ describe("v1.10.4 scheduled-season personal scope and guidance", () => {
   it("adds the scheduled-start boundary to invitation rules only while upcoming", () => {
     const upcomingRules = buildInviteRuleItems({ settings: scheduledSettings, locale: "es", registrationAmountLabel: "0 €" })
     expect(upcomingRules.map((item) => item.id)).toContain("invite-scheduled-start")
-    expect(upcomingRules.find((item) => item.id === "invite-scheduled-start")?.description).toContain("Mis ligas")
+    expect(upcomingRules.find((item) => item.id === "invite-scheduled-start")?.description).toContain("Mis Competiciones")
     expect(upcomingRules.find((item) => item.id === "invite-scheduled-start")?.description).toContain("Mis partidos")
     const activeRules = buildInviteRuleItems({ settings: { ...scheduledSettings, seasonStatus: "active" }, locale: "es", registrationAmountLabel: "0 €" })
     expect(activeRules.map((item) => item.id)).not.toContain("invite-scheduled-start")

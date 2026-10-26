@@ -1,11 +1,14 @@
 "use client";
 
 import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog";
 import type { PlayerProfile } from "@/data/fakeData";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { MatchAvailabilitySuggestions } from "@/components/match/MatchAvailabilitySuggestions";
 import { AppCard } from "@/components/ui/AppCard";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { DirectionsPicker } from "@/components/ui/DirectionsPicker";
+import { matchPrimaryButton, matchSecondaryButton, matchDestructiveButton, matchToggleClass } from "./matchPanelStyles";
 import { useI18n } from "@/i18n/I18nProvider";
 import { getIntlLocale } from "@/i18n/leagueText";
 import type { Locale } from "@/i18n/translations";
@@ -16,7 +19,7 @@ import {
   getLeagueLocationIdentityKey,
   getLeagueLocationCourts,
   getLeagueLocationMapsUrl,
-  getLeagueLocationScheduleText,
+  getLeagueLocationCompactText,
   getLeagueLocationSubtitle,
   getLeagueLocationTownNameLabel,
   getScheduleLocationFallbackText,
@@ -189,7 +192,9 @@ export function MatchScheduleForm({
   const [isPanelOpen, setIsPanelOpen] = useState(
     isUnscheduled || (isPostponed && canManage),
   );
-  const [isEditing, setIsEditing] = useState(isUnscheduled && canManage);
+  const [editingRequested, setIsEditing] = useState(isUnscheduled && canManage);
+  const [manualScheduleRequested, setManualScheduleRequested] = useState(false);
+  const isEditing = editingRequested && (!coordinationAction || manualScheduleRequested);
   const [scheduledAtValue, setScheduledAtValue] = useState(
     hasSchedule ? formatScheduleForDateTimeInput(scheduledAt) : "",
   );
@@ -381,7 +386,7 @@ export function MatchScheduleForm({
     });
 
   const displayedLocationText = scheduledLeagueLocation
-    ? getLeagueLocationScheduleText(scheduledLeagueLocation)
+    ? getLeagueLocationCompactText(scheduledLeagueLocation)
     : getScheduleLocationFallbackText(location);
   const directionsUrl = scheduledLeagueLocation
     ? getLeagueLocationMapsUrl(scheduledLeagueLocation)
@@ -656,13 +661,9 @@ export function MatchScheduleForm({
           onClick={togglePanel}
           disabled={isSaving}
           aria-expanded={isPanelOpen}
-          className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition active:bg-neutral-50 disabled:text-neutral-400"
+          className="flex w-full items-center justify-between gap-3 px-3 pt-3 text-left transition disabled:text-neutral-400"
         >
-          <p className="truncate type-panel-title text-neutral-950">
-            {getTitle()}
-          </p>
-
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600">
+          <div className="w-full"><SectionHeader headingTag="span" title={getTitle()} action={<span className={matchToggleClass}>
             <svg
               aria-hidden="true"
               viewBox="0 0 20 20"
@@ -677,37 +678,33 @@ export function MatchScheduleForm({
                 strokeLinejoin="round"
               />
             </svg>
-          </span>
+          </span>} /></div>
         </button>
       ) : (
-        <div className="flex w-full items-center px-3 py-2.5">
-          <p className="truncate type-panel-title text-neutral-950">
-            {getTitle()}
-          </p>
+        <div className="flex w-full items-center px-3 pt-3">
+          <div className="w-full"><SectionHeader title={getTitle()} /></div>
         </div>
       )}
 
-      {hasSchedule ? (
-        <div className="px-3 pb-3 pt-1">
+      {hasSchedule || displayedLocationText ? (
+        <div className="px-3 pb-3">
           <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
-            <p className="font-black text-neutral-950">
-              {formatMatchScheduleLongLabel(scheduledAt, locale) ?? capitalizeFirstLetter(dateLabel, locale) ?? t.matches.pendingDate}
+            <p className="text-xs font-semibold leading-5 text-neutral-600">
+              {hasSchedule ? formatMatchScheduleLongLabel(scheduledAt, locale) ?? capitalizeFirstLetter(dateLabel, locale) ?? t.matches.pendingDate : isPostponed ? t.matches.pendingReschedule : t.matches.pendingDate}
             </p>
-            <p className="mt-0.5 text-xs font-semibold text-neutral-600">
-              {displayedLocationText ?? tx("Lugar pendiente")}
+            <p className="mt-1 flex items-start gap-1.5 text-sm font-bold leading-5 text-neutral-950">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="mt-0.5 h-4 w-4 shrink-0"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" /><circle cx="12" cy="10" r="2" /></svg>
+              <span>{displayedLocationText ?? tx("Lugar pendiente")}</span>
             </p>
 
-            {!isFinished && (directionsUrl || calendarAction) ? (
-              <div className="mt-2 flex gap-2">
+            {!isFinished && hasSchedule && (directionsUrl || calendarAction) ? (
+              <div className={`mt-2 grid gap-2 [&>*]:min-w-0 ${directionsUrl && calendarAction ? "grid-cols-2" : "grid-cols-1"}`}>
                 {directionsUrl ? (
-                  <a
-                    href={directionsUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex flex-1 rounded-lg border border-neutral-950 bg-neutral-950 px-2.5 py-2 text-center text-xs font-semibold text-white transition active:scale-[0.99] items-center justify-center"
-                  >
-                    {t.matchDetail.directionsButton}
-                  </a>
+                  <DirectionsPicker
+                    mapsUrl={directionsUrl}
+                    locationLabel={displayedLocationText ?? tx("Lugar pendiente")}
+                    className={`${matchSecondaryButton} flex-1`}
+                  />
                 ) : null}
 
                 {calendarAction ? calendarAction : null}
@@ -719,16 +716,16 @@ export function MatchScheduleForm({
 
       {isPanelOpen ? (
         <div
-          className={`px-3 pb-3 ${hasSchedule ? "pt-0" : "pt-1"}`}
+          className="px-3 pb-3"
         >
           {canManage && !isEditing ? (
             <div className="flex flex-wrap justify-end gap-1.5">
               {isPostponed ? (
                 <button
                   type="button"
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => { setManualScheduleRequested(true); setIsEditing(true) }}
                   disabled={isSaving}
-                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 type-caption font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300 text-center"
+                  className={matchPrimaryButton}
                 >
                   {t.matchDetail.rescheduleButton}
                 </button>
@@ -736,9 +733,9 @@ export function MatchScheduleForm({
                 <>
                   <button
                     type="button"
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => { setManualScheduleRequested(true); setIsEditing(true) }}
                     disabled={isSaving}
-                    className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-neutral-200 bg-white px-2.5 type-caption font-black text-neutral-800 shadow-sm transition active:bg-neutral-50 disabled:text-neutral-400 text-center"
+                    className={matchSecondaryButton}
                   >
                     {t.matchDetail.editScheduleButton}
                   </button>
@@ -747,7 +744,7 @@ export function MatchScheduleForm({
                       type="button"
                       onClick={handlePostpone}
                       disabled={!canPostpone}
-                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-orange-200 bg-orange-50 px-2.5 type-caption font-black text-orange-800 transition active:bg-orange-100 disabled:border-neutral-200 disabled:bg-neutral-50 disabled:text-neutral-300 text-center"
+                      className={matchSecondaryButton}
                     >
                       {isSaving
                         ? t.matchDetail.saving
@@ -759,7 +756,7 @@ export function MatchScheduleForm({
                       type="button"
                       onClick={handleClearSchedule}
                       disabled={!canClearCurrentSchedule}
-                      className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full border border-red-100 bg-red-50 px-2.5 type-caption font-black text-red-700 transition active:bg-red-100 disabled:text-red-300 text-center"
+                      className={matchDestructiveButton}
                     >
                       {isSaving
                         ? t.matchDetail.clearingSchedule
@@ -770,17 +767,17 @@ export function MatchScheduleForm({
               ) : (
                 <button
                   type="button"
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => { setManualScheduleRequested(true); setIsEditing(true) }}
                   disabled={isSaving}
-                  className="inline-flex h-6 items-center justify-center whitespace-nowrap rounded-full bg-neutral-950 px-2.5 type-caption font-black text-white transition active:scale-[0.98] disabled:bg-neutral-300 text-center"
+                  className={coordinationAction ? matchSecondaryButton : matchPrimaryButton}
                 >
-                  {t.matchDetail.addScheduleButton}
+                  {coordinationAction ? tx("Programar manualmente") : t.matchDetail.addScheduleButton}
                 </button>
               )}
             </div>
           ) : null}
 
-          {!hasSchedule && !isEditing ? (
+          {!hasSchedule && !isEditing && !displayedLocationText ? (
             <div className="rounded-lg bg-neutral-100 px-2.5 py-2 text-sm">
               <p className="font-black text-neutral-950">
                 {isPostponed
@@ -855,11 +852,9 @@ export function MatchScheduleForm({
                     <span className={`min-w-0 flex-1 truncate ${selectedLocation ? "text-neutral-900" : "text-neutral-400"}`}>{selectedLocationLabel}</span>
                     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                   </button>
-                  {isLocationPickerOpen && typeof document !== "undefined" ? createPortal(<>
-                    <button type="button" aria-label={tx("Cerrar buscador de ubicaciones")} onClick={closeLocationPicker} className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]" />
-                    <section role="dialog" aria-modal="true" aria-label={tx("Buscar ubicación")} className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl" style={{ top: "max(14px, calc(var(--app-safe-top) + 10px))", maxHeight: "min(440px, calc(100dvh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 28px))" }}>
-                      <div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
-                        <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black text-neutral-950">{tx("Seleccionar ubicación")}</p><p className="type-caption font-semibold text-neutral-400">{tx(`${normalizedAvailableLocations.length} disponibles`)}</p></div><button type="button" onClick={closeLocationPicker} aria-label={tx("Cerrar")} className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500">×</button></div>
+                  <FloatingDialog open={isLocationPickerOpen} onClose={closeLocationPicker} title={tx("Buscar ubicación")} variant="search" busy={isSavingLocation}>
+<div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
+                        <div className="flex items-center justify-between gap-3"><div><h2>{tx("Seleccionar ubicación")}</h2><p className="type-caption font-semibold text-neutral-400">{tx(`${normalizedAvailableLocations.length} disponibles`)}</p></div><DialogCloseButton onClick={closeLocationPicker} disabled={isSavingLocation} /></div>
                         <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
                           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                           <input ref={locationSearchInputRef} type="search" value={locationSearch} onChange={(event) => setLocationSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") closeLocationPicker(); if (event.key === "Enter") event.preventDefault() }} disabled={isSaving || isSavingLocation} placeholder={loadingGlobalLocations ? tx("Cargando ubicaciones...") : tx("Buscar por localidad o nombre...")} className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-sm font-semibold outline-none" />
@@ -886,8 +881,7 @@ export function MatchScheduleForm({
                       <div className="shrink-0 border-t border-neutral-100 bg-white p-2">
                         <button type="button" onClick={() => setIsAddingLeagueLocation((current) => !current)} disabled={isSaving || isSavingLocation} className="flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-center text-sm font-black text-neutral-800 disabled:text-neutral-400">{isAddingLeagueLocation ? tx("Cancelar nueva ubicación") : tx("+ Añadir nueva ubicación")}</button>
                       </div>
-                    </section>
-                  </>, document.body) : null}
+                    </FloatingDialog>
                 </div>
               </div>
 
@@ -935,19 +929,16 @@ export function MatchScheduleForm({
                   </label>
 
                   {!hasAvailableLocations ? (
-                    <a
-                      href={customLocationCheckUrl ?? undefined}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-disabled={!customLocationCheckUrl}
-                      className={`block w-full rounded-lg border px-2.5 py-1.5 text-center text-xs font-black shadow-sm ${
-                        customLocationCheckUrl
-                          ? "border-neutral-200 bg-neutral-50 text-neutral-800"
-                          : "pointer-events-none border-neutral-200 bg-neutral-100 text-neutral-400"
-                      }`}
-                    >
-                      {t.matchDetail.checkAddressButton}
-                    </a>
+                    customLocationCheckUrl ? (
+                      <DirectionsPicker
+                        mapsUrl={customLocationCheckUrl}
+                        locationLabel={customLocation}
+                        triggerLabel={t.matchDetail.checkAddressButton}
+                        className="block w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-center text-xs font-black text-neutral-800 shadow-sm"
+                      />
+                    ) : (
+                      <button type="button" disabled className="flex w-full items-center justify-center rounded-lg border border-neutral-200 bg-neutral-100 px-2.5 py-1.5 text-center text-xs font-black text-neutral-400">{t.matchDetail.checkAddressButton}</button>
+                    )
                   ) : null}
                 </div>
               ) : null}
@@ -967,7 +958,7 @@ export function MatchScheduleForm({
                     type="button"
                     onClick={handleCancel}
                     disabled={isSaving}
-                    className="inline-flex flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
+                    className={`${matchSecondaryButton} flex-1`}
                   >
                     {t.matchDetail.cancelScheduleEdit}
                   </button>
@@ -976,7 +967,7 @@ export function MatchScheduleForm({
                 <button
                   type="submit"
                   disabled={!canSave}
-                  className="inline-flex flex-1 rounded-lg bg-neutral-950 px-2.5 py-1.5 text-xs font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
+                  className={`${matchPrimaryButton} flex-1`}
                 >
                   {isSaving
                     ? t.matchDetail.saving

@@ -59,6 +59,15 @@ export function normalizeScheduledStartAt(value: unknown) {
   return date && !Number.isNaN(date.getTime()) ? date.toISOString() : null
 }
 
+/** Calendar-day distance in the season timezone, including DST boundaries. */
+export function getSeasonPreviewCountdown(value: string | null | undefined, now = new Date()) {
+  const startsAt = normalizeScheduledStartAt(value)
+  if (!startsAt || Date.parse(startsAt) <= now.getTime()) return null
+  const start = madridParts(new Date(startsAt)), today = madridParts(now)
+  const days = Math.round((Date.UTC(start.year, start.month - 1, start.day) - Date.UTC(today.year, today.month - 1, today.day)) / 86_400_000)
+  return { startsAt, days }
+}
+
 
 export type ScheduledSeasonHomeStage = "roster" | "registration" | "countdown"
 

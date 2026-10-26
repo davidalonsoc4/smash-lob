@@ -1,5 +1,50 @@
 @import "tailwindcss";
 
+/* League creation: one prominent action and quiet, scoped configuration controls. */
+.league-creation-input { display:block; width:100%; min-width:0; min-height:44px; border:1px solid #d4d4d4; border-radius:.75rem; padding:.625rem .75rem; background:#fff; color:#171717; font-size:.875rem; }
+.league-creation-primary, .league-creation-secondary { display:inline-flex; min-height:44px; align-items:center; justify-content:center; gap:.5rem; border-radius:.75rem; padding:.625rem .875rem; font-size:.875rem; font-weight:700; text-align:center; }
+.league-creation-primary { background:#171717; color:#fff; }
+.league-creation-secondary { border:1px solid #d4d4d4; background:transparent; color:inherit; }
+.league-creation-primary:disabled, .league-creation-secondary:disabled { opacity:.45; cursor:not-allowed; }
+.league-creation-footer { position:sticky; bottom:calc(env(safe-area-inset-bottom, 0px) + .5rem); z-index:15; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:.75rem; padding:.5rem; border:1px solid #e5e5e5; border-radius:1rem; background:#fff; box-shadow:0 2px 12px #0000000a; }
+.league-creation-details { min-width:0; border:1px solid #d4d4d4; border-radius:.75rem; background:#fff; }
+.league-creation-details > summary { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:.25rem .75rem; padding:.875rem .75rem; cursor:pointer; list-style:none; font-size:.875rem; font-weight:700; }
+.league-creation-details > summary::-webkit-details-marker { display:none; }
+.league-creation-details > summary > span { grid-column:1; }
+.league-creation-details > summary::after { content:""; grid-column:2; grid-row:1 / span 2; width:.5rem; height:.5rem; margin-right:.25rem; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); opacity:.6; }
+.league-creation-details[open] > summary::after { transform:rotate(225deg); }
+.league-creation-block-title { display:flex; align-items:center; gap:.5rem; min-width:0; }
+.league-creation-number { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; width:1.5rem; height:1.5rem; border-radius:50%; background:#171717; color:#fff; font-size:.75rem; font-weight:900; }
+.league-creation-range { flex-shrink:0; min-width:2rem; padding:.125rem .375rem; border-radius:.375rem; background:#f5f5f5; color:#404040; font-size:.75rem; font-weight:700; text-align:center; }
+html.dark .league-creation-number { background:#e5e5e5; color:#171717; }
+html.dark .league-creation-range { background:#262626; color:#e5e5e5; }
+.league-creation-edit { min-height:44px; padding:.25rem .5rem; color:inherit; font-size:.75rem; font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+.league-creation-progress { display:flex; align-items:center; min-height:44px; padding-right:var(--app-floating-top-reserved-width,180px); font-size:.6875rem; font-weight:600; white-space:nowrap; }
+.app-page-header .type-page-title.league-creation-title { font-size:clamp(.875rem,4.3vw,1.25rem) !important; line-height:1.3 !important; letter-spacing:-.02em; white-space:nowrap; }
+.app-page-header.league-season-header { display:flex; flex-direction:column; justify-content:center; gap:.25rem; padding-block:.625rem !important; }
+.app-page-header.league-season-header .league-creation-progress { min-height:1rem; padding-right:0; line-height:1.4; }
+.app-page-header.league-season-header .league-creation-title { margin:0 !important; }
+.app-main[data-has-floating-top-controls="true"] :is([data-season-creation-step], .league-season-header, [data-season-creation-advanced] > details) { scroll-margin-top:max(54px,calc(var(--app-safe-top) + 52px)); }
+.league-creation-advanced { border-color:var(--app-accent,#737373); background:color-mix(in srgb,var(--app-accent,#737373) 14%,transparent); font-size:.75rem; }
+:is(.league-creation-input, .league-creation-primary, .league-creation-secondary, .league-creation-edit):focus-visible, .league-creation-details > summary:focus-visible { outline:2px solid var(--app-accent,#737373); outline-offset:3px; }
+html.dark :is(.league-creation-footer,.league-creation-details,.league-creation-input) { background:var(--competition-surface,#18181b); color:#f5f5f5; border-color:#404040; }
+html.dark .league-creation-secondary { border-color:#525252; }
+html.dark .league-creation-primary { background:var(--app-accent,#dbe6f3); color:var(--competition-accent-contrast,#111); }
+html[data-theme][data-visual-style] [data-season-creation-step] button[aria-pressed="true"] { background:color-mix(in srgb,var(--app-accent,#737373) 12%,#fff) !important; color:#171717 !important; border-color:var(--app-accent,#737373) !important; }
+html.dark[data-theme][data-visual-style] [data-season-creation-step] button[aria-pressed="true"] { background:color-mix(in srgb,var(--app-accent,#aaa) 15%,#18181b) !important; color:#fafafa !important; }
+
+html:not(.dark)[data-theme][data-visual-style] [data-season-creation-step] button.bg-neutral-950 .text-neutral-300 { color:#e5e5e5 !important; }
+
+.season-duration-nested { border-left:3px solid var(--app-accent,#737373); }
+.season-review-metrics { display:grid; gap:.5rem; margin-top:.75rem; }
+.season-review-metrics .season-review-field { display:flex; flex-direction:column; }
+.season-review-metrics dd { margin-top:auto; padding-top:.25rem; }
+.season-review-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+.season-review-field { min-width:0; padding:.625rem .75rem; border-radius:.625rem; background:color-mix(in srgb,currentColor 4%,transparent); }
+.season-review-field dd { margin-left:0; overflow-wrap:anywhere; }
+.season-review-number { margin-top:.25rem; font-size:1.5rem; line-height:1.2; font-weight:900; }
+.season-review-card .season-review-fields > :only-child { grid-column:1 / -1; }
+
 :root {
   --app-shell-width: 448px;
   --background: #f5f5f4;
@@ -10,6 +55,7 @@
   --app-safe-bottom: env(safe-area-inset-bottom, 0px);
   --foreground: #171717;
   --app-font-size-adjust: 0px;
+  --app-section-content-gap: .5rem;
 }
 
 @theme inline {
@@ -50,6 +96,66 @@ textarea {
 
 summary::-webkit-details-marker {
   display: none;
+}
+
+.match-slides { column-gap: .75rem; scrollbar-width: none; }
+.match-slides::-webkit-scrollbar { display: none; }
+
+.app-section-header {
+  margin-block-end: var(--app-section-content-gap) !important;
+}
+.app-section-header + * {
+  margin-block-start: 0 !important;
+}
+.app-section-action {
+  position: relative;
+}
+.app-section-action::after {
+  position: absolute;
+  inset: -.75rem 0;
+  content: "";
+}
+
+/* Pagination already provides breathing room beneath its visible marker. */
+[data-home-match-carousel]:has(> .match-preview-pagination),
+section[aria-labelledby="personal-activity"]:has(> .match-preview-pagination) {
+  margin-block-end: .5rem !important;
+}
+[data-home-match-carousel]:has(> .match-preview-pagination) + section,
+section[aria-labelledby="personal-activity"]:has(> .match-preview-pagination) + section {
+  margin-block-start: 0 !important;
+}
+
+[data-home-match-carousel] .match-slides > div > div,
+[data-home-match-carousel] .match-slides > div > div > a {
+  height: 100%;
+}
+[data-home-match-carousel] .match-slides .app-card,
+[data-home-match-carousel] .match-slides .app-card > div:last-of-type {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+[data-home-match-carousel] .match-slides .app-card {
+  height: 100%;
+}
+[data-home-match-carousel] [data-match-event-meta],
+[data-home-match-carousel] [data-match-schedule-hint] {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.personal-match-league-origin {
+  --personal-league-background: color-mix(in srgb, var(--personal-league-accent) 12%, white);
+  --personal-league-border: color-mix(in srgb, var(--personal-league-accent) 55%, white);
+  --personal-league-text: color-mix(in srgb, var(--personal-league-accent) 45%, black);
+}
+html.dark .personal-match-league-origin {
+  --personal-league-background: color-mix(in srgb, var(--personal-league-accent) 20%, #18181b);
+  --personal-league-border: color-mix(in srgb, var(--personal-league-accent) 65%, #aaaaaa);
+  --personal-league-text: color-mix(in srgb, var(--personal-league-accent) 30%, white);
 }
 
 button,
@@ -2317,6 +2423,12 @@ html[data-visual-style="competition"] .app-page-header .type-page-title {
   line-height: .98;
   letter-spacing: .055em;
 }
+/* Balance the title panel without changing its compact height. The shared
+   .5rem !important top inset otherwise wins over Competition's bottom inset.
+   Immersive chat keeps its own safe-area-aware header geometry. */
+html[data-visual-style="competition"] .app-page-header:not(.app-match-chat-header) {
+  padding-block: .625rem !important;
+}
 html[data-visual-style="competition"] [data-route="/"] .app-page-header {
   padding: 1rem .9rem .85rem;
   border-radius: 1rem;
@@ -2603,6 +2715,11 @@ html[data-visual-style="competition"] [data-personal-match-origin="friendly"] {
   background: rgb(var(--competition-rgb-friendly) / .32) !important;
   color: var(--competition-tone-friendly-text) !important;
 }
+html[data-visual-style="competition"] [data-personal-match-origin="league"][data-league-accent] {
+  border-color: var(--personal-league-border) !important;
+  background: var(--personal-league-background) !important;
+  color: var(--personal-league-text) !important;
+}
 
 /* Match chat follows the same surface language as the rest of Competition. */
 html[data-visual-style="competition"] .app-match-chat-header {
@@ -2879,10 +2996,10 @@ html[data-visual-style="competition"] .season-review-list > li + li {
   border-color: var(--competition-border);
 }
 html[data-visual-style="competition"] .app-match-player-name {
-  white-space: normal;
-  overflow: visible;
-  overflow-wrap: anywhere;
-  text-overflow: clip;
+  white-space: nowrap;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
   line-height: 1.25;
 }
 .app-match-header-row {
@@ -3042,3 +3159,69 @@ html[data-visual-style="competition"] .personal-form-result {
 .public-site-hero .app-top-back-control { color: #fff; }
 html[data-visual-style="competition"] .app-accent-surface a.bg-white { color: var(--competition-text) !important; }
 @media (display-mode: standalone) { html, body, html[data-theme][data-style], html[data-theme][data-style] body { background: #000000 !important; } }
+
+/* Standalone match-up: emphasize names without changing previews or finished scores. */
+.app-match-pairing-standalone .app-match-player-name {
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+/* Shared action treatment: preserve destructive/status controls and icon-only navigation. */
+html[data-theme][data-visual-style] .app-action-button,
+html:not(.dark) .app-main :is(button, a).bg-neutral-950 {
+  background: #171717 !important; border-color: #171717 !important; color: #fff !important;
+}
+html.dark[data-theme][data-visual-style] .app-action-button,
+html.dark .app-main :is(button, a).bg-neutral-950 {
+  background: var(--app-accent, #dbe6f3) !important;
+  border-color: var(--app-accent, #dbe6f3) !important;
+  color: var(--competition-accent-contrast, #111) !important;
+}
+html[data-theme][data-visual-style] .app-action-button :is(span,svg),
+html .app-main :is(button,a).bg-neutral-950 :is(span,svg,p) { color: inherit !important; }
+html .app-action-button:disabled { opacity: .45; cursor: not-allowed; }
+html .app-action-button:focus-visible { outline: 2px solid var(--app-accent, #737373); outline-offset: 3px; }
+.app-match-pair-surface { min-width: 0; border-color: color-mix(in srgb, var(--app-accent, #737373) 22%, #d4d4d4); }
+html.dark .app-match-pair-surface { border-color: color-mix(in srgb, var(--app-accent, #aaa) 30%, #525252) !important; }
+html:not(.dark) .app-main .app-card:not(.text-white),
+html:not(.dark) .app-main .app-match-pair-surface,
+html:not(.dark) [data-route^="/match/"] :is(div,section).bg-neutral-50,
+html:not(.dark) [data-route^="/match/"] :is(div,section).bg-neutral-100 { background: #fff !important; }
+/* The hero fills only the remaining space; short screens retain natural scrolling. */
+[data-countdown-home] { min-height: calc(100dvh - max(54px, calc(var(--app-safe-top) + 52px)) - 96px); display: flex; flex-direction: column; gap: 1rem; }
+html[data-visual-style] [data-route="/"] [data-countdown-home] > [data-season-start-countdown="hero"] { flex: 1; min-height: 0 !important; margin-top: 0 !important; padding-block: 1.25rem !important; }
+[data-countdown-home] > header { margin-block: 0 !important; flex-shrink: 0; }
+/* Shared floating surfaces: native dialogs keep the page inert and trap focus. */
+.app-dialog { margin:auto; width:min(384px,calc(100vw - 28px)); max-height:calc(100dvh - max(28px,var(--app-safe-top,0px)) - env(safe-area-inset-bottom,0px)); padding:1rem; border:1px solid #d4d4d4; border-radius:1rem; background:#fff; color:#171717; box-shadow:0 20px 60px #0003; overflow:auto; overscroll-behavior:contain; }
+.app-dialog::backdrop { background:#0007; backdrop-filter:blur(1px); }
+.app-dialog[open] { display:flex; flex-direction:column; }
+.app-dialog-search { width:min(360px,calc(100vw - 28px)); margin-top:max(64px,calc(var(--app-safe-top,0px) + 58px)); max-height:min(560px,calc(100dvh - var(--app-safe-top,0px) - env(safe-area-inset-bottom,0px) - 150px)); padding:0; overflow:hidden; }
+.app-dialog-content { width:min(768px,calc(100vw - 28px)); padding:0; overflow:hidden; }
+.app-dialog h2, .app-dialog [data-dialog-title] { font-size:1rem; line-height:1.4; font-weight:800; }
+.app-dialog-close { display:inline-flex; flex-shrink:0; align-items:center; justify-content:center; width:44px; height:44px; border-radius:50%; background:#f5f5f5; color:#404040; }
+.app-dialog-option { display:flex; width:100%; min-height:44px; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem; border-radius:.75rem; background:#f5f5f5; color:#171717; text-align:left; font-size:.875rem; font-weight:600; }
+.app-dialog-primary { display:flex; min-height:44px; align-items:center; justify-content:center; border-radius:.75rem; padding:.75rem; background:#171717; color:white; font-size:.875rem; font-weight:700; }
+.app-dialog-cancel { display:flex; width:100%; min-height:44px; align-items:center; justify-content:center; margin-top:.75rem; border-radius:.75rem; font-size:.875rem; font-weight:600; }
+.app-dialog :is(button,a,input,select):focus-visible, .app-search-trigger:focus-visible { outline:2px solid var(--app-accent,#737373); outline-offset:2px; }
+.app-dialog :is(button,a)[aria-pressed="true"] { box-shadow:inset 0 0 0 2px var(--app-accent,#737373); }
+.app-dialog :disabled { opacity:.45; cursor:not-allowed; }
+.app-search-trigger { position:fixed; z-index:40; right:max(14px,calc((100vw - var(--app-shell-width,448px))/2 + 14px)); display:grid; width:44px; height:44px; place-items:center; border:1px solid #d4d4d4; border-radius:50%; background:#fff; color:#404040; box-shadow:0 4px 14px #0002; }
+.app-search-active { position:absolute; top:2px; right:2px; width:8px; height:8px; border-radius:50%; background:var(--app-accent,#737373); outline:2px solid white; }
+html.dark .app-dialog, html.dark .app-search-trigger { background:#18181b; color:#fafafa; border-color:#404040; }
+html.dark :is(.app-dialog-option,.app-dialog-close) { background:#262626; color:#f5f5f5; }
+html.dark .app-dialog-primary { background:var(--app-accent,#dbe6f3); color:var(--competition-accent-contrast,#111); }
+html[data-visual-style="competition"] .app-dialog { background:var(--competition-surface); color:var(--competition-text); border-color:var(--competition-border); }
+@media(max-width:639px) { .app-dialog-help { margin-bottom:max(14px,env(safe-area-inset-bottom,0px)); } }
+.app-dialog-crop { width:min(448px,calc(100vw - 28px)); }
+.app-dialog :is(.app-dialog-option,.app-dialog-primary) > svg { flex-shrink:0; }
+.app-dialog [data-dialog-title], .app-dialog h2 { margin:0; }
+.app-dialog-option.justify-center { justify-content:center; }
+.app-dialog [role="option"][aria-selected="true"] { box-shadow:inset 0 0 0 2px var(--app-accent,#737373); }
+/* Muted copy must retain contrast on the common neutral option background. */
+.app-dialog :is(.text-neutral-400,.text-neutral-500) { color:#525252 !important; }
+html.dark .app-dialog :is(.text-neutral-400,.text-neutral-500) { color:#a3a3a3 !important; }
+.app-dialog button.bg-neutral-950 { background:#e5e5e5 !important; color:#171717 !important; box-shadow:inset 0 0 0 2px var(--app-accent,#737373); }
+.app-dialog button.bg-neutral-950 :is(.text-neutral-300,.text-white) { color:#404040 !important; }
+html.dark .app-dialog button.bg-neutral-950 { background:#404040 !important; color:#fafafa !important; }
+html.dark .app-dialog button.bg-neutral-950 :is(.text-neutral-300,.text-white) { color:#e5e5e5 !important; }
+.app-dialog :is(button,a) { min-height:44px; min-width:44px; }

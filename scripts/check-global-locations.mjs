@@ -70,7 +70,8 @@ assert(leagueEditor.includes("Ubicaciones de la app"), "El editor de liga debe p
 assert(leagueEditor.includes("Buscar por nombre, localidad o dirección..."), "El catálogo global de liga debe tener buscador")
 assert(!newLeaguePage.includes("<LeagueLocationsEditor"), "La identidad inicial de la liga no debe pedir ubicaciones")
 const seasonAdminWithExtractedForm = `${seasonAdminPage}\n${newSeasonForm}`
-assert(seasonAdminWithExtractedForm.includes("<LeagueLocationsEditor") && seasonAdminWithExtractedForm.includes("Cancelar creación de la liga"), "La primera temporada debe configurar ubicaciones y permitir cancelar la liga")
+assert(!newSeasonForm.includes("<LeagueLocationsEditor") && newSeasonForm.includes("<PersonalMatchLocationPicker") && newSeasonForm.includes('fetch("/api/locations"') && seasonAdminWithExtractedForm.includes("Cancelar creación de la liga"), "La creación debe buscar la apertura en el catálogo global, sin pedir recomendaciones, y permitir cancelar")
+assert(serverCatalog.includes("resolveOpeningRoundLocation") && serverCatalog.includes("listGlobalLocations(supabase)).find(matches)"), "La apertura debe validar el catálogo global conservando ubicaciones antiguas")
 assert(
   matchScheduleForm.includes('fetch("/api/locations", { cache: "no-store" })'),
   "Programar partido debe cargar el catálogo global de ubicaciones",
@@ -109,5 +110,5 @@ assert(matchScheduleRoute.includes('update({ locations: nextLeagueLocations })')
 
 console.log("Ubicaciones globales v1.10.18 correctas:")
 console.log("- catálogo maestro service-role con deduplicación; fallback legacy solo si la tabla aún no existe")
-console.log("- la primera temporada y la administración buscan ubicaciones existentes o añaden nuevas")
+console.log("- la apertura busca en el catálogo global sin recomendaciones previas; la administración conserva el editor existente")
 console.log("- partidos de liga priorizan recomendaciones y fijan Añadir nueva ubicación fuera del scroll; amistosos reutilizan el catálogo global")

@@ -14,7 +14,7 @@ it.each([[2], [1, 1], [1, 2, 4]])("rejects incomplete/invalid round order %j bef
   expect(update).not.toHaveBeenCalled()
 })
 
-it("duplicates an extended season with its original custom round count", async () => {
+it.each(["individual", "fixed_pairs"])("duplicates an extended %s season with its original custom round count", async mode => {
   const writes: Record<string, Row[]> = {}
   const source = { id: "source", league_id: "league", name: "Source", status: "finished", total_rounds: 14, completed_rounds: 14 }
   const playerIds = Array.from({ length: 8 }, (_, i) => `player-${i}`)
@@ -23,9 +23,10 @@ it("duplicates an extended season with its original custom round count", async (
     let inserted: Row[] | null = null
     const result = () => {
       if (inserted) return inserted
+      if (table === "leagues") return [{ modality: mode }]
       if (table === "seasons") return filters.status ? [] : [source]
       if (table === "season_settings") return [{ schedule_mode: "extended", round_window_mode: "none" }]
-      if (table === "season_players") return playerIds.map((player_id) => ({ player_id, status: "active" }))
+      if (table === "season_players") return playerIds.map((player_id, index) => ({ player_id, status: "active", pair_number: mode === "fixed_pairs" ? Math.floor(index / 2) + 1 : null }))
       if (table === "players") return playerIds.map((id) => ({ id, display_name: id, league_id: "league" }))
       return []
     }
@@ -41,4 +42,5 @@ it("duplicates an extended season with its original custom round count", async (
   expect(result.duplicatedSeason.totalRounds).toBe(14)
   expect(writes.seasons[0].total_rounds).toBe(14)
   expect(new Set(writes.matches.map((match) => match.round)).size).toBe(14)
+  if (mode === "fixed_pairs") for (const match of writes.matches) for (const team of [match.team_a, match.team_b] as string[][]) expect(new Set(team.map(id => writes.season_players.find(row => row.player_id === id)!.pair_number)).size).toBe(1)
 })

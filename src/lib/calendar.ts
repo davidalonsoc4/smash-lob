@@ -1,3 +1,4 @@
+import { generateFixedPairLeagueCalendar, validateLeaguePairs, areLeagueMatchesPaired, type LeaguePair, type LeagueModality } from "@/lib/fixedPairLeague"
 import { generateFlexibleCalendarRounds } from "@/lib/flexibleCalendar"
 import {
   getSeasonBaseRoundCount,
@@ -52,7 +53,9 @@ type CyclicWhistGame = {
  *
  * Keeping the verified starters explicit makes generation deterministic and
  * instant in the browser. v1.12.0 supports perfectly balanced seasons from
- * 8 to 24 players in multiples of four.
+ * 8 to 32 players in multiples of four. The 28/32 starters are from
+ * https://www.durangobill.com/BridgeCyclicSolutions.html and independently
+ * checked by the same full-calendar invariants as the existing starters.
  */
 const cyclicWhistStarters: Record<number, CyclicWhistGame[]> = {
   8: [
@@ -84,6 +87,25 @@ const cyclicWhistStarters: Record<number, CyclicWhistGame[]> = {
     { teamA: [5, 10], teamB: [2, 11] },
     { teamA: ["fixed", 0], teamB: [21, 4] },
     { teamA: [7, 14], teamB: [1, 12] },
+  ],
+  28: [
+    { teamA: [22, 23], teamB: [1, 14] },
+    { teamA: [5, 7], teamB: [8, 17] },
+    { teamA: [9, 12], teamB: [4, 11] },
+    { teamA: [21, 25], teamB: [10, 18] },
+    { teamA: [19, 24], teamB: [3, 15] },
+    { teamA: [20, 26], teamB: [6, 16] },
+    { teamA: [2, 13], teamB: ["fixed", 0] },
+  ],
+  32: [
+    { teamA: [24, 25], teamB: ["fixed", 0] },
+    { teamA: [9, 11], teamB: [28, 5] },
+    { teamA: [10, 13], teamB: [22, 26] },
+    { teamA: [7, 12], teamB: [2, 15] },
+    { teamA: [21, 27], teamB: [20, 29] },
+    { teamA: [23, 30], teamB: [8, 19] },
+    { teamA: [4, 14], teamB: [3, 17] },
+    { teamA: [6, 18], teamB: [1, 16] },
   ],
 }
 
@@ -1634,14 +1656,16 @@ function buildBalancedLegCandidates({
     (_, index) => index + 1,
   ).filter((step) => greatestCommonDivisor(step, playerIds.length) === 1)
 
-  for (const step of candidateSteps) {
+  for (const step of playerIds.length > 24 ? [] : candidateSteps) {
     const firstOffset = step === 1 ? 1 : 0
     for (let offset = firstOffset; offset < playerIds.length; offset += 1) {
       addCandidate(buildExtendedCandidate({ baseMatches, playerIds, offset, step }))
     }
   }
 
-  const deterministicCandidateCount = Math.max(192, playerIds.length * 16)
+  // New sizes use a verified bounded set of remixes. This avoids
+  // blocking mobile browsers while keeping every legacy schedule unchanged.
+  const deterministicCandidateCount = playerIds.length > 24 ? 64 : Math.max(192, playerIds.length * 16)
   for (let seed = 1; seed <= deterministicCandidateCount; seed += 1) {
     const permutedPlayerIds = getDeterministicPermutation(playerIds, seed)
     const sampleMatch = baseMatches[0]
@@ -1758,43 +1782,58 @@ const precomputedMaxBalancedLegCount: Record<number, number> = {
   22: 11,
   23: 12,
   24: 9,
+  // Newly supported sizes retain single/double and custom partial legs. Only
+  // advertise complete remixed legs whose balance is verified in tests.
+  25: 6,
+  26: 7,
+  27: 5,
+  28: 6,
+  29: 5,
+  30: 6,
+  31: 6,
+  32: 6,
 }
 
-export function getSeasonMaxBalancedLegCount(playerCount: number) {
+export function getSeasonMaxBalancedLegCount(playerCount: number, modality: LeagueModality = "individual") {
+  if (modality === "fixed_pairs") return 6
   if (!isSeasonPlayerCountInRange(playerCount)) return 1
   return precomputedMaxBalancedLegCount[playerCount] ?? 1
 }
 
-export function getSeasonMaxRoundCount(playerCount: number) {
-  return getSeasonBaseRoundCount(playerCount) * getSeasonMaxBalancedLegCount(playerCount)
+export function getSeasonMaxRoundCount(playerCount: number, modality: LeagueModality = "individual") {
+  return getSeasonBaseRoundCount(playerCount, modality) * getSeasonMaxBalancedLegCount(playerCount, modality)
 }
 
 export function isValidSeasonTargetRoundCount({
   playerCount,
+  modality = "individual",
   targetRoundCount,
 }: {
+  modality?: LeagueModality
   playerCount: number
   targetRoundCount: number
 }) {
   return (
-    isSeasonPlayerCountInRange(playerCount) &&
+    isSeasonPlayerCountInRange(playerCount, modality) &&
     Number.isInteger(targetRoundCount) &&
     targetRoundCount >= 1 &&
-    targetRoundCount <= getSeasonMaxRoundCount(playerCount)
+    targetRoundCount <= getSeasonMaxRoundCount(playerCount, modality)
   )
 }
 
 export function isValidSeasonScheduleTarget({
   playerCount,
+  modality = "individual",
   mode,
   targetRoundCount,
 }: {
+  modality?: LeagueModality
   playerCount: number
   mode: SeasonScheduleMode
   targetRoundCount: number
 }) {
-  if (!isValidSeasonTargetRoundCount({ playerCount, targetRoundCount })) return false
-  const baseRoundCount = getSeasonBaseRoundCount(playerCount)
+  if (!isValidSeasonTargetRoundCount({ playerCount, targetRoundCount, modality })) return false
+  const baseRoundCount = getSeasonBaseRoundCount(playerCount, modality)
   if (mode === "single") return targetRoundCount === baseRoundCount
   if (mode === "double") return targetRoundCount === baseRoundCount * 2
   return true
@@ -2076,17 +2115,19 @@ export function getSeasonScheduleRoundMultiplier(mode: SeasonScheduleMode) {
 
 export function getSeasonScheduleRoundCount({
   playerCount,
+  modality = "individual",
   mode,
   targetRoundCount,
   longMultiplier = 2,
 }: {
+  modality?: LeagueModality
   playerCount: number
   mode: SeasonScheduleMode
   targetRoundCount?: number
   longMultiplier?: number
 }) {
   if (typeof targetRoundCount === "number") return targetRoundCount
-  const baseRoundCount = getSeasonBaseRoundCount(playerCount)
+  const baseRoundCount = getSeasonBaseRoundCount(playerCount, modality)
   if (mode === "single") return baseRoundCount
   if (mode === "double") return baseRoundCount * 2
   return baseRoundCount * Math.max(2, Math.trunc(longMultiplier))
@@ -2111,18 +2152,24 @@ export function isOptimizedCustomSeasonCalendar(audit: SeasonCalendarAudit) {
 }
 
 export function generateBalancedCalendar({
+  fixedPairs,
   leagueId,
   seasonId,
   playerIds,
   scheduleMode = "single",
   targetRoundCount,
 }: {
+  fixedPairs?: LeaguePair[]
   leagueId: string
   seasonId: string
   playerIds: string[]
   scheduleMode?: SeasonScheduleMode
   targetRoundCount?: number
 }): GeneratedMatch[] {
+  if (fixedPairs) {
+    if (!validateLeaguePairs(fixedPairs, playerIds)) throw new Error("invalid_fixed_pairs")
+    return generateFixedPairLeagueCalendar({ leagueId, seasonId, pairs: fixedPairs, scheduleMode, targetRoundCount })
+  }
   if (!isSeasonPlayerCountInRange(playerIds.length)) return []
   if (new Set(playerIds).size !== playerIds.length) throw new Error("Duplicate calendar player IDs")
 
@@ -2195,12 +2242,14 @@ export function generateBalancedCalendar({
 }
 
 export function generateManualCalendar({
+  fixedPairs,
   leagueId,
   seasonId,
   matches,
   scheduleMode = "single",
   targetRoundCount,
 }: {
+  fixedPairs?: LeaguePair[]
   leagueId: string
   seasonId: string
   matches: ManualCalendarMatchDraft[]
@@ -2217,6 +2266,13 @@ export function generateManualCalendar({
       teamB: match.teamB,
     })
   )
+  if (fixedPairs) {
+    if (!areLeagueMatchesPaired(matches, fixedPairs)) throw new Error("invalid_fixed_pairs")
+    const sourceRounds = Math.max(...matches.map(match => match.round), 0)
+    const requested = targetRoundCount ?? getSeasonScheduleRoundCount({ playerCount: fixedPairs.length * 2, modality: "fixed_pairs", mode: scheduleMode })
+    if (!sourceRounds || !isValidSeasonScheduleTarget({ playerCount: fixedPairs.length * 2, modality: "fixed_pairs", mode: scheduleMode, targetRoundCount: requested })) throw new Error("invalid_target_round_count")
+    return Array.from({ length: requested }, (_, i) => baseMatches.filter(match => match.round === i % sourceRounds + 1).map((match, index) => ({ ...match, id: `${seasonId}-round-${i + 1}-manual-match-${index + 1}`, round: i + 1, ...(Math.floor(i / sourceRounds) % 2 ? { teamA: [...match.teamB], teamB: [...match.teamA] } : {}) }))).flat()
+  }
   const uniquePlayerCount = getUniquePlayerCount(baseMatches)
   const requestedRoundCount = getSeasonScheduleRoundCount({
     playerCount: uniquePlayerCount,

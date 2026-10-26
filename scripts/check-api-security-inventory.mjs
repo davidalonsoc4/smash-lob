@@ -13,10 +13,16 @@ const publicMethods = new Map([
   ["/api/observability/client-error", new Set(["POST"])],
   ["/api/invites/[code]", new Set(["GET"])],
   ["/api/spectator-invites/[code]", new Set(["GET"])],
+  ["/api/tournament-invites/[code]", new Set(["GET"])],
   ["/api/public-spectator/[code]", new Set(["GET"])],
 ])
 
 const guardDetectors = [
+  {
+    level: "tournament-owner",
+    evidence: "requireRapidTournamentCreator (authenticated creator)",
+    test: (source, route) => route.startsWith("/api/tournaments/") && source.includes('from "@/lib/serverRapidTournaments"') && source.includes("await requireRapidTournamentCreator("),
+  },
   {
     level: "application-admin",
     evidence: "requireAuthenticatedAppUser + isSuperuser",

@@ -18,7 +18,7 @@ describe("ranking panel composition", () => {
     expect(table).toContain('<AppCard accentStrip className="app-ranking-list overflow-hidden !p-0">')
     expect(table).toContain('border-b border-neutral-100')
     expect(table).toContain('<span className="w-7 shrink-0 text-center">{tx("POS")}</span>')
-    expect(table).toContain('<span>{tx("Jugador")}</span>')
+    expect(table).toContain('<span>{paired ? tx("Pareja") : tx("Jugador")}</span>')
     expect(table).toContain('<span className="text-right">{tx("J")}</span>')
     expect(table).toContain('<span className="text-right">{tx("Dif")}</span>')
     expect(table).toContain('<span className="text-right">{tx("PTS")}</span>')

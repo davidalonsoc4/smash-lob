@@ -15,14 +15,14 @@ export default function RankingPage() {
   const { tx } = useI18n()
 
   const { t } = useI18n()
-  const { activeLeague, activeSeason, rankingPlayers } = useCurrentLeagueData()
+  const { activeLeague, activeSeason, rankingPlayers, rankingPairs } = useCurrentLeagueData()
 
   return (
     <div className="space-y-4">
       <header data-tour="ranking-header" className="app-page-header">
         <BackButton fallbackHref="/" label={t.common.back} />
         <h1 className="type-page-title text-2xl font-black tracking-tight">
-          {t.common.individualRanking}
+          {activeLeague.modality === "fixed_pairs" ? tx("Clasificación por parejas") : t.common.individualRanking}
         </h1>
         <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} />
       </header>
@@ -30,7 +30,8 @@ export default function RankingPage() {
 
       <div data-tour="ranking-table">
         <RankingTable
-        players={rankingPlayers}
+        paired={activeLeague.modality === "fixed_pairs"}
+        players={activeLeague.modality === "fixed_pairs" ? rankingPairs : rankingPlayers}
         showAvatars={activeLeague.showRankingAvatars !== false}
         />
       </div>

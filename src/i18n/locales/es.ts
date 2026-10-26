@@ -308,7 +308,7 @@ export const es = {
     regularLeague: "Liga regular",
     rankingTitle: "Clasificación",
     viewAll: "Ver todo",
-    lastMatch: "Último partido",
+    lastMatch: "Último encuentro",
     nextMatch: "Próximo partido",
     addSchedule: "Añadir fecha, hora y lugar",
     playersCanSchedule:
@@ -464,6 +464,14 @@ export const es = {
       "Quedará guardado también en la bolsa de suplentes.",
     substitutionAssign: "Asignar a este partido",
     directionsButton: "Cómo llegar",
+    directionsPickerTitle: "Cómo llegar",
+    directionsPickerDescription: "Elige con qué aplicación quieres abrir la ubicación.",
+    directionsGoogleMaps: "Google Maps",
+    directionsAppleMaps: "Apple Maps",
+    directionsWaze: "Waze",
+    directionsCopyLocation: "Copiar ubicación",
+    directionsCopied: "Ubicación copiada",
+    directionsClose: "Cerrar",
     schedulePlaceholderDate: "Ejemplo: Viernes, 20:00",
     schedulePlaceholderLocation: "Ejemplo: Club Pádel Norte",
     saveSchedule: "Guardar programación",
@@ -474,11 +482,12 @@ export const es = {
   },
 
   matchResult: {
+    resultLabel: "Resultado",
     title: "Registrar resultado",
     description:
-      "Introduce los tres sets del partido. La app calculará automáticamente los puntos de cada pareja.",
+      "Introduce los tres sets. Cada set ganado suma un punto.",
     optionalSetsDescription:
-      "Introduce los sets jugados. Los sets vacíos se ignorarán al guardar.",
+      "Introduce los sets jugados y deja el resto vacío. Cada set ganado suma un punto.",
     editTitle: "Editar resultado",
     editDescription:
       "Corrige los sets del partido. El ranking se recalculará automáticamente al guardar.",
@@ -882,7 +891,7 @@ export const es = {
     accountSettingsDescription:
       "Personaliza la imagen global que se muestra en todas tus ligas.",
     connectedEmail: "Email conectado",
-    joinNewExistingLeague: "Unirme a una nueva liga existente",
+    joinNewExistingLeague: "Unirme a una competición existente",
     avatarCustomActive: "Imagen personalizada activa en tu cuenta.",
     avatarGoogleFallback: "Se usa la imagen global de tu cuenta.",
     avatarInitialsFallback: "Se usan tus iniciales si no subes imagen.",
@@ -1104,7 +1113,7 @@ export const es = {
     decreasePlayerCount: "Reducir número de jugadores",
     increasePlayerCount: "Aumentar número de jugadores",
     playersShortLabel: "jugadores",
-    playerCountRangeDescription: "Selecciona entre 8 y 24 jugadores. Puedes ajustar el tamaño de uno en uno.",
+    playerCountRangeDescription: "Selecciona entre 8 y 32 jugadores. Puedes ajustar el tamaño de uno en uno.",
     playerCountBalancedDescription: "Este tamaño permite un calendario perfectamente equilibrado: todos juegan cada jornada, sin descansos.",
     playerCountRequiresByesDescription: "Calendario equilibrado con descansos: {count} jugadores descansan en cada jornada y todos descansan el mismo número de veces.",
     newPlayerName: "Nuevo jugador",

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useI18n } from "@/i18n/I18nProvider"
-import { normalizeInviteCode } from "@/lib/inviteUrls"
+import { getCompetitionInvitePath } from "@/lib/inviteUrls"
 
 export default function ManualInvitePage() {
   const { t, tx } = useI18n()
@@ -16,14 +16,14 @@ export default function ManualInvitePage() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const normalizedInviteCode = normalizeInviteCode(inviteCode)
+    const destination = getCompetitionInvitePath(inviteCode)
 
-    if (!normalizedInviteCode) {
+    if (!destination) {
       setError(t.invites.invalidCode)
       return
     }
 
-    router.push(`/invite/${encodeURIComponent(normalizedInviteCode)}`)
+    router.push(destination)
   }
 
   return (
@@ -31,7 +31,7 @@ export default function ManualInvitePage() {
       <header className="app-page-header">
         <BackButton fallbackHref="/settings" label={t.common.back} />
         <h1 className="type-page-title mt-3 text-2xl font-black tracking-tight">
-          {t.onboarding.joinTitle}
+          {t.settings.joinNewExistingLeague}
         </h1>
       </header>
 
@@ -39,7 +39,7 @@ export default function ManualInvitePage() {
         <form onSubmit={handleSubmit} className="space-y-3">
           <label className="block">
             <span className="text-sm font-semibold text-neutral-700">
-              {t.invites.codeLabel}
+              {tx("Código o enlace de invitación")}
             </span>
             <input
               value={inviteCode}
@@ -48,7 +48,10 @@ export default function ManualInvitePage() {
                 setError(null)
               }}
               placeholder={t.invites.codePlaceholder}
-              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold uppercase text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
             />
           </label>
 

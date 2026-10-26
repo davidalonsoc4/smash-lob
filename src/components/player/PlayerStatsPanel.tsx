@@ -3,6 +3,7 @@
 import { formatBestWinStreakRoundRange } from "@/lib/playerStreak"
 import Link from "next/link";
 import { AppCard } from "@/components/ui/AppCard";
+import { ProfileFormResults } from "@/components/player/ProfileFormResults"
 import { useI18n } from "@/i18n/I18nProvider";
 import { getPlayerMvpSummary, type MvpSystem, type MvpVote } from "@/lib/mvp";
 
@@ -32,6 +33,8 @@ type PlayerStatsMatch = {
   seasonId: string;
   round: number;
   status: string;
+  scheduledAt?: string | null;
+  resultRecordedAt?: string | null;
   teamA: string[];
   teamB: string[];
   pointsA: number | null;
@@ -211,6 +214,15 @@ export function PlayerStatsPanel({
       isValidStatisticsMatch(match) &&
       (match.teamA.includes(playerId) || match.teamB.includes(playerId)),
   );
+  const chronologicalMatches = [...finishedMatches].sort((a, b) => {
+    const aAt = Date.parse(a.scheduledAt ?? a.resultRecordedAt ?? "") || 0
+    const bAt = Date.parse(b.scheduledAt ?? b.resultRecordedAt ?? "") || 0
+    return aAt - bAt || a.seasonId.localeCompare(b.seasonId) || a.round - b.round
+  })
+  const form = chronologicalMatches.slice(-5).map((match) => {
+    const isTeamA = match.teamA.includes(playerId)
+    return getTeamSetPoints(match, isTeamA ? "A" : "B") > getTeamSetPoints(match, isTeamA ? "B" : "A") ? "win" as const : "loss" as const
+  })
 
   const teammateStats = new Map<string, PlayerRelationStats>();
   const rivalStats = new Map<string, PlayerRelationStats>();
@@ -307,9 +319,7 @@ export function PlayerStatsPanel({
   const mostLostRival = getMostLostRival(rivalStats);
   let currentWinStreak = 0;
   let bestWinStreak = 0;
-  [...finishedMatches]
-    .sort((a, b) => a.round - b.round)
-    .forEach((match) => {
+  chronologicalMatches.forEach((match) => {
       const isTeamA = match.teamA.includes(playerId);
       const won =
         getTeamSetPoints(match, isTeamA ? "A" : "B") >
@@ -373,6 +383,8 @@ export function PlayerStatsPanel({
           </p>
         </div>
       </div>
+
+      <div className="mt-2"><ProfileFormResults results={form} /></div>
 
       <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
         <div className="rounded-xl bg-neutral-100 p-2 text-center">

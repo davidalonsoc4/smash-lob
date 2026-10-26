@@ -426,7 +426,6 @@ export function getPersonalProfileStats(
 
   const currentForm = chronology
     .slice(-5)
-    .reverse()
     .map((row) => (row.won ? ("win" as const) : ("loss" as const)))
   const teammateRelations = sortMostFrequent(relationRows(teammateMap))
   const rivalRelations = sortMostFrequent(relationRows(rivalMap))

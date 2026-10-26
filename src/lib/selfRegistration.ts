@@ -19,11 +19,11 @@ async function readResponse<T>(response: Response) {
   return payload
 }
 
-export async function joinSeasonRoster(leagueId: string, seasonId: string) {
+export async function joinSeasonRoster(leagueId: string, seasonId: string, partnerPlayerId?: string | null) {
   return readResponse<SelfRegistrationResponse>(
     await fetch(
       `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/registration`,
-      { method: "POST", cache: "no-store" },
+      { method: "POST", cache: "no-store", ...(partnerPlayerId === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify({ partnerPlayerId }) }) },
     ),
   )
 }

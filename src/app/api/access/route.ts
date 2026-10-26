@@ -4,7 +4,8 @@ import { normalizeDominantHand, normalizePreferredPlayerSide } from "@/lib/accou
 import { getPlayerPreviewTraits } from "@/lib/playerPreviewTraits"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
-import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
+import { mapSupabaseMatch } from "@/lib/supabaseMatches"
+import { readLeagueMatchSnapshot } from "@/lib/serverLeagueMatchSnapshot"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { logServerEvent } from "@/lib/serverLog"
 import { normalizeSeasonRegistrationFee } from "@/lib/seasonRegistration"
@@ -63,6 +64,7 @@ function toRole(role: unknown): LeagueMemberRole {
 
 function mapLeague(league: Record<string, unknown>): League {
   return {
+    modality: league.modality === "fixed_pairs" ? "fixed_pairs" : "individual",
     id: String(league.id),
     slug: String(league.slug),
     name: String(league.name),
@@ -172,7 +174,7 @@ export async function GET(request: Request) {
   const leaguesQuery = supabase
     .from("leagues")
     .select(
-      "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
+      "id,modality,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
     )
 
   if (!isSuperuser) {
@@ -248,7 +250,7 @@ export async function GET(request: Request) {
       .in("league_id", leagueIds),
     supabase
       .from("season_players")
-      .select("season_id,player_id,status,joined_from_round,replaces_player_id,replaced_from_round,replaced_by_player_id,seasons!inner(league_id)")
+      .select("season_id,player_id,pair_number,status,joined_from_round,replaces_player_id,replaced_from_round,replaced_by_player_id,seasons!inner(league_id)")
       .in("seasons.league_id", leagueIds),
     supabase
       .from("season_settings")
@@ -256,7 +258,7 @@ export async function GET(request: Request) {
         "league_id,season_id,round_window_mode,season_starts_at,scheduled_start_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,organization_balls_assigned,balls_assignment_priority,balls_assignment_mode,balls_assignment_custodian_ids,calendar_visibility_mode,revealed_through_round,opening_round_enabled,opening_round_at,opening_round_location"
       )
       .in("league_id", leagueIds),
-    supabase.from("matches").select(matchSelect).in("league_id", leagueIds),
+    readLeagueMatchSnapshot(supabase, leagueIds),
     supabase
       .from("match_substitutions")
       .select(
@@ -383,6 +385,7 @@ export async function GET(request: Request) {
   )
   const seasonPlayers: SeasonPlayer[] = (seasonPlayersResult.data ?? []).map(
     (seasonPlayer) => ({
+      pairNumber: seasonPlayer.pair_number ?? null,
       seasonId: seasonPlayer.season_id,
       playerId: seasonPlayer.player_id,
       status: seasonPlayer.status === "withdrawn" ? "withdrawn" : "active",

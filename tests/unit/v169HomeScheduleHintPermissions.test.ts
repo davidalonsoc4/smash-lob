@@ -26,6 +26,6 @@ describe("v1.6.9 HOME schedule hint permissions", () => {
     const home = await readFile("src/app/page.tsx", "utf8")
     expect(home).toContain("{selectedNextMatch ? (")
     expect(home).toContain("match={selectedNextMatch}")
-    expect(home).toContain('effectiveNextMatchScope === "league"')
+    expect(home).toContain('nextMatchScopes.map(effectiveNextMatchScope')
   })
 })

@@ -159,8 +159,10 @@ const matchPanelTitleFiles = await Promise.all([
   "src/components/match/MatchSubstitutionPanel.tsx",
   "src/components/mvp/MvpVotingCard.tsx",
 ].map((file) => readFile(file, "utf8")))
+const sharedSectionHeader = await readFile("src/components/ui/SectionHeader.tsx", "utf8")
+assert(sharedSectionHeader.includes("type-panel-title"), "SectionHeader debe conservar type-panel-title")
 for (const source of matchPanelTitleFiles) {
-  assert(source.includes("type-panel-title"), "Todos los paneles principales de PARTIDO deben usar type-panel-title")
+  assert(source.includes("type-panel-title") || (source.includes('import { SectionHeader } from "@/components/ui/SectionHeader"') && source.includes("<SectionHeader")), "Todos los paneles principales de PARTIDO deben usar type-panel-title directamente o mediante SectionHeader")
 }
 
 const bottomNav = await readFile("src/components/layout/BottomNav.tsx", "utf8")
@@ -227,12 +229,12 @@ const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Prom
   readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
 ])
 assert(
-  topHomePage.includes('size="md"') && topHomePage.includes('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">'),
-  "Inicio debe usar un logo normal junto al título y Mis ligas en la fila funcional",
+  topHomePage.includes('size="md"') && topHomePage.includes('<Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500"') && topHomePage.includes('<FitText noWrap'),
+  "Inicio debe usar un logo normal junto al título y Competiciones adaptable en la fila funcional",
 )
 assert(
-  topHomePage.includes('{tx("Mis ligas")}') && !topHomePage.includes("refreshApp()"),
-  "Mis ligas debe abrir la pantalla de ligas sin conservar el refresco manual de HOME",
+  topHomePage.includes('{tx("Competiciones")}') && !topHomePage.includes("refreshApp()"),
+  "Competiciones debe abrir la pantalla de ligas sin conservar el refresco manual de HOME",
 )
 for (const [label, source] of [
   ["Clasificación", topRankingPage],

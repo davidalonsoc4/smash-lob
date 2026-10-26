@@ -48,7 +48,7 @@ export async function GET(
 
   const { data: league, error: leagueError } = await supabase
     .from("leagues")
-    .select("id,name,description,logo_url,accent_color,active_season_id")
+    .select("id,modality,name,description,logo_url,accent_color,active_season_id")
     .eq("id", invite.league_id)
     .maybeSingle()
   if (leagueError) return empty(500, "spectator_view_unavailable")
@@ -100,7 +100,7 @@ export async function GET(
       .order("round", { ascending: true }),
     supabase
       .from("season_players")
-      .select("player_id,status,joined_from_round,replaced_from_round")
+      .select("player_id,pair_number,status,joined_from_round,replaced_from_round,replaced_by_player_id")
       .eq("season_id", season.id),
   ])
 
@@ -124,6 +124,8 @@ export async function GET(
   const seasonPlayers: SeasonPlayer[] = rosterRows.map((item) => ({
     seasonId: String(season.id),
     playerId: String(item.player_id),
+    pairNumber: typeof item.pair_number === "number" ? item.pair_number : null,
+    replacedByPlayerId: typeof item.replaced_by_player_id === "string" ? item.replaced_by_player_id : null,
     status: item.status === "withdrawn" ? "withdrawn" : "active",
     joinedFromRound: typeof item.joined_from_round === "number" ? item.joined_from_round : null,
     replacedFromRound: typeof item.replaced_from_round === "number" ? item.replaced_from_round : null,
@@ -167,6 +169,7 @@ export async function GET(
     ? allMatches.filter((match) => !calendarIsProgressive || match.round <= effectiveRevealedRound)
     : []
   const ranking = buildPublicSpectatorRanking({
+    modality: league.modality === "fixed_pairs" ? "fixed_pairs" : "individual",
     seasonId: String(season.id),
     players: profiles,
     seasonPlayers,

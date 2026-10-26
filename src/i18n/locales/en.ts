@@ -456,6 +456,14 @@ export const en = {
       "They will also be saved in the substitute pool.",
     substitutionAssign: "Assign to this match",
     directionsButton: "How to get there",
+    directionsPickerTitle: "How to get there",
+    directionsPickerDescription: "Choose which app you want to use for this location.",
+    directionsGoogleMaps: "Google Maps",
+    directionsAppleMaps: "Apple Maps",
+    directionsWaze: "Waze",
+    directionsCopyLocation: "Copy location",
+    directionsCopied: "Location copied",
+    directionsClose: "Close",
     schedulePlaceholderDate: "Example: Friday, 20:00",
     schedulePlaceholderLocation: "Example: North Padel Club",
     saveSchedule: "Save schedule",
@@ -466,11 +474,12 @@ export const en = {
   },
 
   matchResult: {
+    resultLabel: "Result",
     title: "Record result",
     description:
-      "Enter the three sets of the match. The app will calculate each team's points automatically.",
+      "Enter all three sets. Each set won adds one point.",
     optionalSetsDescription:
-      "Enter the played sets. Empty sets will be ignored on save.",
+      "Enter the played sets and leave the rest empty. Each set won adds one point.",
     editTitle: "Edit result",
     editDescription:
       "Correct the match sets. The ranking will be recalculated automatically after saving.",
@@ -867,7 +876,7 @@ export const en = {
     accountSettingsDescription:
       "Customize the global profile image shown in all your leagues.",
     connectedEmail: "Connected email",
-    joinNewExistingLeague: "Join another existing league",
+    joinNewExistingLeague: "Join an existing competition",
     avatarCustomActive: "Custom image active on your account.",
     avatarGoogleFallback: "Your global account image is being used.",
     avatarInitialsFallback:
@@ -1088,7 +1097,7 @@ export const en = {
     decreasePlayerCount: "Decrease number of players",
     increasePlayerCount: "Increase number of players",
     playersShortLabel: "players",
-    playerCountRangeDescription: "Choose between 8 and 24 players. You can adjust the size one player at a time.",
+    playerCountRangeDescription: "Choose between 8 and 32 players. You can adjust the size one player at a time.",
     playerCountBalancedDescription: "This size allows a perfectly balanced calendar: everyone plays every round, with no byes.",
     playerCountRequiresByesDescription: "Balanced calendar with byes: {count} players sit out each round and everyone has the same number of byes.",
     newPlayerName: "New player",

@@ -461,6 +461,14 @@ export const eu = {
       "Ordezkoen poltsan ere gordeko da.",
     substitutionAssign: "Partida honetara esleitu",
     directionsButton: "Nola iritsi",
+    directionsPickerTitle: "Nola iritsi",
+    directionsPickerDescription: "Aukeratu kokapena irekitzeko erabili nahi duzun aplikazioa.",
+    directionsGoogleMaps: "Google Maps",
+    directionsAppleMaps: "Apple Maps",
+    directionsWaze: "Waze",
+    directionsCopyLocation: "Kokapena kopiatu",
+    directionsCopied: "Kokapena kopiatuta",
+    directionsClose: "Itxi",
     schedulePlaceholderDate: "Adibidea: Ostirala, 20:00",
     schedulePlaceholderLocation: "Adibidea: North Padel Club",
     saveSchedule: "Programazioa gorde",
@@ -471,11 +479,12 @@ export const eu = {
   },
 
   matchResult: {
+    resultLabel: "Emaitza",
     title: "Emaitza erregistratu",
     description:
-      "Sartu partidako hiru setak. Appak bikote bakoitzaren puntuak automatikoki kalkulatuko ditu.",
+      "Sartu hiru setak. Irabazitako set bakoitzak puntu bat ematen du.",
     optionalSetsDescription:
-      "Sartu jokatutako setak. Hutsik dauden setak ez dira gordeko.",
+      "Sartu jokatutako setak eta utzi gainerakoak hutsik. Irabazitako set bakoitzak puntu bat ematen du.",
     editTitle: "Emaitza editatu",
     editDescription:
       "Zuzendu partidako setak. Sailkapena automatikoki berriro kalkulatuko da gordetzean.",
@@ -876,7 +885,7 @@ export const eu = {
     accountSettingsDescription:
       "Pertsonalizatu zure liga guztietan agertzen den profileko irudi globala.",
     connectedEmail: "Lotutako emaila",
-    joinNewExistingLeague: "Lehendik dagoen beste liga batera sartu",
+    joinNewExistingLeague: "Lehendik dagoen lehiaketa batera sartu",
     avatarCustomActive: "Irudi pertsonalizatua aktibo dago zure kontuan.",
     avatarGoogleFallback: "Zure kontuko irudi globala erabiltzen da.",
     avatarInitialsFallback:
@@ -1097,7 +1106,7 @@ export const eu = {
     decreasePlayerCount: "Jokalari kopurua murriztu",
     increasePlayerCount: "Jokalari kopurua handitu",
     playersShortLabel: "jokalari",
-    playerCountRangeDescription: "Aukeratu 8 eta 24 jokalari artean. Tamaina jokalariz jokalari doi dezakezu.",
+    playerCountRangeDescription: "Aukeratu 8 eta 32 jokalari artean. Tamaina jokalariz jokalari doi dezakezu.",
     playerCountBalancedDescription: "Tamaina honek egutegi guztiz orekatua ahalbidetzen du: denek jardunaldi guztietan jokatzen dute, atsedenik gabe.",
     playerCountRequiresByesDescription: "Atsedenak dituen egutegi orekatua: jardunaldi bakoitzean {count} jokalarik atseden hartzen dute eta denek atseden kopuru bera dute.",
     newPlayerName: "Jokalari berria",

@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import type { ReactNode } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getRankingDisplayPosition, sortRankingRows } from "@/lib/rankingOrder"
 
 type RankingPlayer = {
+  members?: { id: string; slug: string; displayName: string }[]
   id: string
   slug: string
   displayName: string
@@ -23,6 +25,7 @@ type RankingPlayer = {
 
 type RankingTableProps = {
   players: RankingPlayer[]
+  paired?: boolean
   showAvatars?: boolean
 }
 
@@ -34,7 +37,11 @@ function getPositionLabel(position: number | null) {
   return `${position}º`
 }
 
-export function RankingTable({ players, showAvatars = true }: RankingTableProps) {
+function RankingRow({ paired, href, children, className, label, position }: { paired: boolean; href: string; children: ReactNode; className: string; label: string; position: number | null }) {
+  return paired ? <div className={className} aria-label={label} data-ranking-position={position}>{children}</div> : <Link href={href} className={className} aria-label={label} data-ranking-position={position}>{children}</Link>
+}
+
+export function RankingTable({ players, showAvatars = true, paired = false }: RankingTableProps) {
   const { tx } = useI18n()
   const { t } = useI18n()
 
@@ -45,7 +52,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
       <div className="grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 border-b border-neutral-100 px-3 py-2.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-600">
         <div className="flex min-w-0 items-center gap-3">
           <span className="w-7 shrink-0 text-center">{tx("POS")}</span>
-          <span>{tx("Jugador")}</span>
+          <span>{paired ? tx("Pareja") : tx("Jugador")}</span>
         </div>
         <span className="text-right">{tx("J")}</span>
         <span className="text-right">{tx("Dif")}</span>
@@ -54,11 +61,12 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
 
       <div>
         {sortedPlayers.map((player) => (
-          <Link
+          <RankingRow
             key={player.id}
-            data-ranking-position={getRankingDisplayPosition(sortedPlayers, player.id)}
+            paired={paired}
             href={`/player/${player.slug}`}
-            aria-label={`${getPositionLabel(getRankingDisplayPosition(sortedPlayers, player.id))} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
+            position={getRankingDisplayPosition(sortedPlayers, player.id)}
+            label={`${getPositionLabel(getRankingDisplayPosition(sortedPlayers, player.id))} ${player.displayName}, ${player.points} ${t.common.pointsShort}`}
             className="app-ranking-row grid grid-cols-[minmax(0,1fr)_1.4rem_2rem_2rem] items-center gap-1 px-3 py-2 transition active:bg-neutral-50"
           >
             <div className="flex min-w-0 items-center gap-3">
@@ -69,11 +77,11 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
                 {getRankingDisplayPosition(sortedPlayers, player.id)}
               </span>
 
-              {showAvatars ? <PlayerAvatar player={player} size="sm" /> : null}
+              {showAvatars && !paired ? <PlayerAvatar player={player} size="sm" /> : null}
 
               <div className="min-w-0">
                 <p className="min-w-0 type-player-name leading-tight text-neutral-950 truncate whitespace-nowrap">
-                  {player.displayName}
+                  {paired && player.members ? player.members.map(member => <Link href={`/player/${member.slug}`} className="block truncate active:underline" key={member.id}>{member.displayName}</Link>) : player.displayName}
                 </p>
                 {player.seasonPlayerStatus === "withdrawn" ? (
                   <span className="mt-0.5 inline-flex rounded-full bg-red-50 px-1.5 py-0.5 type-caption font-black uppercase tracking-wide text-red-700">
@@ -104,7 +112,7 @@ export function RankingTable({ players, showAvatars = true }: RankingTableProps)
                 {player.points}
               </p>
             </div>
-          </Link>
+          </RankingRow>
         ))}
       </div>
 

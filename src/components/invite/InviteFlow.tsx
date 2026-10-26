@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { AppCard } from "@/components/ui/AppCard"
+import { SeasonPartnerSelect } from "@/components/season/SeasonPartnerSelect"
+import { getLeaguePairGroups } from "@/lib/fixedPairLeague"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -185,6 +187,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   )
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [selectedHistoricalPlayerId, setSelectedHistoricalPlayerId] = useState("")
+  const [partnerPlayerId, setPartnerPlayerId] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isClaiming, setIsClaiming] = useState(false)
@@ -227,6 +230,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       setError(null)
       setSelectedPlayerId("")
       setSelectedHistoricalPlayerId("")
+      setPartnerPlayerId("")
       setHasAcceptedRules(false)
       setLeague(localLeagueRef.current(normalizedCode))
 
@@ -354,6 +358,10 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   }
   const isSelfRegistration =
     activeSeasonSettings?.rosterMode === "self_registration"
+  const isPairRegistration = isSelfRegistration && league.modality === "fixed_pairs"
+  const pendingPartners = getLeaguePairGroups(seasonPlayers.filter(row => row.seasonId === activeSeason?.id)).pending
+  const availablePartners = playerProfiles.filter(player => pendingPartners.includes(player.id) && player.id !== selectedHistoricalPlayerId)
+  const partnerResolved = !isPairRegistration || partnerPlayerId === "__pending__" || availablePartners.some(player => player.id === partnerPlayerId)
   const registeredCount = activeSeason
     ? seasonPlayers.filter(
         (seasonPlayer) =>
@@ -442,6 +450,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       setError(t.invites.historicalIdentityRequired)
       return
     }
+    if (!partnerResolved) return
 
     setIsClaiming(true)
     setError(null)
@@ -456,10 +465,17 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       selectedHistoricalPlayerId === "__new__"
         ? null
         : selectedHistoricalPlayerId || null,
+      isPairRegistration ? partnerPlayerId === "__pending__" ? null : partnerPlayerId : undefined,
     )
 
     if (!result.ok) {
       setIsClaiming(false)
+      if (result.error === "partner-unavailable") {
+        setPartnerPlayerId("")
+        setError(tx("Ese jugador ya tiene pareja. Actualiza la lista y elige otro compañero."))
+        await resolveLeagueInviteRef.current(normalizedCode, leagueIdHint).catch(() => null)
+        return
+      }
       const claimError =
         result.error === "already-in-league"
           ? t.invites.alreadyInLeague
@@ -745,6 +761,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
             </div>
           ) : null}
 
+          {isPairRegistration && hasAcceptedRules ? <SeasonPartnerSelect players={availablePartners} value={partnerPlayerId} onChange={setPartnerPlayerId} disabled={isClaiming} /> : null}
           {error ? (
             <p className="mt-3 text-sm font-semibold text-red-600">{tx(error)}</p>
           ) : null}
@@ -756,6 +773,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
               !hasAcceptedRules ||
               (!isSelfRegistration && !selectedPlayerId) ||
               !historicalIdentityResolved ||
+              !partnerResolved ||
               isClaiming
             }
             className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"

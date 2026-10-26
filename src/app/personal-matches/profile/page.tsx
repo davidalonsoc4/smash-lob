@@ -2,13 +2,15 @@
 
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
-import { PersonalProfileStatistics, type PersonalProfileSection } from "@/components/personal/PersonalProfileStatistics"
-import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import { PersonalProfileStatistics } from "@/components/personal/PersonalProfileStatistics"
+import type { PersonalProfileSection } from "@/components/player/ProfileSectionTabs"
+import { PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
 import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
@@ -45,6 +47,11 @@ export default function PersonalProfilePage() {
   const router = useRouter()
   const { t } = useI18n()
   const { profile } = useAccountProfile()
+  const { getMembershipForLeague, userLeagues } = useLeagueAccess()
+  const participatingLeagues = useMemo(
+    () => userLeagues.filter((league) => getMembershipForLeague(league.id)),
+    [getMembershipForLeague, userLeagues],
+  )
   const { activateLeague } = useActiveLeague()
   const [items, setItems] = useState<PersonalMatchItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -111,7 +118,12 @@ export default function PersonalProfilePage() {
     [effectiveLeagueId, effectiveSeasonId, items, origin],
   )
   const stats = useMemo(() => getPersonalProfileStats(filteredMatches), [filteredMatches])
-  const filterOptions = [["all", tx("Todos"), tx("Todos los partidos")], ["league", tx("Liga"), tx("Partidos de liga")], ["friendly", tx("Amistoso"), tx("Amistosos")]] as const
+  const hasFriendlyMatches = items.some((match) => match.origin === "friendly")
+  const filterOptions = [
+    ["all", tx("Todos"), tx("Todos los partidos")],
+    ...(participatingLeagues.length ? [["league", tx(participatingLeagues.length === 1 ? "Liga" : "Ligas"), tx("Partidos de liga")] as const] : []),
+    ...(hasFriendlyMatches ? [["friendly", tx(items.filter((match) => match.origin === "friendly").length === 1 ? "Amistoso" : "Amistosos"), tx("Amistosos")] as const] : []),
+  ] as const
   const comparisonPeople = useMemo(() => {
     const byKey = new Map<string, { key: string; name: string; avatarUrl: string | null }>()
     for (const relation of [...stats.teammateRelations, ...stats.rivalRelations]) {
@@ -150,23 +162,15 @@ export default function PersonalProfilePage() {
     <div className="space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/personal-matches" label={t.common.back} />
-        <p className="type-caption font-black uppercase tracking-[0.18em] text-neutral-500">Mis partidos · Perfil global</p>
-        <div className="mt-2 flex items-center gap-2.5">
-          <PlayerAvatar player={{ displayName, avatarUrl: profile?.avatarUrl ?? null }} size="md" previewable />
-          <div className="min-w-0">
-            <h1 className="type-player-name-hero truncate">{displayName}</h1>
-          </div>
-        </div>
+        <PlayerProfileIdentityCard
+          player={{ displayName, avatarUrl: profile?.avatarUrl ?? null }}
+          positionLabel={playerPositionLabel}
+          context="global"
+        />
       </header>
 
-      {playerPositionLabel ? (
-        <p className="type-caption font-bold text-neutral-500">
-          {tx("Posición preferida")} · {playerPositionLabel}
-        </p>
-      ) : null}
-
       <AppCard data-personal-global-filters className="!p-2">
-        <div className="grid grid-cols-3 gap-1">
+        <div className={`grid gap-1`} style={{ gridTemplateColumns: `repeat(${filterOptions.length}, minmax(0, 1fr))` }}>
           {filterOptions.map(([value, label, ariaLabel]) => (
             <button key={value} type="button" aria-label={tx(ariaLabel)} aria-pressed={origin === value} onClick={() => { setOrigin(value); if (value === "friendly") { setLeagueId(""); setSeasonId("") } }} className={`flex min-w-0 items-center justify-center rounded-lg px-1.5 py-1.5 text-center type-caption font-black transition ${origin === value ? "bg-neutral-950 text-white" : "bg-neutral-100 text-neutral-600"}`}>{tx(label)}</button>
           ))}
@@ -183,12 +187,6 @@ export default function PersonalProfilePage() {
         <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Calculando tu histórico completo...")}</p></AppCard>
       ) : error ? (
         <AppCard><p className="text-sm font-bold text-red-700">{error}</p></AppCard>
-      ) : stats.matchesPlayed === 0 ? (
-        <EmptyState
-          title={tx("No hay partidos para este filtro")}
-          description={tx("Prueba otro ámbito o registra nuevos resultados para ampliar tus estadísticas.")}
-          action={{ label: "Volver a Mis partidos", href: "/personal-matches" }}
-        />
       ) : (
         <PersonalProfileStatistics
           stats={stats}
@@ -200,6 +198,13 @@ export default function PersonalProfilePage() {
           onRelationSelect={openHeadToHead}
           onOpenPlayerProfile={openPlayerProfile}
           headToHead={headToHead}
+          summaryContent={stats.matchesPlayed === 0 ? (
+            <EmptyState
+              title={tx("No hay partidos para este filtro")}
+              description={tx("Prueba otro ámbito o registra nuevos resultados para ampliar tus estadísticas.")}
+              action={{ label: "Volver a Mis partidos", href: "/personal-matches" }}
+            />
+          ) : undefined}
         />
       )}
     </div>

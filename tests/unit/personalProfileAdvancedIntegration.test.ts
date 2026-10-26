@@ -5,19 +5,20 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("personal profile advanced statistics", () => {
   it("exposes summary, relation rankings and head-to-head under the existing filters", async () => {
-    const [page, view, stats] = await Promise.all([
+    const [page, view, stats, tabs] = await Promise.all([
       read("src/app/personal-matches/profile/page.tsx"),
       read("src/components/personal/PersonalProfileStatistics.tsx"),
       read("src/lib/personalProfileStats.ts"),
+      read("src/components/player/ProfileSectionTabs.tsx"),
     ])
 
     expect(page).toContain("Todos los partidos")
     expect(page).toContain("Todas las ligas")
     expect(page).toContain("Todas las temporadas")
     expect(page).toContain("getPersonalProfileHeadToHead")
-    expect(view).toContain("Resumen")
-    expect(view).toContain("Parejas / rivales")
-    expect(view).toContain("Cara a cara")
+    expect(tabs).toContain('tx("Resumen")')
+    expect(tabs).toContain('tx("Parejas / rivales")')
+    expect(tabs).toContain('tx("Cara a cara")')
     expect(view).toContain("Mejor pareja")
     expect(view).toContain("Peor pareja")
     expect(view).toContain("Rival más vencido")

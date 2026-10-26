@@ -18,9 +18,11 @@ describe("v1.10.29 settings lock, personal status and friendly notification pari
 
     expect(card).toContain('import { getMatchDisplayStatus } from "@/lib/matchLifecycle"')
     expect(card).toContain("const displayStatus = getMatchDisplayStatus({")
-    expect(card).toContain('? "En juego"')
-    expect(card).toMatch(/\? (?:"Pendiente de resultado"|tx\("Pendiente de resultado"\))/)
-    expect(card).toContain("getMatchStatusBadgeClassName(displayStatus)")
+    expect(card).toContain("<MatchStatusBadge");
+    const badge = await read("src/components/matches/MatchStatusBadge.tsx");
+    expect(badge).toContain("getMatchDisplayStatus({");
+    expect(badge).toContain("in_progress: t.matches.inProgress");
+    expect(badge).toContain("result_pending: t.matches.resultPending");
   })
 
   it("renames the player-facing opening state to NOVEDADES", async () => {

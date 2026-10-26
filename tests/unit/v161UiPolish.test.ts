@@ -20,9 +20,9 @@ describe("v1.6.1 UI polish", () => {
   it("compacts scheduling and removes league context below Jornada", () => {
     const schedule = read("src/components/match/MatchScheduleForm.tsx")
     const detail = read("src/components/match/MatchDetailView.tsx")
-    expect(schedule).toContain('className="px-3 pb-3 pt-1"')
-    expect(schedule).toContain('${hasSchedule ? "pt-0" : "pt-1"}')
-    expect(detail).not.toContain("{eyebrow ? (")
+    expect(schedule).toContain("<DirectionsPicker")
+    expect(schedule).toContain("matchPanelStyles")
+    expect(detail).not.toContain("eyebrow={")
   })
 
   it("uses searchable, scrollable player and location pickers", () => {

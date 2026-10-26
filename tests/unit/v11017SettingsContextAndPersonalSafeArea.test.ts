@@ -30,25 +30,45 @@ describe("v1.10.17 settings context and personal safe area", () => {
     expect(shell).toContain('pathname === "/settings" || pathname.startsWith("/settings/")')
     expect(shell).toContain('!isSettingsContextRoute &&\n    !isPublicAccessRoute')
     expect(shell).toContain('href={`/settings?returnTo=${encodeURIComponent(pathname)}`}')
+    expect(shell).toContain("const settingsOpenedFromCompetition =")
     expect(settings).toContain('fallbackHref="/"')
     expect(settings).toContain('returnToParam="returnTo"')
     expect(backButton).toContain("getSafeInternalReturnTo")
     expect(backButton).toContain("router.replace(explicitReturnTo)")
     expect(shell).toContain("hasBottomNav={shouldShowBottomNav}")
     expect(settingsSearch).toContain("hasBottomNav = true")
-    expect(settingsSearch).toContain('max(14px, env(safe-area-inset-bottom, 0px))')
+    expect(settingsSearch).toContain("<FloatingSearchButton")
+    expect(settingsSearch).toContain("hasBottomNav={hasBottomNav}")
+    const floatingButton = await read("src/components/ui/FloatingSearchButton.tsx")
+    expect(floatingButton).toContain('max(14px, env(safe-area-inset-bottom, 0px))')
   })
 
-  it("removes the global Settings bubble from both league and friendly chats", async () => {
+  it("uses competition-only settings and exposes tournament management inside general Settings", async () => {
+    const [settings, tournamentSettings, tournamentRoute] = await Promise.all([
+      read("src/app/settings/page.tsx"),
+      read("src/components/tournament/RapidTournamentSettings.tsx"),
+      read("src/app/tournaments/[id]/settings/page.tsx"),
+    ])
+
+    expect(settings).toContain('returnTo === "/leagues" || returnTo === "/leagues/all" || returnTo === "/tournaments"')
+    expect(settings).toContain('return <CompetitionSettingsPage allowCreation={returnTo === "/leagues"} />')
+    expect(settings).toContain("return <PlayerSettingsPage tournamentId={tournamentId} />")
+    expect(settings).toContain("TournamentManagementSettingsSection")
+    expect(settings).toContain('id="manage-tournament"')
+    expect(tournamentSettings).toContain('data.access.role === "creator"')
+    expect(tournamentSettings).toContain('data.tournament.status === "finished"')
+    expect(tournamentSettings).toContain('method: "DELETE"')
+    expect(tournamentRoute).toContain("RapidTournamentSettings")
+  })
+
+  it("keeps the same four-action toolbar visible in league and friendly chats", async () => {
     const shell = await read("src/components/layout/AppShell.tsx")
 
-    const settingsGate = shell.slice(
-      shell.indexOf("const shouldShowSettingsButton"),
-      shell.indexOf("const shouldShowHelpButton"),
-    )
-
-    expect(settingsGate).toContain("!isMatchChatRoute")
-    expect(settingsGate).toContain("!isSettingsRoute")
+    expect(shell).toContain("const shouldShowActionBar = !isPublicAccessRoute")
+    expect(shell).toContain("const shouldShowSettingsButton = shouldShowActionBar")
+    expect(shell).toContain("const shouldShowHelpButton = shouldShowActionBar")
+    expect(shell).toContain("const shouldShowNotificationsButton = shouldShowActionBar")
+    expect(shell).toContain("const shouldShowSpectatorShareButton = shouldShowActionBar")
     expect(shell).toContain('pathname.startsWith("/match/")')
     expect(shell).toContain('pathname.startsWith("/personal-matches/")')
     expect(shell).toContain('pathname.endsWith("/chat")')

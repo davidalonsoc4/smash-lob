@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
-import { createPortal } from "react-dom"
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
 import type {
   PersonalMatchParticipantDraft,
   PersonalMatchPerson,
@@ -44,21 +44,6 @@ export function PersonalMatchParticipantSelector({
           .includes(cleanQuery)
       })
   }, [people, query])
-
-  useEffect(() => {
-    if (!isOpen) return
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    window.requestAnimationFrame(() => searchInputRef.current?.focus())
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener("keydown", onKeyDown)
-    }
-  }, [isOpen])
 
   function closePicker() {
     setIsOpen(false)
@@ -114,42 +99,16 @@ export function PersonalMatchParticipantSelector({
             </svg>
           </button>
 
-          {isOpen && typeof document !== "undefined"
-            ? createPortal(
-                <>
-                  <button
-                    type="button"
-                    aria-label={tx(`Cerrar selector de ${participant.label.toLowerCase()}`)}
-                    onClick={closePicker}
-                    className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]"
-                  />
-                  <section
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={tx(`Seleccionar ${participant.label.toLowerCase()}`)}
-                    className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
-                    style={{
-                      top: "max(14px, calc(var(--app-safe-top) + 10px))",
-                      maxHeight:
-                        "min(440px, calc(100dvh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 28px))",
-                    }}
-                  >
-                    <div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
+          <FloatingDialog open={isOpen} onClose={closePicker} title={tx(`Seleccionar ${participant.label.toLowerCase()}`)} variant="search">
+<div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm font-black text-neutral-950">{tx("Seleccionar jugador")}</p>
+                          <h2>{tx("Seleccionar jugador")}</h2>
                           <p className="type-caption font-semibold text-neutral-400">
                             {participant.label} · {filteredPeople.length} conocido{filteredPeople.length === 1 ? "" : "s"}
                           </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={closePicker}
-                          aria-label={tx("Cerrar")}
-                          className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-center text-sm font-black text-neutral-500"
-                        >
-                          ×
-                        </button>
+                        <DialogCloseButton onClick={closePicker} />
                       </div>
 
                       <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
@@ -259,11 +218,7 @@ export function PersonalMatchParticipantSelector({
                         <p className="px-2 py-4 text-center type-caption font-semibold text-neutral-500">{tx("No hay jugadores que coincidan. Usa «Otro jugador...» para escribir el nombre.")}</p>
                       ) : null}
                     </div>
-                  </section>
-                </>,
-                document.body,
-              )
-            : null}
+                  </FloatingDialog>
 
           {!participant.personKey ? (
             <input

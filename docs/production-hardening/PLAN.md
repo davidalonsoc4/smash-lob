@@ -1,4 +1,456 @@
+## MC69 — Publicación PRE y preparación de PROD
+- Estado: EN CURSO (26/10/2026), petición explícita anterior a T06.
+- Alcance: publicar MC64–68 como v1.15.36 en staging/PRE y emitir diagnóstico documentado de PROD; ninguna modificación de main/Production/v1.0.0 ni datos reales.
+- Gates: release:check completo local, cuatro jobs CI, SHA/árbol staging, Vercel READY/alias PRE, smoke de versión/entorno/PWA/rutas; comparar migraciones y aceptación manual pendiente antes de recomendar PROD.
+
+## MC68 — Ventanas coherentes y filtros flotantes de Chats global
+- Estado: COMPLETO LOCAL (26/10/2026); validate1656 pruebas y34/34 E2E finales PASS. Sin publicación.
+- Alcance: estructura/estilos y cierre accesible compartidos en búsqueda, acciones, ayuda, ubicaciones y QR/imagen; proteger borradores al cancelar; búsqueda/filtros de Chats en lupa flotante con estado, indicador y limpieza. Mantener lógica de datos y navegación. Sin publicación ni migraciones.
+- Gates: pruebas de filtros, foco/cierre/errores/borradores, TypeScript/lint/i18n/fuente/build y navegador móvil/escritorio Clásico/Competition claro/oscuro; regresiones de búsqueda, imágenes y acciones.
+
+## MC67 — Numeración y claridad del resumen
+- Estado: COMPLETO LOCAL (26/10/2026);9 pruebas y14/14 E2E finales PASS, sin publicación.
+- Alcance: numerar los nueve bloques avanzados y mostrar sus rangos en los desplegables cerrados; evitar numeración secundaria ambigua en Duración; incorporar los ajustes posteriores de textos/orden y plantilla en dos columnas del resumen; panel5 coherente, MVP automático avanzado predeterminado y cabeceras compactas sin solapamiento de acciones. Sin cambios de temporadas existentes ni publicación.
+- Gates: TypeScript, lint, i18n/presupuesto de fuente, pruebas de creación y recorrido guiado móvil/escritorio claro/oscuro con creación y edición conservadas.
+
+## MC66 — Duración, catálogo global y resumen visual
+- Estado: COMPLETO LOCAL (26/10/2026); validate1650 pruebas y46/46 E2E PASS, sin publicación.
+- Alcance: jerarquía clara tipo de duración/vueltas; retirar recomendaciones de ubicación del asistente; apertura busca en catálogo global con validación compatible con ubicaciones antiguas; resumen visual completo y editable.
+- Gates: integración de ubicación/permisos, componentes, regresión de duración/parejas y apertura en navegador móvil claro/oscuro, TypeScript/lint/i18n/build. Sin migraciones ni publicación.
+
+## MC65 — Borrador completo de creación y correcciones de uso
+- Estado: COMPLETO LOCAL (26/10/2026); validate1641 pruebas,42 casos E2E verificados y cierre de tipos/lint/build PASS. Sin publicación.
+- Alcance: identidad sin persistir hasta confirmar temporada; salida libre a Competiciones, nombre propio precargado, cabeceras compactas, avanzada visible, Editar abre su bloque y color automático del logo reutilizado. Sin despliegues.
+- Gates: pruebas de borrador/guardado/reintento, directorio/permisos, i18n/tipos/lint/build y navegador móvil claro/oscuro; regresiones individuales/parejas.
+
+
+## MC64 — Creación guiada de ligas y temporadas
+- Estado: COMPLETO LOCAL (25/10/2026); validate1635 pruebas,60 focalizadas,40 E2E y12 revisiones finales PASS. Sin publicación.
+- Entrega: identidad con logo y modalidad explicada; configuración básica compartida, avanzada opcional y resumen; Atrás sin pérdida, participantes compactos, validación clara y estándares acordados. Reutilizar servicios/componentes; sin despliegue ni migraciones.
+- Gates: unidad/integración de creación, tipos/lint/i18n/build y E2E móvil claro/oscuro, ambos formatos y registros, navegación Atrás, logo y estándares.
+
+## MC63 — Publicación de cambios pendientes en PRE
+- Estado: COMPLETO PRE (25/10/2026), v1.15.35 publicada y verificada; CI413 cuatro jobs PASS,1632 pruebas y241 E2E/1skip previsto.
+- Alcance: publicar la rama de desarrollo y cambios locales aceptados como v1.15.35 en staging/PRE; conservar main, Production y v1.0.0. Migraciones PRE ya aplicadas.
+- Gates: release:check local, CI de PR, integración verificada, Vercel READY/alias/commit, health/versión/PWA y rutas sin sesión. OAuth y uso físico de PWA siguen manuales.
+
+## MC62 — Coherencia de calendario, partido, actividad y chats
+- Estado: COMPLETO LOCAL (25/10/2026), validate completo y26 E2E PASS; petición explícita anterior a T06.
+- Bloques: 1) estados de jornada uniformes con/sin fechas;2) parejas protagonistas y espaciado;3) prioridad de posición por estadísticas personales verificables;4) actividad propia por programación/jornada, sin spoilers;5) cuenta atrás sin scroll vacío y aviso de bloqueo;6) filtros y proximidad de chats globales con color de liga;7) botones legibles compartidos;8) paneles blancos en claro.
+- Gates: pruebas unitarias/integración contextual, TypeScript/lint/i18n/build, navegador móvil claro/oscuro × Clásico/Competition, privacidad, permisos y regresiones. Solo local, sin cambios de datos ni despliegues.
+- Reanudación: docs/production-hardening/STATUS.md registra cada bloque; Auto-Resume0.6.13 activo/vigilante funcionando, confirmado por herramienta.
+
+## MC61 — Plantillas por parejas e inscripción con compañero
+- Estado: COMPLETO LOCAL + DB PRE (25/10/2026); validate completo,1.622 pruebas,26 E2E y PostgreSQL aislado PASS.
+- Alcance: parejas visibles dentro de la plantilla al crear temporada, autoinscripción por invitación con elección de compañero ya inscrito o todavía pendiente, revisión de parejas por la organización antes de comenzar y cancelar creación al pie del formulario. Anterior a T06.
+- Persistencia: reutilizar pair_number; permitir pendientes solo en autoinscripción antes de empezar, asignaciones atómicas y validaciones de inicio/calendario. Migración nueva, ninguna aplicada se modifica. PRE de base autorizado previamente; código solo local.
+- Gates: pruebas de API/UI/cálculos, PostgreSQL aislado con roles/concurrencia, TypeScript/lint/i18n/build y recorridos móviles de ambos modos de inscripción y regresiones individuales.
+
+## MC60 — Creación global y acceso a jornada activa
+- Estado: COMPLETO LOCAL (25/10/2026);40 pruebas, TypeScript/lint/tipografía/i18n/presupuesto y12 recorridos de navegador PASS.
+- Alcance: crear liga independiente de la última liga/temporada seleccionada, sin saltarse el permiso creator de la cuenta ni desbloquear competiciones programadas; centrar icono de jornada respecto a título y temporada. Petición anterior a T06.
+- Gates: pruebas de navegación/temporadas/permisos/calendario, TypeScript/lint, tipografía y E2E móvil/escritorio con fixtures, creación desde cuenta atrás y geometría/scroll del calendario. Sin operaciones remotas.
+
+## MC59 — Borde superior de liga aprobado
+- Estado: COMPLETO LOCAL (25/10/2026); diez pruebas, lint y dos recorridos móviles claro/oscuro PASS. Diseño aceptado expresamente por el usuario.
+- Alcance: sustituir el marco del logo por borde superior de2px del color propio en Mis ligas. Mantener laterales neutros, progreso y resumen compacto. Prueba solicitada anterior a T06.
+- Gates: pruebas existentes de competiciones/navegación, ESLint y comprobación móvil claro/oscuro con fixtures. Sin operaciones remotas.
+
+## MC58 — Centrado vertical de cabeceras Competition
+- Estado: COMPLETO LOCAL (25/10/2026);29 pruebas, tipografía/lint y ocho recorridos finales de navegador PASS.
+- Alcance: petición expresa anterior a T06. Corregir el padding vertical asimétrico compartido de Competition; auditar pantallas afectadas, preservar Clásico y cabecera inmersiva de chats con safe area.
+- Gates: tipografía, pruebas de cabecera/Competition/competiciones, lint y navegador móvil/escritorio claro/oscuro, con medidas de centrado y regresión de chats. Sin operaciones remotas.
+
+## MC57 — Prueba de marco de color en el logo
+- Estado: COMPLETO LOCAL (25/10/2026); diez pruebas, lint y dos recorridos móviles claro/oscuro PASS. Diseño de prueba pendiente de valoración.
+- Alcance: prueba visual solicitada anterior a T06. En Mis ligas, contorno de 2px del acento propio separado 3px del logo, suavizado en oscuro, sin cambiar el tamaño de las tarjetas ni Competiciones. Pendiente de valoración del usuario.
+- Gates: pruebas existentes de competiciones/navegación, ESLint y navegador móvil claro/oscuro con fixtures. Sin operaciones remotas.
+
+## MC56 — Degradado solo en el resumen de Competiciones
+- Estado: COMPLETO LOCAL (25/10/2026); diez pruebas existentes y ESLint focalizado PASS.
+- Alcance: retirar únicamente el degradado lateral de Mis ligas por indicación del usuario; conservarlo en las tarjetas compactas de Competiciones, mantener progreso y resto del diseño. Anterior a T06.
+- Gates: pruebas existentes de competiciones/navegación y ESLint focalizado. Sin operaciones remotas.
+
+## MC55 — Identidad visual de Mis ligas
+- Estado: COMPLETO LOCAL (25/10/2026); 23 pruebas focalizadas y ocho recorridos de navegador correctos, tipos/lint/i18n/presupuesto PASS.
+- Alcance: petición expresa anterior a T06. Color propio con degradado lateral, temporada/modalidad, estadísticas integradas y progreso; estados suaves compartidos con partidos. Conservar resumen, navegación, datos y permisos.
+- Gates: pruebas de competiciones/navegación, tipos, lint, i18n, presupuesto y navegador móvil claro/oscuro con fixtures y accesibilidad. Sin operaciones remotas.
+
+## MC54 — Mis ligas sin selección destacada
+- Estado: COMPLETO LOCAL (25/10/2026); diez pruebas existentes, ESLint focalizado, TypeScript e i18n correctos.
+- Alcance: petición expresa anterior a T06; retirar la etiqueta Actual y el reborde de liga seleccionada. Estado real de temporada conservado, con «En curso» para evitar ambigüedad. Proponer mejoras visuales sin aplicar todavía el rediseño.
+- Gates: pruebas existentes de competiciones/navegación, ESLint focalizado, TypeScript e i18n. Sin operaciones remotas.
+
+## T05c — Ligas por parejas fijas
+- Estado: COMPLETO LOCAL + DB PRE (25/10/2026), commit47320b27 y cierre en docs/tournaments/STATUS.md.
+- Alcance: petición posterior del usuario, antes de T06 de docs/tournaments/PLAN.md. Modalidad al crear liga; 2–16 parejas, calendario por vueltas/personalizado/manual y clasificación conjunta. Preservar ligas individuales.
+- Gates: npm run validate, pruebas focalizadas de API/motor/invitaciones/espectadores, PostgreSQL aislado y E2E móvil/escritorio/Axe; ver docs/tournaments/VALIDATION.md.
+- Remoto: exclusivamente migración nueva en Supabase PRE autorizado y verificación de historial/datos; código solo local. Main, Production y v1.0.0 intactos.
+
+## MC40 — Ayuda al pulsar la posición cambiada
+- Status: DONE locally (2026-10-23; ocho pruebas de interacción, tipos, lint y cuatro casos de navegador correctos)
+- Objective: texto rojo y símbolo de cambio abren la misma ayuda que el icono de Jornada, con teclado y sin navegar al perfil. Centrar el símbolo equivalente mediante SVG, por nueva indicación del usuario.
+- Validation: pruebas de interacción, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+## MC39 — Ayuda en el extremo inferior de Jornada
+- Status: DONE locally (2026-10-23; ocho pruebas, tipos, lint y cuatro casos de navegador correctos)
+- Objective: estado arriba a la derecha y ayuda debajo, alineada al borde inferior del contenido de la cabecera.
+- Validation: pruebas existentes, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+## MC38 — Ayuda de posiciones junto al estado
+- Status: DONE locally (2026-10-23; ocho pruebas, tipos, lint y cuatro casos de navegador correctos)
+- Objective: mover el icono desde el VS a la cabecera de Jornada, manteniendo ayuda y visibilidad contextual.
+- Validation: pruebas de ayuda/posiciones, tipos, lint y navegador móvil claro/oscuro. Sin operaciones remotas.
+
+## MC37 — Prueba de enfrentamiento sin tarjeta exterior
+- Status: DONE locally (2026-10-23; veinte pruebas, tipos, lint y ocho casos de navegador correctos; diseño de prueba pendiente de valoración)
+- Objective: parejas y VS directamente sobre la pantalla, nombres algo mayores y ayuda discreta; preservar recomendaciones y marcador final.
+- Validation: pruebas existentes, tipos, lint y capturas móviles claro/oscuro. Sin operaciones remotas; prueba reversible.
+
+## MC36 — Cabecera y separación de Emparejamiento/Programación
+- Status: DONE locally (2026-10-23; veinte pruebas, tipos, lint, tipografía y cuatro casos de navegador correctos)
+- Objective: reutilizar SectionHeader en Emparejamiento y eliminar espacio adicional de Programación, con separación común de Pagos.
+- Validation: pruebas existentes, TypeScript, lint, tipografía y comprobación móvil claro/oscuro. Sin operaciones remotas.
+
+## MC35 — Ubicación uniforme en previews
+- Status: DONE locally (2026-10-23; 26 pruebas, TypeScript, lint y controles de ubicaciones/Mis partidos correctos)
+- Objective: Población · Ubicación · Pista mediante el formateador compartido; conservar resolución de catálogo, datos y campos ausentes.
+- Validation: pruebas de ubicaciones y tarjetas, TypeScript, lint y controles de ubicaciones. Sin operaciones remotas.
+
+## MC34 — Emparejamiento sin etiquetas redundantes
+- Status: DONE locally (2026-10-23; nueve pruebas, TypeScript y ESLint focalizado correctos)
+- Objective: retirar Pareja A/B y su fila del panel de emparejamiento; mantener nombres, posiciones, VS y resultados.
+- Validation: pruebas existentes del panel, tipos y lint focalizado. Sin operaciones remotas.
+
+## MC33 — Alineación y jerarquía de paneles de Partido
+- Status: DONE locally (2026-10-23; doce pruebas de formulario, tipos, lint, i18n y cuatro casos de navegador correctos)
+- Objective: Por cobrar en cabecera antes del chevron, Resultado destacado y botones de programación iguales. Incluir Población · Ubicación y pista, también en estados finalizado y aplazado.
+- Validation: formularios, tipos, lint, i18n y navegador móvil claro/oscuro; sin operaciones remotas.
+
+## MC32 — Claridad visual de Programación, Pagos y Resultado
+- Status: DONE locally (2026-10-23; validate completo: 1092 pruebas, tipos, lint y build; cuatro casos de navegador correctos)
+- Objective: corregir pulsación clara, destacar ubicación, compactar acciones y alinear parejas con inputs. Sin cambios de permisos ni operaciones remotas.
+- Validation: formularios, tipos, lint, build y navegador móvil claro/oscuro con fixtures.
+
+## MC31 - Pulido contextual de la pantalla Partido
+- Status: DONE locally (2026-10-23; validate completo: 1092 pruebas, tipos, lint y build; cuatro casos de navegador y repetición final móvil correctos)
+- Objective: Aplicar solo propuestas 1, 2, 4, 8, 12, 13, 14 y 15: prioridad por estado, cabeceras comunes, acciones jerarquizadas, pagos claros, parejas y validación de marcador, gestión de resultado agrupada.
+- Validation: formularios, permisos, errores, estados previo/pendiente/finalizado y pruebas de navegador con fixtures; tipos, lint, i18n y build.
+- Remote changes allowed: ninguno. Sin migraciones ni cambios en reglas deportivas.
+
+## MC30 - Orden visual de jugadores por lado de pista
+- Status: DONE locally (2026-10-23; 25 tests focalizados, cuatro casos de navegador, tipos y lint correctos)
+- Objective: En el detalle con posiciones recomendadas, Pareja A Revés/Drive y Pareja B Drive/Revés; conservar orden si faltan recomendaciones y no alterar jugadores, equipos ni el símbolo de cambio.
+- Validation: orden con equipos invertidos, clasificación cambiante, empates y partidos finalizados; tipos, lint y pruebas focalizadas.
+- Remote changes allowed: ninguno.
+
+## MC29 - Unificar etiquetas de resultado
+- Status: DONE locally (2026-10-23; 25 pruebas, seis casos de navegador, tipos y lint correctos)
+- Objective: Usar en todas las etiquetas Victoria/Derrota el estilo compacto de Actividad personal, con componente común y guía de estilos.
+- Validation: tarjetas de liga/personales, ayuda accesible, tipos, lint y comprobaciones visuales con fixtures móviles/escritorio; reutiliza colores de tema existentes.
+- Remote changes allowed: ninguno.
+
+## MC26 - Publicar cambios pendientes en PRE
+- Status: DONE (2026-10-23; PR #54, PRE 1.15.34 verificado)
+- Objective: Publicar el estado visual y funcional aprobado, incluidas las migraciones aditivas de MC21/22, exclusivamente en PRE.
+- Validation: npm run validate, Playwright con fixtures, CI y smoke PRE con versión nueva.
+- Remote changes allowed: commit/push de la rama, PR/merge a staging, aplicar solo migraciones pendientes verificadas en smash-lob-staging y comprobar deployment PRE, autorizados por el usuario el 2026-10-23. No main, Production ni v1.0.0.
+- Stop condition: fallo crítico de gates, destino no identificado o migraciones inesperadas.
+
+## MC27 - Recomendaciones de posición en partidos de liga
+- Status: DONE locally (2026-10-23; validate completo y cuatro pruebas de navegador correctas, sin publicar)
+- Objective: Recomendar Drive/Revés según preferencias y clasificación actual, respetando preferencias compatibles, sin imponer lados ni modificar datos; ayuda clara en el icono preparado.
+- Validation: pruebas de combinaciones, empates, datos ausentes y visibilidad solo en partidos pendientes; tipos/lint y gates pertinentes.
+- Remote changes allowed: ninguno; implementación local posterior a la publicación PRE solicitada.
+
+## MC25 - Identidad visual de la Home de Competiciones
+- Status: DONE locally (2026-10-23; estados sutiles en previews, 23 pruebas, tipos y lint correctos)
+- Objective: Destacar actividad, dar identidad a las tarjetas compactas y compartir el indicador sutil de estado en previews sin cambiar rutas ni datos.
+- Validation: pruebas del hub, tarjetas y ayuda de estados; TypeScript y ESLint focalizado.
+- Remote changes allowed: ninguno.
+
+## MC24 - Estados y navegación de competiciones
+- Status: DONE locally (2026-10-21; 19 pruebas, tipos, lint y build correctos)
+- Objective: Mostrar Próximamente en Mis ligas, ocultar invitación de jugador sin plazas libres y unificar etiquetas/flechas de torneo.
+- Validation: pruebas focalizadas de invitaciones y navegación, i18n, lint, TypeScript y build.
+- Remote changes allowed: ninguno. Sin DB ni publicación.
+
+## MC23 - Creación contextual y entrada a competiciones
+- Status: DONE locally (2026-10-21; 15 pruebas focalizadas, tipos, lint, controles y build correctos)
+- Objective: Ofrecer Crear liga/torneo solo desde Ajustes abiertos en Competiciones para creadores y reconocer invitaciones de torneo desde Unirme.
+- Tasks: ajustar accesos contextuales; reconocer enlaces/códigos conservando mayúsculas de tokens de torneo; validar ligas y torneos con pruebas y gates locales.
+- Remote changes allowed: ninguno. Sin DB, commits ni despliegue.
+- Stop condition: no cerrar con regresiones en invitaciones de liga o rutas de acceso.
+
+## MC22 - Invitación común y cierre visual de torneos
+- Status: DONE locally (2026-10-21; interfaz e invitaciones verificadas, migración pendiente de PRE)
+- Objective: Quitar la navbar de Ajustes de torneo, declarar final la clasificación cuando estén todos los resultados, y sustituir invitaciones manuales individuales por un enlace privado común que permita reclamar un perfil libre.
+- Tasks: (1) corregir navegación y presentación de clasificación; (2) añadir invitación compartida protegida, selección de perfil y vínculo atómico; (3) validar rutas, migración y regresiones focalizadas.
+- Remote changes allowed: ninguno. Preparar migración aditiva para PRE sin aplicarla, sin desplegar, commits ni cambios en Production.
+- Stop condition: no completar si un participante puede reclamar más de un perfil, un perfil ya vinculado puede ser reclamado, se expone información por una ruta sin token, o falla una validación crítica.
 # Production Hardening Plan
+## MC21 - Ajustes contextuales de Competiciones y Torneos
+- Status: DONE locally (2026-10-21; cierre explícito sin resultados, migración aditiva preparada para PRE, controles de API, pruebas y build correctos)
+- Objective: Evitar que los accesos de administración de liga aparezcan desde Competiciones o un torneo, y proporcionar una gestión mínima propia del torneo con borrado seguro para su creador.
+- Tasks: (1) auditar y separar los enlaces de Ajustes globales, de competición y de liga; (2) dirigir el control de Ajustes de un torneo a su pantalla contextual y conservar allí la navegación del torneo; (3) reutilizar la eliminación existente con confirmación, permiso de creador y restricción a torneos finalizados, y validar rutas y regresiones.
+- Remote changes allowed: ninguno. Sin migraciones, cambios de datos, despliegue, commits ni cambios en Production.
+- Stop condition: no completar si un usuario sin permiso puede ver o ejecutar gestión de torneo, si se muestran acciones de liga dentro de un torneo/Competiciones, o si fallan validaciones críticas.
+
+## MC20 - Etiqueta compacta de vuelta a Competiciones
+- Status: DONE locally (2026-10-20; i18n, lint específico, TypeScript y recorrido E2E focalizado correctos)
+- Objective: Unificar los controles superiores de vuelta desde los flujos de torneos con la etiqueta compacta «Competiciones», sin cambiar sus destinos ni la navegación.
+- Tasks: (1) localizar únicamente los enlaces superiores de retorno; (2) reutilizar la traducción corta ya existente; (3) actualizar las comprobaciones focalizadas y validar tipos, formato de traducciones y pruebas de torneos.
+- Remote changes allowed: ninguno. Sin base de datos, despliegue, commits ni cambios en Production.
+- Stop condition: no cerrar si cambia una ruta de retorno, se altera un encabezado de contenido o falla una validación crítica.
+
+## MC19 - Mexicano Dinámico Equilibrado
+- Status: DONE in PRE (2026-10-21; PR #52 merged in `staging`, migration applied and PRE deployment verified)
+- Objective: Incorporar el formato Mexicano Dinámico a los torneos rápidos existentes, generando una sola ronda cada vez según resultados, con participación, descansos, parejas y rivales equilibrados.
+- Tasks: (1) añadir el motor determinista puro y sus simulaciones para configuraciones variables; (2) persistir formato, semilla y generación idempotente/transaccional con permisos actuales, además de bloquear resultados históricos que ya tengan rondas posteriores; (3) integrar selector, calendario, clasificación y acción de siguiente ronda, y ejecutar los gates completos sin alterar la Americana.
+- Remote changes allowed: únicamente PRE, bajo la solicitud explícita del usuario del 2026-10-21. Aplicar exclusivamente `20261020164339_add_dynamic_mexicano_tournaments.sql` tras un `dry-run` que confirme que es la única pendiente; integrar en `staging`, desplegar y verificar. No tocar Production, `main` ni la etiqueta `v1.0.0`.
+- Stop condition: no continuar tras un fallo crítico de equidad, concurrencia, autorización o regresión de Americana; no cerrar sin las simulaciones solicitadas y los gates del repositorio.
+
+## MC18 - Clarificar parámetros y resumen de creación de torneos
+- Status: DONE locally (2026-10-19; `npm run validate` correct; rapid-tournament E2E 6/6)
+- Objective: Aclarar unidades, ocultar el aviso de plazas manuales cuando no hagan falta, sustituir flechas nativas de selects, simplificar etiquetas de puntuación y condensar el resumen sin totales redundantes.
+- Tasks: (1) ajustar etiquetas, selectores, textos condicionales y transiciones; (2) consolidar el resumen con todos los datos útiles no repetidos; (3) actualizar E2E, validar los flujos independientes y vinculados y ejecutar los gates locales.
+- Remote changes allowed: ninguno. Sin despliegue, cambios de base de datos, dependencias ni commits.
+- Stop condition: no cerrar el hito si falla una validación crítica o se pierde un dato de configuración/logística necesario.
+
+## MC17 - Recuperar el detalle visual de las tarjetas de Mis ligas
+- Status: DONE (2026-10-19; PR #51, PRE v1.15.33 READY and smoke verified)
+- Objective: Alinear las tarjetas de la lista Mis ligas con la referencia de producción, retirando las etiquetas Próximamente y Toca para entrar.
+- Tasks: (1) recuperar logo, descripción y métricas de jugadores/partidos/líder; (2) conservar selección de liga y hacer explícito el estado actual; (3) validar accesibilidad y recorridos móvil/escritorio y publicar solo en PRE.
+- Remote changes allowed: rama de trabajo, integración en `staging` y despliegue PRE bajo solicitud explícita del usuario. No tocar Production, `main`, migraciones ni tag `v1.0.0`.
+- Stop condition: no publicar si falla un gate crítico o no se verifica el deployment PRE.
+
+## MC16 - Simplificar selectores y aclarar el resumen de torneos
+- Status: DONE (2026-10-19; PR #50, CI #400 success, PRE v1.15.32 READY and smoke verified)
+- Objective: Usar controles numéricos compactos con flechas, separar pistas/reserva de la logística calculada y mostrar la participación por jugador frente a los totales del torneo, actualizados al cambiar la configuración.
+- Tasks: (1) reemplazar los selectores numéricos por stepper accesibles y agrupar la configuración de pistas/reserva antes de participantes; (2) aclarar la logística derivada y el resumen en términos por jugador/total, con cálculos fiables para cualquier combinación permitida; (3) actualizar E2E, ejecutar gates locales y publicar solo en PRE tras verificar migración y deployment.
+- Remote changes allowed: únicamente PRE, incluidas las migraciones `20261019145647_rapid_tournament_flexible_americana.sql` y `20261019154207_fix_rapid_tournament_flexible_function_lint.sql` aplicadas a `smash-lob-staging`, bajo la solicitud explícita del usuario del 2026-10-19. No tocar Production, `main` ni tag `v1.0.0`.
+- Stop condition: no publicar si falla un gate crítico, la identidad PRE o el estado del deployment no se puede verificar.
+
+## MC14 - Acceso visible para organizar torneos desde la administración de liga
+- Status: DONE (2026-10-19; validate passed)
+- Objective: Hacer visible Organizar torneo bajo las acciones de competición, permitiendo elegir la temporada de origen y localizar el acceso desde el buscador de Ajustes.
+- Tasks: (1) selector de temporada y navegación al formulario existente desde Administración de liga; (2) entrada localizada y restringida por permisos en el buscador de Ajustes; (3) pruebas focalizadas y validación del hito. Completed.
+- Validation: prueba focalizada del buscador 4/4; `npm run validate` correcto: 1006 pruebas/251 archivos, TypeScript, ESLint sin errores (4 avisos existentes), build dentro de presupuesto (1202401 bytes gzip/103 chunks).
+- Remote changes allowed: ninguno. Sin cambios de base de datos ni despliegue en esta tarea.
+- Stop condition: no alterar el flujo actual de creación independiente ni la importación de jugadores existente.
+
+## MC15 - Parámetros flexibles para Americana rápida
+- Status: DONE locally (2026-10-19; `npm run validate` and 6/6 rapid tournament E2E passed; migration prepared, not applied)
+- Objective: Permitir 8–16 jugadores, 1–4 pistas, reservas de 60/90/120 minutos y preparación ajustable respetando 2 minutos de margen mínimo; el nombre debe proponerse según modalidad y liga sin perder edición manual.
+- Tasks: (1) parametrizar configuración y calendario para tamaños/canchas soportados con validaciones de equilibrio; (2) actualizar formulario, previsualización y resumen, incluyendo valor de nombre contextual; (3) probar combinaciones, flujos independiente/vinculado y validar la aplicación. Completed locally.
+- Remote changes allowed: ninguno. No tocar migraciones aplicadas, base de datos, Production ni publicar.
+- Stop condition: no crear torneos incompatibles con la planificación ni perder compatibilidad de torneos guardados existentes.
+
+## MC13 - Verificación y acceso a participantes de torneos
+- Status: DONE (2026-10-19; PRE migrations verified)
+- Objective: Mostrar al organizador validaciones reales del calendario fijo, preparar opciones futuras de cuenta atrás/datos ocultos, permitir seleccionar cuentas conocidas y habilitar acceso de participantes mediante invitación segura; cambios solo en desarrollo local hasta validación.
+- Tasks: (1) pruebas y panel visual de invariantes/rachas del sorteo; (2) opciones informativas de visibilidad/temporizador marcadas como próximamente; (3) asociación de cuentas conocidas y flujo privado de invitación con migración nueva y pruebas de permisos.
+- Validation: `npm run validate` (1005 pruebas, typecheck, lint sin errores y build dentro de presupuesto), E2E de torneos 6/6, rutas/invitaciones 14/14; migraciones aplicadas y verificadas solo en PRE, con RLS y privilegios revisados.
+- Remote changes allowed: aplicar únicamente en PRE (`smash-lob-staging`, `miadjotkucgluwbrgeih`) las migraciones versionadas necesarias para cuentas participantes y vínculo torneo-liga-temporada, bajo solicitud explícita del usuario. Sin despliegue, cambios en main/Production/tag v1.0.0 ni uso de cuentas personales.
+- Stop condition: si la invitación no puede preservarse de forma segura durante login o el aislamiento del torneo no queda demostrado, mantener el acceso por invitación bloqueado y no declarar MC13 completo.
+
+## MC12PRE - Pulir los círculos de RACHA y publicar en PRE
+- Status: DONE (2026-10-18; PR #49, CI 4/4, PRE v1.15.31 READY y smoke verificado)
+- Objective: Renombrar FORMA a RACHA y dar más presencia a las V/D blancas con mayor tamaño y sombra de texto, manteniendo círculos verdes/rojos, borde blanco y sombra; publicar solo en PRE cuando pasen todos los gates.
+- Remote changes allowed: rama de trabajo, PR/merge a staging y PRE por solicitud explícita del usuario. No Production, main, base de datos ni tag v1.0.0.
+- Validation: `npm run validate` (999 pruebas/250 archivos; repetición aislada limpia tras timeout de workers al ejecutar en paralelo con E2E), build 1195395 bytes gzip/103 chunks, E2E 107/107 y un skip previsto, auditoría runtime 0 vulnerabilidades; CI #395 4/4 success. PR #49 integrado en `staging` `a27422963f64695b0d52adb30807a0117051cd8d`; deployment Vercel `dpl_CMgAqTznm19ni2NsotQQq8ABj45q` READY con alias PRE; health 200/version 1.15.31/environment pre y SW v1.15.31. Sin cambios DB/dependencias; `main` y `v1.0.0` intactos.
+
+## MC11PRE - Corregir los colores del grafismo FORMA y publicar en PRE
+- Status: DONE (2026-10-18; PR #48, CI 4/4, PRE v1.15.30 READY y smoke verificado)
+- Objective: Mostrar V en círculos verdes y D en círculos rojos y garantizar legibilidad del título FORMA en perfiles global y de liga; publicar solo en PRE después de los gates locales y remotos.
+- Validation: `npm run validate` (999 pruebas/250 archivos; TypeScript y build); E2E 107/107 (1 omisión prevista); auditoría runtime 0 vulnerabilidades; CI #392 4/4 success. PR #48 integrado en `staging` `6ae40381b13c977acd84907b800a516f7a1b8323`; deployment Vercel `dpl_CPMMW5qQ56hA8USd3rGzdbEBo1aV` READY con alias PRE; health 200/version 1.15.30/environment pre y SW v1.15.30.
+- Remote changes allowed: rama de trabajo, PR/merge a staging y PRE por solicitud del usuario. No Production, main, base de datos ni tag v1.0.0.
+- Stop condition: no fusionar ni publicar si falla un gate crítico.
+
+## MC10PRE - Publicar ajustes de perfil y chats globales
+- Status: DONE (2026-10-18; PR #47, CI 4/4, PRE v1.15.29 READY y smoke verificado)
+- Objective: Publicar v1.15.29 en staging/PRE con FORMA usando el acento actual, cabeceras de perfil sin tarjeta anidada y bandeja global de chats de liga/amistosos agrupada por estado.
+- Validation: npm run validate (998 pruebas), E2E 107/107 (1 skip previsto), audit de producción 0 vulnerabilidades; CI #390 4/4 success. PR #47 integrado en staging `1a24aef06f0b8b0883868a351686b0f37aac8e28`; deployment Vercel `dpl_S9c6eRhp3prJpWkrggQpLzkhKmty` READY, alias PRE verificado, health 200/version 1.15.29/environment pre, manifest y SW v1.15.29 y rutas de Competiciones, Chats y perfil 200.
+- Remote changes allowed: push de codex/mis-competiciones, PR/merge a staging y publicación exclusivamente PRE autorizados explícitamente por el usuario. Sin DB, main, Production ni tag v1.0.0.
+- Stop condition: cualquier gate crítico fallido bloquea merge/publicación.
+
+## MC10 - Ajustes visuales de perfil y bandeja global de Chats
+- Status: DONE (2026-10-18; integración en PRE v1.15.29)
+- Objective: Utilizar el acento activo en FORMA conservando V verde/D rojo y contraste; quitar la tarjeta interior de ambas cabeceras; mostrar chats de amistosos y de todas las ligas accesibles agrupados en Activos, Próximos y Finalizados.
+- Tasks: (1) identidad visual compartida de perfiles; (2) agregar chats de liga al listado global conservando permisos y calendario progresivo, con secciones ordenadas por estado; (3) validar perfiles/chats y preparar v1.15.29 para PRE.
+- Validation: 45 pruebas unitarias focalizadas; npm run validate y E2E completos con fixtures; smoke PRE de salud/PWA/rutas con acceso Vercel autenticado. No se usaron cuentas personales ni datos de Production.
+- Remote changes allowed: none for local implementation; PRE publication only under MC10PRE.
+
+## MC09PRE - Publicar perfiles unificados en PRE
+- Status: DONE (2026-10-18; PR #46, CI 4/4, PRE v1.15.28 READY y smoke verificado)
+- Objective: Publicar v1.15.28 desde staging para probar en la PWA la navegación y los perfiles global/de liga unificados.
+- Validation: npm run validate, E2E 107/107 (1 skip previsto), npm audit sin vulnerabilidades; CI cuatro jobs correctos. PR #46 integrado en staging b342d196; deployment Vercel READY, alias PRE, health v1.15.28/pre, rutas 200, service worker v1.15.28 y API protegida 401.
+- Remote changes allowed: push de codex/mis-competiciones, PR/merge a staging y publicación exclusivamente PRE por solicitud explícita del usuario. Sin DB, main, Production ni tag v1.0.0.
+- Stop condition: cualquier gate crítico fallido bloquea merge/publicación.
+
+## MC09 - Perfiles unificados y disponibilidad contextual
+- Status: DONE (2026-10-18; validate completo, 998 pruebas y E2E móviles focalizados correctos)
+- Objective: Corregir navegación global, mostrar solo accesos con datos o permiso creator, mantener una Action Bar consistente y unificar la presentación de perfil global y de liga.
+- Tasks: (1) navegación, secciones y barra superior; (2) cabecera, pestañas y rendimiento compartidos conservando las métricas de liga; (3) filtros globales y FORMA cronológica con validación móvil.
+- Validation: npm run validate (controles, lint, TypeScript, 998 pruebas, build y presupuesto) y E2E móviles de Competiciones, perfil, volver desde Mis partidos, QR y acceso espectador. 28 flujos pasaron antes de la corrección final y los cuatro flujos afectados volvieron a pasar después.
+- Limitation: los participantes de torneos rápidos son nombres manuales sin identidad de cuenta; no atribuirlos a perfiles hasta que exista vínculo fiable. No se muestran filtros ni pestaña de torneos en perfiles.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## MC08 - Invitaciones según contexto y acceso a Competiciones
+- Status: DONE (2026-10-18;35 pruebas focalizadas,9 E2E móviles,tipos/lint/build y controles correctos)
+- Objective: Textos naturales, ocultar opciones sin permiso/contexto, QR directo con una opción y acceso Competiciones adaptable en Home.
+- Validation: Permisos, selección y reapertura; TypeScript, ESLint, i18n, tipografía, controles Mis partidos y presupuesto133852/133900. Nueve E2E móviles con fixtures pasan, incluido Axe y geometría a320/393px. Capturas revisadas en .quality-artifacts/mc08-20261018.
+- Future ideas: invitaciones de torneo como jugador/espectador al ampliar participantes y sistema de amigos solicitado por el usuario.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## MC07 - Elegir invitación con botones
+- Status: DONE (2026-10-18;4 pruebas,recorrido móvil320px,lint/tipos/build/i18n/presupuesto correctos)
+- Objective: Tres botones iniciales; al elegir mostrar solo QR y acciones. Cerrar/reabrir devuelve a la selección.
+- Validation: pruebas de selección, reapertura y respuestas tardías; lint/tipos/i18n/presupuesto y recorrido móvil con fixtures.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## MC06 - Selector de invitaciones y color de etiquetas
+- Status: DONE (2026-10-18;50 pruebas,9 E2E móviles,lint/tipos/build/controles y Axe correctos)
+- Objective: Compartir liga como espectador/jugador o la app con el QR existente; etiquetas con el color de su liga adaptado al tema.
+- Validation: pruebas de selección/permisos/carreras y colores, lint/tipos/i18n/presupuesto y E2E móvil con fixtures.
+- Remote changes allowed: none. Sin commits, publicación, migraciones ni operaciones remotas de DB.
+
+## MC05 - Icono, navbar uniforme y detalle de ligas
+- Status: DONE (2026-10-18;35 pruebas,6 E2E móviles,lint/tipos/build y controles correctos)
+- Objective: Flechas SVG sin burbuja, cuatro destinos iguales, bordes uniformes y tarjetas ampliadas en Mis ligas.
+- Validation: lint/tipos, controles i18n/Mis partidos y pruebas focalizadas; E2E móvil con fixtures, geometría y accesibilidad.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## DEVORIGIN01 - Permitir el origen local de desarrollo
+- Status: CANCELLED (2026-10-18; usuario resolvió la configuración y pidió detener esta intervención)
+- Objective: Permitir 192.168.3.34 en allowedDevOrigins sin ampliar el acceso con comodines.
+- Validation: ESLint de next.config.ts y comprobación HTTP del recurso de desarrollo con ese Origin.
+- Remote changes allowed: none. Sin commits, publicación ni DB.
+
+## MC04 - Compactar controles y unificar geometría de navegación
+- Status: DONE (2026-10-18;18 pruebas,8 recorridos móviles,geometría/contraste y lint/tipos/build E2E correctos)
+- Objective: Selector de actividad con icono compacto, espacio entre tarjetas, badges ajustados al texto y navbars global/torneos con estilos existentes de Ligas, sin modificar la barra de Ligas.
+- Validation: pruebas de paso del carrusel, geometría móvil 320/393 px, badges cortos/largos y navbars; lint/tipos/i18n/presupuestos y build E2E con fixtures.
+- Remote changes allowed: none. Sin commits, despliegue, DB ni dependencias.
+
+## MC03PRE - Publicar tarjetas y cabecera de actividad
+- Status: DONE (2026-10-18; CI386 cuatro jobs success, PRE1.15.27 READY/alias/rutas/PWA y autenticación verificados)
+- Objective: Publicar v1.15.27 en staging/PRE para probar navbar centrada, swipe y selector compacto desde la PWA.
+- Validation: validate, E2E completos, auditoría runtime y CI; verificar staging/READY/alias, versión/SW/manifiesto y rutas principales.
+- Remote changes allowed: commits/push, PR/merge a staging y publicación exclusivamente PRE, autorizados por el usuario. Sin DB, main, Production ni v1.0.0.
+- Stop condition: fallo crítico impide la publicación.
+
+## MC03H - Compactar selector de actividad personal
+- Status: DONE (2026-10-18; 8 pruebas y recorrido táctil 320/393 px, geometría, lint/tipos y build E2E correctos)
+- Objective: Título del encuentro y botón Próximo/Último en una fila, con acción a la derecha y swipe conservado.
+- Validation: ESLint, TypeScript, i18n/presupuesto y recorrido móvil 320/393 px con controles y gestos.
+- Remote changes allowed: none. Sin commits, despliegue, DB ni dependencias.
+
+## MC03 - Etiquetas y tarjetas deslizables en móvil
+- Status: DONE (2026-10-18; pruebas, seis recorridos móviles, tipos/lint/build y capturas 320/393 px correctos)
+- Objective: Centrar navbar global sin palabras cortadas, ajustar etiquetas largas y deslizar próximos partidos Liga/Mío y actividad Próximo/Último con parada completa.
+- Validation: pruebas de selección/gestos, regresiones de permisos, TypeScript, lint, i18n, presupuestos y build; E2E móvil 320/393 px y revisión visual.
+- Remote changes allowed: none. Trabajo local sin commits, publicación, DB ni dependencias.
+- Stop condition: fallo crítico bloquea el cierre.
+
+## MC02PRE - Publicar navegación global de Competiciones
+- Status: DONE (2026-10-18; 987 pruebas, 100 E2E, CI y PRE1.15.26 READY/alias/rutas/PWA verificados)
+- Objective: Publicar v1.15.26 en staging/PRE para validar la nueva navegación desde la PWA.
+- Validation: validate, E2E completos, auditoría runtime y CI; READY/commit/alias, health/versión/SW y las rutas resumen/listados.
+- Remote changes allowed: commits/push de rama, PR/merge a staging y publicación exclusivamente PRE autorizados por usuario. Sin DB, main, Production ni v1.0.0.
+- Stop condition: fallo crítico bloquea publicación.
+
+## MC02 - Navbar global y resumen de Competiciones
+- Status: DONE (2026-10-18; 987 pruebas cubiertas, 12 recorridos E2E, controles y build correctos)
+- Objective: Reutilizar PersonalMatchesNav en resumen/listados de Competiciones, retirar pestañas y sección Amistosos del hub, mantener barras de liga/torneo y navegación Atrás.
+- Validation: selección exclusiva de Navbar, rutas/listados con y sin liga/temporada, resumen y amistosos; TypeScript, lint, i18n, presupuesto/build y recorridos móviles con fixtures.
+- Remote changes allowed: none. Sin commits, publicación, DB ni dependencias.
+- Stop condition: fallo crítico bloquea el cierre.
+
+## T02PRE - Publicar ajustes de avisos y gestión de finalizados
+- Status: DONE (2026-10-17; CI/local correctos, PRE1.15.25 READY/alias/versión/PWA/API verificados)
+- Objective: Publicar v1.15.25 en staging/PRE para probar sonidos, Ajustes y reinicio/borrado desde PWA.
+- Validation: validate, E2E completos, auditoría runtime y CI; verificar commit remoto, Vercel READY/alias, health/PWA, ruta Ajustes y API autenticada.
+- Remote changes allowed: commits/push de rama, PR y merge a staging y PRE, autorizados explícitamente por el usuario. Migración ya aplicada: solo verificar registro. Sin cambios de main, Production ni v1.0.0.
+- Stop condition: fallo crítico bloquea publicación.
+
+## T02 - Ajustes de avisos y gestión de torneos finalizados
+- Status: DONE (2026-10-17; 971 pruebas, cinco recorridos móviles, build y migración PRE verificados)
+- Objective: Panel móvil compartido Seguimiento/Ajustes, prueba de sonido, ocho tonos y voz automática; reinicio temporal local/PRE hasta 25 octubre y borrado de finalizados con confirmación y autorización del creador.
+- Validation: audio/API/SQL, búsqueda de ajustes y happy path móvil claro/oscuro; TypeScript, ESLint, i18n, presupuestos y build. Fixtures ficticios, sin datos personales.
+- Remote changes allowed: aplicar/verificar solo la nueva migración aditiva en PRE miadjotkucgluwbrgeih, según autorización de validación PRE del módulo; verificación SQL con fixtures sintéticos y rollback. Sin commits, publicación, datos reales ni PROD.
+- Stop condition: fallo crítico de validación impide cerrar o publicar.
+
+## T01APRE - Publicar avisos configurables en PRE
+- Status: DONE (2026-10-17; gates locales/CI y PRE1.15.24 READY/alias/SW/seis WAV verificados)
+- Objective: Publicar v1.15.24 con preferencias de sonido/voz y cuenta atrás para pruebas físicas de PWA.
+- Validation: validate, E2E, auditoría runtime y CI; verificar staging/READY/alias, versión/SW y seis WAV con hash idéntico al local.
+- Remote changes allowed: commits/push de rama y PR/merge staging para PRE. Sin DB, cambios de main, Production o v1.0.0.
+
+## T01A - Avisos configurables de torneos
+- Status: DONE (2026-10-17, local; 21 pruebas focalizadas, dos happy paths móviles y gates correctos)
+- Objective: Preferencias locales de sonido/intensidad/modo/idioma/voces, inglés seguido de español con pausa y cuenta atrás de tres segundos sin alterar horarios.
+- Validation: pruebas de preferencias, secuencias y cancelación/visibilidad; límites temporales, TypeScript/ESLint/i18n/presupuesto/build y happy paths móviles claro/oscuro con controles y persistencia.
+- Remote changes allowed: none. Sin DB, migraciones, dependencias, commits ni publicación.
+
+## T01PRE - Publicar Mis Competiciones y torneos en PRE
+- Status: DONE (2026-10-17; gates locales/CI correctos y PRE1.15.23 READY/alias/health/SW verificados)
+- Objective: Registrar rama, preparar v1.15.23, validar con lockfile exacto en copia aislada y publicar staging/PRE para pruebas físicas de PWA.
+- Validation: npm run validate, npm run test:e2e y auditoría runtime; verificar SHA remoto, Vercel READY/rama/alias, health/version/PRE, SW y autenticación de API. OAuth, audio y bloqueo físicos quedan manuales.
+- Remote changes allowed: commits y push de codex/mis-competiciones y staging, despliegue/alias exclusivamente PRE. Migraciones de torneos ya aplicadas: solo comprobar registro. Main, Production y v1.0.0 intactos.
+- Stop condition: fallo crítico de validación; no publicar hasta resolverlo.
+
+## T01H - Cabeceras compactas de torneos
+- Status: DONE (2026-10-16, local; dos happy paths móviles y gates correctos)
+- Objective: Compactar creación y cabecera compartida de las cinco vistas siguiendo la identidad/tipografía de Home de ligas; nombre con ancho completo, contexto breve y sin filas redundantes.
+- Validation: ESLint, TypeScript, tipografía/i18n/presupuesto y happy paths móviles claro/oscuro con capturas 393×852.
+- Remote changes allowed: none. Sin datos, migraciones, commits ni despliegue.
+
+## T01L - Seguimiento desde inicio real con avisos
+- Status: DONE (2026-10-16, local; 36 pruebas focalizadas, cinco recorridos móviles y build correctos)
+- Objective: Reutilizar started_at para preparación de 2 min, seis rondas/pausas automáticas, calendario coherente, avisos de inicio/dos minutos/fin y Wake Lock opcional; actualización local ligera y recuperación tras recargar.
+- Validation: límites temporales y avisos unitarios, integración de horarios, TypeScript/ESLint/i18n/presupuesto/build y happy path E2E móvil con reloj simulado, sonido/Wake Lock simulados y capturas 393×852. Sonido audible y bloqueo físico son comprobaciones manuales en dispositivo.
+- Remote changes allowed: none. Sin migraciones, datos remotos, commits ni despliegue.
+
+## T01N - Corregir la vuelta a Mis Competiciones con torneos
+- Status: DONE (2026-10-16; 8 pruebas focalizadas y dos recorridos móviles completos correctos)
+- Objective: Evitar el error Intl al renderizar fechas de torneos en el hub. Reproducido con listado no vacío en ES/EN/EU.
+- Validation: pruebas del hub, ESLint/TypeScript/i18n y happy path móvil con vuelta al hub en borrador y finalizado.
+- Remote changes allowed: none. Sin DB, commits ni publicación.
+
+## T01VC - Compactar el calendario para móvil
+- Status: DONE (2026-10-16; seguimiento CSS de descansos en línea validado en los dos happy paths móviles)
+- Objective: Cabeceras y parejas compactas, ubicación única bajo la fecha, sin etiquetas Pareja 1/2 ni acceso rápido a rondas; fuentes y radios coherentes con AppCard/Mis Partidos.
+- Validation: ESLint, TypeScript, i18n/tipografía/presupuesto, happy path E2E mobile claro/oscuro y capturas completas 393×852 a escala CSS; mantener prueba estrecha 320 px y accesibilidad.
+- Remote changes allowed: none. Sin DB, commits ni publicación.
+
+## T01V - Pulido visual de creación y calendario de torneos
+- Status: DONE (2026-10-16, local; 11 pruebas focalizadas, 4 happy paths y 6 regresiones E2E correctos)
+- Objective: Mejorar jerarquía del formulario, claridad de rondas/pistas/parejas y evitar solapamientos en la Navbar del torneo, conservando el happy path y las opciones futuras bloqueadas.
+- Validation: ESLint selectivo, TypeScript, i18n, quality:source, pruebas focalizadas de torneos y E2E mobile/escritorio con fixtures; revisar capturas claro/oscuro, 320 px y navegación sin desbordamientos.
+- Remote changes allowed: none. Sin DB, commits, despliegue ni pruebas automatizadas con cuentas reales.
+
+## T01 - Torneo rápido Americana 12 jugadores (happy path)
+- Status: DONE (2026-10-16, rama local `codex/mis-competiciones`; PRE validado con fixtures sintéticos)
+- Objective: Implementar creación privada por el organizador, plantilla fija Americana 12/2/120, sorteo antes de iniciar, seis rondas persistidas, resultados, clasificación individual y finalización dentro de la PWA.
+- Scope: Una única modalidad y configuración fija según la solicitud Smash & Lob Torneos Rápidos V1. Nuevas rutas `/tournaments/*`, API autenticada, tablas propias con RLS y una migración aditiva. No modificar ligas/amistosos/tema ni funcionalidades futuras.
+- Validation: 953 pruebas en 244 archivos; cuatro E2E mobile (hub claro/oscuro, historial y torneo crear→finalizar); TypeScript, traducciones, presupuesto, ESLint de todos los archivos tocados y build correctos. PRE confirmó tablas, RLS/grants y flujo transaccional completo con cuenta sintética eliminada al terminar. El comando global `npm run lint` se dejó tras más de cuatro minutos sin salida; ESLint selectivo pasa. Docker/pgTAP no disponible localmente/en PRE; las verificaciones DB se ejecutaron en PRE por SQL transaccional. No hay datos de usuarios de prueba persistidos. Presupuesto total ampliado de forma acotada a 133500; resto sin cambios.
+- Remote changes allowed: Aplicar y verificar exclusivamente la nueva migración en el PRE identificado. Sin push, merge, despliegue, escritura de torneos de usuarios ni cambios de PROD.
+- Stop condition: Un fallo crítico de seguridad, datos, migración o gates detiene este hito; conservar archivos y datos locales para reanudar.
+
+## MC01P - Aligerar la actividad personal del hub
+- Status: DONE (2026-10-16; 10 pruebas focalizadas, lint/tipos/presupuesto y seis recorridos Playwright correctos; capturas móvil/escritorio revisadas)
+- Objective: Ocultar fecha/lugar solo en la tarjeta del último encuentro del resumen y mover Ver Mis partidos a su cabecera. Conservar metadatos en detalle, historial y próximos partidos.
+- Validation: pruebas focalizadas de hub/tarjeta/navegación, lint de archivos afectados, TypeScript y recorridos Playwright del hub con fixtures; revisar capturas y `git diff --check`.
+- Remote changes allowed: none. Sin commits, instalaciones, DB ni publicación.
+
+## MC01 - Mis Competiciones: hub existente
+- Status: DONE (2026-10-16; primera versión local, 943 pruebas, 90 E2E y cuatro recorridos finales del hub correctos; revisión visual móvil/escritorio claro/oscuro)
+- Objective: Convertir `/leagues` en Mis Competiciones con vistas Resumen/Ligas/Torneos/Amistosos según petición del 2026-10-16: resumen con hasta dos ligas y encuentro propio destacado, listado completo con finalizadas plegadas. Conservar rutas, permisos, tema y Navbars. Torneos solo como aviso sin destino.
+- Scope: primera tarea de `docs/torneos-auditoria-navegacion.md`; rama local `codex/mis-competiciones`, descendiente de staging, sin commits ni publicación.
+- Validation: pruebas focalizadas existentes de navegación/idiomas, `npm run validate`, `npm run test:e2e` con entorno ficticio y `git diff --check`. Revisar cualquier diferencia visual antes de aceptar baselines.
+- Remote changes allowed: lectura de referencias Git; no push, merge, despliegue ni operaciones DB.
+- Stop condition: una validación crítica fallida impide cerrar el hito o avanzar a las tareas 2/3 de la auditoría.
 
 ## C01 - Audit correction: validation toolchain (BUG-040)
 - Status: DONE (2026-10-10; BUG-040 fixed in the local correction branch and validated in isolation)
@@ -111,7 +563,8 @@ Last updated: 2026-07-16 23:31:46 +02:00
 - Depends on: C14. Seventeen database transaction findings remain OPEN for separately scoped correction milestones.
 
 ## C16 - Correct installed app system surfaces
-- Status: IN PROGRESS (2026-10-15; user accepts the pre-existing inset/appearance and authorizes reviewed PRE-to-Production release; cleanup and final publication gates in progress)
+- Status: DONE (2026-10-15; native black verified on Android, pre-existing inset/appearance accepted by the user; reviewed v1.15.22 published and verified on PRE and Production)
+- Final checkpoint: PR39/staging cb86dc76 and PR40/main 9578fe00 published after successful CI368/369. PRE dpl_6fiDVFPEcnW5vjWYG2Bu6L9KrBnK and Production dpl_HDP2LSmSA27D1gxCv5CkFAvd2Snz READY with correct SHA/aliases. Production smoke and public manifest/SW/HTML/removed-diagnostic checks passed. Temporary diagnostic code and unused CSS variable removed. Height was accepted, not corrected; no transparency, automatic native-update timing or new physical Production validation claimed. Historical checkpoints below retain their original status at the time of observation.
 - Additional acceptance verified on Android13/Chrome153: same PRE package updated code1→2, firstInstallTime15-Aug preserved, native colors become black, and user confirms session retained without login. Calendar was accelerated manually through chrome://webapks; automatic completion and Android16 in-place are not claimed. Native black remains accepted on the original Xiaomi. Follow-up remains open for a measured extra88px outside the web viewport above Android13's44px navigation bar, coinciding with mandatory gesture insets. User updated Chrome153→155.0.8059.39; stable loaded PRE retains exactly the same viewport/insets, so that update does not fix the gap. No justified CSS workaround has been found. No reinstall, data clear, manifest marker experiment or Production action.
 - PRE v1.15.21 passed local/CI gates and is deployed/verified. Physical CSP violation fixed for four public PRE icons. Authorized fresh installation produced a native PRE WebAPK with #FF000000 theme/background colors; ADB screenshot confirms pure black gesture region and a contrasting native indicator. User confirms black and persistence across theme changes and closing/reopening. Keyboard, explicit background restoration and frame-by-frame cold-start flash checks remain residual manual coverage, not claimed verified. No transparency, flags, wrapper migration or Production changes.
 - Diagnostic support delivered in PRE v1.15.14: explicit technical report with server whitelist, Production denial, incidence code and JSON fallback. Native bar acceptance remains open.
@@ -538,3 +991,8 @@ Last updated: 2026-07-16 23:31:46 +02:00
 - Remote changes allowed: none
 - Rollback: documentation only
 - Depends on: H22
+## MC28 - Recuperar servidor local tras actualizar Next
+- Status: DONE (2026-10-23; reinicio local y tres rutas HTTP 200)
+- Objective: Corregir el HTTP 500 local sin tocar PRE ni las funcionalidades.
+- Validation: comprobar /api/health, /leagues y detalle de partido tras reiniciar el proceso local con Next actualizado.
+- Remote changes allowed: ninguno.

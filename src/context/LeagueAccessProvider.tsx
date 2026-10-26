@@ -71,7 +71,8 @@ type ClaimResult =
         | "profile-incomplete"
         | "roster-full"
         | "registration-closed"
-        | "historical-player-unavailable";
+        | "historical-player-unavailable"
+      | "partner-unavailable";
     };
 
 type LeagueAccessContextValue = {
@@ -95,6 +96,7 @@ type LeagueAccessContextValue = {
     description: string;
     recommendations: string;
     locations: LeagueLocation[];
+    modality?: "individual" | "fixed_pairs";
     accentColor?: string;
   }) => Promise<League | null>;
   getMembershipForLeague: (leagueId: string) => UserLeagueMembership | null;
@@ -156,6 +158,7 @@ type LeagueAccessContextValue = {
     playerId: string,
     inviteCode?: string,
     historicalPlayerId?: string | null,
+      partnerPlayerId?: string | null,
   ) => Promise<ClaimResult>;
   linkCurrentUserToLeaguePlayer: (leagueId: string, playerId: string) => void;
   canAccessLeague: (leagueId: string) => boolean;
@@ -316,6 +319,7 @@ function normalizeStoredLeague(league: unknown): League | null {
     locations: normalizeLeagueLocations(item.locations),
     logoUrl: typeof item.logoUrl === "string" ? item.logoUrl : null,
     statusColorsEnabled: item.statusColorsEnabled !== false,
+    modality: item.modality === "fixed_pairs" ? "fixed_pairs" : "individual",
     showRankingAvatars: item.showRankingAvatars !== false,
     showHistoricalProfileStats: item.showHistoricalProfileStats === true,
     createdByUserId:
@@ -756,10 +760,12 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       locations,
       recommendations,
       accentColor,
+      modality,
     }: {
       name: string;
       description: string;
       recommendations: string;
+      modality?: "individual" | "fixed_pairs";
       accentColor?: string;
       locations: LeagueLocation[];
     }) => {
@@ -791,6 +797,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
           locations,
           leagueRecommendations: recommendations.trim(),
           accentColor,
+          modality,
         });
 
         setLeagues((currentLeagues) => {
@@ -1618,6 +1625,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       playerId: string,
       inviteCode?: string,
       historicalPlayerId?: string | null,
+      partnerPlayerId?: string | null,
     ): Promise<ClaimResult> => {
       if (!userId) {
         return { ok: false, error: "already-in-league" };
@@ -1653,6 +1661,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
             code: inviteCode ?? getLeagueInviteCode(leagueId),
             leagueId,
             playerId: isSelfRegistrationClaim ? undefined : playerId,
+            partnerPlayerId: isSelfRegistrationClaim ? partnerPlayerId : undefined,
             historicalPlayerId: isSelfRegistrationClaim
               ? historicalPlayerId
               : null,

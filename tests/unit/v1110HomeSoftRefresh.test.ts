@@ -5,8 +5,8 @@ describe("v1.11.0 HOME soft refresh", () => {
   it("keeps the top-left HOME control focused on league navigation", async () => {
     const home = await readFile("src/app/page.tsx", "utf8")
 
-    expect(home).toContain('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">')
-    expect(home).toContain('{tx("Mis ligas")}')
+    expect(home).toContain('<Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500"')
+    expect(home).toContain('{tx("Competiciones")}')
   })
 
   it("refreshes MVP state on demand instead of only on provider mount", async () => {
@@ -20,7 +20,7 @@ describe("v1.11.0 HOME soft refresh", () => {
   it("links the HOME control to the league list", async () => {
     const home = await readFile("src/app/page.tsx", "utf8")
 
-    expect(home).toContain('<Link href="/leagues" className="app-top-back-control text-sm font-semibold text-neutral-500">')
-    expect(home).toContain('{tx("Mis ligas")}')
+    expect(home).toContain('<Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500"')
+    expect(home).toContain('{tx("Competiciones")}')
   })
 })

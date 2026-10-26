@@ -17,6 +17,7 @@ type DeleteBody = {
 }
 
 function getRpcErrorStatus(message: string) {
+  if (message.includes("partner_unavailable") || message.includes("self_registration_not_enabled")) return 409
   if (message.includes("profile_incomplete")) return 409
   if (message.includes("roster_full") || message.includes("registration_closed")) return 409
   if (message.includes("protected_league_manager")) return 409
@@ -41,7 +42,7 @@ async function getAdminTargetPlayerIds(
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string; seasonId: string }> },
 ) {
   const { id: leagueId, seasonId } = await params
@@ -58,12 +59,16 @@ export async function POST(
 
   const mutable = await requireMutableSeasonForActor(access.actor, seasonId, leagueId)
   if (!mutable.ok) return NextResponse.json({ error: mutable.error }, { status: mutable.status })
+  const body = await parseJsonBody<{ partnerPlayerId?: unknown }>(request)
+  const partnerPlayerId = body?.partnerPlayerId === null ? null : body?.partnerPlayerId === undefined ? undefined : validateUuid(body.partnerPlayerId)
+  if (body?.partnerPlayerId !== undefined && body.partnerPlayerId !== null && !partnerPlayerId) return NextResponse.json({ error: "invalid_partner" }, { status: 400 })
 
   try {
     const result = await joinSelfRegistrationSeason({
       actor: access.actor,
       leagueId,
       seasonId,
+      partnerPlayerId,
     })
     const targetPlayerIds = await getAdminTargetPlayerIds(access.actor, leagueId)
 

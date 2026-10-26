@@ -2,9 +2,9 @@ import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
 
 describe("changelog visibility", () => {
-  it("keeps the changelog link for both player and spectator settings", async () => {
+  it("keeps the changelog link for player, spectator and competition settings", async () => {
     const settings = await readFile("src/app/settings/page.tsx", "utf8")
-    expect(settings.match(/href="\/changelog"/g)).toHaveLength(2)
+    expect(settings.match(/href="\/changelog"/g)).toHaveLength(3)
   })
 
   it("authorizes detailed content for superusers and league admins on the server", async () => {

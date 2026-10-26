@@ -18,6 +18,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 type CreateLeagueBody = {
+  modality?: unknown
   leagueName?: unknown
   leagueDescription?: unknown
   leagueSlug?: unknown
@@ -42,6 +43,7 @@ function isUniqueViolation(error: unknown) {
 
 function mapLeague(league: Record<string, unknown>): League {
   return {
+    modality: league.modality === "fixed_pairs" ? "fixed_pairs" : "individual",
     id: String(league.id),
     slug: String(league.slug),
     name: String(league.name),
@@ -75,6 +77,7 @@ async function insertLeagueWithAvailableSlug({
   locations,
   recommendations,
   accentColor,
+  modality,
 }: {
   supabase: NonNullable<ReturnType<typeof createSupabaseServiceClient>>
   leagueSlug: string
@@ -85,6 +88,7 @@ async function insertLeagueWithAvailableSlug({
   locations: unknown
   recommendations: string
   accentColor: string
+  modality: "individual" | "fixed_pairs"
 }) {
   let lastError: unknown = null
 
@@ -94,6 +98,7 @@ async function insertLeagueWithAvailableSlug({
     const { data, error } = await supabase
       .from("leagues")
       .insert({
+        modality,
         slug: slugCandidate,
         name: leagueName,
         description: leagueDescription,
@@ -108,7 +113,7 @@ async function insertLeagueWithAvailableSlug({
         accent_color: accentColor,
       })
       .select(
-        "id,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
+        "id,modality,slug,name,description,invite_code,join_mode,active_season_id,locations,logo_url,accent_color,recommendations,status_colors_enabled,show_ranking_avatars,show_historical_profile_stats,created_by_user_id"
       )
       .single()
 
@@ -149,6 +154,7 @@ export async function POST(request: Request) {
     user: { id, email, isSuperuser, canCreateLeagues },
   } = authResult.actor
   const body = await parseJsonBody<CreateLeagueBody>(request)
+  const modality = body?.modality ?? "individual"
   const leagueName = normalizeBoundedText(body?.leagueName, 120)
   const leagueDescription = normalizeBoundedText(body?.leagueDescription, 1000)
   const leagueSlug = normalizeBoundedText(body?.leagueSlug, 80).toLowerCase()
@@ -164,6 +170,7 @@ export async function POST(request: Request) {
       : null
 
   if (
+    (modality !== "individual" && modality !== "fixed_pairs") ||
     !leagueName ||
     !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(leagueSlug) ||
     !inviteCode || !accentColor
@@ -190,6 +197,7 @@ export async function POST(request: Request) {
       locations: body?.locations,
       recommendations: leagueRecommendations,
       accentColor,
+      modality,
     })
     const creatorIsSuperuser = isSuperuser
 

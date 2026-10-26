@@ -1,16 +1,18 @@
 "use client"
 
 import Link from "next/link"
-import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import type { ReactNode } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import type { PlayerProfile } from "@/data/fakeData"
-import { isSafeImageUrl } from "@/lib/imageUrl"
 import { getPlayerById, getPlayerDisplayName } from "@/lib/players"
-import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
+import { getPreferredPlayerSideLabel, getDominantHandLabel } from "@/lib/accountProfile"
 import type { MatchSubstitution } from "@/lib/substitutes"
 import { getMatchSubstituteLabels } from "@/lib/substitutes"
 import { useI18n } from "@/i18n/I18nProvider"
+import { StatusHelp } from "@/components/ui/StatusHelp"
+import { FitText } from "@/components/ui/FitText"
+import { recommendPairSides, type RecommendedSide, type SideStatistics } from "@/lib/matchSideRecommendations"
 
 type MatchDetailPairingPanelProps = {
   teamA: string[]
@@ -22,10 +24,12 @@ type MatchDetailPairingPanelProps = {
   substitutions?: MatchSubstitution[]
   highlightedPlayerIds?: string[]
   rankingPositions?: Record<string, number | null | undefined>
+  sideStatistics?: Record<string, SideStatistics>
   linkPlayers?: boolean
   showPlayerMetadata?: boolean
   showPendingPlayerMetadata?: boolean
   showFinishedPlayerMetadata?: boolean
+  showPositionHelp?: boolean
 }
 
 function DetailPlayer({
@@ -39,6 +43,7 @@ function DetailPlayer({
   metadataPlacement,
   showMetadata,
   showRankingPosition,
+  recommendedSide,
 }: {
   playerId: string
   players?: PlayerProfile[]
@@ -50,13 +55,14 @@ function DetailPlayer({
   metadataPlacement: "before-name" | "after-name"
   showMetadata: boolean
   showRankingPosition: boolean
+  recommendedSide?: RecommendedSide | null
 }) {
   const { tx } = useI18n()
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
   const name = (
-    <span className="app-match-player-name block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
-      {displayName}
+    <span className="flex min-w-0 items-center gap-1" title={displayName}>
+      <FitText noWrap minFontSize={10} className="app-match-player-name min-w-0 flex-1 truncate whitespace-nowrap type-player-name-prominent text-neutral-950">{displayName}</FitText>
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label={tx("MVP de jornada")} title={tx("MVP de jornada")}>
           ★
@@ -64,18 +70,27 @@ function DetailPlayer({
       ) : null}
     </span>
   )
-  const playerPositionLabel = getPlayerSideAndHandLabel(player?.preferredSide, player?.dominantHand)
-  const metadataClass = `min-h-4 type-caption font-bold uppercase leading-4 tracking-wide text-neutral-500 ${
+  const changedSide = Boolean(recommendedSide && player?.preferredSide && player.preferredSide !== "versatile" && recommendedSide !== player.preferredSide)
+  const sideLabel = getPreferredPlayerSideLabel(recommendedSide ?? player?.preferredSide)
+  const handLabel = getDominantHandLabel(player?.dominantHand)
+  const playerPositionLabel = [sideLabel, handLabel].filter((label): label is string => Boolean(label)).map(label => tx(label)).join(" · ")
+  const metadataClass = `min-h-4 type-micro font-medium leading-4 tracking-normal text-neutral-500 ${
     alignment === "right" ? "text-right" : "text-left"
   }`
-  const positionLine = <p className={metadataClass}>{position ? tx(`#${position} en liga`) : "\u00a0"}</p>
-  const playLine = playerPositionLabel ? (
-    <p className={metadataClass}>{playerPositionLabel}</p>
-  ) : showRankingPosition ? (
-    <p className={metadataClass}>{"\u00a0"}</p>
-  ) : null
+  const metadataText = [showRankingPosition && position ? `#${position}` : null, playerPositionLabel].filter(Boolean).join(" · ")
+  const metadataLine = <p className={`${metadataClass} truncate`} title={metadataText}>
+    {showRankingPosition && position ? <>#{position}{sideLabel || handLabel ? " · " : ""}</> : null}
+    {sideLabel ? changedSide ? (
+      <MatchSideHelp className="inline align-baseline font-semibold text-red-700" label={`${tx("Lado recomendado")}: ${tx(sideLabel)}. ${tx("Preferencia")}: ${tx(getPreferredPlayerSideLabel(player?.preferredSide) ?? "")}`}>
+        <span data-recommended-side={recommendedSide ?? undefined} className="inline-flex items-baseline gap-0.5 align-baseline"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="relative top-[3px] h-3 w-3 shrink-0 align-baseline"><path d="M3 10h14M7 6l-4 4 4 4m6-8 4 4-4 4" /></svg>{tx(sideLabel)}</span>
+      </MatchSideHelp>
+    ) : <span data-recommended-side={recommendedSide ?? undefined}>{tx(sideLabel)}</span> : null}
+    {handLabel ? <>{sideLabel ? " · " : ""}{tx(handLabel)}</> : null}
+    {!metadataText ? "\u00a0" : null}
+  </p>
   const nameLine = (
-    <div className="min-w-0 overflow-hidden">
+    <div className={`flex min-w-0 items-center gap-1.5 ${alignment === "right" ? "flex-row-reverse" : ""}`}>
+      <div className="min-w-0 flex-1 overflow-hidden">
       {linkPlayers && player ? (
         <Link
           href={`/player/${player.slug}`}
@@ -88,6 +103,7 @@ function DetailPlayer({
       ) : (
         name
       )}
+      </div>
     </div>
   )
 
@@ -97,15 +113,13 @@ function DetailPlayer({
         <div className="space-y-0.5">
           {metadataPlacement === "before-name" ? (
             <>
-              {showRankingPosition ? positionLine : null}
-              {playLine}
+              {metadataLine}
               {nameLine}
             </>
           ) : (
             <>
               {nameLine}
-              {playLine}
-              {showRankingPosition ? positionLine : null}
+              {metadataLine}
             </>
           )}
         </div>
@@ -126,72 +140,6 @@ function DetailPlayer({
   )
 }
 
-function PairHeader({
-  label,
-  points,
-  alignment,
-}: {
-  label: string
-  points?: number | null
-  alignment: "left" | "right"
-}) {
-  return (
-    <div className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}>
-      <div className="flex min-w-0 items-center gap-1.5">
-        {points !== null && points !== undefined && alignment === "right" ? (
-          <span className="mr-auto flex h-7 min-w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-950 px-2 text-sm font-black text-white">
-            {points}
-          </span>
-        ) : null}
-        <p
-          className={`min-w-0 type-caption font-bold uppercase leading-none tracking-wide text-neutral-500 ${
-            alignment === "right" ? "ml-auto text-right" : "text-left"
-          }`}
-        >
-          {label}
-        </p>
-        {points !== null && points !== undefined && alignment === "left" ? (
-          <span className="ml-auto flex h-7 min-w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-950 px-2 text-sm font-black text-white">
-            {points}
-          </span>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
-function PairAvatars({
-  playerIds,
-  players,
-  alignment,
-}: {
-  playerIds: string[]
-  players?: PlayerProfile[]
-  alignment: "left" | "right"
-}) {
-  const pairPlayers = playerIds.map((playerId) => ({
-    id: playerId,
-    player: getPlayerById(playerId, players),
-  }))
-
-  return (
-    <div
-      className={`flex min-w-0 items-center gap-2 ${
-        alignment === "right" ? "justify-end" : "justify-start"
-      }`}
-    >
-      {pairPlayers.map(({ id, player }) => (
-        <PlayerAvatar
-          key={id}
-          player={player}
-          size="md"
-          previewable={Boolean(player?.avatarUrl)}
-        />
-      ))}
-    </div>
-  )
-}
-
 function PairDetails({
   playerIds,
   players,
@@ -202,6 +150,8 @@ function PairDetails({
   alignment,
   showMetadata,
   showRankingPosition,
+  recommendSides,
+  statistics,
 }: {
   playerIds: string[]
   players?: PlayerProfile[]
@@ -212,14 +162,22 @@ function PairDetails({
   alignment: "left" | "right"
   showMetadata: boolean
   showRankingPosition: boolean
+  recommendSides: boolean
+  statistics: Record<string, SideStatistics>
 }) {
+  const recommendations = recommendSides ? recommendPairSides(playerIds.map(playerId => ({ preferredSide: getPlayerById(playerId, players)?.preferredSide, rankingPosition: positions[playerId], statistics: statistics[playerId] }))) : [null, null]
+  const displayPlayers = playerIds.map((playerId, index) => ({ playerId, recommendedSide: recommendations[index] }))
+  if (recommendSides && recommendations[0] && recommendations[1] && recommendations[0] !== recommendations[1]) {
+    const topSide = alignment === "left" ? "reves" : "drive"
+    if (displayPlayers[0].recommendedSide !== topSide) displayPlayers.reverse()
+  }
   return (
     <div
-      className={`rounded-lg bg-neutral-50 px-2 py-1.5 ${
+      className={`app-match-pair-surface rounded-xl border border-neutral-200 bg-white px-3 py-4 ${
         alignment === "right" ? "text-right" : "text-left"
       }`}
     >
-      {playerIds.map((playerId, index) => (
+      {displayPlayers.map(({ playerId, recommendedSide }, index) => (
         <div key={playerId} className={index === 0 ? "pb-1.5" : "pt-1"}>
           {index > 0 ? (
             <div
@@ -237,9 +195,10 @@ function PairDetails({
             substituteLabel={substituteLabels[playerId]}
             linkPlayers={linkPlayers}
             alignment={alignment}
-            metadataPlacement={index === 0 ? "before-name" : "after-name"}
+            metadataPlacement="after-name"
             showMetadata={showMetadata}
             showRankingPosition={showRankingPosition}
+            recommendedSide={recommendedSide}
           />
         </div>
       ))}
@@ -265,13 +224,10 @@ function FinishedPlayerName({
   const { tx } = useI18n()
   const player = getPlayerById(playerId, players)
   const displayName = getPlayerDisplayName(playerId, players)
-  const playerPositionLabel = getPlayerSideAndHandLabel(
-    player?.preferredSide,
-    player?.dominantHand,
-  )
+  const playerPositionLabel = [getPreferredPlayerSideLabel(player?.preferredSide), getDominantHandLabel(player?.dominantHand)].filter((label): label is string => Boolean(label)).map(label => tx(label)).join(" · ")
   const name = (
-    <span className="app-match-player-name block max-w-full truncate whitespace-nowrap type-player-name-prominent text-neutral-950" title={displayName}>
-      {displayName}
+    <span className="flex min-w-0 items-center gap-1" title={displayName}>
+      <FitText noWrap minFontSize={10} className="app-match-player-name min-w-0 flex-1 truncate whitespace-nowrap type-player-name-prominent text-neutral-950">{displayName}</FitText>
       {highlighted ? (
         <span className="ml-1 text-yellow-500" aria-label={tx("MVP de jornada")} title={tx("MVP de jornada")}>
           ★
@@ -296,7 +252,7 @@ function FinishedPlayerName({
       </div>
 
       {showPlayerMetadata && playerPositionLabel ? (
-        <p className="mt-0.5 type-caption font-bold uppercase leading-4 tracking-wide text-neutral-500">
+        <p title={playerPositionLabel} className="mt-0.5 truncate type-micro font-medium leading-4 tracking-normal text-neutral-500">
           {playerPositionLabel}
         </p>
       ) : null}
@@ -378,17 +334,15 @@ export function MatchDetailPairingPanel({
   substitutions = [],
   highlightedPlayerIds = [],
   rankingPositions = {},
+  sideStatistics = {},
   linkPlayers = true,
   showPlayerMetadata = false,
   showPendingPlayerMetadata,
   showFinishedPlayerMetadata,
+  showPositionHelp = false,
 }: MatchDetailPairingPanelProps) {
-  const { tx } = useI18n()
 
   const substituteLabels = getMatchSubstituteLabels({ substitutions, players: players ?? [] })
-  const showAvatars = [...teamA, ...teamB].some((playerId) =>
-    isSafeImageUrl(getPlayerById(playerId, players)?.avatarUrl),
-  )
   const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
   const showRankingPosition = Object.keys(rankingPositions).length > 0
   const pendingPlayerMetadata =
@@ -397,9 +351,11 @@ export function MatchDetailPairingPanel({
     showFinishedPlayerMetadata ?? showPlayerMetadata
   const showPendingMetadata = pendingPlayerMetadata || showRankingPosition
 
+  const PairingContainer = hasResult ? AppCard : "div"
+
   return (
-    <AppCard className="overflow-hidden !p-0">
-      <div className="p-3 sm:p-4">
+    <PairingContainer className={hasResult ? "overflow-hidden !p-0" : "app-match-pairing-standalone relative"}>
+      <div className={hasResult ? "p-3 sm:p-4" : undefined}>
         {hasResult ? (
           <div className="space-y-2.5">
             <FinishedPairRow
@@ -428,21 +384,9 @@ export function MatchDetailPairingPanel({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 items-start gap-2 sm:gap-4">
-              <PairHeader label={tx("Pareja A")} points={pointsA} alignment="left" />
-              <PairHeader label={tx("Pareja B")} points={pointsB} alignment="right" />
-            </div>
-
-            {showAvatars ? (
-              <div className="mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4">
-                <PairAvatars playerIds={teamA} players={players} alignment="left" />
-                <PairAvatars playerIds={teamB} players={players} alignment="right" />
-              </div>
-            ) : null}
-
-            <div className="relative mt-1.5 grid grid-cols-2 items-start gap-2 sm:gap-4">
+            <div className="relative grid grid-cols-2 items-stretch gap-3">
               <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-950 type-caption font-black uppercase tracking-wide text-white shadow-sm">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-950 type-caption font-black uppercase tracking-wide text-white shadow-sm">
                   VS
                 </span>
               </div>
@@ -451,29 +395,53 @@ export function MatchDetailPairingPanel({
                 playerIds={teamA}
                 players={players}
                 positions={rankingPositions}
+                statistics={sideStatistics}
                 highlightedPlayerIds={highlightedPlayerIds}
                 substituteLabels={substituteLabels}
                 linkPlayers={linkPlayers}
                 alignment="left"
                 showMetadata={showPendingMetadata}
                 showRankingPosition={showRankingPosition}
+                recommendSides={showPositionHelp && !hasResult}
               />
 
               <PairDetails
                 playerIds={teamB}
                 players={players}
                 positions={rankingPositions}
+                statistics={sideStatistics}
                 highlightedPlayerIds={highlightedPlayerIds}
                 substituteLabels={substituteLabels}
                 linkPlayers={linkPlayers}
                 alignment="right"
                 showMetadata={showPendingMetadata}
                 showRankingPosition={showRankingPosition}
+                recommendSides={showPositionHelp && !hasResult}
               />
             </div>
           </>
         )}
       </div>
-    </AppCard>
+    </PairingContainer>
+  )
+}
+
+export function MatchSideHelp({ children, label, className = "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-500" }: { children?: ReactNode; label?: string; className?: string }) {
+  const { tx } = useI18n()
+  return (
+    <StatusHelp
+      label={label ?? tx("Información sobre posiciones recomendadas")}
+      description={<span className="block space-y-2">
+        <span className="block font-black">{tx("Un lado para cada uno")}</span>
+        <span className="block">{tx("Respetamos las preferencias compatibles. Si uno es versátil, le sugerimos el lado contrario al de su compañero.")}</span>
+        <span className="block">{tx("Si preferís el mismo lado, comparamos vuestro historial de ligas: porcentaje de victorias y después proporción de juegos ganados. Si siguen iguales, usamos la clasificación de esta temporada. El cambio se marca en rojo con ↔.")}</span>
+        <span className="block">{tx("Quien todavía no tiene resultados cede la preferencia a quien sí los tiene.")}</span>
+        <span className="block">{tx("Con dos versátiles, un empate o datos insuficientes, acordad los lados entre vosotros.")}</span>
+        <span className="block border-t border-neutral-200 pt-2 text-xs">{tx("Es una sugerencia: vosotros decidís. Puede cambiar con los resultados antes del partido.")}</span>
+      </span>}
+      className={className}
+    >
+      {children ?? (<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="h-4 w-4"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><circle cx="12" cy="7.5" r=".8" fill="currentColor" stroke="none" /></svg>)}
+    </StatusHelp>
   )
 }

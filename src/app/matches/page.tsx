@@ -19,6 +19,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { getNextMatch } from "@/lib/leagues"
 import { getActiveCalendarRoundId } from "@/lib/matchesCalendar"
 import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
+import { getIntlLocale } from "@/i18n/leagueText"
 import { formatShortDate } from "@/lib/rounds"
 import { getRoundStatusBadgeClassName } from "@/lib/statusStyles"
 import {
@@ -82,13 +83,21 @@ export default function MatchesPage() {
   const activeRoundRef = useRef<HTMLElement | null>(null)
 
   function getRoundWindowText(round: (typeof rounds)[number]) {
-    if (!round.startsAt || !round.endsAt) {
-      return null
+    if (round.status === "completed") {
+      return round.startsAt && round.endsAt
+        ? `${t.rounds.from} ${formatShortDate(round.startsAt, locale)} ${t.rounds.to} ${formatShortDate(round.endsAt, locale)}`
+        : null
     }
+    const showYear = Boolean(round.startsAt && round.endsAt && round.startsAt.slice(0, 4) !== round.endsAt.slice(0, 4))
+    const formatDate = (value: string) => new Intl.DateTimeFormat(getIntlLocale(locale), {
+      day: "numeric", month: "short", ...(showYear ? { year: "numeric" as const } : {}),
+    }).format(new Date(`${value.slice(0, 10)}T12:00:00`))
 
-    return `${t.rounds.from} ${formatShortDate(round.startsAt, locale)} ${
-      t.rounds.to
-    } ${formatShortDate(round.endsAt, locale)}`
+    if (round.status === "active" || round.status === "overdue") {
+      return round.endsAt ? `${tx(round.status === "active" ? "Hasta" : "Venció")} ${formatDate(round.endsAt)}` : null
+    }
+    if (!round.startsAt || !round.endsAt) return null
+    return `${formatDate(round.startsAt)} – ${formatDate(round.endsAt)}`
   }
 
   function getRoundStatusText(round: (typeof rounds)[number]) {
@@ -106,10 +115,13 @@ export default function MatchesPage() {
     <div className="space-y-4">
       <header data-tour="matches-header" className="app-page-header">
         <BackButton fallbackHref="/" label={t.common.back} />
-        <div className="relative pr-11">
-          <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">{t.matches.subtitle}</h1>
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">{t.matches.subtitle}</h1>
+            <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} />
+          </div>
           {activeRoundId && !isPlayerSeasonLocked ? (
-            <button type="button" aria-label={tx("Ir a jornada en curso")} title={tx("Ir a jornada en curso")} className="absolute right-0 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+            <button type="button" aria-label={tx("Ir a jornada en curso")} title={tx("Ir a jornada en curso")} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 text-neutral-600 transition hover:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
               onClick={() => activeRoundRef.current?.scrollIntoView({
                 behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start",
               })}>
@@ -117,7 +129,6 @@ export default function MatchesPage() {
             </button>
           ) : null}
         </div>
-        <SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} />
       </header>
 
       <AppCard data-tour="matches-scope" className="p-2">
@@ -191,7 +202,7 @@ export default function MatchesPage() {
         </AppCard>
       ) : null}
 
-      <div data-tour="matches-round-list" className="space-y-7">
+      <div data-tour="matches-round-list" className="space-y-3.5 [&>section+section]:border-t [&>section+section]:border-neutral-200/60 [&>section+section]:pt-3.5 dark:[&>section+section]:border-neutral-700/40">
         {rounds.map((round) => {
           const allRoundMatches = matches.filter((match) => match.round === round.round)
           const roundIsSecret =
@@ -212,6 +223,20 @@ export default function MatchesPage() {
 
           if (roundMatches.length === 0 && !currentUserRestsThisRound) return null
 
+          const roundHeader = (
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <h2 className="type-section-title shrink-0">{round.name}</h2>
+              <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-x-2 gap-y-1">
+                {roundWindowText ? <span className="type-caption text-neutral-500">{roundWindowText}</span> : null}
+                {roundStatusText && round.status !== "upcoming" && round.status !== "completed" ? (
+                  <StatusHelp kind="round" status={round.status} className={getRoundStatusBadgeClassName(round.status)}>
+                    {roundStatusText}
+                  </StatusHelp>
+                ) : null}
+              </div>
+            </div>
+          )
+
           return (
             <section
               key={round.id}
@@ -221,17 +246,7 @@ export default function MatchesPage() {
             >
               {roundIsSecret ? (
                 <div className="px-1 py-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="type-section-title">{round.name}</h2>
-                    {roundStatusText ? (
-                      <StatusHelp kind="round" status={round.status} className={getRoundStatusBadgeClassName(round.status)}>
-                        {roundStatusText}
-                      </StatusHelp>
-                    ) : null}
-                  </div>
-                  {roundWindowText ? (
-                    <p className="mt-1 text-sm text-neutral-500">{roundWindowText}</p>
-                  ) : null}
+                  {roundHeader}
                 </div>
               ) : (
                 <Link
@@ -239,17 +254,7 @@ export default function MatchesPage() {
                   aria-label={tx(`Abrir resumen de ${round.name}`)}
                   className="block rounded-xl px-1 py-1 transition active:bg-neutral-100"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="type-section-title">{round.name}</h2>
-                    {roundStatusText ? (
-                      <StatusHelp kind="round" status={round.status} className={getRoundStatusBadgeClassName(round.status)}>
-                        {roundStatusText}
-                      </StatusHelp>
-                    ) : null}
-                  </div>
-                  {roundWindowText ? (
-                    <p className="mt-1 text-sm text-neutral-500">{roundWindowText}</p>
-                  ) : null}
+                  {roundHeader}
                 </Link>
               )}
 
@@ -286,6 +291,7 @@ export default function MatchesPage() {
                       headerLeftLabel={tx(`Jornada ${match.round}`)}
                       statusPosition="right"
                       stackTeamPlayers
+                      compactScheduleHint
                       currentUserId={currentUserId}
                       highlightedPlayerIds={
                         roundSettings.mvpSystem === "voting"

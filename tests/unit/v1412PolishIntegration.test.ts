@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 const read = (path: string) => readFile(path, "utf8")
 
 describe("v1.4.12 personal and league polish", () => {
-  it("moves first-league locations to season creation and keeps them searchable", async () => {
+  it("uses the global catalog for opening rounds without requiring league recommendations", async () => {
     const [newLeague, seasonAdminPage, newSeasonForm, seasonRules, editor, schedule] = await Promise.all([
       read("src/app/league/new/page.tsx"),
       read("src/app/admin/season/page.tsx"),
@@ -16,9 +16,11 @@ describe("v1.4.12 personal and league polish", () => {
     const seasonAdmin = `${seasonAdminPage}\n${newSeasonForm}\n${seasonRules}`
 
     expect(newLeague).not.toContain("<LeagueLocationsEditor")
-    expect(seasonAdmin).toContain("<LeagueLocationsEditor")
+    expect(newSeasonForm).not.toContain("<LeagueLocationsEditor")
+    expect(newSeasonForm).toContain("<PersonalMatchLocationPicker")
+    expect(newSeasonForm).toContain('fetch("/api/locations"')
     expect(seasonAdmin).toContain("Cancelar creación de la liga")
-    expect(seasonAdmin).toContain("updateLeagueLocations")
+    expect(newSeasonForm).not.toContain("updateLeagueLocations")
     expect(editor).toContain("Buscar por nombre, localidad o dirección...")
     expect(schedule).toContain("Buscar por localidad o nombre...")
     expect(schedule).toContain("Recomendadas por la liga")
@@ -52,12 +54,12 @@ describe("v1.4.12 personal and league polish", () => {
   it("redirects a deleted league to Mis ligas and exposes direct friendly creation", async () => {
     const [adminLeague, leagues] = await Promise.all([
       read("src/app/admin/league/page.tsx"),
-      read("src/app/leagues/page.tsx"),
+      read("src/app/personal-matches/page.tsx"),
     ])
 
     expect(adminLeague).toContain('window.location.replace("/leagues")')
     expect(leagues).toContain('href="/personal-matches/new"')
-    expect(leagues).toContain("Registrar encuentro amistoso")
+    expect(leagues).toContain("/personal-matches/new")
   })
 
   it("normalizes location text before rendering shared match metadata", async () => {

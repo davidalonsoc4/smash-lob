@@ -17,8 +17,15 @@ import { MatchReservationConfirmation } from "@/components/match/MatchReservatio
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
+import { SectionHeader } from "@/components/ui/SectionHeader"
+import { matchSecondaryButton, matchDestructiveButton } from "@/components/match/matchPanelStyles"
+import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
+import { getPlayerDisplayName } from "@/lib/players"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
+import { buildSideStatistics } from "@/lib/matchSideRecommendations"
+import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
@@ -51,6 +58,7 @@ export default function MatchDetailPage() {
     setMatchResultConfirmation,
     matches: storedMatches,
   } = useMatchData()
+  const { playerProfiles, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
   const { votes, clearVotesForMatch } = useMvp()
   const params = useParams<{ id: string }>()
   const isResolvingLeague = useMatchLeagueContext(params.id)
@@ -180,7 +188,7 @@ export default function MatchDetailPage() {
 
         <AppCard>
           <p className="font-bold" role="status">{isResolvingLeague ? tx("Cargando...") : t.matchDetail.notFound}</p>
-          {!isResolvingLeague ? <Link href="/leagues" className="mt-3 inline-flex min-h-10 items-center underline underline-offset-4">{tx("Ver mis ligas")}</Link> : null}
+          {!isResolvingLeague ? <Link href="/leagues" className="mt-3 inline-flex min-h-10 items-center underline underline-offset-4">{tx("Ver mis competiciones")}</Link> : null}
         </AppCard>
       </div>
     )
@@ -353,8 +361,123 @@ export default function MatchDetailPage() {
     !isExceptionalResolution &&
     match.rankingCounts !== false
 
+  const prioritizeResult = match.status === "finished" || getMatchDisplayStatus(match) === "result_pending"
+  const resultSection = canEnterResult || shouldShowResultWorkflow ? <section className="space-y-3" aria-label={tx("Resultado del partido")}>
+      {shouldShowResultWorkflow && canMutateSeason ? (
+        <MatchResultConfirmationCard
+          matchId={match.id}
+          participantIds={[...match.teamA, ...match.teamB]}
+          currentUserId={currentUserId}
+          reporterPlayerId={match.resultReportedByPlayerId}
+          resultRecordedAt={match.resultRecordedAt}
+          resultLocked={match.resultLocked}
+          mode={roundSettings.resultConfirmationMode}
+          confirmations={resultConfirmations}
+          onSetStatus={setMatchResultConfirmation}
+        />
+      ) : null}
+
+      {canEnterResult ? (
+        <MatchResultForm
+          matchId={match.id}
+          mode="create"
+          initiallyExpanded={prioritizeResult}
+          requiresThreeSets={roundSettings.requiresThreeSets}
+          reportedByPlayerId={editorReporterPlayerId}
+          teamAPlayers={match.teamA.map(id => getPlayerDisplayName(id, players))}
+          teamBPlayers={match.teamB.map(id => getPlayerDisplayName(id, players))}
+        />
+      ) : null}
+
+      {shouldShowResultWorkflow &&
+      !isEditingResult ? (
+        <AppCard>
+          <div>
+            <SectionHeader title={t.matchResult.registeredTitle} />
+            {resultReporterName ? <p className="mt-1 text-xs text-neutral-500">{tx("Informado por")}: {resultReporterName}</p> : null}
+            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+              {resultIsLocked
+                ? tx("El resultado está fijado como definitivo por la administración.")
+                : currentResultConfirmation?.status === "disputed"
+                  ? tx("Lo has marcado como incorrecto. Ya puedes corregirlo y pasarás a figurar como la persona que informó el resultado.")
+                  : resultReporterName
+                    ? tx("Pueden corregirlo quien lo informó, la administración o un jugador que lo marque como incorrecto.")
+                    : canEditResult ? t.matchResult.registeredDescription : tx("Resultado guardado.")}
+            </p>
+          </div>
+
+          {canEditResult || mutableAdmin ? <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {canEditResult ? (
+              <button
+                type="button"
+                onClick={() => setIsEditingResult(true)}
+                disabled={isClearingResult || isUpdatingResultLock}
+                className={matchSecondaryButton}
+              >
+                {currentResultConfirmation?.status === "disputed"
+                  ? tx("Corregir resultado")
+                  : t.matchResult.editButton}
+              </button>
+            ) : null}
+
+            {mutableAdmin && confirmationsEnabled ? (
+              <button
+                type="button"
+                onClick={handleToggleResultLock}
+                disabled={isClearingResult || isUpdatingResultLock}
+                className={matchSecondaryButton}
+              >
+                {isUpdatingResultLock
+                  ? "Guardando..."
+                  : resultIsLocked
+                    ? tx("Desbloquear resultado")
+                    : "Fijar como definitivo"}
+              </button>
+            ) : null}
+
+            {mutableAdmin && !resultIsLocked ? <details className="sm:col-span-2"><summary className="cursor-pointer py-2 text-xs font-semibold text-neutral-500">{tx("Más acciones del resultado")}</summary>
+              <button
+                type="button"
+                onClick={handleClearResult}
+                disabled={isClearingResult || isUpdatingResultLock}
+                className={`${matchDestructiveButton} mt-2 w-full`}
+              >
+                {isClearingResult ? "Limpiando..." : tx("Limpiar resultado")}
+              </button>
+            </details> : null}
+          </div> : null}
+
+          {clearResultError ? (
+            <p className="mt-2 text-xs font-semibold text-red-600">
+              {tx(clearResultError)}
+            </p>
+          ) : null}
+        </AppCard>
+      ) : null}
+
+      {canEditResult && isEditingResult ? (
+        <MatchResultForm
+          matchId={match.id}
+          initialSets={match.sets}
+          mode="edit"
+          requiresThreeSets={roundSettings.requiresThreeSets}
+          reportedByPlayerId={editorReporterPlayerId}
+          teamAPlayers={match.teamA.map(id => getPlayerDisplayName(id, players))}
+          teamBPlayers={match.teamB.map(id => getPlayerDisplayName(id, players))}
+          onCancel={() => setIsEditingResult(false)}
+          onSaved={async () => {
+            await clearVotesForMatch(match.id)
+            setIsEditingResult(false)
+          }}
+        />
+      ) : null}
+
+
+  </section> : null
+
   return (
     <MatchDetailView
+      statusVariant="soft"
       backHref="/matches"
       backLabel={t.common.back}
       title={
@@ -418,6 +541,7 @@ export default function MatchDetailPage() {
         </>
       }
       pairing={{
+        showPositionHelp: match.status !== "finished",
         teamA: match.teamA,
         teamB: match.teamB,
         players,
@@ -427,6 +551,7 @@ export default function MatchDetailPage() {
         substitutions: match.substitutions,
         highlightedPlayerIds: roundMvpPlayerIds,
         rankingPositions,
+        sideStatistics: buildSideStatistics(storedMatches.map(item => ({ ...item, resultCounts: item.rankingCounts !== false && getMatchResultConfirmationState({ matchId: item.id, participantIds: [...item.teamA, ...item.teamB], reporterPlayerId: item.resultReportedByPlayerId, resultRecordedAt: item.resultRecordedAt, resultLocked: item.resultLocked, confirmations: resultConfirmations, mode: getSeasonRoundSettings(item.seasonId).resultConfirmationMode }).countsForRanking })), playerProfiles, seasonPlayers),
       }}
     >
       <MatchActionsContent
@@ -439,20 +564,7 @@ export default function MatchDetailPage() {
         onOpenPanelChange={setOpenMatchActionPanel}
       />
 
-      {shouldShowResultWorkflow && canMutateSeason ? (
-        <MatchResultConfirmationCard
-          matchId={match.id}
-          participantIds={[...match.teamA, ...match.teamB]}
-          currentUserId={currentUserId}
-          reporterPlayerId={match.resultReportedByPlayerId}
-          resultRecordedAt={match.resultRecordedAt}
-          resultLocked={match.resultLocked}
-          mode={roundSettings.resultConfirmationMode}
-          confirmations={resultConfirmations}
-          onSetStatus={setMatchResultConfirmation}
-        />
-      ) : null}
-
+      {prioritizeResult ? resultSection : null}
       {shouldShowResultWorkflow && canMutateSeason ? (
         <MvpVotingCard
           match={match}
@@ -539,7 +651,8 @@ export default function MatchDetailPage() {
                 scheduledAt={match.scheduledAt}
                 location={calendarLocation}
                 className="min-w-0 flex-1"
-              />
+                triggerClassName={matchSecondaryButton + " w-full"}
+              ><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4m10-4v4M3 11h18m-9 3v4m-2-2h4" /></svg>{tx("Calendario")}</AddToCalendarButton>
             ) : null
           }
         />
@@ -556,6 +669,7 @@ export default function MatchDetailPage() {
       {(match.status === "scheduled" || match.courtBooking.isReserved) &&
       canViewCourtBooking ? (
         <CourtBookingPanel
+          key={`${match.id}:${match.courtBooking.isReserved}`}
           matchId={match.id}
           teamA={match.teamA}
           teamB={match.teamB}
@@ -566,103 +680,11 @@ export default function MatchDetailPage() {
           booking={match.courtBooking}
           ballPurchasesDisabled={roundSettings.organizationBallsAssigned}
           shouldFocusBooking={shouldFocusBooking}
+          initiallyExpanded={!prioritizeResult && !match.courtBooking.isReserved}
         />
       ) : null}
 
-      {canEnterResult ? (
-        <MatchResultForm
-          matchId={match.id}
-          mode="create"
-          requiresThreeSets={roundSettings.requiresThreeSets}
-          reportedByPlayerId={editorReporterPlayerId}
-        />
-      ) : null}
-
-      {shouldShowResultWorkflow &&
-      (canEditResult || mutableAdmin) &&
-      !isEditingResult ? (
-        <AppCard>
-          <div>
-            <p className="type-panel-title">{t.matchResult.registeredTitle}</p>
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-              {resultIsLocked
-                ? tx("El resultado está fijado como definitivo por la administración.")
-                : currentResultConfirmation?.status === "disputed"
-                  ? tx("Lo has marcado como incorrecto. Ya puedes corregirlo y pasarás a figurar como la persona que informó el resultado.")
-                  : resultReporterName
-                    ? tx(`Informado por ${resultReporterName}. Solo esa persona puede modificarlo, salvo que otro jugador lo marque como incorrecto.`)
-                    : t.matchResult.registeredDescription}
-            </p>
-          </div>
-
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {canEditResult ? (
-              <button
-                type="button"
-                onClick={() => setIsEditingResult(true)}
-                disabled={isClearingResult || isUpdatingResultLock}
-                className="inline-flex rounded-xl bg-neutral-100 px-3 py-2 text-sm font-black text-neutral-800 disabled:text-neutral-400 items-center justify-center text-center"
-              >
-                {currentResultConfirmation?.status === "disputed"
-                  ? tx("Corregir resultado")
-                  : t.matchResult.editButton}
-              </button>
-            ) : null}
-
-            {mutableAdmin && confirmationsEnabled ? (
-              <button
-                type="button"
-                onClick={handleToggleResultLock}
-                disabled={isClearingResult || isUpdatingResultLock}
-                className={`rounded-xl px-3 py-2 text-sm font-black disabled:text-neutral-400 ${
-                  resultIsLocked
-                    ? "bg-neutral-100 text-neutral-800"
-                    : "bg-emerald-50 text-emerald-800"
-                }`}
-              >
-                {isUpdatingResultLock
-                  ? "Guardando..."
-                  : resultIsLocked
-                    ? tx("Desbloquear resultado")
-                    : "Fijar como definitivo"}
-              </button>
-            ) : null}
-
-            {mutableAdmin && !resultIsLocked ? (
-              <button
-                type="button"
-                onClick={handleClearResult}
-                disabled={isClearingResult || isUpdatingResultLock}
-                className="inline-flex rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-700 disabled:text-red-300 sm:col-span-2 items-center justify-center text-center"
-              >
-                {isClearingResult ? "Limpiando..." : tx("Limpiar resultado")}
-              </button>
-            ) : null}
-          </div>
-
-          {clearResultError ? (
-            <p className="mt-2 text-xs font-semibold text-red-600">
-              {tx(clearResultError)}
-            </p>
-          ) : null}
-        </AppCard>
-      ) : null}
-
-      {canEditResult && isEditingResult ? (
-        <MatchResultForm
-          matchId={match.id}
-          initialSets={match.sets}
-          mode="edit"
-          requiresThreeSets={roundSettings.requiresThreeSets}
-          reportedByPlayerId={editorReporterPlayerId}
-          onCancel={() => setIsEditingResult(false)}
-          onSaved={async () => {
-            await clearVotesForMatch(match.id)
-            setIsEditingResult(false)
-          }}
-        />
-      ) : null}
-
+      {!prioritizeResult ? resultSection : null}
 
       {match.status === "postponed" && !canEnterResult ? (
         <AppCard>

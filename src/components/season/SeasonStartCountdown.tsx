@@ -129,6 +129,7 @@ export function SeasonStartCountdown({
           )}
         </div>
 
+<p className="mt-4 text-center text-xs font-medium leading-5 text-neutral-300">{tx("Los controles de esta liga se activarán al comenzar. Puedes seguir usando Competiciones y Mis partidos.")}</p>
         <div className="mt-7 w-full">
           <p className="text-center text-sm font-black uppercase tracking-[0.18em] text-neutral-300">
             {tx("DESCUBRIRÁS TODOS LOS EMPAREJAMIENTOS EN")}
@@ -148,5 +149,6 @@ export function SeasonStartCountdown({
     <p className={`${hero ? "text-sm text-neutral-300" : "type-caption text-neutral-500"} font-black uppercase tracking-[0.18em]`}>{countdownTitle}</p>
     {countdown.isDue ? null : <div className={hero ? "my-8 w-full" : "my-2"}><CountdownValue {...countdown} hero={hero} /></div>}
     <p className={`${hero ? "text-base text-neutral-300" : "text-xs text-neutral-500"} font-bold`}>{formattedStart}</p>
+    {hero ? <p className="mt-4 text-center text-xs font-medium leading-5 text-neutral-300">{tx("Los controles de esta liga se activarán al comenzar. Puedes seguir usando Competiciones y Mis partidos.")}</p> : null}
   </section>
 }

@@ -1,7 +1,10 @@
+import { openSeasonAdvanced, confirmSeasonCreation } from "./helpers/seasonCreation"
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 import jsQR from "jsqr"
 import sharp from "sharp"
+import type { SeasonSnapshot } from "@/context/SeasonSettingsProvider"
+import { seasonRoundSettings, playerProfiles, allMatches as fixtureMatches, seasons as fixtureSeasons, leagues as fixtureLeagues } from "@/data/fakeData"
 
 const screens = [
   { name: "home", path: "/" },
@@ -13,6 +16,125 @@ const screens = [
   { name: "season-admin", path: "/admin/season" },
   { name: "season-summary", path: "/statistics/season" },
 ] as const
+
+for (const theme of ["light", "dark"]) {
+  test(`match workflow prioritizes scheduling, pending results and corrections (${theme})`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 360, height: 800 })
+    await page.route("**/api/locations", route => route.fulfill({ json: { locations: [{ id: "qa-derio", name: "Padel Derio", town: "Derio" }] } }))
+    await page.addInitScript(({ theme, matches }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      localStorage.setItem("smash-lob-matches", JSON.stringify(matches))
+      const guides = JSON.parse(localStorage.getItem("smash-lob-guided-onboarding-v1") ?? "{}")
+      guides.match = { tourKey: "match", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null }
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(guides))
+    }, { theme, matches: fixtureMatches.map(match => match.id === "season-2-round-5-match-2" ? { ...match, scheduledAt: "2026-08-09T12:00:00Z", location: "Club QA" } : match.id === "season-2-round-5-match-1" ? { ...match, location: JSON.stringify({ id: "qa-derio", name: "Padel Derio", town: "Derio" }), courtBooking: { isReserved: true, reservations: [{ playerId: "davo", amount: 40 }], ballPurchases: [], transfers: [{ id: "fixture-transfer", fromPlayerId: "bea", toPlayerId: "davo", amount: 10, isPaid: false, paidAt: null }], updatedAt: null } } : match) })
+
+    await page.goto("/match/season-2-round-4-match-1")
+    await expect(page.getByRole("button", { name: "Guardar programación", exact: true })).toBeVisible()
+    await page.screenshot({ path: testInfo.outputPath(`match-unscheduled-${theme}.png`), fullPage: true, scale: "css" })
+
+    await page.goto("/match/season-2-round-5-match-1")
+    const scheduleHeader = page.locator(".app-schedule-card > button")
+    await scheduleHeader.scrollIntoViewIfNeeded()
+    const headerBox = await scheduleHeader.boundingBox()
+    await page.mouse.move(headerBox!.x + 20, headerBox!.y + 20)
+    await page.mouse.down()
+    if (theme === "dark") expect(await scheduleHeader.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgb(250, 250, 250)")
+    await page.mouse.up()
+    await expect(page.locator(".app-schedule-card").getByRole("button", { name: "Editar", exact: true })).toBeVisible()
+    await expect(page.locator(".app-schedule-card").getByText("Derio · Padel Derio", { exact: true })).toBeVisible()
+    const directionsButton = page.locator(".app-schedule-card").getByRole("button", { name: "Cómo llegar", exact: true })
+    const directionsBox = await directionsButton.boundingBox()
+    const calendarBox = await page.locator(".app-schedule-card").getByRole("button", { name: "Calendario", exact: true }).boundingBox()
+    expect(Math.abs(directionsBox!.width - calendarBox!.width)).toBeLessThanOrEqual(1)
+    expect(Math.abs(directionsBox!.height - calendarBox!.height)).toBeLessThanOrEqual(1)
+    await directionsButton.click()
+    const directionsDialog = page.getByRole("dialog", { name: "Cómo llegar" })
+    await expect(directionsDialog).toBeVisible()
+    await expect(directionsDialog.getByRole("link", { name: "Google Maps", exact: true })).toBeVisible()
+    await expect(directionsDialog.getByRole("link", { name: "Apple Maps", exact: true })).toBeVisible()
+    await expect(directionsDialog.getByRole("link", { name: "Waze", exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Cancelar" }).click()
+    const paymentsTitleBox = await page.getByRole("heading", { name: "Pagos y reservas", exact: true }).boundingBox()
+    const receiveBox = await page.getByRole("button", { name: /Por cobrar/ }).boundingBox()
+    expect(Math.abs(paymentsTitleBox!.y + paymentsTitleBox!.height / 2 - receiveBox!.y - receiveBox!.height / 2)).toBeLessThanOrEqual(2)
+    await page.screenshot({ path: testInfo.outputPath(`match-schedule-expanded-${theme}.png`), fullPage: true, scale: "css" })
+    await page.getByRole("button", { name: "Ver pagos", exact: true }).click()
+    await expect(page.getByRole("button", { name: "Marcar transferencia como recibida" })).toBeVisible()
+    await page.screenshot({ path: testInfo.outputPath(`match-payments-${theme}.png`), fullPage: true, scale: "css" })
+    const result = page.getByRole("region", { name: "Resultado del partido", exact: true })
+    await expect(result.getByRole("textbox")).toHaveCount(0)
+    await result.getByRole("button", { name: "Registrar resultado", exact: true }).click()
+    await expect(result.getByText("Davo", { exact: true })).toBeVisible()
+    await expect(result.getByRole("textbox")).toHaveCount(6)
+    await expect(result.getByText("Resultado", { exact: true })).toBeVisible()
+    await page.screenshot({ path: testInfo.outputPath(`match-early-result-${theme}.png`), fullPage: true, scale: "css" })
+
+    await page.goto("/match/season-2-round-5-match-2")
+    await expect(result.getByRole("textbox")).toHaveCount(6)
+    const resultBox = await result.boundingBox()
+    const scheduleBox = await page.getByText("Programación", { exact: true }).boundingBox()
+    expect(resultBox!.y).toBeLessThan(scheduleBox!.y)
+    await page.screenshot({ path: testInfo.outputPath(`match-result-pending-${theme}.png`), fullPage: true, scale: "css" })
+    const accessibility = await new AxeBuilder({ page }).analyze()
+    expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+
+    await page.goto("/match/season-2-round-3-match-1")
+    await expect(result.getByRole("heading", { name: "Resultado registrado", exact: true })).toBeVisible()
+    await expect(result.getByRole("button", { name: "Limpiar resultado", exact: true })).toHaveCount(0)
+    await result.getByRole("button", { name: "Editar resultado", exact: true }).click()
+    await expect(result.getByRole("textbox").first()).toHaveValue("6")
+    await result.getByRole("button", { name: "Cancelar", exact: true }).click()
+    await result.getByText("Más acciones del resultado", { exact: true }).click()
+    await expect(result.getByRole("button", { name: "Limpiar resultado", exact: true })).toBeVisible()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.screenshot({ path: testInfo.outputPath(`match-result-saved-${theme}.png`), fullPage: true, scale: "css" })
+  })
+}
+
+for (const theme of ["light", "dark"]) {
+  test(`recommended match sides and their help fit on mobile (${theme})`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 360, height: 800 })
+    await page.addInitScript(({ theme, players }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      localStorage.setItem("smash-lob-season-data", JSON.stringify({ playerProfiles: players }))
+      const guides = JSON.parse(localStorage.getItem("smash-lob-guided-onboarding-v1") ?? "{}")
+      guides.match = { tourKey: "match", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null }
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(guides))
+    }, { theme, players: playerProfiles.map(player => ({ ...player, preferredSide: "reves" })) })
+    await page.goto("/match/season-2-round-5-match-1")
+    const help = page.getByRole("button", { name: "Información sobre posiciones recomendadas" })
+    await expect(help).toBeVisible()
+    await expect(page.locator('[data-recommended-side="drive"]')).toHaveCount(2)
+    await expect(page.locator(".app-match-player-name")).toHaveText(["Davo", "Bea", "Carlos", "Alvaro"])
+    const changed = page.getByRole("button", { name: /Lado recomendado: Drive.*Preferencia: Revés/ }).first()
+    await expect(changed).toHaveAttribute("aria-label", /Lado recomendado: Drive.*Preferencia: Revés/)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.screenshot({ path: testInfo.outputPath(`recommended-sides-closed-${theme}.png`), scale: "css" })
+    await help.click()
+    const tooltip = page.getByRole("tooltip")
+    await expect(tooltip).toContainText("Un lado para cada uno")
+    await expect(tooltip).toContainText("vosotros decidís")
+    const bounds = await tooltip.boundingBox()
+    expect(bounds!.x).toBeGreaterThanOrEqual(0)
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(360)
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(800)
+    await page.screenshot({ path: testInfo.outputPath(`recommended-sides-${theme}.png`) })
+    const accessibility = await new AxeBuilder({ page }).include("[role=tooltip]").analyze()
+    expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.keyboard.press("Escape")
+    await expect(tooltip).toHaveCount(0)
+    await changed.click()
+    await expect(tooltip).toContainText("Un lado para cada uno")
+    await page.keyboard.press("Escape")
+    await expect(tooltip).toHaveCount(0)
+    await page.goto("/match/season-2-round-3-match-1")
+    await expect(page.locator("[data-recommended-side]")).toHaveCount(0)
+    await expect(help).toHaveCount(0)
+  })
+}
 
 test("welcome pack uses the final overgrip design and prints a full A4 sheet", async ({ page, context }) => {
   await context.addInitScript(() => { window.print = () => {} })
@@ -145,10 +267,11 @@ test("league spectator share shows a downloadable QR and shares the league link"
   })
 
   await page.goto("/")
-  await page.getByRole("button", { name: "Compartir enlace de espectador" }).click()
+  await page.getByRole("button", { name: "Compartir invitación" }).click()
   const dialog = page.getByRole("dialog")
   await expect(dialog).toBeVisible()
-  const qrImage = dialog.getByRole("img", { name: /Código QR de espectadores/ })
+  await dialog.getByRole("button", { name: "Invitar a seguir la liga" }).click()
+  const qrImage = dialog.getByRole("img", { name: /Sigue nuestra liga/ })
   await expect(qrImage).toBeVisible()
   await expect(dialog.getByRole("button", { name: "Descargar" })).toBeEnabled()
   const qrDataUrl = await qrImage.getAttribute("src")
@@ -162,20 +285,17 @@ test("league spectator share shows a downloadable QR and shares the league link"
   const { data, info } = await sharp(Buffer.from(qrSvg)).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const decodedQr = jsQR(new Uint8ClampedArray(data), info.width, info.height)
   expect(decodedQr?.data).toBe(spectatorUrl)
-  const popupSurface = dialog.locator(":scope > div")
-  const appSurface = page.locator('.app-shell-frame[data-home-route="true"]')
-  await expect(popupSurface).toHaveClass(/app-shell-frame/)
-  expect(await popupSurface.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(
-    await appSurface.evaluate((element) => getComputedStyle(element).backgroundColor),
-  )
+  await expect(dialog).toHaveClass(/app-dialog-content/)
+  expect(await dialog.evaluate(element => getComputedStyle(element).borderRadius)).toBe("16px")
+  expect(await dialog.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)")
 
   const downloadPromise = page.waitForEvent("download")
   await dialog.getByRole("button", { name: "Descargar" }).click()
   const download = await downloadPromise
-  expect(download.suggestedFilename()).toMatch(/qr-espectador\.svg$/)
+  expect(download.suggestedFilename()).toMatch(/smash-lob-qr-spectator\.svg$/)
 
   await dialog.getByRole("button", { name: "Compartir" }).click()
-  await expect(dialog.getByRole("status")).toContainText("Enlace de espectador compartido.")
+  await expect(dialog.getByRole("status")).toContainText("Enlace compartido")
   expect(await page.evaluate(() => window.sessionStorage.getItem("qa-shared-spectator-url"))).toBe(spectatorUrl)
 })
 
@@ -251,6 +371,23 @@ test.beforeEach(async ({ page }) => {
       }),
     })
   })
+})
+
+test("league creation selector reaches 32 players and refuses a thirty-third", async ({page}) => {
+  await page.addInitScript(seasons => {
+    localStorage.setItem("smash-lob-season-data",JSON.stringify({seasons:seasons.map(season=>({...season,status:"finished"})),activeSeasonIds:{"league-smash-lob":"season-2"}}))
+  },fixtureSeasons)
+  await page.goto("/admin/season")
+  await page.getByRole("button",{name:"Configurar nueva temporada",exact:true}).click()
+  const increase=page.getByRole("button",{name:"Aumentar número de jugadores",exact:true})
+  await expect(increase).toBeVisible()
+  for(let i=0;i<24&&!await increase.isDisabled();i++)await increase.click()
+  await expect(increase).toBeDisabled()
+  await expect(increase.locator("..").getByText("32",{exact:true})).toBeVisible()
+  await page.getByRole("button",{name:"Reducir número de jugadores",exact:true}).click()
+  await expect(increase).toBeEnabled()
+  await expect(increase.locator("..").getByText("31",{exact:true})).toBeVisible()
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
 })
 
 for (const screen of screens) {
@@ -435,14 +572,14 @@ test("personal matches use a separate simplified mode", async ({ page }) => {
   await expect(page.getByText("Liga QA", { exact: true }).first()).toBeVisible()
   await expect(page.getByRole("button", { name: "Cargar 10 más" })).toBeVisible()
   await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
-  await expect(page.getByRole("navigation", { name: "Navegación de Mis partidos" })).toBeVisible()
+  await expect(page.getByRole("navigation", { name: "Navegación global" })).toBeVisible()
   await expect(page.getByRole("link", { name: "Mis partidos", exact: true })).toBeVisible()
-  await expect(page.getByRole("link", { name: "Mis ligas", exact: true })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Competiciones", exact: true })).toBeVisible()
   await expect(page.getByRole("link", { name: "Mi perfil", exact: true })).toBeVisible()
   await expect(page.getByRole("link", { name: "+ Partido", exact: true })).toHaveCount(0)
   await expect(page.locator('[data-tour="floating-settings"]')).toHaveCount(1)
-  await expect(page.locator('[data-tour="floating-help"]')).toHaveCount(0)
-  await expect(page.locator('[data-tour="floating-notifications"]')).toHaveCount(0)
+  await expect(page.locator('[data-tour="floating-help"]')).toHaveCount(1)
+  await expect(page.locator('[data-tour="floating-notifications"]')).toHaveCount(1)
 })
 
 test("personal matches hide the whole upcoming section when there is no future match", async ({ page }) => {
@@ -470,3 +607,324 @@ test("personal matches hide the whole upcoming section when there is no future m
   await expect(page.getByText("Sin partidos programados", { exact: true })).toHaveCount(0)
   await expect(page.getByText("Historial", { exact: true })).toBeVisible()
 })
+
+for (const theme of ["light", "dark"]) for (const duration of ["single", "double", "custom", "manual"]) {
+  test(`fixed league pairs keep partners through creation, scoring and ranking (${duration}, ${theme})`, async ({ page }, testInfo) => {
+    await page.addInitScript(({ seasons, leagues, theme }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      if (sessionStorage.getItem("qa-fixed-league-initialized")) return
+      sessionStorage.setItem("qa-fixed-league-initialized", "1")
+      localStorage.setItem("smash-lob-leagues", JSON.stringify(leagues.map(league => league.id === "league-smash-lob" ? { ...league, modality: "fixed_pairs" } : league)))
+      localStorage.setItem("smash-lob-season-data", JSON.stringify({ seasons: seasons.map(season => ({ ...season, status: "finished" })), activeSeasonIds: { "league-smash-lob": "season-2" } }))
+    }, { seasons: fixtureSeasons, leagues: fixtureLeagues, theme })
+    await page.goto("/admin/season")
+    await page.getByRole("button", { name: "Configurar nueva temporada", exact: true }).click()
+    await expect(page.getByText("Parejas de la temporada", { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Reducir número de jugadores", exact: true }).click()
+    const pairOne = page.getByRole("combobox", { name: "Pareja 1 · Jugador 1", exact: true })
+    await expect(pairOne).toBeVisible()
+    const values = await pairOne.locator("option").evaluateAll(options => options.map(option => (option as HTMLOptionElement).value))
+    await pairOne.selectOption(values[2])
+    if (duration !== "single") await openSeasonAdvanced(page)
+    if (duration === "manual") await page.getByRole("button", { name: /^Calendario manual/ }).click()
+    if (duration === "double") await page.getByRole("combobox", { name: "Vueltas completas", exact: true }).selectOption("double")
+    if (duration === "custom") {
+      await page.getByRole("combobox", { name: "Tipo de duración", exact: true }).selectOption("custom")
+      await page.locator('input[type="number"][max="18"]').fill("4")
+    }
+    await confirmSeasonCreation(page)
+    await expect(page).toHaveURL(/\/$/)
+    const created = await page.evaluate(() => {
+      const data = JSON.parse(localStorage.getItem("smash-lob-season-data")!)
+      const seasonId = data.activeSeasonIds["league-smash-lob"]
+      return { season: data.seasons.find((season: {id:string}) => season.id === seasonId), roster: data.seasonPlayers.filter((row: {seasonId:string}) => row.seasonId === seasonId), matches: JSON.parse(localStorage.getItem("smash-lob-matches")!).filter((match: {seasonId:string}) => match.seasonId === seasonId) }
+    })
+    expect(created.season.totalRounds).toBe(duration === "double" ? 6 : duration === "custom" ? 4 : 3)
+    expect(created.roster).toHaveLength(6)
+    expect(created.matches).toHaveLength(created.season.totalRounds)
+    for (const match of created.matches) for (const team of [match.teamA, match.teamB]) {
+      expect(new Set(team.map((id: string) => created.roster.find((row: {playerId:string}) => row.playerId === id).pairNumber)).size).toBe(1)
+    }
+    await page.goto(`/match/${created.matches[0].id}`)
+    const result = page.getByRole("region", { name: "Resultado del partido", exact: true })
+    await result.getByRole("button", { name: "Registrar resultado", exact: true }).click()
+    for (const [team, scores] of [["A", [6,4,6]], ["B", [4,6,3]]] as const) for (const [index, score] of scores.entries()) await result.getByRole("textbox", { name: `Pareja ${team} Set ${index + 1}`, exact: true }).fill(String(score))
+    await result.getByRole("button", { name: "Guardar resultado", exact: true }).click()
+    await expect(result.getByRole("heading", { name: "Resultado registrado", exact: true })).toBeVisible()
+    await page.goto("/ranking")
+    await expect(page.getByRole("heading", { name: "Clasificación por parejas", exact: true })).toBeVisible()
+    await expect(page.locator(".app-ranking-row")).toHaveCount(3)
+    await expect(page.locator(".app-ranking-row").first().locator("p").last()).toHaveText("2")
+    await page.reload()
+    await expect(page.locator(".app-ranking-row")).toHaveCount(3)
+    if (theme === "dark") await expect(page.locator("html")).toHaveClass(/dark/)
+    else await expect(page.locator("html")).not.toHaveClass(/dark/)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    const accessibility = await new AxeBuilder({ page }).analyze()
+    expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: testInfo.outputPath(`pairs-ranking-${theme}.png`), scale: "css" })
+  })
+}
+
+test("new league asks its format and opens the corresponding fixed-pair season form", async ({ page }) => {
+  const id = "40000000-0000-4000-8000-000000000001"
+  let created: typeof fixtureLeagues[number] | null = null
+  let creationCount = 0
+  let seasonCount = 0
+  let snapshot: SeasonSnapshot = { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: {} }
+  await page.route("**/api/access**", route => route.fulfill({ json: { isSuperuser: false, canCreateLeagues: true, leagues: [...fixtureLeagues, ...(created ? [created] : [])], memberships: [{ userId: "qa-v1-1@example.test", leagueId: id, role: "creator", playerId: "" }], spectatorLeagueIds: [], matches: [], seasonSnapshot: snapshot } }))
+  await page.route("**/api/leagues", async route => {
+    creationCount += 1
+    const body = route.request().postDataJSON()
+    expect(body.modality).toBe("fixed_pairs")
+    created = { id, name: body.leagueName, description: body.leagueDescription, slug: body.leagueSlug, modality: body.modality, inviteCode: body.inviteCode, activeSeasonId: "", joinMode: "closed", locations: [] }
+    await route.fulfill({ json: { league: created, membership: { userId: "qa-v1-1@example.test", leagueId: id, playerId: "", role: "creator" }, seasonSnapshot: { seasons: [], playerProfiles: [], seasonPlayers: [], seasonSettings: [], activeSeasonIds: { [id]: "" } } } })
+  })
+  await page.route(`**/api/leagues/${id}`, async route => {
+    const body = route.request().postDataJSON()
+    created = { ...created!, ...(body.name ? { name: body.name, description: body.description, recommendations: body.recommendations } : {}), ...(Object.hasOwn(body, "logoUrl") ? { logoUrl: body.logoUrl } : {}) }
+    await route.fulfill({ json: { leagueId: id, ...created } })
+  })
+  await page.route("**/player-directory", route => route.fulfill({ json: { people: [] } }))
+  await page.route(`**/api/leagues/${id}/seasons`, async route => {
+    seasonCount++
+    const body = route.request().postDataJSON()
+    const seasonId = "40000000-0000-4000-8000-000000000003"
+    const profiles = body.newPlayerNames.map((displayName: string, i: number) => ({ id: `qa-player-${i}`, leagueId: id, slug: `qa-${i}`, displayName, avatarInitials: "QA" }))
+    snapshot = { seasons: [{ id: seasonId, leagueId: id, name: body.name, status: "upcoming", totalRounds: body.targetRoundCount, completedRounds: 0 }], playerProfiles: profiles, seasonPlayers: profiles.map((p: { id: string }, i: number) => ({ seasonId, playerId: p.id, pairNumber: Math.floor(i / 2) + 1 })), seasonSettings: [{ ...seasonRoundSettings[0], ...body, leagueId: id, seasonId }], activeSeasonIds: { [id]: seasonId } }
+    created = { ...created!, activeSeasonId: seasonId }
+    await route.fulfill({ json: { matches: [], seasonSnapshot: snapshot, linkedMembership: { userId: "qa-v1-1@example.test", leagueId: id, playerId: profiles[0].id, role: "creator" } } })
+  })
+  await page.goto("/league/new")
+  const modality = page.getByRole("combobox", { name: "Modalidad de liga", exact: true })
+  await expect(modality).toHaveValue("individual")
+  await modality.selectOption("fixed_pairs")
+  await expect(page.getByText(/Cada pareja mantiene sus jugadores/)).toBeVisible()
+  await page.locator('form input').first().fill("League pairs fixture")
+  await page.locator("summary").filter({ hasText: "Personalizar liga" }).click()
+  await page.locator('input[type="file"]').setInputFiles({ name: "logo-azul.png", mimeType: "image/png", buffer: await sharp({ create: { width: 128, height: 128, channels: 4, background: "#2070B0" } }).png().toBuffer() })
+  await page.getByRole("button", { name: "Usar imagen", exact: true }).click()
+  await expect(page.locator('input[type="color"]')).toHaveValue("#2070b0")
+  await page.locator('input[type="color"]').fill("#ff2200")
+  await page.getByRole("button", { name: "Asignar color de liga automáticamente", exact: true }).click()
+  await expect(page.locator('input[type="color"]')).toHaveValue("#2070b0")
+  await page.locator("summary").filter({ hasText: "Personalizar liga" }).click()
+  await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  await expect(page).toHaveURL(/league\/new$/)
+  await expect(page.getByText("Parejas de la temporada", { exact: true })).toBeVisible()
+  await expect(page.getByRole("combobox", { name: "Pareja 1 · Jugador 1", exact: true })).toBeVisible()
+  expect(created).toBeNull()
+  expect(creationCount).toBe(0)
+  const names = page.locator("[data-season-pairs] input")
+  await names.nth(1).fill("Nombre conservado")
+  const registration = page.getByRole("combobox", { name: "¿Cómo se formará la plantilla?", exact: true })
+  await registration.selectOption("self_registration")
+  await expect(names).toHaveCount(0)
+  await registration.selectOption("fixed")
+  await expect(names.nth(1)).toHaveValue("Nombre conservado")
+  await expect(names.nth(0)).toHaveValue("QA v1.1")
+  await names.nth(0).fill("Alias organizador")
+  await page.getByRole("button", { name: "Atrás", exact: true }).last().click()
+  await expect(page.getByRole("combobox", { name: "Modalidad de liga", exact: true })).toBeEnabled()
+  await page.getByRole("textbox", { name: "Nombre de la liga", exact: true }).fill("Liga revisada")
+  await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  await expect(names.nth(1)).toHaveValue("Nombre conservado")
+  expect(created).toBeNull()
+  expect(creationCount).toBe(0)
+  const manualNames = page.locator("[data-season-pairs] input")
+  await expect(manualNames.nth(0)).toHaveValue("Alias organizador")
+  for (let i = 2; i < await manualNames.count(); i++) await manualNames.nth(i).fill(`Jugador QA ${i + 1}`)
+  await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  await page.getByRole("button", { name: "Editar Liga", exact: true }).click()
+  await expect(page.locator("[data-league-creation] details")).toHaveAttribute("open", "")
+  await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  for (const [index, title] of ["Calendario y duración", "Inicio y visibilidad", "Reglas de juego", "Organización y pagos"].entries()) {
+    await page.getByRole("button", { name: `Editar ${title}`, exact: true }).click()
+    await expect(page.locator("[data-season-creation-advanced] > details").nth(index)).toHaveAttribute("open", "")
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+  }
+  await expect(page.getByRole("button", { name: "Crear liga y primera temporada", exact: true })).toBeEnabled()
+  expect(creationCount).toBe(0)
+  for (const width of [320, 393]) {
+    await page.setViewportSize({ width, height: 852 })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    const header = page.locator("[data-season-creation-step] .app-page-header")
+    expect(await header.locator("h1").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
+  }
+  const axe = await new AxeBuilder({ page }).analyze()
+  expect(axe.violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
+  await page.getByRole("button", { name: "Crear liga y primera temporada", exact: true }).click()
+  await expect(page).toHaveURL(/\/$/)
+  expect(creationCount).toBe(1)
+  expect(seasonCount).toBe(1)
+  expect(created!.name).toBe("Liga revisada")
+  expect(created!.logoUrl).toMatch(/^data:image\//)
+  await page.reload()
+  await expect(page).toHaveURL(/\/$/)
+  expect(creationCount).toBe(1)
+  expect(seasonCount).toBe(1)
+})
+
+for (const theme of ["light", "dark"]) for (const modality of ["individual", "fixed_pairs"] as const) {
+  test(`guided season creation preserves basic and advanced settings (${modality}, ${theme})`, async ({ page }, info) => {
+    await page.addInitScript(({ seasons, leagues, theme, modality }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      if (sessionStorage.getItem("qa-guided-season")) return
+      sessionStorage.setItem("qa-guided-season", "1")
+      localStorage.setItem("smash-lob-leagues", JSON.stringify(leagues.map(league => ({ ...league, modality }))))
+      localStorage.setItem("smash-lob-season-data", JSON.stringify({ seasons: seasons.map(season => ({ ...season, status: "finished" })), activeSeasonIds: { "league-smash-lob": "season-2" } }))
+    }, { seasons: fixtureSeasons, leagues: fixtureLeagues, theme, modality })
+    await page.setViewportSize({ width: 393, height: 852 })
+    await page.goto("/admin/season")
+    await page.getByRole("button", { name: "Configurar nueva temporada", exact: true }).click()
+    const wizard = page.locator("[data-season-creation-step]")
+    await expect(wizard).toHaveAttribute("data-season-creation-step", "basic")
+    const seasonName = wizard.locator("[data-season-creation-basic] input").first()
+    await seasonName.fill("Temporada guiada")
+    const heading = wizard.locator(".league-season-header")
+    expect((await heading.boundingBox())!.height).toBeLessThanOrEqual(80)
+    await expect.poll(async () => {
+      const headerBox = await heading.boundingBox()
+      const toolbarBox = await page.locator("[data-floating-top-toolbar]").boundingBox()
+      return Boolean(headerBox && toolbarBox && headerBox.y >= toolbarBox.y + toolbarBox.height + 4)
+    }).toBe(true)
+    await expect(wizard.getByRole("heading", { name: "Configuración básica", exact: true })).toBeVisible()
+    await expect(wizard.locator("p").filter({ hasText: /^Tres sets completos · MVP automático avanzado/ })).toBeVisible()
+    await page.getByRole("button", { name: "Atrás", exact: true }).click()
+    await expect(wizard).not.toBeVisible()
+    await page.getByRole("button", { name: "Configurar nueva temporada", exact: true }).click()
+    await expect(seasonName).toHaveValue("Temporada guiada")
+    await page.screenshot({ path: info.outputPath(`guided-basic-${modality}-${theme}.png`), scale: "css" })
+    await expect(page.getByRole("button", { name: "Personalizar ajustes avanzados", exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+    await expect(wizard).toHaveAttribute("data-season-creation-step", "summary")
+    const summary = page.locator("[data-season-creation-summary]")
+    await expect(summary.getByText("Sin cuota", { exact: true })).toBeVisible()
+    await expect(summary.getByText("Tres sets completos", { exact: true })).toBeVisible()
+    for (const label of ["Equilibrado", "Jornadas totales", "Manual", "Cuota de inscripción por jugador"]) await expect(summary.getByText(label, { exact: true })).toBeVisible()
+    const participantFields = summary.locator(".season-review-card").filter({ has: page.getByRole("heading", { name: "Participantes", exact: true }) }).locator("dt")
+    await expect(participantFields).toHaveText(modality === "fixed_pairs" ? ["Temporada", "Jugadores", "Inscripción", "Parejas"] : ["Temporada", "Jugadores", "Inscripción"])
+    await expect(summary.getByText("Sin confirmación", { exact: true })).toBeVisible()
+    const roster = summary.locator("[data-season-review-roster]")
+    await roster.locator("summary").click()
+    expect(await roster.locator(":scope > div").evaluate(element => getComputedStyle(element).gridTemplateColumns.split(" ").length)).toBe(2)
+    await roster.locator("summary").click()
+    await page.getByRole("button", { name: "Editar Calendario y duración", exact: true }).click()
+    await expect(wizard).toHaveAttribute("data-season-creation-step", "advanced")
+    await expect(page.locator("[data-season-creation-advanced] > details").first()).toHaveAttribute("open", "")
+    const advanced = page.locator("[data-season-creation-advanced]")
+    expect((await heading.boundingBox())!.height).toBeLessThanOrEqual(80)
+    await advanced.locator("details > summary").first().click()
+    await expect(advanced.locator("details[open]")).toHaveCount(0)
+    await expect(advanced.locator("summary .league-creation-range")).toHaveText(["1–2", "3", "4–7", "8–9"])
+    for (const range of await advanced.locator("summary .league-creation-range").all()) await expect(range).toBeVisible()
+    await page.screenshot({ path: info.outputPath(`guided-numbered-sections-${modality}-${theme}.png`), fullPage: true })
+    await page.getByRole("button", { name: "Atrás", exact: true }).last().click()
+    await expect(wizard).toHaveAttribute("data-season-creation-step", "basic")
+    await openSeasonAdvanced(page)
+    await expect(advanced.locator(".league-creation-number")).toHaveText(["1", "2", "3", "4", "5", "6", "7", "8", "9"])
+    for (const badge of await advanced.locator(".league-creation-number").all()) await expect(badge).toBeVisible()
+    for (const width of [320,393]) {
+      await page.setViewportSize({ width, height:852 })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    }
+    const advancedAxe = await new AxeBuilder({ page }).analyze()
+    expect(advancedAxe.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    const availability = advanced.getByRole("checkbox", { name: "Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos.", exact: true })
+    await expect(availability).not.toBeChecked()
+    await availability.check()
+    await expect(availability).toBeChecked()
+    await availability.uncheck()
+    const date = page.getByLabel("Fecha y hora de activación", { exact: true })
+    await date.focus()
+    await expect(date).toHaveValue("")
+    await page.getByRole("combobox", { name: "Vueltas completas", exact: true }).selectOption("double")
+    await page.getByRole("button", { name: "Atrás", exact: true }).last().click()
+    await expect(page.getByText("Ajustes personalizados", { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+    await expect(summary.getByText("Doble vuelta", { exact: true })).toBeVisible()
+    for (const width of [320,393]) {
+      await page.setViewportSize({ width, height:852 })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    }
+    const axe = await new AxeBuilder({ page }).analyze()
+    expect(axe.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: info.outputPath(`guided-review-${modality}-${theme}.png`), fullPage: true })
+    await page.getByRole("button", { name: "Confirmar y crear temporada", exact: true }).click()
+    await expect(page).toHaveURL(/\/$/)
+    const stored = await page.evaluate(() => {
+      const data = JSON.parse(localStorage.getItem("smash-lob-season-data")!)
+      const id = data.activeSeasonIds["league-smash-lob"]
+      return { season: data.seasons.find((season: { id: string }) => season.id === id), settings: JSON.parse(localStorage.getItem("smash-lob-season-round-settings")!).find((settings: { seasonId: string }) => settings.seasonId === id) }
+    })
+    expect(stored.season.status).toBe("upcoming")
+    expect(stored.settings.scheduleMode).toBe("double")
+    expect(stored.settings.registrationFee.enabled).toBe(false)
+    expect(stored.settings.requiresThreeSets).toBe(true)
+    expect(stored.settings.mvpSystem).toBe("automatic_advanced")
+    expect(stored.settings.calendarVisibilityMode).toBe("full")
+  })
+}
+
+for (const theme of ["light", "dark"]) {
+  test(`season creation separates duration and searches global opening venues (${theme})`, async ({ page }, info) => {
+    await page.addInitScript(({ seasons, leagues, theme }) => {
+      localStorage.setItem("smash-lob-theme-mode", theme)
+      localStorage.setItem("smash-lob-visual-style", "competition")
+      if (sessionStorage.getItem("qa-opening-global")) return
+      sessionStorage.setItem("qa-opening-global", "1")
+      localStorage.setItem("smash-lob-leagues", JSON.stringify(leagues.map(league => ({ ...league, locations: [] }))))
+      localStorage.setItem("smash-lob-season-data", JSON.stringify({ seasons: seasons.map(season => ({ ...season, status: "finished" })), activeSeasonIds: { "league-smash-lob": "season-2" } }))
+    }, { seasons: fixtureSeasons, leagues: fixtureLeagues, theme })
+    await page.route("**/api/locations", route => route.fulfill({ json: { locations: [{ id: "qa-bilbao-global", name: "Club Zorrotza", town: "Bilbao", address: "Dirección oficial" }, { id: "qa-derio-global", name: "Club Derio", town: "Derio" }] } }))
+    await page.setViewportSize({ width: 393, height: 852 })
+    await page.goto("/admin/season")
+    await page.getByRole("button", { name: "Configurar nueva temporada", exact: true }).click()
+    await openSeasonAdvanced(page)
+    await expect(page.getByText("Ubicaciones de la liga", { exact: true })).toHaveCount(0)
+    const duration = page.getByRole("combobox", { name: "Tipo de duración", exact: true })
+    const cycles = page.getByRole("combobox", { name: "Vueltas completas", exact: true })
+    await expect(duration).toHaveValue("complete")
+    await expect(cycles).toHaveValue("single")
+    await cycles.selectOption("double")
+    await duration.selectOption("custom")
+    await expect(cycles).toHaveCount(0)
+    await page.locator("[data-season-duration] input[type=number]").fill("5")
+    await duration.selectOption("complete")
+    await expect(cycles).toHaveValue("double")
+    await page.locator("[data-season-duration]").screenshot({ path: info.outputPath(`duration-structure-${theme}.png`) })
+    await page.getByRole("checkbox", { name: /^Jornada de Apertura especial/ }).check()
+    await page.getByLabel("Fecha y hora de Jornada de Apertura", { exact: true }).fill("2099-10-20T09:00")
+    await page.getByRole("button", { name: "Seleccionar ubicación", exact: true }).click()
+    const picker = page.getByRole("dialog", { name: "Buscar ubicación", exact: true })
+    await expect(picker).toBeVisible()
+    await expect(picker.getByRole("button", { name: "+ Añadir nueva ubicación", exact: true })).toHaveCount(0)
+    await picker.getByRole("searchbox").fill("Bilbao")
+    await expect(picker.getByRole("button", { name: /Derio/ })).toHaveCount(0)
+    await picker.getByRole("button", { name: "Bilbao - Club Zorrotza", exact: true }).click()
+    await expect(picker).not.toBeVisible()
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+    const review = page.locator("[data-season-creation-summary]")
+    await expect(review.getByText(/Bilbao - Club Zorrotza/)).toBeVisible()
+    await expect(review.getByText("14", { exact: true })).toBeVisible()
+    await expect(review.locator(".season-review-number")).toHaveCount(4)
+    await review.locator("[data-season-review-roster] > summary").click()
+    await expect(review.getByText("Davo", { exact: true })).toBeVisible()
+    const axe = await new AxeBuilder({ page }).analyze()
+    expect(axe.violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
+    for (const width of [320, 393]) {
+      await page.setViewportSize({ width, height: 852 })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    }
+    await page.screenshot({ path: info.outputPath(`visual-review-${theme}.png`), fullPage: true })
+    await review.getByRole("button", { name: "Editar Inicio y visibilidad", exact: true }).click()
+    await expect(page.getByRole("button", { name: "Bilbao - Club Zorrotza", exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+    await page.getByRole("button", { name: "Confirmar y crear temporada", exact: true }).click()
+    await expect(page).toHaveURL(/\/$/)
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("smash-lob-season-round-settings")!).find((row: { openingRoundEnabled: boolean }) => row.openingRoundEnabled))
+    expect(JSON.parse(stored.openingRoundLocation).name).toBe("Club Zorrotza")
+    expect(stored.scheduleMode).toBe("double")
+  })
+}

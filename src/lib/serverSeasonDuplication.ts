@@ -1,3 +1,4 @@
+import { getServerLeagueModality, pairsFromRoster } from "@/lib/serverLeagueModality"
 import "server-only"
 
 import { buildUserAvatarLookup, resolvePlayerAvatarUrl } from "@/lib/avatarResolution"
@@ -130,6 +131,7 @@ export async function duplicateServerSeason({
   duplicatedSeason: Season
 }> {
   const { supabase } = actor
+  const modality = await getServerLeagueModality(supabase, leagueId)
   const [sourceResult, settingsResult, existingUpcomingResult] = await Promise.all([
     supabase
       .from("seasons")
@@ -174,7 +176,7 @@ export async function duplicateServerSeason({
 
   const { data: sourceSeasonPlayers, error: playersError } = await supabase
     .from("season_players")
-    .select("player_id,status")
+    .select("player_id,status,pair_number")
     .eq("season_id", sourceSeasonId)
 
   if (playersError) {
@@ -183,6 +185,7 @@ export async function duplicateServerSeason({
 
   const sourcePlayerRows = (sourceSeasonPlayers ?? []) as {
     player_id: unknown
+    pair_number?: number | null
     status?: unknown
   }[]
   const playerIds: string[] = Array.from(
@@ -201,7 +204,8 @@ export async function duplicateServerSeason({
     ),
   )
 
-  if (!isSeasonPlayerCountInRange(playerIds.length)) {
+  const fixedPairs = modality === "fixed_pairs" ? pairsFromRoster(sourcePlayerRows.filter(row => row.status !== "withdrawn") as {player_id: string; pair_number?: number | null}[]) : undefined
+  if (!isSeasonPlayerCountInRange(playerIds.length, modality)) {
     throw new SeasonDuplicationError(409, "season_player_count_invalid")
   }
 
@@ -285,6 +289,7 @@ export async function duplicateServerSeason({
       : "single"
   const totalRounds = sourceSeason.total_rounds
   if (!isValidSeasonScheduleTarget({
+    modality,
     playerCount: playerIds.length,
     mode: scheduleMode,
     targetRoundCount: totalRounds,
@@ -322,6 +327,7 @@ export async function duplicateServerSeason({
       playerIds.map((playerId) => ({
         season_id: duplicatedSeason.id,
         player_id: playerId,
+        pair_number: fixedPairs ? fixedPairs.findIndex(pair => pair.includes(playerId)) + 1 : null,
         status: "active",
       })),
     )
@@ -335,6 +341,7 @@ export async function duplicateServerSeason({
     leagueId,
     seasonId: duplicatedSeason.id,
     playerIds,
+    fixedPairs,
     scheduleMode,
     targetRoundCount: totalRounds,
   })
@@ -478,6 +485,7 @@ export async function duplicateServerSeason({
     seasonPlayers: playerIds.map(
       (playerId): SeasonPlayer => ({
         seasonId: duplicatedSeason.id,
+        pairNumber: fixedPairs ? fixedPairs.findIndex(pair => pair.includes(playerId)) + 1 : null,
         playerId,
         status: "active",
       }),

@@ -75,13 +75,15 @@ describe("v1.10.16 league i18n and UI polish", () => {
     expect(exportImage).toContain('fixturesOnly ? "VS" : getMatchScore(match)')
   })
 
-  it("reflows floating top actions instead of reserving a missing invite-button slot", async () => {
+  it("keeps the same floating action bar across private app routes", async () => {
     const shell = await read("src/components/layout/AppShell.tsx")
 
     expect(shell).toContain("data-floating-top-toolbar")
     expect(shell).toContain('className={`flex items-center gap-2')
     expect(shell).toContain("{shouldShowHelpButton ? <FloatingHelpButton /> : null}")
-    expect(shell).toContain("{hasPlayerInviteControl ? <InviteFloatingControls /> : null}")
+    expect(shell).toContain("const shouldShowActionBar = !isPublicAccessRoute")
+    expect(shell).toContain("const floatingTopControlWidth = 4 * 42 - 8")
+    expect(shell).not.toContain("<InviteFloatingControls")
     expect(shell).not.toContain("rightOffsetPx")
 
     const [invite, spectator] = await Promise.all([
@@ -89,10 +91,13 @@ describe("v1.10.16 league i18n and UI polish", () => {
       read("src/components/spectator/FloatingSpectatorShareButton.tsx"),
     ])
     expect(invite).toContain('? tx("Enlace copiado")')
-    expect(spectator).toContain(
-      'text: tx("Comparte el enlace de esta liga para que cualquiera pueda verla como espectador.")',
-    )
-    expect(spectator).toContain("title={leagueName}")
+    expect(spectator).toContain('text: tx(description)')
+    expect(spectator).toContain('"Sigue nuestra liga"')
+    expect(spectator).toContain('"Escanea el QR para seguir los partidos y la clasificación de esta liga."')
+    expect(spectator).toContain('aria-label={tx("Compartir invitación")}')
+    expect(spectator).toContain('beforePreview={!shareType ?')
+    expect(spectator).toContain('option.label')
+    expect(spectator).toContain('showActions={Boolean(shareType)}')
     expect(spectator).toContain('variant="spectator-qr"')
     expect(spectator).toContain('await import("qrcode-generator")')
     expect(spectator).toContain('createQrCode(0, "H")')

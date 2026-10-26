@@ -163,9 +163,9 @@ describe("v1.10.0 scheduled season start", () => {
     expect(shell).toContain("const shouldShowSettingsButton =")
     expect(shell).toContain("const shouldShowHelpButton =")
     expect(shell).toContain("const shouldShowNotificationsButton =")
-    expect(shell).toContain("const shouldShowPlayerInviteButton =")
-    expect(shell).toContain('const shouldShowLeagueSearch =\n    pathname === "/leagues"')
-    expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    isPersonalMatchesRoute')
+    expect(shell).toContain("const shouldShowSpectatorShareButton = shouldShowActionBar")
+    expect(shell).toContain('const shouldShowLeagueSearch =\n    (pathname === "/leagues" || pathname === "/leagues/all")')
+    expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    (isPersonalMatchesRoute || isCompetitionOverview)')
     expect(nav).toContain('const isDisabled = homeOnlyLocked && item.href !== "/"')
   })
 

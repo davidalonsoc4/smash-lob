@@ -5,6 +5,13 @@ import {
 } from "@/lib/personalMatches"
 
 describe("personal match origin colors", () => {
+  it("uses each configured league accent with theme variables and rejects invalid CSS", () => {
+    const match = { origin: "league" as const, leagueId: "a", leagueName: "Liga A" }
+    const style = getPersonalMatchOriginBadgeStyle(match, "#123456")
+    expect(style).toMatchObject({ "--personal-league-accent": "#123456", color: "var(--personal-league-text)", backgroundColor: "var(--personal-league-background)" })
+    expect(getPersonalMatchOriginBadgeStyle(match, "red;display:none")).toEqual(getPersonalMatchOriginBadgeStyle(match))
+    expect(getPersonalMatchOriginBadgeStyle({ ...match, origin: "friendly" }, "#123456")).toBeUndefined()
+  })
   it("keeps friendlies neutral and assigns stable visibly distinct safe colors to leagues", () => {
     const friendly = {
       origin: "friendly" as const,

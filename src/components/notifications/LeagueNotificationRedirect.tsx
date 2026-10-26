@@ -67,7 +67,7 @@ export function LeagueNotificationRedirect() {
           href="/leagues"
           className="flex mt-3 rounded-2xl bg-neutral-950 px-3 py-2.5 text-center text-sm font-black text-white items-center justify-center"
         >
-          {tx("Ver mis ligas")}
+          {tx("Ver mis competiciones")}
         </Link>
       ) : null}
     </AppCard>

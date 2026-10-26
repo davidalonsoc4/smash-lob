@@ -2,7 +2,7 @@
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
@@ -10,6 +10,7 @@ import {
   SettingsSectionIcon,
   type SettingsSectionIconName,
 } from "@/components/settings/SettingsSectionIcon"
+import { TournamentShareButton } from "@/components/tournament/TournamentShareButton"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
@@ -355,16 +356,17 @@ function SpectatorSettingsPage() {
           <LanguageSwitcher />
         </SettingsStaticRow>
         <AppearanceSettingsLink />
+        <SettingsLinkRow href="/settings/sounds" id="sounds" title={tx("Sonidos y avisos")} description={tx("Personaliza y prueba los avisos de las rondas de tus torneos.")} icon="notifications" />
       </SettingsSection>
       <SettingsSection
-        title={tx("Mis ligas")}
+        title={tx("Mis Competiciones")}
         description={tx("Accede a las competiciones que sigues o en las que participas.")}
       >
         <SettingsLinkRow
           href="/leagues"
           id="leagues"
           tour="settings-context-switcher"
-          title={tx("Mis ligas")}
+          title={tx("Mis Competiciones")}
           description={tx("Cambia entre ligas donde eres jugador o espectador.")}
           icon="leagues"
         />
@@ -434,21 +436,73 @@ function SpectatorSettingsPage() {
   )
 }
 export default function SettingsPage() {
+  const searchParams = useSearchParams()
   const { activeLeague } = useCurrentLeagueData()
   const { isLeagueSpectator, isSuperuser } = useLeagueAccess()
+  const returnTo = searchParams.get("returnTo")
+  const tournamentId = returnTo?.match(/^\/tournaments\/([^/?#]+)(?:\/|$)/)?.[1] ?? null
+  if (returnTo === "/leagues" || returnTo === "/leagues/all" || returnTo === "/tournaments") {
+    return <CompetitionSettingsPage allowCreation={returnTo === "/leagues"} />
+  }
+  if (tournamentId) {
+    return <PlayerSettingsPage tournamentId={tournamentId} />
+  }
   if (!isSuperuser && isLeagueSpectator(activeLeague.id)) {
     return <SpectatorSettingsPage />
   }
   return <PlayerSettingsPage />
 }
-function PlayerSettingsPage() {
+function CompetitionSettingsPage({ allowCreation }: { allowCreation: boolean }) {
+  const { tx, t } = useI18n()
+  const { currentUser } = useCurrentUser()
+  const { canCreateLeagues } = useLeagueAccess()
+
+  return (
+    <div className="compact-page space-y-4">
+      <header className="app-page-header">
+        <BackButton fallbackHref="/leagues" label={t.common.back} returnToParam="returnTo" />
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">{t.settings.title}</h1>
+      </header>
+      <SettingsSection title={tx("Personal")} description={tx("Tu perfil y preferencias de la aplicación.")}>
+        <SettingsLinkRow href="/settings/profile" id="account" title={t.settings.myProfileTitle} description={t.settings.myProfileDescription} leading={<PlayerAvatar player={currentUser} size="md" />} />
+        <SettingsStaticRow id="language" title={t.settings.language} description={t.settings.languageDescription} leading={<SettingsSectionIcon name="language" />}><LanguageSwitcher /></SettingsStaticRow>
+        <AppearanceSettingsLink />
+        <SettingsLinkRow href="/settings/sounds" id="sounds" title={tx("Sonidos y avisos")} description={tx("Personaliza y prueba los avisos de las rondas de tus torneos.")} icon="notifications" />
+        <SettingsLinkRow href="/settings/notifications" id="notifications" title={tx("Notificaciones")} description={tx("Activa push y elige qué avisos quieres recibir en este dispositivo.")} icon="notifications" />
+      </SettingsSection>
+      <SettingsSection title={tx("Competiciones")} description={tx("Consulta tus ligas y torneos o entra en una liga mediante invitación.")}>
+        <SettingsLinkRow href="/leagues" id="leagues" title={tx("Mis Competiciones")} description={tx("Consulta tus ligas y torneos desde un único lugar.")} icon="leagues" />
+        <SettingsLinkRow href="/invite" id="join-league" title={t.settings.joinNewExistingLeague} description={tx("Usa un código o enlace de invitación para acceder a una liga o torneo.")} icon="join" />
+        {allowCreation && canCreateLeagues ? <>
+          <SettingsLinkRow href="/league/new" id="create-league" title={t.settings.createNewLeague} description={tx("Configura una competición nueva desde cero.")} icon="create" />
+          <SettingsLinkRow href="/tournaments/new" id="create-tournament" title={tx("Crear nuevo torneo")} description={tx("Configura una competición nueva desde cero.")} icon="create" />
+        </> : null}
+      </SettingsSection>
+      <SettingsSection title={tx("Ayuda e información")} description={tx("Documentación, novedades y versión instalada.")}>
+        <SettingsLinkRow href="/settings/suggestions" id="suggestions" title={tx("Buzón de sugerencias")} description={tx("Propón mejoras y nuevas funciones para Smash & Lob.")} icon="suggestions" />
+        <SettingsLinkRow href="/help" id="help" title={t.settings.helpTitle} description={t.settings.helpDescription} icon="help" />
+        <SettingsLinkRow href="/changelog" id="changelog" title={tx("Registro de cambios")} description={tx("Consulta las novedades publicadas en cada versión.")} icon="changelog" />
+        <SettingsLinkRow href="/about" id="about-app" title={tx("Sobre Smash & Lob")} description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")} icon="about" />
+      </SettingsSection>
+      <AccountDataSection />
+    </div>
+  )
+}
+function TournamentManagementSettingsSection({ tournamentId }: { tournamentId: string }) {
+  const { tx, t } = useI18n()
+  return (
+    <SettingsSection title={tx("Administración")} description={tx("Herramientas disponibles para este torneo.")}>
+      <SettingsLinkRow href={`/tournaments/${encodeURIComponent(tournamentId)}/settings`} id="manage-tournament" title={t.settings.adminPanelTitle} description={tx("Gestiona este torneo y sus acciones sensibles.")} icon="admin" />
+    </SettingsSection>
+  )
+}
+function PlayerSettingsPage({ tournamentId }: { tournamentId?: string }) {
   const { tx } = useI18n()
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
   const { activeLeague, roundSettings } = useCurrentLeagueData()
   const {
     canAccessLeagueAdminTools,
-    canCreateLeagues,
     getLeagueExperienceMode,
     getMembershipForLeague,
     hasLeagueAdminRole,
@@ -458,13 +512,11 @@ function PlayerSettingsPage() {
     userLeagues,
   } = useLeagueAccess()
   const router = useRouter()
+  const isTournamentContext = Boolean(tournamentId)
   const activeMembership = getMembershipForLeague(activeLeague.id)
   const hasAdminRole = hasLeagueAdminRole(activeLeague.id)
   const experienceMode = getLeagueExperienceMode(activeLeague.id)
   const canAccessAdmin = canAccessLeagueAdminTools(activeLeague.id)
-  // Creating a new league is an account capability. It must remain available
-  // while the active league is displayed in player experience mode.
-  const canCreateLeaguesInCurrentView = canCreateLeagues
   const canSelfUnlink = Boolean(activeMembership && activeMembership.role !== "creator")
   const hasLeagues = userLeagues.length > 0
   const [isUnlinkingLeague, setIsUnlinkingLeague] = useState(false)
@@ -566,6 +618,7 @@ function PlayerSettingsPage() {
           <LanguageSwitcher />
         </SettingsStaticRow>
         <AppearanceSettingsLink />
+        <SettingsLinkRow href="/settings/sounds" id="sounds" title={tx("Sonidos y avisos")} description={tx("Personaliza y prueba los avisos de las rondas de tus torneos.")} icon="notifications" />
         <SettingsLinkRow
           href="/settings/notifications"
           id="notifications"
@@ -574,7 +627,7 @@ function PlayerSettingsPage() {
           description={tx("Activa push y elige qué avisos quieres recibir en este dispositivo.")}
           icon="notifications"
         />
-        {roundSettings.availabilityRecommendationsEnabled ? (
+        {!isTournamentContext && roundSettings.availabilityRecommendationsEnabled ? (
           <SettingsLinkRow
             href="/availability"
             id="availability"
@@ -584,8 +637,10 @@ function PlayerSettingsPage() {
           />
         ) : null}
       </SettingsSection>
-      <SettingsSection
-        title={tx("Mis ligas")}
+      {isTournamentContext ? <SettingsSection title={tx("Competiciones")} description={tx("Vuelve a tus ligas y torneos.")}>
+        <SettingsLinkRow href="/leagues" id="leagues" title={tx("Mis Competiciones")} description={tx("Consulta tus ligas y torneos desde un único lugar.")} icon="leagues" />
+      </SettingsSection> : <SettingsSection
+        title={tx("Mis Competiciones")}
         description={tx("Cambia de competición, entra en otra liga o crea una nueva.")}
       >
         {hasLeagues ? (
@@ -593,7 +648,7 @@ function PlayerSettingsPage() {
             href="/leagues"
             id="leagues"
             tour="settings-context-switcher"
-            title={tx("Mis ligas")}
+            title={tx("Mis Competiciones")}
             description={tx(`Liga activa: ${activeLeague.name}. Consulta y cambia de competición.`)}
             icon="leagues"
           />
@@ -602,18 +657,9 @@ function PlayerSettingsPage() {
           href="/invite"
           id="join-league"
           title={t.settings.joinNewExistingLeague}
-          description={tx("Usa un código o enlace de invitación para acceder a otra liga.")}
+          description={tx("Usa un código o enlace de invitación para acceder a una liga o torneo.")}
           icon="join"
         />
-        {canCreateLeaguesInCurrentView ? (
-          <SettingsLinkRow
-            href="/league/new"
-            id="create-league"
-            title={t.settings.createNewLeague}
-            description={tx("Configura una competición nueva desde cero.")}
-            icon="create"
-          />
-        ) : null}
         {canSelfUnlink ? (
           <div id="unlink" className="settings-search-target bg-red-50 px-3 py-3">
             <div className="flex items-start justify-between gap-3">
@@ -639,8 +685,8 @@ function PlayerSettingsPage() {
             ) : null}
           </div>
         ) : null}
-      </SettingsSection>
-      <SettingsSection
+      </SettingsSection>}
+      {!isTournamentContext ? <SettingsSection
         title={tx("Actividad personal")}
         description={tx("Movimientos económicos e historial de la liga.")}
       >
@@ -670,8 +716,9 @@ function PlayerSettingsPage() {
           description={tx("Consulta el historial de cambios y acciones desde que te vinculaste.")}
           icon="activity"
         />
-      </SettingsSection>
-      {hasAdminRole || isSuperuser ? (
+      </SettingsSection> : null}
+      {isTournamentContext && tournamentId ? <SettingsSection title={tx("Invitaciones")}><div className="p-3"><TournamentShareButton tournamentId={tournamentId} inline /></div></SettingsSection> : null}
+      {isTournamentContext && tournamentId ? <TournamentManagementSettingsSection tournamentId={tournamentId} /> : hasAdminRole || isSuperuser ? (
         <SettingsSection
           title={tx("Administración")}
           description={tx("Herramientas que dependen de tus permisos actuales.")}

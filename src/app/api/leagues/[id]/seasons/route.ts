@@ -1,4 +1,7 @@
+import { getServerLeagueModality } from "@/lib/serverLeagueModality"
+import { validateLeaguePairs } from "@/lib/fixedPairLeague"
 import { NextResponse } from "next/server"
+import { resolveOpeningRoundLocation } from "@/lib/serverGlobalLocations"
 import {
   getSeasonScheduleRoundCount,
   isValidSeasonScheduleTarget,
@@ -18,8 +21,6 @@ import { isSeasonPlayerCountInRange } from "@/lib/seasonPlayerCount"
 import { isBallsAssignmentPriorityRef } from "@/lib/organizationBallsAssignment"
 import {
   createScheduledLeagueLocationValue,
-  getLeagueLocationIdentityKey,
-  normalizeLeagueLocations,
   normalizeScheduleLocationValue,
 } from "@/lib/leagueLocations"
 
@@ -27,6 +28,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 type CreateSeasonBody = {
+  fixedPairs?: unknown
   activeSeasonId?: unknown
   name?: unknown
   playerIds?: unknown
@@ -297,6 +299,7 @@ export async function POST(
     return NextResponse.json({ error: access.error }, { status: access.status })
   }
 
+  const modality = await getServerLeagueModality(access.actor.supabase, leagueId)
   const body = await parseJsonBody<CreateSeasonBody>(request)
   const name = cleanString(body?.name)
   const playerIds = parseUuidArray(body?.playerIds)
@@ -313,7 +316,7 @@ export async function POST(
   const calendarVisibilityMode = parseCalendarVisibilityMode(body?.calendarVisibilityMode) ?? "full"
   const openingRoundEnabled = body?.openingRoundEnabled === true
   const openingRoundAt = parseOptionalScheduledStart(body?.openingRoundAt)
-  const openingRoundLocation = parseOpeningRoundLocation(body?.openingRoundLocation)
+  let openingRoundLocation = parseOpeningRoundLocation(body?.openingRoundLocation)
   const playerCapacity = Number(body?.playerCapacity)
   const availabilityRecommendationsEnabled =
     typeof body?.availabilityRecommendationsEnabled === "boolean"
@@ -368,7 +371,7 @@ export async function POST(
     preseasonSecretDaysBefore === undefined ||
     openingRoundAt === undefined ||
     openingRoundLocation === undefined ||
-    !isSeasonPlayerCountInRange(playerCapacity) ||
+    !isSeasonPlayerCountInRange(playerCapacity, modality) ||
     !ballsAssignmentPriority ||
     !ballsAssignmentCustodianIds ||
     (body?.ballsAssignmentMode !== undefined && body.ballsAssignmentMode !== "priority" && body.ballsAssignmentMode !== "selected") ||
@@ -397,16 +400,12 @@ export async function POST(
     if (leagueError) {
       return NextResponse.json({ error: "league_locations_lookup_failed" }, { status: 500 })
     }
-    const requestedLocation = normalizeScheduleLocationValue(openingRoundLocation)
-    const leagueLocations = normalizeLeagueLocations(leagueRow?.locations)
-    const belongsToLeague = Boolean(
-      requestedLocation && leagueLocations.some(
-        (location) => getLeagueLocationIdentityKey(location) === getLeagueLocationIdentityKey(requestedLocation),
-      ),
-    )
-    if (!belongsToLeague) {
-      return NextResponse.json({ error: "opening_round_location_invalid" }, { status: 400 })
+    try {
+      openingRoundLocation = await resolveOpeningRoundLocation(access.actor.supabase, openingRoundLocation, leagueRow?.locations) ?? undefined;
+    } catch {
+      return NextResponse.json({ error: "global_locations_lookup_failed" }, { status: 500 })
     }
+    if (!openingRoundLocation) return NextResponse.json({ error: "opening_round_location_invalid" }, { status: 400 })
   }
 
   if (
@@ -429,11 +428,12 @@ export async function POST(
       : playerIds.length + appUserIds.length + newPlayerNames.length
   const targetRoundCount =
     requestedTargetRoundCount ??
-    getSeasonScheduleRoundCount({ playerCount: totalPlayers, mode: scheduleMode })
+    getSeasonScheduleRoundCount({ playerCount: totalPlayers, mode: scheduleMode, modality })
 
   if (
-    !isSeasonPlayerCountInRange(totalPlayers) ||
+    !isSeasonPlayerCountInRange(totalPlayers, modality) ||
     !isValidSeasonScheduleTarget({
+      modality,
       playerCount: totalPlayers,
       mode: scheduleMode,
       targetRoundCount,
@@ -450,6 +450,9 @@ export async function POST(
       `__new_player__${index}`,
     ),
   ])
+  if (modality === "fixed_pairs" && rosterMode === "fixed" && !validateLeaguePairs(body?.fixedPairs, [...validPlayerValues])) {
+    return NextResponse.json({ error: "invalid_fixed_pairs" }, { status: 400 })
+  }
   const validSelfPlayerValues = new Set<string>([
     ...playerIds,
     ...Array.from({ length: newPlayerNames.length }, (_, index) => `__new_player__${index}`),
@@ -475,6 +478,7 @@ export async function POST(
       actor: access.actor,
       input: {
         leagueId,
+        fixedPairs: modality === "fixed_pairs" && rosterMode === "fixed" ? body!.fixedPairs as [string, string][] : undefined,
         activeSeasonId,
         name,
         playerIds,

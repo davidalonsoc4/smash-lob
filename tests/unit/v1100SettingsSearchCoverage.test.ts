@@ -43,6 +43,13 @@ describe("v1.10.0 settings search coverage", () => {
     expect(searchSettingsEntries(entries, "foto perfil", "es").some((entry) => entry.id === "account")).toBe(true)
   })
 
+  it("finds tournament organization from settings only for league admins", () => {
+    const adminEntries = buildSettingsSearchEntries("es", adminCapabilities)
+    const tournament = searchSettingsEntries(adminEntries, "organizar torneo", "es")[0]
+    expect(tournament?.id).toBe("organizeTournament"); expect(tournament?.href).toBe("/admin#organize-tournament")
+    expect(buildSettingsSearchEntries("es", { ...adminCapabilities, canAccessAdmin: false }).some((entry) => entry.id === "organizeTournament")).toBe(false)
+  })
+
   it("finds superadmin competitive-player images directly", () => {
     const entries = buildSettingsSearchEntries("es", {
       ...adminCapabilities,
