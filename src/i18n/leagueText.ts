@@ -7,6 +7,13 @@ type DictionaryRecord = Record<string, unknown>
 
 const EXACT_OVERRIDES = {
   en: {
+    "Opcional. Si no lo activas, los jugadores se coordinan desde el chat.": "Optional. When disabled, players coordinate in the chat.",
+    "Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos.": "Use players’ usual availability to suggest dates when scheduling matches.",
+    "Equilibrado": "Balanced",
+    "Manual": "Manual",
+    "Jornadas totales": "Total rounds",
+    "Sin confirmación": "No confirmation",
+    "Cuota de inscripción por jugador": "Registration fee per player",
     "Color de liga": "League color",
     "1. Tipo de duración": "1. Length type",
     "Tipo de duración": "Length type",
@@ -1295,6 +1302,13 @@ const EXACT_OVERRIDES = {
   "🏆 Desempates en el ranking": "🏆 Ranking tiebreakers"
   },
   eu: {
+    "Opcional. Si no lo activas, los jugadores se coordinan desde el chat.": "Aukerakoa. Aktibatzen ez baduzu, jokalariak txatetik koordinatzen dira.",
+    "Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos.": "Erabili jokalarien ohiko ordutegiak partidak programatzean datak proposatzeko.",
+    "Equilibrado": "Orekatua",
+    "Manual": "Eskuzkoa",
+    "Jornadas totales": "Jardunaldiak guztira",
+    "Sin confirmación": "Baieztapenik gabe",
+    "Cuota de inscripción por jugador": "Jokalari bakoitzeko izen-emate kuota",
     "Color de liga": "Ligaren kolorea",
     "1. Tipo de duración": "1. Iraupen mota",
     "Tipo de duración": "Iraupen mota",

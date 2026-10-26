@@ -1,3 +1,8 @@
+## MC67 — Numeración y claridad del resumen
+- Estado: COMPLETO LOCAL (26/10/2026);9 pruebas y14/14 E2E finales PASS, sin publicación.
+- Alcance: numerar los nueve bloques avanzados y mostrar sus rangos en los desplegables cerrados; evitar numeración secundaria ambigua en Duración; incorporar los ajustes posteriores de textos/orden y plantilla en dos columnas del resumen; panel5 coherente, MVP automático avanzado predeterminado y cabeceras compactas sin solapamiento de acciones. Sin cambios de temporadas existentes ni publicación.
+- Gates: TypeScript, lint, i18n/presupuesto de fuente, pruebas de creación y recorrido guiado móvil/escritorio claro/oscuro con creación y edición conservadas.
+
 ## MC66 — Duración, catálogo global y resumen visual
 - Estado: COMPLETO LOCAL (26/10/2026); validate1650 pruebas y46/46 E2E PASS, sin publicación.
 - Alcance: jerarquía clara tipo de duración/vueltas; retirar recomendaciones de ubicación del asistente; apertura busca en catálogo global con validación compatible con ubicaciones antiguas; resumen visual completo y editable.

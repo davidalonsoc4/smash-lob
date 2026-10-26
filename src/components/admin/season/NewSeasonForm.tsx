@@ -644,7 +644,7 @@ export function NewSeasonForm({
   const [secretDaysBefore, setSecretDaysBefore] = useState("7");
   const [roundWindowDays, setRoundWindowDays] = useState("15");
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
-  const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic");
+  const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic_advanced");
   const [resultConfirmationMode, setResultConfirmationMode] =
     useState<ResultConfirmationMode>("none");
   const [availabilityRecommendationsEnabled, setAvailabilityRecommendationsEnabled] = useState(false);
@@ -912,14 +912,14 @@ export function NewSeasonForm({
     roundWindowMode !== "none" && (!seasonStartsAt || !Number.isFinite(parsedRoundWindowDays) || parsedRoundWindowDays < 1) && ["advanced", "Completa la fecha y el plazo de las jornadas."],
   ].filter((issue): issue is string[] => Array.isArray(issue));
   const completedPlayerCount = selectedPlayerIds.length + selectedAppUsers.length + cleanNewPlayerNames.filter(Boolean).length;
-  const customized = calendarMode !== "balanced" || effectiveScheduleMode !== "single" || durationMode !== "complete" || calendarVisibilityMode !== "full" || roundWindowMode !== "none" || Boolean(scheduledStartAt) || openingRoundEnabled || !requiresThreeSets || mvpSystem !== "automatic" || resultConfirmationMode !== "none" || availabilityRecommendationsEnabled || organizationBallsAssigned || hasRegistrationFee;
+  const customized = calendarMode !== "balanced" || effectiveScheduleMode !== "single" || durationMode !== "complete" || calendarVisibilityMode !== "full" || roundWindowMode !== "none" || Boolean(scheduledStartAt) || openingRoundEnabled || !requiresThreeSets || mvpSystem !== "automatic_advanced" || resultConfirmationMode !== "none" || availabilityRecommendationsEnabled || organizationBallsAssigned || hasRegistrationFee;
   const summaryGroups: SeasonCreationSummaryGroup[] = [
     { title: "Liga", target: isFirstLeagueSeason ? "league" : "basic", accent: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT, featured: <div className="mb-3 flex min-w-0 items-center gap-3"><LeagueLogo league={leagueIdentity} size="lg" previewable={false} /><div className="min-w-0 flex-1"><p className="break-words text-lg font-black">{leagueIdentity?.name ?? activeLeagueName}</p><p className="mt-1 text-xs text-neutral-500">{tx(isPairLeague ? "Por parejas fijas" : "Individual de Smash & Lob")}</p><span className="mt-2 inline-flex items-center gap-1.5 text-xs text-neutral-500"><span role="img" aria-label={leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT} className="h-3 w-3 rounded-full" style={{ backgroundColor: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT }} />{tx("Color de liga")}</span></div></div>, rows: [["Descripción", leagueIdentity?.description || "—"], ["Recomendaciones de la liga", leagueIdentity?.recommendations || "—"]] },
-    { title: "Participantes", target: "basic", rows: [["Temporada", newSeasonName], ["Jugadores", playerCount], ...(isPairLeague ? [["Parejas", playerCount / 2] as [string, number]] : []), ["Inscripción", rosterMode === "fixed" ? t.adminSeason.rosterModeFixedTitle : t.adminSeason.rosterModeSelfTitle]] },
-    { title: "Calendario y duración", target: "advanced", rows: [["Calendario", calendarMode === "manual" ? t.adminSeason.manualCalendar : t.adminSeason.balancedCalendar], ["Duración", durationMode === "custom" ? t.adminSeason.durationCustomTitle : effectiveScheduleMode === "single" ? t.adminSeason.singleRoundCalendar : effectiveScheduleMode === "double" ? t.adminSeason.doubleRoundCalendar : `${t.adminSeason.extendedCalendar} ×${longMultiplier}`], ["Jornadas", totalSeasonRounds], ["Partidos por jornada", getSeasonMatchesPerRound(playerCount, modality)], ["Descansos por jornada", playerCount - 4 * getSeasonMatchesPerRound(playerCount, modality)]] },
-    { title: "Inicio y visibilidad", target: "advanced", rows: [["Inicio", scheduledStartAt ? `${formatCreationDate(scheduledStartIso)} (${tx("Hora de Madrid")})` : tx("Manual, cuando esté todo preparado")], ["Calendario visible", calendarVisibilityMode === "full" ? t.adminSeason.calendarVisibilityFullTitle : t.adminSeason.calendarVisibilityProgressiveTitle], ["Plazo por jornada", roundWindowMode === "none" ? tx("Sin plazo fijo") : `${roundWindowDays} ${tx("días")}`], ...(roundWindowMode !== "none" ? [["Fecha de comienzo", seasonStartsAt] as [string, string]] : []), ["Jornada inaugural", openingRoundEnabled ? `${formatCreationDate(effectiveOpeningRoundIso)} · ${selectedOpeningRoundLocation ? getLeagueLocationTownNameLabel(selectedOpeningRoundLocation) : "—"}` : tx("No")], ["Fase secretos", secretPhaseEnabled && scheduledStartAt ? `${secretDaysBefore} ${tx("días antes")}` : tx("No")]] },
-    { title: "Reglas de juego", target: "advanced", rows: [["Resultado", tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")], ["Sistema MVP", tx(mvpSystem === "automatic" ? "Automático" : mvpSystem === "none" ? "Desactivado" : mvpSystem === "automatic_advanced" ? "Automático avanzado" : "Votación")], ["Confirmación de resultados", tx(resultConfirmationMode === "none" ? "Sin confirmación adicional" : resultConfirmationMode === "required" ? "Obligatoria" : "Opcional")], ["Disponibilidad y recomendaciones", yesNo(availabilityRecommendationsEnabled)]] },
-    { title: "Organización y pagos", target: "advanced", rows: [["Bolas asignadas por la organización", yesNo(organizationBallsAssigned)], ...(organizationBallsAssigned ? [["Modo de reparto", tx(ballsAssignmentMode === "selected" ? "Custodios seleccionados" : "Por prioridad")], ["Custodios", (ballsAssignmentMode === "selected" ? effectiveBallsAssignmentCustodianRefs : effectiveBallsAssignmentPriority).map(ref => ballsAssignmentPriorityEntries.find(entry => entry.ref === ref)?.name ?? ref).join(" · ")]] as Array<[string, string]> : []), ["Cuota por jugador", hasRegistrationFee ? `${registrationFeeAmount} €` : tx("Sin cuota")], ...(hasRegistrationFee ? [["Concepto de la cuota", registrationFeePurpose] as [string, string]] : [])] },
+    { title: "Participantes", target: "basic", inlineMetrics: true, rows: [["Temporada", newSeasonName], ["Jugadores", playerCount], ["Inscripción", rosterMode === "fixed" ? t.adminSeason.rosterModeFixedTitle : t.adminSeason.rosterModeSelfTitle], ...(isPairLeague ? [["Parejas", playerCount / 2] as [string, number]] : [])] },
+    { title: "Calendario y duración", target: "advanced", rows: [["Calendario", calendarMode === "manual" ? t.adminSeason.manualCalendar : tx("Equilibrado")], ["Duración", durationMode === "custom" ? t.adminSeason.durationCustomTitle : effectiveScheduleMode === "single" ? t.adminSeason.singleRoundCalendar : effectiveScheduleMode === "double" ? t.adminSeason.doubleRoundCalendar : `${t.adminSeason.extendedCalendar} ×${longMultiplier}`], ["Jornadas totales", totalSeasonRounds], ["Partidos por jornada", getSeasonMatchesPerRound(playerCount, modality)], ["Descansos por jornada", playerCount - 4 * getSeasonMatchesPerRound(playerCount, modality)]] },
+    { title: "Inicio y visibilidad", target: "advanced", rows: [["Inicio", scheduledStartAt ? `${formatCreationDate(scheduledStartIso)} (${tx("Hora de Madrid")})` : tx("Manual")], ["Calendario visible", calendarVisibilityMode === "full" ? t.adminSeason.calendarVisibilityFullTitle : t.adminSeason.calendarVisibilityProgressiveTitle], ["Plazo por jornada", roundWindowMode === "none" ? tx("Sin plazo fijo") : `${roundWindowDays} ${tx("días")}`], ...(roundWindowMode !== "none" ? [["Fecha de comienzo", seasonStartsAt] as [string, string]] : []), ["Jornada inaugural", openingRoundEnabled ? `${formatCreationDate(effectiveOpeningRoundIso)} · ${selectedOpeningRoundLocation ? getLeagueLocationTownNameLabel(selectedOpeningRoundLocation) : "—"}` : tx("No")], ["Fase secretos", secretPhaseEnabled && scheduledStartAt ? `${secretDaysBefore} ${tx("días antes")}` : tx("No")]] },
+    { title: "Reglas de juego", target: "advanced", rows: [["Resultado", tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")], ["Sistema MVP", tx(mvpSystem === "automatic" ? "Automático" : mvpSystem === "none" ? "Desactivado" : mvpSystem === "automatic_advanced" ? "Automático avanzado" : "Votación")], ["Confirmación de resultados", tx(resultConfirmationMode === "none" ? "Sin confirmación" : resultConfirmationMode === "required" ? "Obligatoria" : "Opcional")], ["Disponibilidad y recomendaciones", yesNo(availabilityRecommendationsEnabled)]] },
+    { title: "Organización y pagos", target: "advanced", rows: [["Bolas asignadas por la organización", yesNo(organizationBallsAssigned)], ...(organizationBallsAssigned ? [["Modo de reparto", tx(ballsAssignmentMode === "selected" ? "Custodios seleccionados" : "Por prioridad")], ["Custodios", (ballsAssignmentMode === "selected" ? effectiveBallsAssignmentCustodianRefs : effectiveBallsAssignmentPriority).map(ref => ballsAssignmentPriorityEntries.find(entry => entry.ref === ref)?.name ?? ref).join(" · ")]] as Array<[string, string]> : []), ["Cuota de inscripción por jugador", hasRegistrationFee ? `${registrationFeeAmount} €` : tx("Sin cuota")], ...(hasRegistrationFee ? [["Concepto de la cuota", registrationFeePurpose] as [string, string]] : [])] },
   ];
   const summaryParticipants = rosterMode === "self_registration" ? [] : isPairLeague ? fixedPairs.map(pair => pair.map(id => manualPlayerOptions.find(option => option.value === id)?.label ?? "")) : manualPlayerOptions.map(option => [option.label]);
 
@@ -1353,7 +1353,8 @@ export function NewSeasonForm({
   return (
     <form onSubmit={event => { event.preventDefault(); if (creationStep !== "summary") { if (validationIssues.some(([step]) => step === "basic")) return; setSummaryBackStep(creationStep === "advanced" ? "advanced" : "basic"); goToCreationStep("summary"); return; } if (creationSubmitLock.current) return; creationSubmitLock.current = true; void handleStartSeason(event).finally(() => { creationSubmitLock.current = false; }); }} noValidate className="compact-page space-y-3" data-season-creation-step={creationStep}>
       <fieldset disabled={isSaving} className="min-w-0 space-y-3 border-0 p-0">
-      <div ref={creationHeading} tabIndex={-1} className="app-page-header outline-none"><div className="league-creation-progress text-neutral-500">{draftLeague ? <button type="button" onClick={onExit} className="app-top-back-control flex min-h-11 items-center gap-2"><span aria-hidden="true">←</span>{tx("Competiciones")}</button> : tx("Liga · Temporada")}</div><CreationTitle className="league-creation-title type-page-title mt-1 text-xl font-black">{tx(creationStep === "summary" ? "Revisar y confirmar" : creationStep === "advanced" ? "Ajustes avanzados" : "Configurar temporada")}</CreationTitle></div>
+      {draftLeague ? <button type="button" onClick={onExit} className="app-top-back-control flex min-h-11 items-center gap-2"><span aria-hidden="true">←</span>{tx("Competiciones")}</button> : null}
+      <div ref={creationHeading} tabIndex={-1} className="app-page-header league-season-header outline-none"><div className="league-creation-progress text-neutral-500">{tx("Liga · Temporada")}</div><CreationTitle className="league-creation-title type-page-title mt-1 text-xl font-black">{tx(creationStep === "summary" ? "Revisar y confirmar" : creationStep === "advanced" ? "Ajustes avanzados" : "Configurar temporada")}</CreationTitle></div>
       <div hidden={creationStep !== "basic"} className="space-y-3" data-season-creation-basic>
       <AppCard>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
@@ -1618,9 +1619,9 @@ export function NewSeasonForm({
 
 </div>
 <div hidden={creationStep !== "advanced"} className="space-y-3" data-season-creation-advanced>
-<details className="league-creation-details"><summary>{tx("Calendario y duración")}<span className="text-xs font-normal text-neutral-500">{`${totalSeasonRounds} ${t.adminSeason.roundsShortLabel}`}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard data-season-calendar-type>
+<details className="league-creation-details"><summary><span className="league-creation-block-title"><span className="league-creation-range">1–2</span>{tx("Calendario y duración")}</span><span className="text-xs font-normal text-neutral-500">{`${totalSeasonRounds} ${t.adminSeason.roundsShortLabel}`}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard data-season-calendar-type>
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
+          <span aria-hidden="true" className="league-creation-number">
             1
           </span>
           <p className="font-bold">{t.adminSeason.calendarModeLabel}</p>
@@ -1683,7 +1684,7 @@ export function NewSeasonForm({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
+              <span aria-hidden="true" className="league-creation-number">
                 2
               </span>
               <p className="text-sm font-black">
@@ -1699,7 +1700,7 @@ export function NewSeasonForm({
           </span>
         </div>
 
-        <label className="mt-4 block"><span className="text-xs font-bold text-neutral-500">{tx("1. Tipo de duración")}</span>
+        <label className="mt-4 block"><span className="text-xs font-bold text-neutral-500">{tx("Tipo de duración")}</span>
           <select aria-label={tx("Tipo de duración")} value={durationMode} className="league-creation-input mt-1" onChange={event => {
             const mode = event.target.value as SeasonDurationMode;
             setDurationMode(mode);
@@ -1711,7 +1712,7 @@ export function NewSeasonForm({
         {durationMode === "complete" ? (
             <div className="season-duration-nested mt-3 space-y-3 rounded-xl border border-neutral-200 p-3" data-season-complete-duration>
               <p className="text-xs font-semibold text-neutral-500">{tx("Dentro de Equilibrada completa")}</p>
-              <label className="block"><span className="text-sm font-bold">{tx("2. Vueltas completas")}</span>
+              <label className="block"><span className="text-sm font-bold">{tx("Vueltas completas")}</span>
                 <select aria-label={tx("Vueltas completas")} value={scheduleMode} className="league-creation-input mt-1" onChange={event => {
                   const mode = event.target.value as SeasonScheduleMode; setScheduleMode(mode);
                   refreshManualCalendarFromPlayers({ selectedIds: selectedPlayerIds, count: playerCount, mode, targetRounds: getSeasonScheduleRoundCount({ playerCount, mode, longMultiplier }) });
@@ -1970,9 +1971,9 @@ export function NewSeasonForm({
       ) : null}
 
 </div></details>
-<details className="league-creation-details"><summary>{tx("Inicio y visibilidad")}<span className="text-xs font-normal text-neutral-500">{scheduledStartAt ? tx("Inicio programado") : tx("Inicio manual")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard data-season-calendar-visibility>
+<details className="league-creation-details"><summary><span className="league-creation-block-title"><span className="league-creation-range">3</span>{tx("Inicio y visibilidad")}</span><span className="text-xs font-normal text-neutral-500">{scheduledStartAt ? tx("Inicio programado") : tx("Inicio manual")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard data-season-calendar-visibility>
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
+          <span aria-hidden="true" className="league-creation-number">
             3
           </span>
           <p className="font-bold">{t.adminSeason.calendarVisibilityTitle}</p>
@@ -2229,8 +2230,8 @@ export function NewSeasonForm({
       </AppCard>
 
 </div></details>
-<details className="league-creation-details"><summary>{tx("Reglas de juego")}<span className="text-xs font-normal text-neutral-500">{tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard>
-        <p className="font-bold">{t.adminSeason.resultRulesTitle}</p>
+<details className="league-creation-details"><summary><span className="league-creation-block-title"><span className="league-creation-range">4–7</span>{tx("Reglas de juego")}</span><span className="text-xs font-normal text-neutral-500">{tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">4</span><p className="text-sm font-black">{t.adminSeason.resultRulesTitle}</p></div>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           {t.adminSeason.resultRulesDescription}
         </p>
@@ -2258,23 +2259,16 @@ export function NewSeasonForm({
       </AppCard>
 
       <AppCard>
-        <label className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            checked={availabilityRecommendationsEnabled}
-            onChange={(event) => setAvailabilityRecommendationsEnabled(event.target.checked)}
-            className="mt-0.5 h-4 w-4"
-          />
-          <span>
-            <span className="block text-sm font-black">{tx("Disponibilidad y recomendaciones")}</span>
-            <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
-              {tx("Opcional. Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos. Por defecto se coordina desde el chat.")}{" "}</span>
-          </span>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">5</span><p className="text-sm font-black">{tx("Disponibilidad y recomendaciones")}</p></div>
+        <p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Opcional. Si no lo activas, los jugadores se coordinan desde el chat.")}</p>
+        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+          <input type="checkbox" checked={availabilityRecommendationsEnabled} onChange={(event) => setAvailabilityRecommendationsEnabled(event.target.checked)} className="mt-1" />
+          <span className="text-sm font-semibold">{tx("Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos.")}</span>
         </label>
       </AppCard>
 
       <AppCard>
-        <p className="font-bold">{tx("Sistema MVP")}</p>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">6</span><p className="text-sm font-black">{tx("Sistema MVP")}</p></div>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           {tx("Decide si habrá MVP de jornada y cómo se seleccionará.")}{" "}</p>
 
@@ -2290,7 +2284,7 @@ export function NewSeasonForm({
 
 
       <AppCard>
-        <p className="font-bold">{tx("Confirmación de resultados")}</p>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">7</span><p className="text-sm font-black">{tx("Confirmación de resultados")}</p></div>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           {tx("Decide si los resultados necesitan validación de los jugadores.")}{" "}</p>
 
@@ -2304,8 +2298,8 @@ export function NewSeasonForm({
       </AppCard>
 
 </div></details>
-<details className="league-creation-details"><summary>{tx("Organización y pagos")}<span className="text-xs font-normal text-neutral-500">{hasRegistrationFee ? `${registrationFeeAmount} €` : tx("Sin cuota")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard>
-        <p className="font-bold">{tx("Bolas asignadas por la organización")}</p>
+<details className="league-creation-details"><summary><span className="league-creation-block-title"><span className="league-creation-range">8–9</span>{tx("Organización y pagos")}</span><span className="text-xs font-normal text-neutral-500">{hasRegistrationFee ? `${registrationFeeAmount} €` : tx("Sin cuota")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">8</span><p className="text-sm font-black">{tx("Bolas asignadas por la organización")}</p></div>
         <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
           {tx("La organización entrega un bote por partido. Se desactiva la compra de bolas y la app asigna el encargado con el menor número de custodios posible.")}
         </p>
@@ -2389,7 +2383,7 @@ export function NewSeasonForm({
       </AppCard>
 
       <AppCard>
-        <p className="font-bold">{tx("Inscripción")}</p>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">9</span><p className="text-sm font-black">{tx("Inscripción")}</p></div>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           {tx("Define si esta temporada tiene cuota de inscripción y cuánto debe pagar cada jugador.")}{" "}</p>
 
@@ -2460,7 +2454,7 @@ export function NewSeasonForm({
 </div></details>
 </div>
 {creationStep === "summary" ? <SeasonCreationSummary groups={summaryGroups} participants={summaryParticipants} onEdit={goToCreationStep} /> : null}
-      {creationStep === "basic" ? <AppCard><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-bold">{tx(customized ? "Ajustes personalizados" : "Configuración básica")}</h3><button type="button" onClick={() => goToCreationStep("advanced")} className="league-creation-secondary league-creation-advanced">{tx("Personalizar ajustes avanzados")}</button></div><p className="mt-2 text-xs leading-5 text-neutral-500">{totalSeasonRounds} {t.adminSeason.roundsShortLabel} · {tx(calendarMode === "balanced" ? "Calendario automático" : "Calendario manual")} · {tx(calendarVisibilityMode === "full" ? "Calendario completo visible" : "Publicación progresiva")} · {tx(scheduledStartAt ? "Inicio programado" : "Inicio manual")}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")} · {tx(mvpSystem === "automatic" ? "MVP automático" : "MVP personalizado")} · {tx(hasRegistrationFee ? "Con cuota" : "Sin cuota")}</p></AppCard> : null}
+      {creationStep === "basic" ? <AppCard><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-bold">{tx(customized ? "Ajustes personalizados" : "Configuración básica")}</h3><button type="button" onClick={() => goToCreationStep("advanced")} className="league-creation-secondary league-creation-advanced">{tx("Personalizar ajustes avanzados")}</button></div><p className="mt-2 text-xs leading-5 text-neutral-500">{totalSeasonRounds} {t.adminSeason.roundsShortLabel} · {tx(calendarMode === "balanced" ? "Calendario automático" : "Calendario manual")} · {tx(calendarVisibilityMode === "full" ? "Calendario completo visible" : "Publicación progresiva")} · {tx(scheduledStartAt ? "Inicio programado" : "Inicio manual")}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")} · {tx(mvpSystem === "automatic_advanced" ? "MVP automático avanzado" : mvpSystem === "automatic" ? "MVP automático" : "MVP personalizado")} · {tx(hasRegistrationFee ? "Con cuota" : "Sin cuota")}</p></AppCard> : null}
       {validationIssues.filter(([step]) => creationStep !== "basic" || step === "basic").length ? <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="mb-1 font-bold">{tx("Antes de continuar")}</p>{validationIssues.filter(([step]) => creationStep !== "basic" || step === "basic").map(([step, message]) => <button type="button" className="block py-1 text-left underline underline-offset-2" key={message} onClick={() => { goToCreationStep(step as typeof creationStep); if(step === "advanced") requestAnimationFrame(() => document.querySelectorAll<HTMLDetailsElement>("[data-season-creation-advanced] > details").forEach(detail => detail.open = true)); }}>{tx(message)}</button>)}</div> : null}
       {creationStep === "summary" ? <p className="text-sm text-neutral-500">{scheduledStartAt ? tx("La temporada quedará preparada hasta el inicio programado.") : tx("La temporada quedará preparada. Podrás iniciarla cuando quieras.")}</p> : null}
       </fieldset>
