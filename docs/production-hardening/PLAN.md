@@ -1,3 +1,8 @@
+## MC75 — Acento en la propia tarjeta de actividad
+- Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles PASS con Axe/carrusel/nombres, build PASS y captura revisada. Pendiente valoración visual del usuario; sin publicación.
+- Alcance: retirar la envoltura visual exterior de Actividad personal y trasladar borde de acento/fondo suave a la tarjeta del partido, manteniendo parejas/resultados legibles y sin cambiar otras previews.
+- Gates: navegador móvil320/393px Clásico/Competition claro/oscuro, Axe/carrusel/nombres y captura visual. Sin publicación.
+
 ## MC74 — Prueba de fondo sólido suave
 - Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles PASS con Axe, build del navegador PASS y captura revisada. Pendiente valoración visual del usuario; sin publicación.
 - Alcance: sustituir únicamente el degradado exterior de Actividad personal por un sólido con8% del acento; conservar borde, interiores y navegación. Ajustar contraste del subtítulo si es necesario.

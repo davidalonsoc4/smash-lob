@@ -85,12 +85,7 @@
 }
 
 .activityHero {
-  padding: .75rem .75rem .5rem;
-  border: 1px solid color-mix(in srgb, var(--hub-accent) 38%, var(--hub-border));
-  border-top: 3px solid var(--hub-accent);
-  border-radius: 1.125rem;
-  background: color-mix(in srgb, var(--hub-accent) 8%, var(--hub-surface));
-  box-shadow: 0 6px 24px color-mix(in srgb, var(--hub-accent) 8%, transparent);
+  min-width: 0;
 }
 
 .activityHero > :global(.app-section-header) {
@@ -99,13 +94,17 @@
   padding-inline: .125rem;
 }
 
-/* PersonalMatchCard stays shared. Only its surface inside this hero changes;
-   opaque interiors keep the decorative background away from names/results. */
+/* Accent belongs to the match itself, without another panel around it.
+   Pair/result surfaces retain their existing readable theme backgrounds. */
 :global(html[data-visual-style]) .activityHero :global(.app-card) {
-  border-color: var(--hub-border) !important;
-  background: var(--hub-surface) !important;
-  box-shadow: none !important;
+  border-color: var(--hub-accent) !important;
+  background: color-mix(in srgb, var(--hub-accent) 7%, var(--hub-surface)) !important;
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--hub-accent) 7%, transparent) !important;
   backdrop-filter: none;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.text-neutral-500) {
+  color: color-mix(in srgb, var(--foreground) 68%, var(--hub-surface)) !important;
 }
 
 .activityHero :global(.match-preview-pagination) {
