@@ -1,3 +1,8 @@
+## MC73 — Nombres adaptables en previews personales
+- Estado: COMPLETO LOCAL (26/10/2026),17 pruebas existentes y5 E2E móviles PASS; TypeScript/lint/build del navegador PASS. Misma rama visual, sin publicación.
+- Alcance: reutilizar FitText para reducir nombres hasta10px antes de truncarlos, manteniendo una línea y alineación en tarjetas personales de próximo/último encuentro. Fondo de actividad sin cambios, pendiente de valoración del usuario.
+- Gates: pruebas existentes de FitText/tarjeta/competiciones, lint/TypeScript y navegador móvil320/393px con nombre largo y carrusel.
+
 ## MC72 — Identidad visual de Competiciones y Mis ligas
 - Estado: COMPLETO LOCAL (26/10/2026), rama codex/competition-visual-identity;32 pruebas existentes PASS,23 E2E/1 omisión prevista y8 comprobaciones finales de paletas/logos PASS. TypeScript/lint/i18n/fuente/build PASS; sin publicación ni cambios de datos.
 - Alcance: jerarquía del bloque de actividad, superficies compactas de ligas/torneos y tarjetas completas de Mis ligas. Solo presentación, conservando datos, permisos, selección, navegación, carrusel y temas. Sin despliegues ni base de datos.

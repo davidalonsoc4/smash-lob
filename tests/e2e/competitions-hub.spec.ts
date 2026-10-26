@@ -102,10 +102,24 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   const base = { origin: "league", leagueId: "league-smash-lob", leagueName: "Liga de prueba con un nombre especialmente largo para el móvil", seasonId: "season-2", seasonName: "Temporada", round: 4, canManage: false, canDelete: false, locationName: "Pista ficticia", sets: [], participants: [{ team: 1, slot: 1, displayName: "Fixture propia", isCurrentUser: true }, { team: 2, slot: 1, displayName: "Fixture rival", isCurrentUser: false }] }
   await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { upcoming: [{ ...base, id: "fixture-next", status: "scheduled", scheduledAt: "2099-10-17T18:00:00Z", resultRecordedAt: null }], items: [{ ...base, id: "fixture-last", status: "finished", scheduledAt: "2026-10-15T10:00:00Z", resultRecordedAt: "2026-10-15T11:00:00Z", sets: [{ a: 6, b: 3 }] }], hasMore: false, nextOffset: null } }))
   await page.goto("/leagues")
+  base.participants[1].displayName = "Andoni Fernández"
+  await page.reload()
   const activity = page.locator('section[aria-labelledby="personal-activity"]'), slider = activity.locator(".match-slides")
   await expect(activity.getByText("Tu próximo partido", { exact: true })).toBeVisible()
   for (const width of [320, 393]) {
     await page.setViewportSize({ width, height: 852 })
+    const playerNames = slider.locator('[aria-hidden="false"] p').filter({ hasText: /Fixture propia|Andoni Fernández/ })
+    await expect.poll(() => playerNames.evaluateAll(names => names.every(name => {
+      const text = name.querySelector("span span") as HTMLElement | null
+      if (!text) return false
+      const css = getComputedStyle(text)
+      return parseFloat(css.fontSize) >= 10 && css.whiteSpace === "nowrap"
+    }))).toBe(true)
+    if (width === 393) await expect.poll(() => playerNames.evaluateAll(names => names.every(name => {
+      const text = name.querySelector("span span")!, range = document.createRange()
+      range.selectNodeContents(text)
+      return range.getBoundingClientRect().width <= text.getBoundingClientRect().width + .5
+    }))).toBe(true)
     const heading = activity.locator("[data-activity-heading]")
     expect(await heading.evaluate(el => {
       const title = el.querySelector("h2")!.getBoundingClientRect(), context = el.querySelector("p")!.getBoundingClientRect()

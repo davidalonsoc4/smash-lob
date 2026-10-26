@@ -95,6 +95,9 @@ Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento
 - Actividad personal es el foco de la home: marco y lavado breve del acento
   configurado, con una superficie opaca para nombres, resultados y metadatos.
   No añadir estadísticas, mensajes ni acciones para llenar espacio.
+- Los nombres de jugadores en las previews personales reutilizan `FitText`
+  en una línea, reduciendo desde14px hasta10px antes de recurrir a elipsis.
+  Respetar la alineación de cada pareja y recalcular al cambiar ancho o tema.
 - Previews de liga conservan su degradado lateral estrecho; torneos utilizan
   copa y un tinte sutil del tema. Los colores de estado mantienen su significado.
 - Mis ligas usa logo destacado sobre un fondo suave del color de la liga,

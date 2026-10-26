@@ -79,9 +79,9 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
                 {teamA.map((participant) => (
                   <p
                     key={`a-${participant.slot}`}
-                    className="truncate text-sm font-black leading-5 text-neutral-950"
+                    className="w-full text-sm font-black leading-5 text-neutral-950"
                   >
-                    {participant.displayName}
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
                   </p>
                 ))}
               </div>
@@ -113,9 +113,9 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
                 {teamB.map((participant) => (
                   <p
                     key={`b-${participant.slot}`}
-                    className="truncate text-sm font-black leading-5 text-neutral-950"
+                    className="w-full text-sm font-black leading-5 text-neutral-950"
                   >
-                    {participant.displayName}
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
                   </p>
                 ))}
               </div>
@@ -149,9 +149,9 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
                 {teamA.map((participant) => (
                   <p
                     key={`a-${participant.slot}`}
-                    className="truncate text-sm font-black leading-tight text-neutral-950"
+                    className="w-full text-sm font-black leading-tight text-neutral-950"
                   >
-                    {participant.displayName}
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
                   </p>
                 ))}
               </div>
@@ -168,9 +168,9 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
                 {teamB.map((participant) => (
                   <p
                     key={`b-${participant.slot}`}
-                    className="max-w-full truncate text-sm font-black leading-tight text-neutral-950"
+                    className="w-full text-sm font-black leading-tight text-neutral-950"
                   >
-                    {participant.displayName}
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
                   </p>
                 ))}
               </div>
