@@ -7,12 +7,14 @@ describe("v1.11.0 floating generated-image previews", () => {
   it("provides one reusable modal with blur, close, download and share", async () => {
     const modal = await read("src/components/images/GeneratedImagePreviewModal.tsx")
 
-    expect(modal).toContain("fixed inset-0 z-[120]")
-    expect(modal).toContain("backdrop-blur-sm")
-    expect(modal).toContain('aria-label={tx("Cerrar")}')
+    expect(modal).toContain("<FloatingDialog")
+    expect(modal).toContain("<DialogCloseButton")
+    expect(modal).toContain('variant="content"')
     expect(modal).toContain('tx("Descargar")')
     expect(modal).toContain('tx("Compartir")')
-    expect(modal).toContain('event.key === "Escape"')
+    const shared = await read("src/components/ui/FloatingDialog.tsx")
+    expect(shared).toContain("onCancel=")
+    expect(shared).toContain("busy")
   })
 
   it("uses the shared modal for all generated images outside the media kit", async () => {

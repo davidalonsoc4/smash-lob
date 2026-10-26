@@ -8,12 +8,14 @@ describe("image crop dialog layout", () => {
       "utf8",
     )
 
-    expect(source).toContain('import { createPortal } from "react-dom"')
-    expect(source).toContain("return createPortal(")
-    expect(source).toContain("document.body")
-    expect(source).toContain("z-[1000]")
-    expect(source).toContain("items-center")
-    expect(source).not.toContain("items-end")
+    expect(source).toContain("<FloatingDialog open")
+    expect(source).toContain('variant="content"')
+    expect(source).toContain("busy={isSaving}")
+    expect(source).toContain("requestCancel")
+    const shared = await readFile("src/components/ui/FloatingDialog.tsx", "utf8")
+    expect(shared).toContain("createPortal")
+    expect(shared).toContain("document.body")
+    expect(shared).toContain("showModal()")
   })
 
   it("keeps confirmation actions visible and adapts the crop viewport", async () => {
@@ -27,6 +29,7 @@ describe("image crop dialog layout", () => {
     expect(source).toContain("window.innerHeight - 280")
     expect(source).toContain("min-h-0 overflow-y-auto")
     expect(source).toContain("grid shrink-0 grid-cols-2")
-    expect(source).toContain("maxHeight")
+    const css = await readFile("src/app/globals.css", "utf8")
+    expect(css).toContain(".app-dialog-crop")
   })
 })

@@ -37,7 +37,10 @@ describe("v1.10.17 settings context and personal safe area", () => {
     expect(backButton).toContain("router.replace(explicitReturnTo)")
     expect(shell).toContain("hasBottomNav={shouldShowBottomNav}")
     expect(settingsSearch).toContain("hasBottomNav = true")
-    expect(settingsSearch).toContain('max(14px, env(safe-area-inset-bottom, 0px))')
+    expect(settingsSearch).toContain("<FloatingSearchButton")
+    expect(settingsSearch).toContain("hasBottomNav={hasBottomNav}")
+    const floatingButton = await read("src/components/ui/FloatingSearchButton.tsx")
+    expect(floatingButton).toContain('max(14px, env(safe-area-inset-bottom, 0px))')
   })
 
   it("uses competition-only settings and exposes tournament management inside general Settings", async () => {

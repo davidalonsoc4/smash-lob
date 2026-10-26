@@ -1,5 +1,36 @@
+## MC69 — Publicación PRE y preparación de PROD
+- Estado: EN CURSO (26/10/2026), petición explícita anterior a T06.
+- Alcance: publicar MC64–68 como v1.15.36 en staging/PRE y emitir diagnóstico documentado de PROD; ninguna modificación de main/Production/v1.0.0 ni datos reales.
+- Gates: release:check completo local, cuatro jobs CI, SHA/árbol staging, Vercel READY/alias PRE, smoke de versión/entorno/PWA/rutas; comparar migraciones y aceptación manual pendiente antes de recomendar PROD.
+
+## MC68 — Ventanas coherentes y filtros flotantes de Chats global
+- Estado: COMPLETO LOCAL (26/10/2026); validate1656 pruebas y34/34 E2E finales PASS. Sin publicación.
+- Alcance: estructura/estilos y cierre accesible compartidos en búsqueda, acciones, ayuda, ubicaciones y QR/imagen; proteger borradores al cancelar; búsqueda/filtros de Chats en lupa flotante con estado, indicador y limpieza. Mantener lógica de datos y navegación. Sin publicación ni migraciones.
+- Gates: pruebas de filtros, foco/cierre/errores/borradores, TypeScript/lint/i18n/fuente/build y navegador móvil/escritorio Clásico/Competition claro/oscuro; regresiones de búsqueda, imágenes y acciones.
+
+## MC67 — Numeración y claridad del resumen
+- Estado: COMPLETO LOCAL (26/10/2026);9 pruebas y14/14 E2E finales PASS, sin publicación.
+- Alcance: numerar los nueve bloques avanzados y mostrar sus rangos en los desplegables cerrados; evitar numeración secundaria ambigua en Duración; incorporar los ajustes posteriores de textos/orden y plantilla en dos columnas del resumen; panel5 coherente, MVP automático avanzado predeterminado y cabeceras compactas sin solapamiento de acciones. Sin cambios de temporadas existentes ni publicación.
+- Gates: TypeScript, lint, i18n/presupuesto de fuente, pruebas de creación y recorrido guiado móvil/escritorio claro/oscuro con creación y edición conservadas.
+
+## MC66 — Duración, catálogo global y resumen visual
+- Estado: COMPLETO LOCAL (26/10/2026); validate1650 pruebas y46/46 E2E PASS, sin publicación.
+- Alcance: jerarquía clara tipo de duración/vueltas; retirar recomendaciones de ubicación del asistente; apertura busca en catálogo global con validación compatible con ubicaciones antiguas; resumen visual completo y editable.
+- Gates: integración de ubicación/permisos, componentes, regresión de duración/parejas y apertura en navegador móvil claro/oscuro, TypeScript/lint/i18n/build. Sin migraciones ni publicación.
+
+## MC65 — Borrador completo de creación y correcciones de uso
+- Estado: COMPLETO LOCAL (26/10/2026); validate1641 pruebas,42 casos E2E verificados y cierre de tipos/lint/build PASS. Sin publicación.
+- Alcance: identidad sin persistir hasta confirmar temporada; salida libre a Competiciones, nombre propio precargado, cabeceras compactas, avanzada visible, Editar abre su bloque y color automático del logo reutilizado. Sin despliegues.
+- Gates: pruebas de borrador/guardado/reintento, directorio/permisos, i18n/tipos/lint/build y navegador móvil claro/oscuro; regresiones individuales/parejas.
+
+
+## MC64 — Creación guiada de ligas y temporadas
+- Estado: COMPLETO LOCAL (25/10/2026); validate1635 pruebas,60 focalizadas,40 E2E y12 revisiones finales PASS. Sin publicación.
+- Entrega: identidad con logo y modalidad explicada; configuración básica compartida, avanzada opcional y resumen; Atrás sin pérdida, participantes compactos, validación clara y estándares acordados. Reutilizar servicios/componentes; sin despliegue ni migraciones.
+- Gates: unidad/integración de creación, tipos/lint/i18n/build y E2E móvil claro/oscuro, ambos formatos y registros, navegación Atrás, logo y estándares.
+
 ## MC63 — Publicación de cambios pendientes en PRE
-- Estado: EN CURSO (25/10/2026), autorización explícita del usuario.
+- Estado: COMPLETO PRE (25/10/2026), v1.15.35 publicada y verificada; CI413 cuatro jobs PASS,1632 pruebas y241 E2E/1skip previsto.
 - Alcance: publicar la rama de desarrollo y cambios locales aceptados como v1.15.35 en staging/PRE; conservar main, Production y v1.0.0. Migraciones PRE ya aplicadas.
 - Gates: release:check local, CI de PR, integración verificada, Vercel READY/alias/commit, health/versión/PWA y rutas sin sesión. OAuth y uso físico de PWA siguen manuales.
 

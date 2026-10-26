@@ -1,4 +1,6 @@
 "use client"
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
+import { FloatingSearchButton } from "@/components/ui/FloatingSearchButton"
 
 import {
   useEffect,
@@ -174,55 +176,16 @@ export function GlobalLeagueSearch() {
 
   return (
     <>
-      {isOpen ? (
-        <button
-          type="button"
-          aria-label={t.settings.leagueSearchClose}
-          onClick={closeSearch}
-          className="fixed bottom-0 left-0 right-0 z-30 bg-neutral-950/15 backdrop-blur-[1px]"
-          style={{ top: "calc(-64px - var(--app-safe-top))" }}
-        />
-      ) : null}
-
-      <div
-        className="fixed z-40"
-        style={{
-          right: "max(14px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 14px))",
-          bottom: "calc(14px + env(safe-area-inset-bottom, 0px))",
-        }}
-      >
-        {isOpen ? (
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.settings.leagueSearchTitle}
-            className="app-search-dialog fixed z-40 flex w-[min(360px,calc(100vw-28px))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
-            style={{
-              top: "max(64px, calc(var(--app-safe-top) + 58px))",
-              left: "50%",
-              transform: "translateX(-50%)",
-              maxHeight:
-                "min(560px, calc(100svh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 150px))",
-            }}
-          >
+      <FloatingDialog open={isOpen} onClose={closeSearch} title={t.settings.leagueSearchTitle} variant="search">
             <div className="border-b border-neutral-100 px-3 pb-2.5 pt-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-black text-neutral-950">
-                    {t.settings.leagueSearchTitle}
-                  </p>
+                  <h2>{t.settings.leagueSearchTitle}</h2>
                   <p className="type-caption font-semibold text-neutral-400">
                     {userLeagues.length} {t.settings.leagueSearchAvailable}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={closeSearch}
-                  aria-label={t.settings.leagueSearchClose}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500"
-                >
-                  ×
-                </button>
+                <DialogCloseButton onClick={closeSearch} />
               </div>
 
               <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
@@ -335,24 +298,8 @@ export function GlobalLeagueSearch() {
                 </div>
               )}
             </div>
-          </section>
-        ) : null}
-
-        <button
-          type="button"
-          aria-expanded={isOpen}
-          aria-label={t.settings.leagueSearchTitle}
-          title={t.settings.leagueSearchTitle}
-          onClick={() => setIsOpen((current) => !current)}
-          className={`grid h-10 w-10 place-items-center rounded-full border shadow-lg backdrop-blur transition active:scale-95 ${
-            isOpen
-              ? "border-neutral-950 bg-neutral-950 text-white"
-              : "app-floating-control border-neutral-200 bg-white/95 text-neutral-600 active:bg-neutral-100"
-          }`}
-        >
-          <SearchIcon />
-        </button>
-      </div>
+      </FloatingDialog>
+      <FloatingSearchButton label={t.settings.leagueSearchTitle} open={isOpen} onClick={() => setIsOpen(true)} hasBottomNav={false} />
     </>
   )
 }

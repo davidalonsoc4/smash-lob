@@ -1,6 +1,6 @@
 # Estado de torneos
 
-Objetivo global: ACTIVO, no completado. Primer hito incompleto: **T05**.
+Objetivo global: ACTIVO, no completado. Primer hito incompleto: **T06**.
 
 ## Checkpoint 24/10/2026 — inventario inicial
 
@@ -264,3 +264,6 @@ Gates confirmados: validate PASS283archivos/1603pruebas, tipos/lint/build/presup
 Aplicada y verificada solo la migración nueva20261024195529_fixed_pair_leagues.sql en smash-lob-staging/miadjotkucgluwbrgeih, con autorización PRE vigente. Historial, columnas/defaults/restricciones y cuatro funciones invoker/search_path fijo/servicio verificados. Dry-run posterior sin pendientes, advisor sin WARN/ERROR, RESTlimit0 HTTP200 y healthlocal200. Checksums de8ligas/16temporadas/142participantes/328partidos/5torneos idénticos antes/después; las8ligas siguen individuales y ninguna temporada previa tiene pair_number. Sin fixtures/datos personales de prueba enPRE, push, merge, despliegue ni Producción. Commit funcional local47320b27.
 
 Para probar: recargar local, Mis ligas→Crear liga→Por parejas fijas y preparar una temporada. Ver pasos en VALIDATION. Primer hito pendiente vuelve aT06; esta entrega cierra únicamente la modalidad de ligas solicitada, no el objetivo integral de torneos. No comenzar otro dominio durante la entrega para pruebas.
+
+## Publicación PRE — 25/10/2026
+Autorización posterior del usuario: código pendiente publicado como1.15.35 en PRE, stagingd41f0eaf y Verceldpl_FC2eWiexo5QiqXtJPQQjkJ1em8Y7 READY, alias/health/PWA/rutas verificados. CI413: cuatro jobs correctos,1632 pruebas y241 E2E/1skip previsto. Supabase PRE ya contiene las migraciones necesarias hasta20261025092147; sin cambios de datos ni Production. Incluye T01–T05c y ajustes posteriores MC54–MC62; no declara completo el objetivo integral: T06 continúa pendiente. Detalle y evidencia en production-hardening/STATUS.md, MC63.

@@ -47,8 +47,8 @@ describe("v1.10.24 share image previews", () => {
     const season = await read("src/components/statistics/SeasonShareExportsCard.tsx")
     const round = await read("src/components/round/RoundSummaryShareButton.tsx")
 
-    expect(preview).toContain("fixed inset-0 z-[120]")
-    expect(preview).toContain("backdrop-blur-sm")
+    expect(preview).toContain("<FloatingDialog")
+    expect(preview).toContain('variant="content"')
     expect(preview).toContain("object-contain")
     expect(preview).toContain("max-h-[72vh]")
     expect(season).toContain("URL.revokeObjectURL(previewUrlRef.current)")

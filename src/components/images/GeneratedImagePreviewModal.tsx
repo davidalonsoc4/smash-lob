@@ -1,7 +1,7 @@
 "use client"
 
-import { createPortal } from "react-dom"
-import { useEffect, type ReactNode } from "react"
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
+import { type ReactNode } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 
 export type GeneratedImagePreviewModalBusyAction = "preview" | "download" | "share" | null
@@ -45,7 +45,6 @@ export function GeneratedImagePreviewModal({
   statusMessage,
   previewAlt,
   variant = "default",
-  portalToBody = false,
   beforePreview,
   qrHeading = "Invitación de espectadores",
   qrCaption = "Escanea para abrir la liga",
@@ -79,38 +78,12 @@ export function GeneratedImagePreviewModal({
 }) {
   const { tx } = useI18n()
 
-  useEffect(() => {
-    if (!open) return
-
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", onKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener("keydown", onKeyDown)
-    }
-  }, [onClose, open])
-
-  if (!open) return null
-
   const actionsDisabled = loading || error || !previewUrl || busyAction !== null
   const isSpectatorQr = variant === "spectator-qr"
 
-  const modal = (
-    <div
-      className={`fixed inset-0 z-[120] flex items-center justify-center p-3 backdrop-blur-md sm:p-5 ${isSpectatorQr ? "bg-black/45" : "bg-black/45 backdrop-blur-sm"}`}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`${tx(isSpectatorQr ? qrHeading : "Vista previa")} · ${title}`}
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && busyAction === null) onClose()
-      }}
-    >
-      <div className={`flex max-h-[92dvh] w-full flex-col overflow-hidden ${isSpectatorQr ? "app-shell-frame max-w-lg rounded-[2rem] border border-neutral-200 bg-stone-50 text-neutral-950 shadow-[0_28px_90px_rgba(0,0,0,.3)]" : "max-w-3xl rounded-[1.75rem] border border-white/10 bg-neutral-950 shadow-[0_28px_90px_rgba(0,0,0,.58)]"}`}>
+  return (
+    <FloatingDialog open={open} onClose={onClose} title={`${tx(isSpectatorQr ? qrHeading : "Vista previa")} · ${title}`} variant="content" busy={busyAction !== null}>
+      <div className="flex min-h-0 flex-col overflow-hidden">
         <div className={`flex shrink-0 items-start justify-between gap-3 ${isSpectatorQr ? "border-b border-neutral-200 px-5 py-4 sm:px-6 sm:py-5" : "border-b border-white/10 px-4 py-3"}`}>
           <div className="min-w-0">
             {isSpectatorQr ? (
@@ -123,27 +96,19 @@ export function GeneratedImagePreviewModal({
                     {tx(qrHeading)}
                   </p>
                 </div>
-                <p className="mt-3 truncate text-lg font-black tracking-tight text-neutral-950 sm:text-xl">{title}</p>
+                <p data-dialog-title className="mt-3 truncate text-lg font-black tracking-tight text-neutral-950 sm:text-xl">{title}</p>
                 {description ? <p className="mt-1 max-w-[38ch] text-xs font-medium leading-5 text-neutral-600">{description}</p> : null}
               </>
             ) : (
               <>
-                <p className="type-caption font-black uppercase tracking-[.18em] text-neutral-400">
+                <p className="type-caption font-black uppercase tracking-[.18em] text-neutral-600 dark:text-neutral-400">
                   {tx("Vista previa")}
                 </p>
-                <p className="mt-0.5 truncate text-sm font-black text-white">{title}</p>
+                <p data-dialog-title className="mt-0.5 truncate text-sm font-black text-neutral-950 dark:text-white">{title}</p>
               </>
             )}
           </div>
-          <button
-            type="button"
-            aria-label={tx("Cerrar")}
-            disabled={busyAction !== null}
-            onClick={onClose}
-            className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border text-xl font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${isSpectatorQr ? "border-neutral-200 bg-neutral-100 text-neutral-700 hover:bg-neutral-200" : "border-white/10 bg-white/5 text-white hover:bg-white/10"}`}
-          >
-            ×
-          </button>
+          <DialogCloseButton onClick={onClose} disabled={busyAction !== null} />
         </div>
 
         <div className={`min-h-0 flex-1 overflow-auto ${isSpectatorQr ? "bg-stone-50 px-4 py-5 sm:px-6 sm:py-6" : "bg-[radial-gradient(circle_at_50%_20%,#292929,#050505_72%)] p-2 sm:p-3"}`}>
@@ -189,7 +154,7 @@ export function GeneratedImagePreviewModal({
         ) : null}
 
         {statusMessage ? (
-          <p role="status" className={`border-t px-4 py-2 text-center text-xs font-bold ${isSpectatorQr ? "border-neutral-200 text-neutral-700" : "border-white/10 text-emerald-300"}`}>
+          <p role="status" className={`border-t px-4 py-2 text-center text-xs font-bold ${isSpectatorQr ? "border-neutral-200 text-neutral-700" : "border-white/10 text-emerald-700 dark:text-emerald-300"}`}>
             {tx(statusMessage)}
           </p>
         ) : null}
@@ -199,8 +164,7 @@ export function GeneratedImagePreviewModal({
             type="button"
             disabled={actionsDisabled}
             onClick={() => void onDownload()}
-            className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-center text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-45 ${isSpectatorQr ? "bg-neutral-200 text-neutral-950 hover:bg-neutral-300" : "border border-white/15 bg-white text-neutral-950"}`}
-          >
+            className="app-dialog-option justify-center">
             {isSpectatorQr && busyAction !== "download" ? <DownloadMark /> : null}
             {busyAction === "download" ? tx("Generando…") : tx("Descargar")}
           </button>
@@ -208,15 +172,12 @@ export function GeneratedImagePreviewModal({
             type="button"
             disabled={actionsDisabled}
             onClick={() => void onShare()}
-            className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-center text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-45 ${isSpectatorQr ? "bg-neutral-100 text-neutral-700 ring-1 ring-inset ring-neutral-200 hover:bg-neutral-200" : "bg-white/10 text-white ring-1 ring-inset ring-white/15"}`}
-          >
+            className="app-dialog-primary">
             {isSpectatorQr && busyAction !== "share" ? <ShareMark /> : null}
             {busyAction === "share" ? tx("Compartiendo...") : tx("Compartir")}
           </button>
         </div> : null}
       </div>
-    </div>
+    </FloatingDialog>
   )
-
-  return portalToBody ? createPortal(modal, document.body) : modal
 }

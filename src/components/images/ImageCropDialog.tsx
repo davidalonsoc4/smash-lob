@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
-import { createPortal } from "react-dom"
+import { FloatingDialog } from "@/components/ui/FloatingDialog"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
   clampCropOffset,
@@ -96,22 +96,16 @@ export function ImageCropDialog({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const previousHtmlOverflow = document.documentElement.style.overflow
-    const previousBodyOverflow = document.body.style.overflow
     const updateCropViewportSize = () => {
       setCropViewportSize(getResponsiveCropViewportSize())
     }
     const animationFrame = window.requestAnimationFrame(updateCropViewportSize)
 
-    document.documentElement.style.overflow = "hidden"
-    document.body.style.overflow = "hidden"
     window.addEventListener("resize", updateCropViewportSize)
 
     return () => {
       window.cancelAnimationFrame(animationFrame)
       window.removeEventListener("resize", updateCropViewportSize)
-      document.documentElement.style.overflow = previousHtmlOverflow
-      document.body.style.overflow = previousBodyOverflow
     }
   }, [])
 
@@ -264,25 +258,10 @@ export function ImageCropDialog({
     return null
   }
 
-  return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="image-crop-title"
-      aria-describedby="image-crop-description"
-      className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/55 px-3 backdrop-blur-sm"
-      style={{
-        paddingTop: "max(12px, var(--app-safe-top))",
-        paddingBottom: "max(12px, env(safe-area-inset-bottom))",
-      }}
-    >
-      <div
-        className="flex w-full max-w-md flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl dark:bg-neutral-900"
-        style={{
-          maxHeight:
-            "calc(100dvh - max(24px, var(--app-safe-top)) - max(24px, env(safe-area-inset-bottom)))",
-        }}
-      >
+  function requestCancel() { if (!isSaving && (!(zoom !== 1 || rotation !== 0 || offset.x !== 0 || offset.y !== 0) || window.confirm(tx("¿Descartar los cambios sin guardar?")))) onCancel() }
+  return (
+    <FloatingDialog open onClose={requestCancel} title={title} variant="content" busy={isSaving} className="app-dialog-crop">
+      <div className="flex min-h-0 flex-col overflow-hidden">
         <div className="flex shrink-0 items-start justify-between gap-3 px-4 pt-4">
           <div>
             <h2 id="image-crop-title" className="text-lg font-black text-neutral-950 dark:text-white">
@@ -295,15 +274,6 @@ export function ImageCropDialog({
               {description}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isSaving}
-            aria-label={tx(cancelLabel)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-lg font-black text-neutral-600 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-300 text-center"
-          >
-            ×
-          </button>
         </div>
 
         <div className="min-h-0 overflow-y-auto px-4 pb-4">
@@ -355,7 +325,7 @@ export function ImageCropDialog({
               type="button"
               onClick={() => rotate(-90)}
               disabled={isSaving}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
               aria-label={tx("Girar a la izquierda")}
             >
               <RotateIcon direction="left" />
@@ -377,7 +347,7 @@ export function ImageCropDialog({
               type="button"
               onClick={() => rotate(90)}
               disabled={isSaving}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200"
               aria-label={tx("Girar a la derecha")}
             >
               <RotateIcon direction="right" />
@@ -394,9 +364,9 @@ export function ImageCropDialog({
         <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
           <button
             type="button"
-            onClick={onCancel}
+            onClick={requestCancel}
             disabled={isSaving}
-            className="inline-flex rounded-2xl bg-neutral-100 px-3 py-3 text-sm font-black text-neutral-700 disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-200 items-center justify-center text-center"
+            className="app-dialog-option justify-center"
           >
             {tx(cancelLabel)}
           </button>
@@ -404,13 +374,12 @@ export function ImageCropDialog({
             type="button"
             onClick={() => void handleConfirm()}
             disabled={isSaving || !naturalSize.width}
-            className="inline-flex rounded-2xl bg-neutral-950 px-3 py-3 text-sm font-black text-white disabled:bg-neutral-300 dark:bg-white dark:text-neutral-950 dark:disabled:bg-neutral-700 items-center justify-center text-center"
+            className="app-dialog-primary"
           >
             {isSaving ? tx("Procesando...") : tx(confirmLabel)}
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </FloatingDialog>
   )
 }

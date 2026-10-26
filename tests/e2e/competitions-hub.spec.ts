@@ -370,7 +370,7 @@ for (const canCreate of [true, false]) {
       await page.goto("/league/new")
       await expect(page.getByText("No tienes permisos para crear ligas", { exact: true })).toBeVisible()
       await expect(page).toHaveURL(/\/league\/new$/)
-      await expect(page.getByRole("button", { name: "Crear liga", exact: true })).toHaveCount(0)
+      await expect(page.getByRole("button", { name: "Siguiente paso", exact: true })).toHaveCount(0)
       return
     }
     await page.getByRole("link", { name: "Crear nueva liga", exact: true }).click()
@@ -380,9 +380,13 @@ for (const canCreate of [true, false]) {
     await page.reload()
     await expect(page.getByRole("combobox", { name: "Modalidad de liga", exact: true })).toBeVisible()
     await page.locator("form input").first().fill("Nueva liga independiente")
-    await page.getByRole("button", { name: "Crear liga", exact: true }).click()
-    await expect(page).toHaveURL(/\/admin\/season$/)
-    await expect.poll(() => page.evaluate(() => localStorage.getItem("smash-lob-active-league"))).toBe(id)
+    await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
+    await expect(page).toHaveURL(/\/league\/new$/)
+    await expect(page.locator("[data-season-creation-step]")).toBeVisible()
+    expect(created).toBeNull()
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("smash-lob-active-league"))).toBe("league-smash-lob")
+    await page.getByRole("button", { name: "Competiciones", exact: true }).click()
+    await expect(page).toHaveURL(/\/leagues$/)
   })
 }
 

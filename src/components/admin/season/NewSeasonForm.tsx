@@ -3,16 +3,23 @@ import { validateLeaguePairs, areLeagueMatchesPaired, type LeaguePair } from "@/
 import { getSeasonBaseRoundCount as baseRounds } from "@/lib/seasonPlayerCount"
 import { getSeasonScheduleRoundCount as scheduleRounds, getSeasonMaxBalancedLegCount as maxLegs, getSeasonMaxRoundCount as maxRounds, isValidSeasonScheduleTarget as validTarget } from "@/lib/calendar"
 
-import { FormEvent, useEffect, useMemo, useState } from "react"
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
+import { DEFAULT_LEAGUE_ACCENT } from "@/lib/visualStyle"
+import { LeagueLogo } from "@/components/league/LeagueLogo"
+import { getIntlLocale } from "@/i18n/leagueText"
+import { LeagueCreationForm } from "@/components/league/LeagueCreationForm"
+import { SeasonCreationSummary, type SeasonCreationSummaryGroup } from "./SeasonCreationSummary"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { LeagueLocationsEditor } from "@/components/league/LeagueLocationsEditor"
+import { PersonalMatchLocationPicker } from "@/components/personal/PersonalMatchLocationPicker"
 import { SeasonPairFields } from "@/components/season/SeasonPairFields"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { SeasonPlayerCountSelector } from "@/components/season/SeasonPlayerCountSelector"
 import { SeasonStartCountdown } from "@/components/season/SeasonStartCountdown"
 import { BallCustodianChoice } from "@/components/admin/season/OrganizationBallsSettingsPanel"
 import { AppCard } from "@/components/ui/AppCard"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import type { League } from "@/data/fakeData"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { RoundWindowMode, useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -21,7 +28,7 @@ import { startSupabaseSeason } from "@/lib/supabaseSeasons"
 import { generateBalancedCalendar, generateManualCalendar, getNewPlayerIndexFromToken, getNewPlayerToken, getSeasonScheduleRoundCount, resolveManualCalendarDraft, type ManualCalendarMatchDraft, type SeasonScheduleMode } from "@/lib/calendar"
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import type { MvpSystem } from "@/lib/mvp"
-import { type LeagueLocation, createScheduledLeagueLocationValue, getLeagueLocationTownNameLabel, sortLeagueLocationsByTownNameLabel } from "@/lib/leagueLocations"
+import { type LeagueLocation, createScheduledLeagueLocationValue, getLeagueLocationTownNameLabel, sortLeagueLocationsByTownNameLabel, normalizeLeagueLocations } from "@/lib/leagueLocations"
 import type { ResultConfirmationMode } from "@/lib/resultConfirmations"
 import type { RosterMode } from "@/data/fakeData"
 import { recordActivityEvent } from "@/lib/activity"
@@ -305,6 +312,8 @@ function InviteLinkCard({
   const { t } = useI18n();
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+
   const inviteUrl = getPublicInviteUrl(inviteCode);
 
   async function handleCopy(value: string, label: string) {
@@ -510,17 +519,25 @@ export function NewSeasonForm({
   activeSeasonId,
   currentPlayers,
   initialLocations,
+  onExit, draftLeague, onEditLeague, onPrepareLeague, onCreated,
 }: {
   activeLeagueId: string;
   activeLeagueName: string;
   activeSeasonId: string;
   currentPlayers: SeasonPlayerSummary[];
   initialLocations: LeagueLocation[];
+  onExit?: () => void;
+  draftLeague?: League;
+  onEditLeague?: (fromSummary: boolean) => void;
+  onPrepareLeague?: (locations: LeagueLocation[]) => Promise<string>;
+  onCreated?: (leagueId: string) => void;
 }) {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const { t } = useI18n();
   const router = useRouter();
   const { data: session } = useSession();
+  const { profile } = useAccountProfile();
+  const ownName = profile?.displayName?.trim() || [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || session?.user?.name?.trim() || "";
   const { hydrateSeasonSnapshot, playerProfiles, seasons, startNewSeason } =
     useSeasonSettings();
   const { createSeasonMatches, hydrateMatches } = useMatchData();
@@ -530,10 +547,9 @@ export function NewSeasonForm({
     isSuperuser,
     leagues: accessibleLeagues,
     linkCurrentUserToLeaguePlayer,
-    updateLeagueLocations,
     userId,
   } = useLeagueAccess();
-  const modality = accessibleLeagues.find(league => league.id === activeLeagueId)?.modality ?? "individual";
+  const modality = (draftLeague ?? accessibleLeagues.find(league => league.id === activeLeagueId))?.modality ?? "individual";
   const isPairLeague = modality === "fixed_pairs";
   const getSeasonBaseRoundCount = (count: number) => baseRounds(count, modality);
   const getSeasonMaxBalancedLegCount = (count: number) => maxLegs(count, modality);
@@ -558,8 +574,20 @@ export function NewSeasonForm({
   const [newSeasonName, setNewSeasonName] = useState(
     getDefaultNewSeasonName({ seasonCount: leagueSeasonCount }),
   );
-  const [leagueLocations, setLeagueLocations] =
-    useState<LeagueLocation[]>(initialLocations);
+  const leagueLocations = initialLocations;
+  const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(true);
+  const [locationsError, setLocationsError] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/locations", { cache: "no-store" }).then(async response => {
+      const body = await response.json();
+      if (!response.ok || !Array.isArray(body.locations)) throw new Error("global_locations_lookup_failed");
+      if (!cancelled) setGlobalLocations(normalizeLeagueLocations(body.locations));
+    }).catch(() => { if (!cancelled) setLocationsError(true); }).finally(() => { if (!cancelled) setLocationsLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+  const openingLocations = sortLeagueLocationsByTownNameLabel(normalizeLeagueLocations([...globalLocations, ...leagueLocations]));
   const [playerCount, setPlayerCount] = useState(defaultPlayerCount);
   const [rosterMode, setRosterMode] = useState<RosterMode>("fixed");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
@@ -616,7 +644,7 @@ export function NewSeasonForm({
   const [secretDaysBefore, setSecretDaysBefore] = useState("7");
   const [roundWindowDays, setRoundWindowDays] = useState("15");
   const [requiresThreeSets, setRequiresThreeSets] = useState(true);
-  const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic");
+  const [mvpSystem, setMvpSystem] = useState<MvpSystem>("automatic_advanced");
   const [resultConfirmationMode, setResultConfirmationMode] =
     useState<ResultConfirmationMode>("none");
   const [availabilityRecommendationsEnabled, setAvailabilityRecommendationsEnabled] = useState(false);
@@ -628,14 +656,33 @@ export function NewSeasonForm({
   const [creationFeedback, setCreationFeedback] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [creationStep, setCreationStep] = useState<"basic" | "advanced" | "summary" | "league">("basic");
+  const [summaryBackStep, setSummaryBackStep] = useState<"basic" | "advanced">("basic");
+  const creationHeading = useRef<HTMLDivElement>(null);
+  const creationSubmitLock = useRef(false);
+  const preparedCalendarMode = useRef<CalendarMode>("balanced");
+  function goToCreationStep(step: typeof creationStep, section?: string) {
+    if (step === "league" && onEditLeague) { onEditLeague(creationStep === "summary"); return; }
+    setError(null);
+    setCreationStep(step);
+    requestAnimationFrame(() => {
+      creationHeading.current?.scrollIntoView({ block: "start" }); creationHeading.current?.focus({ preventScroll: true });
+      if (step === "advanced" && section) {
+        const index = ["Calendario y duración", "Inicio y visibilidad", "Reglas de juego", "Organización y pagos"].indexOf(section);
+        const detail = document.querySelectorAll<HTMLDetailsElement>("[data-season-creation-advanced] > details")[index];
+        if (detail) { detail.open = true; detail.scrollIntoView({ block: "start" }); detail.querySelector("summary")?.focus({ preventScroll: true }); }
+      }
+    });
+  }
   const inviteCode = getLeagueInviteCode(activeLeagueId);
   const canLinkSelfPlayer = Boolean(isFirstLeagueSeason && userId && !isSuperuser);
 
   useEffect(() => {
-    if (!isSupabaseBackedId(activeLeagueId)) return;
+    if (!draftLeague && !isSupabaseBackedId(activeLeagueId)) return;
 
     let cancelled = false;
-    void fetch(`/api/leagues/${activeLeagueId}/player-directory`, { cache: "no-store" })
+    void fetch(`/api/leagues/${draftLeague ? "new" : activeLeagueId}/player-directory`, { cache: "no-store" })
       .then(async (response) => {
         const payload = (await response.json().catch(() => null)) as
           | { people?: SeasonAppDirectoryPerson[] }
@@ -658,7 +705,7 @@ export function NewSeasonForm({
     return () => {
       cancelled = true;
     };
-  }, [activeLeagueId]);
+  }, [activeLeagueId, draftLeague]);
 
   const parsedRoundWindowDays = Number(roundWindowDays);
   const parsedRegistrationFeeAmount = Number(registrationFeeAmount);
@@ -666,7 +713,7 @@ export function NewSeasonForm({
   const openingRoundIso = datetimeLocalToIso(openingRoundAt);
   const effectiveOpeningRoundIso = scheduledStartIso ?? openingRoundIso;
   const selectedOpeningRoundLocation =
-    leagueLocations.find((location) => location.id === openingRoundLocationId) ?? null;
+    openingLocations.find((location) => location.id === openingRoundLocationId) ?? null;
   const openingRoundLocation = selectedOpeningRoundLocation
     ? createScheduledLeagueLocationValue(selectedOpeningRoundLocation, null)
     : null;
@@ -718,6 +765,8 @@ export function NewSeasonForm({
   const fixedOccupiedPlayerCount = selectedPlayerIds.length + selectedAppUsers.length;
   const newPlayerSlotCount = Math.max(playerCount - fixedOccupiedPlayerCount, 0);
   const visibleNewPlayerNames = resizePlayerNames(newPlayerNames, newPlayerSlotCount);
+  const ownSlot = selfPlayerValue ? getNewPlayerIndexFromToken(selfPlayerValue) : null;
+  if (canLinkSelfPlayer && ownSlot !== null && ownSlot < newPlayerSlotCount && newPlayerNames[ownSlot] === undefined) visibleNewPlayerNames[ownSlot] = ownName;
   const cleanNewPlayerNames = visibleNewPlayerNames.map((playerName) =>
     playerName.trim(),
   );
@@ -752,7 +801,7 @@ export function NewSeasonForm({
         !normalizedAppPlayerQuery ||
         person.displayName.toLocaleLowerCase("es").includes(normalizedAppPlayerQuery),
     )
-    .slice(0, 8);
+    .slice(0, 5);
   const maxSelectableAppUsers = Math.max(
     playerCount - selectedPlayerIds.length - (canLinkSelfPlayer ? 1 : 0),
     0,
@@ -846,6 +895,33 @@ export function NewSeasonForm({
       (seasonStartsAt.length > 0 &&
         Number.isFinite(parsedRoundWindowDays) &&
         parsedRoundWindowDays >= 1));
+
+  const leagueIdentity = draftLeague ?? accessibleLeagues.find(league => league.id === activeLeagueId);
+  const formatCreationDate = (value: string | null) => value && Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat(getIntlLocale(locale), { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Madrid" }).format(new Date(value)) : "—";
+  const yesNo = (value: boolean) => tx(value ? "Sí" : "No");
+  const hasValidPairs = !isPairLeague || rosterMode === "self_registration" || validateLeaguePairs(fixedPairs, manualPlayerOptions.map(option => option.value));
+  const validationIssues = [
+    !newSeasonName.trim() && ["basic", "Escribe el nombre de la temporada."],
+    !hasValidPlayers && ["basic", "Completa todas las plazas de jugadores."],
+    !hasValidPairs && ["basic", "Revisa las parejas de la temporada."],
+    (!hasValidDuration || !isManualCalendarReady || (isPairLeague && rosterMode === "fixed" && calendarMode === "manual" && !areLeagueMatchesPaired(manualCalendarMatches, fixedPairs))) && ["advanced", "Revisa la duración y los cruces del calendario."],
+    !hasValidRegistrationFee && ["advanced", "Introduce una cuota válida o desactívala."],
+    !hasValidScheduledStart && ["advanced", "Revisa la fecha de inicio programado."],
+    !hasValidOpeningRound && ["advanced", "Completa los datos de la jornada inaugural."],
+    organizationBallsAssigned && ballsAssignmentMode === "selected" && (!effectiveBallsAssignmentCustodianRefs.length || (canValidateCustodianCoverage && selectedCustodianCoverage.unassignedMatchIds.length > 0)) && ["advanced", "Revisa los custodios y la cobertura de bolas."],
+    roundWindowMode !== "none" && (!seasonStartsAt || !Number.isFinite(parsedRoundWindowDays) || parsedRoundWindowDays < 1) && ["advanced", "Completa la fecha y el plazo de las jornadas."],
+  ].filter((issue): issue is string[] => Array.isArray(issue));
+  const completedPlayerCount = selectedPlayerIds.length + selectedAppUsers.length + cleanNewPlayerNames.filter(Boolean).length;
+  const customized = calendarMode !== "balanced" || effectiveScheduleMode !== "single" || durationMode !== "complete" || calendarVisibilityMode !== "full" || roundWindowMode !== "none" || Boolean(scheduledStartAt) || openingRoundEnabled || !requiresThreeSets || mvpSystem !== "automatic_advanced" || resultConfirmationMode !== "none" || availabilityRecommendationsEnabled || organizationBallsAssigned || hasRegistrationFee;
+  const summaryGroups: SeasonCreationSummaryGroup[] = [
+    { title: "Liga", target: isFirstLeagueSeason ? "league" : "basic", accent: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT, featured: <div className="mb-3 flex min-w-0 items-center gap-3"><LeagueLogo league={leagueIdentity} size="lg" previewable={false} /><div className="min-w-0 flex-1"><p className="break-words text-lg font-black">{leagueIdentity?.name ?? activeLeagueName}</p><p className="mt-1 text-xs text-neutral-500">{tx(isPairLeague ? "Por parejas fijas" : "Individual de Smash & Lob")}</p><span className="mt-2 inline-flex items-center gap-1.5 text-xs text-neutral-500"><span role="img" aria-label={leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT} className="h-3 w-3 rounded-full" style={{ backgroundColor: leagueIdentity?.accentColor ?? DEFAULT_LEAGUE_ACCENT }} />{tx("Color de liga")}</span></div></div>, rows: [["Descripción", leagueIdentity?.description || "—"], ["Recomendaciones de la liga", leagueIdentity?.recommendations || "—"]] },
+    { title: "Participantes", target: "basic", inlineMetrics: true, rows: [["Temporada", newSeasonName], ["Jugadores", playerCount], ["Inscripción", rosterMode === "fixed" ? t.adminSeason.rosterModeFixedTitle : t.adminSeason.rosterModeSelfTitle], ...(isPairLeague ? [["Parejas", playerCount / 2] as [string, number]] : [])] },
+    { title: "Calendario y duración", target: "advanced", rows: [["Calendario", calendarMode === "manual" ? t.adminSeason.manualCalendar : tx("Equilibrado")], ["Duración", durationMode === "custom" ? t.adminSeason.durationCustomTitle : effectiveScheduleMode === "single" ? t.adminSeason.singleRoundCalendar : effectiveScheduleMode === "double" ? t.adminSeason.doubleRoundCalendar : `${t.adminSeason.extendedCalendar} ×${longMultiplier}`], ["Jornadas totales", totalSeasonRounds], ["Partidos por jornada", getSeasonMatchesPerRound(playerCount, modality)], ["Descansos por jornada", playerCount - 4 * getSeasonMatchesPerRound(playerCount, modality)]] },
+    { title: "Inicio y visibilidad", target: "advanced", rows: [["Inicio", scheduledStartAt ? `${formatCreationDate(scheduledStartIso)} (${tx("Hora de Madrid")})` : tx("Manual")], ["Calendario visible", calendarVisibilityMode === "full" ? t.adminSeason.calendarVisibilityFullTitle : t.adminSeason.calendarVisibilityProgressiveTitle], ["Plazo por jornada", roundWindowMode === "none" ? tx("Sin plazo fijo") : `${roundWindowDays} ${tx("días")}`], ...(roundWindowMode !== "none" ? [["Fecha de comienzo", seasonStartsAt] as [string, string]] : []), ["Jornada inaugural", openingRoundEnabled ? `${formatCreationDate(effectiveOpeningRoundIso)} · ${selectedOpeningRoundLocation ? getLeagueLocationTownNameLabel(selectedOpeningRoundLocation) : "—"}` : tx("No")], ["Fase secretos", secretPhaseEnabled && scheduledStartAt ? `${secretDaysBefore} ${tx("días antes")}` : tx("No")]] },
+    { title: "Reglas de juego", target: "advanced", rows: [["Resultado", tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")], ["Sistema MVP", tx(mvpSystem === "automatic" ? "Automático" : mvpSystem === "none" ? "Desactivado" : mvpSystem === "automatic_advanced" ? "Automático avanzado" : "Votación")], ["Confirmación de resultados", tx(resultConfirmationMode === "none" ? "Sin confirmación" : resultConfirmationMode === "required" ? "Obligatoria" : "Opcional")], ["Disponibilidad y recomendaciones", yesNo(availabilityRecommendationsEnabled)]] },
+    { title: "Organización y pagos", target: "advanced", rows: [["Bolas asignadas por la organización", yesNo(organizationBallsAssigned)], ...(organizationBallsAssigned ? [["Modo de reparto", tx(ballsAssignmentMode === "selected" ? "Custodios seleccionados" : "Por prioridad")], ["Custodios", (ballsAssignmentMode === "selected" ? effectiveBallsAssignmentCustodianRefs : effectiveBallsAssignmentPriority).map(ref => ballsAssignmentPriorityEntries.find(entry => entry.ref === ref)?.name ?? ref).join(" · ")]] as Array<[string, string]> : []), ["Cuota de inscripción por jugador", hasRegistrationFee ? `${registrationFeeAmount} €` : tx("Sin cuota")], ...(hasRegistrationFee ? [["Concepto de la cuota", registrationFeePurpose] as [string, string]] : [])] },
+  ];
+  const summaryParticipants = rosterMode === "self_registration" ? [] : isPairLeague ? fixedPairs.map(pair => pair.map(id => manualPlayerOptions.find(option => option.value === id)?.label ?? "")) : manualPlayerOptions.map(option => [option.label]);
 
   function refreshManualCalendarFromPlayers({
     selectedIds,
@@ -1018,6 +1094,7 @@ export function NewSeasonForm({
       return;
     }
 
+    if (draftLeague) { onExit?.(); return; }
     const confirmed = window.confirm(
       tx(`¿Cancelar la creación de ${activeLeagueName}? Se eliminará la liga completa porque todavía no tiene ninguna temporada.`),
     );
@@ -1096,20 +1173,12 @@ export function NewSeasonForm({
     setCreationFeedback(null);
     setError(null);
 
-    if (isFirstLeagueSeason) {
-      const locationsUpdated = await updateLeagueLocations(
-        activeLeagueId,
-        leagueLocations,
-      );
-
-      if (!locationsUpdated) {
-        setError("No se han podido guardar las ubicaciones de la liga.");
-        setIsSaving(false);
-        return;
-      }
+    let mutationLeagueId = activeLeagueId;
+    if (onPrepareLeague) {
+      try { mutationLeagueId = await onPrepareLeague(leagueLocations); settings.leagueId = mutationLeagueId; }
+      catch (cause) { setError(cause instanceof Error ? cause.message : tx("No se han podido guardar los datos de la liga.")); setIsSaving(false); return; }
     }
-
-    if (isSupabaseBackedId(activeLeagueId)) {
+    if (isSupabaseBackedId(mutationLeagueId)) {
       try {
         const result = await startSupabaseSeason({
           ...settings,
@@ -1197,7 +1266,7 @@ export function NewSeasonForm({
 
     try {
       await recordActivityEvent({
-        leagueId: activeLeagueId,
+        leagueId: mutationLeagueId,
         seasonId: undefined,
         ...getActorFromSession(session),
         type: "season_created",
@@ -1239,6 +1308,7 @@ export function NewSeasonForm({
     setCreationFeedback(successMessage);
     showSavedFeedback(successMessage);
     setIsSaving(false);
+    onCreated?.(mutationLeagueId);
     router.replace("/");
   }
 
@@ -1278,10 +1348,15 @@ export function NewSeasonForm({
     );
   }
 
+  if (creationStep === "league" && leagueIdentity) return <LeagueCreationForm initialLeague={leagueIdentity} onComplete={() => goToCreationStep("basic")} onBack={() => goToCreationStep("basic")} />;
+  const CreationTitle = "h1";
   return (
-    <form onSubmit={handleStartSeason} className="compact-page space-y-3">
+    <form onSubmit={event => { event.preventDefault(); if (creationStep !== "summary") { if (validationIssues.some(([step]) => step === "basic")) return; setSummaryBackStep(creationStep === "advanced" ? "advanced" : "basic"); goToCreationStep("summary"); return; } if (creationSubmitLock.current) return; creationSubmitLock.current = true; void handleStartSeason(event).finally(() => { creationSubmitLock.current = false; }); }} noValidate className="compact-page space-y-3" data-season-creation-step={creationStep}>
+      <fieldset disabled={isSaving} className="min-w-0 space-y-3 border-0 p-0">
+      {draftLeague ? <button type="button" onClick={onExit} className="app-top-back-control flex min-h-11 items-center gap-2"><span aria-hidden="true">←</span>{tx("Competiciones")}</button> : null}
+      <div ref={creationHeading} tabIndex={-1} className="app-page-header league-season-header outline-none"><div className="league-creation-progress text-neutral-500">{tx("Liga · Temporada")}</div><CreationTitle className="league-creation-title type-page-title mt-1 text-xl font-black">{tx(creationStep === "summary" ? "Revisar y confirmar" : creationStep === "advanced" ? "Ajustes avanzados" : "Configurar temporada")}</CreationTitle></div>
+      <div hidden={creationStep !== "basic"} className="space-y-3" data-season-creation-basic>
       <AppCard>
-        <p className="font-bold">{t.adminSeason.newSeasonTitle}</p>
         <p className="mt-1 text-xs font-semibold text-neutral-500">
           {isFirstLeagueSeason
             ? tx("Configura la Temporada 1 con sus jugadores, calendario y reglas antes de abrir invitaciones.")
@@ -1313,116 +1388,11 @@ export function NewSeasonForm({
             />
           </label>
 
-          {isFirstLeagueSeason ? (
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-              <p className="text-sm font-black text-neutral-900">
-                {tx("Ubicaciones de la liga")}{" "}</p>
-              <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-                {tx("Busca clubes ya guardados o añade uno nuevo. Estas ubicaciones estarán disponibles al programar los partidos.")}{" "}</p>
-
-              <div className="mt-3">
-                <LeagueLocationsEditor
-                  locations={leagueLocations}
-                  onChange={(nextLocations) => {
-                    setLeagueLocations(nextLocations);
-                    setError(null);
-                  }}
-                  disabled={isSaving}
-                  copy={{
-                    emptyLocations: t.adminLeague.emptyLocations,
-                    addLocationTitle: t.adminLeague.addLocationTitle,
-                    locationName: t.adminLeague.locationName,
-                    locationPlaceholder: t.adminLeague.locationPlaceholder,
-                    town: t.adminLeague.town,
-                    townPlaceholder: t.adminLeague.townPlaceholder,
-                    googleLocation: t.adminLeague.googleLocation,
-                    googleLocationPlaceholder: t.adminLeague.googleLocationPlaceholder,
-                    courts: t.adminLeague.courts,
-                    courtsPlaceholder: t.adminLeague.courtsPlaceholder,
-                    duplicatedLocation: t.adminLeague.duplicatedLocation,
-                    addLocation: t.adminLeague.addLocation,
-                    editLocation: t.adminLeague.editLocation,
-                    saveLocation: t.adminLeague.saveLocation,
-                    cancelLocationEdit: t.adminLeague.cancelLocationEdit,
-                    removeLocation: t.adminLeague.removeLocation,
-                    openMaps: t.adminLeague.openMaps,
-                    searchMaps: t.adminLeague.searchMaps,
-                    googleApiMissing: t.adminLeague.googleApiMissing,
-                  }}
-                />
-              </div>
-
-
-            </div>
-          ) : null}
-
-          <div>
-            <p className="text-sm font-semibold text-neutral-700">
-              {t.adminSeason.rosterModeTitle}
-            </p>
-            <div className="mt-2 grid gap-2">
-              {(["fixed", "self_registration"] as RosterMode[]).map((mode) => {
-                const selected = rosterMode === mode;
-
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => {
-                      setRosterMode(mode);
-                      if (mode === "self_registration") {
-                        setCalendarMode("balanced");
-                        const nextIds = isFirstLeagueSeason
-                          ? []
-                          : currentPlayers
-                              .map((player) => player.id)
-                              .slice(0, playerCount);
-                        setSelectedPlayerIds(nextIds);
-                        setSelectedAppUsers([]);
-                        setNewPlayerNames([]);
-                        setSelfPlayerValue(null);
-                      } else {
-                        const nextIds = currentPlayers
-                          .map((player) => player.id)
-                          .slice(0, playerCount);
-                        setSelectedPlayerIds(nextIds);
-                        setSelectedAppUsers([]);
-                        setNewPlayerNames(
-                          resizePlayerNames([], Math.max(playerCount - nextIds.length, 0)),
-                        );
-                        refreshManualCalendarFromPlayers({
-                          selectedIds: nextIds,
-                          count: playerCount,
-                        });
-                      }
-                      setCreationFeedback(null);
-                    }}
-                    className={`rounded-2xl border px-3 py-3 text-left ${
-                      selected
-                        ? "border-neutral-950 bg-neutral-950 text-white"
-                        : "border-neutral-200 bg-white text-neutral-900"
-                    }`}
-                  >
-                    <span className="block text-sm font-black">
-                      {mode === "fixed"
-                        ? t.adminSeason.rosterModeFixedTitle
-                        : t.adminSeason.rosterModeSelfTitle}
-                    </span>
-                    <span
-                      className={`mt-1 block text-xs font-semibold leading-5 ${
-                        selected ? "text-neutral-300" : "text-neutral-500"
-                      }`}
-                    >
-                      {mode === "fixed"
-                        ? t.adminSeason.rosterModeFixedDescription
-                        : t.adminSeason.rosterModeSelfDescription}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
+          <label className="block"><span className="text-sm font-bold">{t.adminSeason.rosterModeTitle}</span>
+            <select aria-label={t.adminSeason.rosterModeTitle} value={rosterMode} onChange={event => { const next = event.target.value as RosterMode; setRosterMode(next); if (next === "self_registration") { preparedCalendarMode.current = calendarMode; setCalendarMode("balanced"); } else setCalendarMode(preparedCalendarMode.current); setCreationFeedback(null); }} className="league-creation-input mt-2">
+              <option value="fixed">{t.adminSeason.rosterModeFixedTitle}</option><option value="self_registration">{t.adminSeason.rosterModeSelfTitle}</option>
+            </select><span className="mt-2 block text-xs leading-5 text-neutral-500">{rosterMode === "fixed" ? t.adminSeason.rosterModeFixedDescription : t.adminSeason.rosterModeSelfDescription}</span>
+          </label>
           <SeasonPlayerCountSelector
             modality={modality}
             playerCount={playerCount}
@@ -1445,23 +1415,7 @@ export function NewSeasonForm({
             {tx("El primer jugador de la lista serás tú. Tu cuenta, perfil y foto se vincularán automáticamente a ese jugador al crear la temporada.")}{" "}</div>
         ) : null}
 
-        <div className="mt-3 grid grid-cols-2 gap-2 text-center">
-          <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-            <p className="text-xs font-semibold text-neutral-500">
-              {tx("Seleccionados")}
-            </p>
-            <p className="text-lg font-black">
-              {selectedPlayerIds.length}/{playerCount}
-            </p>
-          </div>
-          <div className="rounded-2xl bg-neutral-100 px-3 py-2.5">
-            <p className="text-xs font-semibold text-neutral-500">
-              {isFirstLeagueSeason ? tx("Jugadores") : "Sustitutos"}
-            </p>
-            <p className="text-lg font-black">{newPlayerSlotCount}</p>
-          </div>
-        </div>
-
+        <div className="mt-3 flex items-center justify-between rounded-xl bg-neutral-100 px-3 py-2"><span className="text-xs font-semibold text-neutral-500">{tx("Plazas completadas")}</span><span className="text-sm font-bold">{completedPlayerCount}/{playerCount}{isPairLeague ? <span className="ml-2 font-normal text-neutral-500">· {playerCount / 2} {tx("Parejas")}</span> : null}</span></div>
         <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {leaguePlayers.map((player) => {
             const isSelected = selectedPlayerIds.includes(player.id);
@@ -1571,7 +1525,7 @@ export function NewSeasonForm({
                     <p className="text-xs font-semibold text-neutral-500">
                       {tx("Cargando jugadores…")}
                     </p>
-                  ) : filteredAppDirectory.length > 0 ? (
+                  ) : appPlayerQuery.trim() && filteredAppDirectory.length > 0 ? (
                     filteredAppDirectory.map((person) => (
                       <button
                         key={person.userId}
@@ -1598,7 +1552,7 @@ export function NewSeasonForm({
         ) : null}
 
         {!isPairLeague && newPlayerSlotCount > 0 ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid grid-cols-2 gap-3">
             {visibleNewPlayerNames.map((_, index) => renderManualPlayer(index))}
           </div>
         ) : null}
@@ -1663,9 +1617,11 @@ export function NewSeasonForm({
         </AppCard>
       )}
 
-      <AppCard data-season-calendar-type>
+</div>
+<div hidden={creationStep !== "advanced"} className="space-y-3" data-season-creation-advanced>
+<details className="league-creation-details"><summary><span className="league-creation-block-title"><span className="league-creation-range">1–2</span>{tx("Calendario y duración")}</span><span className="text-xs font-normal text-neutral-500">{`${totalSeasonRounds} ${t.adminSeason.roundsShortLabel}`}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard data-season-calendar-type>
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
+          <span aria-hidden="true" className="league-creation-number">
             1
           </span>
           <p className="font-bold">{t.adminSeason.calendarModeLabel}</p>
@@ -1684,6 +1640,7 @@ export function NewSeasonForm({
               return (
                 <button
                   key={mode}
+                  aria-pressed={isSelected}
                   type="button"
                   onClick={() => {
                     setCalendarMode(mode);
@@ -1700,7 +1657,7 @@ export function NewSeasonForm({
                     <span className="text-sm font-black text-neutral-950">{title}</span>
                     {isSelected ? (
                       <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-white">
-                        {t.common.active}
+                        {tx("Seleccionado")}
                       </span>
                     ) : null}
                   </span>
@@ -1727,7 +1684,7 @@ export function NewSeasonForm({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
+              <span aria-hidden="true" className="league-creation-number">
                 2
               </span>
               <p className="text-sm font-black">
@@ -1743,106 +1700,26 @@ export function NewSeasonForm({
           </span>
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          {([
-              ["complete", t.adminSeason.durationCompleteTitle, t.adminSeason.durationCompleteDescription],
-              ["custom", t.adminSeason.durationCustomTitle, t.adminSeason.durationCustomDescription],
-            ] as const).map(([mode, title, description]) => {
-              const isSelected = durationMode === mode;
-              return (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => {
-                    setDurationMode(mode);
-                    const nextMode: SeasonScheduleMode = mode === "custom" ? "extended" : scheduleMode;
-                    const nextTarget = mode === "custom"
-                      ? Math.min(Math.max(customRoundCount, 1), maxSeasonRounds)
-                      : getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode, longMultiplier });
-                    refreshManualCalendarFromPlayers({
-                      selectedIds: selectedPlayerIds,
-                      count: playerCount,
-                      mode: nextMode,
-                      targetRounds: nextTarget,
-                    });
-                    setCreationFeedback(null);
-                  }}
-                  className={`rounded-2xl border px-3 py-2.5 text-left transition ${
-                    isSelected
-                      ? "border-neutral-950 bg-neutral-50 shadow-sm"
-                      : "border-neutral-200 bg-white text-neutral-600"
-                  }`}
-                >
-                  <span className="text-sm font-black">{title}</span>
-                  {mode === "complete" ? (
-                    <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-emerald-800">
-                      {t.adminSeason.durationRecommended}
-                    </span>
-                  ) : null}
-                  <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
-                    {description}
-                  </span>
-                </button>
-              );
-            })}
-        </div>
-
+        <label className="mt-4 block"><span className="text-xs font-bold text-neutral-500">{tx("Tipo de duración")}</span>
+          <select aria-label={tx("Tipo de duración")} value={durationMode} className="league-creation-input mt-1" onChange={event => {
+            const mode = event.target.value as SeasonDurationMode;
+            setDurationMode(mode);
+            refreshManualCalendarFromPlayers({ selectedIds: selectedPlayerIds, count: playerCount, mode: mode === "custom" ? "extended" : scheduleMode, targetRounds: mode === "custom" ? Math.min(Math.max(customRoundCount, 1), maxSeasonRounds) : getSeasonScheduleRoundCount({ playerCount, mode: scheduleMode, longMultiplier }) });
+            setCreationFeedback(null);
+          }}><option value="complete">{t.adminSeason.durationCompleteTitle}</option><option value="custom">{t.adminSeason.durationCustomTitle}</option></select>
+          <span className="mt-2 block text-xs leading-5 text-neutral-500">{durationMode === "complete" ? t.adminSeason.durationCompleteDescription : t.adminSeason.durationCustomDescription}</span>
+        </label>
         {durationMode === "complete" ? (
-            <div className="mt-3 grid gap-2">
-              {(["single", "double", "extended"] as SeasonScheduleMode[]).map(
-                (mode) => {
-                  const isSelected = scheduleMode === mode;
-                  return (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => {
-                        setScheduleMode(mode);
-                        const nextTarget = getSeasonScheduleRoundCount({
-                          playerCount,
-                          mode,
-                          longMultiplier,
-                        });
-                        refreshManualCalendarFromPlayers({
-                          selectedIds: selectedPlayerIds,
-                          count: playerCount,
-                          mode,
-                          targetRounds: nextTarget,
-                        });
-                        setCreationFeedback(null);
-                      }}
-                      className={`rounded-2xl border px-3 py-2.5 text-left transition ${
-                        isSelected
-                          ? "border-neutral-950 bg-neutral-50 shadow-sm"
-                          : "border-neutral-200 bg-white text-neutral-600"
-                      }`}
-                    >
-                      <span className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-black">
-                          {mode === "single"
-                            ? t.adminSeason.singleRoundCalendar
-                            : mode === "double"
-                              ? t.adminSeason.doubleRoundCalendar
-                              : t.adminSeason.extendedCalendar}
-                        </span>
-                        {isSelected ? (
-                          <span className="rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black uppercase tracking-wide text-white">
-                            {t.common.active}
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className="mt-1 block text-xs font-semibold text-neutral-500">
-                        {mode === "single"
-                          ? isPairLeague ? tx("Una jornada contra cada pareja rival.") : t.adminSeason.singleRoundCalendarDescription
-                          : mode === "double"
-                            ? isPairLeague ? tx("Dos partidos contra cada pareja rival, con ida y vuelta.") : t.adminSeason.doubleRoundCalendarDescription
-                            : isPairLeague ? tx("Repite vueltas completas conservando las mismas parejas.") : t.adminSeason.extendedCalendarDescription}
-                      </span>
-                    </button>
-                  );
-                },
-              )}
-
+            <div className="season-duration-nested mt-3 space-y-3 rounded-xl border border-neutral-200 p-3" data-season-complete-duration>
+              <p className="text-xs font-semibold text-neutral-500">{tx("Dentro de Equilibrada completa")}</p>
+              <label className="block"><span className="text-sm font-bold">{tx("Vueltas completas")}</span>
+                <select aria-label={tx("Vueltas completas")} value={scheduleMode} className="league-creation-input mt-1" onChange={event => {
+                  const mode = event.target.value as SeasonScheduleMode; setScheduleMode(mode);
+                  refreshManualCalendarFromPlayers({ selectedIds: selectedPlayerIds, count: playerCount, mode, targetRounds: getSeasonScheduleRoundCount({ playerCount, mode, longMultiplier }) });
+                  setCreationFeedback(null);
+                }}><option value="single">{t.adminSeason.singleRoundCalendar}</option><option value="double">{t.adminSeason.doubleRoundCalendar}</option><option value="extended">{t.adminSeason.extendedCalendar}</option></select>
+                <span className="mt-2 block text-xs leading-5 text-neutral-500">{scheduleMode === "single" ? isPairLeague ? tx("Una jornada contra cada pareja rival.") : t.adminSeason.singleRoundCalendarDescription : scheduleMode === "double" ? isPairLeague ? tx("Dos partidos contra cada pareja rival, con ida y vuelta.") : t.adminSeason.doubleRoundCalendarDescription : isPairLeague ? tx("Repite vueltas completas conservando las mismas parejas.") : t.adminSeason.extendedCalendarDescription}</span>
+              </label>
               {scheduleMode === "extended" ? (
                 <label className="rounded-2xl border border-neutral-200 bg-white p-3">
                   <span className="text-xs font-black uppercase tracking-wide text-neutral-500">
@@ -1922,52 +1799,6 @@ export function NewSeasonForm({
             </label>
         )}
       </AppCard>
-
-      <AppCard data-season-calendar-visibility>
-        <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-black text-white">
-            3
-          </span>
-          <p className="font-bold">{t.adminSeason.calendarVisibilityTitle}</p>
-        </div>
-        <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
-          {t.adminSeason.calendarVisibilityDescription}
-        </p>
-        <div className="mt-3 space-y-2">
-          {([
-            ["full", t.adminSeason.calendarVisibilityFullTitle, t.adminSeason.newCalendarVisibilityFullDescription],
-            ["progressive", t.adminSeason.calendarVisibilityProgressiveTitle, t.adminSeason.newCalendarVisibilityProgressiveDescription],
-          ] as const).map(([mode, title, description]) => (
-            <label
-              key={mode}
-              className={`flex items-start gap-3 rounded-2xl border p-3 ${
-                calendarVisibilityMode === mode
-                  ? "border-neutral-950 bg-neutral-50"
-                  : "border-neutral-200 bg-white"
-              }`}
-            >
-              <input
-                type="radio"
-                name="newCalendarVisibility"
-                checked={calendarVisibilityMode === mode}
-                onChange={() => {
-                  setCalendarVisibilityMode(mode);
-                  setCreationFeedback(null);
-                }}
-                className="mt-1"
-              />
-              <span>
-                <span className="block text-sm font-black text-neutral-950">{title}</span>
-                <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
-                  {description}
-                </span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </AppCard>
-
-
 
       {isPairLeague && rosterMode === "fixed" && calendarMode === "manual" && !areLeagueMatchesPaired(manualCalendarMatches, fixedPairs) ? <p role="status" className="text-sm font-semibold text-amber-700">{tx("Los cruces manuales deben respetar las parejas elegidas. Ajusta los jugadores o restaura el calendario automático.")}</p> : null}
       {rosterMode === "fixed" && calendarMode === "manual" ? (
@@ -2139,232 +1970,52 @@ export function NewSeasonForm({
         </AppCard>
       ) : null}
 
-      <AppCard>
-        <p className="font-bold">{t.adminSeason.resultRulesTitle}</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">
-          {t.adminSeason.resultRulesDescription}
+</div></details>
+<details className="league-creation-details"><summary><span className="league-creation-block-title"><span className="league-creation-range">3</span>{tx("Inicio y visibilidad")}</span><span className="text-xs font-normal text-neutral-500">{scheduledStartAt ? tx("Inicio programado") : tx("Inicio manual")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard data-season-calendar-visibility>
+        <div className="flex items-center gap-2">
+          <span aria-hidden="true" className="league-creation-number">
+            3
+          </span>
+          <p className="font-bold">{t.adminSeason.calendarVisibilityTitle}</p>
+        </div>
+        <p className="mt-2 text-xs font-semibold leading-5 text-neutral-500">
+          {t.adminSeason.calendarVisibilityDescription}
         </p>
-
-        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
-          <input
-            type="checkbox"
-            checked={requiresThreeSets}
-            onChange={(event) => {
-              setRequiresThreeSets(event.target.checked);
-              setCreationFeedback(null);
-            }}
-            className="mt-1"
-          />
-
-          <span>
-            <span className="block text-sm font-black">
-              {t.adminSeason.requireThreeSetsTitle}
-            </span>
-            <span className="mt-1 block text-xs text-neutral-500">
-              {t.adminSeason.requireThreeSetsDescription}
-            </span>
-          </span>
-        </label>
-      </AppCard>
-
-      <AppCard>
-        <label className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            checked={availabilityRecommendationsEnabled}
-            onChange={(event) => setAvailabilityRecommendationsEnabled(event.target.checked)}
-            className="mt-0.5 h-4 w-4"
-          />
-          <span>
-            <span className="block text-sm font-black">{tx("Disponibilidad y recomendaciones")}</span>
-            <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
-              {tx("Opcional. Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos. Por defecto se coordina desde el chat.")}{" "}</span>
-          </span>
-        </label>
-      </AppCard>
-
-      <AppCard>
-        <p className="font-bold">{tx("Sistema MVP")}</p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          {tx("Decide si habrá MVP de jornada y cómo se seleccionará.")}{" "}</p>
-
-        <MvpSystemOptions
-          value={mvpSystem}
-          onChange={(nextSystem) => {
-            setMvpSystem(nextSystem);
-            setCreationFeedback(null);
-          }}
-        />
-      </AppCard>
-
-
-
-      <AppCard>
-        <p className="font-bold">{tx("Confirmación de resultados")}</p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          {tx("Decide si los resultados necesitan validación de los jugadores.")}{" "}</p>
-
-        <ResultConfirmationOptions
-          value={resultConfirmationMode}
-          onChange={(nextMode) => {
-            setResultConfirmationMode(nextMode);
-            setCreationFeedback(null);
-          }}
-        />
-      </AppCard>
-
-      <AppCard>
-        <p className="font-bold">{tx("Bolas asignadas por la organización")}</p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-          {tx("La organización entrega un bote por partido. Se desactiva la compra de bolas y la app asigna el encargado con el menor número de custodios posible.")}
-        </p>
-        <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
-          <input
-            type="checkbox"
-            checked={organizationBallsAssigned}
-            onChange={(event) => {
-              setOrganizationBallsAssigned(event.target.checked);
-              setCreationFeedback(null);
-            }}
-            className="mt-1"
-          />
-          <span>
-            <span className="block text-sm font-black">{tx("Activar reparto de botes")}</span>
-            <span className="mt-1 block text-xs text-neutral-500">{tx("Elige cómo se decidirá quién puede custodiar los botes.")}</span>
-          </span>
-        </label>
-        {organizationBallsAssigned ? (
-          <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-            <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Modo de reparto")}</p>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
-                <input type="radio" name="creation-balls-mode" checked={ballsAssignmentMode === "priority"} onChange={() => setBallsAssignmentMode("priority")} className="mt-0.5" />
-                <span><span className="block font-black">{tx("Seleccionar orden de prioridad")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("La app resuelve empates siguiendo este orden.")}</span></span>
-              </label>
-              <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
-                <input type="radio" name="creation-balls-mode" checked={ballsAssignmentMode === "selected"} onChange={() => {
-                  setBallsAssignmentMode("selected");
-                  if (effectiveBallsAssignmentCustodianRefs.length === 0) setBallsAssignmentCustodianRefs(ballsAssignmentPriorityEntries.map((item) => item.ref));
-                }} className="mt-0.5" />
-                <span><span className="block font-black">{tx("Seleccionar custodios")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Solo las personas elegidas podrán llevar botes.")}</span></span>
-              </label>
-            </div>
-            {ballsAssignmentMode === "priority" ? <>
-              <p className="mt-3 text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad de custodios")}</p>
-              <div className="mt-2 space-y-1.5">
-                {effectiveBallsAssignmentPriority.map((priorityRef, index) => {
-                  const player = ballsAssignmentPriorityEntries.find((item) => item.ref === priorityRef);
-                  if (!player) return null;
-                  return (
-                    <div key={priorityRef} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-sm font-bold">
-                      <span className="w-5 text-xs text-neutral-400">{index + 1}</span>
-                      <span className="min-w-0 flex-1 truncate">{player.name}</span>
-                      <button type="button" disabled={index === 0} onClick={() => setBallsAssignmentPriority(moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, -1))} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Subir prioridad")}>↑</button>
-                      <button type="button" disabled={index === effectiveBallsAssignmentPriority.length - 1} onClick={() => setBallsAssignmentPriority(moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, 1))} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Bajar prioridad")}>↓</button>
-                    </div>
-                  );
-                })}
-              </div>
-            </> : <div className="mt-3 space-y-1.5">
-              <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Jugadores que pueden ser custodios")}</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {ballsAssignmentPriorityEntries.map((player) => {
-                  const isSelected = effectiveBallsAssignmentCustodianRefs.includes(player.ref);
-                  const profile = leaguePlayers.find((item) => item.id === player.ref) ?? currentPlayers.find((item) => item.id === player.ref);
-                  const appUserId = player.ref.startsWith("app:") ? player.ref.slice(4) : null;
-                  const avatarUrl = profile?.avatarUrl ?? (appUserId ? activeAppDirectory.find((person) => person.userId === appUserId)?.avatarUrl : null);
-                  return (
-                    <BallCustodianChoice
-                      key={player.ref}
-                      name={player.name}
-                      avatarUrl={avatarUrl}
-                      selected={isSelected}
-                      onClick={() => setBallsAssignmentCustodianRefs((current) => current.includes(player.ref) ? current.filter((ref) => ref !== player.ref) : [...current, player.ref])}
-                    />
-                  );
-                })}
-              </div>
-              {effectiveBallsAssignmentCustodianRefs.length === 0 ? <p className="text-xs font-semibold text-red-600">{tx("Selecciona al menos un custodio.")}</p> : null}
-              {canValidateCustodianCoverage && selectedCustodianCoverage.unassignedMatchIds.length > 0 ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">{tx("Los custodios elegidos no pueden cubrir todos los partidos. Selecciona más jugadores.")}</p> : null}
-              {rosterMode === "self_registration" ? <p className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-600">{tx("La cobertura se comprobará cuando se genere el calendario.")}</p> : null}
-            </div>}
-            {openingRoundEnabled && effectiveOpeningRoundIso && registrationRecipientPlayerId ? (
-              <p className="mt-3 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-600">
-                {tx("Todos los partidos de la Jornada de Apertura se asignarán al organizador.")}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-      </AppCard>
-
-      <AppCard>
-        <p className="font-bold">{tx("Inscripción")}</p>
-        <p className="mt-1 text-xs font-semibold text-neutral-500">
-          {tx("Define si esta temporada tiene cuota de inscripción y cuánto debe pagar cada jugador.")}{" "}</p>
-
-        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
-          <input
-            type="checkbox"
-            checked={hasRegistrationFee}
-            onChange={(event) => {
-              setHasRegistrationFee(event.target.checked);
-              setCreationFeedback(null);
-            }}
-            className="mt-1"
-          />
-
-          <span>
-            <span className="block text-sm font-black">
-              {tx("Activar inscripción de temporada")}{" "}</span>
-            <span className="mt-1 block text-xs text-neutral-500">
-              {tx("En HOME aparecerá un panel para consultar y gestionar los pagos.")}{" "}</span>
-          </span>
-        </label>
-
-        {hasRegistrationFee ? (
-          <label className="mt-4 block">
-            <span className="text-sm font-semibold text-neutral-700">
-              {tx("Precio por jugador")}{" "}</span>
-            <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
+        <div className="mt-3 space-y-2">
+          {([
+            ["full", t.adminSeason.calendarVisibilityFullTitle, t.adminSeason.newCalendarVisibilityFullDescription],
+            ["progressive", t.adminSeason.calendarVisibilityProgressiveTitle, t.adminSeason.newCalendarVisibilityProgressiveDescription],
+          ] as const).map(([mode, title, description]) => (
+            <label
+              key={mode}
+              className={`flex items-start gap-3 rounded-2xl border p-3 ${
+                calendarVisibilityMode === mode
+                  ? "border-neutral-950 bg-neutral-50"
+                  : "border-neutral-200 bg-white"
+              }`}
+            >
               <input
-                type="number"
-                min={0}
-                step="0.5"
-                value={registrationFeeAmount}
-                onChange={(event) => {
-                  setRegistrationFeeAmount(event.target.value);
+                type="radio"
+                name="newCalendarVisibility"
+                checked={calendarVisibilityMode === mode}
+                onChange={() => {
+                  setCalendarVisibilityMode(mode);
                   setCreationFeedback(null);
                 }}
-                className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none"
+                className="mt-1"
               />
-              <span className="text-sm font-black text-neutral-500">€</span>
-            </div>
-            {!hasValidRegistrationFee ? (
-              <span className="mt-2 block text-xs font-semibold text-red-600">
-                {tx("Introduce un importe mayor que 0.")}{" "}</span>
-            ) : null}
-          </label>
-        ) : null}
-
-        {hasRegistrationFee ? (
-          <label className="mt-4 block">
-            <span className="text-sm font-semibold text-neutral-700">
-              {tx("Destino de la inscripción")}{" "}</span>
-            <textarea
-              value={registrationFeePurpose}
-              onChange={(event) => {
-                setRegistrationFeePurpose(event.target.value);
-                setCreationFeedback(null);
-              }}
-              rows={3}
-              placeholder={tx("Ejemplo: premios, bolas, bote final o gastos comunes de organización.")}
-              className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold leading-5 text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
-            />
-            <span className="mt-2 block text-xs font-semibold leading-5 text-neutral-500">
-              {tx("Esta explicación se mostrará a los jugadores junto al estado de sus pagos.")}{" "}</span>
-          </label>
-        ) : null}
+              <span>
+                <span className="block text-sm font-black text-neutral-950">{title}</span>
+                <span className="mt-1 block text-xs font-semibold leading-5 text-neutral-500">
+                  {description}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
       </AppCard>
+
+
 
       <AppCard>
         <p className="font-bold">{tx("Inicio programado")}</p>
@@ -2374,7 +2025,6 @@ export function NewSeasonForm({
           <span className="text-sm font-semibold text-neutral-700">{tx("Fecha y hora de activación")}</span>
           <input
             type="datetime-local" step={3600} value={scheduledStartAt}
-            onFocus={() => { if (!scheduledStartAt) { setScheduledStartAt(formatNextScheduledStartForInput()); setScheduledStartIsFuture(true); } }}
             onChange={(event) => {
               const value = event.target.value;
               const iso = datetimeLocalToIso(value);
@@ -2529,24 +2179,8 @@ export function NewSeasonForm({
                   />
                 </label>
               )}
-              <label className="block">
-                <span className="text-sm font-semibold text-neutral-700">{t.adminSeason.openingRoundLocation}</span>
-                <select
-                  value={openingRoundLocationId}
-                  onChange={(event) => {
-                    setOpeningRoundLocationId(event.target.value);
-                    setCreationFeedback(null);
-                  }}
-                  className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
-                >
-                  <option value="">{t.adminSeason.openingRoundLocationPlaceholder}</option>
-                  {sortLeagueLocationsByTownNameLabel(leagueLocations).map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {getLeagueLocationTownNameLabel(location)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div><PersonalMatchLocationPicker locations={openingLocations} loading={locationsLoading} selectedLocationId={openingRoundLocationId} manualLocationName="" onSelectedLocationIdChange={value => { setOpeningRoundLocationId(value); setCreationFeedback(null); }} onManualLocationNameChange={() => {}} disabled={isSaving} allowManualLocation={false} label={t.adminSeason.openingRoundLocation} />
+              {locationsError ? <p role="alert" className="mt-2 text-xs text-red-600">{tx("No se ha podido cargar el catálogo de ubicaciones. Recarga para volver a intentarlo.")}</p> : null}</div>
               <span className="sm:col-span-2 block text-xs font-semibold leading-5 text-neutral-500">
                 {t.adminSeason.openingRoundCreateAutoHelp}
               </span>
@@ -2595,13 +2229,237 @@ export function NewSeasonForm({
         ) : null}
       </AppCard>
 
-      <button
-        type="submit"
-        disabled={!canStartSeason}
-        className="flex w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300 items-center justify-center text-center"
-      >
-        {isSaving ? "Guardando..." : tx("Crear temporada")}
-      </button>
+</div></details>
+<details className="league-creation-details"><summary><span className="league-creation-block-title"><span className="league-creation-range">4–7</span>{tx("Reglas de juego")}</span><span className="text-xs font-normal text-neutral-500">{tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">4</span><p className="text-sm font-black">{t.adminSeason.resultRulesTitle}</p></div>
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
+          {t.adminSeason.resultRulesDescription}
+        </p>
+
+        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+          <input
+            type="checkbox"
+            checked={requiresThreeSets}
+            onChange={(event) => {
+              setRequiresThreeSets(event.target.checked);
+              setCreationFeedback(null);
+            }}
+            className="mt-1"
+          />
+
+          <span>
+            <span className="block text-sm font-black">
+              {t.adminSeason.requireThreeSetsTitle}
+            </span>
+            <span className="mt-1 block text-xs text-neutral-500">
+              {t.adminSeason.requireThreeSetsDescription}
+            </span>
+          </span>
+        </label>
+      </AppCard>
+
+      <AppCard>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">5</span><p className="text-sm font-black">{tx("Disponibilidad y recomendaciones")}</p></div>
+        <p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Opcional. Si no lo activas, los jugadores se coordinan desde el chat.")}</p>
+        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+          <input type="checkbox" checked={availabilityRecommendationsEnabled} onChange={(event) => setAvailabilityRecommendationsEnabled(event.target.checked)} className="mt-1" />
+          <span className="text-sm font-semibold">{tx("Usa los horarios habituales de los jugadores para sugerir fechas al programar partidos.")}</span>
+        </label>
+      </AppCard>
+
+      <AppCard>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">6</span><p className="text-sm font-black">{tx("Sistema MVP")}</p></div>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          {tx("Decide si habrá MVP de jornada y cómo se seleccionará.")}{" "}</p>
+
+        <MvpSystemOptions
+          value={mvpSystem}
+          onChange={(nextSystem) => {
+            setMvpSystem(nextSystem);
+            setCreationFeedback(null);
+          }}
+        />
+      </AppCard>
+
+
+
+      <AppCard>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">7</span><p className="text-sm font-black">{tx("Confirmación de resultados")}</p></div>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          {tx("Decide si los resultados necesitan validación de los jugadores.")}{" "}</p>
+
+        <ResultConfirmationOptions
+          value={resultConfirmationMode}
+          onChange={(nextMode) => {
+            setResultConfirmationMode(nextMode);
+            setCreationFeedback(null);
+          }}
+        />
+      </AppCard>
+
+</div></details>
+<details className="league-creation-details"><summary><span className="league-creation-block-title"><span className="league-creation-range">8–9</span>{tx("Organización y pagos")}</span><span className="text-xs font-normal text-neutral-500">{hasRegistrationFee ? `${registrationFeeAmount} €` : tx("Sin cuota")}</span></summary><div className="space-y-3 p-3 pt-0">      <AppCard>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">8</span><p className="text-sm font-black">{tx("Bolas asignadas por la organización")}</p></div>
+        <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+          {tx("La organización entrega un bote por partido. Se desactiva la compra de bolas y la app asigna el encargado con el menor número de custodios posible.")}
+        </p>
+        <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+          <input
+            type="checkbox"
+            checked={organizationBallsAssigned}
+            onChange={(event) => {
+              setOrganizationBallsAssigned(event.target.checked);
+              setCreationFeedback(null);
+            }}
+            className="mt-1"
+          />
+          <span>
+            <span className="block text-sm font-black">{tx("Activar reparto de botes")}</span>
+            <span className="mt-1 block text-xs text-neutral-500">{tx("Elige cómo se decidirá quién puede custodiar los botes.")}</span>
+          </span>
+        </label>
+        {organizationBallsAssigned ? (
+          <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+            <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Modo de reparto")}</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+                <input type="radio" name="creation-balls-mode" checked={ballsAssignmentMode === "priority"} onChange={() => setBallsAssignmentMode("priority")} className="mt-0.5" />
+                <span><span className="block font-black">{tx("Seleccionar orden de prioridad")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("La app resuelve empates siguiendo este orden.")}</span></span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+                <input type="radio" name="creation-balls-mode" checked={ballsAssignmentMode === "selected"} onChange={() => {
+                  setBallsAssignmentMode("selected");
+                  if (effectiveBallsAssignmentCustodianRefs.length === 0) setBallsAssignmentCustodianRefs(ballsAssignmentPriorityEntries.map((item) => item.ref));
+                }} className="mt-0.5" />
+                <span><span className="block font-black">{tx("Seleccionar custodios")}</span><span className="mt-1 block text-xs text-neutral-500">{tx("Solo las personas elegidas podrán llevar botes.")}</span></span>
+              </label>
+            </div>
+            {ballsAssignmentMode === "priority" ? <>
+              <p className="mt-3 text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Prioridad de custodios")}</p>
+              <div className="mt-2 space-y-1.5">
+                {effectiveBallsAssignmentPriority.map((priorityRef, index) => {
+                  const player = ballsAssignmentPriorityEntries.find((item) => item.ref === priorityRef);
+                  if (!player) return null;
+                  return (
+                    <div key={priorityRef} className="flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 text-sm font-bold">
+                      <span className="w-5 text-xs text-neutral-400">{index + 1}</span>
+                      <span className="min-w-0 flex-1 truncate">{player.name}</span>
+                      <button type="button" disabled={index === 0} onClick={() => setBallsAssignmentPriority(moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, -1))} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Subir prioridad")}>↑</button>
+                      <button type="button" disabled={index === effectiveBallsAssignmentPriority.length - 1} onClick={() => setBallsAssignmentPriority(moveBallsAssignmentPriority(effectiveBallsAssignmentPriority, index, 1))} className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1 text-xs disabled:opacity-30" aria-label={tx("Bajar prioridad")}>↓</button>
+                    </div>
+                  );
+                })}
+              </div>
+            </> : <div className="mt-3 space-y-1.5">
+              <p className="text-xs font-black uppercase tracking-wide text-neutral-500">{tx("Jugadores que pueden ser custodios")}</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {ballsAssignmentPriorityEntries.map((player) => {
+                  const isSelected = effectiveBallsAssignmentCustodianRefs.includes(player.ref);
+                  const profile = leaguePlayers.find((item) => item.id === player.ref) ?? currentPlayers.find((item) => item.id === player.ref);
+                  const appUserId = player.ref.startsWith("app:") ? player.ref.slice(4) : null;
+                  const avatarUrl = profile?.avatarUrl ?? (appUserId ? activeAppDirectory.find((person) => person.userId === appUserId)?.avatarUrl : null);
+                  return (
+                    <BallCustodianChoice
+                      key={player.ref}
+                      name={player.name}
+                      avatarUrl={avatarUrl}
+                      selected={isSelected}
+                      onClick={() => setBallsAssignmentCustodianRefs((current) => current.includes(player.ref) ? current.filter((ref) => ref !== player.ref) : [...current, player.ref])}
+                    />
+                  );
+                })}
+              </div>
+              {effectiveBallsAssignmentCustodianRefs.length === 0 ? <p className="text-xs font-semibold text-red-600">{tx("Selecciona al menos un custodio.")}</p> : null}
+              {canValidateCustodianCoverage && selectedCustodianCoverage.unassignedMatchIds.length > 0 ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">{tx("Los custodios elegidos no pueden cubrir todos los partidos. Selecciona más jugadores.")}</p> : null}
+              {rosterMode === "self_registration" ? <p className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-600">{tx("La cobertura se comprobará cuando se genere el calendario.")}</p> : null}
+            </div>}
+            {openingRoundEnabled && effectiveOpeningRoundIso && registrationRecipientPlayerId ? (
+              <p className="mt-3 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-neutral-600">
+                {tx("Todos los partidos de la Jornada de Apertura se asignarán al organizador.")}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </AppCard>
+
+      <AppCard>
+        <div className="league-creation-block-title"><span aria-hidden="true" className="league-creation-number">9</span><p className="text-sm font-black">{tx("Inscripción")}</p></div>
+        <p className="mt-1 text-xs font-semibold text-neutral-500">
+          {tx("Define si esta temporada tiene cuota de inscripción y cuánto debe pagar cada jugador.")}{" "}</p>
+
+        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 p-3">
+          <input
+            type="checkbox"
+            checked={hasRegistrationFee}
+            onChange={(event) => {
+              setHasRegistrationFee(event.target.checked);
+              setCreationFeedback(null);
+            }}
+            className="mt-1"
+          />
+
+          <span>
+            <span className="block text-sm font-black">
+              {tx("Activar inscripción de temporada")}{" "}</span>
+            <span className="mt-1 block text-xs text-neutral-500">
+              {tx("En HOME aparecerá un panel para consultar y gestionar los pagos.")}{" "}</span>
+          </span>
+        </label>
+
+        {hasRegistrationFee ? (
+          <label className="mt-4 block">
+            <span className="text-sm font-semibold text-neutral-700">
+              {tx("Precio por jugador")}{" "}</span>
+            <div className="mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5">
+              <input
+                type="number"
+                min={0}
+                step="0.5"
+                value={registrationFeeAmount}
+                onChange={(event) => {
+                  setRegistrationFeeAmount(event.target.value);
+                  setCreationFeedback(null);
+                }}
+                className="min-w-0 flex-1 bg-transparent text-sm font-black text-neutral-950 outline-none"
+              />
+              <span className="text-sm font-black text-neutral-500">€</span>
+            </div>
+            {!hasValidRegistrationFee ? (
+              <span className="mt-2 block text-xs font-semibold text-red-600">
+                {tx("Introduce un importe mayor que 0.")}{" "}</span>
+            ) : null}
+          </label>
+        ) : null}
+
+        {hasRegistrationFee ? (
+          <label className="mt-4 block">
+            <span className="text-sm font-semibold text-neutral-700">
+              {tx("Destino de la inscripción")}{" "}</span>
+            <textarea
+              value={registrationFeePurpose}
+              onChange={(event) => {
+                setRegistrationFeePurpose(event.target.value);
+                setCreationFeedback(null);
+              }}
+              rows={3}
+              placeholder={tx("Ejemplo: premios, bolas, bote final o gastos comunes de organización.")}
+              className="mt-2 w-full resize-none rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-semibold leading-5 text-neutral-900 shadow-sm outline-none focus:border-neutral-400"
+            />
+            <span className="mt-2 block text-xs font-semibold leading-5 text-neutral-500">
+              {tx("Esta explicación se mostrará a los jugadores junto al estado de sus pagos.")}{" "}</span>
+          </label>
+        ) : null}
+      </AppCard>
+
+</div></details>
+</div>
+{creationStep === "summary" ? <SeasonCreationSummary groups={summaryGroups} participants={summaryParticipants} onEdit={goToCreationStep} /> : null}
+      {creationStep === "basic" ? <AppCard><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-bold">{tx(customized ? "Ajustes personalizados" : "Configuración básica")}</h3><button type="button" onClick={() => goToCreationStep("advanced")} className="league-creation-secondary league-creation-advanced">{tx("Personalizar ajustes avanzados")}</button></div><p className="mt-2 text-xs leading-5 text-neutral-500">{totalSeasonRounds} {t.adminSeason.roundsShortLabel} · {tx(calendarMode === "balanced" ? "Calendario automático" : "Calendario manual")} · {tx(calendarVisibilityMode === "full" ? "Calendario completo visible" : "Publicación progresiva")} · {tx(scheduledStartAt ? "Inicio programado" : "Inicio manual")}</p><p className="mt-1 text-xs leading-5 text-neutral-500">{tx(requiresThreeSets ? "Tres sets completos" : "Al mejor de tres sets")} · {tx(mvpSystem === "automatic_advanced" ? "MVP automático avanzado" : mvpSystem === "automatic" ? "MVP automático" : "MVP personalizado")} · {tx(hasRegistrationFee ? "Con cuota" : "Sin cuota")}</p></AppCard> : null}
+      {validationIssues.filter(([step]) => creationStep !== "basic" || step === "basic").length ? <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="mb-1 font-bold">{tx("Antes de continuar")}</p>{validationIssues.filter(([step]) => creationStep !== "basic" || step === "basic").map(([step, message]) => <button type="button" className="block py-1 text-left underline underline-offset-2" key={message} onClick={() => { goToCreationStep(step as typeof creationStep); if(step === "advanced") requestAnimationFrame(() => document.querySelectorAll<HTMLDetailsElement>("[data-season-creation-advanced] > details").forEach(detail => detail.open = true)); }}>{tx(message)}</button>)}</div> : null}
+      {creationStep === "summary" ? <p className="text-sm text-neutral-500">{scheduledStartAt ? tx("La temporada quedará preparada hasta el inicio programado.") : tx("La temporada quedará preparada. Podrás iniciarla cuando quieras.")}</p> : null}
+      </fieldset>
+      <div className="league-creation-footer"><button type="button" disabled={isSaving} onClick={() => creationStep === "summary" ? goToCreationStep(summaryBackStep) : creationStep === "advanced" ? goToCreationStep("basic") : isFirstLeagueSeason ? goToCreationStep("league") : onExit ? onExit() : router.back()} className="league-creation-secondary">{tx("Atrás")}</button>
+      <button type="submit" disabled={isSaving || (creationStep === "summary" ? !canStartSeason : validationIssues.some(([step]) => step === "basic"))} className="league-creation-primary">{isSaving ? tx("Guardando...") : tx(creationStep === "summary" ? draftLeague ? "Crear liga y primera temporada" : "Confirmar y crear temporada" : "Siguiente paso")}</button></div>
 
       {isFirstLeagueSeason ? <div className="border-t border-neutral-200 pt-2">
               <button
@@ -2614,7 +2472,7 @@ export function NewSeasonForm({
       </div> : null}
 
       {error ? (
-        <p className="text-center text-sm font-semibold text-red-600">
+        <p role="alert" className="text-center text-sm font-semibold text-red-600">
           {tx(error)}
         </p>
       ) : null}
@@ -2625,6 +2483,7 @@ export function NewSeasonForm({
           leagueName={activeLeagueName}
         />
       ) : null}
+
     </form>
   );
 }

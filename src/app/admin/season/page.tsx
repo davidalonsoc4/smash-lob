@@ -54,6 +54,7 @@ import {
 function showSavedFeedback(message: string) {
   showActionFeedback({ tone: "success", message });
 }
+const seasonCreationAnchor = "nueva-temporada";
 const lastSupabaseErrorStorageKey = "smash-lob-last-supabase-error";
 const supabaseUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -1725,6 +1726,8 @@ export default function AdminSeasonPage() {
   const [isNewSeasonFormOpen, setIsNewSeasonFormOpen] = useState(
     !hasCreatedLeagueSeason,
   );
+  const [hasOpenedSeasonCreation, setHasOpenedSeasonCreation] = useState(!hasCreatedLeagueSeason);
+  const showSeasonCreation = !hasCreatedLeagueSeason || (isNewSeasonFormOpen && !isActiveSeason && !isUpcomingSeason);
   const [isDuplicatingSeason, setIsDuplicatingSeason] = useState(false);
   const [duplicateSeasonError, setDuplicateSeasonError] = useState<string | null>(null);
   const inviteCode = getLeagueInviteCode(activeLeague.id);
@@ -1818,7 +1821,8 @@ export default function AdminSeasonPage() {
 
   return (
     <div className="compact-page space-y-3">
-      <header data-tour="season-admin-header" className="app-page-header">
+      <div className="space-y-3" hidden={showSeasonCreation}>
+      {hasCreatedLeagueSeason ? <header data-tour="season-admin-header" className="app-page-header">
         <BackButton fallbackHref="/admin" label={t.common.back} />
 
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">
@@ -1830,9 +1834,9 @@ export default function AdminSeasonPage() {
                 ? tx("Temporada finalizada")
                 : t.adminSeason.newSeasonTitle}
         </h1>
-      </header>
+      </header> : null}
 
-      <div data-tour="season-admin-navigation">
+      {hasCreatedLeagueSeason ? <div data-tour="season-admin-navigation">
         <SeasonNavigation
         isActiveSeason={isActiveSeason}
         isUpcomingSeason={isUpcomingSeason}
@@ -1841,7 +1845,7 @@ export default function AdminSeasonPage() {
         canReopenFinishedSeason={canReopenFinishedSeason}
         registrationEnabled={roundSettings.registrationFee.enabled}
         />
-      </div>
+      </div> : null}
 
       {hasCreatedLeagueSeason ? <LinkedSeasonTournaments leagueId={activeLeague.id} seasonId={activeSeason.id} seasonName={activeSeason.name} leagueName={activeLeague.name} /> : null}
 
@@ -2184,14 +2188,14 @@ export default function AdminSeasonPage() {
             </div>
           ) : null}
 
-          <div id="nueva-temporada" className="settings-search-target space-y-3">
+          <div id={showSeasonCreation ? undefined : seasonCreationAnchor} className="settings-search-target space-y-3">
             <AppCard>
               <p className="font-bold">{tx("Preparar la siguiente temporada")}</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
                 {tx("La configuración de la temporada finalizada se conserva arriba. Abre este formulario solo cuando vayas a crear la siguiente.")}{" "}</p>
               <button
                 type="button"
-                onClick={() => setIsNewSeasonFormOpen((current) => !current)}
+                onClick={() => { setHasOpenedSeasonCreation(true); setIsNewSeasonFormOpen(true); requestAnimationFrame(() => document.querySelector("[data-season-creation-step]")?.scrollIntoView({ block: "start" })); }}
                 className="flex mt-3 w-full rounded-2xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white items-center justify-center text-center"
               >
                 {isNewSeasonFormOpen
@@ -2215,36 +2219,14 @@ export default function AdminSeasonPage() {
               ) : null}
             </AppCard>
 
-            {isNewSeasonFormOpen ? (
-              <NewSeasonForm
-                key={`${activeSeason.id}-new`}
-                activeLeagueId={activeLeague.id}
-                activeLeagueName={activeLeague.name}
-                activeSeasonId={activeSeason.id}
-                currentPlayers={players}
-                initialLocations={activeLeague.locations}
-              />
-            ) : null}
+
           </div>
         </>
-      ) : (
-        <>
-          <SeasonSectionIntro
-            title={tx("Nueva temporada")}
-            description={tx("Configura desde cero la primera edición de la liga.")}
-          />
-          <div id="nueva-temporada" className="settings-search-target">
-            <NewSeasonForm
-            key={`${activeSeason.id}-new`}
-            activeLeagueId={activeLeague.id}
-            activeLeagueName={activeLeague.name}
-            activeSeasonId={activeSeason.id}
-              currentPlayers={players}
-              initialLocations={activeLeague.locations}
-            />
-          </div>
-        </>
-      )}
+      ) : null}
+      </div>
+      {hasOpenedSeasonCreation || !hasCreatedLeagueSeason ? <div id={showSeasonCreation ? seasonCreationAnchor : undefined} hidden={!showSeasonCreation}>
+        <NewSeasonForm key={`${activeLeague.id}-${activeSeason.id}-new`} activeLeagueId={activeLeague.id} activeLeagueName={activeLeague.name} activeSeasonId={activeSeason.id} currentPlayers={players} initialLocations={activeLeague.locations} onExit={() => { setIsNewSeasonFormOpen(false); requestAnimationFrame(() => document.getElementById(seasonCreationAnchor)?.scrollIntoView({ block: "start" })); }} />
+      </div> : null}
     </div>
   );
 }

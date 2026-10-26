@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog";
 import type { PlayerProfile } from "@/data/fakeData";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { MatchAvailabilitySuggestions } from "@/components/match/MatchAvailabilitySuggestions";
@@ -852,11 +852,9 @@ export function MatchScheduleForm({
                     <span className={`min-w-0 flex-1 truncate ${selectedLocation ? "text-neutral-900" : "text-neutral-400"}`}>{selectedLocationLabel}</span>
                     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                   </button>
-                  {isLocationPickerOpen && typeof document !== "undefined" ? createPortal(<>
-                    <button type="button" aria-label={tx("Cerrar buscador de ubicaciones")} onClick={closeLocationPicker} className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]" />
-                    <section role="dialog" aria-modal="true" aria-label={tx("Buscar ubicación")} className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl" style={{ top: "max(14px, calc(var(--app-safe-top) + 10px))", maxHeight: "min(440px, calc(100dvh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 28px))" }}>
-                      <div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
-                        <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black text-neutral-950">{tx("Seleccionar ubicación")}</p><p className="type-caption font-semibold text-neutral-400">{tx(`${normalizedAvailableLocations.length} disponibles`)}</p></div><button type="button" onClick={closeLocationPicker} aria-label={tx("Cerrar")} className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500">×</button></div>
+                  <FloatingDialog open={isLocationPickerOpen} onClose={closeLocationPicker} title={tx("Buscar ubicación")} variant="search" busy={isSavingLocation}>
+<div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
+                        <div className="flex items-center justify-between gap-3"><div><h2>{tx("Seleccionar ubicación")}</h2><p className="type-caption font-semibold text-neutral-400">{tx(`${normalizedAvailableLocations.length} disponibles`)}</p></div><DialogCloseButton onClick={closeLocationPicker} disabled={isSavingLocation} /></div>
                         <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
                           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                           <input ref={locationSearchInputRef} type="search" value={locationSearch} onChange={(event) => setLocationSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape") closeLocationPicker(); if (event.key === "Enter") event.preventDefault() }} disabled={isSaving || isSavingLocation} placeholder={loadingGlobalLocations ? tx("Cargando ubicaciones...") : tx("Buscar por localidad o nombre...")} className="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-sm font-semibold outline-none" />
@@ -883,8 +881,7 @@ export function MatchScheduleForm({
                       <div className="shrink-0 border-t border-neutral-100 bg-white p-2">
                         <button type="button" onClick={() => setIsAddingLeagueLocation((current) => !current)} disabled={isSaving || isSavingLocation} className="flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-center text-sm font-black text-neutral-800 disabled:text-neutral-400">{isAddingLeagueLocation ? tx("Cancelar nueva ubicación") : tx("+ Añadir nueva ubicación")}</button>
                       </div>
-                    </section>
-                  </>, document.body) : null}
+                    </FloatingDialog>
                 </div>
               </div>
 

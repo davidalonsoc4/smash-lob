@@ -47,11 +47,13 @@ describe("v1.10.11 personal chats, scheduled admin access and registration payme
 
   it("opens friendly player selectors as modal floating pickers with a blurred backdrop", async () => {
     const selector = await read("src/components/personal/PersonalMatchParticipantSelector.tsx")
-    expect(selector).toContain('import { createPortal } from "react-dom"')
-    expect(selector).toContain('aria-modal="true"')
-    expect(selector).toContain("backdrop-blur-[1px]")
-    expect(selector).toContain('document.body.style.overflow = "hidden"')
-    expect(selector).toContain('event.key === "Escape"')
+    expect(selector).toContain("<FloatingDialog")
+    expect(selector).toContain('variant="search"')
+    const shared = await read("src/components/ui/FloatingDialog.tsx")
+    expect(shared).toContain("createPortal")
+    expect(shared).toContain("showModal()")
+    expect(shared).toContain('document.body.style.overflow = "hidden"')
+    expect(shared).toContain("onCancel=")
   })
 
   it("never auto-replays a tutorial key merely because its version increased", async () => {

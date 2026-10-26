@@ -1,4 +1,6 @@
 "use client"
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
+import { FloatingSearchButton } from "@/components/ui/FloatingSearchButton"
 
 import {
   useCallback,
@@ -247,7 +249,7 @@ export function GlobalSettingsSearch({
         aria-selected={isActive}
         onMouseEnter={() => setActiveIndex(entryIndex)}
         onClick={() => openEntry(entry)}
-        className={`flex w-full items-center gap-2 px-3 py-2.5 text-left transition ${
+        className={`app-dialog-option flex w-full items-center gap-2 px-3 py-2.5 text-left transition ${
           isActive ? "bg-neutral-100" : "bg-white active:bg-neutral-100"
         }`}
       >
@@ -271,57 +273,16 @@ export function GlobalSettingsSearch({
 
   return (
     <>
-      {isOpen ? (
-        <button
-          type="button"
-          aria-label={tx("Cerrar búsqueda")}
-          onClick={closeSearch}
-          className="fixed bottom-0 left-0 right-0 z-30 bg-neutral-950/15 backdrop-blur-[1px]"
-          style={{
-            top: "calc(-64px - var(--app-safe-top))",
-          }}
-        />
-      ) : null}
-
-      <div
-        className="fixed z-40"
-        style={{
-          right: "max(14px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 14px))",
-          bottom: hasBottomNav
-            ? "calc(84px + env(safe-area-inset-bottom, 0px))"
-            : "max(14px, env(safe-area-inset-bottom, 0px))",
-        }}
-      >
-        {isOpen ? (
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-label={copy.title}
-            className="app-search-dialog fixed z-40 flex w-[min(360px,calc(100vw-28px))] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
-            style={{
-              top: "max(64px, calc(var(--app-safe-top) + 58px))",
-              left: "50%",
-              transform: "translateX(-50%)",
-              maxHeight:
-                "min(560px, calc(100svh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 150px))",
-            }}
-          >
+      <FloatingDialog open={isOpen} onClose={closeSearch} title={copy.title} variant="search">
             <div className="border-b border-neutral-100 px-3 pb-2.5 pt-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-black text-neutral-950">{copy.title}</p>
+                  <h2>{copy.title}</h2>
                   <p className="type-caption font-semibold text-neutral-400">
                     {entries.length} {tx("opciones disponibles")}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={closeSearch}
-                  aria-label={tx("Cerrar")}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-neutral-100 text-sm font-black text-neutral-500"
-                >
-                  ×
-                </button>
+                <DialogCloseButton onClick={closeSearch} />
               </div>
 
               <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
@@ -424,25 +385,8 @@ export function GlobalSettingsSearch({
                 </div>
               )}
             </div>
-          </section>
-        ) : null}
-
-        <button
-          type="button"
-          data-tour="settings-search"
-          aria-expanded={isOpen}
-          aria-label={copy.title}
-          title={copy.title}
-          onClick={() => setIsOpen((current) => !current)}
-          className={`grid h-10 w-10 place-items-center rounded-full border shadow-lg backdrop-blur transition active:scale-95 ${
-            isOpen
-              ? "border-neutral-950 bg-neutral-950 text-white"
-              : "app-floating-control border-neutral-200 bg-white/95 text-neutral-600 active:bg-neutral-100"
-          }`}
-        >
-          <SearchIcon />
-        </button>
-      </div>
+      </FloatingDialog>
+      <FloatingSearchButton data-tour="settings-search" label={copy.title} open={isOpen} onClick={() => setIsOpen(true)} hasBottomNav={hasBottomNav} />
     </>
   )
 }

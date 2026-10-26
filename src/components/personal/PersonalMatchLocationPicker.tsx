@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
-import { createPortal } from "react-dom"
+import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
 import {
   getLeagueLocationTownNameLabel,
   type LeagueLocation,
@@ -16,6 +16,8 @@ export function PersonalMatchLocationPicker({
   onSelectedLocationIdChange,
   onManualLocationNameChange,
   disabled = false,
+  allowManualLocation = true,
+  label,
 }: {
   locations: LeagueLocation[]
   loading: boolean
@@ -24,6 +26,8 @@ export function PersonalMatchLocationPicker({
   onSelectedLocationIdChange: (value: string) => void
   onManualLocationNameChange: (value: string) => void
   disabled?: boolean
+  allowManualLocation?: boolean
+  label?: string
 }) {
   const { tx } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
@@ -46,21 +50,6 @@ export function PersonalMatchLocationPicker({
     )
   }, [locations, query])
 
-  useEffect(() => {
-    if (!isOpen) return
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    window.requestAnimationFrame(() => searchInputRef.current?.focus())
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener("keydown", onKeyDown)
-    }
-  }, [isOpen])
-
   function closePicker() {
     setIsOpen(false)
     setQuery("")
@@ -69,7 +58,7 @@ export function PersonalMatchLocationPicker({
 
   return (
     <div className="min-w-0">
-      <span className="text-xs font-black uppercase tracking-wide text-neutral-600">{tx("Pista o club")}</span>
+      <span className="text-xs font-black uppercase tracking-wide text-neutral-600">{label ?? tx("Pista o club")}</span>
       <button
         type="button"
         aria-haspopup="dialog"
@@ -87,33 +76,14 @@ export function PersonalMatchLocationPicker({
         </svg>
       </button>
 
-      {isOpen && typeof document !== "undefined"
-        ? createPortal(
-            <>
-              <button
-                type="button"
-                aria-label={tx("Cerrar buscador de ubicaciones")}
-                onClick={closePicker}
-                className="fixed inset-0 z-[100] bg-neutral-950/45 backdrop-blur-[1px]"
-              />
-              <section
-                role="dialog"
-                aria-modal="true"
-                aria-label={tx("Buscar ubicación")}
-                className="fixed left-1/2 z-[110] flex w-[min(360px,calc(100vw-28px))] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
-                style={{
-                  top: "max(14px, calc(var(--app-safe-top) + 10px))",
-                  maxHeight:
-                    "min(440px, calc(100dvh - var(--app-safe-top) - env(safe-area-inset-bottom, 0px) - 28px))",
-                }}
-              >
-                <div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
+      <FloatingDialog open={isOpen} onClose={closePicker} title={tx("Buscar ubicación")} variant="search">
+<div className="shrink-0 border-b border-neutral-100 px-3 pb-2.5 pt-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-black text-neutral-950">{tx("Seleccionar ubicación")}</p>
+                      <h2>{tx("Seleccionar ubicación")}</h2>
                       <p className="type-caption font-semibold text-neutral-400">{locations.length} disponibles</p>
                     </div>
-                    <button type="button" onClick={closePicker} aria-label={tx("Cerrar")} className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-center text-sm font-black text-neutral-500">×</button>
+                    <DialogCloseButton onClick={closePicker} />
                   </div>
                   <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 focus-within:border-neutral-400 focus-within:bg-white">
                     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
@@ -174,7 +144,7 @@ export function PersonalMatchLocationPicker({
                   )}
                 </div>
 
-                <div className="shrink-0 border-t border-neutral-100 bg-white p-2">
+                {allowManualLocation ? <div className="shrink-0 border-t border-neutral-100 bg-white p-2">
                   <button
                     type="button"
                     onClick={() => setIsAddingLocation((current) => !current)}
@@ -182,12 +152,8 @@ export function PersonalMatchLocationPicker({
                   >
                     {isAddingLocation ? tx("Cancelar nueva ubicación") : tx("+ Añadir nueva ubicación")}
                   </button>
-                </div>
-              </section>
-            </>,
-            document.body,
-          )
-        : null}
+                </div> : null}
+              </FloatingDialog>
     </div>
   )
 }
