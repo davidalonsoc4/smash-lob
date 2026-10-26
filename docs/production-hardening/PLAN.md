@@ -1,5 +1,5 @@
 ## MC69 — Publicación PRE y preparación de PROD
-- Estado: EN CURSO (26/10/2026), petición explícita anterior a T06.
+- Estado: COMPLETO PRE (26/10/2026); v1.15.36 publicada y verificada, CI415 cuatro jobs PASS y13 comprobaciones remotas PASS. PROD no promovida; diagnóstico y condiciones pendientes documentados.
 - Alcance: publicar MC64–68 como v1.15.36 en staging/PRE y emitir diagnóstico documentado de PROD; ninguna modificación de main/Production/v1.0.0 ni datos reales.
 - Gates: release:check completo local, cuatro jobs CI, SHA/árbol staging, Vercel READY/alias PRE, smoke de versión/entorno/PWA/rutas; comparar migraciones y aceptación manual pendiente antes de recomendar PROD.
 
