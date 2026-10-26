@@ -1,3 +1,8 @@
+## MC70 — Respaldo previo a PROD y recuperación
+- Estado: COMPLETO LOCAL (26/10/2026); copia cifrada con clave separada, seis payloads y hashes verificados, archivo PostgreSQL leído íntegramente y recuperación documentada. Sin restauración real ni autorización de publicar PROD.
+- Alcance: preservar código/despliegue actual de PROD y exportar copia cifrada/verificable de su base y archivos necesarios; documentar recuperación. No migraciones, publicación, restauración sobre datos reales ni cambios de configuración de PROD.
+- Gates: identificar proyecto/commit/deployment; exportación completa comprobada, cifrado y hash, clave protegida separada, cobertura de Storage y límites documentados; comprobar main/tag/Production intactos. No usar datos PROD en tests automatizados.
+
 ## MC69 — Publicación PRE y preparación de PROD
 - Estado: COMPLETO PRE (26/10/2026); v1.15.36 publicada y verificada, CI415 cuatro jobs PASS y13 comprobaciones remotas PASS. PROD no promovida; diagnóstico y condiciones pendientes documentados.
 - Alcance: publicar MC64–68 como v1.15.36 en staging/PRE y emitir diagnóstico documentado de PROD; ninguna modificación de main/Production/v1.0.0 ni datos reales.
