@@ -97,7 +97,7 @@
 /* Flat accent surface; quieter inset surfaces distinguish pairs/results. */
 :global(html[data-theme][data-visual-style]) .overview .activityHero :global(.app-card) {
   border: 0 !important;
-  background: color-mix(in srgb, var(--hub-accent) 24%, var(--hub-surface)) !important;
+  background: var(--app-accent) !important;
   box-shadow: none !important;
   backdrop-filter: none;
 }
@@ -107,7 +107,19 @@
 }
 
 :global(html[data-visual-style]) .activityHero :global(.text-neutral-500) {
-  color: color-mix(in srgb, var(--foreground) 80%, var(--hub-surface)) !important;
+  color: var(--competition-accent-contrast) !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global([data-match-event-meta]) {
+  border-color: color-mix(in srgb, var(--competition-accent-contrast) 20%, transparent) !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global([data-match-event-meta]) :global(.text-neutral-600) {
+  color: var(--competition-accent-contrast) !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global([data-personal-match-origin]) {
+  background: color-mix(in srgb, var(--personal-league-accent, var(--app-accent)) 12%, var(--hub-surface)) !important;
 }
 
 .activityHero :global(.match-preview-pagination) {

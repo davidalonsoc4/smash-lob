@@ -1,3 +1,8 @@
+## MC77 — Acento puro en Actividad personal
+- Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
+- Alcance: fondo de tarjeta con el acento configurado al100%, sin mezclarlo; conservar interiores apagados y adaptar metadatos al color de contraste existente del tema.
+- Gates: móvil Clásico/Competition claro/oscuro, Axe y captura visual; sin publicación.
+
 ## MC76 — Superficies de acento sin bordes
 - Estado: COMPLETO LOCAL (26/10/2026), selector de fondo corregido y5/5 gates finales con Axe PASS; capturas claro/oscuro/resultados revisadas. Pendiente valoración visual; sin publicación.
 - Alcance: tarjeta de actividad sin borde/sombra, fondo sólido de acento más intenso y recuadros de parejas/resultados con el tinte apagado anterior. Solo estilos locales de la home.
