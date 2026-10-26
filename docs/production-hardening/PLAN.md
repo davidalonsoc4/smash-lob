@@ -1,3 +1,8 @@
+## MC74 — Prueba de fondo sólido suave
+- Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles PASS con Axe, build del navegador PASS y captura revisada. Pendiente valoración visual del usuario; sin publicación.
+- Alcance: sustituir únicamente el degradado exterior de Actividad personal por un sólido con8% del acento; conservar borde, interiores y navegación. Ajustar contraste del subtítulo si es necesario.
+- Gates: navegador móvil Clásico/Competition claro/oscuro con Axe y comprobación visual; diff limpio. Sin publicación.
+
 ## MC73 — Nombres adaptables en previews personales
 - Estado: COMPLETO LOCAL (26/10/2026),17 pruebas existentes y5 E2E móviles PASS; TypeScript/lint/build del navegador PASS. Misma rama visual, sin publicación.
 - Alcance: reutilizar FitText para reducir nombres hasta10px antes de truncarlos, manteniendo una línea y alineación en tarjetas personales de próximo/último encuentro. Fondo de actividad sin cambios, pendiente de valoración del usuario.

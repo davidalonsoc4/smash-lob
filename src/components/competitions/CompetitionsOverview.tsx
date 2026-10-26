@@ -172,7 +172,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     {view === "summary" ? <section aria-labelledby="personal-activity" className={`${styles.activityHero} space-y-2`}>
       <div data-activity-heading className="app-section-header flex items-center justify-between gap-2">
         <h2 id="personal-activity" className="type-panel-title min-w-0 font-black">{tx("Actividad personal")}</h2>
-        {highlights.length ? <p className="min-w-0 text-right text-xs font-semibold text-neutral-500">{tx(highlights[visibleActivityIndex].kind === "live" ? "Tu partido en curso" : highlights[visibleActivityIndex].kind === "next" ? "Tu próximo partido" : "Tu último encuentro")}</p> : null}
+        {highlights.length ? <p className="min-w-0 text-right text-xs font-semibold text-neutral-600">{tx(highlights[visibleActivityIndex].kind === "live" ? "Tu partido en curso" : highlights[visibleActivityIndex].kind === "next" ? "Tu próximo partido" : "Tu último encuentro")}</p> : null}
       </div>
       {!dashboard && !loadError ? <AppCard><p role="status" className="text-sm text-neutral-500">{tx("Cargando tus partidos…")}</p></AppCard> : loadError ? <AppCard><p role="alert" className="text-sm text-neutral-500">{tx("No se ha podido cargar tu actividad personal.")}</p></AppCard> : highlights.length ? <>
         <div className={styles.activitySlides}><MatchSlides index={visibleActivityIndex} onChange={setActivityIndex} label={tx("Actividad personal")}>

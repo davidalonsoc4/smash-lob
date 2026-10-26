@@ -92,7 +92,7 @@ Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento
 
 - `CompetitionsOverview.module.css` concentra estas variantes de presentación;
   no modifica `PersonalMatchCard`, `LeagueLogo` ni el carrusel compartido.
-- Actividad personal es el foco de la home: marco y lavado breve del acento
+- Actividad personal es el foco de la home: marco y tinte sólido suave del acento
   configurado, con una superficie opaca para nombres, resultados y metadatos.
   No añadir estadísticas, mensajes ni acciones para llenar espacio.
 - Los nombres de jugadores en las previews personales reutilizan `FitText`

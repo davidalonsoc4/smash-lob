@@ -89,7 +89,7 @@
   border: 1px solid color-mix(in srgb, var(--hub-accent) 38%, var(--hub-border));
   border-top: 3px solid var(--hub-accent);
   border-radius: 1.125rem;
-  background: linear-gradient(125deg, color-mix(in srgb, var(--hub-accent) 14%, var(--hub-surface)), var(--hub-surface) 72%);
+  background: color-mix(in srgb, var(--hub-accent) 8%, var(--hub-surface));
   box-shadow: 0 6px 24px color-mix(in srgb, var(--hub-accent) 8%, transparent);
 }
 
