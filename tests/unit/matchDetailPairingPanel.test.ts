@@ -76,7 +76,7 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('border-t border-neutral-300')
     expect(panel).toContain('alignment === "right" ? "ml-4" : "mr-4"')
     expect(panel).toContain('className={index === 0 ? "flex items-end pb-2" : "flex items-start pt-2"}')
-    expect(panel).toContain('app-match-result-divider mr-2 border-t border-neutral-300')
+    expect(panel).toContain('app-match-result-divider relative mr-2 h-px')
     expect(panel).not.toContain('className="grid grid-cols-2 items-start gap-2 sm:gap-4"')
     expect(panel).toContain('className="relative grid grid-cols-2 items-stretch gap-3"')
     expect(panel).toContain('pointer-events-none absolute left-1/2 top-1/2 z-20')

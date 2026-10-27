@@ -57,7 +57,7 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 - Con resultado, una sola superficie contiene ambas parejas en una cuadrícula
   compartida: cabecera S1/S2/S3/Sets una sola vez y números centrados a la altura
   del separador entre los dos nombres. Conservar nombres adaptables y total de sets
-  destacado. Prueba local MC90: ganador con trofeo junto al total y etiqueta accesible,
+  destacado. Prueba local MC91: ganador con trofeo al final del divisor de nombres y etiqueta accesible,
   sin otra caja. Referencia anterior con raya lateral: aef3211f; alternativas2/3
   documentadas en PLAN/STATUS, pendientes de valoración.
 - El MVP resuelto se reconoce en una fila compacta debajo del marcador, con estrella

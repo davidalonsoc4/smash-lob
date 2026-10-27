@@ -1,3 +1,8 @@
+## MC91 — Trofeo al final del separador
+- Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración. Ocho unitarias y dos E2E móviles/Axe/build PASS; lint y captura revisados. Sin publicación.
+- Alcance: mover copa del total al final del divisor de nombres del ganador, centrada con la línea y antes del primer set. Referencia anterior55943f04; mantener aef3211f y alternativas2/3.
+- Gates: unitarias del marcador y dos E2E móviles con alineación/Axe/build. Sin publicación.
+
 ## MC90 — Prueba de trofeo para ganador
 - Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración visual. Ocho unitarias, dos E2E móviles/Axe/build y lint PASS; captura revisada. Sin publicación.
 - Referencia anterior: commit aef3211f, raya lateral junto a nombres, margen extra8px y columnas actuales. Variante1: quitar raya y añadir trofeo junto al total, sin mover columnas.
