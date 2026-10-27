@@ -3194,6 +3194,8 @@ html :is(.app-action-button,.app-action-secondary):focus-visible { outline: 2px 
 /* Finished matches retain the standalone match-up identity; scores lead, management follows. */
 .app-match-result-standalone .app-match-player-name { font-size: 1.125rem; line-height: 1.25; }
 .app-match-result-names { padding-left: 8px; }
+html[data-theme][data-visual-style] .app-match-result-pair-divider { border-color: color-mix(in srgb, var(--foreground) 22%, transparent) !important; }
+html[data-theme][data-visual-style] .app-match-result-divider > span { border-color: color-mix(in srgb, var(--foreground) 14%, transparent) !important; }
 html[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #fff) !important; color: var(--foreground); }
 html.dark[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #1c1d21) !important; }
 html[data-theme][data-visual-style] .app-match-winner-trophy { color: color-mix(in srgb, var(--app-accent) 55%, var(--foreground)) !important; }

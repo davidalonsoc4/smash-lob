@@ -387,6 +387,7 @@ export function MatchDetailPairingPanel({
               won={pointsA !== null && pointsB !== null && pointsA > pointsB}
             />
 
+            <div aria-hidden="true" className="app-match-result-pair-divider col-span-full my-1 border-t" />
             <FinishedPairRow
               side="b"
               playerIds={teamB}

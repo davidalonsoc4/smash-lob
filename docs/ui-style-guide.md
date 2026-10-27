@@ -60,6 +60,8 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
   destacado. Prueba local MC91: ganador con trofeo al final del divisor de nombres y etiqueta accesible,
   sin otra caja. Referencia anterior con raya lateral: aef3211f; alternativas2/3
   documentadas en PLAN/STATUS, pendientes de valoración.
+  Prueba MC93: separador completo y espaciado entre parejas; línea corta entre
+  compañeros más suave para distinguir agrupaciones. Referencia previa a84a7ea4.
 - El MVP resuelto se reconoce en una fila compacta debajo del marcador, con estrella
   de acento y ámbito explícito (partido/jornada). La votación pendiente queda después
   de confirmar el resultado. La gestión tiene menor peso visual; bloqueo y disputa

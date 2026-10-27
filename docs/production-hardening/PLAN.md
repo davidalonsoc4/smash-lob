@@ -1,3 +1,8 @@
+## MC93 — Separación visual entre parejas
+- Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración. Dos E2E móviles con geometría/Axe/build PASS, lint y diff check correctos; captura revisada. Sin publicación.
+- Alcance: separador horizontal completo con aire entre parejas, divisor corto entre compañeros más suave. Mantener superficie única, copa y columnas. Referencia anterior a84a7ea4.
+- Gates: dos E2E móviles con alineación/Axe/build, lint y diff check. Sin publicación.
+
 ## MC92 — Nombre MVP y desplegables en línea
 - Estado: COMPLETO LOCAL (27/10/2026), MVP pendiente de valoración. 25 unitarias y seis E2E móviles PASS; geometría, Axe, lint, i18n, TypeScript/build y capturas revisados. Sin publicación.
 - Alcance: nombre MVP18px, contexto/metadatos secundarios; controles Información/Más acciones en una fila adaptable, contenido a todo el ancho. Copa sin cambios. Referencia visual MVP71544af3 para comparar.
