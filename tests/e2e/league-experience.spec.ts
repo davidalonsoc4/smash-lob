@@ -70,12 +70,12 @@ for(const theme of ["light","dark"])for(const style of ["classic","competition"]
     await expect(page.getByText("Próxima",{exact:true})).toHaveCount(0)
     await expect(page.getByText("En curso",{exact:true}).first()).toBeVisible()
     const preview = page.locator('[data-match-preview="result"]').first()
-    await expect(preview.locator('[data-preview-score-head]')).toHaveCount(1)
+    await expect(preview.locator('[data-preview-score-head]')).toHaveCount(0)
     await expect(preview.locator('.match-preview-trophy')).toHaveCount(1)
     for (const width of [320, 393]) {
       await page.setViewportSize({ width, height: 852 })
       const aligned = await preview.evaluate(element => {
-        const heads = Array.from(element.querySelectorAll('[data-preview-score-head] > span')).slice(1).map(node => { const r = node.getBoundingClientRect(); return r.x + r.width / 2 })
+        const heads = Array.from(element.querySelector('[data-preview-team]')!.querySelectorAll('[data-preview-score]')).map(node => { const r = node.getBoundingClientRect(); return r.x + r.width / 2 })
         return Array.from(element.querySelectorAll('[data-preview-team]')).every(row => {
           const line = row.querySelector('[data-preview-name-divider]')!.getBoundingClientRect()
           return Array.from(row.querySelectorAll('[data-preview-score]')).every((node, index) => {

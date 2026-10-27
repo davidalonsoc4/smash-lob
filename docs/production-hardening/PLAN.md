@@ -1,3 +1,8 @@
+## MC100 — Marcador de preview sin cajas ni cabecera
+- Estado: COMPLETO LOCAL (27/10/2026).6unitarias y8E2E móvilesPASS, tipos/lint/build/i18n/Axe/geometría correctos.
+- Alcance: variante plain de parciales en previews compartidas, retirar S1/S2/S3/Sets; preservar detalle, datos y navegación.
+- Gates: unitarias, tipos/lint y móvil4temas a320/393px, contraste/Axe y geometría. Sin publicación.
+
 ## MC99 — Repetir previews compartidas (puntos 1, 2 y 6)
 - Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración.12unitarias y10E2E más4repeticiones PASS; tipos/lint/build/i18n/Axe/geometría correctos. Referencia86826104 y PRE1.15.37 conservados.
 - Alcance: recuperar prueba92ec830b solo en presentación de previews/estados, respetando ajustes de publicación. No puntos3–5/7–8, reglas, datos ni navegación.

@@ -174,7 +174,13 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   expect(a11y.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })
 
-test("last encounter is compact only in the hub and history stays detailed", async ({ page }, testInfo) => {
+for (const theme of ["light", "dark"]) for (const visualStyle of ["classic", "competition"]) {
+test(`last encounter is compact only in the hub and history stays detailed (${theme}, ${visualStyle})`, async ({ page }, testInfo) => {
+  await page.addInitScript(({ theme, visualStyle }) => {
+    localStorage.setItem("smash-lob-theme-mode", theme)
+    localStorage.setItem("smash-lob-visual-style", visualStyle)
+    localStorage.setItem("smash-lob-competition-accent", "gold")
+  }, { theme, visualStyle })
   const last = {
     id: "fixture-last", origin: "friendly", status: "finished", scheduledAt: "2026-10-15T18:00:00Z", resultRecordedAt: "2026-10-15T20:00:00Z",
     locationName: "Pista del último encuentro", sets: [{ a: 6, b: 2 }, { a: 6, b: 3 }], canManage: true, canDelete: true, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null,
@@ -197,6 +203,18 @@ test("last encounter is compact only in the hub and history stays detailed", asy
   await expect(page.getByText(/15 oct 2026/)).toHaveCount(0)
   const header = page.locator("#personal-activity").locator("..")
   await expect(header.getByRole("link", { name: "Ver Mis partidos" })).toHaveCount(0)
+  const preview = activity.locator('[data-match-preview="result"]').last()
+  await expect(preview.locator('[data-preview-score-head]')).toHaveCount(0)
+  for (const width of [320, 393]) {
+    await page.setViewportSize({ width, height: 852 })
+    expect(await preview.locator('.match-preview-partial > span, .match-preview-total').evaluateAll(elements => elements.every(el => {
+      const style = getComputedStyle(el)
+      return style.backgroundColor === "rgba(0, 0, 0, 0)" && parseFloat(style.borderTopWidth) === 0 && style.boxShadow === "none"
+    }))).toBe(true)
+    const audit = await new AxeBuilder({ page }).include('section[aria-labelledby="personal-activity"]').analyze()
+    expect(audit.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: testInfo.outputPath(`hub-last-${theme}-${visualStyle}-${width}.png`), scale: "css" })
+  }
   await page.screenshot({ path: testInfo.outputPath("hub-last-compact.png"), fullPage: true })
   await expect(activity.getByRole("button", { name: "Victoria", exact: true })).toBeVisible()
   for (const result of ["Victoria", "Derrota"]) {
@@ -217,6 +235,7 @@ test("last encounter is compact only in the hub and history stays detailed", asy
   await page.getByRole("navigation", { name: "Navegación global", exact: true }).getByRole("link", { name: "Mis partidos", exact: true }).click()
   await expect(page.getByText(last.locationName)).toBeVisible()
 })
+}
 
 for (const theme of ["light", "dark"] as const) {
   for (const visualStyle of ["competition", "classic"] as const) {

@@ -30,9 +30,6 @@ export function MatchPreviewTeams({ teamA, teamB, finished, sets, scores }: {
 
   return (
     <div data-match-preview="result" className="match-preview-result grid min-w-0 flex-1 gap-x-1 rounded-xl bg-neutral-50 px-3 py-1" style={{ gridTemplateColumns: `minmax(0,1fr)${sets.length ? ` repeat(${sets.length}, 24px)` : ""} 32px` }}>
-      <div className="col-span-full grid gap-x-1 pb-0.5 text-center type-micro font-medium text-neutral-500" data-preview-score-head style={{ gridTemplateColumns: "subgrid" }}>
-        <span />{sets.map((_, index) => <span key={index}>S{index + 1}</span>)}<span>{tx("Sets")}</span>
-      </div>
       {([{ players: teamA, side: "a" as const }, { players: teamB, side: "b" as const }]).map(({ players, side }, index) => {
         const won = scores[side] > scores[side === "a" ? "b" : "a"]
         return <Fragment key={side}>
@@ -47,7 +44,7 @@ export function MatchPreviewTeams({ teamA, teamB, finished, sets, scores }: {
                 <div className={`flex min-w-0 ${playerIndex === 0 ? "items-end pb-1" : "items-start pt-1"}`}>{names([player])}</div>
               </Fragment>)}
             </div>
-            {sets.map((set, setIndex) => <div key={setIndex} data-preview-score className="match-preview-partial flex items-center justify-center"><SetGameScore value={set[side]} won={set[side] > set[side === "a" ? "b" : "a"]} /></div>)}
+            {sets.map((set, setIndex) => <div key={setIndex} data-preview-score className="match-preview-partial flex items-center justify-center"><SetGameScore variant="plain" value={set[side]} won={set[side] > set[side === "a" ? "b" : "a"]} /></div>)}
             <span data-preview-score className="match-preview-total text-center text-xl font-black leading-none tabular-nums text-neutral-950" aria-label={tx(side === "a" ? "Sets ganados por la pareja A" : "Sets ganados por la pareja B")}>{scores[side]}</span>
           </div>
         </Fragment>

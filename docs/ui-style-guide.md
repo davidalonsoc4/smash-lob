@@ -56,7 +56,7 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 
 - Previews de Calendario/Home de liga y Actividad personal usan `MatchPreviewTeams`:
   pendientes con parejas enfrentadas y nombres adaptables hasta10px; resultados
-  con cabecera única, cuadrícula de sets, separador de parejas y copa junto al divisor
+  sin cabecera S1/S2/S3/Sets, con cuadrícula de números sin cajas, separador de parejas y copa junto al divisor
   del ganador. Tamaños compactos14px nombres/12px parciales/20px total, sin trasladar
   los tamaños mayores del detalle de Partido. No inventar ganador en empate.
   Se conservan los estados compartidos: Victoria/Derrota propios; en resultados
