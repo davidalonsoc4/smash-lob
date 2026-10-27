@@ -56,6 +56,18 @@ for(const theme of ["light","dark"])for(const style of ["classic","competition"]
     expect(await action.evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBe(1)
     await page.screenshot({path:info.outputPath(`pairing-${theme}-${style}.png`),scale:"css"})
     const audit=await new AxeBuilder({page}).analyze();expect(audit.violations.filter(item=>item.impact==="serious"||item.impact==="critical")).toEqual([])
+    const finished=fixture.matches.find(match=>match.round===1)!
+    await page.goto(`/match/${finished.id}`)
+    await expect(page.locator(".app-match-result-row")).toHaveCount(2)
+    await expect(page.locator(".app-match-result-row[data-winner]")).toHaveCount(1)
+    for(const width of [320,393]){
+      await page.setViewportSize({width,height:852})
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+      const rows=await page.locator(".app-match-result-row").evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().width))
+      expect(Math.abs(rows[0]-rows[1])).toBeLessThan(.6)
+    }
+    const resultAudit=await new AxeBuilder({page}).analyze();expect(resultAudit.violations.filter(item=>item.impact==="serious"||item.impact==="critical")).toEqual([])
+    await page.screenshot({path:info.outputPath(`finished-${theme}-${style}.png`),scale:"css"})
   })
   test(`activity windows, hidden pairings and countdown fit the mobile home (${theme},${style})`,async({page},info)=>{
     const fixture=await setup(page,theme,style)

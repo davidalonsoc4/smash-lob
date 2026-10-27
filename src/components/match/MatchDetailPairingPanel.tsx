@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import type { ReactNode } from "react"
-import { AppCard } from "@/components/ui/AppCard"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import type { PlayerProfile } from "@/data/fakeData"
 import { getPlayerById, getPlayerDisplayName } from "@/lib/players"
@@ -276,6 +275,7 @@ function FinishedPairRow({
   substituteLabels,
   linkPlayers,
   showPlayerMetadata,
+  won,
 }: {
   side: "a" | "b"
   playerIds: string[]
@@ -286,10 +286,13 @@ function FinishedPairRow({
   substituteLabels: Record<string, string>
   linkPlayers: boolean
   showPlayerMetadata: boolean
+  won: boolean
 }) {
+  const { tx } = useI18n()
   return (
-    <div className="rounded-2xl bg-neutral-50 px-3 py-3 sm:px-4 sm:py-3.5">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+    <div className="app-match-pair-surface app-match-result-row rounded-2xl border bg-white px-3 py-3 sm:px-4" data-winner={won || undefined}>
+      {won ? <p className="app-match-result-winner mb-1 text-xs font-semibold">{tx("Ganadores:")}</p> : null}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="min-w-0 text-left">
           {playerIds.map((playerId, index) => (
             <div key={playerId} className={index === 0 ? "pb-2" : "pt-0"}>
@@ -307,15 +310,21 @@ function FinishedPairRow({
           ))}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 self-center">
+        <div className="app-match-result-scores flex shrink-0 items-center gap-1 self-center">
           {sets.map((set, index) => {
             const ownScore = side === "a" ? set.a : set.b
             const rivalScore = side === "a" ? set.b : set.a
-            return <SetGameScore key={index} value={ownScore} won={ownScore > rivalScore} />
+            return (
+              <div key={index} className="app-match-result-set flex w-7 flex-col items-center gap-1">
+                <span className="text-[10px] font-medium text-neutral-500">S{index + 1}</span>
+                <SetGameScore value={ownScore} won={ownScore > rivalScore} />
+              </div>
+            )
           })}
           {points !== null && points !== undefined ? (
-            <div className="relative -translate-y-0.5 ml-1 flex h-9 min-w-9 items-center justify-center self-center rounded-md bg-white px-2 text-base font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm">
-              {points}
+            <div className="ml-1 flex w-10 flex-col items-center gap-1 text-neutral-950">
+              <span className="text-[10px] font-semibold text-neutral-500">{tx(sets.length ? "Sets" : "Puntos")}</span>
+              <span className="app-match-result-total text-3xl font-black leading-none tabular-nums">{points}</span>
             </div>
           ) : null}
         </div>
@@ -351,11 +360,9 @@ export function MatchDetailPairingPanel({
     showFinishedPlayerMetadata ?? showPlayerMetadata
   const showPendingMetadata = pendingPlayerMetadata || showRankingPosition
 
-  const PairingContainer = hasResult ? AppCard : "div"
-
   return (
-    <PairingContainer className={hasResult ? "overflow-hidden !p-0" : "app-match-pairing-standalone relative"}>
-      <div className={hasResult ? "p-3 sm:p-4" : undefined}>
+    <div className={hasResult ? "app-match-result-standalone" : "app-match-pairing-standalone relative"}>
+      <div>
         {hasResult ? (
           <div className="space-y-2.5">
             <FinishedPairRow
@@ -368,6 +375,7 @@ export function MatchDetailPairingPanel({
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
               showPlayerMetadata={finishedPlayerMetadata}
+              won={pointsA !== null && pointsB !== null && pointsA > pointsB}
             />
 
             <FinishedPairRow
@@ -380,6 +388,7 @@ export function MatchDetailPairingPanel({
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
               showPlayerMetadata={finishedPlayerMetadata}
+              won={pointsA !== null && pointsB !== null && pointsB > pointsA}
             />
           </div>
         ) : (
@@ -422,7 +431,7 @@ export function MatchDetailPairingPanel({
           </>
         )}
       </div>
-    </PairingContainer>
+    </div>
   )
 }
 

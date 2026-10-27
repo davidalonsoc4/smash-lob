@@ -1,3 +1,8 @@
+## MC87 — Marcador y MVP de Partido
+- Estado: COMPLETO LOCAL (27/10/2026). 28 pruebas unitarias y seis E2E móviles finales PASS; Axe, i18n, lint, TypeScript y build PASS. Capturas de ambos estilos revisadas. Sin publicación.
+- Alcance: marcador sin contenedor exterior, sets alineados y ganador destacado; reconocimiento MVP compacto antes de gestión, votación después de confirmación; gestión secundaria compacta. Conservar permisos y reglas.
+- Gates: pruebas de marcador/MVP/formularios, móvil claro/oscuro Clásico/Competition, Axe, i18n, TypeScript, lint y build. Sin publicación.
+
 ## MC86 — Acciones protagonistas de Programación
 - Estado: COMPLETO LOCAL (27/10/2026). Seis E2E móviles, Axe, lint, TypeScript y build PASS; captura oscura revisada. Sin publicación.
 - Alcance: restaurar Cómo llegar y Calendario como acciones principales de su panel; conservar Cancelar/Cerrar/Editar secundarios y Guardar principal. Sin cambios funcionales ni publicación.

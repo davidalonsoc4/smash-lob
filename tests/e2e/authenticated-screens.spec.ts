@@ -101,6 +101,19 @@ for (const theme of ["light", "dark"]) {
 
     await page.goto("/match/season-2-round-3-match-1")
     await expect(result.getByRole("heading", { name: "Resultado registrado", exact: true })).toBeVisible()
+    const scoreboard = page.locator(".app-match-result-standalone")
+    await expect(scoreboard.locator(".app-match-result-row")).toHaveCount(2)
+    await expect(scoreboard.locator("[data-winner]")).toHaveCount(1)
+    await expect(scoreboard.locator(".app-match-result-total")).toHaveText(["3", "0"])
+    const recognition = page.locator("[data-mvp-recognition]").first()
+    await expect(recognition).toContainText("MVP de la jornada")
+    expect((await recognition.boundingBox())!.y).toBeLessThan((await result.boundingBox())!.y)
+    for (const width of [320, 393]) {
+      await page.setViewportSize({ width, height: 852 })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+      const resultAudit = await new AxeBuilder({ page }).analyze()
+      expect(resultAudit.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    }
     await expect(result.getByRole("button", { name: "Limpiar resultado", exact: true })).toHaveCount(0)
     await result.getByRole("button", { name: "Editar resultado", exact: true }).click()
     await expect(result.getByRole("textbox").first()).toHaveValue("6")
@@ -108,6 +121,7 @@ for (const theme of ["light", "dark"]) {
     await result.getByText("Más acciones del resultado", { exact: true }).click()
     await expect(result.getByRole("button", { name: "Limpiar resultado", exact: true })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    await page.evaluate(() => window.scrollTo(0, 0))
     await page.screenshot({ path: testInfo.outputPath(`match-result-saved-${theme}.png`), fullPage: true, scale: "css" })
   })
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { AppCard } from "@/components/ui/AppCard";
 import { useMvp } from "@/context/MvpProvider";
@@ -22,6 +22,7 @@ type MvpVotingCardProps = {
   players: MvpPlayer[];
   matches: MvpMatch[];
   mvpSystem: MvpSystem;
+  resultActions?: ReactNode;
 };
 
 export function MvpVotingCard({
@@ -30,6 +31,7 @@ export function MvpVotingCard({
   players,
   matches,
   mvpSystem,
+  resultActions,
 }: MvpVotingCardProps) {
   const { tx } = useI18n()
   const { votes, voteForMatchMvp } = useMvp();
@@ -65,7 +67,7 @@ export function MvpVotingCard({
     isParticipant && !currentVote && !matchProgress.complete;
 
   if (mvpSystem === "none") {
-    return null;
+    return <>{resultActions}</>;
   }
 
   if (mvpSystem === "automatic" || mvpSystem === "automatic_advanced") {
@@ -74,35 +76,30 @@ export function MvpVotingCard({
     const advancedDetail =
       typeof adjustedRating === "number"
         ? tx(`Índice ajustado ${(adjustedRating * 100).toFixed(1)}${roundMvp?.tied ? " · empate técnico" : ""}`)
-        : "Índice ajustado pendiente"
+        : tx("Índice ajustado pendiente")
 
     return (
-      <AppCard className="p-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <p className="type-panel-title">{tx("MVP de la jornada")}</p>
-          <span className="rounded-full bg-neutral-100 px-2 py-1 type-caption font-black text-neutral-600">
-            {isAdvancedAutomatic ? tx("Automático avanzado") : tx("Automático")}
-          </span>
-        </div>
-
+      <>
         {roundMvpPlayers.length > 0 && roundMvp ? (
           <MvpResultPanel
-            title={tx(`Jornada ${match.round}`)}
+            title={tx("MVP de la jornada")}
             players={roundMvpPlayers}
             detail={
-              isAdvancedAutomatic
+              `${isAdvancedAutomatic ? tx("Automático avanzado") : tx("Automático")} · ${isAdvancedAutomatic
                 ? advancedDetail
-                : tx(`${roundMvp.gamesDiff ?? 0} dif. de juegos`)
+                : tx(`${roundMvp.gamesDiff ?? 0} dif. de juegos`)}`
             }
           />
         ) : (
-          <p className="mt-2 text-xs font-semibold text-neutral-500">
+          <p className="px-1 text-xs leading-5 text-neutral-500" data-mvp-pending>
+            <span className="font-semibold">{tx("MVP de la jornada")} · </span>
             {isAdvancedAutomatic
               ? tx("Se calculará al completar la jornada usando resultados, compañeros y rivales.")
               : tx("Se calculará al completar la jornada.")}
           </p>
         )}
-      </AppCard>
+        {resultActions}
+      </>
     );
   }
 
@@ -129,6 +126,15 @@ export function MvpVotingCard({
   }
 
   return (
+    <>
+      {matchProgress.complete && matchMvpPlayers.length > 0 ? (
+        <MvpResultPanel title={tx("MVP del partido")} players={matchMvpPlayers} detail={tx("Cerrado")} />
+      ) : null}
+      {roundMvp && roundMvpPlayers.length > 0 ? (
+        <MvpResultPanel title={tx("MVP de la jornada")} players={roundMvpPlayers} />
+      ) : null}
+      {resultActions}
+      {!matchProgress.complete ? (
     <AppCard
       className={`p-2.5 ${
         hasPendingVote
@@ -188,17 +194,9 @@ export function MvpVotingCard({
         <p className="mt-1.5 type-caption font-semibold text-red-600">{tx(error)}</p>
       ) : null}
 
-      {matchProgress.complete && matchMvpPlayers.length > 0 ? (
-        <MvpResultPanel title={tx("Partido")} players={matchMvpPlayers} />
-      ) : null}
-
-      {roundMvp && roundMvpPlayers.length > 0 ? (
-        <MvpResultPanel
-          title={tx(`Jornada ${match.round}`)}
-          players={roundMvpPlayers}
-        />
-      ) : null}
     </AppCard>
+      ) : null}
+    </>
   );
 }
 
@@ -212,26 +210,17 @@ function MvpResultPanel({
   detail?: string;
 }) {
   return (
-    <div className="mt-1.5 flex items-center gap-2 rounded-lg bg-neutral-950 p-1.5 text-white">
-      <div className="flex -space-x-2">
-        {players.map((player) => (
-          <PlayerAvatar
-            key={player.id}
-            player={player}
-            size="sm"
-            className="border border-white/20 bg-white text-neutral-950"
-          />
-        ))}
-      </div>
-      <div className="min-w-0">
-        <p className="type-caption font-black uppercase tracking-[0.14em] text-white/60">
-          ⭐ MVP {title}
+    <div className="app-match-mvp-recognition flex items-center gap-2.5 rounded-xl border border-neutral-200 px-3 py-2.5" data-mvp-recognition>
+      <span className="app-match-mvp-star text-xl" aria-hidden="true">★</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-neutral-500">
+          {title}
         </p>
-        <p className="truncate text-sm font-black">
+        <p className="break-words text-sm font-bold text-neutral-950">
           {players.map((player) => player.displayName).join(" / ")}
         </p>
         {detail ? (
-          <p className="type-caption font-semibold text-white/65">{detail}</p>
+          <p className="text-xs text-neutral-500">{detail}</p>
         ) : null}
       </div>
     </div>

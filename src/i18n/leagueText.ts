@@ -4111,6 +4111,7 @@ const DYNAMIC_TEMPLATES = {
 
 const FINAL_OVERRIDES = {
   "en": {
+    "Información del resultado": "Result information",
     "Logo del torneo": "Tournament logo",
     "Parejas": "Pairs",
     "Con observaciones": "With observations",
@@ -5048,6 +5049,7 @@ const FINAL_OVERRIDES = {
     "Eliminar mi cuenta": "Delete my account",
   },
   "eu": {
+    "Información del resultado": "Emaitzaren informazioa",
     "Logo del torneo": "Txapelketaren logoa",
     "Parejas": "Bikoteak",
     "Con observaciones": "Oharrekin",

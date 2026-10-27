@@ -17,7 +17,6 @@ import { MatchReservationConfirmation } from "@/components/match/MatchReservatio
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
-import { SectionHeader } from "@/components/ui/SectionHeader"
 import { matchPrimaryButton, matchSecondaryButton, matchDestructiveButton } from "@/components/match/matchPanelStyles"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { getPlayerDisplayName } from "@/lib/players"
@@ -391,11 +390,11 @@ export default function MatchDetailPage() {
 
       {shouldShowResultWorkflow &&
       !isEditingResult ? (
-        <AppCard>
+        <AppCard className="app-match-result-management !p-2.5">
           <div>
-            <SectionHeader title={t.matchResult.registeredTitle} />
+            <h2 className="text-sm font-semibold text-neutral-950">{t.matchResult.registeredTitle}</h2>
             {resultReporterName ? <p className="mt-1 text-xs text-neutral-500">{tx("Informado por")}: {resultReporterName}</p> : null}
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            <details open={resultIsLocked || currentResultConfirmation?.status === "disputed"} className="mt-1 text-xs leading-5 text-neutral-500"><summary className="cursor-pointer font-medium">{tx("Información del resultado")}</summary><p className="mt-1">
               {resultIsLocked
                 ? tx("El resultado está fijado como definitivo por la administración.")
                 : currentResultConfirmation?.status === "disputed"
@@ -403,10 +402,10 @@ export default function MatchDetailPage() {
                   : resultReporterName
                     ? tx("Pueden corregirlo quien lo informó, la administración o un jugador que lo marque como incorrecto.")
                     : canEditResult ? t.matchResult.registeredDescription : tx("Resultado guardado.")}
-            </p>
+            </p></details>
           </div>
 
-          {canEditResult || mutableAdmin ? <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {canEditResult || mutableAdmin ? <div className="mt-2 grid grid-cols-2 gap-2">
             {canEditResult ? (
               <button
                 type="button"
@@ -435,7 +434,7 @@ export default function MatchDetailPage() {
               </button>
             ) : null}
 
-            {mutableAdmin && !resultIsLocked ? <details className="sm:col-span-2"><summary className="cursor-pointer py-2 text-xs font-semibold text-neutral-500">{tx("Más acciones del resultado")}</summary>
+            {mutableAdmin && !resultIsLocked ? <details className="col-span-2"><summary className="cursor-pointer py-1 text-xs font-semibold text-neutral-500">{tx("Más acciones del resultado")}</summary>
               <button
                 type="button"
                 onClick={handleClearResult}
@@ -564,7 +563,6 @@ export default function MatchDetailPage() {
         onOpenPanelChange={setOpenMatchActionPanel}
       />
 
-      {prioritizeResult ? resultSection : null}
       {shouldShowResultWorkflow && canMutateSeason ? (
         <MvpVotingCard
           match={match}
@@ -572,8 +570,9 @@ export default function MatchDetailPage() {
           players={players}
           matches={matches}
           mvpSystem={roundSettings.mvpSystem}
+          resultActions={prioritizeResult ? resultSection : null}
         />
-      ) : null}
+      ) : prioritizeResult ? resultSection : null}
 
       {hasRoundWindow ? (
         <AppCard>
