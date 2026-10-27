@@ -71,6 +71,11 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
   todo el ancho. Bloqueo y limpieza dentro de Más acciones. La estrella de
   reconocimiento mide28px y adapta su acento al contraste. Prueba MC92: nombre MVP
   a18px/negrita con ajuste de línea, título y metadatos secundarios; referencia71544af3.
+  En MVP avanzado, Empate técnico aparece solo en el título cuando corresponde.
+  Índice ajustado es pulsable y reutiliza StatusHelp para explicar cálculo y escala;
+  se formatea con el idioma actual. Resultado registrado/confirmación se muestran
+  solo a participantes o administradores; marcador y reconocimiento siguen visibles
+  para quien tenga acceso de consulta al partido.
 
 - Jerarquía compartida: `app-action-button`/`app-action-primary` para guardar o
   confirmar y las acciones protagonistas Cómo llegar/Calendario de Programación

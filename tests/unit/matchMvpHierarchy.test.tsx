@@ -15,6 +15,18 @@ const props = { match, matches: [match], currentUserId: "a", players, resultActi
 afterEach(() => { cleanup(); vote.mockClear() })
 
 describe("MVP recognition and result actions", () => {
+  it("puts the technical tie in the heading and explains the adjusted index on demand", () => {
+    const { container } = render(<MvpVotingCard {...props} mvpSystem="automatic_advanced" />)
+    expect(container.querySelector("[data-mvp-recognition] p")?.textContent).toBe("MVP de la jornada · Empate técnico")
+    const detail = container.querySelector("[data-mvp-recognition] p:last-child")!
+    expect(detail.textContent).not.toContain("empate técnico")
+    const trigger = screen.getByRole("button", { name: "Información sobre el índice ajustado" })
+    fireEvent.click(trigger)
+    expect(screen.getByRole("tooltip").textContent).toContain("no es un porcentaje")
+    expect(screen.getByRole("tooltip").textContent).toContain("3 puntos o menos")
+    fireEvent.keyDown(trigger, { key: "Escape" })
+    expect(screen.queryByRole("tooltip")).toBeNull()
+  })
   it("keeps resolved round recognition before result management without a voting panel", () => {
     const { container } = render(<MvpVotingCard {...props} mvpSystem="automatic" />)
     const recognition = container.querySelector("[data-mvp-recognition]")!

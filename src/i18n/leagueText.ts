@@ -4111,6 +4111,13 @@ const DYNAMIC_TEMPLATES = {
 
 const FINAL_OVERRIDES = {
   "en": {
+    "Empate técnico": "Technical tie",
+    "Información sobre el índice ajustado": "About the adjusted index",
+    "Cómo se elige el MVP avanzado": "How the advanced MVP is selected",
+    "Primero se elige la pareja ganadora más dominante de la jornada: diferencia de juegos y, si empata, sets y juegos a favor y en contra.": "First, the round's most dominant winning pair is selected: game difference, then sets and games won and lost to break ties.",
+    "El índice usa los partidos válidos de esta temporada hasta esa jornada. Por partido: resultado (60%), diferencia relativa de sets (25%) y de juegos (15%). Ajusta la aportación estimada según compañeros y rivales, suavizando la estimación cuando hay pocos datos.": "The index uses valid matches from this season up to that round. Per match: result (60%), relative set margin (25%) and game margin (15%). It adjusts estimated contributions for partners and opponents, smoothing estimates when data is limited.",
+    "Se muestra multiplicado por 100. Cuanto mayor, mejor; no es un porcentaje ni una escala fija de 0 a 100.": "It is displayed multiplied by 100. Higher is better; it is neither a percentage nor a fixed 0–100 scale.",
+    "Si los índices de los dos compañeros difieren en 3 puntos o menos, comparten el MVP por empate técnico.": "If the partners' indices differ by 3 points or less, they share the MVP as a technical tie.",
     "Índice ajustado pendiente": "Adjusted rating pending",
     "Cerrado": "Closed",
     "Información del resultado": "Result information",
@@ -5052,6 +5059,13 @@ const FINAL_OVERRIDES = {
   },
   "eu": {
     "Información del resultado": "Emaitzaren informazioa",
+    "Empate técnico": "Berdinketa teknikoa",
+    "Información sobre el índice ajustado": "Indize doituari buruzko informazioa",
+    "Cómo se elige el MVP avanzado": "Nola aukeratzen den MVP aurreratua",
+    "Primero se elige la pareja ganadora más dominante de la jornada: diferencia de juegos y, si empata, sets y juegos a favor y en contra.": "Lehenik jardunaldiko bikote irabazle nagusiena aukeratzen da: jokoen aldea eta, berdinketan, aldeko eta kontrako setak eta jokoak.",
+    "El índice usa los partidos válidos de esta temporada hasta esa jornada. Por partido: resultado (60%), diferencia relativa de sets (25%) y de juegos (15%). Ajusta la aportación estimada según compañeros y rivales, suavizando la estimación cuando hay pocos datos.": "Indizeak denboraldi honetako partida baliodunak erabiltzen ditu, jardunaldi horretara arte. Partidako: emaitza (%60), seten alde erlatiboa (%25) eta jokoena (%15). Ekarpen zenbatetsia bikotekideen eta aurkarien arabera doitzen du, datu gutxi daudenean estimazioa leunduz.",
+    "Se muestra multiplicado por 100. Cuanto mayor, mejor; no es un porcentaje ni una escala fija de 0 a 100.": "100ez biderkatuta erakusten da. Zenbat eta handiagoa, orduan eta hobea; ez da ehunekoa, ezta 0tik 100era bitarteko eskala finkoa ere.",
+    "Si los índices de los dos compañeros difieren en 3 puntos o menos, comparten el MVP por empate técnico.": "Bi bikotekideen indizeen arteko aldea 3 puntu edo txikiagoa bada, MVP saria partekatzen dute berdinketa teknikoagatik.",
     "Índice ajustado pendiente": "Indize doitua zehaztu gabe",
     "Cerrado": "Itxita",
     "Logo del torneo": "Txapelketaren logoa",

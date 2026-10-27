@@ -362,7 +362,7 @@ export default function MatchDetailPage() {
     match.rankingCounts !== false
 
   const prioritizeResult = match.status === "finished" || getMatchDisplayStatus(match) === "result_pending"
-  const resultSection = canEnterResult || shouldShowResultWorkflow ? <section className="space-y-3" aria-label={tx("Resultado del partido")}>
+  const resultSection = (isMatchParticipant || isAdmin) && (canEnterResult || shouldShowResultWorkflow) ? <section className="space-y-3" aria-label={tx("Resultado del partido")}>
       {shouldShowResultWorkflow && canMutateSeason ? (
         <MatchResultConfirmationCard
           matchId={match.id}

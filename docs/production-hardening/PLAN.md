@@ -1,3 +1,8 @@
+## MC95 — Ayuda del índice MVP y visibilidad del resultado
+- Estado: COMPLETO LOCAL (27/10/2026). 19 unitarias y ocho E2E móviles PASS; roles, ayuda a320/393px, Axe, i18n, lint, TypeScript/build y capturas revisados. Sin publicación.
+- Alcance: empate técnico en título, índice pulsable con StatusHelp y explicación fiel a mvp.ts; gestión/confirmación de resultado solo para participantes/admins. Marcador/MVP siguen consultables.
+- Gates: unitarias MVP/ayuda, E2E roles/ayuda móvil, regresiones, Axe, i18n, lint, TypeScript y build. Sin publicación.
+
 ## MC94 — Copa de ganador más visible
 - Estado: COMPLETO LOCAL (27/10/2026). Dos E2E móviles/Axe/build PASS; geometría, lint, diff check y captura correctos. Sin publicación.
 - Alcance: mantener marcador MC93 aprobado; copa de12 a16px, reservando4px entre línea y copa sin mover columnas.

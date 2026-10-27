@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { PlayerAvatar } from "@/components/player/PlayerAvatar";
 import { AppCard } from "@/components/ui/AppCard";
+import { StatusHelp } from "@/components/ui/StatusHelp";
 import { useMvp } from "@/context/MvpProvider";
 import {
   getMatchMvpSelection,
@@ -33,7 +34,7 @@ export function MvpVotingCard({
   mvpSystem,
   resultActions,
 }: MvpVotingCardProps) {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const { votes, voteForMatchMvp } = useMvp();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,19 +76,19 @@ export function MvpVotingCard({
     const adjustedRating = roundMvp?.adjustedRating
     const advancedDetail =
       typeof adjustedRating === "number"
-        ? tx(`Índice ajustado ${(adjustedRating * 100).toFixed(1)}${roundMvp?.tied ? " · empate técnico" : ""}`)
+        ? `${tx("Índice ajustado")} ${new Intl.NumberFormat(locale === "en" ? "en-GB" : locale === "eu" ? "eu-ES" : "es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(adjustedRating * 100)}`
         : tx("Índice ajustado pendiente")
 
     return (
       <>
         {roundMvpPlayers.length > 0 && roundMvp ? (
           <MvpResultPanel
-            title={tx("MVP de la jornada")}
+            title={`${tx("MVP de la jornada")}${isAdvancedAutomatic && roundMvp.tied ? ` · ${tx("Empate técnico")}` : ""}`}
             players={roundMvpPlayers}
             detail={
-              `${isAdvancedAutomatic ? tx("Automático avanzado") : tx("Automático")} · ${isAdvancedAutomatic
-                ? advancedDetail
-                : tx(`${roundMvp.gamesDiff ?? 0} dif. de juegos`)}`
+              isAdvancedAutomatic
+                ? <>{tx("Automático avanzado")} · {typeof adjustedRating === "number" ? <AdjustedIndexHelp>{advancedDetail}</AdjustedIndexHelp> : advancedDetail}</>
+                : `${tx("Automático")} · ${tx(`${roundMvp.gamesDiff ?? 0} dif. de juegos`)}`
             }
           />
         ) : (
@@ -207,7 +208,7 @@ function MvpResultPanel({
 }: {
   title: string;
   players: MvpPlayer[];
-  detail?: string;
+  detail?: ReactNode;
 }) {
   return (
     <div className="app-match-mvp-recognition flex items-center gap-2.5 rounded-xl border border-neutral-200 px-3 py-2.5" data-mvp-recognition>
@@ -225,4 +226,22 @@ function MvpResultPanel({
       </div>
     </div>
   );
+}
+
+function AdjustedIndexHelp({ children }: { children: ReactNode }) {
+  const { tx } = useI18n()
+  return (
+    <StatusHelp label={tx("Información sobre el índice ajustado")} className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-2" description={
+      <span className="block space-y-2">
+        <span className="block font-black">{tx("Cómo se elige el MVP avanzado")}</span>
+        <span className="block">{tx("Primero se elige la pareja ganadora más dominante de la jornada: diferencia de juegos y, si empata, sets y juegos a favor y en contra.")}</span>
+        <span className="block">{tx("El índice usa los partidos válidos de esta temporada hasta esa jornada. Por partido: resultado (60%), diferencia relativa de sets (25%) y de juegos (15%). Ajusta la aportación estimada según compañeros y rivales, suavizando la estimación cuando hay pocos datos.")}</span>
+        <span className="block">{tx("Se muestra multiplicado por 100. Cuanto mayor, mejor; no es un porcentaje ni una escala fija de 0 a 100.")}</span>
+        <span className="block">{tx("Si los índices de los dos compañeros difieren en 3 puntos o menos, comparten el MVP por empate técnico.")}</span>
+      </span>
+    }>
+      {children}
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-3 w-3 shrink-0"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><circle cx="12" cy="7.5" r=".8" fill="currentColor" stroke="none" /></svg>
+    </StatusHelp>
+  )
 }
