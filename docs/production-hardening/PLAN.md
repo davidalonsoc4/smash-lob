@@ -1,3 +1,8 @@
+## MC94 — Copa de ganador más visible
+- Estado: COMPLETO LOCAL (27/10/2026). Dos E2E móviles/Axe/build PASS; geometría, lint, diff check y captura correctos. Sin publicación.
+- Alcance: mantener marcador MC93 aprobado; copa de12 a16px, reservando4px entre línea y copa sin mover columnas.
+- Gates: dos E2E móviles con alineación/Axe/build, lint y diff check. Sin publicación.
+
 ## MC93 — Separación visual entre parejas
 - Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración. Dos E2E móviles con geometría/Axe/build PASS, lint y diff check correctos; captura revisada. Sin publicación.
 - Alcance: separador horizontal completo con aire entre parejas, divisor corto entre compañeros más suave. Mantener superficie única, copa y columnas. Referencia anterior a84a7ea4.

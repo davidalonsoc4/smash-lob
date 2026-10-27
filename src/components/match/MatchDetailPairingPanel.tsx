@@ -296,9 +296,9 @@ function FinishedPairRow({
             <Fragment key={playerId}>
               {index > 0 ? (
                 <div className="app-match-result-divider relative mr-2 h-px">
-                  <span aria-hidden="true" className={`absolute inset-y-0 left-0 border-t border-neutral-300 ${won ? "right-4" : "right-0"}`} />
+                  <span aria-hidden="true" className={`absolute inset-y-0 left-0 border-t border-neutral-300 ${won ? "right-5" : "right-0"}`} />
                   {won ? (
-                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="app-match-winner-trophy absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="app-match-winner-trophy absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2">
                       <path d="M8 3h8v6a4 4 0 0 1-8 0V3Zm0 2H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 13v5m-4 3h8m-7-3h6v3H9z" />
                     </svg>
                   ) : null}

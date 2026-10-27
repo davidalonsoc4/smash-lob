@@ -57,10 +57,10 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 - Con resultado, una sola superficie contiene ambas parejas en una cuadrícula
   compartida: cabecera S1/S2/S3/Sets una sola vez y números centrados a la altura
   del separador entre los dos nombres. Conservar nombres adaptables y total de sets
-  destacado. Prueba local MC91: ganador con trofeo al final del divisor de nombres y etiqueta accesible,
+  destacado. Ganador con trofeo de16px al final del divisor de nombres y etiqueta accesible,
   sin otra caja. Referencia anterior con raya lateral: aef3211f; alternativas2/3
   documentadas en PLAN/STATUS, pendientes de valoración.
-  Prueba MC93: separador completo y espaciado entre parejas; línea corta entre
+  Marcador aprobado MC93/94: separador completo y espaciado entre parejas; línea corta entre
   compañeros más suave para distinguir agrupaciones. Referencia previa a84a7ea4.
 - El MVP resuelto se reconoce en una fila compacta debajo del marcador, con estrella
   de acento y ámbito explícito (partido/jornada). La votación pendiente queda después

@@ -3470,3 +3470,7 @@ MC92 CERRADO LOCAL, MVP pendiente de valoración: nombre18px/peso800, contexto y
 MC93 en curso local: separador a todo el ancho entre parejas, con4px de aire a cada lado vertical. Línea de compañeros más suave (14% del texto frente22% entre parejas), respetando temas. Superficie, nombres, columnas y copa intactos. Referencia a84a7ea4. Pendiente revisión móvil.
 
 MC93 cerrado local pendiente de valoración: línea completa entre parejas y líneas de compañeros más discretas. Dos E2E móviles claro/oscuroPASS con geometría a320/393px, Axe sin graves/críticos, build/lint/diffcheckPASS. Captura oscura revisada. Evidencia mc93-browser.log. Copa y resto de diseño conservados, referencia a84a7ea4. Sin publicación.
+
+MC94 en curso local: usuario aprueba marcador con separador completo. Copa ampliada12→16px, manteniendo centro en divisor y4px de separación de la línea; columnas/márgenes intactos. Pendiente validación.
+
+MC94 cerrado local: copa16px (antes12), con4px hasta el final de línea y centro vertical conservado. Marcador con separación entre parejas aprobado por usuario. Dos E2E móviles claro/oscuroPASS con geometría a320/393px, Axe/build/lint/diffcheckPASS; captura revisada. Guía actualizada. Evidencia mc94-browser.log. Sin publicación.
