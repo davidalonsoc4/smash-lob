@@ -216,7 +216,7 @@ function MvpResultPanel({
         <p className="text-xs font-medium text-neutral-500">
           {title}
         </p>
-        <p className="break-words text-sm font-bold text-neutral-950">
+        <p className="app-match-mvp-name break-words text-lg font-bold leading-snug text-neutral-950">
           {players.map((player) => player.displayName).join(" / ")}
         </p>
         {detail ? (

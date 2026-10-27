@@ -4111,6 +4111,8 @@ const DYNAMIC_TEMPLATES = {
 
 const FINAL_OVERRIDES = {
   "en": {
+    "Índice ajustado pendiente": "Adjusted rating pending",
+    "Cerrado": "Closed",
     "Información del resultado": "Result information",
     "Logo del torneo": "Tournament logo",
     "Parejas": "Pairs",
@@ -5050,6 +5052,8 @@ const FINAL_OVERRIDES = {
   },
   "eu": {
     "Información del resultado": "Emaitzaren informazioa",
+    "Índice ajustado pendiente": "Indize doitua zehaztu gabe",
+    "Cerrado": "Itxita",
     "Logo del torneo": "Txapelketaren logoa",
     "Parejas": "Bikoteak",
     "Con observaciones": "Oharrekin",

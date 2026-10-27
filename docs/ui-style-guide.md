@@ -64,8 +64,11 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
   de acento y ámbito explícito (partido/jornada). La votación pendiente queda después
   de confirmar el resultado. La gestión tiene menor peso visual; bloqueo y disputa
   mantienen su explicación visible y las acciones destructivas siguen desplegables.
-  Editar resultado queda a la derecha del título; bloqueo y limpieza dentro de Más
-  acciones. La estrella de reconocimiento mide28px y adapta su acento al contraste.
+  Editar resultado queda a la derecha del título. Información del resultado y Más
+  acciones comparten fila adaptable; sus contenidos se abren independientemente a
+  todo el ancho. Bloqueo y limpieza dentro de Más acciones. La estrella de
+  reconocimiento mide28px y adapta su acento al contraste. Prueba MC92: nombre MVP
+  a18px/negrita con ajuste de línea, título y metadatos secundarios; referencia71544af3.
 
 - Jerarquía compartida: `app-action-button`/`app-action-primary` para guardar o
   confirmar y las acciones protagonistas Cómo llegar/Calendario de Programación

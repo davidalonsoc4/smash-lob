@@ -17,6 +17,7 @@ import { MatchReservationConfirmation } from "@/components/match/MatchReservatio
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
+import { MatchResultDetails } from "@/components/match/MatchResultDetails"
 import { matchPrimaryButton, matchSecondaryButton, matchDestructiveButton } from "@/components/match/matchPanelStyles"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { getPlayerDisplayName } from "@/lib/players"
@@ -400,7 +401,11 @@ export default function MatchDetailPage() {
               </button>
             ) : null}
             </div>
-            <details open={resultIsLocked || currentResultConfirmation?.status === "disputed"} className="mt-1 text-xs leading-5 text-neutral-500"><summary className="cursor-pointer font-medium">{tx("Información del resultado")}</summary><p className="mt-1">
+          </div>
+          <MatchResultDetails
+            key={`${match.id}:${resultIsLocked}:${currentResultConfirmation?.status === "disputed"}`}
+            initiallyShowInformation={resultIsLocked || currentResultConfirmation?.status === "disputed"}
+            information={<p>
             {resultReporterName ? <span className="block">{tx("Informado por")}: {resultReporterName}</span> : null}
               {resultIsLocked
                 ? tx("El resultado está fijado como definitivo por la administración.")
@@ -409,10 +414,8 @@ export default function MatchDetailPage() {
                   : resultReporterName
                     ? tx("Pueden corregirlo quien lo informó, la administración o un jugador que lo marque como incorrecto.")
                     : canEditResult ? t.matchResult.registeredDescription : tx("Resultado guardado.")}
-            </p></details>
-          </div>
-
-          {mutableAdmin ? <details className="mt-1 text-xs"><summary className="cursor-pointer py-1 font-semibold text-neutral-500">{tx("Más acciones del resultado")}</summary><div className="mt-1 grid gap-2">
+            </p>}
+            actions={mutableAdmin ? <div className="grid gap-2">
             {mutableAdmin && confirmationsEnabled ? (
               <button
                 type="button"
@@ -438,7 +441,8 @@ export default function MatchDetailPage() {
                 {isClearingResult ? "Limpiando..." : tx("Limpiar resultado")}
               </button>
             ) : null}
-          </div></details> : null}
+          </div> : null}
+          />
 
           {clearResultError ? (
             <p className="mt-2 text-xs font-semibold text-red-600">

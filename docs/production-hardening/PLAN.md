@@ -1,3 +1,8 @@
+## MC92 — Nombre MVP y desplegables en línea
+- Estado: COMPLETO LOCAL (27/10/2026), MVP pendiente de valoración. 25 unitarias y seis E2E móviles PASS; geometría, Axe, lint, i18n, TypeScript/build y capturas revisados. Sin publicación.
+- Alcance: nombre MVP18px, contexto/metadatos secundarios; controles Información/Más acciones en una fila adaptable, contenido a todo el ancho. Copa sin cambios. Referencia visual MVP71544af3 para comparar.
+- Gates: unitarias de interacción, dos E2E móviles con geometría/Axe, lint, i18n, TypeScript y build. Sin publicación.
+
 ## MC91 — Trofeo al final del separador
 - Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración. Ocho unitarias y dos E2E móviles/Axe/build PASS; lint y captura revisados. Sin publicación.
 - Alcance: mover copa del total al final del divisor de nombres del ganador, centrada con la línea y antes del primer set. Referencia anterior55943f04; mantener aef3211f y alternativas2/3.
