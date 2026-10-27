@@ -369,7 +369,7 @@ export function MatchDetailPairingPanel({
       <div>
         {hasResult ? (
           <div className="app-match-pair-surface app-match-result-surface grid gap-x-1 rounded-2xl border bg-white px-3 py-2 sm:px-4" style={{ gridTemplateColumns: `minmax(0,1fr)${sets.length ? ` repeat(${sets.length}, 28px)` : ""}${pointsA !== null || pointsB !== null ? " 40px" : ""}` }}>
-            <div className="app-match-result-head col-span-full grid items-center gap-x-1 pb-1 text-center text-[10px] font-medium text-neutral-500" style={{ gridTemplateColumns: "subgrid" }}>
+            <div className="app-match-result-head col-span-full grid items-center gap-x-1 pb-1 text-center type-micro font-medium text-neutral-500" style={{ gridTemplateColumns: "subgrid" }}>
               <span />
               {sets.map((_, index) => <span key={index}>S{index + 1}</span>)}
               {pointsA !== null || pointsB !== null ? <span>{tx(sets.length ? "Sets" : "Puntos")}</span> : null}

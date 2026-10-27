@@ -1,3 +1,8 @@
+## MC98 — Publicación de rama visual en PRE
+- Estado: EN CURSO (27/10/2026). Usuario autoriza push y PRE; no Production.
+- Alcance: publicar estado recuperado de previews y mejoras acumuladas de Partido/MVP. Corregir gates de publicación sin alterar diseño aprobado. Validar rama, CI y deployment/alias/health/SW remotos.
+- Gates: validate, navegador y seguridad de dependencias; verificación explícita de SHA remota y PRE. Sin DB.
+
 ## MC97 — Restaurar previews con cajas interiores
 - Estado: COMPLETO LOCAL (27/10/2026). Src/tests idénticos a referencia11589c03, siete unitarias y dos E2E/build PASS. Sin publicación.
 - Alcance: revertir exclusivamente MC96/92ec830b por petición del usuario. Código y pruebas vuelven exactamente a11589c03; Partido/MVP y todo lo anterior permanecen. Versión nueva conservada en92ec830b y capturas mc96 para comparar.
