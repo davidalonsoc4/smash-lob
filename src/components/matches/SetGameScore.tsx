@@ -1,14 +1,12 @@
 type SetGameScoreProps = {
   value: number;
   won: boolean;
-  variant?: "boxed" | "plain";
 };
 
-export function SetGameScore({ value, won, variant = "boxed" }: SetGameScoreProps) {
+export function SetGameScore({ value, won }: SetGameScoreProps) {
   return (
     <span
-      data-score-variant={variant}
-      className={variant === "plain" ? "tabular-nums text-current" : "flex min-w-6 items-center justify-center rounded-md border border-transparent bg-neutral-100 px-1.5 py-1 text-xs text-neutral-400"}
+      className="flex min-w-6 items-center justify-center rounded-md border border-transparent bg-neutral-100 px-1.5 py-1 text-xs text-neutral-400"
       style={{ fontWeight: won ? 700 : 400 }}
     >
       {value}

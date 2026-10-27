@@ -1,7 +1,6 @@
 import { readFile } from "node:fs/promises"
 
 const read = (file) => readFile(file, "utf8")
-const previewTeams = await read("src/components/matches/MatchPreviewTeams.tsx")
 const dialogBase = await read("src/components/ui/FloatingDialog.tsx")
 const dialogStyles = await read("src/app/globals.css")
 const assert = (condition, message) => {
@@ -151,10 +150,10 @@ assert(serverHelper.includes("safeLimit + 1"), "La API debe detectar si existen 
 assert(serverHelper.includes('origin: "league"') && serverHelper.includes('origin: "friendly"'), "El servidor debe normalizar liga y amistoso sin duplicarlos")
 
 assert(card.includes("getPersonalMatchSetWins"), "Las tarjetas deben mostrar los sets ganados junto a cada pareja")
-assert(card.includes("MatchPreviewTeams") && previewTeams.includes("SetGameScore"), "Mis partidos debe reutilizar el marcador por set del Calendario")
+assert(card.includes("SetGameScore"), "Mis partidos debe reutilizar el marcador por set del Calendario")
 assert(card.includes("getPersonalMatchOutcome"), "Las tarjetas deben mostrar Victoria/Derrota para el usuario")
-assert(previewTeams.includes("sets.map") && previewTeams.includes("value={set[side]}") && previewTeams.includes('tx(side === "a" ? "Sets ganados por la pareja A" : "Sets ganados por la pareja B")'), "Cada pareja debe mostrar sus juegos y total de sets con nombre accesible")
-assert(previewTeams.includes('rounded-xl bg-neutral-50 px-3 py-2') && previewTeams.includes('data-preview-team={side}'), "Ambas parejas deben reutilizar la presentación compacta del Calendario")
+assert((card.includes('aria-label="Juegos por set de la pareja A"') || card.includes('tx("Juegos por set de la pareja A")')) && (card.includes('aria-label="Juegos por set de la pareja B"') || card.includes('tx("Juegos por set de la pareja B")')), "Cada pareja debe mostrar sus juegos por set")
+assert(card.includes('rounded-xl bg-neutral-50 px-3 py-2'), "Cada pareja debe conservar el panel visual del Calendario")
 assert(card.includes("getPersonalMatchTeamPlayers"), "Los nombres deben renderizarse por participante")
 assert(card.includes("ClickableChevron") && card.includes("showPersonalMatchChevron = false"), "El chevron de partido debe conservarse en código pero quedar oculto")
 assert(card.includes("getPersonalMatchOriginLabel(match)"), "Liga/Amistoso debe permanecer en la cabecera")

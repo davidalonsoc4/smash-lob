@@ -66,7 +66,7 @@ describe("personal matches integration", () => {
     expect(detailPage).toContain("<PersonalMatchResultForm")
     expect(card).toContain("getPersonalMatchSetWins")
     expect(card).toContain("getPersonalMatchOutcome")
-    expect(card).toContain("<MatchPreviewTeams")
+    expect(card).toContain("<SetGameScore")
     expect(card).toContain("showPersonalMatchChevron = false")
     expect(card).toContain("showPersonalMatchChevron ? <ClickableChevron")
     expect(card).toContain("match.locationName")

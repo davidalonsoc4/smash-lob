@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useRouter } from "next/navigation"
 import { MatchEventMeta } from "@/components/matches/MatchEventMeta"
-import { MatchPreviewTeams } from "@/components/matches/MatchPreviewTeams"
+import { SetGameScore } from "@/components/matches/SetGameScore"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { AppCard } from "@/components/ui/AppCard"
 import { formatShortDate } from "@/lib/rounds"
@@ -72,11 +72,111 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
       </div>
 
       <div className="flex items-center gap-3">
-        {match.preview?.hidden ? <div className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-center"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5 text-neutral-500"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><p className="text-sm font-semibold text-neutral-600">{tx("Emparejamientos por revelar")}</p></div> : <MatchPreviewTeams
-          teamA={teamA.map(participant => ({ id: String(participant.slot), name: participant.displayName }))}
-          teamB={teamB.map(participant => ({ id: String(participant.slot), name: participant.displayName }))}
-          finished={isFinished} sets={match.sets} scores={setWins}
-        />}
+        {match.preview?.hidden ? <div className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-center"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5 text-neutral-500"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><p className="text-sm font-semibold text-neutral-600">{tx("Emparejamientos por revelar")}</p></div> : isFinished ? (
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
+              <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
+                {teamA.map((participant) => (
+                  <p
+                    key={`a-${participant.slot}`}
+                    className="w-full text-sm font-black leading-5 text-neutral-950"
+                  >
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
+                  </p>
+                ))}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1 self-center">
+                <div
+                  className="flex items-center gap-1"
+                  aria-label={tx("Juegos por set de la pareja A")}
+                >
+                  {match.sets.map((set, index) => (
+                    <SetGameScore
+                      key={index}
+                      value={set.a}
+                      won={set.a > set.b}
+                    />
+                  ))}
+                </div>
+                <span
+                  className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm"
+                  aria-label={tx("Sets ganados por la pareja A")}
+                >
+                  {setWins.a}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
+              <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
+                {teamB.map((participant) => (
+                  <p
+                    key={`b-${participant.slot}`}
+                    className="w-full text-sm font-black leading-5 text-neutral-950"
+                  >
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
+                  </p>
+                ))}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1 self-center">
+                <div
+                  className="flex items-center gap-1"
+                  aria-label={tx("Juegos por set de la pareja B")}
+                >
+                  {match.sets.map((set, index) => (
+                    <SetGameScore
+                      key={index}
+                      value={set.b}
+                      won={set.b > set.a}
+                    />
+                  ))}
+                </div>
+                <span
+                  className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm"
+                  aria-label={tx("Sets ganados por la pareja B")}
+                >
+                  {setWins.b}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_30px_minmax(0,1fr)] items-stretch gap-2">
+            <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5">
+              <div className="flex min-w-0 flex-col gap-y-1">
+                {teamA.map((participant) => (
+                  <p
+                    key={`a-${participant.slot}`}
+                    className="w-full text-sm font-black leading-tight text-neutral-950"
+                  >
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 type-caption font-black uppercase text-neutral-600">
+                VS
+              </span>
+            </div>
+
+            <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5 text-right">
+              <div className="flex min-w-0 flex-col items-end gap-y-1">
+                {teamB.map((participant) => (
+                  <p
+                    key={`b-${participant.slot}`}
+                    className="w-full text-sm font-black leading-tight text-neutral-950"
+                  >
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {showPersonalMatchChevron ? <ClickableChevron className="shrink-0" /> : null}
       </div>
