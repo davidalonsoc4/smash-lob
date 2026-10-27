@@ -3179,9 +3179,32 @@ html.dark .app-main :is(button, a).bg-neutral-950 {
 }
 html[data-theme][data-visual-style] .app-action-button :is(span,svg),
 html .app-main :is(button,a).bg-neutral-950 :is(span,svg,p) { color: inherit !important; }
-html .app-action-button:disabled { opacity: .45; cursor: not-allowed; }
-html .app-action-button:focus-visible { outline: 2px solid var(--app-accent, #737373); outline-offset: 3px; }
+/* Secondary decisions stay neutral instead of inheriting the primary fill. */
+html[data-theme][data-visual-style] .app-action-secondary {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--foreground) 28%, transparent) !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+}
+html[data-theme][data-visual-style] .app-action-secondary :is(span,svg,p) { color: inherit !important; }
+html[data-theme][data-visual-style] .app-action-secondary:active { background: color-mix(in srgb, var(--foreground) 7%, transparent) !important; }
+html :is(.app-action-button,.app-action-secondary):disabled { opacity: .45; cursor: not-allowed; }
+html :is(.app-action-button,.app-action-secondary):focus-visible { outline: 2px solid var(--app-accent, #737373); outline-offset: 3px; }
 .app-match-pair-surface { min-width: 0; border-color: color-mix(in srgb, var(--app-accent, #737373) 22%, #d4d4d4); }
+/* Finished matches retain the standalone match-up identity; scores lead, management follows. */
+.app-match-result-standalone .app-match-player-name { font-size: 1.125rem; line-height: 1.25; }
+.app-match-result-names { padding-left: 8px; }
+html[data-theme][data-visual-style] .app-match-result-pair-divider { border-color: color-mix(in srgb, var(--foreground) 22%, transparent) !important; }
+html[data-theme][data-visual-style] .app-match-result-divider > span { border-color: color-mix(in srgb, var(--foreground) 14%, transparent) !important; }
+html[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #fff) !important; color: var(--foreground); }
+html.dark[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #1c1d21) !important; }
+html[data-theme][data-visual-style] .app-match-winner-trophy { color: color-mix(in srgb, var(--app-accent) 55%, var(--foreground)) !important; }
+html[data-theme][data-visual-style] .app-match-result-set > span:last-child { min-height: 30px; background: transparent !important; border: 0; color: var(--foreground) !important; font-size: 1rem; line-height: 1.25; font-variant-numeric: tabular-nums; }
+html[data-theme][data-visual-style] .app-match-result-total { font-size: 1.875rem !important; line-height: 1 !important; color: var(--foreground) !important; }
+.app-match-result-row:not([data-winner]) .app-match-result-total { font-weight: 600; }
+html[data-theme][data-visual-style] .app-match-mvp-recognition { background: transparent !important; border-color: color-mix(in srgb, var(--foreground) 18%, transparent) !important; }
+html[data-theme][data-visual-style] .app-match-mvp-name { font-size: 18px !important; font-weight: 800 !important; line-height: 1.35 !important; }
+html[data-theme][data-visual-style] .app-match-mvp-star { font-size: 28px !important; line-height: 1; color: color-mix(in srgb, var(--app-accent) 55%, var(--foreground)) !important; }
 html.dark .app-match-pair-surface { border-color: color-mix(in srgb, var(--app-accent, #aaa) 30%, #525252) !important; }
 html:not(.dark) .app-main .app-card:not(.text-white),
 html:not(.dark) .app-main .app-match-pair-surface,

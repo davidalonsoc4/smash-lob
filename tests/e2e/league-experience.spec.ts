@@ -4,18 +4,19 @@ import { leagues, seasons, seasonPlayers, seasonRoundSettings, playerProfiles, a
 
 const leagueId="10000000-0000-4000-8000-000000000072", seasonId="20000000-0000-4000-8000-000000000072"
 async function setup(page:Page,theme:string,style:string) {
-  let upcoming=false,windowed=false
+  let upcoming=false,windowed=false,advanced=false
+  let role: "player" | "admin" = "admin"
   const league={...leagues[0],id:leagueId,name:"Liga Azul QA",accentColor:"#26b6ce",activeSeasonId:seasonId}
   const season={...seasons.find(row=>row.id==="season-2")!,id:seasonId,leagueId,totalRounds:12,completedRounds:1}
   const profiles=playerProfiles.filter(row=>row.leagueId===leagues[0].id).map(row=>({...row,leagueId}))
   const roster=seasonPlayers.filter(row=>row.seasonId==="season-2").map(row=>({...row,seasonId}))
   const matches=allMatches.filter(row=>row.seasonId==="season-2").map(row=>({...row,leagueId,seasonId,status:row.round===1?"finished":"scheduling",sets:row.round===1?[{a:6,b:4}]:[],pointsA:row.round===1?1:null,pointsB:row.round===1?0:null,scheduledAt:null,resultRecordedAt:row.round===1?"2026-10-09T10:00:00Z":null}))
-  const settings=()=>({...seasonRoundSettings[0],leagueId,seasonId,roundWindowMode:windowed?"fixed-days":"none",roundWindowDays:windowed?7:null,seasonStartsAt:windowed?"2026-10-09":null,manualActiveRound:windowed?null:2,scheduledStartAt:upcoming?"2026-10-20T08:00:00Z":null,rosterMode:"fixed",playerCapacity:8,registrationOpen:false,rosterCompletedAt:"2026-10-09T08:00:00Z",openingRoundEnabled:false,calendarVisibilityMode:"full",resultConfirmationMode:"none",registrationFee:{enabled:false,amount:0,purpose:"",payments:[],expenses:[]}})
+  const settings=()=>({...seasonRoundSettings[0],leagueId,seasonId,mvpSystem:advanced?"automatic_advanced":seasonRoundSettings[0].mvpSystem,roundWindowMode:windowed?"fixed-days":"none",roundWindowDays:windowed?7:null,seasonStartsAt:windowed?"2026-10-09":null,manualActiveRound:windowed?null:2,scheduledStartAt:upcoming?"2026-10-20T08:00:00Z":null,rosterMode:"fixed",playerCapacity:8,registrationOpen:false,rosterCompletedAt:"2026-10-09T08:00:00Z",openingRoundEnabled:false,calendarVisibilityMode:"full",resultConfirmationMode:"none",registrationFee:{enabled:false,amount:0,purpose:"",payments:[],expenses:[]}})
   await page.clock.setFixedTime(new Date("2026-10-16T12:00:00Z"))
   await page.route("**/api/**",route=>route.fulfill({json:{ok:true,items:[],chats:[],locations:[]}}))
   await page.route("**/api/auth/session",route=>route.fulfill({json:{user:{name:"QA",email:"qa-experience@example.test",image:null},expires:"2099-01-01T00:00:00Z"}}))
   await page.route("**/api/account/profile",route=>route.fulfill({json:{profile:{firstName:"QA",lastName:"Experience",displayName:"QA",isComplete:true,profileCompletedAt:"2026-08-03",availabilityCompletedAt:"2026-08-03",standardAvailabilityTimezone:"Europe/Madrid",standardAvailabilityWeeklySlots:{},isSuperuser:false}}}))
-  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:true,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":"admin"}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
+  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:true,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
   await page.route("**/api/personal-matches?**",route=>route.fulfill({json:{items:[],upcoming:[],hasMore:false,nextOffset:null}}))
   await page.route("**/api/tournaments",route=>route.fulfill({json:{tournaments:[]}}))
   await page.addInitScript(({theme,style})=>{
@@ -23,7 +24,43 @@ async function setup(page:Page,theme:string,style:string) {
     localStorage.setItem("smash-lob:competition-launch-popup-v2:qa-experience@example.test","dismissed")
     localStorage.setItem("smash-lob-guided-onboarding-v1",JSON.stringify(Object.fromEntries([["app-introduction",1],["home",7],["matches",2],["match",1],["chats",1],["settings",1]].map(([tourKey,tourVersion])=>[tourKey,{tourKey,tourVersion,status:"completed",completedAt:"2026-08-06T00:00:00Z",skippedAt:null}]))))
   },{theme,style})
-  return {setUpcoming:()=>{upcoming=true},setWindowed:()=>{windowed=true},matches,league}
+  return {setUpcoming:()=>{upcoming=true},setWindowed:()=>{windowed=true},setRole:(next: "player" | "admin")=>{role=next},setAdvanced:()=>{advanced=true},matches,league}
+}
+for(const theme of ["light","dark"]){
+  test(`MVP help and result visibility respect participant and admin roles (${theme})`,async({page},info)=>{
+    const fixture=await setup(page,theme,"competition")
+    fixture.setAdvanced();fixture.setRole("player")
+    const own=fixture.matches.find(match=>match.round===1&&[...match.teamA,...match.teamB].includes("davo"))!
+    const other=fixture.matches.find(match=>match.round===1&&![...match.teamA,...match.teamB].includes("davo"))!
+    await page.goto(`/match/${own.id}`)
+    await expect(page.getByRole("heading",{name:"Resultado registrado",exact:true})).toBeVisible()
+    const recognition=page.locator("[data-mvp-recognition]").first()
+    await expect(recognition.locator("p").first()).toHaveText("MVP de la jornada · Empate técnico")
+    await expect(recognition.locator("p").last()).not.toContainText("empate técnico")
+    for(const width of [320,393]){
+      await page.setViewportSize({width,height:800})
+      const trigger=page.getByRole("button",{name:"Información sobre el índice ajustado",exact:true})
+      await trigger.click()
+      const tooltip=page.getByRole("tooltip")
+      await expect(tooltip).toContainText("no es un porcentaje")
+      await expect(tooltip).toContainText("3 puntos o menos")
+      const bounds=await tooltip.boundingBox()
+      expect(bounds!.x).toBeGreaterThanOrEqual(0)
+      expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(width)
+      expect(bounds!.y+bounds!.height).toBeLessThanOrEqual(800)
+      const audit=await new AxeBuilder({page}).analyze();expect(audit.violations.filter(item=>item.impact==="serious"||item.impact==="critical")).toEqual([])
+      await page.screenshot({path:info.outputPath(`mvp-help-${theme}-${width}.png`),scale:"css"})
+      await page.keyboard.press("Escape")
+      await expect(tooltip).toHaveCount(0)
+    }
+    await page.goto(`/match/${other.id}`)
+    await expect(page.locator(".app-match-result-row")).toHaveCount(2)
+    await expect(page.locator("[data-mvp-recognition]")).toBeVisible()
+    await expect(page.getByRole("heading",{name:"Resultado registrado",exact:true})).toHaveCount(0)
+    await expect(page.getByRole("region",{name:"Resultado del partido",exact:true})).toHaveCount(0)
+    fixture.setRole("admin");await page.reload()
+    await expect(page.getByRole("heading",{name:"Resultado registrado",exact:true})).toBeVisible()
+  })
 }
 for(const theme of ["light","dark"])for(const style of ["classic","competition"]){
   test(`calendar and match share compact states, readable actions and equal gaps (${theme},${style})`,async({page},info)=>{
@@ -48,13 +85,26 @@ for(const theme of ["light","dark"])for(const style of ["classic","competition"]
       if(theme==="light")expect(boxes.every(box=>box.background==="rgb(255, 255, 255)")).toBe(true)
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
     }
-    const action=page.locator(".app-action-button").first()
+    const action=page.locator(".app-action-primary").first()
     await expect(action).toBeVisible()
     const color=await action.evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,text:s.color}})
     expect(color.background).not.toBe(color.text)
-    if(theme==="light")expect(color.background).toBe("rgb(23, 23, 23)")
+    expect(color.background).not.toBe("rgba(0, 0, 0, 0)")
+    expect(await action.evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBe(1)
     await page.screenshot({path:info.outputPath(`pairing-${theme}-${style}.png`),scale:"css"})
     const audit=await new AxeBuilder({page}).analyze();expect(audit.violations.filter(item=>item.impact==="serious"||item.impact==="critical")).toEqual([])
+    const finished=fixture.matches.find(match=>match.round===1)!
+    await page.goto(`/match/${finished.id}`)
+    await expect(page.locator(".app-match-result-row")).toHaveCount(2)
+    await expect(page.locator(".app-match-result-row[data-winner]")).toHaveCount(1)
+    for(const width of [320,393]){
+      await page.setViewportSize({width,height:852})
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+      const rows=await page.locator(".app-match-result-row").evaluateAll(elements=>elements.map(el=>el.getBoundingClientRect().width))
+      expect(Math.abs(rows[0]-rows[1])).toBeLessThan(.6)
+    }
+    const resultAudit=await new AxeBuilder({page}).analyze();expect(resultAudit.violations.filter(item=>item.impact==="serious"||item.impact==="critical")).toEqual([])
+    await page.screenshot({path:info.outputPath(`finished-${theme}-${style}.png`),scale:"css"})
   })
   test(`activity windows, hidden pairings and countdown fit the mobile home (${theme},${style})`,async({page},info)=>{
     const fixture=await setup(page,theme,style)

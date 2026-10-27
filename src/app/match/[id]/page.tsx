@@ -17,8 +17,8 @@ import { MatchReservationConfirmation } from "@/components/match/MatchReservatio
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
-import { SectionHeader } from "@/components/ui/SectionHeader"
-import { matchSecondaryButton, matchDestructiveButton } from "@/components/match/matchPanelStyles"
+import { MatchResultDetails } from "@/components/match/MatchResultDetails"
+import { matchPrimaryButton, matchSecondaryButton, matchDestructiveButton } from "@/components/match/matchPanelStyles"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { getPlayerDisplayName } from "@/lib/players"
 import { AppCard } from "@/components/ui/AppCard"
@@ -362,7 +362,7 @@ export default function MatchDetailPage() {
     match.rankingCounts !== false
 
   const prioritizeResult = match.status === "finished" || getMatchDisplayStatus(match) === "result_pending"
-  const resultSection = canEnterResult || shouldShowResultWorkflow ? <section className="space-y-3" aria-label={tx("Resultado del partido")}>
+  const resultSection = (isMatchParticipant || isAdmin) && (canEnterResult || shouldShowResultWorkflow) ? <section className="space-y-3" aria-label={tx("Resultado del partido")}>
       {shouldShowResultWorkflow && canMutateSeason ? (
         <MatchResultConfirmationCard
           matchId={match.id}
@@ -391,11 +391,22 @@ export default function MatchDetailPage() {
 
       {shouldShowResultWorkflow &&
       !isEditingResult ? (
-        <AppCard>
+        <AppCard className="app-match-result-management !p-2.5">
           <div>
-            <SectionHeader title={t.matchResult.registeredTitle} />
-            {resultReporterName ? <p className="mt-1 text-xs text-neutral-500">{tx("Informado por")}: {resultReporterName}</p> : null}
-            <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
+            <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-neutral-950">{t.matchResult.registeredTitle}</h2>
+            {canEditResult ? (
+              <button type="button" onClick={() => setIsEditingResult(true)} disabled={isClearingResult || isUpdatingResultLock} className={`${matchSecondaryButton} shrink-0`}>
+                {currentResultConfirmation?.status === "disputed" ? tx("Corregir resultado") : t.matchResult.editButton}
+              </button>
+            ) : null}
+            </div>
+          </div>
+          <MatchResultDetails
+            key={`${match.id}:${resultIsLocked}:${currentResultConfirmation?.status === "disputed"}`}
+            initiallyShowInformation={resultIsLocked || currentResultConfirmation?.status === "disputed"}
+            information={<p>
+            {resultReporterName ? <span className="block">{tx("Informado por")}: {resultReporterName}</span> : null}
               {resultIsLocked
                 ? tx("El resultado está fijado como definitivo por la administración.")
                 : currentResultConfirmation?.status === "disputed"
@@ -403,23 +414,8 @@ export default function MatchDetailPage() {
                   : resultReporterName
                     ? tx("Pueden corregirlo quien lo informó, la administración o un jugador que lo marque como incorrecto.")
                     : canEditResult ? t.matchResult.registeredDescription : tx("Resultado guardado.")}
-            </p>
-          </div>
-
-          {canEditResult || mutableAdmin ? <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {canEditResult ? (
-              <button
-                type="button"
-                onClick={() => setIsEditingResult(true)}
-                disabled={isClearingResult || isUpdatingResultLock}
-                className={matchSecondaryButton}
-              >
-                {currentResultConfirmation?.status === "disputed"
-                  ? tx("Corregir resultado")
-                  : t.matchResult.editButton}
-              </button>
-            ) : null}
-
+            </p>}
+            actions={mutableAdmin ? <div className="grid gap-2">
             {mutableAdmin && confirmationsEnabled ? (
               <button
                 type="button"
@@ -435,7 +431,7 @@ export default function MatchDetailPage() {
               </button>
             ) : null}
 
-            {mutableAdmin && !resultIsLocked ? <details className="sm:col-span-2"><summary className="cursor-pointer py-2 text-xs font-semibold text-neutral-500">{tx("Más acciones del resultado")}</summary>
+            {!resultIsLocked ? (
               <button
                 type="button"
                 onClick={handleClearResult}
@@ -444,8 +440,9 @@ export default function MatchDetailPage() {
               >
                 {isClearingResult ? "Limpiando..." : tx("Limpiar resultado")}
               </button>
-            </details> : null}
+            ) : null}
           </div> : null}
+          />
 
           {clearResultError ? (
             <p className="mt-2 text-xs font-semibold text-red-600">
@@ -564,7 +561,6 @@ export default function MatchDetailPage() {
         onOpenPanelChange={setOpenMatchActionPanel}
       />
 
-      {prioritizeResult ? resultSection : null}
       {shouldShowResultWorkflow && canMutateSeason ? (
         <MvpVotingCard
           match={match}
@@ -572,8 +568,9 @@ export default function MatchDetailPage() {
           players={players}
           matches={matches}
           mvpSystem={roundSettings.mvpSystem}
+          resultActions={prioritizeResult ? resultSection : null}
         />
-      ) : null}
+      ) : prioritizeResult ? resultSection : null}
 
       {hasRoundWindow ? (
         <AppCard>
@@ -651,7 +648,7 @@ export default function MatchDetailPage() {
                 scheduledAt={match.scheduledAt}
                 location={calendarLocation}
                 className="min-w-0 flex-1"
-                triggerClassName={matchSecondaryButton + " w-full"}
+                  triggerClassName={matchPrimaryButton + " w-full"}
               ><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4m10-4v4M3 11h18m-9 3v4m-2-2h4" /></svg>{tx("Calendario")}</AddToCalendarButton>
             ) : null
           }

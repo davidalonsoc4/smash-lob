@@ -102,10 +102,24 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   const base = { origin: "league", leagueId: "league-smash-lob", leagueName: "Liga de prueba con un nombre especialmente largo para el móvil", seasonId: "season-2", seasonName: "Temporada", round: 4, canManage: false, canDelete: false, locationName: "Pista ficticia", sets: [], participants: [{ team: 1, slot: 1, displayName: "Fixture propia", isCurrentUser: true }, { team: 2, slot: 1, displayName: "Fixture rival", isCurrentUser: false }] }
   await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { upcoming: [{ ...base, id: "fixture-next", status: "scheduled", scheduledAt: "2099-10-17T18:00:00Z", resultRecordedAt: null }], items: [{ ...base, id: "fixture-last", status: "finished", scheduledAt: "2026-10-15T10:00:00Z", resultRecordedAt: "2026-10-15T11:00:00Z", sets: [{ a: 6, b: 3 }] }], hasMore: false, nextOffset: null } }))
   await page.goto("/leagues")
+  base.participants[1].displayName = "Andoni Fernández"
+  await page.reload()
   const activity = page.locator('section[aria-labelledby="personal-activity"]'), slider = activity.locator(".match-slides")
   await expect(activity.getByText("Tu próximo partido", { exact: true })).toBeVisible()
   for (const width of [320, 393]) {
     await page.setViewportSize({ width, height: 852 })
+    const playerNames = slider.locator('[aria-hidden="false"] p').filter({ hasText: /Fixture propia|Andoni Fernández/ })
+    await expect.poll(() => playerNames.evaluateAll(names => names.every(name => {
+      const text = name.querySelector("span span") as HTMLElement | null
+      if (!text) return false
+      const css = getComputedStyle(text)
+      return parseFloat(css.fontSize) >= 10 && css.whiteSpace === "nowrap"
+    }))).toBe(true)
+    if (width === 393) await expect.poll(() => playerNames.evaluateAll(names => names.every(name => {
+      const text = name.querySelector("span span")!, range = document.createRange()
+      range.selectNodeContents(text)
+      return range.getBoundingClientRect().width <= text.getBoundingClientRect().width + .5
+    }))).toBe(true)
     const heading = activity.locator("[data-activity-heading]")
     expect(await heading.evaluate(el => {
       const title = el.querySelector("h2")!.getBoundingClientRect(), context = el.querySelector("p")!.getBoundingClientRect()
@@ -184,6 +198,22 @@ test("last encounter is compact only in the hub and history stays detailed", asy
   const header = page.locator("#personal-activity").locator("..")
   await expect(header.getByRole("link", { name: "Ver Mis partidos" })).toHaveCount(0)
   await page.screenshot({ path: testInfo.outputPath("hub-last-compact.png"), fullPage: true })
+  await expect(activity.getByRole("button", { name: "Victoria", exact: true })).toBeVisible()
+  for (const result of ["Victoria", "Derrota"]) {
+    if (result === "Derrota") {
+      last.sets = [{ a: 2, b: 6 }, { a: 3, b: 6 }]
+      await page.reload()
+      await expect(activity.locator('[data-personal-match-origin="friendly"]')).toHaveCount(1)
+      const refreshedSlider = activity.locator(".match-slides")
+      if (await refreshedSlider.count()) await refreshedSlider.evaluate(el => el.scrollTo({ left: el.scrollWidth, behavior: "instant" }))
+      await expect(page.getByText("Tu último encuentro", { exact: true })).toBeVisible()
+    }
+    const badge = activity.getByRole("button", { name: result, exact: true })
+    await expect(badge).toBeVisible()
+    expect(await badge.evaluate(el => getComputedStyle(el).color)).toBe("rgb(255, 255, 255)")
+    const resultAccessibility = await new AxeBuilder({ page }).include('section[aria-labelledby="personal-activity"]').analyze()
+    expect(resultAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+  }
   await page.getByRole("navigation", { name: "Navegación global", exact: true }).getByRole("link", { name: "Mis partidos", exact: true }).click()
   await expect(page.getByText(last.locationName)).toBeVisible()
 })
@@ -212,6 +242,11 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.getByText("Tu próximo partido", { exact: true })).toBeVisible()
     await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
     expect(await page.getByRole("button", { name: /^Entrar en/ }).count()).toBeLessThanOrEqual(2)
+    await expect(page.locator("[data-activity-accent] [data-status-dot]").first()).toHaveAttribute("data-status-dot-outlined", visualStyle === "competition" ? "true" : "false")
+    expect(await page.locator("[data-activity-accent] [data-status-dot]").first().evaluate(el => {
+      const rect = el.getBoundingClientRect()
+      return [rect.width, rect.height]
+    })).toEqual([8, 8])
     const accessibility = await new AxeBuilder({ page }).analyze()
     expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: testInfo.outputPath("hub-summary-" + theme + ".png"), fullPage: true, scale: "css" })
@@ -285,6 +320,48 @@ for (const theme of ["light", "dark"] as const) {
     await expect(navigation).toHaveCount(0)
     await page.getByRole("link", { name: "Competiciones", exact: true }).click()
     await expect(navigation).toHaveCount(1)
+
+    // Exercise the visual hierarchy with real content in every section and a
+    // non-default accent; single-league fixtures cannot expose crowded layouts.
+    const expandedLeagues = [...fixtureLeagues, { ...fixtureLeagues[0], id: "league-archive", name: "Liga histórica", activeSeasonId: "season-archive" }]
+      .map((league, index) => ({ ...league, accentColor: index === 1 ? "#477BD1" : "#8B5FC0", logoUrl: "http://127.0.0.1:3100/fixture-crest.svg" }))
+    await page.route("**/fixture-crest.svg", route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="#477BD1" d="M8 6h48v30L32 59 8 36z"/><path fill="white" d="M20 20h24v6H26v6h18v6H20z"/></svg>' }))
+    await page.route("**/api/access**", route => route.fulfill({ json: {
+      isSuperuser: false, canCreateLeagues: true, leagues: expandedLeagues,
+      memberships: expandedLeagues.map(league => ({ userId: "qa-v1-1@example.test", leagueId: league.id, playerId: "davo", role: "admin" })), spectatorLeagueIds: [], matches: fixtureMatches.filter(match => match.leagueId !== "league-work"),
+      seasonSnapshot: {
+        seasons: [...fixtureSeasons.map(season => season.id === "season-work-1" ? { ...season, status: "upcoming" } : season), { id: "season-archive", leagueId: "league-archive", name: "Temporada anterior", status: "finished", totalRounds: 7, completedRounds: 7 }],
+        playerProfiles: fixtureProfiles, seasonPlayers: fixturePlayers,
+        seasonSettings: fixtureSettings.map(settings => settings.seasonId === "season-work-1" ? { ...settings, scheduledStartAt: "2026-10-20T08:00:00Z", seasonStartsAt: "2026-10-20" } : settings),
+        activeSeasonIds: Object.fromEntries(expandedLeagues.map(league => [league.id, league.activeSeasonId])),
+      },
+    } }))
+    await page.route("**/api/tournaments", route => route.fulfill({ json: { tournaments: [
+      { id: "tournament-running", name: "Americana del club", startsAt: "2026-10-16T12:00:00Z", status: "in_progress" },
+      { id: "tournament-upcoming", name: "Torneo de otoño por parejas", startsAt: "2026-10-20T09:00:00Z", status: "draft" },
+    ] } }))
+    await page.addInitScript(() => {
+      localStorage.setItem("smash-lob-competition-accent", "ice")
+      localStorage.setItem("smash-lob-palette", "indigo")
+    })
+    await page.reload()
+    await expect(page.getByRole("link", { name: /Americana del club/ })).toBeVisible()
+    await expect(page.getByRole("link", { name: /Torneo de otoño/ })).toBeVisible()
+    await expect.poll(() => page.locator('img[src$="fixture-crest.svg"]').evaluateAll(images => images.length >= 2 && images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true)
+    for (const width of [320, 393]) {
+      await page.setViewportSize({ width, height: 852 })
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+    }
+    const filledAccessibility = await new AxeBuilder({ page }).analyze()
+    expect(filledAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: testInfo.outputPath("hub-filled-custom-accent.png"), fullPage: true, scale: "css" })
+    await page.getByRole("link", { name: "Ver todas", exact: true }).click()
+    await expect(page.getByText("Finalizadas", { exact: false })).toBeVisible()
+    await page.locator("details > summary").click()
+    await expect(page.getByRole("button", { name: "Entrar en Liga histórica", exact: true })).toBeVisible()
+    const filledListAccessibility = await new AxeBuilder({ page }).analyze()
+    expect(filledListAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+    await page.screenshot({ path: testInfo.outputPath("leagues-filled-custom-accent.png"), fullPage: true, scale: "css" })
   })
   }
 }

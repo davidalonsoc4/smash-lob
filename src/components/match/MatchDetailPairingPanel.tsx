@@ -1,8 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import type { ReactNode } from "react"
-import { AppCard } from "@/components/ui/AppCard"
+import { Fragment, type ReactNode } from "react"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import type { PlayerProfile } from "@/data/fakeData"
 import { getPlayerById, getPlayerDisplayName } from "@/lib/players"
@@ -276,6 +275,7 @@ function FinishedPairRow({
   substituteLabels,
   linkPlayers,
   showPlayerMetadata,
+  won,
 }: {
   side: "a" | "b"
   playerIds: string[]
@@ -286,15 +286,25 @@ function FinishedPairRow({
   substituteLabels: Record<string, string>
   linkPlayers: boolean
   showPlayerMetadata: boolean
+  won: boolean
 }) {
+  const { tx } = useI18n()
   return (
-    <div className="rounded-2xl bg-neutral-50 px-3 py-3 sm:px-4 sm:py-3.5">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-        <div className="min-w-0 text-left">
+    <div className="app-match-result-row col-span-full grid items-center gap-x-1 py-2" style={{ gridTemplateColumns: "subgrid" }} data-winner={won || undefined} aria-label={won ? tx("Ganadores:") : undefined}>
+        <div className="app-match-result-names relative grid min-w-0 text-left" style={{ gridTemplateRows: playerIds.map(() => "minmax(0,1fr)").join(" 1px ") }}>
           {playerIds.map((playerId, index) => (
-            <div key={playerId} className={index === 0 ? "pb-2" : "pt-0"}>
-              {index > 0 ? <div className="mb-1.5 mr-1 border-t border-neutral-300" /> : null}
-
+            <Fragment key={playerId}>
+              {index > 0 ? (
+                <div className="app-match-result-divider relative mr-2 h-px">
+                  <span aria-hidden="true" className={`absolute inset-y-0 left-0 border-t border-neutral-300 ${won ? "right-5" : "right-0"}`} />
+                  {won ? (
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="app-match-winner-trophy absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2">
+                      <path d="M8 3h8v6a4 4 0 0 1-8 0V3Zm0 2H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 13v5m-4 3h8m-7-3h6v3H9z" />
+                    </svg>
+                  ) : null}
+                </div>
+              ) : null}
+              <div className={index === 0 ? "flex items-end pb-2" : "flex items-start pt-2"}>
               <FinishedPlayerName
                 playerId={playerId}
                 players={players}
@@ -303,23 +313,26 @@ function FinishedPairRow({
                 linkPlayers={linkPlayers}
                 showPlayerMetadata={showPlayerMetadata}
               />
-            </div>
+              </div>
+            </Fragment>
           ))}
         </div>
-
-        <div className="flex shrink-0 items-center gap-1.5 self-center">
           {sets.map((set, index) => {
             const ownScore = side === "a" ? set.a : set.b
             const rivalScore = side === "a" ? set.b : set.a
-            return <SetGameScore key={index} value={ownScore} won={ownScore > rivalScore} />
+            return (
+              <div key={index} className="app-match-result-set flex items-center justify-center">
+                <SetGameScore value={ownScore} won={ownScore > rivalScore} />
+              </div>
+            )
           })}
           {points !== null && points !== undefined ? (
-            <div className="relative -translate-y-0.5 ml-1 flex h-9 min-w-9 items-center justify-center self-center rounded-md bg-white px-2 text-base font-black leading-none text-neutral-950 ring-1 ring-inset ring-neutral-200 shadow-sm">
-              {points}
+            <div className="flex items-center justify-center text-neutral-950">
+              <span className="app-match-result-total relative text-3xl font-black leading-none tabular-nums">
+                {points}
+              </span>
             </div>
           ) : null}
-        </div>
-      </div>
     </div>
   )
 }
@@ -341,7 +354,7 @@ export function MatchDetailPairingPanel({
   showFinishedPlayerMetadata,
   showPositionHelp = false,
 }: MatchDetailPairingPanelProps) {
-
+  const { tx } = useI18n()
   const substituteLabels = getMatchSubstituteLabels({ substitutions, players: players ?? [] })
   const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
   const showRankingPosition = Object.keys(rankingPositions).length > 0
@@ -351,13 +364,16 @@ export function MatchDetailPairingPanel({
     showFinishedPlayerMetadata ?? showPlayerMetadata
   const showPendingMetadata = pendingPlayerMetadata || showRankingPosition
 
-  const PairingContainer = hasResult ? AppCard : "div"
-
   return (
-    <PairingContainer className={hasResult ? "overflow-hidden !p-0" : "app-match-pairing-standalone relative"}>
-      <div className={hasResult ? "p-3 sm:p-4" : undefined}>
+    <div className={hasResult ? "app-match-result-standalone" : "app-match-pairing-standalone relative"}>
+      <div>
         {hasResult ? (
-          <div className="space-y-2.5">
+          <div className="app-match-pair-surface app-match-result-surface grid gap-x-1 rounded-2xl border bg-white px-3 py-2 sm:px-4" style={{ gridTemplateColumns: `minmax(0,1fr)${sets.length ? ` repeat(${sets.length}, 28px)` : ""}${pointsA !== null || pointsB !== null ? " 40px" : ""}` }}>
+            <div className="app-match-result-head col-span-full grid items-center gap-x-1 pb-1 text-center type-micro font-medium text-neutral-500" style={{ gridTemplateColumns: "subgrid" }}>
+              <span />
+              {sets.map((_, index) => <span key={index}>S{index + 1}</span>)}
+              {pointsA !== null || pointsB !== null ? <span>{tx(sets.length ? "Sets" : "Puntos")}</span> : null}
+            </div>
             <FinishedPairRow
               side="a"
               playerIds={teamA}
@@ -368,8 +384,10 @@ export function MatchDetailPairingPanel({
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
               showPlayerMetadata={finishedPlayerMetadata}
+              won={pointsA !== null && pointsB !== null && pointsA > pointsB}
             />
 
+            <div aria-hidden="true" className="app-match-result-pair-divider col-span-full my-1 border-t" />
             <FinishedPairRow
               side="b"
               playerIds={teamB}
@@ -380,6 +398,7 @@ export function MatchDetailPairingPanel({
               substituteLabels={substituteLabels}
               linkPlayers={linkPlayers}
               showPlayerMetadata={finishedPlayerMetadata}
+              won={pointsA !== null && pointsB !== null && pointsB > pointsA}
             />
           </div>
         ) : (
@@ -422,7 +441,7 @@ export function MatchDetailPairingPanel({
           </>
         )}
       </div>
-    </PairingContainer>
+    </div>
   )
 }
 

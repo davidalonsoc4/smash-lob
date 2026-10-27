@@ -1,5 +1,173 @@
-.league {
+.overview {
+  --hub-surface: var(--colorful-surface, #fff);
+  --hub-border: color-mix(in srgb, var(--foreground) 13%, transparent);
+  --hub-accent: var(--app-accent, var(--foreground));
+}
+
+:global(html.dark) .overview {
+  --hub-surface: var(--colorful-surface, var(--classic-dark-surface, #222225));
+  --hub-accent: color-mix(in srgb, var(--app-accent) 70%, var(--foreground));
+}
+
+:global(html[data-visual-style="competition"]) .overview {
+  --hub-surface: var(--competition-surface);
+}
+
+.league,
+.leagueCard,
+.tournament {
   position: relative;
+  background: var(--hub-surface);
+  border-color: var(--hub-border);
+}
+
+.leagueCard {
+  border-top: 2px solid color-mix(in srgb, var(--league-card-accent) 72%, var(--foreground));
+  box-shadow: 0 5px 18px color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.leagueCard[data-phase="active"] {
+  border-inline-start: 3px solid color-mix(in srgb, var(--league-card-accent) 72%, var(--foreground));
+  padding-inline-start: calc(1rem - 2px);
+}
+
+.logoWell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--league-card-accent) 8%, var(--hub-surface));
+}
+
+.leagueMetrics {
+  margin-inline: -1rem;
+  padding: .75rem 1rem;
+  border-block-start: 1px solid var(--hub-border);
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+}
+
+.leagueMetrics :global(.text-neutral-500) {
+  color: color-mix(in srgb, var(--foreground) 68%, var(--hub-surface));
+}
+
+.progressTrack {
+  display: block;
+  height: .2rem;
+  margin-block-start: .5rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.archive {
+  border-color: var(--hub-border);
+  background: color-mix(in srgb, var(--hub-surface) 65%, transparent);
+}
+
+.archive .leagueCard {
+  box-shadow: none;
+}
+
+.tournament {
+  border-color: color-mix(in srgb, var(--hub-accent) 22%, var(--hub-border));
+}
+
+.trophy {
+  background: color-mix(in srgb, var(--hub-accent) 13%, var(--hub-surface));
+  color: color-mix(in srgb, var(--hub-accent) 60%, var(--foreground));
+}
+
+.competitionSection > :global(.app-section-header) {
+  padding-inline: .125rem;
+}
+
+.activityHero {
+  min-width: 0;
+}
+
+.activityHero > :global(.app-section-header) {
+  min-height: 1.5rem;
+  gap: .5rem;
+  padding-inline: .125rem;
+}
+
+/* One accent surface; pair boxes keep their layout without visible chrome. */
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.app-card) {
+  border: 0 !important;
+  background: var(--app-accent) !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) {
+  background: transparent !important;
+  border: 1px solid var(--hub-surface) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.text-neutral-950) {
+  color: var(--competition-accent-contrast) !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.text-neutral-500) {
+  color: var(--competition-accent-contrast) !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global([data-match-event-meta]) {
+  border-color: color-mix(in srgb, var(--competition-accent-contrast) 20%, transparent) !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global([data-match-event-meta]) :global(.text-neutral-600) {
+  color: var(--competition-accent-contrast) !important;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global([data-personal-match-origin]) {
+  background: transparent !important;
+  color: var(--competition-accent-contrast) !important;
+  border: 0 !important;
+  border-radius: 0;
+  padding: .125rem 0 !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+
+.activityHero :global(.match-preview-pagination) {
+  padding-block-start: .125rem;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.bg-green-100) {
+  background: #166534 !important;
+  color: #fff !important;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.bg-red-100) {
+  background: #b91c1c !important;
+  color: #fff !important;
+}
+
+.league:focus-visible,
+.leagueCard:focus-visible,
+.tournament:focus-visible {
+  outline: 2px solid var(--hub-accent);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .league:hover,
+  .leagueCard:hover,
+  .tournament:hover {
+    border-color: color-mix(in srgb, var(--hub-accent) 60%, var(--hub-border));
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview :is(button, a) {
+    transition: none;
+  }
 }
 
 .runningStatus {
@@ -24,19 +192,6 @@
 
 .progress {
   background-color: color-mix(in srgb, var(--league-card-accent) 75%, var(--foreground));
-}
-
-.topAccent {
-  --league-card-top-accent: color-mix(in srgb, var(--league-card-accent) 85%, #171717);
-  border-top-width: 2px;
-}
-
-:global(html[data-visual-style]) button.topAccent {
-  border-top-color: var(--league-card-top-accent) !important;
-}
-
-:global(html.dark) .topAccent {
-  --league-card-top-accent: color-mix(in srgb, var(--league-card-accent) 70%, #f5f5f5);
 }
 
 .activitySlides > div > div > div,
