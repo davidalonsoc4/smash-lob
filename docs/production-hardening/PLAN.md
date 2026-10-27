@@ -1,3 +1,9 @@
+## MC90 — Prueba de trofeo para ganador
+- Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración visual. Ocho unitarias, dos E2E móviles/Axe/build y lint PASS; captura revisada. Sin publicación.
+- Referencia anterior: commit aef3211f, raya lateral junto a nombres, margen extra8px y columnas actuales. Variante1: quitar raya y añadir trofeo junto al total, sin mover columnas.
+- Alternativas pendientes:2) total ganador en acento, sin trofeo/raya;3) etiqueta Victoria junto a pareja ganadora. No aplicarlas sin petición.
+- Gates: unitarias del marcador y dos E2E móviles con alineación/Axe/build. Sin publicación.
+
 ## MC89 — Aire a la izquierda del marcador
 - Estado: COMPLETO LOCAL (27/10/2026). Dos E2E móviles PASS, alineación a320/393px, Axe/build y diff check correctos; captura revisada. Sin publicación.
 - Alcance: añadir8px al espacio izquierdo de nombres y divisor, sin mover columnas numéricas.

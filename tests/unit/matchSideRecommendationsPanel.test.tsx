@@ -21,11 +21,13 @@ describe("recommended sides in the pairing panel", () => {
     const view = render(<MatchDetailPairingPanel {...props} pointsA={2} pointsB={1} sets={[{ a: 6, b: 4 }, { a: 3, b: 6 }, { a: 7, b: 5 }]} />)
     expect(view.container.querySelectorAll(".app-match-result-row")).toHaveLength(2)
     expect(view.container.querySelector('[data-winner="true"]')?.textContent).toContain("Ana")
+    expect(view.container.querySelectorAll(".app-match-winner-trophy")).toHaveLength(1)
     expect(Array.from(view.container.querySelectorAll(".app-match-result-total"), node => node.textContent)).toEqual(["2", "1"])
     expect(view.container.querySelectorAll(".app-match-result-set")).toHaveLength(6)
     expect(view.container.querySelector(".app-card")).toBeNull()
     view.rerender(<MatchDetailPairingPanel {...props} pointsA={1} pointsB={1} sets={[]} />)
     expect(view.container.querySelector("[data-winner]")).toBeNull()
+    expect(view.container.querySelector(".app-match-winner-trophy")).toBeNull()
     expect(screen.getAllByText("Puntos")).toHaveLength(1)
   })
   it("shows A backhand/forehand and B forehand/backhand without changing teams or attaching recommendations to the wrong player", () => {

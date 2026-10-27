@@ -44,7 +44,7 @@ describe("match detail pairing panel", () => {
     expect(panel).not.toContain('mt-1.5 text-left type-caption font-bold uppercase leading-none tracking-wide text-neutral-500')
     expect(panel).not.toContain('bg-neutral-100 font-black text-neutral-800 ring-neutral-200')
     expect(panel).not.toContain('bg-neutral-50 font-bold text-neutral-500 ring-neutral-200')
-    expect(panel).toContain('app-match-result-total text-3xl font-black leading-none tabular-nums')
+    expect(panel).toContain('app-match-result-total relative text-3xl font-black leading-none tabular-nums')
     expect(panel).not.toContain('label={tx("Pareja A")}')
     expect(panel).not.toContain('label={tx("Pareja B")}')
     expect(panel).toContain('alignment === "right" ? "flex-row-reverse"')

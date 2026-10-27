@@ -3454,3 +3454,7 @@ MC88 CERRADO LOCAL (27/10/2026): superficie única con cuadrícula compartida/su
 MC89 en curso local: añadido padding izquierdo8px al bloque de nombres del marcador. Conserva superficie, columnas, centrado vertical y acento de ganador. Pendientes comprobaciones móviles.
 
 MC89 cerrado local: nombres y divisor8px más adentro, manteniendo columnas numéricas y centrado vertical. Dos E2E móviles claro/oscuroPASS con medición a320/393px, Axe sin graves/críticos, build y diffcheckPASS; captura oscura revisada. Evidencia mc89-browser.log. Sin datos ni publicación.
+
+MC90 en curso: estado de referencia guardado en commit aef3211f (raya junto a nombres). Probando alternativa1: solo trofeo12px junto al total ganador; columnas/márgenes y criterio ganador intactos. Alternativa2 será total en acento, sin trofeo; alternativa3 etiqueta Victoria junto a pareja. No aplicadas. Para volver, retirar SVG/clase de trofeo y restaurar regla ::before de aef3211f conservando los demás cambios posteriores. Pendiente validación.
+
+MC90 cerrado local, pendiente de valoración: trofeo junto al total ganador sin raya lateral. Ocho pruebas unitariasPASS (ganador/empate y conservación), dos E2E móviles claro/oscuroPASS con alineación<1px a320/393px y Axe; lint/build/diffcheckPASS. Captura revisada. Referencia aef3211f y alternativas2/3 conservadas arriba y en PLAN; guía identifica esta versión como prueba. Evidencias mc90-unit.log y mc90-browser.log. Sin publicación.
