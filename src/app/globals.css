@@ -3193,14 +3193,14 @@ html :is(.app-action-button,.app-action-secondary):focus-visible { outline: 2px 
 .app-match-pair-surface { min-width: 0; border-color: color-mix(in srgb, var(--app-accent, #737373) 22%, #d4d4d4); }
 /* Finished matches retain the standalone match-up identity; scores lead, management follows. */
 .app-match-result-standalone .app-match-player-name { font-size: 1.125rem; line-height: 1.25; }
-html[data-theme][data-visual-style] .app-match-result-row { background: var(--competition-surface, #fff) !important; color: var(--foreground); }
-html.dark[data-theme][data-visual-style] .app-match-result-row { background: var(--competition-surface, #1c1d21) !important; }
-html[data-theme][data-visual-style] .app-match-result-row[data-winner] { border-color: color-mix(in srgb, var(--app-accent) 70%, var(--foreground)) !important; }
-.app-match-result-winner { color: var(--foreground); }
+html[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #fff) !important; color: var(--foreground); }
+html.dark[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #1c1d21) !important; }
+.app-match-result-row[data-winner] .app-match-result-names::before { content: ""; position: absolute; left: -8px; top: 15%; bottom: 15%; width: 2px; border-radius: 2px; background: color-mix(in srgb, var(--app-accent) 65%, var(--foreground)); }
 html[data-theme][data-visual-style] .app-match-result-set > span:last-child { min-height: 30px; background: transparent !important; border: 0; color: var(--foreground) !important; font-size: 1rem; line-height: 1.25; font-variant-numeric: tabular-nums; }
 html[data-theme][data-visual-style] .app-match-result-total { font-size: 1.875rem !important; line-height: 1 !important; color: var(--foreground) !important; }
+.app-match-result-row:not([data-winner]) .app-match-result-total { font-weight: 600; }
 html[data-theme][data-visual-style] .app-match-mvp-recognition { background: transparent !important; border-color: color-mix(in srgb, var(--foreground) 18%, transparent) !important; }
-html[data-theme][data-visual-style] .app-match-mvp-star { color: color-mix(in srgb, var(--app-accent) 55%, var(--foreground)) !important; }
+html[data-theme][data-visual-style] .app-match-mvp-star { font-size: 28px !important; line-height: 1; color: color-mix(in srgb, var(--app-accent) 55%, var(--foreground)) !important; }
 html.dark .app-match-pair-surface { border-color: color-mix(in srgb, var(--app-accent, #aaa) 30%, #525252) !important; }
 html:not(.dark) .app-main .app-card:not(.text-white),
 html:not(.dark) .app-main .app-match-pair-surface,

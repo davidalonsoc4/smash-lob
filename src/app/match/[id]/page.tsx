@@ -392,9 +392,16 @@ export default function MatchDetailPage() {
       !isEditingResult ? (
         <AppCard className="app-match-result-management !p-2.5">
           <div>
+            <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-neutral-950">{t.matchResult.registeredTitle}</h2>
-            {resultReporterName ? <p className="mt-1 text-xs text-neutral-500">{tx("Informado por")}: {resultReporterName}</p> : null}
+            {canEditResult ? (
+              <button type="button" onClick={() => setIsEditingResult(true)} disabled={isClearingResult || isUpdatingResultLock} className={`${matchSecondaryButton} shrink-0`}>
+                {currentResultConfirmation?.status === "disputed" ? tx("Corregir resultado") : t.matchResult.editButton}
+              </button>
+            ) : null}
+            </div>
             <details open={resultIsLocked || currentResultConfirmation?.status === "disputed"} className="mt-1 text-xs leading-5 text-neutral-500"><summary className="cursor-pointer font-medium">{tx("Información del resultado")}</summary><p className="mt-1">
+            {resultReporterName ? <span className="block">{tx("Informado por")}: {resultReporterName}</span> : null}
               {resultIsLocked
                 ? tx("El resultado está fijado como definitivo por la administración.")
                 : currentResultConfirmation?.status === "disputed"
@@ -405,20 +412,7 @@ export default function MatchDetailPage() {
             </p></details>
           </div>
 
-          {canEditResult || mutableAdmin ? <div className="mt-2 grid grid-cols-2 gap-2">
-            {canEditResult ? (
-              <button
-                type="button"
-                onClick={() => setIsEditingResult(true)}
-                disabled={isClearingResult || isUpdatingResultLock}
-                className={matchSecondaryButton}
-              >
-                {currentResultConfirmation?.status === "disputed"
-                  ? tx("Corregir resultado")
-                  : t.matchResult.editButton}
-              </button>
-            ) : null}
-
+          {mutableAdmin ? <details className="mt-1 text-xs"><summary className="cursor-pointer py-1 font-semibold text-neutral-500">{tx("Más acciones del resultado")}</summary><div className="mt-1 grid gap-2">
             {mutableAdmin && confirmationsEnabled ? (
               <button
                 type="button"
@@ -434,7 +428,7 @@ export default function MatchDetailPage() {
               </button>
             ) : null}
 
-            {mutableAdmin && !resultIsLocked ? <details className="col-span-2"><summary className="cursor-pointer py-1 text-xs font-semibold text-neutral-500">{tx("Más acciones del resultado")}</summary>
+            {!resultIsLocked ? (
               <button
                 type="button"
                 onClick={handleClearResult}
@@ -443,8 +437,8 @@ export default function MatchDetailPage() {
               >
                 {isClearingResult ? "Limpiando..." : tx("Limpiar resultado")}
               </button>
-            </details> : null}
-          </div> : null}
+            ) : null}
+          </div></details> : null}
 
           {clearResultError ? (
             <p className="mt-2 text-xs font-semibold text-red-600">

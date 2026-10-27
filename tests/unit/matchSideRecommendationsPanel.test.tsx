@@ -26,7 +26,7 @@ describe("recommended sides in the pairing panel", () => {
     expect(view.container.querySelector(".app-card")).toBeNull()
     view.rerender(<MatchDetailPairingPanel {...props} pointsA={1} pointsB={1} sets={[]} />)
     expect(view.container.querySelector("[data-winner]")).toBeNull()
-    expect(screen.getAllByText("Puntos")).toHaveLength(2)
+    expect(screen.getAllByText("Puntos")).toHaveLength(1)
   })
   it("shows A backhand/forehand and B forehand/backhand without changing teams or attaching recommendations to the wrong player", () => {
     const teamA = ["b", "a"]

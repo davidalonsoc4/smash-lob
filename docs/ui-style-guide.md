@@ -54,13 +54,16 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 
 ## Paneles y acciones de Partido
 
-- Con resultado, mantener dos filas independientes de parejas sin AppCard exterior:
-  nombres adaptables, columnas S1/S2/S3 alineadas y total de sets destacado.
-  El ganador se identifica con texto y borde de acento, sin rellenar toda la tarjeta.
+- Con resultado, una sola superficie contiene ambas parejas en una cuadrícula
+  compartida: cabecera S1/S2/S3/Sets una sola vez y números centrados a la altura
+  del separador entre los dos nombres. Conservar nombres adaptables y total de sets
+  destacado; ganador con acento lateral discreto y etiqueta accesible, sin otra caja.
 - El MVP resuelto se reconoce en una fila compacta debajo del marcador, con estrella
   de acento y ámbito explícito (partido/jornada). La votación pendiente queda después
   de confirmar el resultado. La gestión tiene menor peso visual; bloqueo y disputa
   mantienen su explicación visible y las acciones destructivas siguen desplegables.
+  Editar resultado queda a la derecha del título; bloqueo y limpieza dentro de Más
+  acciones. La estrella de reconocimiento mide28px y adapta su acento al contraste.
 
 - Jerarquía compartida: `app-action-button`/`app-action-primary` para guardar o
   confirmar y las acciones protagonistas Cómo llegar/Calendario de Programación

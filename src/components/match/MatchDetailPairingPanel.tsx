@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import type { ReactNode } from "react"
+import { Fragment, type ReactNode } from "react"
 import { SetGameScore } from "@/components/matches/SetGameScore"
 import type { PlayerProfile } from "@/data/fakeData"
 import { getPlayerById, getPlayerDisplayName } from "@/lib/players"
@@ -290,14 +290,12 @@ function FinishedPairRow({
 }) {
   const { tx } = useI18n()
   return (
-    <div className="app-match-pair-surface app-match-result-row rounded-2xl border bg-white px-3 py-3 sm:px-4" data-winner={won || undefined}>
-      {won ? <p className="app-match-result-winner mb-1 text-xs font-semibold">{tx("Ganadores:")}</p> : null}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-        <div className="min-w-0 text-left">
+    <div className="app-match-result-row col-span-full grid items-center gap-x-1 py-2" style={{ gridTemplateColumns: "subgrid" }} data-winner={won || undefined} aria-label={won ? tx("Ganadores:") : undefined}>
+        <div className="app-match-result-names relative grid min-w-0 text-left" style={{ gridTemplateRows: playerIds.map(() => "minmax(0,1fr)").join(" 1px ") }}>
           {playerIds.map((playerId, index) => (
-            <div key={playerId} className={index === 0 ? "pb-2" : "pt-0"}>
-              {index > 0 ? <div className="mb-1.5 mr-1 border-t border-neutral-300" /> : null}
-
+            <Fragment key={playerId}>
+              {index > 0 ? <div className="app-match-result-divider mr-2 border-t border-neutral-300" /> : null}
+              <div className={index === 0 ? "flex items-end pb-2" : "flex items-start pt-2"}>
               <FinishedPlayerName
                 playerId={playerId}
                 players={players}
@@ -306,29 +304,24 @@ function FinishedPairRow({
                 linkPlayers={linkPlayers}
                 showPlayerMetadata={showPlayerMetadata}
               />
-            </div>
+              </div>
+            </Fragment>
           ))}
         </div>
-
-        <div className="app-match-result-scores flex shrink-0 items-center gap-1 self-center">
           {sets.map((set, index) => {
             const ownScore = side === "a" ? set.a : set.b
             const rivalScore = side === "a" ? set.b : set.a
             return (
-              <div key={index} className="app-match-result-set flex w-7 flex-col items-center gap-1">
-                <span className="text-[10px] font-medium text-neutral-500">S{index + 1}</span>
+              <div key={index} className="app-match-result-set flex items-center justify-center">
                 <SetGameScore value={ownScore} won={ownScore > rivalScore} />
               </div>
             )
           })}
           {points !== null && points !== undefined ? (
-            <div className="ml-1 flex w-10 flex-col items-center gap-1 text-neutral-950">
-              <span className="text-[10px] font-semibold text-neutral-500">{tx(sets.length ? "Sets" : "Puntos")}</span>
+            <div className="flex items-center justify-center text-neutral-950">
               <span className="app-match-result-total text-3xl font-black leading-none tabular-nums">{points}</span>
             </div>
           ) : null}
-        </div>
-      </div>
     </div>
   )
 }
@@ -350,7 +343,7 @@ export function MatchDetailPairingPanel({
   showFinishedPlayerMetadata,
   showPositionHelp = false,
 }: MatchDetailPairingPanelProps) {
-
+  const { tx } = useI18n()
   const substituteLabels = getMatchSubstituteLabels({ substitutions, players: players ?? [] })
   const hasResult = sets.length > 0 || (pointsA !== null && pointsB !== null)
   const showRankingPosition = Object.keys(rankingPositions).length > 0
@@ -364,7 +357,12 @@ export function MatchDetailPairingPanel({
     <div className={hasResult ? "app-match-result-standalone" : "app-match-pairing-standalone relative"}>
       <div>
         {hasResult ? (
-          <div className="space-y-2.5">
+          <div className="app-match-pair-surface app-match-result-surface grid gap-x-1 rounded-2xl border bg-white px-3 py-2 sm:px-4" style={{ gridTemplateColumns: `minmax(0,1fr)${sets.length ? ` repeat(${sets.length}, 28px)` : ""}${pointsA !== null || pointsB !== null ? " 40px" : ""}` }}>
+            <div className="app-match-result-head col-span-full grid items-center gap-x-1 pb-1 text-center text-[10px] font-medium text-neutral-500" style={{ gridTemplateColumns: "subgrid" }}>
+              <span />
+              {sets.map((_, index) => <span key={index}>S{index + 1}</span>)}
+              {pointsA !== null || pointsB !== null ? <span>{tx(sets.length ? "Sets" : "Puntos")}</span> : null}
+            </div>
             <FinishedPairRow
               side="a"
               playerIds={teamA}

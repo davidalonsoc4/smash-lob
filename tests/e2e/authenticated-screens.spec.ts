@@ -105,12 +105,28 @@ for (const theme of ["light", "dark"]) {
     await expect(scoreboard.locator(".app-match-result-row")).toHaveCount(2)
     await expect(scoreboard.locator("[data-winner]")).toHaveCount(1)
     await expect(scoreboard.locator(".app-match-result-total")).toHaveText(["3", "0"])
+    await expect(scoreboard.getByText("S1", { exact: true })).toHaveCount(1)
+    await expect(scoreboard.getByText("Sets", { exact: true })).toHaveCount(1)
     const recognition = page.locator("[data-mvp-recognition]").first()
     await expect(recognition).toContainText("MVP de la jornada")
     expect((await recognition.boundingBox())!.y).toBeLessThan((await result.boundingBox())!.y)
     for (const width of [320, 393]) {
       await page.setViewportSize({ width, height: 852 })
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+      const alignment = await scoreboard.evaluate(element => {
+        const headers = Array.from(element.querySelectorAll(".app-match-result-head > span")).slice(1).map(node => { const r = node.getBoundingClientRect(); return r.x + r.width / 2 })
+        return Array.from(element.querySelectorAll(".app-match-result-row")).flatMap(row => {
+          const divider = row.querySelector(".app-match-result-divider")!.getBoundingClientRect()
+          return Array.from(row.querySelectorAll(".app-match-result-set > span, .app-match-result-total")).map((node, index) => {
+            const r = node.getBoundingClientRect()
+            return { y: Math.abs(r.y + r.height / 2 - divider.y - divider.height / 2), x: Math.abs(r.x + r.width / 2 - headers[index]) }
+          })
+        })
+      })
+      expect(alignment.every(position => position.x < 1 && position.y < 1)).toBe(true)
+      const title = await result.getByRole("heading", { name: "Resultado registrado", exact: true }).boundingBox()
+      const edit = await result.getByRole("button", { name: "Editar resultado", exact: true }).boundingBox()
+      expect(Math.abs(title!.y + title!.height / 2 - edit!.y - edit!.height / 2)).toBeLessThan(1)
       const resultAudit = await new AxeBuilder({ page }).analyze()
       expect(resultAudit.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     }
