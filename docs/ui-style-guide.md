@@ -55,8 +55,9 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 ## Paneles y acciones de Partido
 
 - Jerarquía compartida: `app-action-button`/`app-action-primary` para guardar o
-  confirmar (negro en claro, acento en oscuro); `app-action-secondary` para
-  Cancelar/Cerrar/Editar y mapa/calendario (transparente, borde neutro y texto
+  confirmar y las acciones protagonistas Cómo llegar/Calendario de Programación
+  (negro en claro, acento en oscuro); `app-action-secondary` para
+  Cancelar/Cerrar/Editar (transparente, borde neutro y texto
   del tema). Los helpers de `matchPanelStyles.ts` aplican los roles a todos
   los formularios de Partido. Misma altura/tipografía, foco y disabled legibles;
   conservar orden secundario izquierda/principal derecha y estilos destructivos.
@@ -65,7 +66,8 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
   un botón desplegable se usa `headingTag="span"` para conservar HTML válido.
 - `src/components/match/matchPanelStyles.ts` centraliza botones principales,
   secundarios, destructivos, chevrons y etiquetas suaves. Guardar y confirmar
-  destacan; editar, mapa, calendario y cancelar son secundarios.
+  destacan, al igual que mapa/calendario dentro de Programación; editar y cancelar
+  son secundarios.
 - Los pagos indican explícitamente «Por pagar» o «Por cobrar». Los avisos no
   dependen solo del color y conservan la explicación de `StatusHelp`.
 - El resultado pendiente se muestra antes de Programación y Pagos. Antes de

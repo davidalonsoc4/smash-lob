@@ -48,11 +48,11 @@ for(const theme of ["light","dark"])for(const style of ["classic","competition"]
       if(theme==="light")expect(boxes.every(box=>box.background==="rgb(255, 255, 255)")).toBe(true)
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
     }
-    const action=page.locator(".app-action-secondary").first()
+    const action=page.locator(".app-action-primary").first()
     await expect(action).toBeVisible()
     const color=await action.evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,text:s.color}})
     expect(color.background).not.toBe(color.text)
-    expect(color.background).toBe("rgba(0, 0, 0, 0)")
+    expect(color.background).not.toBe("rgba(0, 0, 0, 0)")
     expect(await action.evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBe(1)
     await page.screenshot({path:info.outputPath(`pairing-${theme}-${style}.png`),scale:"css"})
     const audit=await new AxeBuilder({page}).analyze();expect(audit.violations.filter(item=>item.impact==="serious"||item.impact==="critical")).toEqual([])

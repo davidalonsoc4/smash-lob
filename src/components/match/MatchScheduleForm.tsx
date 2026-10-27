@@ -703,7 +703,7 @@ export function MatchScheduleForm({
                   <DirectionsPicker
                     mapsUrl={directionsUrl}
                     locationLabel={displayedLocationText ?? tx("Lugar pendiente")}
-                    className={`${matchSecondaryButton} flex-1`}
+                    className={`${matchPrimaryButton} flex-1`}
                   />
                 ) : null}
 

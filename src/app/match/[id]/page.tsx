@@ -18,7 +18,7 @@ import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
 import { SectionHeader } from "@/components/ui/SectionHeader"
-import { matchSecondaryButton, matchDestructiveButton } from "@/components/match/matchPanelStyles"
+import { matchPrimaryButton, matchSecondaryButton, matchDestructiveButton } from "@/components/match/matchPanelStyles"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { getPlayerDisplayName } from "@/lib/players"
 import { AppCard } from "@/components/ui/AppCard"
@@ -651,7 +651,7 @@ export default function MatchDetailPage() {
                 scheduledAt={match.scheduledAt}
                 location={calendarLocation}
                 className="min-w-0 flex-1"
-                triggerClassName={matchSecondaryButton + " w-full"}
+                  triggerClassName={matchPrimaryButton + " w-full"}
               ><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4m10-4v4M3 11h18m-9 3v4m-2-2h4" /></svg>{tx("Calendario")}</AddToCalendarButton>
             ) : null
           }

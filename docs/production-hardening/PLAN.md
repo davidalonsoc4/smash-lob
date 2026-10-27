@@ -1,3 +1,8 @@
+## MC86 — Acciones protagonistas de Programación
+- Estado: COMPLETO LOCAL (27/10/2026). Seis E2E móviles, Axe, lint, TypeScript y build PASS; captura oscura revisada. Sin publicación.
+- Alcance: restaurar Cómo llegar y Calendario como acciones principales de su panel; conservar Cancelar/Cerrar/Editar secundarios y Guardar principal. Sin cambios funcionales ni publicación.
+- Gates: seis E2E móviles existentes, lint focalizado, TypeScript y build del navegador.
+
 ## MC85 — Jerarquía de acciones principales/secundarias
 - Estado: COMPLETO LOCAL (27/10/2026),21 pruebas existentes y6 E2E finales PASS; TypeScript/lint/build/Axe y capturas revisados. Sin publicación.
 - Alcance: separar estilos compartidos de acciones; Guardar principal, Cancelar/Cerrar/editar/mapa/calendario secundarios neutros. Conservar geometría, orden, estados y lógica de formularios; no alterar navbars ni acciones destructivas.
