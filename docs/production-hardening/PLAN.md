@@ -1,5 +1,5 @@
 ## MC98 — Publicación de rama visual en PRE
-- Estado: EN CURSO (27/10/2026). Usuario autoriza push y PRE; no Production.
+- Estado: COMPLETO PRE (27/10/2026). v1.15.37 en staging55ce03d7; PR61/CI4gatesPASS, alias/health/SW/rutas verificados. main/Production intactos.
 - Alcance: publicar estado recuperado de previews y mejoras acumuladas de Partido/MVP. Corregir gates de publicación sin alterar diseño aprobado. Validar rama, CI y deployment/alias/health/SW remotos.
 - Gates: validate, navegador y seguridad de dependencias; verificación explícita de SHA remota y PRE. Sin DB.
 
