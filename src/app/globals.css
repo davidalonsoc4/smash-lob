@@ -3192,12 +3192,6 @@ html :is(.app-action-button,.app-action-secondary):disabled { opacity: .45; curs
 html :is(.app-action-button,.app-action-secondary):focus-visible { outline: 2px solid var(--app-accent, #737373); outline-offset: 3px; }
 .app-match-pair-surface { min-width: 0; border-color: color-mix(in srgb, var(--app-accent, #737373) 22%, #d4d4d4); }
 /* Finished matches retain the standalone match-up identity; scores lead, management follows. */
-.match-preview-pair-divider { border-color: color-mix(in srgb, var(--foreground) 22%, transparent); }
-.match-preview-name-line { border-color: color-mix(in srgb, var(--foreground) 14%, transparent); }
-.match-preview-trophy { color: color-mix(in srgb, var(--app-accent) 55%, var(--foreground)); }
-html[data-theme][data-visual-style] .match-preview-partial > span { border: 0 !important; background: transparent !important; color: var(--foreground) !important; font-size: 12px !important; line-height: 1.25; }
-html[data-theme][data-visual-style] .match-preview-total { color: var(--foreground) !important; font-size: 20px !important; }
-html[data-theme][data-visual-style] [data-preview-team]:not([data-preview-winner]) .match-preview-total { font-weight: 600 !important; }
 .app-match-result-standalone .app-match-player-name { font-size: 1.125rem; line-height: 1.25; }
 .app-match-result-names { padding-left: 8px; }
 html[data-theme][data-visual-style] .app-match-result-pair-divider { border-color: color-mix(in srgb, var(--foreground) 22%, transparent) !important; }

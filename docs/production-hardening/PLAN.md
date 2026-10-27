@@ -1,8 +1,7 @@
-## MC96 — Previews compartidas de emparejamientos y resultados
-- Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración visual.12unitarias y10E2E móvilesPASS, comparación antes/después4temas, geometría320/393px, Axe/lint/i18n/TypeScript/buildPASS. Sin publicación.
-- Punto de vuelta exacto:11589c031f2403996c099fb1f111ce1549c0f949, árbol limpio antes de empezar. Capturas previas en .quality-artifacts/mc96-before. Conservar acento, etiquetas, navegación y carrusel de Actividad personal.
-- Alcance autorizado: solo1) parejas pendientes compartidas,2) marcador compacto compartido,6) estados/resultados compartidos sin punto redundante de finalizado ajeno. No aplicar otras propuestas de calendario.
-- Gates: unitarias, móvil320/393px en cuatro temas, comparación antes/después de actividad/carrusel, Axe, lint, i18n, TypeScript/build. Sin publicación.
+## MC97 — Restaurar previews con cajas interiores
+- Estado: COMPLETO LOCAL (27/10/2026). Src/tests idénticos a referencia11589c03, siete unitarias y dos E2E/build PASS. Sin publicación.
+- Alcance: revertir exclusivamente MC96/92ec830b por petición del usuario. Código y pruebas vuelven exactamente a11589c03; Partido/MVP y todo lo anterior permanecen. Versión nueva conservada en92ec830b y capturas mc96 para comparar.
+- Gates: comparación exacta de src/tests con referencia, unitarias y dos recorridos móviles de Actividad/carrusel con build. Sin publicación.
 
 ## MC95 — Ayuda del índice MVP y visibilidad del resultado
 - Estado: COMPLETO LOCAL (27/10/2026). 19 unitarias y ocho E2E móviles PASS; roles, ayuda a320/393px, Axe, i18n, lint, TypeScript/build y capturas revisados. Sin publicación.

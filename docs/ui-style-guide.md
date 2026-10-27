@@ -54,16 +54,6 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 
 ## Paneles y acciones de Partido
 
-- Previews de Calendario/Home de liga y Actividad personal usan `MatchPreviewTeams`:
-  pendientes con parejas enfrentadas y nombres adaptables hasta10px; resultados
-  con cabecera única, cuadrícula de sets, separador de parejas y copa junto al divisor
-  del ganador. Tamaños compactos14px nombres/12px parciales/20px total, sin trasladar
-  los tamaños mayores del detalle de Partido. No inventar ganador en empate.
-  Se conservan los estados compartidos: Victoria/Derrota propios; en resultados
-  ajenos con marcador no repetir punto de Finalizado. Actividad mantiene fondo/acento,
-  origen, etiquetas y navegación; contraste de marcador adaptado al acento.
-  Prueba MC96 reversible desde referencia11589c031f2403996c099fb1f111ce1549c0f949.
-
 - Con resultado, una sola superficie contiene ambas parejas en una cuadrícula
   compartida: cabecera S1/S2/S3/Sets una sola vez y números centrados a la altura
   del separador entre los dos nombres. Conservar nombres adaptables y total de sets

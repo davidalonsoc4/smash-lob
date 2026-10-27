@@ -19,7 +19,7 @@ describe("shared match teams panel", () => {
     expect(panel).toContain("[&>span]:justify-end")
     expect(panel).not.toContain("Pareja A")
     expect(panel).not.toContain("Pareja B")
-    expect(card).toContain("<MatchPreviewTeams")
+    expect(card).toContain("<MatchTeamsPanel")
     expect(scoreboard).toContain("<MatchTeamsPanel")
     expect(scoreboard).toContain('mode={isFinished ? "rows" : "versus"}')
     expect(home.match(/<MatchCard/g)?.length ?? 0).toBeGreaterThanOrEqual(2)
