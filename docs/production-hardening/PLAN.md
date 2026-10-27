@@ -1,3 +1,8 @@
+## MC89 — Aire a la izquierda del marcador
+- Estado: COMPLETO LOCAL (27/10/2026). Dos E2E móviles PASS, alineación a320/393px, Axe/build y diff check correctos; captura revisada. Sin publicación.
+- Alcance: añadir8px al espacio izquierdo de nombres y divisor, sin mover columnas numéricas.
+- Gates: dos recorridos móviles claro/oscuro con alineación a320/393px, Axe/build y diff check. Sin publicación.
+
 ## MC88 — Marcador unificado y gestión compacta
 - Estado: COMPLETO LOCAL (27/10/2026). 28 pruebas y seis E2E móviles PASS; alineación medida a320/393px, Axe, lint, i18n, TypeScript/build y capturas revisadas. Sin publicación.
 - Alcance: superficie única y columnas compartidas, marcador centrado en separador de nombres; Editar en cabecera, gestión en desplegables y estrella MVP mayor. Conservar reglas y permisos.

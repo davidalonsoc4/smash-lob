@@ -3193,6 +3193,7 @@ html :is(.app-action-button,.app-action-secondary):focus-visible { outline: 2px 
 .app-match-pair-surface { min-width: 0; border-color: color-mix(in srgb, var(--app-accent, #737373) 22%, #d4d4d4); }
 /* Finished matches retain the standalone match-up identity; scores lead, management follows. */
 .app-match-result-standalone .app-match-player-name { font-size: 1.125rem; line-height: 1.25; }
+.app-match-result-names { padding-left: 8px; }
 html[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #fff) !important; color: var(--foreground); }
 html.dark[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #1c1d21) !important; }
 .app-match-result-row[data-winner] .app-match-result-names::before { content: ""; position: absolute; left: -8px; top: 15%; bottom: 15%; width: 2px; border-radius: 2px; background: color-mix(in srgb, var(--app-accent) 65%, var(--foreground)); }
