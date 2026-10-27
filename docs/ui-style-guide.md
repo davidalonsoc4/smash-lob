@@ -54,6 +54,13 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 
 ## Paneles y acciones de Partido
 
+- Jerarquía compartida: `app-action-button`/`app-action-primary` para guardar o
+  confirmar (negro en claro, acento en oscuro); `app-action-secondary` para
+  Cancelar/Cerrar/Editar y mapa/calendario (transparente, borde neutro y texto
+  del tema). Los helpers de `matchPanelStyles.ts` aplican los roles a todos
+  los formularios de Partido. Misma altura/tipografía, foco y disabled legibles;
+  conservar orden secundario izquierda/principal derecha y estilos destructivos.
+
 - Las cabeceras reutilizan `SectionHeader`, igual que Mis Competiciones. Dentro de
   un botón desplegable se usa `headingTag="span"` para conservar HTML válido.
 - `src/components/match/matchPanelStyles.ts` centraliza botones principales,
@@ -78,7 +85,7 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 
 ### Acciones, parejas y contexto de jornadas (MC62)
 
-Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento/contraste calculado en oscuro. Primarios existentes bg-neutral-950 comparten criterio; navbars, iconos, selectores y acciones destructivas conservan su función visual. Paneles normales blancos en claro, respetando superficies explícitas con texto blanco. Parejas de Partido: dos columnas1fr, margen12px común, borde neutro mezclado con acento; nombres completos por FitText, sin avatares. Calendario muestra estados únicamente En curso/Fuera de plazo en cabecera, tenga o no ventanas. Actividad distingue ventana estimada de reserva, nunca inventa scheduledAt ni muestra parejas ocultas. Chats globales separan Activos/Próximos/Finalizados por proximidad (máximo jornada actual+2), con filtro de mensajes independiente y etiqueta de liga de color suave.
+Acciones principales reutilizan `app-action-button`: negro/blanco en claro y acento/contraste calculado en oscuro; las secundarias usan `app-action-secondary`, neutral y con borde. Primarios existentes bg-neutral-950 comparten criterio; navbars, iconos, selectores y acciones destructivas conservan su función visual. Paneles normales blancos en claro, respetando superficies explícitas con texto blanco. Parejas de Partido: dos columnas1fr, margen12px común, borde neutro mezclado con acento; nombres completos por FitText, sin avatares. Calendario muestra estados únicamente En curso/Fuera de plazo en cabecera, tenga o no ventanas. Actividad distingue ventana estimada de reserva, nunca inventa scheduledAt ni muestra parejas ocultas. Chats globales separan Activos/Próximos/Finalizados por proximidad (máximo jornada actual+2), con filtro de mensajes independiente y etiqueta de liga de color suave.
 
 ## Creación guiada de ligas
 - Recorrido básico: identidad de liga → participantes de temporada → resumen. Avanzada es una pantalla opcional entre participantes y resumen; comparte el mismo estado.

@@ -1,3 +1,8 @@
+## MC85 — Jerarquía de acciones principales/secundarias
+- Estado: COMPLETO LOCAL (27/10/2026),21 pruebas existentes y6 E2E finales PASS; TypeScript/lint/build/Axe y capturas revisados. Sin publicación.
+- Alcance: separar estilos compartidos de acciones; Guardar principal, Cancelar/Cerrar/editar/mapa/calendario secundarios neutros. Conservar geometría, orden, estados y lógica de formularios; no alterar navbars ni acciones destructivas.
+- Gates: pruebas existentes de formularios/estilos, lint, TypeScript/build y navegador móvil claro/oscuro Clásico/Competition con acciones/contraste. Sin publicación.
+
 ## MC84 — Punto de estado de partido de8px compartido
 - Estado: COMPLETO LOCAL (26/10/2026),14 pruebas existentes y12 E2E móviles PASS; lint/build y captura revisados. Sin publicación.
 - Alcance: ampliar StatusDot compartido a8px en previews, calendarios, perfiles y chats; conservar color, contorno, ayuda y alineación. No alterar indicadores de liga/torneo ni notificaciones.
