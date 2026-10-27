@@ -138,6 +138,14 @@
   padding-block-start: .125rem;
 }
 
+:global(html[data-theme][data-visual-style]) .activityHero :global(.match-preview-partial > span),
+:global(html[data-theme][data-visual-style]) .activityHero :global(.match-preview-total),
+:global(html[data-theme][data-visual-style]) .activityHero :global(.match-preview-trophy) {
+  color: var(--competition-accent-contrast) !important;
+}
+.activityHero :global(.match-preview-pair-divider) { border-color: color-mix(in srgb, var(--competition-accent-contrast) 32%, transparent); }
+.activityHero :global(.match-preview-name-line) { border-color: color-mix(in srgb, var(--competition-accent-contrast) 20%, transparent); }
+
 :global(html[data-theme][data-visual-style]) .overview .activityHero :global(.bg-green-100) {
   background: #166534 !important;
   color: #fff !important;

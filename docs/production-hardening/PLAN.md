@@ -1,3 +1,8 @@
+## MC99 — Repetir previews compartidas (puntos 1, 2 y 6)
+- Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración.12unitarias y10E2E más4repeticiones PASS; tipos/lint/build/i18n/Axe/geometría correctos. Referencia86826104 y PRE1.15.37 conservados.
+- Alcance: recuperar prueba92ec830b solo en presentación de previews/estados, respetando ajustes de publicación. No puntos3–5/7–8, reglas, datos ni navegación.
+- Gates: unitarias focalizadas, lint/tipos/i18n/tipografía/presupuestos, build y móvil320/393px en4temas con geometría/Axe/carrusel. Sin publicación.
+
 ## MC98 — Publicación de rama visual en PRE
 - Estado: COMPLETO PRE (27/10/2026). v1.15.37 en staging55ce03d7; PR61/CI4gatesPASS, alias/health/SW/rutas verificados. main/Production intactos.
 - Alcance: publicar estado recuperado de previews y mejoras acumuladas de Partido/MVP. Corregir gates de publicación sin alterar diseño aprobado. Validar rama, CI y deployment/alias/health/SW remotos.
