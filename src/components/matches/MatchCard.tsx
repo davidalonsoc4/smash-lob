@@ -5,8 +5,8 @@ import { MatchOutcomeBadge } from "@/components/matches/MatchOutcomeBadge"
 import Link from "next/link";
 import { MatchEventMeta } from "@/components/matches/MatchEventMeta";
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge";
-import { MatchTeamsPanel } from "@/components/matches/MatchTeamsPanel";
-import { SetGameScore } from "@/components/matches/SetGameScore";
+import { MatchPreviewTeams } from "@/components/matches/MatchPreviewTeams";
+import { getPlayerDisplayName } from "@/lib/players";
 import { TeamPlayers } from "@/components/player/TeamPlayers";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
@@ -156,31 +156,7 @@ export function MatchCard({
         ? getPlayedDateLabel()
         : t.matches.pendingPlay;
 
-  const teamATrailing = isFinished ? (
-    <div className="flex shrink-0 items-center gap-1 self-center">
-      <div className="flex items-center gap-1" aria-label={tx("Juegos por set de la pareja A")}>
-        {match.sets.map((set, index) => (
-          <SetGameScore key={index} value={set.a} won={set.a > set.b} />
-        ))}
-      </div>
-      <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
-        {teamScores.teamA}
-      </span>
-    </div>
-  ) : null;
-
-  const teamBTrailing = isFinished ? (
-    <div className="flex shrink-0 items-center gap-1 self-center">
-      <div className="flex items-center gap-1" aria-label={tx("Juegos por set de la pareja B")}>
-        {match.sets.map((set, index) => (
-          <SetGameScore key={index} value={set.b} won={set.b > set.a} />
-        ))}
-      </div>
-      <span className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm">
-        {teamScores.teamB}
-      </span>
-    </div>
-  ) : null;
+  const previewPlayers = (ids: string[]) => ids.map(id => ({ id, name: getPlayerDisplayName(id, players), highlightedLabel: highlightedPlayerIds.includes(id) ? highlightedPlayerLabel : undefined, substituteLabel: substituteLabels[id] }));
 
   const matchStatusNode = (
     <MatchStatusBadge
@@ -195,7 +171,7 @@ export function MatchCard({
   const outcomeNode = currentUserOutcome ? (
     <MatchOutcomeBadge outcome={currentUserOutcome} />
   ) : null;
-  const statusNode = outcomeNode ?? matchStatusNode;
+  const statusNode = outcomeNode ?? (isFinished && stackTeamPlayers ? null : matchStatusNode);
 
   const effectiveHeaderLeft =
     headerLeftLabel ??
@@ -240,17 +216,10 @@ export function MatchCard({
         <div>
           <div className="flex items-center gap-3">
             {stackTeamPlayers ? (
-              <MatchTeamsPanel
-                teamA={match.teamA}
-                teamB={match.teamB}
-                players={players}
-                substitutions={match.substitutions}
-                highlightedPlayerIds={highlightedPlayerIds}
-                highlightedPlayerLabel={highlightedPlayerLabel}
-                mode={isFinished ? "rows" : "versus"}
-                teamATrailing={teamATrailing}
-                teamBTrailing={teamBTrailing}
-                linkPlayers={false}
+              <MatchPreviewTeams
+                teamA={previewPlayers(match.teamA)} teamB={previewPlayers(match.teamB)}
+                finished={isFinished} sets={match.sets}
+                scores={{ a: teamScores.teamA, b: teamScores.teamB }}
               />
             ) : (
               <div className="min-w-0 flex-1 space-y-1.5">
