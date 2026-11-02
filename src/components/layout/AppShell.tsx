@@ -1,5 +1,7 @@
 "use client"
 
+import { areTournamentsEnabled } from "@/lib/tournamentAvailability"
+
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react"
@@ -308,7 +310,7 @@ export function AppShell({ children }: AppShellProps) {
   const isTournamentSettingsRoute = Boolean(tournamentNavId) && pathname === `/tournaments/${tournamentNavId}/settings`
   const shouldShowTournamentNav = Boolean(tournamentNavId) && !isMatchChatRoute && !isTournamentSettingsRoute
   const shouldShowSpectatorShareButton = shouldShowActionBar
-  const shareTournamentId = tournamentNavId ?? searchParams.get("returnTo")?.match(/^\/tournaments\/([^/]+)/)?.[1]
+  const shareTournamentId = areTournamentsEnabled() ? tournamentNavId ?? searchParams.get("returnTo")?.match(/^\/tournaments\/([^/]+)/)?.[1] : null
   const hasSpectatorShareControl = shouldShowSpectatorShareButton
   const hasFloatingTopControls = shouldShowActionBar
   const floatingTopControlWidth = 4 * 42 - 8

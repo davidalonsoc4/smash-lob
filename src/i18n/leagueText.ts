@@ -4111,6 +4111,8 @@ const DYNAMIC_TEMPLATES = {
 
 const FINAL_OVERRIDES = {
   "en": {
+    "votos": "votes",
+    "empate": "tie",
     "Empate técnico": "Technical tie",
     "Información sobre el índice ajustado": "About the adjusted index",
     "Cómo se elige el MVP avanzado": "How the advanced MVP is selected",
@@ -5059,6 +5061,8 @@ const FINAL_OVERRIDES = {
   },
   "eu": {
     "Información del resultado": "Emaitzaren informazioa",
+    "votos": "boto",
+    "empate": "berdinketa",
     "Empate técnico": "Berdinketa teknikoa",
     "Información sobre el índice ajustado": "Indize doituari buruzko informazioa",
     "Cómo se elige el MVP avanzado": "Nola aukeratzen den MVP aurreratua",

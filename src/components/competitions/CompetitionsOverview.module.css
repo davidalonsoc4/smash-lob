@@ -84,8 +84,32 @@
   padding-inline: .125rem;
 }
 
+/* A quiet accent links the section headings to the activity card without
+   adding another surface or changing the competition cards themselves. */
+.competitionSection > :global(.app-section-header) h2,
+.activityHero > :global(.app-section-header) h2 {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.competitionSection > :global(.app-section-header) h2::before,
+.activityHero > :global(.app-section-header) h2::before {
+  width: .3rem;
+  height: 1rem;
+  flex: none;
+  border-radius: 1rem;
+  background: var(--hub-accent);
+  content: "";
+}
+
+.competitionSection > :global(.app-section-header) :global(.app-section-action) {
+  color: color-mix(in srgb, var(--hub-accent) 55%, var(--foreground));
+}
+
 .activityHero {
   min-width: 0;
+  --activity-accent-contrast: var(--competition-accent-contrast, #111);
 }
 
 .activityHero > :global(.app-section-header) {
@@ -94,22 +118,42 @@
   padding-inline: .125rem;
 }
 
-/* One accent surface; pair boxes keep their layout without visible chrome. */
+/* Use the same solid dark surfaces as the app's dark theme. */
 :global(html[data-theme][data-visual-style]) .overview .activityHero :global(.app-card) {
-  border: 0 !important;
-  background: var(--app-accent) !important;
-  box-shadow: none !important;
+  --competition-accent-contrast: #fff;
+  --activity-score-surface: #141518;
+  border: 1px solid rgb(255 255 255 / .13) !important;
+  border-top: 2px solid color-mix(in srgb, var(--app-accent) 72%, var(--foreground)) !important;
+  background: #141518 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -4px 12px rgb(0 0 0 / .2) !important;
   backdrop-filter: none;
 }
 
+:global(html[data-theme][data-visual-style="classic"]) .overview .activityHero :global(.app-card) {
+  --activity-score-surface: #17212e;
+  background: #17212e !important;
+}
+
 :global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) {
-  background: transparent !important;
-  border: 1px solid var(--hub-surface) !important;
+  background: var(--app-accent) !important;
+  border: 1px solid color-mix(in srgb, var(--activity-accent-contrast) 15%, transparent) !important;
   box-shadow: none !important;
 }
 
 :global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.text-neutral-950) {
-  color: var(--competition-accent-contrast) !important;
+  color: var(--activity-accent-contrast) !important;
+  text-align: center;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.bg-neutral-100) {
+  background: #f1f1f1 !important;
+  color: #525252 !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.bg-white) {
+  background: #fff !important;
+  color: #171717 !important;
+  border-color: #d4d4d4 !important;
 }
 
 :global(html[data-visual-style]) .activityHero :global(.text-neutral-500) {
@@ -199,7 +243,8 @@
   height: 100%;
 }
 
-.activitySlides section:has([data-match-event-meta]) {
+.activitySlides section:has([data-match-event-meta]),
+.activitySlides section:has([data-match-round-window]) {
   display: flex;
   flex-direction: column;
 }
@@ -208,13 +253,29 @@
   height: 100%;
 }
 
-.withCalendar [data-match-event-meta] {
-  padding-right: 3rem;
-}
-
-.activitySlides [data-match-event-meta] {
+.activitySlides [data-match-event-meta],
+.activitySlides [data-match-round-window] {
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: center;
+}
+
+.withCalendar :global([data-match-event-action="true"]) {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero .withCalendar :global([data-match-event-action] > button) {
+  color: var(--app-accent) !important;
+}
+
+/* Classic light can use a very dark accent on this deliberately dark card. */
+:global(html:not(.dark)[data-visual-style="classic"]) .overview .activityHero .withCalendar :global([data-match-event-action] > button) {
+  color: color-mix(in srgb, var(--app-accent) 35%, white) !important;
+}
+.activitySlides [data-match-round-window] {
+  align-items: flex-start;
 }

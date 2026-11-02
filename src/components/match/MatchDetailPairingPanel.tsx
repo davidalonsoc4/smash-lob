@@ -180,7 +180,7 @@ function PairDetails({
         <div key={playerId} className={index === 0 ? "pb-1.5" : "pt-1"}>
           {index > 0 ? (
             <div
-              className={`mb-1.5 border-t border-neutral-300 ${
+              className={`app-match-pending-divider mb-1.5 border-t border-neutral-300 ${
                 alignment === "right" ? "ml-4" : "mr-4"
               }`}
             />

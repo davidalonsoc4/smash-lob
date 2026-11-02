@@ -30,6 +30,13 @@ for(const theme of ["light","dark"]){
   test(`MVP help and result visibility respect participant and admin roles (${theme})`,async({page},info)=>{
     const fixture=await setup(page,theme,"competition")
     fixture.setAdvanced();fixture.setRole("player")
+    await page.goto("/")
+    const homeMvp = page.locator("[data-mvp-recognition]").first()
+    await expect(homeMvp).toBeVisible()
+    await expect(homeMvp.locator(".app-match-mvp-star")).toBeVisible()
+    await expect(homeMvp.locator(".app-match-mvp-name")).toBeVisible()
+    const homeHelp = homeMvp.getByRole("button", { name: "Información sobre el índice ajustado" })
+    if (await homeHelp.count()) { await homeHelp.click(); await expect(page.getByRole("tooltip")).toContainText("no es un porcentaje"); await page.keyboard.press("Escape") }
     const own=fixture.matches.find(match=>match.round===1&&[...match.teamA,...match.teamB].includes("davo"))!
     const other=fixture.matches.find(match=>match.round===1&&![...match.teamA,...match.teamB].includes("davo"))!
     await page.goto(`/match/${own.id}`)

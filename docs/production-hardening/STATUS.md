@@ -3504,3 +3504,126 @@ MC98 CI final40502475870:4/4gatesPASS(code/build, browser/Axe/PWA, DBpgTAP/resto
 MC98 CERRADO PRE (27/10/2026):1.15.37 publicada en https://pre.smashandlob.com. Alias verificado hacia dpl_2dzbhTLDim4RvSyyPvFM1bm5nPD9 READY/staging55ce03d7749f5080e6479fc57582b5aa5f489937. Health200/ok/pre/version1.15.37, SWcache1.15.37 y manifestPRE correctos;11rutas públicas200 y2APIs protegidas401sin sesión. Evidencia .quality-artifacts/mc98-remote/verification.json. No se automatiza OAuth real ni se usan datos de usuarios; prueba desde PWA móvil queda manual. Producción sigue en dpl_8pZMykEoZ9y42W1sXBFJoWmruA8K/main1bc3f70eb100cdc56bc58775d5a1ee281ea56fa6, confirmado después de publicar. Sin DB/migraciones ni cambios en main/tagv1.0.0. Cajas interiores de previews preservadas; ensayo92ec830b recuperable. Cierre documental en rama de trabajo; código publicado idéntico al candidato validado50a34027.
 
 MC101 CERRADO LOCAL: a petición del usuario revertidos exclusivamente804bd719 y01eee34a; src/tests/scripts/guía idénticos a86826104, versión publicada en PRE. Siete pruebas focalizadas PASS y diff check correcto; sin cambios en PRE ni datos.
+
+MC102 iniciado: Home usa tarjeta distinta con avatares; Partido tiene presentación y ayuda de índice. Extraer ambas presentaciones compartidas, conservar cálculo y gestión de Home.
+
+MC102: Home reutiliza MvpResultPanel y AdjustedIndexHelp de Partido; conserva jornada, gestión y MVP final. TypeScript, i18n y10unitarias MVP PASS; primer comando unitario usaba rutas inexistentes, repetido con suites reales. Pendiente prueba móvil/build.
+
+MC102 CERRADO LOCAL: Home comparte MvpResultPanel/AdjustedIndexHelp con Partido; estrella y nombres destacados, empate técnico en título, índice localizado y explicación reutilizada. Mantiene jornada, gestión dentro del panel y MVP final de temporada; sin cambios de cálculos. TypeScript, lint, i18n,10unitarias y2E2E móviles claro/oscuro con build PASS, evidencia mc102-browser-final.log. Sin publicación ni DB.
+
+## Experimento externo — Cookie en Blender (29/10/2026)
+Petición independiente de la aplicación: primera interpretación 3D estilizada de Cookie en C:/DEVELOP/cookie-blender. Script reproducible, Blender portátil y referencia empaquetada; Cookie.blend y Cookie-preview.png generados correctamente. No modifica hitos, código de aplicación, migraciones ni entornos remotos. Se conservan los cambios locales previos de MC102. Reapertura verificada en Blender 4.5.9: 41 objetos y referencia original empaquetada. Render final revisado visualmente tras ajustar el predominio chocolate; reapertura y referencia empaquetada PASS, diff check documental PASS. Modelo estático de parecido aproximado, sin rig. Entrega externa completada sin cerrar ni iniciar hitos de la aplicación.
+
+MC103 iniciado: reforzar jerarquía de secciones en Mis Competiciones, respetando cabecera, tarjeta de actividad, cajas interiores y degradado aprobado de las ligas. Sin datos ni navegación.
+
+MC103 CERRADO LOCAL: detalle de acento en títulos de Actividad personal y secciones de competiciones, accesos de listado armonizados con el acento. Cabecera, tarjetas y navegación intactas. Cuatro E2E móviles PASS en claro/oscuro y Clásico/Competition (incluyen Axe y320px), build y lint focalizado PASS; captura oscura revisada. Es una primera prueba sutil, pendiente de valoración; sin publicación.
+
+MC104 iniciado: el usuario aprueba el detalle de profundidad en títulos de MC103 y pide probar panel de acento con textura y cajas blancas en Actividad. Recordatorio pendiente: valorar extender el tratamiento aprobado de títulos al resto de la aplicación, cuando lo indique; no aplicarlo globalmente en esta prueba. Se conservan cambios locales de MC102/MC103.
+
+MC104 CERRADO LOCAL pendiente de valoración: panel de acento con textura diagonal CSS y cajas de parejas blancas con texto y marcadores contrastados.6 E2E de actividad/carrusel y4 de calendario/partido PASS (cuatro temas, Axe, móvil320px), build y lint PASS; capturas de próximo/último revisadas. Sin publicación. Sigue pendiente el recordatorio del usuario de valorar aplicar el tratamiento de profundidad de los títulos al resto de la app.
+
+MC105 iniciado: usuario descarta textura y cajas blancas de MC104; se restaura el fondo y las cajas previos conservando MC103 y el recordatorio de valorar su extensión global.
+
+MC105 CERRADO LOCAL: eliminados solo textura y fondos blancos de MC104; se conserva acento sólido, cajas anteriores y marcas de sección de MC103. Lint y diff check PASS. Recordatorio de valorar extensión global de títulos conservado. Sin publicación.
+
+MC106 iniciado: usuario solicita probar transparencia y sombra en paneles de Actividad y nombres centrados en sus cajas. Se conserva CSS previo y cambios locales de MC102/MC103; experimento solo Mis Competiciones.
+
+MC106 CERRADO LOCAL pendiente de valoración: paneles de Actividad con acento al88% y sombra interior sutil para evitar el recorte del carrusel; nombres centrados en las cajas tanto para próximo como último encuentro. Seis E2E móviles PASS en cuatro temas con Axe y nombres largos, y una repetición final tras ajustar sombra PASS; build/lint/diff check correctos. Cambios MC102/MC103 y recordatorio de extender títulos se conservan. Sin publicación.
+
+MC107 iniciado: por petición del usuario se recuperan las cajas blancas de MC104 sobre el fondo translúcido con sombra de MC106, manteniendo los nombres centrados. No modificar otros cambios locales.
+
+MC107 CERRADO LOCAL pendiente de valoración: cajas blancas y nombres centrados sobre el panel translúcido con sombra interior, sin textura. Marcadores adaptados a la superficie blanca. Seis E2E móviles PASS (cuatro temas, Axe, carrusel y nombres largos), lint/build y diff check correctos; captura oscura revisada. Sin publicación.
+
+MC108 iniciado: usuario solicita probar Actividad oscura translúcida con borde del acento y sombra. Se conserva MC107 y cambios locales previos.
+
+MC108 CERRADO LOCAL pendiente de valoración: panel de Actividad negro translúcido con borde del acento, sombra interior, cajas blancas y nombres centrados. Texto e icono de calendario en blanco sobre fondo oscuro. La primera prueba detectó expectativa obsoleta del contorno del punto y una regla de Competition que oscurecía el icono; corregidas y verificadas. Seis E2E móviles PASS en cuatro temas (Axe, carrusel, contraste del icono), lint/build y diff check; captura Competition oscuro revisada. Sin publicación. Recordatorio de valorar títulos globales conservado.
+
+MC109 iniciado: usar acento en separadores de compañeros pendientes y de parejas con resultado, sin modificar las líneas restantes ni lógica. Se conservan cambios locales previos.
+
+MC109 CERRADO LOCAL: línea entre compañeros en partido pendiente y línea entre parejas en resultado usan --app-accent; el resto de separadores conservan su estilo. Cuatro E2E móviles PASS en claro/oscuro y Clásico/Competition con Axe/geometría, lint y build correctos; capturas oscuras revisadas. Sin publicación.
+
+MC110 iniciado: usuario solicita probar en Actividad superficie oscura sólida como las tarjetas oscuras y cajas de parejas del color de acento. Mantener legibilidad, centrado y cambios locales anteriores.
+
+MC110 ampliado por usuario: texto contextual Tu próximo partido / Tu último encuentro en color de acento. Pendiente comprobación de contraste y móvil.
+
+MC110 CERRADO LOCAL pendiente de valoración: Actividad con superficie oscura sólida de Clásico/Competition, cajas de parejas del acento y nombres centrados; texto contextual Próximo/Último usa acento con variante legible en claro. Seis E2E móviles PASS en cuatro temas con Axe, carrusel y comprobación del color; lint/build/diff check y captura Competition oscuro correctos. Sin publicación.
+
+MC111 iniciado: usuario pide volver a probar el resultado de Partido en Tu último encuentro, conservando el formato actual y sin cambiar Próximo ni Mis partidos. Guardar referencia previa mediante diff y pruebas.
+
+MC111 CERRADO LOCAL pendiente de valoración: Tu último encuentro usa marcador compacto inspirado en Partido, con cabecera única S1/S2/Sets, filas y columnas alineadas, divisores y copa. Su única superficie usa color de acento y contraste dinámico; conservados panel oscuro, origen/estado y tarjeta Próximo. Solo la Home activa el formato; historial Mis partidos conserva su presentación. Ocho unitarias, seis E2E móviles en cuatro temas y una repetición dorado/Competition oscuro PASS; geometría a320/393px, Axe, TypeScript, lint, i18n, tipografía, presupuesto de código y build PASS. Capturas claro y oscuro revisadas. Evidencias mc111-browser.log y mc111-gold.log. Sin publicación ni DB; cambios de MC102–110 conservados.
+
+MC112 iniciado: usuario pide quitar S1/S2/S3/Sets en preview y devolver texto contextual al color anterior; mantener estructura, acento, copa y detalle de Partido.
+
+MC112 CERRADO LOCAL: retirada cabecera de sets solo de preview Tu último encuentro; parciales y totales siguen alineados y mantienen etiquetas accesibles. Próximo/Último recuperan su color contextual anterior. Seis E2E móviles PASS en cuatro temas con Axe, medición de alineación a320/393px y carrusel; lint/build y diff check correctos. Captura Competition oscuro revisada. Sin publicación.
+
+MC113 iniciado: usuario solicita probar borde superior de acento, como Mis ligas, en Próximo y Último; conservar sus contenidos y demás cambios locales.
+
+MC113 CERRADO LOCAL pendiente de valoración: borde superior de2px con mezcla del acento al72%, igual al de Mis ligas, en las dos tarjetas de Actividad. Seis E2E móviles PASS en cuatro temas, carrusel/Axe/build y diff check correctos; captura de último encuentro Competition oscuro revisada. Sin publicación.
+
+MC114 iniciado: usuario solicita línea e icono de calendario en acento y centrado vertical respecto a fecha y ubicación en Próximo partido; conservar navegación y cambios previos.
+
+MC114 implementación: acción de calendario opcional dentro de MatchEventMeta, alineada mediante flex con el bloque fecha/ubicación; estilos de línea e icono en acento, variante clara si el acento clásico resulta oscuro sobre el panel. Solo la preview Próximo pasa esta acción. Pendiente pruebas de toque, geometría, contraste y regresión.
+
+MC114 CERRADO LOCAL: línea e icono de calendario de Próximo usan acento (variante más clara en Clásico claro para contraste). Acción opcional integrada en MatchEventMeta, alineada al centro del bloque fecha/ubicación y por encima del enlace de la tarjeta. Tras detectar que ubicación quedaba fuera del bloque, corregida y añadida comprobación explícita. Diez E2E móviles PASS en cuatro temas (posición, mismo color, apertura/cierre de diálogo, Axe, carrusel y calendario), dos unitarias, personal-matches:check, TypeScript, lint y build PASS; capturas revisadas. Sin publicación.
+
+MC115 iniciado: usuario pide igualar el aire interior superior e inferior de la caja de nombres del último encuentro con Próximo; no alterar margen exterior ni datos.
+
+MC115 CERRADO LOCAL pendiente de valoración: caja del resultado con padding vertical10px, igual que cajas de Próximo, sin cambiar márgenes exteriores; sus nombres respiran arriba y abajo. Dos E2E móviles PASS con geometría, carrusel y Axe; lint/build/diff check correctos y captura revisada. Sin publicación.
+
+MC116 iniciado: usuario aprueba separador neutro, calendario en acento y VS oscuro. Cambiar solo línea de programación y conservar centrado/acción.
+
+MC116 CERRADO LOCAL: línea de programación neutra al20% del texto del panel; icono de calendario conserva acento, centrado y acción; VS intacto. Seis E2E móviles PASS (cuatro temas, Axe, carrusel, centrado y diálogo), lint/build y diff check correctos. Sin publicación.
+
+MC117 iniciado: usuario aprueba probar dos cajas de acento por pareja, separadas por fondo oscuro y con cuadrícula de resultados común. Mantener copa y separador de compañeros.
+
+MC117 CERRADO LOCAL pendiente de valoración: Último encuentro muestra dos cajas de acento separadas por fondo oscuro; una cuadrícula con subgrid conserva las columnas alineadas, parciales sin cajas, copa y divisores de compañeros. Seis E2E móviles PASS en cuatro temas con medición de alineación a320/393px y Axe; lint/build/diff check correctos. Captura Competition oscuro revisada. Sin publicación.
+
+MC118 iniciado: usuario pide probar cajitas con sombra para números del último encuentro, conservando distribución y color sólido de parejas.
+
+MC118 CERRADO LOCAL pendiente de valoración: parciales y total del último encuentro en cajas de tono derivado del acento con sombra suave; fondo de parejas sólido, columnas alineadas y copa intactas. Dos E2E móviles PASS, geometría320/393px, Axe, lint/build/diff check; captura dorada revisada. Sin publicación.
+
+MC119 iniciado: usuario pide cajas de parciales y total de igual proporción, y probar color del panel en vez del acento.
+
+MC119 CERRADO LOCAL pendiente de valoración: parciales24×24 y totales32×32, radios proporcionales y fondo del panel con texto blanco; se reserva espacio interior a la derecha para evitar contacto con el borde. Dos E2E móviles PASS con comprobación de proporciones, fondo/contraste, geometría a320/393px, Axe y carrusel; lint/build/diff check correctos. Captura Competition oscuro revisada. Sin publicación.
+
+## Chat general de liga — auditoría inicial (02/11/2026)
+- Solicitud: conversación independiente de cada partido, fijada en primer lugar en Chats de liga.
+- Hallazgos: /chats lista exclusivamente conversaciones de partido; /api/chats filtra partidos por participante; match_chat_messages exige match_id y season_id y su limpieza depende de temporadas. Reutilizar esa tabla para un chat de liga cambiaría su alcance y retención.
+- No se han cambiado código funcional ni bases de datos. El plan de torneos registra T06 como primer hito incompleto; AGENTS exige trabajar exclusivamente en el primer hito incompleto. La implementación del chat queda pendiente de resolver esa restricción de secuencia y de validar almacenamiento, permisos y pruebas aisladas.
+
+## Unificación de previews y títulos — en curso (02/11/2026)
+- Resultados personales y tarjetas apiladas de liga pasan a usar MatchPreviewTeams; títulos comunes reciben acento. Pendiente revisar el resto de variantes y validar visualmente temas/móvil.
+- Validación inicial: ESLint sin errores; pruebas focalizadas 11/13, fallan dos controles que verifican literalmente la implementación anterior. Corregida la etiqueta accesible de parciales; falta adaptar y repetir pruebas y completar TypeScript/validación. No publicar ni considerar terminado.
+- TypeScript inicial PASS. Las dos pruebas focalizadas siguen sin repetirse tras la corrección; faltan validación móvil, temas y revisión de todos los títulos.
+
+- Seguimiento 02/11: usuario confirma que el próximo partido conserva icono de calendario en acento y metadatos centrados verticalmente. Reglas existentes preservadas; pruebas focalizadas 13/13 PASS y dos E2E móviles del carrusel y último encuentro PASS, incluyendo build. Pendiente comprobar alcance completo de previews y títulos en otros contextos y temas antes de cerrar.
+
+- 02/11 seguimiento ventana de jornada: añadido data-match-round-window y centrado flexible en Actividad; ESLint y 12 pruebas focalizadas PASS. Consulta solo lectura en PRE: emparejamiento de captura jornada 2 sin fecha; ajustes persistidos de temporada 5 indican ventanas desactivadas, aunque captura muestra 15–29 septiembre: falta investigar posible estado local/cache y verificar en móvil. Pendiente añadir acción calendario a demás previews destacadas con fecha y terminar regresión de previews/títulos; no publicar.
+- Ajuste posterior: ventana de jornada centrada verticalmente con texto alineado a la izquierda mediante align-items:flex-start; sin alterar metadatos de partido programado.
+
+- 02/11: nombre de competición en previews personales como texto neutro; etiquetas compartidas victoria/derrota intensas en tarjetas destacadas de home de liga y suaves en listados. ESLint, TypeScript, 12 pruebas focalizadas y E2E móvil de actividad con build PASS. Pendiente validar visualmente home de liga y listados en ambos temas, finalizar unificación general y acceso de calendario solicitado.
+- MC120: centrado horizontal compartido de nombres en previews versus; modo acentuado completo en tarjetas featured de home de liga y próximo partido propio en calendario (parejas y aviso de programación). ESLint y 13 unitarias PASS; build/E2E móvil en curso.
+- MC120 completado local: 13 pruebas focalizadas, ESLint y 5 E2E móviles con build PASS (carrusel y calendario claro/oscuro Clásico/Competition). Previews versus centradas y tarjetas destacadas acentuadas. Quedan del seguimiento previo iconos de calendario en otras previews destacadas, discrepancia de ventanas locales y auditoría visual general; no se declaran resueltos en este hito. Sin publicación.
+- MC121: cabecera de chat reserva fila de acciones; Pagos y reservas cerrado por defecto en detalle de liga (se conserva acceso directo focus=booking); calendario en tarjetas featured programadas mediante acción independiente de enlace. 31 unitarias PASS, ESLint PASS; build detectó descripción de evento ausente, corregida. Validación en curso.
+- MC121 completo local: error de descripción corregido y build posterior PASS (incluye validación de tipos); 5 E2E móviles de carrusel/calendario PASS tras corrección. 31 unitarias y ESLint PASS. Cambios de chat y pagos verificados por código/pruebas focalizadas, pendientes de valoración visual del usuario. Sin publicación.
+- Corrección MC121: el carrusel de home de liga imponía flex-direction:column en metadatos; acción con calendario ahora fuerza fila y texto alineado a izquierda. Añadida comprobación E2E de geometría: datos a izquierda, calendario a derecha y centros verticales coincidentes. Validación en curso.
+- Corrección de fila validada: E2E móvil PASS con comprobación explícita de posición izquierda/derecha y centrado vertical; build PASS. Lista para probar en local.
+- Icono de calendario: identificado trazo SVG incompleto en MatchCard (faltaban tramo vertical y esquina superior izquierda); corregido con el mismo path exacto de Mis Competiciones. Sin cambios de tamaño/color/acción. ESLint PASS.
+- MC122: MatchPreviewTeams usa módulo CSS compartido para resultado acentuado; retirado bloque específico duplicado de Competiciones. Actividad y liga pasan variante accented; marcador con superficies oscuras y números blancos. Aviso de programación con sombras interior/exterior. ESLint y 12 unitarias PASS; build/E2E en curso.
+- MC122 completo local: 12 unitarias y 2 E2E móviles PASS (resultado con geometría320/393px, contraste/Axe y carrusel), build y lint correctos. Igualados también padding, borde superior y superficie de resultado destacado en liga; ajuste final de borde/padding posterior al build. Sin publicación.
+- Corrección MC122: calendario solo resaltaba próximo partido y perdía el acento al finalizarlo. Ahora usa getLastMatch de partidos propios y destaca su último resultado de manera independiente al próximo. Usuario confirma mantener todos los demás resultados con presentación habitual y ambos destacados simultáneamente. E2E específico de resultado en calendario en curso.
+- Verificación específica PASS: último resultado propio del calendario tiene clase featured y marcadores cuadrados oscuros con números blancos; build y ESLint PASS. Próximo partido sigue seleccionado independientemente. Corrección disponible en local.
+- Ajuste solicitado posterior a MC122: se retira featured de ambos últimos encuentros en home y del último resultado propio en calendario; solo próximo propio conserva destacado, el panel genérico del carrusel queda neutro. Programación pasa a acción con borde de acento e icono/chevron, sin relleno sólido; texto neutro en claro. ESLint y 12 unitarias PASS, build/E2E en curso.
+- Reversión parcial validada: 2 E2E móviles PASS (último resultado neutro en calendario y carrusel de home), build PASS. Ajuste final de texto en claro posterior a build. Solo próximos propios destacados en liga; Actividad personal de Mis Competiciones conserva lo aprobado. Sin publicación.
+- Prueba solicitada: último encuentro de Mis Competiciones pasa a variante neutra compartida con liga; nombres legibles en superficies neutras, parciales discretos y total de sets en acento. Se corrige texto invisible de programación por conflicto de especificidad con tinta de paneles acentuados. ESLint y 12 unitarias PASS; E2E de último encuentro/resultado calendario en curso.
+- Validación de variante neutra: 2 E2E móviles PASS (último encuentro en hub con geometría320/393px y Axe; resultado neutro del calendario), build PASS. Texto de programación corregido a color de texto del tema con prioridad sobre caja de acento. Disponible en local, sin publicación.
+- Prueba visual posterior: último encuentro de Mis Competiciones usa variante unboxed de MatchPreviewTeams, sin fondos/bordes redondeados de parejas y con línea de acento entre ambas. Mantiene copa, columnas de marcador y aire interior. ESLint y 11 unitarias PASS; E2E móvil de transparencia/separación/alineación en curso. Solo este contexto para valorar.
+- Variante sin cajas validada: E2E móvil PASS con fondos transparentes, línea entre parejas, geometría320/393px y Axe; build PASS tras corregir propagación de prop unboxedResult. Lista local para valoración.
+- Prueba solicitada en detalle Partido con resultado: total de sets en caja cuadrada36px, acento sólido, cifra negra, radio9px y sombra suave. Mantiene columna40px, parciales y disposición. Validación móvil claro/oscuro en curso; sin publicación.
+- Caja de total en Partido disponible localmente: 2 E2E móviles de resultado/MVP claro y oscuro PASS, build PASS. Cambio exclusivamente visual para valorar.
+- Ajuste de proporciones en Partido: cifra de total26px, caja34×34px y4px extra por encima de cabecera de sets. Nombres y previews intactos. Validación móvil claro/oscuro en curso.
+- Ajuste de proporciones validado: build y2 E2E móviles de resultado/MVP claro/oscuro PASS. Disponible en local, sin publicación.
+- MC123 iniciado: usuario autoriza commit/push/integración staging y despliegue PRE de cambios pendientes, ocultación completa de torneos en PROD y preparación de promoción sin ejecutarla. Candidata1.15.38. Se conserva main/PROD. Chat de liga pendiente con aislamiento por temporada, temporada anterior lectura y retención por acordar; no implementado ahora.
+- MC123: primer validate detectó control estático antiguo de SetGameScore y tres tests que asumían torneos disponibles sin entorno; control adaptado al componente compartido y tests de búsqueda explícitos en PRE, más pruebas de ocultación PROD incluso superuser. Suite inicial1666/1669; repetir gates tras correcciones. No se ha publicado.
+- MC123: producción inicial verificada health1.15.36/prod y deployment dpl_8pZMykEoZ9y42W1sXBFJoWmruA8K/main1bc3f70e; PRE health1.15.37/pre mediante vercel curl autenticado y dominio ligado a staging. Auditoría runtime0 vulnerabilidades. Revisadas capturas móviles Home/Calendario con cambios esperados; referencias visuales pendientes de actualizar después de suite. Sin migraciones nuevas frente a main.
+- MC123: validate completo PASS (1670 tests, lint sin errores/6 avisos existentes, tipos/build/presupuestos1297752 bytes gzip); 16 pruebas adicionales de frontera de rutas PROD/PRE PASS. Referencias Home/Calendario móvil/escritorio revisadas y actualizadas para diseño aprobado; suite E2E restante en curso.

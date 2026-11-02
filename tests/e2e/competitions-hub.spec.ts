@@ -163,6 +163,13 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   await page.reload()
   expect(await page.locator('nav[data-tour="bottom-navigation"]').evaluate(navGeometry)).toEqual(globalGeometry)
   const league = page.locator('[data-tour="home-next-match"]'), leagueSlider = league.locator(".match-slides")
+  const scheduleRow = leagueSlider.locator('[aria-hidden="false"] [data-match-event-action="true"]')
+  await expect(scheduleRow).toBeVisible()
+  expect(await scheduleRow.evaluate(row => {
+    const text = row.querySelector("[data-match-event-content]")!.getBoundingClientRect()
+    const icon = row.querySelector("button")!.getBoundingClientRect()
+    return text.right <= icon.left && Math.abs((text.top + text.bottom - icon.top - icon.bottom) / 2) < 1 && getComputedStyle(row).flexDirection === "row"
+  })).toBe(true)
   await expect(league.getByRole("button", { name: "Mi próximo partido", exact: true })).toHaveAttribute("aria-pressed", "true")
   await swipe(page, leagueSlider, "left")
   await expect(league.getByRole("button", { name: "Próximo partido", exact: true })).toHaveAttribute("aria-pressed", "true")
@@ -175,10 +182,15 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
 })
 
 test("last encounter is compact only in the hub and history stays detailed", async ({ page }, testInfo) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("smash-lob-theme-mode", "dark")
+    localStorage.setItem("smash-lob-visual-style", "competition")
+    localStorage.setItem("smash-lob-competition-accent", "gold")
+  })
   const last = {
     id: "fixture-last", origin: "friendly", status: "finished", scheduledAt: "2026-10-15T18:00:00Z", resultRecordedAt: "2026-10-15T20:00:00Z",
     locationName: "Pista del último encuentro", sets: [{ a: 6, b: 2 }, { a: 6, b: 3 }], canManage: true, canDelete: true, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null,
-    participants: [{ team: 1, slot: 1, displayName: "Fixture propia", isCurrentUser: true }, { team: 2, slot: 1, displayName: "Fixture rival", isCurrentUser: false }],
+    participants: [{ team: 1, slot: 1, displayName: "Fixture propia", isCurrentUser: true }, { team: 1, slot: 2, displayName: "Compañera", isCurrentUser: false }, { team: 2, slot: 1, displayName: "Fixture rival", isCurrentUser: false }, { team: 2, slot: 2, displayName: "Rival", isCurrentUser: false }],
   }
   await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [last], upcoming: [], hasMore: false, nextOffset: null } }))
   await page.goto("/leagues")
@@ -188,6 +200,33 @@ test("last encounter is compact only in the hub and history stays detailed", asy
   const slider = activity.locator(".match-slides")
   if (await slider.count()) await slider.evaluate(el => el.scrollTo({ left: el.scrollWidth, behavior: "instant" }))
   await expect(page.getByText("Tu último encuentro", { exact: true })).toBeVisible()
+  const compactScore = activity.locator('[data-match-preview="result"]')
+  await expect(compactScore.locator('[data-preview-score-head]')).toHaveCount(0)
+  await expect(compactScore.locator('[data-preview-team]')).toHaveCount(2)
+  await expect(compactScore.locator('.match-preview-trophy')).toHaveCount(1)
+  expect(await compactScore.locator("[data-preview-team]").evaluateAll(rows => rows.every(row => getComputedStyle(row).backgroundColor === "rgba(0, 0, 0, 0)"))).toBe(true)
+  expect(await compactScore.locator("[data-preview-team]").nth(1).evaluate(row => getComputedStyle(row).borderTopWidth)).toBe("1px")
+  expect(await compactScore.evaluate(element => {
+    const rowColor = getComputedStyle(element.querySelector('[data-preview-team]')!).backgroundColor
+    return Array.from(element.querySelectorAll('.match-preview-partial > span, .match-preview-total')).every(node => {
+      const rect = node.getBoundingClientRect(), style = getComputedStyle(node)
+      return Math.abs(rect.width - rect.height) < .5 && (node.classList.contains('match-preview-total') ? style.backgroundColor !== rowColor : style.backgroundColor === 'rgba(0, 0, 0, 0)')
+    })
+  })).toBe(true)
+  for (const width of [320, 393]) {
+    await page.setViewportSize({ width, height: 852 })
+    const aligned = await compactScore.evaluate(element => {
+      const headers = Array.from(element.querySelector('[data-preview-team]')!.querySelectorAll('[data-preview-score]')).map(node => { const r = node.getBoundingClientRect(); return r.x + r.width / 2 })
+      return Array.from(element.querySelectorAll('[data-preview-team]')).every(row => {
+        const divider = row.querySelector('[data-preview-name-divider]')!.getBoundingClientRect()
+        return Array.from(row.querySelectorAll('[data-preview-score]')).every((node, index) => {
+          const r = node.getBoundingClientRect()
+          return Math.abs(r.y + r.height / 2 - divider.y - divider.height / 2) < 1 && Math.abs(r.x + r.width / 2 - headers[index]) < 1
+        })
+      })
+    })
+    expect(aligned).toBe(true)
+  }
   const origin = page.locator('[data-personal-match-origin="friendly"]').first()
   await expect.poll(() => origin.evaluate(el => {
     const range = document.createRange(); range.selectNodeContents(el.querySelector("span span")!)
@@ -242,11 +281,25 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.getByText("Tu próximo partido", { exact: true })).toBeVisible()
     await expect(page.locator(".app-bottom-nav")).toHaveCount(0)
     expect(await page.getByRole("button", { name: /^Entrar en/ }).count()).toBeLessThanOrEqual(2)
-    await expect(page.locator("[data-activity-accent] [data-status-dot]").first()).toHaveAttribute("data-status-dot-outlined", visualStyle === "competition" ? "true" : "false")
+    // The scheduled blue dot contrasts with the dark activity surface in both styles.
+    await expect(page.locator("[data-activity-accent] [data-status-dot]").first()).toHaveAttribute("data-status-dot-outlined", "false")
     expect(await page.locator("[data-activity-accent] [data-status-dot]").first().evaluate(el => {
       const rect = el.getBoundingClientRect()
       return [rect.width, rect.height]
     })).toEqual([8, 8])
+    const eventMeta = page.locator('[data-activity-accent] [data-match-event-action="true"]').first()
+    const calendarButton = eventMeta.getByRole('button', { name: 'Añadir al calendario' })
+    await expect(calendarButton).toBeVisible()
+    await expect(eventMeta.locator('[data-match-event-content]')).toContainText('Pista ficticia')
+    expect(await eventMeta.evaluate(el => {
+      const details = el.querySelector('[data-match-event-content]')!.getBoundingClientRect()
+      const button = el.querySelector('button')!
+      const rect = button.getBoundingClientRect()
+      return Math.abs((details.top + details.bottom - rect.top - rect.bottom) / 2) < 1
+    })).toBe(true)
+    await calendarButton.click()
+    await expect(page.getByRole('dialog').getByRole('heading', { name: 'Añadir al calendario' })).toBeVisible()
+    await page.keyboard.press('Escape')
     const accessibility = await new AxeBuilder({ page }).analyze()
     expect(accessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: testInfo.outputPath("hub-summary-" + theme + ".png"), fullPage: true, scale: "css" })
@@ -514,3 +567,18 @@ for (const spectator of [false, true]) {
     }
   })
 }
+
+test("calendar keeps own latest finished match neutral", async ({ page }) => {
+  const own = fixtureMatches.find(match => match.seasonId === "season-2" && [...match.teamA, ...match.teamB].includes("davo"))!
+  expect(own).toBeTruthy()
+  await page.addInitScript(({ id }) => {
+    localStorage.setItem("smash-lob-theme-mode", "dark")
+    localStorage.setItem("smash-lob-visual-style", "competition")
+    localStorage.setItem("smash-lob-matches", JSON.stringify([{ id, status: "finished", scheduledAt: "2026-10-16T08:00:00Z", resultRecordedAt: "2026-10-16T10:00:00Z", sets: [{ a: 6, b: 2 }, { a: 6, b: 3 }], pointsA: 2, pointsB: 0 }]))
+  }, { id: own.id })
+  await page.goto("/matches")
+  const card = page.locator(`.app-card:has(> a[href="/match/${own.id}"])`)
+  await expect(card).not.toHaveClass(/match-preview-featured/)
+  await expect(card.locator('[data-match-preview="result"]')).toBeVisible()
+
+})

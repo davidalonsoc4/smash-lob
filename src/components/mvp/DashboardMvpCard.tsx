@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { AppCard } from "@/components/ui/AppCard"
-import { PlayerAvatar } from "@/components/player/PlayerAvatar"
+import { MvpResultPanel, AdjustedIndexHelp } from "./MvpResultPanel"
 import {
   getCompletedRoundNumbers,
   getPlayersByIds,
@@ -34,14 +34,6 @@ function formatPlayerNames(players: MvpPlayer[]) {
   return players.map((player) => player.displayName).join(" / ")
 }
 
-function formatAdvancedRating(value: number | undefined, tied: boolean | undefined) {
-  if (typeof value !== "number") {
-    return "Índice ajustado"
-  }
-
-  return `Índice ${(value * 100).toFixed(1)}${tied ? " · empate técnico" : ""}`
-}
-
 export function DashboardMvpCard({
   leagueId,
   seasonId,
@@ -52,7 +44,7 @@ export function DashboardMvpCard({
   votes,
   mvpSystem,
 }: DashboardMvpCardProps) {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const completedRounds = getCompletedRoundNumbers(matches, leagueId, seasonId)
   const latestRoundWithMvp = [...completedRounds].reverse().find((round) =>
     Boolean(
@@ -95,86 +87,23 @@ export function DashboardMvpCard({
     return null
   }
 
+  const advancedRating = latestRoundMvp?.adjustedRating
+  const advancedDetail = typeof advancedRating === "number"
+    ? `${tx("Índice ajustado")} ${new Intl.NumberFormat(locale === "en" ? "en-GB" : locale === "eu" ? "eu-ES" : "es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(advancedRating * 100)}`
+    : tx("Índice ajustado pendiente")
+  const advanced = mvpSystem === "automatic_advanced"
+  const roundDetail = latestRoundMvp ? <>{tx("Jornada")} {latestRoundWithMvp} · {mvpSystem === "voting"
+    ? `${latestRoundMvp.votes} ${tx("votos")}${latestRoundMvp.tied ? ` · ${tx("empate")}` : ""}`
+    : advanced
+      ? <>{tx("Automático avanzado")} · {typeof advancedRating === "number" ? <AdjustedIndexHelp>{advancedDetail}</AdjustedIndexHelp> : advancedDetail}</>
+      : `${tx("Automático")} · ${formatSignedDiff(latestRoundMvp.gamesDiff ?? 0)}`}</> : null
+
+  const manageAction = canManage ? <Link href="/admin/mvp" className="inline-flex shrink-0 rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center">{tx("Gestionar")}</Link> : null
+
   return (
     <section>
-      <AppCard className="p-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0 flex flex-1 items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-neutral-100 text-lg text-yellow-500">
-              ★
-            </div>
-
-            {latestRoundMvp ? (
-              <div className="min-w-0 flex-1">
-                <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
-                  {tx("MVP última jornada")}{" "}</p>
-                <div className="mt-1 flex min-w-0 items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {latestRoundMvpPlayers.slice(0, 2).map((player) => (
-                      <PlayerAvatar
-                        key={player.id}
-                        player={player}
-                        size="sm"
-                        className="border-2 border-white"
-                      />
-                    ))}
-                  </div>
-                  <p className="truncate text-sm font-black text-neutral-950">
-                    {formatPlayerNames(latestRoundMvpPlayers)}
-                  </p>
-                </div>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  {tx("Jornada")}{" "}{latestRoundWithMvp} · {mvpSystem === "voting"
-                    ? `${latestRoundMvp.votes} votos${latestRoundMvp.tied ? " · empate" : ""}`
-                    : mvpSystem === "automatic_advanced"
-                      ? formatAdvancedRating(
-                          latestRoundMvp.adjustedRating,
-                          latestRoundMvp.tied,
-                        )
-                      : formatSignedDiff(latestRoundMvp.gamesDiff ?? 0)}
-                </p>
-              </div>
-            ) : seasonMvp ? (
-              <div className="min-w-0 flex-1">
-                <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
-                  {tx("MVP final")}
-                </p>
-                <p className="mt-1 truncate text-sm font-black text-neutral-950">
-                  {formatPlayerNames(seasonMvpPlayers)}
-                </p>
-                <p className="mt-1 text-xs font-semibold text-neutral-500">
-                  {seasonMvp.votes} {tx("MVPs de jornada")}{seasonMvp.tied ? " · empate" : ""}
-                </p>
-              </div>
-            ) : null}
-          </div>
-
-          {canManage ? (
-            <Link
-              href="/admin/mvp"
-              className="inline-flex shrink-0 rounded-full bg-neutral-100 px-3 py-2 text-xs font-black text-neutral-700 items-center justify-center text-center"
-            >
-              {tx("Gestionar")}
-            </Link>
-          ) : null}
-        </div>
-
-        {isSeasonClosed && seasonMvp && latestRoundMvp ? (
-          <div className="mt-3 flex items-center justify-between gap-3 border-t border-neutral-100 pt-3">
-            <div className="min-w-0">
-              <p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
-                {tx("MVP final")}
-              </p>
-              <p className="mt-1 truncate text-sm font-black text-neutral-950">
-                {formatPlayerNames(seasonMvpPlayers)}
-              </p>
-            </div>
-            <p className="shrink-0 text-xs font-semibold text-neutral-500">
-              {seasonMvp.votes} {tx("jornadas")}{seasonMvp.tied ? " · empate" : ""}
-            </p>
-          </div>
-        ) : null}
-      </AppCard>
+          {latestRoundMvp ? <MvpResultPanel title={`${tx("MVP de la jornada")}${advanced && latestRoundMvp.tied ? ` · ${tx("Empate técnico")}` : ""}`} players={latestRoundMvpPlayers} detail={roundDetail} action={manageAction} /> : seasonMvp ? <MvpResultPanel title={tx("MVP final")} players={seasonMvpPlayers} detail={`${seasonMvp.votes} ${tx("MVPs de jornada")}${seasonMvp.tied ? ` · ${tx("empate")}` : ""}`} action={manageAction} /> : null}
+      {isSeasonClosed && seasonMvp && latestRoundMvp ? <AppCard className="mt-3 p-3"><p className="type-caption font-black uppercase tracking-[0.16em] text-neutral-500">{tx("MVP final")}</p><p className="mt-1 truncate text-sm font-black text-neutral-950">{formatPlayerNames(seasonMvpPlayers)}</p><p className="text-xs font-semibold text-neutral-500">{seasonMvp.votes} {tx("jornadas")}{seasonMvp.tied ? ` · ${tx("empate")}` : ""}</p></AppCard> : null}
     </section>
   )
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { buildSettingsSearchEntries, searchSettingsEntries } from "@/lib/settingsSearch"
 
 const baseCapabilities = {
@@ -12,6 +12,8 @@ const baseCapabilities = {
 }
 
 describe("Avatar Lab settings search isolation", () => {
+  beforeEach(() => vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://pre.smashandlob.com"))
+  afterEach(() => vi.unstubAllEnvs())
   it("finds shared tournament audio preferences for players and spectators in all languages", () => {
     for (const locale of ["es", "en", "eu"] as const) for (const isSpectator of [true, false]) {
       const entries = buildSettingsSearchEntries(locale, { ...baseCapabilities, isSpectator, avatarLabEnabled: false })

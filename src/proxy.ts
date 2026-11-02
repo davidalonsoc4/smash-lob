@@ -1,3 +1,4 @@
+import { isTournamentRequestEnabled } from "@/lib/tournamentAvailability"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { isAvatarLabRequest } from "@/lib/avatarLabAccess"
@@ -20,6 +21,9 @@ function isPublicSpectatorViewRequest(request: NextRequest) {
 }
 
 export function proxy(request: NextRequest) {
+  if (/^\/(?:tournaments|tournament-invite|api\/tournaments|api\/tournament-invites|settings\/sounds)(?:\/|$)/.test(request.nextUrl.pathname)) {
+    return isTournamentRequestEnabled(request) ? NextResponse.next() : new NextResponse(null, { status: 404, headers: { "Cache-Control": "no-store" } })
+  }
   if (request.nextUrl.pathname === "/launch") {
     const pendingDestination = decodePendingAccessDestination(
       request.cookies.get(PENDING_ACCESS_INTENT_COOKIE)?.value,
@@ -63,6 +67,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/tournaments/:path*", "/tournament-invite/:path*", "/api/tournaments/:path*", "/api/tournament-invites/:path*", "/settings/sounds",
     "/experimental/avatar-lab/:path*",
     "/invite/:path*",
     "/launch",
