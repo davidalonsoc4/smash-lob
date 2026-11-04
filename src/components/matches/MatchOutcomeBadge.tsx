@@ -13,7 +13,7 @@ export function MatchOutcomeBadge({ outcome }: { outcome: MatchOutcome }) {
   const { tx } = useI18n()
   const label = tx(outcome === "victory" ? "Victoria" : outcome === "defeat" ? "Derrota" : "Finalizado")
   return <StatusHelp kind="match" status={outcome} label={label}
-    className={`relative z-10 inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-0.5 type-caption font-semibold leading-none normal-case tracking-normal !border-0 !ring-0 ${tones[outcome]}`}>
+    className={`match-outcome-${outcome} relative z-10 inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-0.5 type-caption font-semibold leading-none normal-case tracking-normal !border-0 !ring-0 ${tones[outcome]}`}>
     {label}
   </StatusHelp>
 }

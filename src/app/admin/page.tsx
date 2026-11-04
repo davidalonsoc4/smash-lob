@@ -1,5 +1,7 @@
 "use client"
 
+import { areTournamentsEnabled } from "@/lib/tournamentAvailability"
+
 import type { ReactNode } from "react"
 import Link from "next/link"
 import { useMemo, useState } from "react"
@@ -331,7 +333,7 @@ export default function AdminPage() {
           title={tx("Administrar MVP")}
           description={tx("Consulta los MVP de jornadas cerradas y el resultado de la temporada.")}
         />
-        {leagueSeasons.length > 0 ? <div id="organize-tournament" className="settings-search-target px-3 py-3">
+        {areTournamentsEnabled() && leagueSeasons.length > 0 ? <div id="organize-tournament" className="settings-search-target px-3 py-3">
           <p className="text-sm font-black text-neutral-950">{tx("Organizar torneo")}</p><p className="mt-0.5 text-xs font-semibold leading-5 text-neutral-500">{tx("Crea un torneo con los jugadores inscritos en esta temporada.")}</p>
           <label className="mt-3 block"><span className="mb-1 block type-caption font-black uppercase tracking-wider text-neutral-500">{tx("Temporada")}</span><select value={selectedSeasonId} onChange={(event) => setSelectedTournamentSeasonId(event.target.value)} className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm font-bold text-neutral-900">{leagueSeasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
           <Link href={`/tournaments/new?sourceLeagueId=${encodeURIComponent(activeLeague.id)}&sourceSeasonId=${encodeURIComponent(selectedSeasonId)}&sourceLeagueName=${encodeURIComponent(activeLeague.name)}`} className="mt-2 flex min-h-11 items-center justify-center rounded-xl bg-neutral-950 px-4 py-2 text-center text-sm font-black text-white transition active:scale-[0.99]">{tx("Organizar torneo")}</Link>

@@ -3194,7 +3194,7 @@ html :is(.app-action-button,.app-action-secondary):focus-visible { outline: 2px 
 /* Finished matches retain the standalone match-up identity; scores lead, management follows. */
 .app-match-result-standalone .app-match-player-name { font-size: 1.125rem; line-height: 1.25; }
 .app-match-result-names { padding-left: 8px; }
-html[data-theme][data-visual-style] .app-match-result-pair-divider { border-color: color-mix(in srgb, var(--foreground) 22%, transparent) !important; }
+html[data-theme][data-visual-style] :is(.app-match-pending-divider, .app-match-result-pair-divider) { border-color: var(--app-accent, #737373) !important; }
 html[data-theme][data-visual-style] .app-match-result-divider > span { border-color: color-mix(in srgb, var(--foreground) 14%, transparent) !important; }
 html[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #fff) !important; color: var(--foreground); }
 html.dark[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #1c1d21) !important; }
@@ -3248,3 +3248,149 @@ html.dark .app-dialog :is(.text-neutral-400,.text-neutral-500) { color:#a3a3a3 !
 html.dark .app-dialog button.bg-neutral-950 { background:#404040 !important; color:#fafafa !important; }
 html.dark .app-dialog button.bg-neutral-950 :is(.text-neutral-300,.text-white) { color:#e5e5e5 !important; }
 .app-dialog :is(button,a) { min-height:44px; min-width:44px; }
+/* Shared hierarchy for primary section headings. */
+.app-section-header > h2,
+h2.type-section-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.app-section-header > h2::before,
+h2.type-section-title::before {
+  content: "";
+  width: .3rem;
+  height: 1rem;
+  flex: none;
+  border-radius: 1rem;
+  background: var(--app-accent);
+}
+/* Consistent, compact scoring in match previews outside highlighted activity. */
+.match-preview-result .match-preview-partial > span,
+.match-preview-result .match-preview-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 4px rgb(0 0 0 / .16);
+}
+.match-preview-result .match-preview-partial > span { width: 24px; height: 24px; }
+.match-preview-result .match-preview-total {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--app-accent);
+  color: var(--competition-accent-contrast, #111);
+}
+.match-preview-name-line { border-color: currentColor; opacity: .2; }
+.match-preview-trophy { color: var(--app-accent); }
+/* Plain context labels leave the result and players in focus. */
+.personal-match-origin-label {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+}
+.match-preview-featured .match-outcome-victory {
+  background: #166534 !important;
+  color: #fff !important;
+}
+.match-preview-featured .match-outcome-defeat {
+  background: #b91c1c !important;
+  color: #fff !important;
+}
+/* Versus previews center both partners consistently in every context. */
+[data-preview-versus] > .bg-neutral-50 {
+  text-align: center;
+}
+[data-preview-versus] > .bg-neutral-50 .type-player-name > span {
+  justify-content: center;
+}
+/* Highlighted league previews share the solid accent treatment of activity. */
+html[data-visual-style] .match-preview-featured .bg-neutral-50 {
+  background: var(--app-accent) !important;
+  color: var(--competition-accent-contrast, #111) !important;
+  border: 1px solid transparent !important;
+}
+html[data-visual-style] .match-preview-featured .bg-neutral-50 :is(.text-neutral-950, .text-neutral-800, .type-player-name) {
+  color: var(--competition-accent-contrast, #111) !important;
+}
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] {
+  background: var(--app-accent) !important;
+  color: var(--competition-accent-contrast, #111) !important;
+  border-style: solid;
+}
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] p {
+  color: var(--competition-accent-contrast, #111) !important;
+}
+html[data-visual-style] .app-card.match-preview-featured {
+  border-top: 2px solid var(--app-accent) !important;
+}
+/* Immersive chats reserve the first row for Back and global actions. */
+.app-main[data-has-floating-top-controls="true"] .app-page-header.app-match-chat-header {
+  padding-top: max(3.75rem, calc(var(--app-safe-top) + 3.75rem)) !important;
+}
+.match-preview-featured [data-match-event-action="true"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+html[data-visual-style] .match-preview-featured .match-preview-calendar {
+  color: var(--app-accent) !important;
+}
+.match-preview-featured [data-match-event-action="true"] {
+  flex-direction: row;
+  text-align: left;
+}
+.match-preview-featured [data-match-event-content] {
+  min-width: 0;
+  text-align: left;
+}
+html[data-visual-style] .match-preview-featured:has([data-match-preview="result"]) {
+  background: #141518 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -4px 12px rgb(0 0 0 / .2) !important;
+}
+html[data-visual-style="classic"] .match-preview-featured:has([data-match-preview="result"]) { background: #17212e !important; }
+html[data-visual-style] .match-preview-featured:has([data-match-preview="result"]) .text-neutral-500 { color: #fff !important; }
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), inset 0 -2px 0 rgb(0 0 0 / .16), 0 3px 6px rgb(0 0 0 / .18) !important;
+  cursor: pointer;
+}
+html[data-visual-style] .match-preview-featured:has([data-match-preview="result"]) {
+  padding: .75rem !important;
+  border: 1px solid rgb(255 255 255 / .13) !important;
+  border-top: 2px solid color-mix(in srgb, var(--app-accent) 72%, var(--foreground)) !important;
+  backdrop-filter: none;
+}
+/* Scheduling is a secondary action inside the highlighted fixture. */
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 55%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .08), 0 2px 4px rgb(0 0 0 / .12) !important;
+}
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] p {
+  color: var(--app-accent) !important;
+}
+html:not(.dark)[data-visual-style] .match-preview-featured [data-match-schedule-hint] p {
+  color: var(--foreground) !important;
+}
+/* Scheduling label must not inherit the dark ink of accent-filled team boxes. */
+html[data-visual-style] .app-card.match-preview-featured [data-match-schedule-hint] .match-schedule-action {
+  color: var(--foreground) !important;
+}
+/* Match detail totals echo the compact preview's accent score tile. */
+html[data-theme][data-visual-style] .app-match-result-total {
+  font-size: 26px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--app-accent) !important;
+  color: #111 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .2), 0 2px 4px rgb(0 0 0 / .18);
+}
+
+.app-match-result-head { padding-top: 4px; }

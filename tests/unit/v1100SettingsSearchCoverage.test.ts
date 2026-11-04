@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   buildSettingsSearchEntries,
   searchSettingsEntries,
@@ -17,6 +17,13 @@ const adminCapabilities = {
 }
 
 describe("v1.10.0 settings search coverage", () => {
+  beforeEach(() => vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://pre.smashandlob.com"))
+  afterEach(() => vi.unstubAllEnvs())
+  it("hides tournament administration and sounds even for superusers in production", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://smashandlob.com")
+    const entries = buildSettingsSearchEntries("es", { ...adminCapabilities, isSuperuser: true })
+    expect(entries.some(entry => ["organizeTournament", "sounds"].includes(entry.id))).toBe(false)
+  })
   it("finds every new season/admin setting from its natural Spanish terms", () => {
     const entries = buildSettingsSearchEntries("es", adminCapabilities)
 

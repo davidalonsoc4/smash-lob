@@ -1,5 +1,7 @@
 "use client";
 
+import { areTournamentsEnabled } from "@/lib/tournamentAvailability"
+
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -1847,7 +1849,7 @@ export default function AdminSeasonPage() {
         />
       </div> : null}
 
-      {hasCreatedLeagueSeason ? <LinkedSeasonTournaments leagueId={activeLeague.id} seasonId={activeSeason.id} seasonName={activeSeason.name} leagueName={activeLeague.name} /> : null}
+      {areTournamentsEnabled() && hasCreatedLeagueSeason ? <LinkedSeasonTournaments leagueId={activeLeague.id} seasonId={activeSeason.id} seasonName={activeSeason.name} leagueName={activeLeague.name} /> : null}
 
 
       {hasCreatedLeagueSeason ? (

@@ -1,5 +1,100 @@
+## MC123 — Torneos solo PRE y publicación v1.15.38
+- Estado: EN CURSO. Prioridad autorizada por usuario.
+- Alcance: ocultar torneos a todos en PROD, publicar cambios acumulados en PRE y preparar promoción sin ejecutarla. Sin DB ni main/PROD.
+- Gates: validate, E2E completos, audit runtime; CI y deployment PRE/alias/version verificados.
+
+## MC122 — Resultado acentuado compartido y relieve de programación
+- Estado: COMPLETO LOCAL; lint, 12 unitarias y 2 E2E móviles con build PASS.
+- Alcance: reutilizar presentación aprobada de Mis Competiciones en resultados featured de liga y sombra del aviso Añadir fecha, hora y lugar.
+- Gates: lint, unitarias de previews, build y E2E móvil de resultado/carrusel. Sin publicación.
+
+## MC121 — Chat, pagos compactos y calendario en previews
+- Estado: COMPLETO LOCAL; ESLint, 31 unitarias y 5 E2E móviles con build/typecheck PASS.
+- Alcance: título de chat debajo de controles globales, pagos cerrados al entrar en Partido y botón de calendario en previews acentuadas programadas.
+- Gates: lint, unitarias focalizadas, TypeScript/build y E2E móviles. Sin publicación.
+
+## MC120 — Previews compartidas y modo acentuado
+- Estado: COMPLETO LOCAL; lint, 13 unitarias y 5 E2E móviles con build PASS. Prioridad expresamente solicitada antes de T06.
+- Alcance: nombres centrados en versus, home de liga destacada y próximo partido propio del calendario con acento, incluido aviso de programación. Conservar cambios y contexto anteriores.
+- Gates: lint, pruebas focalizadas, build y E2E móviles de carrusel/calendario. Sin publicación.
+
+## MC119 — Proporciones y color de cajas del marcador
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Dos E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de marcador/Axe, geometría y lint. Sin publicación.
+
+## MC118 — Prueba de cajas de marcador con profundidad
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Dos E2E móviles, Axe, lint y build PASS.
+- Gates: móvil, alineación/Axe y lint. Sin publicación.
+
+## MC117 — Dos superficies para el último encuentro
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles, alineación/Axe, lint y build. Sin publicación.
+
+## MC116 — Jerarquía del separador y calendario
+- Estado: COMPLETO LOCAL. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de Actividad, alineación/Axe y lint. Sin publicación.
+
+## MC115 — Aire interior en último encuentro
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Dos E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de carrusel y resultado, Axe y lint focalizado. Sin publicación.
+
+## MC114 — Acento y alineación del calendario en Actividad
+- Estado: COMPLETO LOCAL. Diez E2E móviles, dos unitarias, Axe, tipos, lint y build PASS.
+- Gates: pruebas móviles de Actividad y calendario, contraste/Axe, tipos y lint. Sin publicación.
+
+## MC113 — Borde de acento en Actividad
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe y build PASS; captura revisada.
+- Gates: pruebas móviles de Actividad, carrusel y Axe. Sin publicación.
+
+## MC112 — Simplificar cabecera de Actividad
+- Estado: COMPLETO LOCAL. Seis E2E móviles, Axe, lint y build PASS; captura revisada.
+- Gates: móvil de Actividad y geometría, lint y build. Sin publicación.
+
+## MC111 — Probar resultado de Partido en Actividad
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Ocho unitarias, seis E2E y repetición Competition oscuro PASS; tipos/lint/build/Axe correctos.
+- Gates: pruebas móviles de Actividad, marcador/Axe, tipos y lint. Sin publicación.
+
+## MC110 — Panel oscuro con parejas en acento
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de Actividad en cuatro temas, Axe y lint. Sin publicación.
+
+## MC109 — Líneas de acento en Partido
+- Estado: COMPLETO LOCAL. Cuatro E2E móviles, Axe, lint y build PASS; capturas revisadas.
+- Gates: móvil cuatro temas, geometría/Axe y lint focalizado. Sin publicación.
+
+## MC108 — Prueba de panel oscuro con borde de acento
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: móvil cuatro temas, contraste/Axe, carrusel y lint. Sin publicación.
+
+## MC107 — Cajas blancas con panel translúcido
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de Actividad, Axe y lint. Sin publicación.
+
+## MC106 — Prueba de transparencia y nombres centrados
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles y repetición final PASS; lint y build correctos.
+- Gates: pruebas móviles de Actividad en cuatro temas, contraste/Axe y lint. Sin publicación.
+
+## MC105 — Restaurar actividad sin textura
+- Estado: COMPLETO LOCAL. Restaurado diseño anterior; lint y diff check PASS.
+- Gates: diff y lint focalizado. Sin publicación.
+
+## MC104 — Prueba visual de actividad con textura
+- Estado: COMPLETO LOCAL, prueba visual pendiente de valoración. Actividad y calendario:10 E2E móviles PASS, build y lint correctos.
+- Gates: comprobaciones móviles de Actividad y Calendario en cuatro temas, contraste/Axe y lint. Sin publicación.
+
+## MC103 — Identidad de secciones en Mis Competiciones
+- Estado: COMPLETO LOCAL, primera prueba visual pendiente de valoración. Cuatro E2E móviles, lint y build PASS.
+- Gates: lint focalizado y pruebas móviles de Competiciones en cuatro temas. Sin publicación.
+
+## MC102 — Unificar MVP de Home y Partido
+- Estado: COMPLETO LOCAL. Panel y ayuda compartidos;10unitarias y2E2E móviles, tipos/lint/i18n/build PASS.
+- Gates: pruebas MVP, TypeScript, lint y navegador móvil. Sin publicación.
+
+## MC101 — Recuperar previews de PRE
+- Estado: COMPLETO LOCAL (27/10/2026). Restauradas cajas interiores de PRE; siete pruebas focalizadas y comparación exacta con86826104 correctas. Sin publicación.
+
 ## MC98 — Publicación de rama visual en PRE
-- Estado: EN CURSO (27/10/2026). Usuario autoriza push y PRE; no Production.
+- Estado: COMPLETO PRE (27/10/2026). v1.15.37 en staging55ce03d7; PR61/CI4gatesPASS, alias/health/SW/rutas verificados. main/Production intactos.
 - Alcance: publicar estado recuperado de previews y mejoras acumuladas de Partido/MVP. Corregir gates de publicación sin alterar diseño aprobado. Validar rama, CI y deployment/alias/health/SW remotos.
 - Gates: validate, navegador y seguridad de dependencias; verificación explícita de SHA remota y PRE. Sin DB.
 

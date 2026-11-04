@@ -677,7 +677,7 @@ export default function MatchDetailPage() {
           booking={match.courtBooking}
           ballPurchasesDisabled={roundSettings.organizationBallsAssigned}
           shouldFocusBooking={shouldFocusBooking}
-          initiallyExpanded={!prioritizeResult && !match.courtBooking.isReserved}
+          initiallyExpanded={false}
         />
       ) : null}
 

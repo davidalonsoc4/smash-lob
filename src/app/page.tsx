@@ -1120,6 +1120,7 @@ export default function Home() {
             return <div key={effectiveNextMatchScope}>{selectedNextMatch ? (
             <MatchCard
               match={selectedNextMatch}
+              featured={effectiveNextMatchScope === "mine"}
               players={players}
               roundStartsAt={selectedNextMatchRound?.startsAt ?? null}
               roundEndsAt={selectedNextMatchRound?.endsAt ?? null}
