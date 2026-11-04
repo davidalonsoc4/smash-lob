@@ -1,5 +1,5 @@
 ## MC123 — Torneos solo PRE y publicación v1.15.38
-- Estado: EN CURSO. Prioridad autorizada por usuario.
+- Estado: COMPLETO EN PRE. Prioridad autorizada por usuario; producción pendiente de autorización.
 - Alcance: ocultar torneos a todos en PROD, publicar cambios acumulados en PRE y preparar promoción sin ejecutarla. Sin DB ni main/PROD.
 - Gates: validate, E2E completos, audit runtime; CI y deployment PRE/alias/version verificados.
 
