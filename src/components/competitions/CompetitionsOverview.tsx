@@ -43,7 +43,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   const memberLeagues = userLeagues.filter(league => getMembershipForLeague(league.id))
   const { matches, resultConfirmations } = useMatchData()
   const { seasons, playerProfiles, seasonPlayers, getActiveSeasonByLeagueId, getSeasonRoundSettings } = useSeasonSettings()
-  const countedMatches = matches.map(match => ({
+  const countedMatches = view === "leagues" ? matches.map(match => ({
     ...match,
     resultCounts: match.rankingCounts !== false && getMatchResultConfirmationState({
       matchId: match.id,
@@ -54,7 +54,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       confirmations: resultConfirmations,
       mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
     }).countsForRanking,
-  }))
+  })) : []
   const { dashboard, failed: loadError } = usePersonalMatchesDashboard(view === "summary")
   const [tournaments, setTournaments] = useState<Array<{ id: string; name: string; description: string; startsAt: string; createdAt?: string; status: "draft" | "in_progress" | "finished" }>>([])
   const [tournamentLoadError, setTournamentLoadError] = useState(false)
@@ -74,11 +74,11 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       .catch(() => { if (!controller.signal.aborted) setTournamentLoadError(true) })
     return () => controller.abort()
   }, [tournamentRequestVersion, view])
-  const ownLeagueMatches: PersonalMatchItem[] = seasons.flatMap(season => {
+  const ownLeagueMatches: PersonalMatchItem[] = view === "summary" ? seasons.flatMap(season => {
     const league = userLeagues.find(item => item.id === season.leagueId), playerId = getMembershipForLeague(season.leagueId)?.playerId
     if (!league || !playerId || isLeagueSpectator(league.id) || !seasonPlayers.some(row => row.seasonId === season.id && row.playerId === playerId && row.status !== "withdrawn")) return []
     return getLeagueActivityMatches({ league, season, settings:getSeasonRoundSettings(season.id), matches:matches.filter(match=>match.seasonId===season.id), playerId, profiles:playerProfiles, now })
-  })
+  }) : []
   const dashboardMatches = [...(dashboard?.upcoming ?? []), ...(dashboard?.items ?? [])].filter(item => {
     if(item.origin !== "league") return true
     const season=seasons.find(season=>season.id===item.seasonId)
@@ -126,8 +126,8 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     const isSpectator = isLeagueSpectator(league.id)
     const seasonMatches = countedMatches.filter(match => match.leagueId === league.id && match.seasonId === season.id)
     const finishedMatches = seasonMatches.filter(isMatchCompetitionComplete).length
-    const seasonPlayerCount = seasonPlayers.filter(player => player.seasonId === season.id).length
-    const ranking = (league.modality === "fixed_pairs" ? calculateLeaguePairRanking : calculateSeasonRanking)({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches })
+    const seasonPlayerCount = view === "leagues" ? seasonPlayers.filter(player => player.seasonId === season.id).length : 0
+    const ranking = view === "leagues" ? (league.modality === "fixed_pairs" ? calculateLeaguePairRanking : calculateSeasonRanking)({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches }) : []
     const leader = ranking.find(player => player.points > 0) ?? null
     return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} data-phase={season.totalRounds ? season.status : "empty"} style={{ "--league-card-accent": normalizeAccentColor(league.accentColor) } as CSSProperties} className={`${view === "summary" ? styles.league : styles.leagueCard} w-full rounded-2xl border text-left transition active:scale-[0.99] ${view === "leagues" ? "p-4" : "p-3"}`}>
       <span className={`flex min-w-0 gap-3 ${view === "summary" ? "items-center" : "items-start"}`}>

@@ -1,5 +1,9 @@
+## MC147 — Comparativa de latencia de entrada
+- Estado: COMPLETO LOCAL. La candidata superó a v1.15.41 en las medianas de los tres recorridos simulados.
+- Gates: igualdad de respuestas y privacidad, medición repetida de la preparación de acceso y actividad, tipo, lint, compilación y regresiones de navegador.
+
 ## MC146 — Publicación v1.15.41 en PRE y PROD
-- Estado: EN CURSO. Publicar el inicio en Mis Competiciones y las mejoras de rendimiento.
+- Estado: COMPLETO EN PRE Y PROD. Publicados el inicio en Mis Competiciones y las mejoras de rendimiento.
 - Gates: validación local, CI, comprobación de PRE y promoción del mismo árbol a PROD con verificación de rutas, caché PWA y versión.
 
 ## MC145 — Mis Competiciones como inicio general
