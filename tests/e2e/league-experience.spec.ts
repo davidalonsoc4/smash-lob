@@ -271,6 +271,13 @@ for (const theme of ["light", "dark"]) for (const style of ["classic", "competit
   test(`home personal result matches competitions activity styling (${theme},${style})`, async ({ page }) => {
     await setup(page, theme, style)
     await page.setViewportSize({ width: 320, height: 740 })
+    await page.addInitScript(() => {
+      document.addEventListener("DOMContentLoaded", () => {
+        const staticStyles = document.createElement("style")
+        staticStyles.textContent = "*, *::before, *::after { transition: none !important; }"
+        document.head.appendChild(staticStyles)
+      }, { once: true })
+    })
     await page.goto("/leagues")
     const hubResult = page.locator('[data-activity-accent] .app-card').filter({ has: page.locator('[data-match-preview="result"]') }).first()
     await expect(hubResult).toBeAttached()
