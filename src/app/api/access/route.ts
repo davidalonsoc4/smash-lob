@@ -302,14 +302,6 @@ export async function GET(request: Request) {
     ]),
   )
 
-  const schedulingRows = (matchesResult.data ?? []).filter((match) => match.status === "scheduling"), schedulingIds = schedulingRows.map((match) => String(match.id))
-  const proposalsResult = schedulingIds.length ? await supabase.from("match_chat_messages").select("id,match_id,kind,payload").in("match_id", schedulingIds).in("kind", ["date_proposal", "location_proposal"]) : { data: [], error: null }
-  if (proposalsResult.error) return buildLeagueSnapshotFailure("match_chat_messages", proposalsResult.error)
-  const proposalIds = (proposalsResult.data ?? []).map((message) => String(message.id)), responsesResult = proposalIds.length ? await supabase.from("match_chat_proposal_responses").select("message_id,user_id,option_key,response").in("message_id", proposalIds) : { data: [], error: null }
-  if (responsesResult.error) return buildLeagueSnapshotFailure("match_chat_proposal_responses", responsesResult.error)
-  const userByLeaguePlayer = new Map((leagueMembershipsResult.data ?? []).filter((item) => item.player_id && item.user_id).map((item) => [`${item.league_id}:${item.player_id}`, String(item.user_id)]))
-  const coordinationStatusByMatchId = new Map(schedulingRows.map((match) => { const participantIds = [...(Array.isArray(match.team_a) ? match.team_a : []), ...(Array.isArray(match.team_b) ? match.team_b : [])].map(String), coordination = buildMatchChatCoordination({ matchStatus: String(match.status), participants: participantIds.map((playerId) => ({ userId: userByLeaguePlayer.get(`${match.league_id}:${playerId}`) ?? null })), messages: (proposalsResult.data ?? []).filter((message) => message.match_id === match.id).map((message) => ({ id: String(message.id), kind: String(message.kind), payload: message.payload, responses: (responsesResult.data ?? []).filter((response) => response.message_id === message.id).map((response) => ({ userId: String(response.user_id), optionKey: String(response.option_key), response: String(response.response) })) })) }); return [String(match.id), coordination.status === "coordinating" || coordination.status === "awaiting_booking" ? coordination.status : null] as const }))
-
   const linkedUserIds = Array.from(
     new Set(
       (leagueMembershipsResult.data ?? [])
@@ -317,13 +309,37 @@ export async function GET(request: Request) {
         .filter((candidate): candidate is string => typeof candidate === "string")
     )
   )
-  const { data: avatarUsers, error: avatarUsersError } =
-    linkedUserIds.length > 0
-      ? await supabase
-          .from("app_users")
-          .select("id,display_name,avatar_url,preferred_side,dominant_hand")
-          .in("id", linkedUserIds)
-      : { data: [], error: null }
+  const schedulingRows = (matchesResult.data ?? []).filter((match) => match.status === "scheduling"), schedulingIds = schedulingRows.map((match) => String(match.id))
+  const emptyRows = { data: [], error: null }
+  const [proposalsResult, { data: avatarUsers, error: avatarUsersError }] = await Promise.all([
+    schedulingIds.length ? supabase.from("match_chat_messages").select("id,match_id,kind,payload").in("match_id", schedulingIds).in("kind", ["date_proposal", "location_proposal"]) : emptyRows,
+    linkedUserIds.length ? supabase.from("app_users").select("id,display_name,avatar_url,preferred_side,dominant_hand").in("id", linkedUserIds) : emptyRows,
+  ])
+  if (proposalsResult.error) return buildLeagueSnapshotFailure("match_chat_messages", proposalsResult.error)
+  const proposalIds = (proposalsResult.data ?? []).map((message) => String(message.id)), responsesResult = proposalIds.length ? await supabase.from("match_chat_proposal_responses").select("message_id,user_id,option_key,response").in("message_id", proposalIds) : { data: [], error: null }
+  if (responsesResult.error) return buildLeagueSnapshotFailure("match_chat_proposal_responses", responsesResult.error)
+  const userByLeaguePlayer = new Map((leagueMembershipsResult.data ?? []).filter((item) => item.player_id && item.user_id).map((item) => [`${item.league_id}:${item.player_id}`, String(item.user_id)]))
+  const messagesByMatchId = Map.groupBy(proposalsResult.data ?? [], (message) => message.match_id)
+  const responsesByMessageId = Map.groupBy(responsesResult.data ?? [], (response) => response.message_id)
+  const coordinationStatusByMatchId = new Map(schedulingRows.map((match) => {
+    const participantIds = [...(Array.isArray(match.team_a) ? match.team_a : []), ...(Array.isArray(match.team_b) ? match.team_b : [])].map(String)
+    const coordination = buildMatchChatCoordination({
+      matchStatus: String(match.status),
+      participants: participantIds.map((playerId) => ({ userId: userByLeaguePlayer.get(`${match.league_id}:${playerId}`) ?? null })),
+      messages: (messagesByMatchId.get(match.id) ?? []).map((message) => ({
+        id: String(message.id),
+        kind: String(message.kind),
+        payload: message.payload,
+        responses: (responsesByMessageId.get(message.id) ?? []).map((response) => ({
+          userId: String(response.user_id),
+          optionKey: String(response.option_key),
+          response: String(response.response),
+        })),
+      })),
+    })
+    const { status } = coordination
+    return [String(match.id), status === "coordinating" || status === "awaiting_booking" ? status : null] as const
+  }))
 
   if (avatarUsersError) {
     return NextResponse.json({ error: "avatar_lookup_failed" }, { status: 500 })
@@ -544,6 +560,8 @@ export async function GET(request: Request) {
     matchesBySeasonId.set(match.seasonId, current)
   }
 
+  const revealedBySeasonId = new Map<string, number>()
+  const now = new Date()
   const matches: MatchData[] = hydratedMatches.map((hydratedMatch) => {
     const season = seasonById.get(hydratedMatch.seasonId)
     const settings = settingsBySeasonId.get(hydratedMatch.seasonId)
@@ -560,6 +578,7 @@ export async function GET(request: Request) {
         status: season.status,
         scheduledStartAt: settings.scheduledStartAt,
         secretDaysBefore: settings.preseasonSecretDaysBefore,
+        now: now.getTime(),
       })
       if (phase !== "active") {
         return redactPreseasonMatch({
@@ -575,12 +594,11 @@ export async function GET(request: Request) {
       season &&
       settings?.calendarVisibilityMode === "progressive"
     ) {
-      const revealedThrough = getEffectiveRevealedThroughRound({
-        seasonStatus: season.status,
-        totalRounds: season.totalRounds,
-        settings,
-        matches: matchesBySeasonId.get(season.id) ?? [],
-      })
+      let revealedThrough = revealedBySeasonId.get(season.id)
+      if (revealedThrough === undefined) {
+        revealedThrough = getEffectiveRevealedThroughRound({ seasonStatus: season.status, totalRounds: season.totalRounds, settings, matches: matchesBySeasonId.get(season.id) ?? [], now })
+        revealedBySeasonId.set(season.id, revealedThrough)
+      }
       if (hydratedMatch.round > revealedThrough) {
         return redactProgressiveMatch(hydratedMatch)
       }
