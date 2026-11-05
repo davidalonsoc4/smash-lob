@@ -1,3 +1,7 @@
+## MC146 — Publicación v1.15.41 en PRE y PROD
+- Estado: EN CURSO. Publicar el inicio en Mis Competiciones y las mejoras de rendimiento.
+- Gates: validación local, CI, comprobación de PRE y promoción del mismo árbol a PROD con verificación de rutas, caché PWA y versión.
+
 ## MC145 — Mis Competiciones como inicio general
 - Estado: COMPLETO LOCAL. Mis Competiciones es el inicio general y la entrada explícita a una liga tiene su propia ruta.
 - Gates: tipo, lint, comprobaciones de navegación y compilación, E2E de apertura web/PWA, liga programada, invitaciones y navegación interna de liga.

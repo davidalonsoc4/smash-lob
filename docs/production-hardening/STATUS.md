@@ -3768,3 +3768,5 @@ MC144 completo local: compilación final y presupuesto correctos (1 310 976 byte
 MC145 en curso: la ruta web raíz, el arranque PWA y el acceso tras autenticación ordinaria apuntan a Mis Competiciones. Inicio de liga pasa a una ruta explícita con sus accesos, estilos y restricciones. Las invitaciones pendientes se recuperan al pulsar el aviso de Mis Competiciones. Se normalizan las notificaciones antiguas dirigidas a Inicio de liga.
 
 MC145 completo local: compilación Next, TypeScript y 20 pruebas móviles/PWA correctas en las últimas tandas. Incluyen una sola liga activa o bloqueada, varias ligas, cuenta sin liga, espectadores, invitaciones, notificaciones y recuperación sin conexión. También pasan las 157 pruebas unitarias afectadas, lint sin errores y controles de tipografía, onboarding, i18n y presupuesto de código. Sin despliegue.
+
+MC146 en curso: publicación de PRE y PROD autorizada para los cambios de inicio y rendimiento. Candidata v1.15.41 con caché PWA renovada. Los árboles remotos de staging y main coinciden en v1.15.40 y la candidata carece de cambios de esquema. Se conserva el despliegue de v1.15.40 como punto de recuperación.
