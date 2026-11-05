@@ -8,6 +8,7 @@ type BackButtonProps = {
   label: string
   returnToParam?: string
   alwaysFallback?: boolean
+  iconOnly?: boolean
 }
 
 function getSafeInternalReturnTo(value: string | null) {
@@ -24,7 +25,7 @@ function getSafeInternalReturnTo(value: string | null) {
   return value
 }
 
-export function BackButton({ fallbackHref, label, returnToParam, alwaysFallback = false }: BackButtonProps) {
+export function BackButton({ fallbackHref, label, returnToParam, alwaysFallback = false, iconOnly = false }: BackButtonProps) {
   const router = useRouter()
 
   function handleBack(event: MouseEvent<HTMLAnchorElement>) {
@@ -65,10 +66,11 @@ export function BackButton({ fallbackHref, label, returnToParam, alwaysFallback 
     <a
       href={fallbackHref}
       onClick={handleBack}
+      aria-label={iconOnly ? label : undefined}
       className="app-top-back-control text-sm font-semibold text-neutral-500"
     >
       <span aria-hidden="true" className="mr-1 inline-block">←</span>
-      {label}
+      {!iconOnly ? label : null}
     </a>
   )
 }

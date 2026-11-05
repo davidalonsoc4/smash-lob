@@ -255,6 +255,9 @@ test("last encounter is compact only in the hub and history stays detailed", asy
   }
   await page.getByRole("navigation", { name: "Navegación global", exact: true }).getByRole("link", { name: "Mis partidos", exact: true }).click()
   await expect(page.getByText(last.locationName)).toBeVisible()
+  const historyResult = page.locator('[data-match-preview="result"]').first()
+  await expect(historyResult.locator("[data-preview-team]")).toHaveCount(2)
+  expect(await historyResult.locator("[data-preview-team]").evaluateAll(rows => rows.every(row => getComputedStyle(row).backgroundColor === "rgba(0, 0, 0, 0)"))).toBe(true)
 })
 
 for (const theme of ["light", "dark"] as const) {

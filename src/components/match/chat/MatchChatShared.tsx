@@ -373,19 +373,19 @@ export function MatchChatFrame({
       className="fixed inset-x-0 top-0 z-[60] mx-auto flex w-full max-w-md min-h-0 flex-col overflow-hidden bg-stone-50"
       style={{ height: "100dvh" }}
     >
-      <header className="app-page-header app-match-chat-header shrink-0 border-b border-neutral-200 bg-stone-50 px-3 pb-2">
-        <div className="grid min-h-10 grid-cols-[5rem_minmax(0,1fr)_5rem] items-center">
-          <BackButton fallbackHref={backHref} label={tx("Volver")} />
+      <header data-compact-chat-header className="app-page-header app-match-chat-header shrink-0 border-b border-neutral-200 bg-stone-50 px-3 pb-2">
+        <div className="flex min-h-10 items-center gap-2 pr-11">
+          <BackButton fallbackHref={backHref} label={tx("Volver")} iconOnly />
           {titleHref ? (
             <Link
               href={titleHref}
               aria-label={tx("Abrir detalle del partido")}
-              className="min-w-0 px-1 text-center transition active:scale-[0.98]"
+              className="min-w-0 flex-1 px-1 text-left transition active:scale-[0.98]"
             >
               <h1 className="type-page-title truncate font-black tracking-tight">{title}</h1>
             </Link>
           ) : (
-            <div className="min-w-0 px-1 text-center">
+            <div className="min-w-0 flex-1 px-1 text-left">
               <h1 className="type-page-title truncate font-black tracking-tight">{title}</h1>
             </div>
           )}

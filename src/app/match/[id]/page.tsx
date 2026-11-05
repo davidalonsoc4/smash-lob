@@ -381,6 +381,7 @@ export default function MatchDetailPage() {
         <MatchResultForm
           matchId={match.id}
           mode="create"
+          highlighted={getMatchDisplayStatus(match) === "in_progress"}
           initiallyExpanded={prioritizeResult}
           requiresThreeSets={roundSettings.requiresThreeSets}
           reportedByPlayerId={editorReporterPlayerId}

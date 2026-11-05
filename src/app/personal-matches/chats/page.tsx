@@ -46,6 +46,16 @@ type PersonalChatOverviewItem = {
   } | null
   realtimeTopic: string | null
 }
+type GeneralLeagueChat = {
+  leagueId: string
+  leagueName: string
+  seasonId: string
+  seasonName: string
+  unread: number
+  participants: number
+  lastMessage: { sender: string; body: string; createdAt: string } | null
+  realtimeTopic: string | null
+}
 function formatChatDate(value: string | null) {
   const date = value ? new Date(value) : null
   if (!date || Number.isNaN(date.getTime())) return ""
@@ -93,13 +103,14 @@ export default function PersonalMatchChatsPage() {
   const [scope, setScope] = useState("all")
   const [conversation, setConversation] = useState("all")
   const [chats, setChats] = useState<PersonalChatOverviewItem[]>([])
+  const [generalChats, setGeneralChats] = useState<GeneralLeagueChat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [loadedAt, setLoadedAt] = useState(0)
 
   const leagueSeasons = useMemo(() => {
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-    return userLeagues.flatMap((league) => seasons.filter((season) => season.leagueId === league.id && uuid.test(league.id) && uuid.test(season.id)).map((season) => ({ leagueId: league.id, leagueName: league.name, seasonId: season.id })))
+    return userLeagues.flatMap((league) => seasons.filter((season) => season.leagueId === league.id && uuid.test(league.id) && uuid.test(season.id)).map((season) => ({ leagueId: league.id, leagueName: league.name, seasonId: season.id, seasonName: season.name, seasonStatus: season.status })))
   }, [seasons, userLeagues])
   const load = useCallback(async () => {
     const response = await fetch("/api/personal-matches/chats", { cache: "no-store" }).catch(() => null)
@@ -107,14 +118,24 @@ export default function PersonalMatchChatsPage() {
 
     const friendlyError = !response?.ok ? payload && typeof payload.error === "string" ? payload.error : "personal_match_chats_lookup_failed" : null
     const friendlyChats: PersonalChatOverviewItem[] = response?.ok && Array.isArray(payload?.chats) ? payload.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "friendly" })) : []
-    const leagueResponses = await Promise.all(leagueSeasons.map(async (scope) => {
+    const leagueResponsesPromise = Promise.all(leagueSeasons.map(async (scope) => {
       const params = new URLSearchParams({ leagueId: scope.leagueId, seasonId: scope.seasonId }), leagueResponse = await fetch(`/api/chats?${params.toString()}`, { cache: "no-store" }).catch(() => null)
       if (!leagueResponse?.ok) return [] as PersonalChatOverviewItem[]
       const leaguePayload = await leagueResponse.json().catch(() => null)
       return Array.isArray(leaguePayload?.chats) ? leaguePayload.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "league" as const, leagueName: scope.leagueName, leagueId: scope.leagueId, seasonId: scope.seasonId, locationName: null, expired: false, resultRecordedAt: null, realtimeTopic: typeof leaguePayload.realtimeTopic === "string" ? leaguePayload.realtimeTopic : null })) : []
     }))
 
+    const generalResponses = await Promise.all(leagueSeasons.filter((item) => item.seasonStatus === "active").map(async (item): Promise<GeneralLeagueChat | null> => {
+      const result = await fetch(`/api/league-season-chats/${encodeURIComponent(item.seasonId)}?markRead=0`, { cache: "no-store" }).catch(() => null)
+      if (!result?.ok) return null
+      const data = await result.json().catch(() => null)
+      if (!data || !Array.isArray(data.messages) || !Array.isArray(data.participants)) return null
+      const last = data.messages.at(-1)
+      return { ...item, unread: typeof data.unread === "number" ? data.unread : 0, participants: data.participants.length, lastMessage: last ? { sender: last.sender_display_name, body: last.body, createdAt: last.created_at } : null, realtimeTopic: typeof data.realtimeTopic === "string" ? data.realtimeTopic : null }
+    }))
+    const leagueResponses = await leagueResponsesPromise
     setChats([...friendlyChats, ...leagueResponses.flat()])
+    setGeneralChats(generalResponses.filter((item): item is GeneralLeagueChat => item !== null))
     setError(friendlyError)
     setLoadedAt(Date.now())
     setLoading(false)
@@ -134,8 +155,8 @@ export default function PersonalMatchChatsPage() {
     }
   }, [load])
   const realtimeTopics = useMemo(
-    () => [...new Set(chats.map((chat) => chat.realtimeTopic).filter((topic): topic is string => Boolean(topic)))],
-    [chats],
+    () => [...new Set([...chats, ...generalChats].map((chat) => chat.realtimeTopic).filter((topic): topic is string => Boolean(topic)))],
+    [chats, generalChats],
   )
   const realtimeKey = realtimeTopics.join("|")
   const groupedChats = useMemo(() => {
@@ -166,7 +187,8 @@ export default function PersonalMatchChatsPage() {
   }, [load, realtimeKey])
 
   const hasFilters = Boolean(query.trim() || scope !== "all" || conversation !== "all" || phase !== "all")
-  const resultCount = Object.values(groupedChats).reduce((total, group) => total + group.length, 0)
+  const visibleGeneralChats = generalChats.filter(chat => (scope === "all" || scope === chat.leagueId) && (phase === "all" || phase === "active") && (conversation === "all" || conversation === "started" && Boolean(chat.lastMessage) || conversation === "empty" && !chat.lastMessage || conversation === "unread" && chat.unread > 0) && (!query.trim() || [chat.leagueName, chat.seasonName, chat.lastMessage?.sender, chat.lastMessage?.body].some(value => value?.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))))
+  const resultCount = visibleGeneralChats.length + Object.values(groupedChats).reduce((total, group) => total + group.length, 0)
   function clearFilters() { setQuery(""); setScope("all"); setConversation("all"); setPhase("all") }
   return (
     <div className="compact-page space-y-3">
@@ -189,7 +211,7 @@ export default function PersonalMatchChatsPage() {
           <p role="status" className="text-xs text-neutral-600">{resultCount} {tx(resultCount === 1 ? "conversación encontrada" : "conversaciones encontradas")}</p>
         </div><div className="border-t border-neutral-200 p-3"><button type="button" className="app-dialog-primary w-full" onClick={() => setFilterOpen(false)}>{tx("Ver conversaciones")}</button></div>
       </FloatingDialog>
-      {!loading && chats.length > 0 && Object.values(groupedChats).every(group=>group.length===0) ? <AppCard><p className="text-sm text-neutral-500">{tx("No hay conversaciones con estos filtros.")}</p><button type="button" className="mt-3 app-dialog-option" onClick={clearFilters}>{tx("Limpiar filtros")}</button></AppCard> : null}
+      {!loading && (chats.length > 0 || generalChats.length > 0) && resultCount === 0 ? <AppCard><p className="text-sm text-neutral-500">{tx("No hay conversaciones con estos filtros.")}</p><button type="button" className="mt-3 app-dialog-option" onClick={clearFilters}>{tx("Limpiar filtros")}</button></AppCard> : null}
       {loading ? (
         <AppCard>
           <p className="text-sm font-semibold text-neutral-500">
@@ -204,20 +226,24 @@ export default function PersonalMatchChatsPage() {
         </p>
       ) : null}
 
-      {!loading && !error && chats.length === 0 ? (
+      {!loading && !error && chats.length === 0 && generalChats.length === 0 ? (
         <AppCard>
           <p className="text-sm font-black">{tx("Todavía no tienes chats.")}</p>
           <p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Las conversaciones de tus ligas y amistosos aparecerán aquí.")}</p>
         </AppCard>
       ) : null}
 
+      {visibleGeneralChats.length > 0 ? <section className="space-y-1.5" aria-label={tx("Chats de liga")}>
+        <h2 className="type-section-title font-black text-neutral-700">{tx("Chats de liga")}</h2>
+        <div className="overflow-hidden rounded-xl">{visibleGeneralChats.map((chat, index) => <Link key={chat.seasonId} href={`/league-chat/${encodeURIComponent(chat.seasonId)}`} className={`block ${index ? "-mt-px" : ""}`}><AppCard className={`app-card-explicit-accent !p-0 !shadow-none ${visibleGeneralChats.length === 1 ? "!rounded-xl" : index === 0 ? "!rounded-t-xl !rounded-b-none" : index === visibleGeneralChats.length - 1 ? "!rounded-b-xl !rounded-t-none" : "!rounded-none"}`}><div className="min-w-0 px-4 py-3"><div className="flex items-center gap-2"><p className="type-panel-title min-w-0 flex-1 truncate font-black">{chat.leagueName}</p>{chat.unread > 0 ? <span aria-label={tx("Mensajes sin leer")} className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1.5 type-caption font-black text-white">{chat.unread > 99 ? "99+" : chat.unread}</span> : null}</div><p className="mt-2 type-small font-semibold text-neutral-600">{chat.seasonName} · {chat.participants} {tx(chat.participants === 1 ? "participante" : "participantes")}</p><div className="mt-2 flex min-w-0 items-center gap-2 border-t border-neutral-100 pt-2"><p className="min-w-0 flex-1 truncate type-caption font-semibold text-neutral-500">{chat.lastMessage ? <><span className="font-black">{chat.lastMessage.sender}</span>: {chat.lastMessage.body}</> : tx("Sin mensajes todavía")}</p><span className="shrink-0 type-caption font-semibold text-neutral-400">{formatChatDate(chat.lastMessage?.createdAt ?? null)}</span></div></div></AppCard></Link>)}</div>
+      </section> : null}
       {chats.length > 0 ? (
         <div className="space-y-3" data-personal-match-chats-list>
           {([ ["active", tx("Activos")], ["upcoming", tx("Próximos")], ["finished", tx("Chats finalizados")] ] as const).map(([groupKey, groupLabel]) => {
             const sectionChats = groupedChats[groupKey]
             if (!sectionChats.length) return null
             return <section key={groupKey} aria-label={groupLabel} className="space-y-1.5">
-              <h2 className="px-1 type-caption font-black uppercase tracking-[0.14em] text-neutral-500">{groupLabel}<span className="ml-1.5 text-neutral-400">{sectionChats.length}</span></h2>
+              <h2 className="type-section-title font-black text-neutral-700">{groupLabel}<span className="ml-1.5 text-neutral-400">{sectionChats.length}</span></h2>
               <div className="overflow-hidden rounded-xl">
           {sectionChats.map((chat, index) => {
             const radius =
@@ -237,7 +263,7 @@ export default function PersonalMatchChatsPage() {
               <Link
                 key={`${chat.origin}:${chat.id}`}
                 href={chat.origin === "friendly" ? `/personal-matches/${encodeURIComponent(chat.id)}/chat` : `/match/${encodeURIComponent(chat.id)}/chat`}
-                className={`block ${index ? "-mt-px" : ""}`}
+                className={`chat-list-row block ${index ? "-mt-px" : ""}`}
               >
                 <AppCard
                   className={`app-card-explicit-accent !overflow-hidden !p-0 !shadow-none transition active:scale-[0.99] ${radius} ${chat.unread ? "chat-list-card-unread" : ""}`}
@@ -262,12 +288,6 @@ export default function PersonalMatchChatsPage() {
                     <p className="mt-2 break-words type-small font-semibold text-neutral-600" title={[chat.partner, ...chat.rivals].join(" · ")}>
                       {participantLabel(chat)}
                     </p>
-
-                    {chat.locationName ? (
-                      <p className="mt-0.5 truncate type-caption font-semibold text-neutral-400">
-                        {chat.locationName}
-                      </p>
-                    ) : null}
 
                     <div className="mt-2 flex min-w-0 items-center gap-2 border-t border-neutral-100 pt-2">
                       <div className="min-w-0 flex-1">

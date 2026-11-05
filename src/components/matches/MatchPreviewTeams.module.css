@@ -55,7 +55,7 @@
   color: var(--activity-accent-contrast, var(--competition-accent-contrast, #111)) !important;
   text-align: center !important;
 }
-.unboxed.unboxed { --preview-ink: #fff; --preview-muted: #b3b3b3; row-gap: 0; }
+.unboxed.unboxed { row-gap: 0; }
 :global(html[data-theme][data-visual-style]) .standard.unboxed.unboxed.unboxed :global([data-preview-team]) {
   background: transparent !important;
   border: 0 !important;

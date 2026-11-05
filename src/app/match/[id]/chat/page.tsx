@@ -9,6 +9,7 @@ import { useMatchLeagueContext } from "@/hooks/useMatchLeagueContext"
 import { MatchTeamsPanel } from "@/components/matches/MatchTeamsPanel"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { MatchReservationConfirmation } from "@/components/match/MatchReservationConfirmation"
+import { MatchChatReservationSummary } from "@/components/match/chat/MatchChatReservationSummary"
 import {
   MatchChatComposer,
   MatchChatFrame,
@@ -491,25 +492,9 @@ export default function MatchChatPage() {
       <div data-tour="chat-messages" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-neutral-100" style={{ visibility: initialLoadComplete ? "visible" : "hidden" }}>
         {reservationSummary && match ? (
           <AddToCalendarButton leagueName={activeLeague.name} seasonName={activeSeason.name} round={matchRound ?? match.round} teamA={match.teamA} teamB={match.teamB} players={players} scheduledAt={reservationSummary.scheduledAt} location={match.location ?? reservationSummary.locationText} className="shrink-0"
-            triggerClassName="app-match-reservation-banner w-full text-left flex shrink-0 items-center gap-2 border-b border-blue-100 bg-blue-50 px-3 py-2 text-blue-900"
+            triggerClassName="app-match-reservation-banner w-full text-left flex min-h-12 shrink-0 items-center gap-3 border-b border-blue-100 bg-blue-50 px-3 py-1.5 text-blue-900"
           >
-            <span className="app-match-reservation-icon inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
-                <path d="M12 17v5" />
-                <path d="m5 3 14 0" />
-                <path d="m7 3 1.5 8-3 3h13l-3-3L17 3" />
-              </svg>
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block app-match-reservation-label type-caption font-black uppercase tracking-[0.12em]">{tx("Reserva")} · {tx("Guardar en calendario")}</span>
-              <span
-                className="block app-match-reservation-detail type-small font-semibold"
-                title={`${reservationSummaryDate(reservationSummary.scheduledAt, locale)} · ${reservationSummary.locationText}`}
-              >
-                <span className="block font-black">{reservationSummaryDate(reservationSummary.scheduledAt, locale)}</span>
-                <span className="block break-words">{reservationSummary.locationText}</span>
-              </span>
-            </span>
+            <MatchChatReservationSummary date={reservationSummaryDate(reservationSummary.scheduledAt, locale)} location={reservationSummary.locationText} />
           </AddToCalendarButton>
         ) : null}
         {!effectiveReadOnly && !hasConfirmedReservation && displayedCoordination?.status === "awaiting_booking" ? <MatchReservationConfirmation matchId={id} coordination={displayedCoordination} locations={activeLeague.locations} participantIds={participants.map((item) => item.playerId)} players={players} requireReservationPayments currentPlayerId={participants.find((item) => item.userId === me)?.playerId ?? ""} onConfirmed={() => loadFromServer(match)} onInvalidated={async () => { await loadFromServer(match); openProposalMode("date") }} /> : null}

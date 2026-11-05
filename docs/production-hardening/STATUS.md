@@ -3632,3 +3632,103 @@ MC119 CERRADO LOCAL pendiente de valoración: parciales24×24 y totales32×32, r
 MC123: CI #423 completo con cuatro controles correctos. PR #62 integrada en staging (e2dffc0cfe354d4e04f99034b4caf3ace39ad70d); despliegue PRE dpl_978C1RAQGJAZk58GAoPD2BUYA5iX en construcción. main intacta. Falta verificar alias y smoke PRE.
 
 MC123 COMPLETO EN PRE: deployment dpl_978C1RAQGJAZk58GAoPD2BUYA5iX READY y alias pre.smashandlob.com verificado sobre staging e2dffc0c. Health 1.15.38/pre, service worker 1.15.38, manifest HTTP 200 y API torneos HTTP 401 sin sesión. CI #423 completo; producción sigue en main 1bc3f70e y deployment dpl_8pZMykEoZ9y42W1sXBFJoWmruA8K. Pendiente prueba manual PWA y decisión sobre chat de liga antes de promover; sin cambios en PROD ni base de datos.
+
+MC124 iniciado: chat general aislado por temporada, acceso restringido a sus participantes, temporada finalizada de solo lectura y retención sin borrado. La API actual emplea service role, por lo que debe verificar expresamente la pertenencia; la plantilla season_players puede cambiar y no se debe asumir que la pertenencia actual a la liga demuestra pertenencia histórica. Docker y Supabase CLI no están disponibles en PATH; no instalar ni modificar PRE/PROD durante esta fase.
+
+MC124 interrumpido ante fallo de validación crítica: migración aditiva inicial 20261104141440_league_season_chat.sql creada como borrador, sin aplicar ni validar; implementa tablas privadas y captura de participantes activos, pendiente de revisión de seguridad, pruebas SQL, API, interfaz, indicadores y regresiones. `npm run database:quality` falla al iniciar Supabase local con `LegacyDbBootstrapError: failed to inspect service` (Docker no disponible en PATH). El CLI sí está disponible en caché npm. No continuar ni aplicar la migración hasta recuperar y verificar la infraestructura local de pruebas. PRE y PROD sin modificar.
+
+MC124 reanudado: Docker Desktop instalado y funcionando; `npm run database:quality` PASS en instancia local aislada: migraciones, lint SQL, restauración, actualización y 81 pruebas pgTAP. La migración del chat se ha aplicado exclusivamente en esa base de pruebas; aún requiere pruebas específicas de aislamiento y la implementación de API e interfaz. PRE y PROD sin modificar.
+
+MC124: añadidas seis pruebas pgTAP específicas de activación, aislamiento entre temporadas y acceso directo; `supabase test db` PASS 87/87. API, interfaz, tiempo real, no leídos y validación integral permanecen pendientes. No se ha publicado ni cambiado PRE/PROD.
+
+MC124 avance: añadida función SQL de envío atómico con bloqueo de temporada y comprobación de participante; 90 pruebas pgTAP PASS, incluidos envío autorizado y rechazos por temporada finalizada y usuario ajeno. Implementación inicial de API, tiempo real, acceso en HOME/Chats y pantalla creada; pendiente revisión funcional, pruebas API/móvil, estilos, control de no leídos y validación completa. Migraciones solo en base local de pruebas; no publicar.
+
+MC124: API integrada con guarda de participante y emisión Realtime; pantalla reutiliza componentes de chat, controles de acceso y carga de historial. 3 pruebas de integración, 90 pgTAP y un recorrido móvil aislado HOME→enviar PASS; i18n, inventario de seguridad y lint focalizado PASS. Añadida migración para preservar borrado de cuenta. Validación completa en ejecución; falta probar más estados, revisar visualmente, confirmar todas las regresiones y actualizar documentos antes de declarar completo. Sin cambios remotos.
+
+MC124 completo local: chat y snapshot privado por temporada, escritura atómica solo durante temporada activa, historial de lectura y paginación, acceso en HOME y Chats con no leídos y actualizaciones Realtime. `npm run validate` PASS (1689 pruebas y build), prueba adicional de no leídos PASS, `database:quality` PASS (90 pgTAP, migraciones y restauración), dos E2E móviles de chat/Axe y cuatro de regresión de bandeja en claro/oscuro clásico/Competition PASS. Cabecera y contraste corregidos tras revisión de captura. Migraciones aplicadas solo a Supabase local aislado; para probar con cuenta real falta aplicarlas a PRE y verificar el flujo con usuarios de prueba autorizados. PRE, PROD y sus datos no se han modificado.
+
+MC124 PRE DB: usuario autoriza explícitamente migraciones PRE para probar código local. Proyecto `smash-lob-staging` miadjotkucgluwbrgeih verificado por listado, enlace CLI y `.env.local`. `db push --linked --dry-run` muestra exclusivamente las tres migraciones del chat, sin roles ni semillas; aplicación y verificación pendientes. Producción excluida.
+
+MC124 PRE DB verificado: `db push --linked --yes` aplicó 20261104141440, 20261104151343 y 20261104152546. Historial remoto confirma las tres versiones; segundo dry-run `upToDate=true`, sin migraciones pendientes, semillas ni roles. Tablas con RLS, sin acceso directo para anon/authenticated; funciones restringidas a servicio, tres triggers activos y ninguna vinculación ausente en plantillas activas. Aviso de CLI sobre caché de catálogo Docker no afecta a aplicación verificada. Código solo local; pendiente prueba manual con cuentas reales autorizadas. Producción intacta.
+
+MC125: investigado bucle de recarga local; el servidor iniciado por el agente escribía sus registros bajo `.quality-artifacts` dentro del árbol observado por Next, causando recompilaciones continuas. Reiniciado el mismo servidor con registros en `%TEMP%/smash-lob-codex`; `/` y `/api/health` devuelven 200 y no se observan recompilaciones repetidas tras la carga. Sin cambios de código ni de bases remotas; falta confirmación visual del usuario.
+
+MC126 iniciado: reutilizar botón flotante de Partido, enriquecer tarjeta con último mensaje y participantes, centrar cabeceras con logo y nombres discretos, y corregir truncado de jornadas. Sin cambios de datos ni despliegue.
+
+MC126 completo local: acceso flotante reutiliza MatchChatActionLink; tarjeta de liga muestra participantes, último mensaje, fecha y no leídos con estilos de chats. Cabecera centrada con logo opcional y participantes desplegables; MatchChatFrame muestra título de jornada sin recorte. API entrega avatares y últimas lecturas a MatchChatTextMessage compartido y difunde lecturas para doble check. 11 unitarias/integración PASS, tipos/lint/i18n/tipografía PASS y 7 E2E móviles PASS (cuatro temas, título a 320px, envío/lectura y Axe). Los mensajes de liga conservan escritura de texto; menciones/respuestas/propuestas de partidos no se han implementado para liga. Sin migraciones ni publicación.
+
+MC127 iniciado: usuario solicita acceso flotante en Mis Competiciones; sin creator va directamente a amistoso y con creator ofrece amistoso, liga y torneo solo cuando está disponible. Se conservarán cambios locales y no se publicará.
+
+MC127 completo local: botón flotante compartido con Mis Partidos, disponible tras cargar permisos; sin creator abre directamente «Nuevo partido amistoso», con creator abre diálogo reutilizado con amistoso, liga y torneo solo en entornos habilitados. Cierre Escape y foco verificados. Actualizada la comprobación histórica que prohibía crear amistosos desde Competiciones. 22 unitarias, 2 E2E móviles, i18n, lint, tipos, build E2E y quality:source PASS; producción simulada sin torneos cubierta en unitarias. Sin migraciones ni publicación.
+
+MC128 iniciado: usuario solicita que resultados de Calendario y Mis Partidos usen la presentación sin cajas de Mis Competiciones; revisar contraste claro/oscuro y conservar estados y navegación.
+
+MC128 avance: variante sin cajas activada en el componente de resultado compartido y en tarjetas personales; también afecta a la HOME de liga solicitada después. Ajustado color de texto para respetar tema claro/oscuro. Seis pruebas existentes y ESLint PASS; pendiente verificar visualmente y con pruebas móviles los tres contextos antes de cerrar el hito. Sin publicación.
+
+MC128 ampliado por petición: eliminar etiqueta de jornada repetida en tarjetas del Calendario y reducir margen superior, conservando indicadores y enlaces. Sin publicación.
+
+MC128 completo local: seis unitarias, ESLint, tipos y 5 recorridos móviles PASS; el calendario y HOME de liga se comprobaron a 320 px en claro/oscuro Clásico/Competition y Mis Partidos con resultado en móvil. Captura de tarjeta revisada. Usuario observa que la cabecera sin jornada queda vacía; pendiente su decisión sobre recuperar la etiqueta con menor peso. Sin publicación.
+
+MC128 corrección: usuario pide volver exactamente a la cabecera anterior; restaurados «Jornada X» y margen superior, conservando la presentación de resultados sin cajas. Test unitario, ESLint y 4 E2E móviles claro/oscuro Clásico/Competition PASS. Sin publicación.
+
+MC129 iniciado: aplicar a la etiqueta de liga en Mis Partidos el texto sin fondo utilizado en Mis Competiciones; conservar las etiquetas de otros tipos de partido y la funcionalidad.
+
+MC129 completo local: etiqueta de liga sin fondo ni borde, con color de texto del tema y la misma geometría discreta que en Mis Competiciones. Cuatro pruebas móviles PASS (claro/oscuro Clásico/Competition), verificando transparencia, ausencia de borde y color legible; sin cambios de navegación ni publicación.
+
+MC130 iniciado: probar en Mis Partidos el verde y rojo intensos de las etiquetas de resultado de Mis Competiciones, sin modificar esta última.
+
+MC130 completo local: etiquetas Victoria y Derrota con fondos intensos y texto blanco exclusivamente en Mis Partidos. Cuatro pruebas móviles PASS (claro/oscuro Clásico/Competition), comprobando ambos resultados y color de texto. Sin publicación.
+
+MC131 iniciado: aplicar las mismas etiquetas intensas al Calendario de liga, manteniendo el resto de pantallas.
+
+MC131 completo local: etiquetas Victoria/Derrota intensas en Calendario; ocho E2E móviles PASS para ambos resultados en cuatro combinaciones de tema. Pendientes peticiones posteriores de igualar Mi último encuentro en HOME y resaltar Registrar resultado en partidos en juego. Sin publicación.
+
+MC132 iniciado: igualar tarjeta «Mi último encuentro» de HOME de liga a Mis Competiciones, preservando la tarjeta genérica y navegación.
+
+MC132 detenido por fallo de validación: añadida variante visual y ocultada la programación del resultado personal; las comparaciones móviles pasan en Clásico pero fallan de forma intermitente en Competition por discrepancia del color calculado del borde superior frente a Mis Competiciones. Tres ejecuciones muestran comportamiento no estable; no declarar terminada la igualdad ni continuar al realce de Registrar resultado hasta resolver y validar. MC131 de calendario quedó validado previamente. Sin publicación ni cambios remotos.
+
+MC132 corrección solicitada: la tarjeta personal de HOME debe identificar la jornada, no repetir el nombre de la liga; etiqueta cambiada a «Jornada X». Sigue pendiente resolver el fallo de comparación visual y validar.
+
+MC132 completo local: tarjeta personal de HOME usa fondo y borde de Actividad, resultado sin cajas y sin programación; «Jornada X» conserva tipografía/color del calendario y totales en negro. Cuatro pruebas móviles PASS comparando tarjetas, acento, cabeceras y marcadores en Clásico/Competition claro/oscuro; lint y pruebas focalizadas anteriores PASS. Sin publicación.
+
+MC133 iniciado: resaltar visualmente Registrar resultado para partidos en estado derivado «en juego», manteniendo permisos y comportamiento del formulario.
+
+MC133 completo local: panel de registro usa borde y sombra del acento solo con estado derivado en juego; no cambia permisos ni despliegue. Cinco E2E móviles PASS, incluidos partido futuro sin realce y cuatro temas en juego; TypeScript, ESLint y pruebas focalizadas PASS. Sin publicación.
+
+MC134 iniciado: usuario aprueba cabecera de chat compacta con volver, identidad y acciones agrupadas; conservar información de participantes y accesos globales.
+
+MC134 completo en local: cabeceras compactas en chats de liga y partido, con acciones globales en menú accesible y participantes conservados. ESLint focalizado, TypeScript, traducciones, 4 pruebas unitarias y 3 pruebas móviles de chat (incluida accesibilidad, envío, solo lectura y ancho de 320 px) correctos. Sin despliegue.
+
+MC134 reabierto: la revisión visual detecta solapamientos y altura excesiva; se revisan estilos globales y geometría real de cabeceras de liga y partido.
+
+MC134 corregido en local: el botón Volver participa en la fila y no se superpone al título; temporada y participantes comparten la segunda línea y los nombres se despliegan sin aumentar la altura. ESLint y TypeScript correctos; 7 pruebas móviles correctas, incluidas cuatro combinaciones de tema y estilo a 320 px, accesibilidad y regresión del chat. Sin despliegue.
+
+MC134 reabierto: mejorar la identidad de la liga en el título y la legibilidad de temporada y participantes según revisión del usuario.
+
+MC134 completado local: título y logo se resuelven con la liga de la temporada del chat; temporada y participantes cuentan con separador y espacio explícitos. ESLint, TypeScript y seis E2E móviles superados, con los cuatro temas/estilos y comprobación de separación. Sin despliegue.
+
+MC135 iniciado: distinguir visualmente el chat compartido de los chats de partido con el mismo tratamiento de títulos de sección, sin dejar encabezados vacíos.
+
+MC135 ampliado: el usuario solicita que la tarjeta identifique la liga y la temporada en vez del texto genérico.
+
+MC135 completo local: sección Chat general visible solo con acceso; tarjeta con nombre de liga, temporada, participantes y último mensaje. ESLint, i18n y cinco E2E móviles superados, incluidos permisos y cuatro temas/estilos. Sin despliegue.
+
+MC136 iniciado: auditar y compactar los avisos fijados de chat conservando información y accesos.
+
+MC136 completo local: la reserva es el único resumen de mensaje fijado identificado; se compacta en dos líneas con componente compartido para liga y amistosos y se conserva el selector de calendario. ESLint, tipos, i18n, 13 pruebas unitarias y dos E2E móviles claro/oscuro correctos. Sin despliegue.
+
+MC137 iniciado: eliminar el doble borde del listado de jornadas conservando una línea divisoria y el tratamiento independiente del chat general.
+
+MC137 completo local: eliminado el borde duplicado y la franja adicional del listado de jornadas; las tarjetas mantienen sus bordes finos y separadores. ESLint y cuatro pruebas móviles de geometría y enlaces en temas claro/oscuro y estilos clásico/Competition superados. Sin despliegue.
+
+MC138 iniciado: incorporar chats generales disponibles de temporadas activas a la pantalla global y a sus filtros existentes.
+
+MC138 completo local: sección de chats generales activos con liga, temporada, último mensaje y no leídos; filtros, búsqueda, eventos locales y suscripción realtime existente integrados. ESLint, tipos, i18n y E2E móviles de filtros, permisos, actualización local y regresión de las cuatro combinaciones de tema/estilo correctos. Realtime remoto no probado con datos reales. Sin despliegue.
+
+MC139 iniciado: igualar color y estilo de títulos de sección entre chats de liga y globales.
+
+MC139 completo local: títulos de secciones usan la misma tipografía, color y acento en ambas pantallas. ESLint y ocho pruebas móviles de estilos, filtros y separación correctas en temas claro/oscuro y clásico/Competition. Sin despliegue.
+
+MC140 iniciado: simplificar las tarjetas retirando la ubicación y reforzar la separación entre chats agrupados.
+
+MC140 completo local: ubicación retirada y divisores añadidos en listas globales y de liga; ESLint y ocho pruebas móviles existentes correctos. Las pruebas no incluyen una aserción visual específica de los nuevos divisores. Sin despliegue.

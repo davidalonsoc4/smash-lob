@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 
 export type PreviewPlayer = { id: string; name: string; highlightedLabel?: string; substituteLabel?: string }
 
-export function MatchPreviewTeams({ teamA, teamB, sets, scores, accented = false, unboxed = false }: {
+export function MatchPreviewTeams({ teamA, teamB, sets, scores, accented = false, unboxed = true }: {
   unboxed?: boolean
   accented?: boolean
   teamA: PreviewPlayer[]; teamB: PreviewPlayer[]

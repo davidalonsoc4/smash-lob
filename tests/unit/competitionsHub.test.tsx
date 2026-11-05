@@ -7,20 +7,21 @@ import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import LeaguesPage from "@/app/leagues/page"
 import { CompetitionsOverview } from "@/components/competitions/CompetitionsOverview"
 
-const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es", canCreateLeagues: true, matches: [] as MatchData[], leagues: [
+const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es", canCreateLeagues: true, tournamentsEnabled: true, matches: [] as MatchData[], leagues: [
   { id: "a", name: "Liga A", status: "active" }, { id: "b", name: "Liga B", status: "active" },
   { id: "c", name: "Liga C", status: "upcoming" }, { id: "d", name: "Liga D", status: "finished" },
 ] }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: state.refresh }) }))
+vi.mock("@/lib/tournamentAvailability", () => ({ areTournamentsEnabled: () => state.tournamentsEnabled }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: state.locale, tx: (text: string) => text, t: { common: { refreshApp: "Actualizar", back: "Volver" } } }) }))
 vi.mock("@/context/ActiveLeagueProvider", () => ({ useActiveLeague: () => ({ activeLeagueId: "a", changeActiveLeague: state.enter }) }))
-vi.mock("@/context/LeagueAccessProvider", () => ({ useLeagueAccess: () => ({ userLeagues: state.leagues, canCreateLeagues: state.canCreateLeagues, canAccessLeagueAdminTools: () => false, getMembershipForLeague: () => ({ playerId: "own" }), isLeagueAdmin: () => false, isLeagueSpectator: () => false }) }))
+vi.mock("@/context/LeagueAccessProvider", () => ({ useLeagueAccess: () => ({ userLeagues: state.leagues, canCreateLeagues: state.canCreateLeagues, isAccessHydrated: true, canAccessLeagueAdminTools: () => false, getMembershipForLeague: () => ({ playerId: "own" }), isLeagueAdmin: () => false, isLeagueSpectator: () => false }) }))
 vi.mock("@/context/MatchDataProvider", () => ({ useMatchData: () => ({ matches: state.matches, resultConfirmations: [] }) }))
 vi.mock("@/context/SeasonSettingsProvider", () => ({ useSeasonSettings: () => ({ playerProfiles: [], seasonPlayers: [], seasons: state.leagues.map(item => ({ id: item.id, leagueId: item.id, status: item.status, totalRounds: 3 })), getActiveSeasonByLeagueId: (id: string) => ({ id, name: `Temporada ${id}`, status: state.leagues.find(item => item.id === id)?.status, totalRounds: 3, completedRounds: 1 }), getSeasonRoundSettings: () => ({ calendarVisibilityMode: "full", resultConfirmationMode: "optional" }) }) }))
 vi.mock("@/components/league/LeagueLogo", () => ({ LeagueLogo: () => <span /> }))
 vi.mock("@/components/personal/PersonalMatchCard", () => ({ PersonalMatchCard: ({ match }: { match: PersonalMatchItem }) => <div data-testid="highlight">{match.id}</div> }))
 const empty = { items: [], upcoming: [], hasMore: false, nextOffset: null }
-beforeEach(() => { state.locale = "es"; state.canCreateLeagues = true; state.matches = []; vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => empty })) })
+beforeEach(() => { state.locale = "es"; state.canCreateLeagues = true; state.tournamentsEnabled = true; state.matches = []; HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", "") }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open") }; vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => empty })) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.clearAllMocks() })
 
 it("limits the summary to two leagues and links to separate lists without changing context", async () => {
@@ -55,6 +56,23 @@ it("hides league creation without the global creator permission", () => {
   render(<CompetitionsOverview view="leagues" />)
   expect(screen.queryByRole("link", { name: "Crear nueva liga" })).toBeNull()
   expect(screen.getByRole("link", { name: "Unirme con invitación" })).toBeVisible()
+})
+it("opens friendly creation directly for users without creator permission", () => {
+  state.canCreateLeagues = false
+  render(<CompetitionsOverview />)
+  expect(screen.getByRole("link", { name: "Nuevo partido amistoso" })).toHaveAttribute("href", "/personal-matches/new")
+  expect(screen.queryByRole("button", { name: "Crear" })).toBeNull()
+})
+it.each([true, false])("shows creator options and respects tournament availability (%s)", (enabled) => {
+  state.tournamentsEnabled = enabled
+  render(<CompetitionsOverview />)
+  fireEvent.click(screen.getByRole("button", { name: "Crear" }))
+  const dialog = screen.getByRole("dialog", { name: "¿Qué quieres crear?" })
+  expect(dialog.querySelector('a[href="/personal-matches/new"]')).not.toBeNull()
+  expect(dialog.querySelector('a[href="/league/new"]')).not.toBeNull()
+  expect(Boolean(dialog.querySelector('a[href="/tournaments/new"]'))).toBe(enabled)
+  fireEvent.keyDown(dialog, { key: "Escape" })
+  expect(screen.queryByRole("dialog", { name: "¿Qué quieres crear?" })).toBeNull()
 })
 it("keeps complete tournaments and creation on their existing routes", async () => {
   render(<CompetitionsOverview view="tournaments" />)

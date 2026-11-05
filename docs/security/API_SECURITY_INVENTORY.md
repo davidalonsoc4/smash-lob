@@ -32,6 +32,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/health` | GET | Público explícito | Allowlist revisada |
 | `/api/invites/[code]` | GET | Público explícito | Allowlist revisada |
 | `/api/invites/[code]/claim` | POST | Protegido | requireAuthenticatedAppUser |
+| `/api/league-season-chats/[seasonId]` | GET | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
+| `/api/league-season-chats/[seasonId]` | POST | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/leagues` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/leagues/[id]` | PATCH | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |

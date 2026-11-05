@@ -21,17 +21,18 @@ function ChatIcon() {
   )
 }
 
-export function MatchChatActionLink({ href }: { href: string }) {
+export function MatchChatActionLink({ href, label, unread = false }: { href: string; label?: string; unread?: boolean }) {
   const { tx } = useI18n()
   return (
     <Link
       data-tour="match-chat-access"
       href={href}
-      aria-label={tx("Abrir chat del partido")}
-      title={tx("Chat del partido")}
-      className="app-floating-primary-control grid h-10 w-10 place-items-center rounded-full border border-neutral-950 bg-neutral-950 text-white shadow-lg transition active:scale-95"
+      aria-label={label ?? tx("Abrir chat del partido")}
+      title={label ?? tx("Chat del partido")}
+      className="app-floating-primary-control relative grid h-10 w-10 place-items-center rounded-full border border-neutral-950 bg-neutral-950 text-white shadow-lg transition active:scale-95"
     >
       <ChatIcon />
+      {unread ? <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" aria-label={tx("Mensajes sin leer")} /> : null}
     </Link>
   )
 }
