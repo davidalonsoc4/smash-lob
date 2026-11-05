@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { usePersonalMatchesDashboard } from "@/hooks/usePersonalMatchesDashboard"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -25,43 +26,17 @@ function emptyDashboard(): PersonalMatchesDashboardPayload {
 export default function PersonalMatchesPage() {
   const { tx } = useI18n()
   const { t } = useI18n()
-  const [dashboard, setDashboard] = useState<PersonalMatchesDashboardPayload>(emptyDashboard)
-  const [loading, setLoading] = useState(true)
+  const { account, dashboard: firstPage, failed, refreshing } = usePersonalMatchesDashboard()
+  const [expanded, setExpanded] = useState<{ account: string; dashboard: PersonalMatchesDashboardPayload }>()
+  const dashboard = (expanded?.account === account ? expanded.dashboard : firstPage) ?? emptyDashboard()
+  const loading = !firstPage && !failed
   const [loadingMore, setLoadingMore] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [paginationError, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-
-    fetch(`/api/personal-matches?limit=${pageSize}&offset=0&includeUpcoming=1`, {
-      cache: "no-store",
-    })
-      .then(async (response) => {
-        const payload = (await response.json()) as PersonalMatchesDashboardPayload & {
-          error?: string
-        }
-        if (!response.ok) throw new Error(payload.error ?? "personal_matches_lookup_failed")
-        return payload
-      })
-      .then((payload) => {
-        if (cancelled) return
-        setDashboard(payload)
-      })
-      .catch(() => {
-        if (!cancelled) setError("No se ha podido cargar tu historial de partidos.")
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
+  const error = paginationError ?? (failed ? "No se ha podido cargar tu historial de partidos." : null)
 
   async function loadMore() {
-    if (loadingMore || !dashboard.hasMore || dashboard.nextOffset === null) return
+    if (refreshing || loadingMore || !dashboard.hasMore || dashboard.nextOffset === null) return
 
     setLoadingMore(true)
     setError(null)
@@ -75,12 +50,7 @@ export default function PersonalMatchesPage() {
       }
       if (!response.ok) throw new Error(payload.error ?? "personal_matches_lookup_failed")
 
-      setDashboard((current) => ({
-        ...current,
-        items: [...current.items, ...payload.items],
-        hasMore: payload.hasMore,
-        nextOffset: payload.nextOffset,
-      }))
+      setExpanded({ account, dashboard: { ...dashboard, items: [...dashboard.items, ...payload.items], hasMore: payload.hasMore, nextOffset: payload.nextOffset } })
     } catch {
       setError("No se han podido cargar más partidos.")
     } finally {
@@ -152,7 +122,7 @@ export default function PersonalMatchesPage() {
           <button
             type="button"
             onClick={() => void loadMore()}
-            disabled={loadingMore}
+            disabled={refreshing || loadingMore}
             className="flex w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-black text-neutral-800 shadow-sm disabled:text-neutral-400 items-center justify-center text-center"
           >
             {loadingMore ? "Cargando..." : tx("Cargar 10 más")}

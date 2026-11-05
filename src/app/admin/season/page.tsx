@@ -1262,7 +1262,7 @@ function FinishSeasonPanel({
 
     showSavedFeedback(t.adminSeason.seasonFinished);
     setIsSaving(false);
-    router.push("/");
+    router.push("/league/home");
   }
 
   return (
@@ -1383,7 +1383,7 @@ function StartSeasonPanel({
     }
 
     setIsSaving(false);
-    router.push("/");
+    router.push("/league/home");
   }
 
   return (

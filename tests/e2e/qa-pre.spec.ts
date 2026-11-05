@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-const authenticatedRoutes = ["/", "/matches", "/ranking", "/statistics", "/settings"]
+const authenticatedRoutes = ["/", "/league/home", "/matches", "/ranking", "/statistics", "/settings"]
 
 test("real PRE account can open the main authenticated routes", async ({ page }) => {
   for (const route of authenticatedRoutes) {

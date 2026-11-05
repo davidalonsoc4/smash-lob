@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises"
 
 describe("v1.6.5 season summary light/dark separation", () => {
   it("preserves the original light award palette without dark utilities in JSX", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
     const start = home.indexOf("function SeasonSummaryAwardRow(")
     const end = home.indexOf("\nexport default function Home", start)
     expect(start).toBeGreaterThanOrEqual(0)
@@ -18,7 +18,7 @@ describe("v1.6.5 season summary light/dark separation", () => {
   })
 
   it("isolates the dark redesign under html.dark semantic selectors", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
     const globals = await readFile("src/app/globals.css", "utf8")
 
     for (const hook of [

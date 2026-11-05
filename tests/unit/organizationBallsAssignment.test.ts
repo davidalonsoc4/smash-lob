@@ -118,7 +118,7 @@ describe("organization ball assignment priorities", () => {
       readFile("src/components/admin/season/OrganizationBallsSettingsPanel.tsx", "utf8"),
       readFile("src/components/matches/MatchCard.tsx", "utf8"),
       readFile("src/app/matches/page.tsx", "utf8"),
-      readFile("src/app/page.tsx", "utf8"),
+      readFile("src/app/league/home/page.tsx", "utf8"),
     ])
 
     expect(ballsPanel).toContain("export function BallCustodianChoice(")

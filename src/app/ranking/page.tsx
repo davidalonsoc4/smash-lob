@@ -20,7 +20,7 @@ export default function RankingPage() {
   return (
     <div className="space-y-4">
       <header data-tour="ranking-header" className="app-page-header">
-        <BackButton fallbackHref="/" label={t.common.back} />
+        <BackButton fallbackHref="/league/home" label={t.common.back} />
         <h1 className="type-page-title text-2xl font-black tracking-tight">
           {activeLeague.modality === "fixed_pairs" ? tx("Clasificación por parejas") : t.common.individualRanking}
         </h1>

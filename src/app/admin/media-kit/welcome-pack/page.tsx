@@ -230,7 +230,7 @@ export default function WelcomePackMediaKitPage() {
   if (!isLeagueAdmin(activeLeague.id)) {
     return (
       <div className="space-y-4">
-        <BackButton fallbackHref="/" label={tx("Volver")} />
+        <BackButton fallbackHref="/league/home" label={tx("Volver")} />
         <AppCard>
           <p className="font-black">{tx("Acceso restringido")}</p>
         </AppCard>

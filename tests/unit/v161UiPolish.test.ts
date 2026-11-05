@@ -12,7 +12,7 @@ describe("v1.6.1 UI polish", () => {
   })
 
   it("does not render a fallback league logo on HOME", () => {
-    const home = read("src/app/page.tsx")
+    const home = read("src/app/league/home/page.tsx")
     expect(home).toContain("{activeLeague.logoUrl ? (")
     expect(home).toContain("<LeagueLogo league={activeLeague}")
   })

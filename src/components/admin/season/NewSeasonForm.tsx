@@ -1309,7 +1309,7 @@ export function NewSeasonForm({
     showSavedFeedback(successMessage);
     setIsSaving(false);
     onCreated?.(mutationLeagueId);
-    router.replace("/");
+    router.replace("/league/home");
   }
 
   function renderManualPlayer(index: number) {

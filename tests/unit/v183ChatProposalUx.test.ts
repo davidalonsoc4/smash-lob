@@ -41,19 +41,19 @@ describe("v1.8.3 chat proposal UX", () => {
     expect(page).toContain("getLeagueLocationOptionLabel(known)")
   })
 
-  it("prefetches active chats without marking them read", async () => {
+  it("loads a conversation on entry and keeps list views from fetching histories", async () => {
     const listPage = await readFile("src/app/chats/page.tsx", "utf8")
     const chatPage = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")
     const api = await readFile("src/app/api/matches/[matchId]/chat/route.ts", "utf8")
     const cache = await readFile("src/lib/matchChatCache.ts", "utf8")
-    expect(listPage).toContain("chat?markRead=0")
-    expect(listPage).toContain("writeMatchChatCache")
+    expect(listPage).not.toContain("chat?markRead=0")
+    expect(chatPage).toContain("fetchChatEntry(account,")
     expect(chatPage).toContain("readMatchChatCache")
     expect(chatPage).toContain("writeMatchChatCache")
     expect(api).toContain('get("markRead") !== "0"')
     expect(api).toContain("if (markRead && latestIncoming")
     expect(api).toContain('from("match_chat_reads").upsert')
-    expect(cache).toContain("window.sessionStorage")
+    expect(cache).not.toContain("window.sessionStorage")
   })
   it("shows weekday-aware proposal dates and large visual voting controls", async () => {
     const page = await readFile("src/app/match/[id]/chat/page.tsx", "utf8")

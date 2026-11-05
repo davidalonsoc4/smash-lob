@@ -8,6 +8,6 @@
     "src/lib/changelog.ts": 2490,
     "src/context/LeagueAccessProvider.tsx": 2000,
     "src/context/MatchDataProvider.tsx": 1835,
-    "src/app/page.tsx": 1510
+    "src/app/league/home/page.tsx": 1510
   }
 }

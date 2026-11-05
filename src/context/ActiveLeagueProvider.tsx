@@ -39,7 +39,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
     useState(defaultActiveLeagueId)
   const [grantedLeagueId, setGrantedLeagueId] = useState<string | null>(null)
   const [transitioningLeagueId, setTransitioningLeagueId] = useState<string | null>(null)
-  const [transitionDestinationPath, setTransitionDestinationPath] = useState("/")
+  const [transitionDestinationPath, setTransitionDestinationPath] = useState("/league/home")
   const effectiveActiveLeagueId = grantedLeagueId
     ? grantedLeagueId
     : canAccessLeague(activeLeagueId)
@@ -189,7 +189,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   // which can still be one render behind immediately after creating or
   // claiming a membership.
   const activateGrantedLeague = useCallback(
-    (leagueId: string, destinationPath = "/") => {
+    (leagueId: string, destinationPath = "/league/home") => {
       if (!leagueId) {
         return
       }
@@ -210,8 +210,8 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
 
       // All accessible leagues are already hydrated in the client contexts.
       // Navigating client-side avoids repeating auth and the full Supabase snapshot.
-      if (pathname !== "/") {
-        router.push("/")
+      if (pathname !== "/league/home") {
+        router.push("/league/home")
       } else {
         window.scrollTo({ top: 0, behavior: "auto" })
       }

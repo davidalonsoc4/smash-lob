@@ -83,7 +83,7 @@ export function SpectatorInviteFlow() {
     // of downgrading the active league to the public read-only view.
     window.localStorage.setItem("smash-lob-active-league", invite.leagueId)
     void clearPendingAccessIntent()
-    router.replace("/")
+    router.replace("/league/home")
   }, [hasFullLeagueAccess, invite, router])
 
   async function handleJoin() {
@@ -98,7 +98,7 @@ export function SpectatorInviteFlow() {
       if (userEmail) addCachedSpectatorLeagueId(userEmail, result.leagueId)
       window.localStorage.setItem("smash-lob-active-league", result.leagueId)
       await clearPendingAccessIntent()
-      router.replace("/")
+      router.replace("/league/home")
     } catch {
       setError("No se ha podido activar el acceso de espectador.")
       setIsJoining(false)
@@ -110,7 +110,7 @@ export function SpectatorInviteFlow() {
 
     setIsCancelling(true)
     await clearPendingAccessIntent()
-    router.replace("/")
+    router.replace("/leagues")
   }
 
   return (

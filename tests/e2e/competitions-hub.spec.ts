@@ -40,7 +40,7 @@ test("share menu offers three branded QR destinations without changing league ac
   await expect(page.getByRole("dialog").getByRole("group")).toHaveCount(0)
   await page.getByRole("dialog").getByRole("button", { name: "Cerrar", exact: true }).click()
   await page.getByRole("button", { name: /^Entrar en/ }).first().click()
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL("/league/home")
   for (const width of [320, 393]) {
     await page.setViewportSize({ width, height: 852 })
     const back = page.getByRole("link", { name: "Competiciones", exact: true })
@@ -151,7 +151,10 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
     const slides = element.previousElementSibling!.getBoundingClientRect()
     return [markers[0].width, markers[1].width, markers[1].left - markers[0].right, markers[0].top - slides.bottom]
   }
-  const activityIndicators = await activity.locator(".match-preview-pagination").evaluate(indicatorGeometry)
+  const activityPagination = activity.locator(".match-preview-pagination")
+  await expect(activity.getByText("Tu próximo partido", { exact: true })).toBeVisible()
+  await expect.poll(async () => (await activityPagination.evaluate(indicatorGeometry)).slice(0, 2)).toEqual([20, 6])
+  const activityIndicators = await activityPagination.evaluate(indicatorGeometry)
   const navGeometry = (el: HTMLElement) => {
     const grid = el.firstElementChild!, item = el.querySelector("a")!, icon = item.querySelector("svg")!
     return [el.getBoundingClientRect().height, getComputedStyle(grid).paddingTop, getComputedStyle(grid).paddingBottom, getComputedStyle(grid).columnGap, getComputedStyle(item).fontSize, getComputedStyle(item).borderRadius, item.getBoundingClientRect().height, icon.getBoundingClientRect().width, icon.getBoundingClientRect().height]
@@ -165,7 +168,7 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
     ]))
   })
   await page.getByRole("button", { name: /^Entrar en/ }).first().click()
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL("/league/home")
   await page.reload()
   expect(await page.locator('nav[data-tour="bottom-navigation"]').evaluate(navGeometry)).toEqual(globalGeometry)
   const league = page.locator('[data-tour="home-next-match"]'), leagueSlider = league.locator(".match-slides")
@@ -190,6 +193,34 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   await page.screenshot({ path: testInfo.outputPath("league-swipe.png"), scale: "css" })
   const a11y = await new AxeBuilder({ page }).analyze()
   expect(a11y.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})
+
+test("personal matches shows recent activity while revalidating after navigation", async ({ page }) => {
+  let releaseRefresh!: () => void
+  const refreshPending = new Promise<void>(resolve => { releaseRefresh = resolve })
+  let reads = 0
+  await page.route("**/api/personal-matches?**", async route => {
+    const refreshing = ++reads > 1
+    if (refreshing) await refreshPending
+    const match = {
+      id: "fixture-cached", origin: "friendly", status: "finished", scheduledAt: "2026-10-14T10:00:00Z",
+      resultRecordedAt: "2026-10-14T11:00:00Z", sets: [{ a: 6, b: 3 }],
+      participants: [{ team: 1, slot: 1, displayName: refreshing ? "Dato actualizado" : "Dato en memoria", isCurrentUser: true }],
+    }
+    await route.fulfill({ json: { items: [match], upcoming: [], hasMore: false, nextOffset: null } })
+  })
+  try {
+    await page.goto("/leagues")
+    await expect(page.getByText("Dato en memoria")).toBeVisible()
+    const navbar = page.getByRole("navigation", { name: "Navegación global" })
+    await navbar.getByRole("link", { name: "Mis partidos" }).click()
+    await expect(page.getByRole("heading", { name: "Mis partidos" })).toBeVisible()
+    await expect(page.getByText("Dato en memoria")).toBeVisible()
+    await expect.poll(() => reads).toBe(2)
+  } finally {
+    releaseRefresh()
+  }
+  await expect(page.getByText("Dato actualizado")).toBeVisible()
 })
 
 test("last encounter is compact only in the hub and history stays detailed", async ({ page }, testInfo) => {
@@ -273,10 +304,11 @@ test("last encounter is compact only in the hub and history stays detailed", asy
 
 for (const theme of ["light", "dark"] as const) {
   for (const visualStyle of ["competition", "classic"] as const) {
-  test(`competitions hub keeps each view compact and preserves context (${theme}, ${visualStyle})`, async ({ page, context }, testInfo) => {
+  test(`competitions hub keeps each view compact and preserves context (${theme}, ${visualStyle})`, async ({ page, context, baseURL }, testInfo) => {
     await context.addInitScript(({ mode, style }) => {
       localStorage.setItem("smash-lob-theme-mode", mode)
       localStorage.setItem("smash-lob-visual-style", style)
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
     }, { mode: theme, style: visualStyle })
     const upcoming = {
       id: "fixture-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2099-10-17T18:00:00Z", resultRecordedAt: null,
@@ -382,7 +414,7 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page).toHaveURL(/\/leagues$/)
     await page.getByRole("link", { name: "Ver todas", exact: true }).click()
     await page.getByRole("button", { name: /^Entrar en/ }).first().click()
-    await expect(page).toHaveURL(/\/$/)
+    await expect(page).toHaveURL("/league/home")
     await expect(page.locator(".app-bottom-nav")).toHaveCount(1)
     await expect(navigation).toHaveCount(0)
     await page.getByRole("link", { name: "Competiciones", exact: true }).click()
@@ -391,7 +423,7 @@ for (const theme of ["light", "dark"] as const) {
     // Exercise the visual hierarchy with real content in every section and a
     // non-default accent; single-league fixtures cannot expose crowded layouts.
     const expandedLeagues = [...fixtureLeagues, { ...fixtureLeagues[0], id: "league-archive", name: "Liga histórica", activeSeasonId: "season-archive" }]
-      .map((league, index) => ({ ...league, accentColor: index === 1 ? "#477BD1" : "#8B5FC0", logoUrl: "http://127.0.0.1:3100/fixture-crest.svg" }))
+      .map((league, index) => ({ ...league, accentColor: index === 1 ? "#477BD1" : "#8B5FC0", logoUrl: new URL("/fixture-crest.svg", baseURL).href }))
     await page.route("**/fixture-crest.svg", route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="#477BD1" d="M8 6h48v30L32 59 8 36z"/><path fill="white" d="M20 20h24v6H26v6h18v6H20z"/></svg>' }))
     await page.route("**/api/access**", route => route.fulfill({ json: {
       isSuperuser: false, canCreateLeagues: true, leagues: expandedLeagues,
@@ -411,7 +443,8 @@ for (const theme of ["light", "dark"] as const) {
       localStorage.setItem("smash-lob-competition-accent", "ice")
       localStorage.setItem("smash-lob-palette", "indigo")
     })
-    await page.reload()
+    await page.goto("/launch?source=pwa")
+    await expect(page).toHaveURL("/leagues")
     await expect(page.getByRole("link", { name: /Americana del club/ })).toBeVisible()
     await expect(page.getByRole("link", { name: /Torneo de otoño/ })).toBeVisible()
     await expect.poll(() => page.locator('img[src$="fixture-crest.svg"]').evaluateAll(images => images.length >= 2 && images.every(image => (image as HTMLImageElement).naturalWidth > 0))).toBe(true)
@@ -450,7 +483,7 @@ for (const theme of ["light", "dark"] as const) {
     await page.route("**/api/tournaments/people", route => route.fulfill({ json: { people: [] } }))
     await page.route("**/api/locations", route => route.fulfill({ json: { locations: [] } }))
     await page.route("**/api/notifications/read-state", route => route.fulfill({ json: { items: [] } }))
-    for (const path of ["/leagues", "/leagues/all", "/tournaments", "/tournaments/new", "/personal-matches", "/personal-matches/profile", "/personal-matches/chats", "/", "/matches", "/ranking", "/statistics", "/profile", "/match/season-2-round-5-match-1", "/settings", "/settings/appearance", "/notifications", "/help"]) {
+    for (const path of ["/leagues", "/leagues/all", "/tournaments", "/tournaments/new", "/personal-matches", "/personal-matches/profile", "/personal-matches/chats", "/league/home", "/matches", "/ranking", "/statistics", "/profile", "/match/season-2-round-5-match-1", "/settings", "/settings/appearance", "/notifications", "/help"]) {
       await test.step(path, async () => {
         await page.goto(path)
         const header = page.locator(".app-page-header").first()
@@ -502,10 +535,10 @@ for (const canCreate of [true, false]) {
       localStorage.setItem("smash-lob-active-league", "league-smash-lob")
       localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
     })
-    await page.goto("/")
+    await page.goto("/league/home")
     await expect(page.locator('[data-preseason-phase="locked"]')).toBeVisible()
     await page.goto("/ranking")
-    await expect(page).toHaveURL(/\/$/)
+    await expect(page).toHaveURL("/league/home")
     await expect(page.locator('[data-preseason-phase="locked"]')).toBeVisible()
     await page.getByRole("link", { name: "Competiciones", exact: true }).click()
     await page.getByRole("link", { name: "Ver todas", exact: true }).click()
@@ -569,8 +602,8 @@ for (const spectator of [false, true]) {
       localStorage.setItem("smash-lob-spectator-leagues:qa-empty@example.test", JSON.stringify(isSpectator ? ["league-smash-lob"] : []))
       localStorage.setItem("smash-lob:competition-launch-popup-v2:qa-empty@example.test", "dismissed")
     }, spectator)
-    for (const path of ["/leagues", "/leagues/all", "/tournaments"]) {
-      await page.goto(path)
+    for (const [entry, path] of [["/", "/leagues"], ["/launch?source=pwa", "/leagues"], ["/leagues/all", "/leagues/all"], ["/tournaments", "/tournaments"]]) {
+      await page.goto(entry)
       await expect(page.getByRole("navigation", { name: "Navegación global", exact: true })).toHaveCount(1)
       await expect(page).toHaveURL(new RegExp(path + "$"))
       await expect(page.locator(".app-bottom-nav")).toHaveCount(0)

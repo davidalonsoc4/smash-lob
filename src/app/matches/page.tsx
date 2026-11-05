@@ -114,7 +114,7 @@ export default function MatchesPage() {
   return (
     <div className="space-y-4">
       <header data-tour="matches-header" className="app-page-header">
-        <BackButton fallbackHref="/" label={t.common.back} />
+        <BackButton fallbackHref="/league/home" label={t.common.back} />
         <div className="flex min-w-0 items-center gap-3">
           <div className="min-w-0 flex-1">
             <h1 className="type-page-title min-w-0 text-2xl font-black tracking-tight">{t.matches.subtitle}</h1>

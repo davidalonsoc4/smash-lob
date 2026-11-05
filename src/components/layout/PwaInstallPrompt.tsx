@@ -96,7 +96,7 @@ export function PwaInstallPrompt() {
   const sessionUserId = session?.user?.email?.trim().toLowerCase() ?? null
   const canOfferInstall =
     status === "authenticated" &&
-    pathname === "/" &&
+    pathname === "/leagues" &&
     hasStoredLeagueMembership(sessionUserId)
 
   useEffect(() => {

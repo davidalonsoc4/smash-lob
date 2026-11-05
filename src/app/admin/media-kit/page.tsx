@@ -714,7 +714,7 @@ export default function MediaKitPage() {
     reader.readAsDataURL(file)
   }
 
-  if (!canManage) return <div className="space-y-4"><BackButton fallbackHref="/" label={tx("Volver")} /><AppCard><p className="font-black">{tx("Acceso restringido")}</p></AppCard></div>
+  if (!canManage) return <div className="space-y-4"><BackButton fallbackHref="/league/home" label={tx("Volver")} /><AppCard><p className="font-black">{tx("Acceso restringido")}</p></AppCard></div>
 
   return (
     <div className="space-y-3">

@@ -7,7 +7,7 @@ export function buildPostAuthDestination(
   const normalizedPath = pathname?.trim() || "/"
 
   if (!INVITE_PATH_PATTERN.test(normalizedPath)) {
-    return "/"
+    return "/leagues"
   }
 
   const query = searchParams?.toString().trim()

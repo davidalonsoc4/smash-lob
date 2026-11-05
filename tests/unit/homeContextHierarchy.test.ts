@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 describe("home and primary navigation context hierarchy", () => {
   it("keeps Home identity compact and folds season state into one line", async () => {
     const [home, seasonContext] = await Promise.all([
-      readFile("src/app/page.tsx", "utf8"),
+      readFile("src/app/league/home/page.tsx", "utf8"),
       readFile("src/components/layout/SeasonContextLine.tsx", "utf8"),
     ])
 
@@ -19,7 +19,7 @@ describe("home and primary navigation context hierarchy", () => {
   })
 
   it("compresses finished and upcoming season summaries instead of repeating large status blocks", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
 
     expect(home).toContain('data-tour="home-season-summary"')
     expect(home).toContain("t.profile.seasonSummary")
@@ -62,8 +62,8 @@ describe("home and primary navigation context hierarchy", () => {
       expect(titleIndex).toBeGreaterThanOrEqual(0)
       expect(contextIndex).toBeGreaterThan(titleIndex)
     }
-    expect(pages[0]).toContain('<BackButton fallbackHref="/" label={t.common.back} />')
-    expect(pages[1]).toContain('<BackButton fallbackHref="/" label={t.common.back} />')
-    expect(pages[2]).toContain('<BackButton fallbackHref={isSelf ? "/" : "/ranking"} label={t.common.back} />')
+    expect(pages[0]).toContain('<BackButton fallbackHref="/league/home" label={t.common.back} />')
+    expect(pages[1]).toContain('<BackButton fallbackHref="/league/home" label={t.common.back} />')
+    expect(pages[2]).toContain('<BackButton fallbackHref={isSelf ? "/league/home" : "/ranking"} label={t.common.back} />')
   })
 })

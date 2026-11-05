@@ -32,7 +32,7 @@ describe("v1.4.12 personal and league polish", () => {
 
   it("uses context-specific match headers and only prompts the next pending league match", async () => {
     const [home, calendar, card] = await Promise.all([
-      read("src/app/page.tsx"),
+      read("src/app/league/home/page.tsx"),
       read("src/app/matches/page.tsx"),
       read("src/components/matches/MatchCard.tsx"),
     ])

@@ -69,7 +69,7 @@ function riskySimpleActions(source: string, file: string) {
 
 describe("v1.6.5 centered action buttons", () => {
   it("centers both finished-season HOME actions horizontally and vertically", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
     for (const marker of ["t.dashboard.historyAndStatistics", "t.dashboard.shareSeasonSummary"]) {
       const markerIndex = home.indexOf(marker)
       expect(markerIndex).toBeGreaterThan(-1)

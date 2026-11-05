@@ -229,7 +229,7 @@ describe("v1.10.26 preseason secret phase", () => {
 
   it("shows the secret opening on HOME and creates a pairing-free calendar event", async () => {
     const [home, countdown, calendar, settings] = await Promise.all([
-      read("src/app/page.tsx"),
+      read("src/app/league/home/page.tsx"),
       read("src/components/season/SeasonStartCountdown.tsx"),
       read("src/components/season/PreseasonOpeningCalendarButton.tsx"),
       read("src/components/season/ScheduledStartSettingsPanel.tsx"),

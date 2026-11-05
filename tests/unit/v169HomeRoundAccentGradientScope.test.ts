@@ -21,7 +21,7 @@ describe("v1.6.9 HOME round accent gradient scope", () => {
 
   it("keeps the accent scoped to the JORNADAS slot", async () => {
     const [home, css] = await Promise.all([
-      readFile("src/app/page.tsx", "utf8"),
+      readFile("src/app/league/home/page.tsx", "utf8"),
       readFile("src/app/globals.css", "utf8"),
     ])
 
