@@ -14,7 +14,7 @@ function setup(options: { participant?: boolean; status?: string; rpcError?: str
   const from = vi.fn((table: string) => {
     calls.push(table)
     const query = {
-      select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), gte: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), neq: vi.fn().mockReturnThis(), gt: vi.fn().mockReturnThis(), gte: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), update: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: table === "seasons" ? { id: seasonId, league_id: "league", name: "Temporada", status: options.status ?? "active" } : options.participant === false ? null : { player_id: "player", last_read_at: options.lastReadAt ?? null }, error: null }),
       then(resolve: (value: unknown) => void) { const data = table === "league_season_chat_messages" ? options.messages ?? [] : table === "league_season_chat_participants" ? options.members ?? [] : table === "app_users" ? options.profiles ?? [] : []; return Promise.resolve({ data, error: null, count: 0 }).then(resolve) },
@@ -37,6 +37,15 @@ describe("league season chat", () => {
   it("returns a finished season as read-only", async () => {
     setup({ status: "finished" })
     expect(await (await GET(get(), context)).json()).toMatchObject({ readOnly: true })
+  })
+  it("returns a summary without reading participant profiles or marking the chat read", async () => {
+    const { calls } = setup({ messages: [{ sender_display_name: "Ana", body: "Hola", created_at: "2026-11-03T10:00:00Z" }] })
+    const response = await GET(new Request(get().url + "&summary=1"), context)
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store")
+    const body = await response.json()
+    expect(body).toMatchObject({ messages: [{ body: "Hola" }], participantCount: 0, unread: 0 })
+    expect(body).not.toHaveProperty("participants")
+    expect(calls).not.toContain("app_users")
   })
   it("counts unread messages from other participants only", async () => {
     setup({ lastReadAt: "2026-11-01T10:00:00Z", messages: [

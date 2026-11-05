@@ -7,11 +7,13 @@ import {
 
 export const dynamic = "force-dynamic"
 
-export default async function LaunchPage() {
+export default async function LaunchPage({ searchParams }: { searchParams: Promise<{ source?: string | string[] }> }) {
+  if ((await searchParams).source !== "pending-invitation") redirect("/leagues")
+
   const cookieStore = await cookies()
   const pendingDestination = decodePendingAccessDestination(
     cookieStore.get(PENDING_ACCESS_INTENT_COOKIE)?.value,
   )
 
-  redirect(pendingDestination ?? "/")
+  redirect(pendingDestination ?? "/leagues")
 }

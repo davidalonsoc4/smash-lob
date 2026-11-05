@@ -1,5 +1,7 @@
 import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
+import { buildPostAuthDestination } from "@/lib/authRedirect"
+import { normalizeInternalNavigationTarget } from "@/lib/leagueNavigation"
 
 describe("v1.10.3 post-login league entry", () => {
   it("waits for the real league snapshot before showing onboarding", async () => {
@@ -9,20 +11,13 @@ describe("v1.10.3 post-login league entry", () => {
     expect(source.indexOf("if (!isAccessHydrated")).toBeLessThan(source.indexOf("if (userLeagues.length > 0)"))
   })
 
-  it("opens Mis ligas after login but keeps the active HOME on a document reload", async () => {
-    const source = await readFile("src/components/auth/LeagueEntryGate.tsx", "utf8")
-    expect(source).toContain("initialLeagueEntryResolved")
-    expect(source).toContain("setInitialLeagueEntryResolved")
-    expect(source).not.toContain("useRef")
-    expect(source).toContain("function isDocumentReload()")
-    expect(source).toContain('getEntriesByType(\n    "navigation",')
-    expect(source).toContain('navigationEntry.type === "reload"')
-    expect(source).toContain('window.performance.navigation?.type === 1')
-    expect(source).toContain('!isDocumentReload()')
-    expect(source).toContain('router.replace("/leagues")')
+  it("separates ordinary login from links to a specific league", () => {
+    expect(buildPostAuthDestination("/")).toBe("/leagues")
+    expect(normalizeInternalNavigationTarget("/")).toBe("/league/home")
+    expect(normalizeInternalNavigationTarget("/match/fixture/chat")).toBe("/match/fixture/chat")
   })
 
-  it("keeps the existing one-league and zero-league destinations", async () => {
+  it("keeps the fallback for direct league routes without league access", async () => {
     const source = await readFile("src/components/auth/LeagueEntryGate.tsx", "utf8")
     expect(source).toContain("if (userLeagues.length > 0)")
     expect(source).toContain("{t.onboarding.title}")

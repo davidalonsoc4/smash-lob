@@ -8,10 +8,10 @@ export function normalizeInternalNavigationTarget(
     normalizedTarget.startsWith("//") ||
     normalizedTarget.startsWith("/open")
   ) {
-    return "/"
+    return "/league/home"
   }
 
-  return normalizedTarget
+  return normalizedTarget === "/" ? "/league/home" : normalizedTarget
 }
 
 export function buildLeagueNavigationUrl({

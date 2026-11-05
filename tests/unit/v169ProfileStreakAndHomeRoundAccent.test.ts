@@ -65,7 +65,7 @@ describe("v1.6.9 profile streak detail and HOME round accent", () => {
 
   it("adds the accent specifically to the HOME JORNADAS slot", async () => {
     const [home, css] = await Promise.all([
-      readFile("src/app/page.tsx", "utf8"),
+      readFile("src/app/league/home/page.tsx", "utf8"),
       readFile("src/app/globals.css", "utf8"),
     ])
 

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "smash-lob-v1.15.40"
+const CACHE_VERSION = "smash-lob-v1.15.41"
 const APP_SHELL = [
   "/offline",
   "/manifest.webmanifest",
@@ -132,7 +132,7 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
-      .then((clients) => {
+      .then(async (clients) => {
         const sameOriginClient = clients.find((client) => {
           try {
             return new URL(client.url).origin === self.location.origin
@@ -142,6 +142,23 @@ self.addEventListener("notificationclick", (event) => {
         })
 
         if (sameOriginClient) {
+          const handled = await new Promise((resolve) => {
+            const channel = new MessageChannel()
+            const finish = (handled) => {
+              clearTimeout(timeout)
+              channel.port1.close()
+              resolve(handled)
+            }
+            const timeout = setTimeout(() => finish(false), 500)
+            channel.port1.onmessage = (reply) => finish(reply.data === "navigating")
+            try {
+              sameOriginClient.postMessage({ type: "OPEN_NOTIFICATION", url: targetUrl }, [channel.port2])
+            } catch {
+              finish(false)
+            }
+          })
+          if (handled) return sameOriginClient.focus()
+
           if ("navigate" in sameOriginClient) {
             return sameOriginClient.navigate(targetUrl).then((client) =>
               client ? client.focus() : sameOriginClient.focus(),

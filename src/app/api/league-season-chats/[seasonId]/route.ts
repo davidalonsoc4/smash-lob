@@ -13,6 +13,22 @@ export async function GET(request: Request, context: Context) {
   const access = await getLeagueSeasonChatActor(seasonId)
   if (!access.ok) return fail(access.error, access.status)
   const { supabase, user } = access.actor
+  const searchParams = new URL(request.url).searchParams
+  const lastReadAt = access.participant.last_read_at
+  const summary = { season: access.season, readOnly: access.season.status !== "active", realtimeTopic: getLeagueSeasonChatRealtimeTopic(seasonId) }
+  if (searchParams.get("summary") === "1") {
+    let unreadQuery = supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
+      .eq("season_id", seasonId).neq("sender_user_id", user.id)
+    if (lastReadAt) unreadQuery = unreadQuery.gt("created_at", lastReadAt)
+    const [latest, participants, unread] = await Promise.all([
+      supabase.from("league_season_chat_messages").select("sender_display_name,body,created_at")
+        .eq("season_id", seasonId).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1),
+      supabase.from("league_season_chat_participants").select("user_id", { count: "exact", head: true }).eq("season_id", seasonId),
+      unreadQuery,
+    ])
+    if (latest.error || participants.error || unread.error) return fail("league_chat_messages_failed", 500)
+    return NextResponse.json({ ...summary, messages: latest.data ?? [], participantCount: participants.count ?? 0, unread: unread.count ?? 0 }, { headers: { "Cache-Control": "private, no-store" } })
+  }
   const members = await supabase.from("league_season_chat_participants")
     .select("user_id,player_id,last_read_at").eq("season_id", seasonId)
   if (members.error) return fail("league_chat_participants_failed", 500)
@@ -27,7 +43,7 @@ export async function GET(request: Request, context: Context) {
     const profile = profileById.get(member.user_id)
     return { userId: member.user_id, displayName: profile?.display_name || "Jugador", avatarUrl: profile?.avatar_url ?? null, lastReadAt: member.last_read_at }
   })
-  const before = new URL(request.url).searchParams.get("before")
+  const before = searchParams.get("before")
   if (before && !validateUuid(before)) return fail("invalid_message_cursor", 400)
   let query = supabase.from("league_season_chat_messages")
     .select("id,sender_user_id,sender_display_name,body,created_at")
@@ -43,9 +59,8 @@ export async function GET(request: Request, context: Context) {
   const rows = result.data ?? []
   const hasMore = rows.length > 200
   const messages = rows.slice(0, 200).reverse()
-  const lastReadAt = access.participant.last_read_at
   const unread = messages.filter((message) => message.sender_user_id !== user.id && (!lastReadAt || message.created_at > lastReadAt)).length
-  if (!before && new URL(request.url).searchParams.get("markRead") !== "0") {
+  if (!before && searchParams.get("markRead") !== "0") {
     const lastRead = messages.at(-1)?.created_at
     if (lastRead && (!lastReadAt || lastRead > lastReadAt)) {
       const read = await supabase.from("league_season_chat_participants")
@@ -54,7 +69,7 @@ export async function GET(request: Request, context: Context) {
       await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
     }
   }
-  return NextResponse.json({ messages, participants, me: user.id, season: access.season, unread, hasMore, readOnly: access.season.status !== "active", realtimeTopic: getLeagueSeasonChatRealtimeTopic(seasonId) })
+  return NextResponse.json({ ...summary, messages, participants, me: user.id, unread, hasMore }, { headers: { "Cache-Control": "private, no-store" } })
 }
 
 export async function POST(request: Request, context: Context) {

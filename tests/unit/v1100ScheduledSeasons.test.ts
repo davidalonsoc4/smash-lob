@@ -96,7 +96,7 @@ describe("v1.10.0 scheduled season start", () => {
 
   it("shows the programmed state, countdown and a one-shot refresh at activation time", async () => {
     const [home, admin, scheduledSettings, countdown] = await Promise.all([
-      read("src/app/page.tsx"),
+      read("src/app/league/home/page.tsx"),
       read("src/app/admin/season/page.tsx"),
       read("src/components/season/ScheduledStartSettingsPanel.tsx"),
       read("src/components/season/SeasonStartCountdown.tsx"),
@@ -166,13 +166,13 @@ describe("v1.10.0 scheduled season start", () => {
     expect(shell).toContain("const shouldShowSpectatorShareButton = shouldShowActionBar")
     expect(shell).toContain('const shouldShowLeagueSearch =\n    (pathname === "/leagues" || pathname === "/leagues/all")')
     expect(shell).toContain('const shouldShowPersonalMatchesNav =\n    (isPersonalMatchesRoute || isCompetitionOverview)')
-    expect(nav).toContain('const isDisabled = homeOnlyLocked && item.href !== "/"')
+    expect(nav).toContain('const isDisabled = homeOnlyLocked && item.href !== "/league/home"')
   })
 
   it("lets admin experience bypass the scheduled-season lock while player experiences remain locked", async () => {
     const [access, home, matches, matchDetail, chatPage, matchAccess] = await Promise.all([
       read("src/context/LeagueAccessProvider.tsx"),
-      read("src/app/page.tsx"),
+      read("src/app/league/home/page.tsx"),
       read("src/app/matches/page.tsx"),
       read("src/app/match/[id]/page.tsx"),
       read("src/app/match/[id]/chat/page.tsx"),

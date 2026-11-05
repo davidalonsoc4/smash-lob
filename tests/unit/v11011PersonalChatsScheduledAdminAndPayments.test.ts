@@ -77,7 +77,7 @@ describe("v1.10.11 personal chats, scheduled admin access and registration payme
     const [route, client, home, panel] = await Promise.all([
       read("src/app/api/leagues/[id]/seasons/[seasonId]/registration-payment/route.ts"),
       read("src/lib/supabaseSeasons.ts"),
-      read("src/app/page.tsx"),
+      read("src/app/league/home/page.tsx"),
       read("src/components/season/SeasonRegistrationPanel.tsx"),
     ])
 
@@ -94,7 +94,7 @@ describe("v1.10.11 personal chats, scheduled admin access and registration payme
     const [shell, dataHook, home, matches, detail, chat] = await Promise.all([
       read("src/components/layout/AppShell.tsx"),
       read("src/hooks/useCurrentLeagueData.ts"),
-      read("src/app/page.tsx"),
+      read("src/app/league/home/page.tsx"),
       read("src/app/matches/page.tsx"),
       read("src/app/match/[id]/page.tsx"),
       read("src/app/match/[id]/chat/page.tsx"),

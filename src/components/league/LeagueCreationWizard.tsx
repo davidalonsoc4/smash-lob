@@ -39,6 +39,6 @@ export function LeagueCreationWizard() {
   }
   return <>
     <div hidden={!editingIdentity}><LeagueCreationForm initialLeague={draft ?? undefined} modalityLocked={modalityLocked} expandCustomization={expandCustomization} onNext={league => { setDraft(league); setEditingIdentity(false); window.scrollTo(0, 0) }} onBack={() => router.push("/leagues")} /></div>
-    {draft ? <div hidden={editingIdentity}><NewSeasonForm activeLeagueId={draft.id} activeLeagueName={draft.name} activeSeasonId="" currentPlayers={[]} initialLocations={draft.locations ?? []} draftLeague={draft} onEditLeague={fromSummary => { setExpandCustomization(fromSummary); setEditingIdentity(true); window.scrollTo(0, 0) }} onPrepareLeague={prepareLeague} onCreated={id => activateGrantedLeague(id, "/")} onExit={() => router.push("/leagues")} /></div> : null}
+    {draft ? <div hidden={editingIdentity}><NewSeasonForm activeLeagueId={draft.id} activeLeagueName={draft.name} activeSeasonId="" currentPlayers={[]} initialLocations={draft.locations ?? []} draftLeague={draft} onEditLeague={fromSummary => { setExpandCustomization(fromSummary); setEditingIdentity(true); window.scrollTo(0, 0) }} onPrepareLeague={prepareLeague} onCreated={id => activateGrantedLeague(id)} onExit={() => router.push("/leagues")} /></div> : null}
   </>
 }

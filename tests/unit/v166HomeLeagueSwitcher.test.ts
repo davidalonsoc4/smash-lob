@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises"
 
 describe("v1.6.6 HOME quick league switcher", () => {
   it("keeps the league title as the visible trigger and uses the real active league provider", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
 
     expect(home).toContain('import { useActiveLeague } from "@/context/ActiveLeagueProvider"')
     expect(home).toContain("const { activeLeagueId, activateLeague } = useActiveLeague();")
@@ -14,7 +14,7 @@ describe("v1.6.6 HOME quick league switcher", () => {
   })
 
   it("offers every accessible league, marks the active one and includes MIS PARTIDOS", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
 
     expect(home).toContain("const accessibleHomeLeagues = leagues.filter")
     expect(home).toContain("canAccessLeague(league.id) || isLeagueSpectator(league.id)")

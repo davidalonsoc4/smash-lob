@@ -59,7 +59,7 @@ const requiredSnippets = new Map([
       "GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.user_onboarding_progress TO service_role",
     ],
   ],
-  ["src/app/page.tsx", ['data-tour="home-header"', 'data-tour="home-league-switcher"', 'data-tour="home-next-match"']],
+  ["src/app/league/home/page.tsx", ['data-tour="home-header"', 'data-tour="home-league-switcher"', 'data-tour="home-next-match"']],
   ["src/app/matches/page.tsx", ['data-tour="matches-round-list"']],
   ["src/app/chats/page.tsx", ['data-tour={tour}', 'tour="chats-conversations"', 'data-tour="chats-finished"']],
   ["src/app/match/[id]/chat/page.tsx", ['data-tour="chat-messages"', 'data-tour="chat-proposals"', "<MatchChatFrame", "<MatchChatComposer"]],

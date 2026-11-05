@@ -223,7 +223,7 @@ assert(
   "Inicio no debe recuperar el logo gigante ni reservar una rejilla especial para él",
 )
 const [topHomePage, topRankingPage, topMatchesPage, topProfilePage] = await Promise.all([
-  readFile("src/app/page.tsx", "utf8"),
+  readFile("src/app/league/home/page.tsx", "utf8"),
   readFile("src/app/ranking/page.tsx", "utf8"),
   readFile("src/app/matches/page.tsx", "utf8"),
   readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),
@@ -241,12 +241,12 @@ for (const [label, source] of [
   ["Partidos", topMatchesPage],
 ]) {
   assert(
-    source.includes('<BackButton fallbackHref="/" label={t.common.back} />'),
+    source.includes('<BackButton fallbackHref="/league/home" label={t.common.back} />'),
     `${label} debe usar Volver en la izquierda de la fila funcional`,
   )
 }
 assert(
-  topProfilePage.includes('<BackButton fallbackHref={isSelf ? "/" : "/ranking"} label={t.common.back} />'),
+  topProfilePage.includes('<BackButton fallbackHref={isSelf ? "/league/home" : "/ranking"} label={t.common.back} />'),
   "El perfil compartido debe mantener Volver contextual en la fila funcional",
 )
 assert(
@@ -267,7 +267,7 @@ assert(
 )
 
 const [homePage, rankingPage, matchesPage, profileScreen, seasonContextLine] = await Promise.all([
-  readFile("src/app/page.tsx", "utf8"),
+  readFile("src/app/league/home/page.tsx", "utf8"),
   readFile("src/app/ranking/page.tsx", "utf8"),
   readFile("src/app/matches/page.tsx", "utf8"),
   readFile("src/components/player/PlayerProfileScreen.tsx", "utf8"),

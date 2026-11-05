@@ -36,7 +36,7 @@ export function PushPermissionReminder() {
   )
 
   useEffect(() => {
-    if (pathname !== "/" || !eligible) return
+    if (pathname !== "/leagues" || !eligible) return
     if (getPushSupportStatus() === "unsupported" || getPushSupportStatus() === "missing_public_key") return
     if (isPushAutoRegistrationDisabled() || isSnoozed()) return
     if (Notification.permission === "granted") return

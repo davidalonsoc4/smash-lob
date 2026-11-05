@@ -7,7 +7,7 @@ describe("shared match teams panel", () => {
       readFile("src/components/matches/MatchTeamsPanel.tsx", "utf8"),
       readFile("src/components/matches/MatchCard.tsx", "utf8"),
       readFile("src/components/match/MatchScoreboard.tsx", "utf8"),
-      readFile("src/app/page.tsx", "utf8"),
+      readFile("src/app/league/home/page.tsx", "utf8"),
       readFile("src/app/match/[id]/page.tsx", "utf8"),
       readFile("src/components/match/MatchDetailPairingPanel.tsx", "utf8"),
       readFile("src/components/match/MatchDetailView.tsx", "utf8"),

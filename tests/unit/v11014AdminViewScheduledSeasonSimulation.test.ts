@@ -28,7 +28,7 @@ describe("v1.10.14 admin/player scheduled-season simulation", () => {
 
   it("uses the effective competition-admin experience for scheduled-season client bypasses", async () => {
     const [home, shell, matches, detail, chat, currentData] = await Promise.all([
-      read("src/app/page.tsx"),
+      read("src/app/league/home/page.tsx"),
       read("src/components/layout/AppShell.tsx"),
       read("src/app/matches/page.tsx"),
       read("src/app/match/[id]/page.tsx"),
@@ -70,7 +70,7 @@ describe("v1.10.14 admin/player scheduled-season simulation", () => {
   })
 
   it("still shows the scheduled countdown in HOME in both admin and simulated-player views", async () => {
-    const home = await read("src/app/page.tsx")
+    const home = await read("src/app/league/home/page.tsx")
 
     expect(home).toContain(
       'isSeasonScheduled && scheduledHomeStage === "countdown"',

@@ -114,7 +114,7 @@ function getNotificationUrl(event: ActivityEvent) {
     event.type === "season_registration_payment_reminder" ||
     event.type === "league_announcement_published"
   ) {
-    targetPath = "/";
+    targetPath = "/league/home";
   }
 
   return buildLeagueNavigationUrl({

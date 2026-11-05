@@ -3746,3 +3746,27 @@ MC142 iniciado: se compacta la separación visual de los indicadores de ambos ca
 MC142 completo local: Playwright confirmó las mismas dimensiones de los indicadores, 6 px entre marcas y 10 px entre tarjeta e indicadores. Gesto, pulsación y Axe sin infracciones graves correctos. Capturas de Inicio revisadas y verificadas en móvil y escritorio. Sin publicación.
 
 MC143 iniciado: el usuario autoriza la publicación de PRE y la promoción completa a PROD, incluidas las migraciones pendientes. Candidata v1.15.40 para renovar la caché de la PWA. Se verificarán destino, historial de migraciones y respaldo antes de escribir en PROD.
+
+MC143 checkpoint: PR #64 para staging, commit 7b3cc97f y CI #429 en curso. Dry-run de PROD confirma solo 20261104141440, 20261104151343 y 20261104152546, sin roles ni semillas. Destino PROD verificado en directorio CLI separado, enlace del repositorio sigue en PRE. Backup cifrado 6/6 verificado, pg_restore leyó todo el archivo sin ejecutar SQL. Manifiesto SHA256 dcb57d2034aa827ebf2aff03e8c3e3b79256f90d640a0d19e5b5edd713a7901a. Despliegue de recuperación PROD dpl_8pZMykEoZ9y42W1sXBFJoWmruA8K, main 1bc3f70e.
+
+MC143 PRE verificado: validate local PASS (1694 pruebas), CI #429 4/4 PASS, PR #64 integrada en staging 32fe555d. Alias PRE sirve dpl_Mu42Nh3UXNGAkBPRVZqWWfvMr2tn READY, health v1.15.40/pre, SW v1.15.40, manifest 200 y API de chat 401 sin sesión. PR #65 staging→main abierta, árbol de fusión 935be186 idéntico al validado en PRE. Segundo dry-run PROD confirma las tres migraciones previstas y el respaldo verificado está disponible.
+
+MC143 esquema PROD verificado: respaldo renovado justo antes de escribir, cifrado 6/6, extracción completa y hash del manifiesto 1e258e47328a2ff4e3b2224dbfaf4415248db720379e16fc7db8632eaf71820f. Aplicadas las tres migraciones previstas, segundo dry-run sin pendientes y catálogo confirma historial, RLS, permisos, triggers y cascada de borrado. Smoke v1.15.36 correcto sobre esquema ampliado. PR #65 integrada en main d70b29ec con árbol idéntico a PRE y tag v1.0.0 intacto. Despliegue PROD pendiente de verificar.
+
+MC143 completo en PRE y PROD: alias PROD verificado sobre dpl_22rTNCDYWbucGQCiRGCNmX2txEfk READY, main d70b29ec, target production. Smoke PROD v1.15.40 correcto, SW actualizado, manifest 200, chat 401 sin sesión y páginas/API/invitaciones de torneos 404. PRE sigue sirviendo v1.15.40/pre y API de torneos 401 sin sesión. Evidencias y recuperación en RELEASE-1.15.40.md.
+
+MC144 en curso: arranque de perfil/acceso en paralelo, reutilización temporal de actividad por cuenta, chat general y amistoso independientes de la carga de liga, petición anticipada de chat de partido, notificación hacia la PWA abierta sin recargar el documento, resúmenes de chat y región de funciones Dublín. Validación pendiente.
+
+MC144 checkpoint: las dos pruebas móviles con acceso retrasado y el envío desde chat de liga pasan. También pasan las pruebas de notificación con app abierta/cerrada, compatibilidad con versiones anteriores y resúmenes de chat. Las lecturas independientes del chat de partido se lanzan en paralelo después de comprobar acceso. Validación general en curso.
+
+MC144 checkpoint: compilación con entorno de pruebas, tipo, lint sin errores y apertura offline de PWA comprobados. Navegar de Competiciones a Mis partidos muestra el contenido reciente mientras se bloquea la petición de actualización en la prueba móvil. Se repiten los casos de navegador y de calendario que fallaron en la ejecución concurrente. La respuesta completa de acceso a liga permanece como deuda de rendimiento y no se ha medido la latencia en un despliegue con estos cambios.
+
+MC144 verificación: 12 pruebas dirigidas de navegador/PWA correctas. La ejecución general de Vitest pasó 1690 casos y falló en siete casos por tiempo y uno por una aserción de texto desactualizada. La repetición aislada de los cinco archivos afectados tras corregir la aserción pasó 104/104, sin elevar los tiempos máximos.
+
+MC144 completo local: compilación final y presupuesto correctos (1 310 976 bytes gzip en 108 fragmentos JS). Sin migraciones ni despliegue. En PRE queda medir arranque en frío, navegación con la app abierta y apertura de chat por notificación desde un móvil real.
+
+MC145 en curso: la ruta web raíz, el arranque PWA y el acceso tras autenticación ordinaria apuntan a Mis Competiciones. Inicio de liga pasa a una ruta explícita con sus accesos, estilos y restricciones. Las invitaciones pendientes se recuperan al pulsar el aviso de Mis Competiciones. Se normalizan las notificaciones antiguas dirigidas a Inicio de liga.
+
+MC145 completo local: compilación Next, TypeScript y 20 pruebas móviles/PWA correctas en las últimas tandas. Incluyen una sola liga activa o bloqueada, varias ligas, cuenta sin liga, espectadores, invitaciones, notificaciones y recuperación sin conexión. También pasan las 157 pruebas unitarias afectadas, lint sin errores y controles de tipografía, onboarding, i18n y presupuesto de código. Sin despliegue.
+
+MC146 en curso: publicación de PRE y PROD autorizada para los cambios de inicio y rendimiento. Candidata v1.15.41 con caché PWA renovada. Los árboles remotos de staging y main coinciden en v1.15.40 y la candidata carece de cambios de esquema. Se conserva el despliegue de v1.15.40 como punto de recuperación.

@@ -184,10 +184,10 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
 
   const playerNavItems: NavItem[] = [
     {
-      href: "/",
+      href: "/league/home",
       label: t.nav.home,
       icon: "home",
-      isActive: (currentPathname) => currentPathname === "/",
+      isActive: (currentPathname) => currentPathname === "/league/home",
     },
     {
       href: "/ranking",
@@ -254,7 +254,7 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
       >
         {navItems.map((item) => {
           const isActive = item.isActive(pathname)
-          const isDisabled = homeOnlyLocked && item.href !== "/"
+          const isDisabled = homeOnlyLocked && item.href !== "/league/home"
           const content = (
             <>
               <span className="relative"><NavIcon icon={item.icon} />{!homeOnlyLocked && item.icon === "chats" && chatUnread > 0 ? <span className="absolute -right-3 -top-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-xs font-black leading-4 text-white">{chatUnread > 99 ? "99+" : chatUnread}</span> : null}</span>
@@ -283,13 +283,13 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
               key={item.href}
               href={item.href}
               onClick={(event) => {
-                if (item.href !== "/") {
+                if (item.href !== "/league/home") {
                   return
                 }
 
                 void softRefreshHomeData()
 
-                if (pathname === "/") {
+                if (pathname === "/league/home") {
                   event.preventDefault()
                   window.scrollTo({ top: 0, behavior: "smooth" })
                 }

@@ -6,7 +6,7 @@ const read = (path: string) => readFile(path, "utf8")
 describe("v1.10.13 scheduled admin HOME countdown", () => {
   it("keeps scheduled HOME presentation independent from whether VISTA ADMIN bypasses navigation", async () => {
     const [home, shell] = await Promise.all([
-      read("src/app/page.tsx"),
+      read("src/app/league/home/page.tsx"),
       read("src/components/layout/AppShell.tsx"),
     ])
 

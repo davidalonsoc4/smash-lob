@@ -21,7 +21,7 @@ describe("guided onboarding integration", () => {
 
   it("marks every first-release screen with stable tour selectors", async () => {
     const files = await Promise.all([
-      readFile("src/app/page.tsx", "utf8"),
+      readFile("src/app/league/home/page.tsx", "utf8"),
       readFile("src/app/matches/page.tsx", "utf8"),
       readFile("src/app/ranking/page.tsx", "utf8"),
       readFile("src/app/statistics/page.tsx", "utf8"),

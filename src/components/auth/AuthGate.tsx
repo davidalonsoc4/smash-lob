@@ -20,7 +20,6 @@ export function AuthGate({ children }: AuthGateProps) {
   const pathname = usePathname()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
-  const isAccessInviteRoute = isInviteRoute || isSpectatorInviteRoute
   const localDevAttemptedRef = useRef(false)
   const [localDevSigningIn, setLocalDevSigningIn] = useState(false)
 
@@ -97,9 +96,7 @@ export function AuthGate({ children }: AuthGateProps) {
                 typeof window === "undefined"
                   ? null
                   : new URLSearchParams(window.location.search)
-              const callbackUrl = isAccessInviteRoute
-                ? buildPostAuthDestination(pathname, searchParams)
-                : "/"
+              const callbackUrl = buildPostAuthDestination(pathname, searchParams)
 
               void signIn("google", { callbackUrl })
             }}

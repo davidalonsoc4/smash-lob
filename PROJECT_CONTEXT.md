@@ -105,7 +105,7 @@ Importante: esto es control de UI cliente, no seguridad real de backend.
 
 ## Pantallas actuales
 
-### Inicio (`src/app/page.tsx`)
+### Inicio de liga (`src/app/league/home/page.tsx`)
 
 Muestra:
 
