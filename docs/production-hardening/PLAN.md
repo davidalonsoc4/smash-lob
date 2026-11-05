@@ -1,5 +1,5 @@
 ## MC148 — Arranque ligero de Mis Competiciones
-- Estado: EN CURSO. Publicar la mejora medida anterior en PRE y preparar por separado la carga esencial y la precarga de liga.
+- Estado: COMPLETO. v1.15.42 verificada en PRE y arranque ligero validado en una rama local independiente.
 - Gates: CI y smoke para PRE v1.15.42. En la nueva rama, comprobar tamaño, permisos, contenido inicial, hidratación completa bajo demanda, precarga sin duplicados, red lenta, tipos, lint y navegador.
 
 ## MC147 — Comparativa de latencia de entrada
