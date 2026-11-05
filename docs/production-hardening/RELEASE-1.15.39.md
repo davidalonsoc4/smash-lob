@@ -2,6 +2,8 @@
 
 Incluye los cambios de Competiciones desde v1.15.36 y el chat general de liga por temporada. PRE conserva el acceso a torneos. La versión compilada para PROD oculta los torneos mediante la configuración de ese entorno.
 
+PRE verificado el 5 de noviembre de 2026. PR #63, CI #427 correcto en los cuatro controles y staging `93485e7e7e8dc6a6a34c035e85d6d0aa0026e866`. El dominio `pre.smashandlob.com` sirve el despliegue `dpl_FvzPqtGf1C3LCNH3sBND5uKkwuvc` en estado READY. Health `1.15.39/pre`, service worker `1.15.39`, manifest HTTP 200 y ruta de chat HTTP 401 sin sesión de aplicación, comprobados con acceso autenticado a Vercel.
+
 ## Base de datos
 
 Orden de las migraciones del chat:

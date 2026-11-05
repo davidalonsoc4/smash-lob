@@ -1,5 +1,5 @@
 ## MC141 — Publicación PRE de v1.15.39
-- Estado: EN CURSO. Validar e integrar la candidata en staging, verificar el despliegue PRE y documentar la promoción a PROD.
+- Estado: COMPLETO EN PRE. Candidata integrada en staging, despliegue verificado y promoción a PROD documentada.
 - Gates: validate local, CI de la candidata, alias y smoke PRE. La ejecución en PROD requiere autorización posterior.
 
 ## MC140 — Claridad de tarjetas de chat
