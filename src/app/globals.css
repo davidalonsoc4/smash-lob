@@ -126,6 +126,30 @@ section[aria-labelledby="personal-activity"]:has(> .match-preview-pagination) + 
   margin-block-start: 0 !important;
 }
 
+/* Match the overview's compact markers without shrinking their tap areas. */
+[data-home-match-carousel] > .match-preview-pagination,
+section[aria-labelledby="personal-activity"] > .match-preview-pagination {
+  padding-block-start: .125rem;
+}
+[data-home-match-carousel] > .match-preview-pagination {
+  margin-block-start: .5rem;
+}
+[data-home-match-carousel] > .match-preview-pagination button {
+  position: relative;
+}
+[data-home-match-carousel] > .match-preview-pagination button::after {
+  position: absolute;
+  inset-block: -9px;
+  inset-inline: -3px;
+  content: "";
+}
+[data-home-match-carousel] > .match-preview-pagination button:first-child::after {
+  inset-inline-start: -15px;
+}
+[data-home-match-carousel] > .match-preview-pagination button:last-child::after {
+  inset-inline-end: -15px;
+}
+
 [data-home-match-carousel] .match-slides > div > div,
 [data-home-match-carousel] .match-slides > div > div > a {
   height: 100%;

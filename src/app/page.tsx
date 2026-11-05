@@ -1148,7 +1148,7 @@ export default function Home() {
           })}
           </MatchSlides>
           {nextMatchScopes.length > 1 ? <div className="match-preview-pagination flex justify-center gap-1.5 pt-1">
-            {(["mine", "league"] as const).map(scope => <button key={scope} type="button" onClick={() => setNextMatchScope(scope)} aria-label={tx(scope === "mine" ? "Mi próximo partido" : "Próximo partido")} aria-pressed={scope === effectiveNextMatchScope} className="flex h-6 min-w-6 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"><span aria-hidden="true" className={`h-1.5 rounded-full transition-all ${scope === effectiveNextMatchScope ? "w-5 bg-foreground" : "w-1.5 bg-neutral-300"}`} /></button>)}
+            {(["mine", "league"] as const).map(scope => <button key={scope} type="button" onClick={() => setNextMatchScope(scope)} aria-label={tx(scope === "mine" ? "Mi próximo partido" : "Próximo partido")} aria-pressed={scope === effectiveNextMatchScope} className="flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"><span aria-hidden="true" className={`h-1.5 rounded-full transition-all ${scope === effectiveNextMatchScope ? "w-5 bg-foreground" : "w-1.5 bg-neutral-300"}`} /></button>)}
           </div> : null}
         </section>
       ) : null}
@@ -1187,7 +1187,7 @@ export default function Home() {
             })}
           </MatchSlides>
           {lastMatchScopes.length > 1 ? <div className="match-preview-pagination flex justify-center gap-1.5 pt-1">
-            {(["mine", "league"] as const).map(scope => <button key={scope} type="button" onClick={() => setLastMatchScope(scope)} aria-label={tx(scope === "mine" ? "Mi último encuentro" : "Último encuentro")} aria-pressed={scope === effectiveLastMatchScope} className="flex h-6 min-w-6 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"><span aria-hidden="true" className={`h-1.5 rounded-full transition-all ${scope === effectiveLastMatchScope ? "w-5 bg-foreground" : "w-1.5 bg-neutral-300"}`} /></button>)}
+            {(["mine", "league"] as const).map(scope => <button key={scope} type="button" onClick={() => setLastMatchScope(scope)} aria-label={tx(scope === "mine" ? "Mi último encuentro" : "Último encuentro")} aria-pressed={scope === effectiveLastMatchScope} className="flex items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"><span aria-hidden="true" className={`h-1.5 rounded-full transition-all ${scope === effectiveLastMatchScope ? "w-5 bg-foreground" : "w-1.5 bg-neutral-300"}`} /></button>)}
           </div> : null}
         </section>
       ) : null}

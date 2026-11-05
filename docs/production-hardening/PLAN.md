@@ -1,5 +1,13 @@
+## MC143 — Publicación v1.15.40 en PRE y PROD
+- Estado: EN CURSO. Publicar el ajuste del carrusel en PRE y promover a PROD la versión completa con las migraciones de chat, según autorización explícita del usuario.
+- Gates: controles locales y CI, verificación de PRE, preflight y respaldo verificado de PROD, comprobación de migraciones y smoke posterior de PROD.
+
+## MC142 — Indicadores del carrusel de Inicio de liga
+- Estado: COMPLETO LOCAL. Geometría y márgenes igualados a Mis Competiciones, con controles interactivos.
+- Gates: comparación móvil de tamaños y márgenes, gesto y accesibilidad.
+
 ## MC141 — Publicación PRE de v1.15.39
-- Estado: EN CURSO. Validar e integrar la candidata en staging, verificar el despliegue PRE y documentar la promoción a PROD.
+- Estado: COMPLETO EN PRE. Candidata integrada en staging, despliegue verificado y promoción a PROD documentada.
 - Gates: validate local, CI de la candidata, alias y smoke PRE. La ejecución en PROD requiere autorización posterior.
 
 ## MC140 — Claridad de tarjetas de chat
