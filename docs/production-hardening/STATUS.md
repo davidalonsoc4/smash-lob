@@ -3770,3 +3770,11 @@ MC145 en curso: la ruta web raíz, el arranque PWA y el acceso tras autenticaci�
 MC145 completo local: compilación Next, TypeScript y 20 pruebas móviles/PWA correctas en las últimas tandas. Incluyen una sola liga activa o bloqueada, varias ligas, cuenta sin liga, espectadores, invitaciones, notificaciones y recuperación sin conexión. También pasan las 157 pruebas unitarias afectadas, lint sin errores y controles de tipografía, onboarding, i18n y presupuesto de código. Sin despliegue.
 
 MC146 en curso: publicación de PRE y PROD autorizada para los cambios de inicio y rendimiento. Candidata v1.15.41 con caché PWA renovada. Los árboles remotos de staging y main coinciden en v1.15.40 y la candidata carece de cambios de esquema. Se conserva el despliegue de v1.15.40 como punto de recuperación.
+
+MC146 checkpoint: PR #66 hacia staging, commit ca616a83 y CI #434. Validate local completo con 1699 pruebas y auditoría de producción sin vulnerabilidades. CI aprobó código, restauración y Lighthouse. Pruebas de navegador en curso. Antes de promover, verificar alias de PRE, redirecciones, versión y controles de acceso.
+
+MC146 checkpoint: CI #434 aprobó los cuatro controles y PR #66 se integró en staging 5f5e09e2, árbol 832e5a5e idéntico al validado. Vercel está construyendo PRE dpl_DHZfNxUW3JToGHaGvbqcgfKyjtmh. PR #67 preparada para main con el mismo árbol. PROD sigue en dpl_22rTNCDYWbucGQCiRGCNmX2txEfk.
+
+MC146 PRE verificado: alias sobre dpl_DHZfNxUW3JToGHaGvbqcgfKyjtmh READY. Health v1.15.41/pre, portada y PWA redirigen a /leagues, caché actualizada, rutas de chat protegidas y torneos disponibles para cuentas con acceso. PR #67 integrada en main 04ba2cc4 con árbol idéntico al de PRE y tag v1.0.0 intacto. Despliegue PROD en curso.
+
+MC146 completo en PRE y PROD: PROD sirve dpl_FAArKzj6x6vKueaVSn9vUCkXhgcA READY, v1.15.41/prod. Portada y PWA redirigen a /leagues, manifiesto y caché nuevos, chats protegidos y torneos ocultos (404). Smoke PROD correcto. /api/access respondió desde dub1. Sin cambios de esquema ni pruebas con cuentas reales. Recuperación de código disponible en el despliegue v1.15.40 dpl_22rTNCDYWbucGQCiRGCNmX2txEfk.
