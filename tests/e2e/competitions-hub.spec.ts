@@ -151,7 +151,10 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
     const slides = element.previousElementSibling!.getBoundingClientRect()
     return [markers[0].width, markers[1].width, markers[1].left - markers[0].right, markers[0].top - slides.bottom]
   }
-  const activityIndicators = await activity.locator(".match-preview-pagination").evaluate(indicatorGeometry)
+  const activityPagination = activity.locator(".match-preview-pagination")
+  await expect(activity.getByText("Tu próximo partido", { exact: true })).toBeVisible()
+  await expect.poll(async () => (await activityPagination.evaluate(indicatorGeometry)).slice(0, 2)).toEqual([20, 6])
+  const activityIndicators = await activityPagination.evaluate(indicatorGeometry)
   const navGeometry = (el: HTMLElement) => {
     const grid = el.firstElementChild!, item = el.querySelector("a")!, icon = item.querySelector("svg")!
     return [el.getBoundingClientRect().height, getComputedStyle(grid).paddingTop, getComputedStyle(grid).paddingBottom, getComputedStyle(grid).columnGap, getComputedStyle(item).fontSize, getComputedStyle(item).borderRadius, item.getBoundingClientRect().height, icon.getBoundingClientRect().width, icon.getBoundingClientRect().height]
@@ -190,6 +193,34 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   await page.screenshot({ path: testInfo.outputPath("league-swipe.png"), scale: "css" })
   const a11y = await new AxeBuilder({ page }).analyze()
   expect(a11y.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})
+
+test("personal matches shows recent activity while revalidating after navigation", async ({ page }) => {
+  let releaseRefresh!: () => void
+  const refreshPending = new Promise<void>(resolve => { releaseRefresh = resolve })
+  let reads = 0
+  await page.route("**/api/personal-matches?**", async route => {
+    const refreshing = ++reads > 1
+    if (refreshing) await refreshPending
+    const match = {
+      id: "fixture-cached", origin: "friendly", status: "finished", scheduledAt: "2026-10-14T10:00:00Z",
+      resultRecordedAt: "2026-10-14T11:00:00Z", sets: [{ a: 6, b: 3 }],
+      participants: [{ team: 1, slot: 1, displayName: refreshing ? "Dato actualizado" : "Dato en memoria", isCurrentUser: true }],
+    }
+    await route.fulfill({ json: { items: [match], upcoming: [], hasMore: false, nextOffset: null } })
+  })
+  try {
+    await page.goto("/leagues")
+    await expect(page.getByText("Dato en memoria")).toBeVisible()
+    const navbar = page.getByRole("navigation", { name: "Navegación global" })
+    await navbar.getByRole("link", { name: "Mis partidos" }).click()
+    await expect(page.getByRole("heading", { name: "Mis partidos" })).toBeVisible()
+    await expect(page.getByText("Dato en memoria")).toBeVisible()
+    await expect.poll(() => reads).toBe(2)
+  } finally {
+    releaseRefresh()
+  }
+  await expect(page.getByText("Dato actualizado")).toBeVisible()
 })
 
 test("last encounter is compact only in the hub and history stays detailed", async ({ page }, testInfo) => {
@@ -273,10 +304,11 @@ test("last encounter is compact only in the hub and history stays detailed", asy
 
 for (const theme of ["light", "dark"] as const) {
   for (const visualStyle of ["competition", "classic"] as const) {
-  test(`competitions hub keeps each view compact and preserves context (${theme}, ${visualStyle})`, async ({ page, context }, testInfo) => {
+  test(`competitions hub keeps each view compact and preserves context (${theme}, ${visualStyle})`, async ({ page, context, baseURL }, testInfo) => {
     await context.addInitScript(({ mode, style }) => {
       localStorage.setItem("smash-lob-theme-mode", mode)
       localStorage.setItem("smash-lob-visual-style", style)
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
     }, { mode: theme, style: visualStyle })
     const upcoming = {
       id: "fixture-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2099-10-17T18:00:00Z", resultRecordedAt: null,
@@ -391,7 +423,7 @@ for (const theme of ["light", "dark"] as const) {
     // Exercise the visual hierarchy with real content in every section and a
     // non-default accent; single-league fixtures cannot expose crowded layouts.
     const expandedLeagues = [...fixtureLeagues, { ...fixtureLeagues[0], id: "league-archive", name: "Liga histórica", activeSeasonId: "season-archive" }]
-      .map((league, index) => ({ ...league, accentColor: index === 1 ? "#477BD1" : "#8B5FC0", logoUrl: "http://127.0.0.1:3100/fixture-crest.svg" }))
+      .map((league, index) => ({ ...league, accentColor: index === 1 ? "#477BD1" : "#8B5FC0", logoUrl: new URL("/fixture-crest.svg", baseURL).href }))
     await page.route("**/fixture-crest.svg", route => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="#477BD1" d="M8 6h48v30L32 59 8 36z"/><path fill="white" d="M20 20h24v6H26v6h18v6H20z"/></svg>' }))
     await page.route("**/api/access**", route => route.fulfill({ json: {
       isSuperuser: false, canCreateLeagues: true, leagues: expandedLeagues,

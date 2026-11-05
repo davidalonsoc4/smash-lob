@@ -14,7 +14,6 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/leagueText"
 import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import { compactParticipantName } from "@/lib/chatProposalVoters"
-import { writeMatchChatCache } from "@/lib/matchChatCache"
 
 
 type ChatItem = { id: string; round: number; status: string; coordinationStatus: "coordinating" | "awaiting_booking" | null; scheduledAt: string | null; readOnly: boolean; partner: string; rivals: string[]; unread: number; lastMessage: { sender: string; body: string; createdAt: string } | null }
@@ -35,8 +34,6 @@ export default function ChatsPage() {
   useEffect(() => subscribeChatRealtime(realtimeTopic, () => { if (!document.hidden) void load() }), [load, realtimeTopic])
   const openChats = chats.filter((chat) => !chat.readOnly), finishedChats = chats.filter((chat) => chat.readOnly), roundNumbers = [...new Set(rounds.map((item) => item.round))].sort((a, b) => a - b), anchorRound = rounds.find((item) => item.status === "active")?.round ?? rounds.find((item) => item.status === "overdue")?.round ?? rounds.find((item) => item.status === "upcoming")?.round ?? openChats[0]?.round ?? null, nextRound = anchorRound === null ? null : roundNumbers.find((round) => round > anchorRound) ?? anchorRound
   const activeChats = openChats.filter((chat) => Boolean(chat.lastMessage) || nextRound === null || chat.round <= nextRound), upcomingChats = openChats.filter((chat) => !chat.lastMessage && nextRound !== null && chat.round > nextRound)
-  const activeChatIdsKey = openChats.map((chat) => chat.id).join("|")
-  useEffect(() => { if (!activeChatIdsKey) return; const controller = new AbortController(), activeChatIds = activeChatIdsKey.split("|").filter(Boolean); void Promise.all(activeChatIds.map(async (matchId) => { const response = await fetch(`/api/matches/${encodeURIComponent(matchId)}/chat?markRead=0`, { cache: "no-store", signal: controller.signal }).catch(() => null); if (!response?.ok) return; const data = await response.json().catch(() => null); if (data) writeMatchChatCache(matchId, data) })); return () => controller.abort() }, [activeChatIdsKey])
   return <div className="compact-page space-y-3"><header className="app-page-header"><BackButton fallbackHref="/" label={t.common.back} /><h1 className="type-page-title font-black tracking-tight">{tx("Chats")}</h1><SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} /></header>
     <LeagueSeasonChatAccess seasonId={activeSeason.id} leagueName={activeLeague.name} seasonName={activeSeason.name} />
     {loading ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Cargando conversaciones…")}</p></AppCard> : null}{error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{tx("No se han podido cargar tus chats.")}</p> : null}{!loading && !error && chats.length === 0 ? <AppCard><p className="text-sm font-black">{tx("Todavía no tienes chats de partido.")}</p><p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Cuando participes en una jornada, su conversación aparecerá aquí.")}</p></AppCard> : null}

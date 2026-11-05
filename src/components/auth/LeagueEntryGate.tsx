@@ -12,6 +12,7 @@ import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { isCompetitionOverviewRoute } from "@/lib/competitionNavigation"
 import { normalizeInviteCode } from "@/lib/inviteUrls"
+import { getMatchChatEntryEndpoint, warmChatEntry } from "@/lib/chatEntryRequest"
 
 type LeagueEntryGateProps = {
   children: ReactNode
@@ -60,6 +61,14 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const isTournamentRoute = pathname === "/tournaments" || pathname.startsWith("/tournaments/")
   const isPersonalMatchesRoute =
     pathname === "/personal-matches" || pathname.startsWith("/personal-matches/")
+  const isIndependentChatRoute = /^\/personal-matches\/[^/]+\/chat\/?$/.test(pathname) || /^\/league-chat\/[^/]+\/?$/.test(pathname)
+  const account = session?.user?.email
+  useEffect(() => {
+    if (!account || (isAccessHydrated && !isLeagueNavigationRoute)) return
+    const path = isLeagueNavigationRoute ? new URLSearchParams(window.location.search).get("target") : pathname
+    const endpoint = path && getMatchChatEntryEndpoint(path)
+    if (endpoint) warmChatEntry(account, endpoint)
+  }, [account, isAccessHydrated, isLeagueNavigationRoute, pathname])
   const isSeasonSetupRoute = pathname === "/admin/season"
   const activeLeague =
     userLeagues.find((league) => league.id === activeLeagueId) ?? userLeagues[0]
@@ -76,6 +85,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     !isNewLeagueRoute &&
     !isLeaguesRoute &&
     !isTournamentRoute &&
+    !isIndependentChatRoute &&
     !isPersonalMatchesRoute
   useEffect(() => {
     if (!isAccessHydrated || initialLeagueEntryResolved || isAccessInviteRoute) return
@@ -136,6 +146,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     isLeaguesRoute ||
     isTournamentRoute ||
     isPersonalMatchesRoute ||
+    isIndependentChatRoute ||
     pathname === "/help" ||
     pathname === "/changelog" ||
     (isSuperuser && pathname.startsWith("/application-admin")) ||
@@ -150,6 +161,8 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
       router.replace("/")
     }
   }, [isLeagueTransitioning, router, spectatorAllowedRoute, spectatorMode])
+  if (isIndependentChatRoute) return children
+
   if (!isAccessHydrated || (!initialLeagueEntryResolved && pathname === "/" && userLeagues.length > 1)) {
     return <AppBootSkeleton />
   }

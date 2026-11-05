@@ -1,7 +1,7 @@
 "use client"
 
-import type { ReactNode } from "react"
-import { usePathname } from "next/navigation"
+import { useEffect, type ReactNode } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { AuthGate } from "@/components/auth/AuthGate"
 import { LeagueEntryGate } from "@/components/auth/LeagueEntryGate"
 import { ProfileCompletionGate } from "@/components/auth/ProfileCompletionGate"
@@ -25,6 +25,20 @@ const publicRoutes = new Set(["/about", "/privacy", "/terms", "/auth/error", "/o
 
 export function AppRouteBoundary({ children }: { children: ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return
+    const openNotification = (event: MessageEvent) => {
+      if (event.source !== navigator.serviceWorker.controller || event.data?.type !== "OPEN_NOTIFICATION" || typeof event.data.url !== "string") return
+      const url = new URL(event.data.url, window.location.origin)
+      if (url.origin !== window.location.origin || url.pathname.startsWith("//")) return
+      router.push(url.pathname + url.search + url.hash)
+      event.ports[0]?.postMessage("navigating")
+    }
+    navigator.serviceWorker.addEventListener("message", openNotification)
+    return () => navigator.serviceWorker.removeEventListener("message", openNotification)
+  }, [router])
 
   if (publicRoutes.has(pathname) || pathname.startsWith("/spectate/")) {
     return (
@@ -43,10 +57,10 @@ export function AppRouteBoundary({ children }: { children: ReactNode }) {
       <OfflineGate>
         <AuthGate>
           <AccountProfileProvider>
-            <ProfileCompletionGate>
-              <SeasonSettingsProvider>
-                <MatchDataProvider>
-                  <LeagueAccessProvider>
+            <SeasonSettingsProvider>
+              <MatchDataProvider>
+                <LeagueAccessProvider>
+                  <ProfileCompletionGate>
                     <MvpProvider>
                       <ActiveLeagueProvider>
                         <CurrentUserProvider>
@@ -61,10 +75,10 @@ export function AppRouteBoundary({ children }: { children: ReactNode }) {
                         </CurrentUserProvider>
                       </ActiveLeagueProvider>
                     </MvpProvider>
-                  </LeagueAccessProvider>
-                </MatchDataProvider>
-              </SeasonSettingsProvider>
-            </ProfileCompletionGate>
+                  </ProfileCompletionGate>
+                </LeagueAccessProvider>
+              </MatchDataProvider>
+            </SeasonSettingsProvider>
           </AccountProfileProvider>
         </AuthGate>
       </OfflineGate>

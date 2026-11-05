@@ -27,6 +27,44 @@ async function setup(page:Page,theme:string,style:string,canCreate=true) {
   return {setUpcoming:()=>{upcoming=true},setWindowed:()=>{windowed=true},setRole:(next: "player" | "admin")=>{role=next},setAdvanced:()=>{advanced=true},matches,league}
 }
 
+test("notification starts the match chat request while league access is pending", async ({ page }) => {
+  const { matches } = await setup(page, "dark", "classic")
+  let releaseAccess!: () => void
+  const accessPending = new Promise<void>(resolve => { releaseAccess = resolve })
+  await page.route("**/api/access**", async route => { await accessPending; await route.fallback() })
+  const match = matches[0]
+  let chatReads = 0
+  await page.route("**/api/matches/*/chat", route => {
+    chatReads++
+    return route.fulfill({ json: { currentUserId: "qa-user", round: match.round, readOnly: false, participants: [], messages: [] } })
+  })
+  const target = `/match/${match.id}/chat`
+  try {
+    const chatResponse = page.waitForResponse(`**/api/matches/${match.id}/chat`)
+    await page.goto(`/open?${new URLSearchParams({ leagueId, target })}`)
+    expect((await chatResponse).ok()).toBe(true)
+  } finally {
+    releaseAccess()
+  }
+  await expect(page).toHaveURL(new RegExp(`${target}$`))
+  await expect(page.getByPlaceholder("Escribe un mensaje…")).toBeVisible()
+  expect(chatReads).toBe(1)
+})
+
+test("season chat loads without waiting for the league snapshot", async ({ page }) => {
+  await setup(page, "dark", "classic")
+  let releaseAccess!: () => void
+  const accessPending = new Promise<void>(resolve => { releaseAccess = resolve })
+  await page.route("**/api/access**", async route => { await accessPending; await route.fallback() })
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { season: { name: "Temporada 2", league_id: leagueId }, messages: [], participants: [], me: "qa-user", unread: 0, readOnly: false, realtimeTopic: null } }))
+  try {
+    await page.goto(`/league-chat/${seasonId}`)
+    await expect(page.getByPlaceholder("Escribe un mensaje…")).toBeVisible()
+  } finally {
+    releaseAccess()
+  }
+})
+
 test("league season chat opens from home and sends a message", async ({ page }, info) => {
   await setup(page, "dark", "classic")
   const messages: Array<{ id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }> = []

@@ -37,6 +37,7 @@ describe("v1.8.6 home and calendar coordination status", () => {
   it("syncs the derived state after chat actions so back navigation is immediately current", async () => {
     const chat = await read("src/app/match/[id]/chat/page.tsx")
     expect(chat).toContain("const { hydrateMatches } = useMatchData()")
-    expect(chat).toContain("coordinationStatus: snapshot.coordination?.status")
+    expect(chat).toContain("const status = snapshot.coordination?.status")
+    expect(chat).toContain('hydrateMatches([{ ...currentMatch, coordinationStatus: status === "coordinating" || status === "awaiting_booking" ? status : null }])')
   })
 })

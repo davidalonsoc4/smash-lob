@@ -12,6 +12,7 @@ const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es"
   { id: "c", name: "Liga C", status: "upcoming" }, { id: "d", name: "Liga D", status: "finished" },
 ] }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: state.refresh }) }))
+vi.mock("next-auth/react", () => ({ useSession: () => ({ data: null }) }))
 vi.mock("@/lib/tournamentAvailability", () => ({ areTournamentsEnabled: () => state.tournamentsEnabled }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: state.locale, tx: (text: string) => text, t: { common: { refreshApp: "Actualizar", back: "Volver" } } }) }))
 vi.mock("@/context/ActiveLeagueProvider", () => ({ useActiveLeague: () => ({ activeLeagueId: "a", changeActiveLeague: state.enter }) }))

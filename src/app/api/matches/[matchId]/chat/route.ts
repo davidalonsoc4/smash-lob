@@ -93,9 +93,11 @@ export async function GET(request: Request, { params }: Ctx) {
   if ("denied" in gate) return gate.denied
   const { db, user, match, isAdmin } = gate
   try {
-    const participants = await getParticipants(db, match)
-    const seasonReadOnly = await seasonChatReadOnly({ db, user, match, isAdmin })
-    const { data, error } = await db.from("match_chat_messages").select("id,sender_user_id,sender_display_name,body,kind,payload,created_at").eq("match_id", matchId).order("created_at", { ascending: false }).limit(60)
+    const [participants, seasonReadOnly, { data, error }, coordination] = await Promise.all([
+      getParticipants(db, match), seasonChatReadOnly({ db, user, match, isAdmin }),
+      db.from("match_chat_messages").select("id,sender_user_id,sender_display_name,body,kind,payload,created_at").eq("match_id", matchId).order("created_at", { ascending: false }).limit(60),
+      getServerMatchChatCoordination({ db, match }),
+    ])
     if (error) return dbError(error.message)
     const ordered = [...(data ?? [])].reverse(), proposalIds = ordered.filter((message) => message.kind !== "text").map((message) => String(message.id)), linkedUserIds = participants.flatMap((item) => item.userId ? [item.userId] : [])
     const [responsesResult, readsResult] = await Promise.all([proposalIds.length ? db.from("match_chat_proposal_responses").select("message_id,user_id,option_key,response,updated_at").in("message_id", proposalIds) : Promise.resolve({ data: [], error: null }), linkedUserIds.length ? db.from("match_chat_reads").select("user_id,last_read_at").eq("match_id", matchId).in("user_id", linkedUserIds) : Promise.resolve({ data: [], error: null })])
@@ -105,7 +107,6 @@ export async function GET(request: Request, { params }: Ctx) {
     const messages = ordered.map((message) => ({ ...message, responses: responsesByMessage.get(String(message.id)) ?? [] })), readByUser = new Map<string, string>((readsResult.data ?? []).map((row) => [String(row.user_id), String(row.last_read_at)])), latestIncoming = [...ordered].reverse().find((message) => String(message.sender_user_id) !== user.id)
     if (markRead && latestIncoming && (!readByUser.get(user.id) || Date.parse(readByUser.get(user.id) as string) < Date.parse(String(latestIncoming.created_at)))) { const lastReadAt = new Date().toISOString(), write = await db.from("match_chat_reads").upsert({ match_id: matchId, user_id: user.id, last_read_at: lastReadAt }, { onConflict: "match_id,user_id" }); if (!write.error) { readByUser.set(user.id, lastReadAt); await broadcastMatchChatRefresh({ matchId, leagueId: match.leagueId, seasonId: match.seasonId, includeOverview: false }).catch(() => null) } }
     const participantsWithReads = participants.map((item) => ({ ...item, lastReadAt: item.userId ? readByUser.get(item.userId) ?? null : null }))
-    const coordination = await getServerMatchChatCoordination({ db, match })
     const reservationSummary = match.status === "scheduled" && match.scheduledAt ? { scheduledAt: match.scheduledAt, locationText: getScheduleLocationDisplayText(match.location) ?? "Pista reservada" } : null
     return NextResponse.json({ messages, participants: participantsWithReads, currentUserId: user.id, round: match.round, readOnly: isMatchChatReadOnly(match) || seasonReadOnly, writeUntil: getMatchChatWriteUntil(match)?.toISOString() ?? null, coordination, reservationSummary, realtimeTopic: getMatchChatRealtimeTopic(matchId) })
   } catch (error) { return dbError(error instanceof Error ? error.message : "match_chat_lookup_failed") }

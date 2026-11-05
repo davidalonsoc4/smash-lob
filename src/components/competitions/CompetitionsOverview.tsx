@@ -7,6 +7,7 @@ import type { CSSProperties } from "react"
 import styles from "./CompetitionsOverview.module.css"
 import { CalendarEventButton } from "@/components/calendar/CalendarEventButton"
 import { useEffect, useState } from "react"
+import { usePersonalMatchesDashboard } from "@/hooks/usePersonalMatchesDashboard"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -27,7 +28,7 @@ import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
 import { getSeasonStatusBadgeClassName, softStatusBadgeClassName } from "@/lib/statusStyles"
 import { isRoundRevealedToPlayers } from "@/lib/progressiveCalendar"
 import { getLeagueActivityMatches } from "@/lib/leagueActivity"
-import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
+import type { PersonalMatchItem } from "@/lib/personalMatches"
 import { normalizeAccentColor } from "@/lib/visualStyle"
 import { getSeasonPreviewCountdown, SCHEDULED_SEASON_TIME_ZONE } from "@/lib/seasonScheduling"
 
@@ -54,22 +55,12 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       mode: getSeasonRoundSettings(match.seasonId).resultConfirmationMode,
     }).countsForRanking,
   }))
-  const [dashboard, setDashboard] = useState<PersonalMatchesDashboardPayload | null>(null)
+  const { dashboard, failed: loadError } = usePersonalMatchesDashboard(view === "summary")
   const [tournaments, setTournaments] = useState<Array<{ id: string; name: string; description: string; startsAt: string; createdAt?: string; status: "draft" | "in_progress" | "finished" }>>([])
   const [tournamentLoadError, setTournamentLoadError] = useState(false)
   const [tournamentRequestVersion, setTournamentRequestVersion] = useState(0)
-  const [loadError, setLoadError] = useState(false)
   const [now, setNow] = useState(() => new Date())
   const [activityIndex, setActivityIndex] = useState(0)
-  useEffect(() => {
-    if (view !== "summary") return
-    const controller = new AbortController()
-    fetch("/api/personal-matches?limit=10&offset=0&includeUpcoming=1", { cache: "no-store", signal: controller.signal })
-      .then(async response => { if (!response.ok) throw new Error("lookup_failed"); return response.json() as Promise<PersonalMatchesDashboardPayload> })
-      .then(data => { if (!controller.signal.aborted) setDashboard(data) })
-      .catch(() => { if (!controller.signal.aborted) setLoadError(true) })
-    return () => { controller.abort() }
-  }, [view])
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60_000)
     return () => window.clearInterval(timer)

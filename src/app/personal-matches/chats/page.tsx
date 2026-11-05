@@ -113,11 +113,7 @@ export default function PersonalMatchChatsPage() {
     return userLeagues.flatMap((league) => seasons.filter((season) => season.leagueId === league.id && uuid.test(league.id) && uuid.test(season.id)).map((season) => ({ leagueId: league.id, leagueName: league.name, seasonId: season.id, seasonName: season.name, seasonStatus: season.status })))
   }, [seasons, userLeagues])
   const load = useCallback(async () => {
-    const response = await fetch("/api/personal-matches/chats", { cache: "no-store" }).catch(() => null)
-    const payload = response ? await response.json().catch(() => null) : null
-
-    const friendlyError = !response?.ok ? payload && typeof payload.error === "string" ? payload.error : "personal_match_chats_lookup_failed" : null
-    const friendlyChats: PersonalChatOverviewItem[] = response?.ok && Array.isArray(payload?.chats) ? payload.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "friendly" })) : []
+    const friendlyResponse = fetch("/api/personal-matches/chats", { cache: "no-store" }).catch(() => null)
     const leagueResponsesPromise = Promise.all(leagueSeasons.map(async (scope) => {
       const params = new URLSearchParams({ leagueId: scope.leagueId, seasonId: scope.seasonId }), leagueResponse = await fetch(`/api/chats?${params.toString()}`, { cache: "no-store" }).catch(() => null)
       if (!leagueResponse?.ok) return [] as PersonalChatOverviewItem[]
@@ -125,15 +121,19 @@ export default function PersonalMatchChatsPage() {
       return Array.isArray(leaguePayload?.chats) ? leaguePayload.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "league" as const, leagueName: scope.leagueName, leagueId: scope.leagueId, seasonId: scope.seasonId, locationName: null, expired: false, resultRecordedAt: null, realtimeTopic: typeof leaguePayload.realtimeTopic === "string" ? leaguePayload.realtimeTopic : null })) : []
     }))
 
-    const generalResponses = await Promise.all(leagueSeasons.filter((item) => item.seasonStatus === "active").map(async (item): Promise<GeneralLeagueChat | null> => {
-      const result = await fetch(`/api/league-season-chats/${encodeURIComponent(item.seasonId)}?markRead=0`, { cache: "no-store" }).catch(() => null)
+    const generalResponsesPromise = Promise.all(leagueSeasons.filter((item) => item.seasonStatus === "active").map(async (item): Promise<GeneralLeagueChat | null> => {
+      const result = await fetch(`/api/league-season-chats/${encodeURIComponent(item.seasonId)}?summary=1`, { cache: "no-store" }).catch(() => null)
       if (!result?.ok) return null
       const data = await result.json().catch(() => null)
-      if (!data || !Array.isArray(data.messages) || !Array.isArray(data.participants)) return null
+      if (!data || !Array.isArray(data.messages)) return null
       const last = data.messages.at(-1)
-      return { ...item, unread: typeof data.unread === "number" ? data.unread : 0, participants: data.participants.length, lastMessage: last ? { sender: last.sender_display_name, body: last.body, createdAt: last.created_at } : null, realtimeTopic: typeof data.realtimeTopic === "string" ? data.realtimeTopic : null }
+      return { ...item, unread: typeof data.unread === "number" ? data.unread : 0, participants: typeof data.participantCount === "number" ? data.participantCount : data.participants?.length ?? 0, lastMessage: last ? { sender: last.sender_display_name, body: last.body, createdAt: last.created_at } : null, realtimeTopic: typeof data.realtimeTopic === "string" ? data.realtimeTopic : null }
     }))
-    const leagueResponses = await leagueResponsesPromise
+    const response = await friendlyResponse
+    const payload = response ? await response.json().catch(() => null) : null
+    const friendlyError = !response?.ok ? payload && typeof payload.error === "string" ? payload.error : "personal_match_chats_lookup_failed" : null
+    const friendlyChats: PersonalChatOverviewItem[] = response?.ok && Array.isArray(payload?.chats) ? payload.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "friendly" })) : []
+    const [leagueResponses, generalResponses] = await Promise.all([leagueResponsesPromise, generalResponsesPromise])
     setChats([...friendlyChats, ...leagueResponses.flat()])
     setGeneralChats(generalResponses.filter((item): item is GeneralLeagueChat => item !== null))
     setError(friendlyError)

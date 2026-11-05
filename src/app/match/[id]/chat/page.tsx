@@ -28,7 +28,9 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { CHAT_UNREAD_LOCAL_REFRESH_EVENT, subscribeChatRealtime } from "@/lib/chatRealtimeClient"
-import { readMatchChatCache, writeMatchChatCache } from "@/lib/matchChatCache"
+import { clearMatchChatCache, readMatchChatCache, writeMatchChatCache } from "@/lib/matchChatCache"
+import { fetchChatEntry } from "@/lib/chatEntryRequest"
+import { useSession } from "next-auth/react"
 import {
   getLeagueLocationOptionLabel,
   sortLeagueLocationsByOptionLabel,
@@ -103,8 +105,8 @@ type LoadedChatSnapshot = {
   reservationSummary: ReservationSummary | null
 }
 
-async function requestMatchChatSnapshot(id: string) {
-  const response = await fetch(`/api/matches/${encodeURIComponent(id)}/chat`, { cache: "no-store" })
+async function requestMatchChatSnapshot(id: string, account: string | null | undefined) {
+  const response = await fetchChatEntry(account, `/api/matches/${encodeURIComponent(id)}/chat`)
   const data = await response.json().catch(() => null)
   return { response, data }
 }
@@ -130,6 +132,7 @@ function MentionText({ body, participants }: { body: string; participants: Parti
 }
 
 export default function MatchChatPage() {
+  const account = useSession().data?.user?.email
   const { tx, locale } = useI18n()
   const id = String(useParams<{ id: string }>().id)
   useMatchLeagueContext(id)
@@ -198,16 +201,13 @@ export default function MatchChatPage() {
       ),
   )
 
-  const loadFromServer = useCallback(async (currentMatch: typeof match) => {
-    const { response, data } = await requestMatchChatSnapshot(id)
-    const source = record(data)
-    if (!response.ok) {
-      setError(chatErrorMessage(typeof source.error === "string" ? source.error : undefined))
-      setInitialLoadComplete(true)
-      return
-    }
-    const snapshot = mapLoadedChatSnapshot(data)
-    const mergedMessages = mergePendingMessages(snapshot.messages, pendingMessagesRef.current.values()); knownMessageIdsRef.current = new Set(mergedMessages.map(chatMessageKey)); setMessages(mergedMessages)
+  const applySnapshot = useCallback((snapshot: LoadedChatSnapshot, animate = false) => {
+    const merged = mergePendingMessages(snapshot.messages, pendingMessagesRef.current.values())
+    const ids = merged.map(chatMessageKey)
+    const entering = animate ? ids.filter(messageId => !knownMessageIdsRef.current.has(messageId)) : []
+    knownMessageIdsRef.current = new Set(ids)
+    if (entering.length) setEnteringMessageIds(new Set(entering))
+    setMessages(merged)
     setParticipants(snapshot.participants)
     setMe(snapshot.currentUserId)
     setRound(snapshot.round)
@@ -216,90 +216,49 @@ export default function MatchChatPage() {
     setRealtimeTopic(snapshot.realtimeTopic)
     setCoordination(snapshot.coordination)
     setReservationSummary(snapshot.reservationSummary)
-    if (currentMatch) hydrateMatches([{ ...currentMatch, coordinationStatus: snapshot.coordination?.status === "coordinating" || snapshot.coordination?.status === "awaiting_booking" ? snapshot.coordination.status : null }])
     setError("")
     setInitialLoadComplete(true)
-    writeMatchChatCache(id, { ...source, ...snapshot })
-    window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
-  }, [hydrateMatches, id])
+  }, [])
 
-  useEffect(() => {
-    const cacheTimer = window.setTimeout(() => {
-      const cached = readMatchChatCache(id)
-      const snapshot = mapLoadedChatSnapshot(cached)
-      if (!snapshot.messages.length && !snapshot.participants.length) return
-      const mergedMessages = mergePendingMessages(snapshot.messages, pendingMessagesRef.current.values()); knownMessageIdsRef.current = new Set(mergedMessages.map(chatMessageKey)); setMessages(mergedMessages)
-      setParticipants(snapshot.participants)
-      setMe(snapshot.currentUserId)
-      setRound(snapshot.round)
-      setReadOnly(snapshot.readOnly)
-    setWriteUntil(snapshot.writeUntil)
-      setRealtimeTopic(snapshot.realtimeTopic)
-      setCoordination(snapshot.coordination)
-      setReservationSummary(snapshot.reservationSummary)
+  const loadFromServer = useCallback(async (currentMatch?: typeof match, animate = false, isCancelled: () => boolean = () => false) => {
+    const result = await requestMatchChatSnapshot(id, account).catch(() => null)
+    if (isCancelled()) return
+    const source = record(result?.data)
+    if (!result?.response.ok) {
+      if (result && [401, 403, 404].includes(result.response.status)) {
+        applySnapshot(mapLoadedChatSnapshot({ readOnly: true }))
+        if (account) clearMatchChatCache(id, account)
+      }
+      setError(chatErrorMessage(typeof source.error === "string" ? source.error : undefined))
       setInitialLoadComplete(true)
-    }, 0)
-    return () => window.clearTimeout(cacheTimer)
-  }, [id])
+      return
+    }
+    const snapshot = mapLoadedChatSnapshot(result.data)
+    applySnapshot(snapshot, animate)
+    if (currentMatch) {
+      const status = snapshot.coordination?.status
+      hydrateMatches([{ ...currentMatch, coordinationStatus: status === "coordinating" || status === "awaiting_booking" ? status : null }])
+    }
+    if (account) writeMatchChatCache(id, account, snapshot)
+    window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
+  }, [account, applySnapshot, hydrateMatches, id])
 
   useEffect(() => {
     let cancelled = false
-    const runLoad = async () => {
-      const { response, data } = await requestMatchChatSnapshot(id)
-      if (cancelled) return
-      const source = record(data)
-      if (!response.ok) {
-        setError(chatErrorMessage(typeof source.error === "string" ? source.error : undefined))
-        setInitialLoadComplete(true)
-        return
-      }
-      const snapshot = mapLoadedChatSnapshot(data)
-      const mergedMessages = mergePendingMessages(snapshot.messages, pendingMessagesRef.current.values()); knownMessageIdsRef.current = new Set(mergedMessages.map(chatMessageKey)); setMessages(mergedMessages)
-      setParticipants(snapshot.participants)
-      setMe(snapshot.currentUserId)
-      setRound(snapshot.round)
-      setReadOnly(snapshot.readOnly)
-    setWriteUntil(snapshot.writeUntil)
-      setRealtimeTopic(snapshot.realtimeTopic)
-      setCoordination(snapshot.coordination)
-      setReservationSummary(snapshot.reservationSummary)
-      setError("")
-      setInitialLoadComplete(true)
-      writeMatchChatCache(id, { ...source, ...snapshot })
-      window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
-    }
-    const initialTimer = window.setTimeout(() => { void runLoad() }, 0)
+    const runLoad = () => loadFromServer(undefined, false, () => cancelled)
+    const initialTimer = window.setTimeout(() => {
+      const cached = account ? readMatchChatCache(id, account) : null
+      if (cached) applySnapshot(mapLoadedChatSnapshot(cached))
+      void runLoad()
+    }, 0)
     const handleVisibility = () => { if (!document.hidden) void runLoad() }
     document.addEventListener("visibilitychange", handleVisibility)
     return () => { cancelled = true; window.clearTimeout(initialTimer); document.removeEventListener("visibilitychange", handleVisibility) }
-  }, [id])
+  }, [account, applySnapshot, id, loadFromServer])
 
   useEffect(() => subscribeChatRealtime(realtimeTopic, () => {
-    if (document.hidden) return
-    void (async () => {
-      const { response, data } = await requestMatchChatSnapshot(id)
-      const source = record(data)
-      if (!response.ok) {
-        setError(chatErrorMessage(typeof source.error === "string" ? source.error : undefined))
-        setInitialLoadComplete(true)
-        return
-      }
-      const snapshot = mapLoadedChatSnapshot(data)
-      const mergedMessages = mergePendingMessages(snapshot.messages, pendingMessagesRef.current.values()), newMessageIds = mergedMessages.map(chatMessageKey).filter((messageId) => !knownMessageIdsRef.current.has(messageId)); knownMessageIdsRef.current = new Set(mergedMessages.map(chatMessageKey)); if (newMessageIds.length) setEnteringMessageIds(new Set(newMessageIds)); setMessages(mergedMessages)
-      setParticipants(snapshot.participants)
-      setMe(snapshot.currentUserId)
-      setRound(snapshot.round)
-      setReadOnly(snapshot.readOnly)
-    setWriteUntil(snapshot.writeUntil)
-      setRealtimeTopic(snapshot.realtimeTopic)
-      setCoordination(snapshot.coordination)
-      setReservationSummary(snapshot.reservationSummary)
-      setError("")
-      setInitialLoadComplete(true)
-      writeMatchChatCache(id, { ...source, ...snapshot })
-      window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
-    })()
-  }), [id, realtimeTopic])
+    if (!document.hidden) void loadFromServer(undefined, true)
+  }), [loadFromServer, realtimeTopic])
 
   useEffect(() => {
     if (!writeUntil || effectiveReadOnly) return

@@ -1,3 +1,7 @@
+## MC144 — Latencia de entrada y navegación
+- Estado: COMPLETO LOCAL. Acortar la apertura de la aplicación y chats sin compartir respuestas privadas entre usuarios. Medición en PRE pendiente de autorización.
+- Gates: validate, pruebas de entrada con acceso de liga retrasado, regresiones de chat y verificación PWA.
+
 ## MC143 — Publicación v1.15.40 en PRE y PROD
 - Estado: COMPLETO EN PRE Y PROD. v1.15.40 publicada y verificada con las migraciones de chat.
 - Gates: controles locales y CI, verificación de PRE, preflight y respaldo verificado de PROD, comprobación de migraciones y smoke posterior de PROD.
