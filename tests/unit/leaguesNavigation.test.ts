@@ -12,7 +12,7 @@ describe("leagues navigation", () => {
     expect(shell).toContain("const shouldShowBottomNav")
     expect(shell).toContain("!isPersonalMatchesRoute")
     expect(shell).not.toMatch(/shouldShowBottomNav[\s\S]{0,240}!shouldShowLeagueSearch/)
-    expect(bottomNav).toContain('href: "/"')
+    expect(bottomNav).toContain('href: "/league/home"')
     expect(bottomNav).toContain('href: "/ranking"')
     expect(bottomNav).toContain('href: "/matches"')
     expect(bottomNav).toContain('href: "/profile"')

@@ -119,7 +119,7 @@ describe("public spectator data", () => {
     expect(route).toContain("league_memberships")
     expect(flow).toContain('invite.viewerAccess === "member"')
     expect(flow).toContain('window.localStorage.setItem("smash-lob-active-league", invite.leagueId)')
-    expect(flow).toContain('router.replace("/")')
+    expect(flow).toContain('router.replace("/league/home")')
     expect(flow).toContain("hasFullLeagueAccess")
     expect(flow).toContain("applySpectatorInviteAppearance")
   })

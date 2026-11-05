@@ -25,7 +25,7 @@ describe("v1.8.6 home and calendar coordination status", () => {
   })
 
   it("keeps Home and Calendar on the existing MatchCard instead of adding extra coordination UI", async () => {
-    const [home, calendar] = await Promise.all([read("src/app/page.tsx"), read("src/app/matches/page.tsx")])
+    const [home, calendar] = await Promise.all([read("src/app/league/home/page.tsx"), read("src/app/matches/page.tsx")])
     expect(home).toContain("<MatchCard")
     expect(calendar).toContain("<MatchCard")
     expect(home).not.toContain("Pendiente de reserva</")

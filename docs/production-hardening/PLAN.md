@@ -1,3 +1,7 @@
+## MC145 — Mis Competiciones como inicio general
+- Estado: COMPLETO LOCAL. Mis Competiciones es el inicio general y la entrada explícita a una liga tiene su propia ruta.
+- Gates: tipo, lint, comprobaciones de navegación y compilación, E2E de apertura web/PWA, liga programada, invitaciones y navegación interna de liga.
+
 ## MC144 — Latencia de entrada y navegación
 - Estado: COMPLETO LOCAL. Acortar la apertura de la aplicación y chats sin compartir respuestas privadas entre usuarios. Medición en PRE pendiente de autorización.
 - Gates: validate, pruebas de entrada con acceso de liga retrasado, regresiones de chat y verificación PWA.

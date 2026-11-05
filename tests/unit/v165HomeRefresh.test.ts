@@ -3,14 +3,14 @@ import { describe, expect, it } from "vitest"
 
 describe("v1.6.5 HOME refresh and compact season sharing", () => {
   it("uses a normal league logo beside the HOME title", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
     expect(home).toContain('<LeagueLogo league={activeLeague} size="md" previewable />')
     expect(home).toContain('visualStyle === "competition" ? "flex items-center gap-2" : "flex items-start gap-3"')
     expect(home).not.toContain("app-home-top-logo")
   })
 
   it("opens the league list from HOME", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
     expect(home).toContain('<Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500"')
     expect(home).toContain('{tx("Competiciones")}')
   })

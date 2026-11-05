@@ -58,21 +58,21 @@ describe("recoverable invitation entry", () => {
     )
   })
 
-  it("redirects the PWA launch before authentication can hide the destination", () => {
-    const destination = "/invite/SL-TEST?leagueId=league"
-    const response = proxy(
-      new NextRequest("https://smashandlob.com/launch?source=pwa", {
-        headers: {
-          cookie: `${PENDING_ACCESS_INTENT_COOKIE}=${encodeURIComponent(destination)}`,
-        },
-      }),
-    )
+  it.each([["pwa", "/leagues"], ["pending-invitation", "/invite/SL-TEST?leagueId=league"]])(
+    "routes launch source %s to %s", (source, expected) => {
+      const destination = "/invite/SL-TEST?leagueId=league"
+      const response = proxy(
+        new NextRequest(`https://smashandlob.com/launch?source=${source}`, {
+          headers: {
+            cookie: `${PENDING_ACCESS_INTENT_COOKIE}=${encodeURIComponent(destination)}`,
+          },
+        }),
+      )
 
-    expect(response.status).toBe(307)
-    expect(response.headers.get("location")).toBe(
-      `https://smashandlob.com${destination}`,
-    )
-  })
+      expect(response.status).toBe(307)
+      expect(response.headers.get("location")).toBe(`https://smashandlob.com${expected}`)
+    },
+  )
 
   it("expires only the recovery cookie through the cleanup endpoint", async () => {
     const response = await DELETE(
@@ -125,7 +125,7 @@ describe("recoverable invitation entry", () => {
     expect(authGate).toContain("t.auth.inviteAction")
     expect(inviteFlow).toContain("await clearPendingAccessIntent()")
     expect(spectatorFlow).toContain("await clearPendingAccessIntent()")
-    expect(launchPage).toContain('redirect(pendingDestination ?? "/")')
+    expect(launchPage).toContain('redirect(pendingDestination ?? "/leagues")')
   })
 
   it("does not leave spectator recovery blocking the next app launch", async () => {
@@ -135,7 +135,7 @@ describe("recoverable invitation entry", () => {
     ])
 
     expect(inviteFlow).toContain('tx("Cancelar invitación")')
-    expect(inviteFlow).toContain('router.replace("/")')
+    expect(inviteFlow).toContain('router.replace("/leagues")')
     expect(inviteFlow).toContain("router.replace(`/spectate/${encodeURIComponent(code)}/view`)")
     expect(publicView).toContain("void clearPendingAccessIntent()")
   })

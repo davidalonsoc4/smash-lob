@@ -25,12 +25,13 @@ export function proxy(request: NextRequest) {
     return isTournamentRequestEnabled(request) ? NextResponse.next() : new NextResponse(null, { status: 404, headers: { "Cache-Control": "no-store" } })
   }
   if (request.nextUrl.pathname === "/launch") {
-    const pendingDestination = decodePendingAccessDestination(
-      request.cookies.get(PENDING_ACCESS_INTENT_COOKIE)?.value,
-    )
+    const pendingDestination = request.nextUrl.searchParams.get("source") === "pending-invitation"
+      ? decodePendingAccessDestination(request.cookies.get(PENDING_ACCESS_INTENT_COOKIE)?.value)
+      : null
 
     return NextResponse.redirect(
-      new URL(pendingDestination ?? "/", request.url),
+      new URL(pendingDestination ?? "/leagues", request.url),
+      { headers: { "Cache-Control": "private, no-store" } },
     )
   }
 

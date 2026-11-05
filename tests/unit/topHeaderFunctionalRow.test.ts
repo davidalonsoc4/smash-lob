@@ -6,7 +6,7 @@ describe("top functional header row", () => {
     const [shell, globals, home, ranking, matches, ownProfile, playerProfile, sharedProfile, backButton, invite, help, spectatorShare] = await Promise.all([
       readFile("src/components/layout/AppShell.tsx", "utf8"),
       readFile("src/app/globals.css", "utf8"),
-      readFile("src/app/page.tsx", "utf8"),
+      readFile("src/app/league/home/page.tsx", "utf8"),
       readFile("src/app/ranking/page.tsx", "utf8"),
       readFile("src/app/matches/page.tsx", "utf8"),
       readFile("src/app/profile/page.tsx", "utf8"),
@@ -30,7 +30,7 @@ describe("top functional header row", () => {
     expect(globals).not.toContain(".app-shell-frame:has(.app-top-back-control) .app-preproduction-badge")
     expect(globals).not.toContain('.app-shell-frame[data-home-route="true"] .app-preproduction-badge')
     expect(home).not.toContain('type-page-title truncate text-2xl')
-    expect(shell).toContain('data-home-route={pathname === "/"}')
+    expect(shell).toContain('data-home-route={pathname === "/league/home"}')
     expect(globals).not.toContain(".app-home-top-logo")
     expect(globals).not.toContain(".app-home-identity")
     expect(home).toContain('size="md"')

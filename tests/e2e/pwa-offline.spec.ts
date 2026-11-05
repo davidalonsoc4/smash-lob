@@ -65,7 +65,7 @@ test("keeps an authenticated session behind the offline fallback until a full re
   expect(freshManifest.id).toBe("/")
   expect(freshManifest).toMatchObject({ theme_color: "#000000", background_color: "#000000" })
   await expect(
-    page.getByRole("link", { name: "Inicio", exact: true }),
+    page.getByRole("link", { name: "Competiciones", exact: true }),
   ).toBeVisible()
 
   await context.setOffline(true)
@@ -92,7 +92,7 @@ test("keeps an authenticated session behind the offline fallback until a full re
   ).toHaveCount(0)
 
   await page.getByRole("button", { name: "Reintentar" }).click()
-  await expect(page).toHaveURL("/")
+  await expect(page).toHaveURL("/leagues")
   await expect(
     page.getByRole("button", { name: "Entrar con Google" }),
   ).toHaveCount(0)

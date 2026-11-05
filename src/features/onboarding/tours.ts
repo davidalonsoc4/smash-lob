@@ -537,7 +537,7 @@ const tourStructure: Array<{
   {
     key: "home",
     version: 7,
-    route: "/",
+    route: "/league/home",
     audience: everyone,
     steps: [
       { side: "center", firstRunOnly: true, wide: true },

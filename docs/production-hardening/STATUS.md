@@ -3764,3 +3764,7 @@ MC144 checkpoint: compilación con entorno de pruebas, tipo, lint sin errores y 
 MC144 verificación: 12 pruebas dirigidas de navegador/PWA correctas. La ejecución general de Vitest pasó 1690 casos y falló en siete casos por tiempo y uno por una aserción de texto desactualizada. La repetición aislada de los cinco archivos afectados tras corregir la aserción pasó 104/104, sin elevar los tiempos máximos.
 
 MC144 completo local: compilación final y presupuesto correctos (1 310 976 bytes gzip en 108 fragmentos JS). Sin migraciones ni despliegue. En PRE queda medir arranque en frío, navegación con la app abierta y apertura de chat por notificación desde un móvil real.
+
+MC145 en curso: la ruta web raíz, el arranque PWA y el acceso tras autenticación ordinaria apuntan a Mis Competiciones. Inicio de liga pasa a una ruta explícita con sus accesos, estilos y restricciones. Las invitaciones pendientes se recuperan al pulsar el aviso de Mis Competiciones. Se normalizan las notificaciones antiguas dirigidas a Inicio de liga.
+
+MC145 completo local: compilación Next, TypeScript y 20 pruebas móviles/PWA correctas en las últimas tandas. Incluyen una sola liga activa o bloqueada, varias ligas, cuenta sin liga, espectadores, invitaciones, notificaciones y recuperación sin conexión. También pasan las 157 pruebas unitarias afectadas, lint sin errores y controles de tipografía, onboarding, i18n y presupuesto de código. Sin despliegue.

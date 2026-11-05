@@ -7,7 +7,7 @@ import type { SeasonSnapshot } from "@/context/SeasonSettingsProvider"
 import { seasonRoundSettings, playerProfiles, allMatches as fixtureMatches, seasons as fixtureSeasons, leagues as fixtureLeagues } from "@/data/fakeData"
 
 const screens = [
-  { name: "home", path: "/" },
+  { name: "home", path: "/league/home" },
   { name: "matches", path: "/matches" },
   { name: "ranking", path: "/ranking" },
   { name: "statistics", path: "/statistics" },
@@ -327,7 +327,7 @@ test("league spectator share shows a downloadable QR and shares the league link"
     })
   })
 
-  await page.goto("/")
+  await page.goto("/league/home")
   await page.getByRole("button", { name: "Compartir invitación" }).click()
   const dialog = page.getByRole("dialog")
   await expect(dialog).toBeVisible()
@@ -521,7 +521,7 @@ test("guided help can repeat the current screen tour", async ({ page }) => {
 })
 
 test("repeating the home guide skips the one-time welcome", async ({ page }) => {
-  await page.goto("/")
+  await page.goto("/league/home")
   await page.getByRole("button", { name: "Ayuda de esta pantalla" }).click()
   await page.getByRole("button", { name: "Repetir guía" }).click()
   await expect(page.getByRole("dialog", { name: "Pantalla de inicio" })).toBeVisible()
@@ -694,7 +694,7 @@ for (const theme of ["light", "dark"]) for (const duration of ["single", "double
       await page.locator('input[type="number"][max="18"]').fill("4")
     }
     await confirmSeasonCreation(page)
-    await expect(page).toHaveURL(/\/$/)
+    await expect(page).toHaveURL("/league/home")
     const created = await page.evaluate(() => {
       const data = JSON.parse(localStorage.getItem("smash-lob-season-data")!)
       const seasonId = data.activeSeasonIds["league-smash-lob"]
@@ -815,13 +815,13 @@ test("new league asks its format and opens the corresponding fixed-pair season f
   const axe = await new AxeBuilder({ page }).analyze()
   expect(axe.violations.filter(v => v.impact === "serious" || v.impact === "critical")).toEqual([])
   await page.getByRole("button", { name: "Crear liga y primera temporada", exact: true }).click()
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL("/league/home")
   expect(creationCount).toBe(1)
   expect(seasonCount).toBe(1)
   expect(created!.name).toBe("Liga revisada")
   expect(created!.logoUrl).toMatch(/^data:image\//)
   await page.reload()
-  await expect(page).toHaveURL(/\/$/)
+  await expect(page).toHaveURL("/league/home")
   expect(creationCount).toBe(1)
   expect(seasonCount).toBe(1)
 })
@@ -913,7 +913,7 @@ for (const theme of ["light", "dark"]) for (const modality of ["individual", "fi
     expect(axe.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: info.outputPath(`guided-review-${modality}-${theme}.png`), fullPage: true })
     await page.getByRole("button", { name: "Confirmar y crear temporada", exact: true }).click()
-    await expect(page).toHaveURL(/\/$/)
+    await expect(page).toHaveURL("/league/home")
     const stored = await page.evaluate(() => {
       const data = JSON.parse(localStorage.getItem("smash-lob-season-data")!)
       const id = data.activeSeasonIds["league-smash-lob"]
@@ -983,7 +983,7 @@ for (const theme of ["light", "dark"]) {
     await expect(page.getByRole("button", { name: "Bilbao - Club Zorrotza", exact: true })).toBeVisible()
     await page.getByRole("button", { name: "Siguiente paso", exact: true }).click()
     await page.getByRole("button", { name: "Confirmar y crear temporada", exact: true }).click()
-    await expect(page).toHaveURL(/\/$/)
+    await expect(page).toHaveURL("/league/home")
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("smash-lob-season-round-settings")!).find((row: { openingRoundEnabled: boolean }) => row.openingRoundEnabled))
     expect(JSON.parse(stored.openingRoundLocation).name).toBe("Club Zorrotza")
     expect(stored.scheduleMode).toBe("double")

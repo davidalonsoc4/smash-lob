@@ -23,7 +23,7 @@ describe("post-auth destination", () => {
     "/settings",
     "/invite",
     "/",
-  ])("falls back to Home for a non-invite destination: %s", (destination) => {
-    expect(buildPostAuthDestination(destination)).toBe("/")
+  ])("falls back to Mis Competiciones for a non-invite destination: %s", (destination) => {
+    expect(buildPostAuthDestination(destination)).toBe("/leagues")
   })
 })

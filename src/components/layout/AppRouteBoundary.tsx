@@ -40,6 +40,8 @@ export function AppRouteBoundary({ children }: { children: ReactNode }) {
     return () => navigator.serviceWorker.removeEventListener("message", openNotification)
   }, [router])
 
+  if (pathname === "/") return children
+
   if (publicRoutes.has(pathname) || pathname.startsWith("/spectate/")) {
     return (
       <>

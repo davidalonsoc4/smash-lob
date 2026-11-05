@@ -5,7 +5,7 @@ describe("HOME league logo geometry", () => {
   it("uses a profile-sized logo and leaves the functional row to Refresh", async () => {
     const [globals, home] = await Promise.all([
       readFile("src/app/globals.css", "utf8"),
-      readFile("src/app/page.tsx", "utf8"),
+      readFile("src/app/league/home/page.tsx", "utf8"),
     ])
 
     expect(globals).toContain('top: max(10px, calc(var(--app-safe-top) + 8px))')

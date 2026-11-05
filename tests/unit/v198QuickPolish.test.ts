@@ -9,7 +9,7 @@ describe("v1.9.8 quick product polish", () => {
 
     expect(prompt).toContain('const membershipsStorageKey = "smash-lob-user-league-memberships"')
     expect(prompt).toContain('status === "authenticated"')
-    expect(prompt).toContain('pathname === "/"')
+    expect(prompt).toContain('pathname === "/leagues"')
     expect(prompt).toContain("hasStoredLeagueMembership(sessionUserId)")
     expect(prompt).toContain("if (!canOfferInstall || !isVisible || isStandaloneDisplay())")
     expect(prompt).not.toContain("isEntryExperience")

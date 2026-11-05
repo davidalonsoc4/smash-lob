@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 
 describe("finished season home actions", () => {
   it("links the finished season to history and the share section", async () => {
-    const home = await readFile("src/app/page.tsx", "utf8")
+    const home = await readFile("src/app/league/home/page.tsx", "utf8")
     const seasonSummary = await readFile(
       "src/app/statistics/season/page.tsx",
       "utf8",

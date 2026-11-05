@@ -18,22 +18,6 @@ type LeagueEntryGateProps = {
   children: ReactNode
 }
 
-function isDocumentReload() {
-  if (typeof window === "undefined") {
-    return false
-  }
-
-  const navigationEntry = window.performance.getEntriesByType(
-    "navigation",
-  )[0] as PerformanceNavigationTiming | undefined
-
-  if (navigationEntry) {
-    return navigationEntry.type === "reload"
-  }
-
-  return window.performance.navigation?.type === 1
-}
-
 export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   const { t, tx } = useI18n()
   const router = useRouter()
@@ -51,7 +35,6 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
   } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [initialLeagueEntryResolved, setInitialLeagueEntryResolved] = useState(false)
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
   const isLeagueNavigationRoute = pathname === "/open"
@@ -82,36 +65,12 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     Boolean(activeLeague) &&
     !activeLeagueHasSeason &&
     !isAccessInviteRoute &&
+    !isLeagueNavigationRoute &&
     !isNewLeagueRoute &&
     !isLeaguesRoute &&
     !isTournamentRoute &&
     !isIndependentChatRoute &&
     !isPersonalMatchesRoute
-  useEffect(() => {
-    if (!isAccessHydrated || initialLeagueEntryResolved || isAccessInviteRoute) return
-
-    if (
-      pathname === "/" &&
-      userLeagues.length > 1 &&
-      !isDocumentReload()
-    ) {
-      router.replace("/leagues")
-      return
-    }
-
-    const resolveTimer = window.setTimeout(() => {
-      setInitialLeagueEntryResolved(true)
-    }, 0)
-
-    return () => window.clearTimeout(resolveTimer)
-  }, [
-    initialLeagueEntryResolved,
-    isAccessHydrated,
-    isAccessInviteRoute,
-    pathname,
-    router,
-    userLeagues.length,
-  ])
   useEffect(() => {
     if (
       isLeagueTransitioning ||
@@ -134,7 +93,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     ? isLeagueSpectator(activeLeague.id)
     : false
   const spectatorAllowedRoute =
-    pathname === "/" ||
+    pathname === "/league/home" ||
     pathname === "/ranking" ||
     pathname === "/matches" ||
     pathname.startsWith("/match/") ||
@@ -158,12 +117,12 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     }
 
     if (spectatorMode && !spectatorAllowedRoute) {
-      router.replace("/")
+      router.replace("/league/home")
     }
   }, [isLeagueTransitioning, router, spectatorAllowedRoute, spectatorMode])
   if (isIndependentChatRoute) return children
 
-  if (!isAccessHydrated || (!initialLeagueEntryResolved && pathname === "/" && userLeagues.length > 1)) {
+  if (!isAccessHydrated) {
     return <AppBootSkeleton />
   }
 

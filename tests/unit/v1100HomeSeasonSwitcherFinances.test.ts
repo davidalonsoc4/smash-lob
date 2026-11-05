@@ -5,7 +5,7 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("v1.10.0 HOME season switcher and registration finances", () => {
   it("views another HOME season without changing the real active-season pointer", async () => {
-    const [home, data, tours] = await Promise.all([read("src/app/page.tsx"), read("src/hooks/useCurrentLeagueData.ts"), read("src/features/onboarding/tours.ts")])
+    const [home, data, tours] = await Promise.all([read("src/app/league/home/page.tsx"), read("src/hooks/useCurrentLeagueData.ts"), read("src/features/onboarding/tours.ts")])
     const selector = await read("src/components/layout/SeasonContextLine.tsx")
     expect(home).toContain('dataTour="home-season-switcher"'); expect(home).toContain("onChange={setSelectedHomeSeasonId}"); expect(selector).toContain("options.length > 1"); expect(selector).toContain('role="menuitemradio"'); expect(selector).toContain("writeSelectedSeasonId(leagueId, item.id)")
     expect(data).toContain("selectedSeasonId?: string | null"); expect(data).toContain("requestedSeason ??"); expect(home).not.toContain("activeSeasonIds[")
@@ -13,7 +13,7 @@ describe("v1.10.0 HOME season switcher and registration finances", () => {
   })
 
   it("embeds registration below the countdown inside Próxima temporada", async () => {
-    const [home, panel] = await Promise.all([read("src/app/page.tsx"), read("src/components/season/SeasonRegistrationPanel.tsx")])
+    const [home, panel] = await Promise.all([read("src/app/league/home/page.tsx"), read("src/components/season/SeasonRegistrationPanel.tsx")])
     const card = home.indexOf('{tx("Próxima temporada")}</p>'), registration = home.indexOf("showScheduledRegistrationWaiting && shouldShowRegistrationPanel"), announcements = home.indexOf('data-tour="home-announcements"')
     expect(card).toBeGreaterThan(-1); expect(registration).toBeGreaterThan(card); expect(announcements).toBeGreaterThan(registration); expect(home).toContain("<SeasonRegistrationPanel\n                  embedded"); expect(panel).toContain("embedded?: boolean")
   })

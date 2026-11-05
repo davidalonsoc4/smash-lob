@@ -183,7 +183,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
     return (
       <div className={isSelf ? "space-y-3" : "space-y-4"}>
         <header className="app-page-header">
-          <BackButton fallbackHref={isSelf ? "/" : "/ranking"} label={t.common.back} />
+          <BackButton fallbackHref={isSelf ? "/league/home" : "/ranking"} label={t.common.back} />
           {isSelf ? (
             <>
               <h1 className="type-page-title text-2xl font-black tracking-tight">
@@ -217,7 +217,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
   return (
     <div className="space-y-3">
       <header className="app-page-header">
-        <BackButton fallbackHref={isSelf ? "/" : "/ranking"} label={t.common.back} />
+        <BackButton fallbackHref={isSelf ? "/league/home" : "/ranking"} label={t.common.back} />
         {isSelf ? (
           <PlayerProfileIdentityCard player={{ displayName: player.displayName, avatarUrl: player.avatarUrl ?? null }} positionLabel={playerPositionLabel} context="league" leagueName={activeLeague.name} contextDetails={<SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} onChange={setSelectedScopeId} />} />
         ) : (

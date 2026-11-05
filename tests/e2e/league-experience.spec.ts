@@ -27,6 +27,30 @@ async function setup(page:Page,theme:string,style:string,canCreate=true) {
   return {setUpcoming:()=>{upcoming=true},setWindowed:()=>{windowed=true},setRole:(next: "player" | "admin")=>{role=next},setAdvanced:()=>{advanced=true},matches,league}
 }
 
+for (const scheduled of [false, true]) {
+  test(`web and PWA start in Mis Competiciones with one ${scheduled ? "locked" : "active"} league`, async ({ page }) => {
+    const { league, setUpcoming } = await setup(page, "dark", "classic")
+    if (scheduled) setUpcoming()
+    await page.addInitScript(id => localStorage.setItem("smash-lob-active-league", id), league.id)
+    for (const entry of ["/", "/launch?source=pwa"]) {
+      await page.goto(entry)
+      await expect(page).toHaveURL("/leagues")
+      await expect(page.getByRole("heading", { name: "Mis Competiciones", exact: true })).toBeVisible()
+      await expect(page.locator("[data-countdown-home]")).toHaveCount(0)
+    }
+    await page.getByRole("button", { name: /Entrar en Liga Azul QA/ }).click()
+    await expect(page).toHaveURL("/league/home")
+    await expect(page.locator('[data-preseason-phase="locked"]')).toHaveCount(scheduled ? 1 : 0)
+    await page.reload()
+    await expect(page).toHaveURL("/league/home")
+    await expect(page.locator('[data-tour="home-header"]')).toBeVisible()
+    if (!scheduled) {
+      await page.goto(`/open?${new URLSearchParams({ leagueId: league.id, target: "/" })}`)
+      await expect(page).toHaveURL("/league/home")
+    }
+  })
+}
+
 test("notification starts the match chat request while league access is pending", async ({ page }) => {
   const { matches } = await setup(page, "dark", "classic")
   let releaseAccess!: () => void
@@ -76,7 +100,7 @@ test("league season chat opens from home and sends a message", async ({ page }, 
       await route.fulfill({ json: { season: { name: "Temporada 1", league_id: leagueId }, messages, participants: [{ userId: "qa-user", displayName: "QA", avatarUrl: null, lastReadAt: null }, { userId: "friend", displayName: "Ana", avatarUrl: null, lastReadAt: "2026-10-16T13:00:00Z" }], me: "qa-user", unread: 1, readOnly: false, realtimeTopic: null } })
     }
   })
-  await page.goto("/")
+  await page.goto("/league/home")
   await page.getByRole("link", { name: "Abrir chat de liga" }).click()
   await expect(page.getByRole("heading", { name: "Liga Azul QA" })).toBeVisible()
   const menu = page.getByLabel("Más opciones", { exact: true })
@@ -253,7 +277,7 @@ for (const theme of ["light", "dark"]) for (const style of ["classic", "competit
     const styles = (element: Element) => { const css = getComputedStyle(element); return { background: css.backgroundColor, borderTop: css.borderTopColor, borderWidth: css.borderTopWidth, shadow: css.boxShadow, padding: css.paddingTop } }
     const expected = await hubResult.evaluate(styles)
     const hubAccent = await hubResult.evaluate(element => getComputedStyle(element).getPropertyValue("--app-accent"))
-    await page.goto("/")
+    await page.goto("/league/home")
     const homeResult = page.locator(".home-personal-result").first()
     await expect(homeResult).toBeVisible()
     const homeAccent = await homeResult.evaluate(element => getComputedStyle(element).getPropertyValue("--app-accent"))
@@ -273,7 +297,7 @@ for (const theme of ["light", "dark"]) for (const style of ["classic", "competit
   test(`calendar cards show round and use unboxed results (${theme},${style})`, async ({ page }, info) => {
     const { matches } = await setup(page, theme, style)
     await page.setViewportSize({ width: 320, height: 740 })
-    await page.goto("/")
+    await page.goto("/league/home")
     const homeResult = page.locator('[data-home-match-carousel] [data-match-preview="result"]').first()
     await expect(homeResult).toBeVisible()
     expect(await homeResult.locator('[data-preview-team]').evaluateAll(rows => rows.every(row => getComputedStyle(row).backgroundColor === "rgba(0, 0, 0, 0)"))).toBe(true)
@@ -364,7 +388,7 @@ for(const theme of ["light","dark"]){
   test(`MVP help and result visibility respect participant and admin roles (${theme})`,async({page},info)=>{
     const fixture=await setup(page,theme,"competition")
     fixture.setAdvanced();fixture.setRole("player")
-    await page.goto("/")
+    await page.goto("/league/home")
     const homeMvp = page.locator("[data-mvp-recognition]").first()
     await expect(homeMvp).toBeVisible()
     await expect(homeMvp.locator(".app-match-mvp-star")).toBeVisible()
@@ -453,7 +477,7 @@ for(const theme of ["light","dark"])for(const style of ["classic","competition"]
     await expect(page.getByText("Te toca jugar esta jornada. Acuerda fecha con los demás.",{exact:true})).toBeVisible()
     fixture.setUpcoming();await page.reload()
     await expect(page.getByText("Emparejamientos por revelar",{exact:true})).toBeVisible()
-    await page.goto("/")
+    await page.goto("/league/home")
     await expect(page.locator('[data-season-start-countdown="hero"]')).toBeVisible()
     await expect(page.getByText("Los controles de esta liga se activarán al comenzar. Puedes seguir usando Competiciones y Mis partidos.",{exact:true})).toBeVisible()
     for(const width of [320,393]){

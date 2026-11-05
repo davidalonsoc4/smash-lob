@@ -242,7 +242,7 @@ export function AppShell({ children }: AppShellProps) {
       ),
   )
   const isScheduledSeasonUtilityRoute =
-    pathname === "/" ||
+    pathname === "/league/home" ||
     isNewLeagueRoute ||
     isTournamentRoute ||
     isSettingsContextRoute ||
@@ -265,7 +265,7 @@ export function AppShell({ children }: AppShellProps) {
       return
     }
     if (scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute) {
-      router.replace("/")
+      router.replace("/league/home")
     }
   }, [canAccessAdmin, isScheduledSeasonUtilityRoute, pathname, router, scheduledSeasonHomeOnly])
 
@@ -339,7 +339,7 @@ export function AppShell({ children }: AppShellProps) {
         className={`app-shell-frame mx-auto max-w-md bg-stone-50 shadow-[0_0_32px_rgba(15,23,42,0.06)] ${
           isMatchChatRoute ? "h-[100dvh] min-h-0 overflow-hidden" : "min-h-screen"
         }`}
-        data-home-route={pathname === "/"}
+        data-home-route={pathname === "/league/home"}
         data-match-chat-route={isMatchChatRoute}
         data-route={pathname}
       >
@@ -444,7 +444,7 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           ) : (
             <>
-              {pathname === "/" ? <PendingAccessIntentNotice /> : null}
+              {pathname === "/leagues" ? <PendingAccessIntentNotice /> : null}
               {!isTournamentRoute ? <CompetitionLaunchNotice /> : null}
               {children}
             </>

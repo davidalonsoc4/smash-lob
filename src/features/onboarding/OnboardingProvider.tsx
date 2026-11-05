@@ -213,7 +213,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const hasSeenWelcome = Boolean(progress.home || progress["app-introduction"])
     const includeFirstRunOnly =
       !requestedTour &&
-      pathname === "/" &&
+      pathname === "/league/home" &&
       candidate?.key === "home" &&
       !hasSeenWelcome
 

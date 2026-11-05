@@ -212,7 +212,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
   }, [getLeagueByInviteCode, resolveLeagueInvite])
 
   useEffect(() => {
-    router.prefetch("/")
+    router.prefetch("/league/home")
   }, [router])
 
   useEffect(() => {
@@ -428,7 +428,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
     void refreshLeagueAccess()
     void syncPushForInviteLeague(league.id, existingMembership?.playerId || null)
     await clearPendingAccessIntent()
-    router.replace("/")
+    router.replace("/league/home")
   }
 
   async function handleClaim() {
@@ -501,7 +501,7 @@ export function InviteFlow({ code, leagueIdHint }: InviteFlowProps) {
       isSelfRegistration ? result.membership.playerId : selectedPlayerId,
     )
     await clearPendingAccessIntent()
-    router.replace("/")
+    router.replace("/league/home")
   }
 
   return (

@@ -143,7 +143,7 @@ export function PersonalMatchCard({ match, hideEventMeta = false, compactBadges 
       className="absolute inset-0 w-full rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-offset-2"
       onClick={() => {
         if (!match.leagueId || !activateLeague(match.leagueId)) return
-        router.push(match.preview?.hidden ? "/" : `/match/${encodeURIComponent(match.id)}`)
+        router.push(match.preview?.hidden ? "/league/home" : `/match/${encodeURIComponent(match.id)}`)
       }}
       aria-label={tx(`Abrir partido de ${match.leagueName ?? tx("liga")}`)}
     />} />
