@@ -3736,3 +3736,5 @@ MC140 completo local: ubicación retirada y divisores añadidos en listas global
 MC141 iniciado: se confirma autorización para PRE. El primer validate detectó tres expectativas de pruebas del diseño anterior y se actualizaron al diseño aprobado. Cambios agrupados en 605f0265 e integración local de staging e2dffc0c sin conflictos. El historial de PRE confirma las tres migraciones del chat. Candidata v1.15.39 con caché PWA renovada y preparación de PROD en RELEASE-1.15.39.md. Validación completa en curso.
 
 MC141: PR #63 abierta contra staging. Antes de publicar, el usuario pidió restaurar el separador anterior entre conversaciones. Se retira la línea resaltada en las listas de liga y global, manteniendo la agrupación y las tarjetas sin ubicación.
+
+MC141: validate local completo (1694 pruebas) y nueve pruebas móviles de bandeja correctos. CI #426 detectó ocho casos E2E: cuatro referencias visuales de Inicio/Calendario que difieren por las tarjetas aprobadas y cuatro fallos del margen superior seguro en chat. Referencias revisadas y repetidas 4/4. Margen corregido para sumar 8 px al área segura. Revalidar el commit corregido antes de integrar.

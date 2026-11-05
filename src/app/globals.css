@@ -3375,7 +3375,7 @@ html[data-visual-style] .app-card.match-preview-featured {
   padding-top: max(3.75rem, calc(var(--app-safe-top) + 3.75rem)) !important;
 }
 .app-main[data-has-floating-top-controls="true"] .app-page-header.app-match-chat-header[data-compact-chat-header] {
-  padding-top: max(.5rem, var(--app-safe-top)) !important;
+  padding-top: calc(var(--app-safe-top) + .5rem) !important;
 }
 .app-match-chat-header[data-compact-chat-header] .type-page-title { font-size: 1.1rem !important; }
 .app-main[data-has-floating-top-controls="true"] .app-match-chat-header[data-compact-chat-header] .app-top-back-control {
