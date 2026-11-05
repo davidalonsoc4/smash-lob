@@ -1,3 +1,7 @@
+## MC148 — Arranque ligero de Mis Competiciones
+- Estado: EN CURSO. Publicar la mejora medida anterior en PRE y preparar por separado la carga esencial y la precarga de liga.
+- Gates: CI y smoke para PRE v1.15.42. En la nueva rama, comprobar tamaño, permisos, contenido inicial, hidratación completa bajo demanda, precarga sin duplicados, red lenta, tipos, lint y navegador.
+
 ## MC147 — Comparativa de latencia de entrada
 - Estado: COMPLETO LOCAL. La candidata superó a v1.15.41 en las medianas de los tres recorridos simulados.
 - Gates: igualdad de respuestas y privacidad, medición repetida de la preparación de acceso y actividad, tipo, lint, compilación y regresiones de navegador.

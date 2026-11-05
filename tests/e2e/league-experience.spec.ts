@@ -51,6 +51,51 @@ for (const scheduled of [false, true]) {
   })
 }
 
+for (const saveData of [false, true]) {
+  test(`Mis Competiciones paints first and reuses the deferred league load (saveData=${saveData})`, async ({ page }) => {
+    const { league } = await setup(page, "dark", "classic")
+    await page.addInitScript(save => Object.defineProperty(navigator, "connection", { value: { saveData: save, effectiveType: "4g" } }), saveData)
+    let release!: () => void
+    const pending = new Promise<void>(resolve => { release = resolve })
+    let overviewReads = 0, fullReads = 0
+    await page.route("**/api/access", async route => {
+      if (route.request().headers()["x-smash-lob-access-scope"] === "overview") {
+        overviewReads++
+        const season = { id: seasonId, leagueId, name: "Temporada ligera", status: "active", totalRounds: 12, completedRounds: 1 }
+        return route.fulfill({ json: {
+          isSuperuser: false, canCreateLeagues: true, leagues: [league], spectatorLeagueIds: [],
+          memberships: [{ userId: "qa-experience@example.test", leagueId, playerId: "davo", role: "admin" }],
+          overview: { activeSeasons: { [leagueId]: season }, startsAt: {}, revealedThrough: { [seasonId]: 12 }, activity: [] },
+        } })
+      }
+      fullReads++
+      await pending
+      return route.fallback()
+    })
+    try {
+      await page.goto("/leagues")
+      await expect(page.getByText("Temporada ligera", { exact: true })).toBeVisible()
+      expect(overviewReads).toBe(1)
+      expect(fullReads).toBe(0)
+      if (saveData) {
+        await page.waitForTimeout(1_800)
+        expect(fullReads).toBe(0)
+      } else {
+        await expect.poll(() => fullReads).toBe(1)
+        await expect(page.getByText("Temporada ligera", { exact: true })).toBeVisible()
+      }
+      await page.getByRole("button", { name: /Entrar en Liga Azul QA/ }).click()
+      await expect(page).toHaveURL("/league/home")
+      await expect.poll(() => fullReads).toBe(1)
+      await expect(page.locator('[data-tour="home-header"]')).toHaveCount(0)
+    } finally {
+      release()
+    }
+    await expect(page.locator('[data-tour="home-header"]')).toBeVisible()
+    expect(fullReads).toBe(1)
+  })
+}
+
 test("notification starts the match chat request while league access is pending", async ({ page }) => {
   const { matches } = await setup(page, "dark", "classic")
   let releaseAccess!: () => void
@@ -271,6 +316,13 @@ for (const theme of ["light", "dark"]) for (const style of ["classic", "competit
   test(`home personal result matches competitions activity styling (${theme},${style})`, async ({ page }) => {
     await setup(page, theme, style)
     await page.setViewportSize({ width: 320, height: 740 })
+    await page.addInitScript(() => {
+      document.addEventListener("DOMContentLoaded", () => {
+        const staticStyles = document.createElement("style")
+        staticStyles.textContent = "*, *::before, *::after { transition: none !important; }"
+        document.head.appendChild(staticStyles)
+      }, { once: true })
+    })
     await page.goto("/leagues")
     const hubResult = page.locator('[data-activity-accent] .app-card').filter({ has: page.locator('[data-match-preview="result"]') }).first()
     await expect(hubResult).toBeAttached()

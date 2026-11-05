@@ -141,6 +141,7 @@ function getRoundStatus({
   matches,
   startsAt,
   endsAt,
+  madridDay,
 }: {
   round: number
   season: Season
@@ -148,6 +149,7 @@ function getRoundStatus({
   matches: MatchData[]
   startsAt: string | null
   endsAt: string | null
+  madridDay?: string
 }): SeasonRoundStatus {
   const manuallyCompletedRounds = settings.manualCompletedRounds ?? []
 
@@ -164,6 +166,7 @@ function getRoundStatus({
   }
 
   if (settings.roundWindowMode === "fixed-days" && startsAt && endsAt) {
+    if (madridDay) return madridDay < startsAt ? "upcoming" : madridDay > endsAt ? "overdue" : "active"
     const today = new Date()
     const startDate = parseLocalDate(startsAt)
     const endDate = endOfDay(parseLocalDate(endsAt))
@@ -188,11 +191,14 @@ export function buildSeasonRounds({
   season,
   settings,
   matches,
+  madridTime,
 }: {
   season: Season
   settings: SeasonRoundSettings
   matches: MatchData[]
+  madridTime?: Date
 }) {
+  const madridDay = madridTime && madridDateValueFormatter.format(madridTime)
   return Array.from({ length: season.totalRounds }, (_, index) => {
     const round = index + 1
     const { startsAt, endsAt } = getRoundWindow({ round, settings })
@@ -203,6 +209,7 @@ export function buildSeasonRounds({
       matches,
       startsAt,
       endsAt,
+      madridDay,
     })
 
     return {
