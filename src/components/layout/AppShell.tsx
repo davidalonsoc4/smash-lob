@@ -1,5 +1,7 @@
 "use client"
 
+import { areTournamentsEnabled } from "@/lib/tournamentAvailability"
+
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react"
@@ -173,9 +175,9 @@ export function AppShell({ children }: AppShellProps) {
     pathname === "/experimental/avatar-lab" ||
     pathname.startsWith("/experimental/avatar-lab/")
   const isMatchChatRoute =
-    (pathname.startsWith("/match/") ||
+    pathname.startsWith("/league-chat/") || ((pathname.startsWith("/match/") ||
       pathname.startsWith("/personal-matches/")) &&
-    pathname.endsWith("/chat")
+    pathname.endsWith("/chat"))
   const isPublicAccessRoute =
     isInviteRoute || isSpectateRoute || isLeagueNavigationRoute
   const isNewLeagueRoute = pathname === "/league/new"
@@ -308,7 +310,7 @@ export function AppShell({ children }: AppShellProps) {
   const isTournamentSettingsRoute = Boolean(tournamentNavId) && pathname === `/tournaments/${tournamentNavId}/settings`
   const shouldShowTournamentNav = Boolean(tournamentNavId) && !isMatchChatRoute && !isTournamentSettingsRoute
   const shouldShowSpectatorShareButton = shouldShowActionBar
-  const shareTournamentId = tournamentNavId ?? searchParams.get("returnTo")?.match(/^\/tournaments\/([^/]+)/)?.[1]
+  const shareTournamentId = areTournamentsEnabled() ? tournamentNavId ?? searchParams.get("returnTo")?.match(/^\/tournaments\/([^/]+)/)?.[1] : null
   const hasSpectatorShareControl = shouldShowSpectatorShareButton
   const hasFloatingTopControls = shouldShowActionBar
   const floatingTopControlWidth = 4 * 42 - 8
@@ -365,6 +367,15 @@ export function AppShell({ children }: AppShellProps) {
               right: getFloatingRight(16),
             }}
           >
+            {isMatchChatRoute ? <details className="relative" onKeyDown={(event) => { if (event.key === "Escape") { event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus() } }}>
+              <summary aria-label={tx("Más opciones")} title={tx("Más opciones")} className="app-floating-control flex h-[34px] w-[34px] cursor-pointer list-none items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm [&::-webkit-details-marker]:hidden"><span aria-hidden="true" className="text-xl leading-none">⋮</span></summary>
+              <div className="absolute right-0 top-full mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+                {shouldShowHelpButton ? <FloatingHelpButton /> : null}
+                {hasSpectatorShareControl ? (shareTournamentId ? <TournamentShareButton tournamentId={shareTournamentId} /> : <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} />) : null}
+                {shouldShowNotificationsButton ? <Link href="/notifications" data-tour="floating-notifications" aria-label={tx("Notificaciones")} title={tx("Notificaciones")} className="app-floating-control flex h-[34px] w-[34px] items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm"><NotificationsIcon /></Link> : null}
+                {shouldShowSettingsButton ? <Link href={`/settings?returnTo=${encodeURIComponent(pathname)}`} data-tour="floating-settings" aria-label={t.appHeader.settingsLabel} title={t.appHeader.settingsLabel} className="app-floating-control flex h-[34px] w-[34px] items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm"><SettingsIcon /></Link> : null}
+              </div>
+            </details> : <>
             {shouldShowHelpButton ? <FloatingHelpButton /> : null}
 
             {hasSpectatorShareControl ? (shareTournamentId ? <TournamentShareButton tournamentId={shareTournamentId} /> : <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} />) : null}
@@ -392,6 +403,7 @@ export function AppShell({ children }: AppShellProps) {
                 <SettingsIcon />
               </Link>
             ) : null}
+            </>}
           </div>
         ) : null}
 

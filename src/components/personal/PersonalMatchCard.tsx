@@ -6,8 +6,8 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useRouter } from "next/navigation"
+import { MatchPreviewTeams } from "@/components/matches/MatchPreviewTeams"
 import { MatchEventMeta } from "@/components/matches/MatchEventMeta"
-import { SetGameScore } from "@/components/matches/SetGameScore"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { AppCard } from "@/components/ui/AppCard"
 import { formatShortDate } from "@/lib/rounds"
@@ -29,9 +29,9 @@ import {
 
 const showPersonalMatchChevron = false
 
-type PersonalMatchCardProps = { match: PersonalMatchItem; hideEventMeta?: boolean; compactBadges?: boolean }
+type PersonalMatchCardProps = { match: PersonalMatchItem; hideEventMeta?: boolean; compactBadges?: boolean; compactResult?: boolean; unboxedResult?: boolean; calendarAction?: ReactNode }
 
-function MatchCardContent({ match, hideEventMeta = false, compactBadges = false, navigation }: PersonalMatchCardProps & { navigation: ReactNode }) {
+function MatchCardContent({ match, hideEventMeta = false, compactBadges = false, compactResult = false, unboxedResult = true, calendarAction, navigation }: PersonalMatchCardProps & { navigation: ReactNode }) {
   const { tx, locale } = useI18n()
   const { userLeagues } = useLeagueAccess()
   const league = userLeagues.find(item => item.id === match.leagueId)
@@ -52,7 +52,7 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
         <span
           data-personal-match-origin={match.origin}
           data-league-accent={match.origin === "league" && league ? normalizeAccentColor(league.accentColor) : undefined}
-          className={`min-w-0 max-w-[58%] shrink rounded-xl type-caption ${compactBadges ? "px-2 py-0.5 font-semibold tracking-normal !border-0" : "border px-2 py-1 font-black uppercase tracking-wide"} ${getPersonalMatchOriginBadgeClass(match)}`}
+          className={`personal-match-origin-label min-w-0 max-w-[58%] shrink rounded-xl type-caption ${compactBadges ? "px-2 py-0.5 font-semibold tracking-normal !border-0" : "border px-2 py-1 font-black uppercase tracking-wide"} ${getPersonalMatchOriginBadgeClass(match)}`}
           style={getPersonalMatchOriginBadgeStyle(match, league ? normalizeAccentColor(league.accentColor) : undefined)}
         >
           <FitText>{getPersonalMatchOriginLabel(match)}</FitText>
@@ -73,85 +73,17 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
 
       <div className="flex items-center gap-3">
         {match.preview?.hidden ? <div className="flex min-h-24 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-200 px-3 py-4 text-center"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5 text-neutral-500"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><p className="text-sm font-semibold text-neutral-600">{tx("Emparejamientos por revelar")}</p></div> : isFinished ? (
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
-              <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
-                {teamA.map((participant) => (
-                  <p
-                    key={`a-${participant.slot}`}
-                    className="truncate text-sm font-black leading-5 text-neutral-950"
-                  >
-                    {participant.displayName}
-                  </p>
-                ))}
-              </div>
-
-              <div className="flex shrink-0 items-center gap-1 self-center">
-                <div
-                  className="flex items-center gap-1"
-                  aria-label={tx("Juegos por set de la pareja A")}
-                >
-                  {match.sets.map((set, index) => (
-                    <SetGameScore
-                      key={index}
-                      value={set.a}
-                      won={set.a > set.b}
-                    />
-                  ))}
-                </div>
-                <span
-                  className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm"
-                  aria-label={tx("Sets ganados por la pareja A")}
-                >
-                  {setWins.a}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-stretch justify-between gap-3 rounded-xl bg-neutral-50 px-3 py-2">
-              <div className="flex min-w-0 flex-1 flex-col gap-y-0.5">
-                {teamB.map((participant) => (
-                  <p
-                    key={`b-${participant.slot}`}
-                    className="truncate text-sm font-black leading-5 text-neutral-950"
-                  >
-                    {participant.displayName}
-                  </p>
-                ))}
-              </div>
-
-              <div className="flex shrink-0 items-center gap-1 self-center">
-                <div
-                  className="flex items-center gap-1"
-                  aria-label={tx("Juegos por set de la pareja B")}
-                >
-                  {match.sets.map((set, index) => (
-                    <SetGameScore
-                      key={index}
-                      value={set.b}
-                      won={set.b > set.a}
-                    />
-                  ))}
-                </div>
-                <span
-                  className="ml-1 flex min-w-8 items-center justify-center rounded-md border border-neutral-200 bg-white px-2 py-1 text-base font-black text-neutral-900 shadow-sm"
-                  aria-label={tx("Sets ganados por la pareja B")}
-                >
-                  {setWins.b}
-                </span>
-              </div>
-            </div>
-          </div>
+          <MatchPreviewTeams unboxed={unboxedResult} accented={compactResult} teamA={teamA.map(player => ({ id: String(player.slot), name: player.displayName }))} teamB={teamB.map(player => ({ id: String(player.slot), name: player.displayName }))} sets={match.sets} scores={setWins} />
         ) : (
-          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_30px_minmax(0,1fr)] items-stretch gap-2">
+          <div data-preview-versus className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_30px_minmax(0,1fr)] items-stretch gap-2">
             <div className="min-w-0 rounded-xl bg-neutral-50 px-3 py-2.5">
               <div className="flex min-w-0 flex-col gap-y-1">
                 {teamA.map((participant) => (
                   <p
                     key={`a-${participant.slot}`}
-                    className="truncate text-sm font-black leading-tight text-neutral-950"
+                    className="w-full text-sm font-black leading-tight text-neutral-950"
                   >
-                    {participant.displayName}
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
                   </p>
                 ))}
               </div>
@@ -168,9 +100,9 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
                 {teamB.map((participant) => (
                   <p
                     key={`b-${participant.slot}`}
-                    className="max-w-full truncate text-sm font-black leading-tight text-neutral-950"
+                    className="w-full text-sm font-black leading-tight text-neutral-950"
                   >
-                    {participant.displayName}
+                    <FitText noWrap minFontSize={10}>{participant.displayName}</FitText>
                   </p>
                 ))}
               </div>
@@ -181,31 +113,32 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
         {showPersonalMatchChevron ? <ClickableChevron className="shrink-0" /> : null}
       </div>
 
-      {!hideEventMeta && match.preview && !match.scheduledAt ? <div className="mt-3 flex min-h-10 items-center text-xs font-semibold text-neutral-500"><p>{match.preview.currentRound && !match.preview.hidden ? tx("Te toca jugar esta jornada. Acuerda fecha con los demás.") : tx("Próxima jornada")}{match.preview.startsAt ? <span className="mt-1 block">{match.preview.startsAt.includes("T") ? new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale === "eu" ? "eu-ES" : "es-ES",{dateStyle:"medium",timeStyle:"short"}).format(new Date(match.preview.startsAt)) : `${formatShortDate(match.preview.startsAt,locale)}${match.preview.endsAt ? ` · ${formatShortDate(match.preview.endsAt,locale)}` : ""}`}</span> : null}</p></div> : null}
+      {!hideEventMeta && match.preview && !match.scheduledAt ? <div data-match-round-window className="mt-3 flex min-h-10 items-center text-xs font-semibold text-neutral-500"><p>{match.preview.currentRound && !match.preview.hidden ? tx("Te toca jugar esta jornada. Acuerda fecha con los demás.") : tx("Próxima jornada")}{match.preview.startsAt ? <span className="mt-1 block">{match.preview.startsAt.includes("T") ? new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale === "eu" ? "eu-ES" : "es-ES",{dateStyle:"medium",timeStyle:"short"}).format(new Date(match.preview.startsAt)) : `${formatShortDate(match.preview.startsAt,locale)}${match.preview.endsAt ? ` · ${formatShortDate(match.preview.endsAt,locale)}` : ""}`}</span> : null}</p></div> : null}
       {!hideEventMeta ? <MatchEventMeta
         eventAt={match.scheduledAt}
         locationText={match.scheduleLocation ?? match.locationName}
         locationFallback={null}
         hideMissingRows
+        action={calendarAction}
       /> : null}
       {navigation}
     </AppCard>
   )
 }
 
-export function PersonalMatchCard({ match, hideEventMeta = false, compactBadges = false }: PersonalMatchCardProps) {
+export function PersonalMatchCard({ match, hideEventMeta = false, compactBadges = false, compactResult = false, unboxedResult = true, calendarAction }: PersonalMatchCardProps) {
   const { tx } = useI18n()
   const router = useRouter()
   const { activateLeague } = useActiveLeague()
 
   if (match.origin === "friendly") {
     return (
-      <MatchCardContent match={match} hideEventMeta={hideEventMeta} compactBadges={compactBadges} navigation={<Link href={`/personal-matches/${encodeURIComponent(match.id)}`} className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2" aria-label={tx(`Abrir partido de ${tx("Amistoso")}`)} />} />
+      <MatchCardContent match={match} hideEventMeta={hideEventMeta} compactBadges={compactBadges} compactResult={compactResult} unboxedResult={unboxedResult} calendarAction={calendarAction} navigation={<Link href={`/personal-matches/${encodeURIComponent(match.id)}`} className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2" aria-label={tx(`Abrir partido de ${tx("Amistoso")}`)} />} />
     )
   }
 
   return (
-    <MatchCardContent match={match} hideEventMeta={hideEventMeta} compactBadges={compactBadges} navigation={<button
+    <MatchCardContent match={match} hideEventMeta={hideEventMeta} compactBadges={compactBadges} compactResult={compactResult} unboxedResult={unboxedResult} calendarAction={calendarAction} navigation={<button
       type="button"
       className="absolute inset-0 w-full rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-offset-2"
       onClick={() => {

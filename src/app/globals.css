@@ -126,6 +126,30 @@ section[aria-labelledby="personal-activity"]:has(> .match-preview-pagination) + 
   margin-block-start: 0 !important;
 }
 
+/* Match the overview's compact markers without shrinking their tap areas. */
+[data-home-match-carousel] > .match-preview-pagination,
+section[aria-labelledby="personal-activity"] > .match-preview-pagination {
+  padding-block-start: .125rem;
+}
+[data-home-match-carousel] > .match-preview-pagination {
+  margin-block-start: .5rem;
+}
+[data-home-match-carousel] > .match-preview-pagination button {
+  position: relative;
+}
+[data-home-match-carousel] > .match-preview-pagination button::after {
+  position: absolute;
+  inset-block: -9px;
+  inset-inline: -3px;
+  content: "";
+}
+[data-home-match-carousel] > .match-preview-pagination button:first-child::after {
+  inset-inline-start: -15px;
+}
+[data-home-match-carousel] > .match-preview-pagination button:last-child::after {
+  inset-inline-end: -15px;
+}
+
 [data-home-match-carousel] .match-slides > div > div,
 [data-home-match-carousel] .match-slides > div > div > a {
   height: 100%;
@@ -2204,6 +2228,7 @@ html[data-match-chat-active="true"] body { background: var(--app-match-chat-safe
 /* Conversation cards use a side accent and explicit affordance to read as navigation. */
 .chat-list-stack { position: relative; }
 .chat-list-stack::before { content: ""; position: absolute; z-index: 2; inset: 0 auto 0 0; width: .22rem; background: linear-gradient(180deg,#262626,#737373 48%,#d4d4d4); pointer-events: none; }
+[data-route="/chats"] .chat-list-stack::before { display: none; }
 .chat-list-card-unread { box-shadow: 0 6px 18px rgb(15 23 42 / .08); }
 html.dark[data-style="plain"] .chat-list-stack::before { background: linear-gradient(180deg,#dbe6f3,#536a84 58%,#9fb1c7); }
 html.colorful .chat-list-stack::before { background: linear-gradient(180deg,var(--colorful-primary),var(--colorful-secondary),var(--colorful-accent)); }
@@ -2663,7 +2688,7 @@ html[data-visual-style="competition"] [data-route="/settings"] .settings-payment
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--competition-accent-contrast) 18%, transparent);
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack {
-  border: 1px solid color-mix(in srgb, var(--competition-accent) 24%, var(--competition-border));
+  border: 0;
   box-shadow: 0 18px 38px rgb(var(--competition-shadow-rgb) / calc(.2 * var(--competition-shadow-strength)));
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack .app-card {
@@ -2795,6 +2820,12 @@ html[data-visual-style="competition"] .app-match-chat-receipt[data-read="true"] 
 html[data-visual-style="competition"] .app-match-chat-receipt[data-read="false"] {
   color: color-mix(in srgb, var(--competition-accent-contrast) 76%, var(--competition-accent-text, var(--competition-accent))) !important;
   opacity: .9;
+}
+
+html.dark:not([data-visual-style="competition"]) .league-season-chat-messages .app-match-chat-metadata[data-mine="true"],
+html.dark:not([data-visual-style="competition"]) .league-season-chat-messages .app-match-chat-metadata[data-mine="true"] .type-caption,
+html.dark:not([data-visual-style="competition"]) .league-season-chat-messages .app-match-chat-metadata[data-mine="true"] .app-match-chat-receipt {
+  color: #d4d4d8 !important;
 }
 
 html[data-visual-style="competition"] .public-spectator-hero {
@@ -3179,9 +3210,32 @@ html.dark .app-main :is(button, a).bg-neutral-950 {
 }
 html[data-theme][data-visual-style] .app-action-button :is(span,svg),
 html .app-main :is(button,a).bg-neutral-950 :is(span,svg,p) { color: inherit !important; }
-html .app-action-button:disabled { opacity: .45; cursor: not-allowed; }
-html .app-action-button:focus-visible { outline: 2px solid var(--app-accent, #737373); outline-offset: 3px; }
+/* Secondary decisions stay neutral instead of inheriting the primary fill. */
+html[data-theme][data-visual-style] .app-action-secondary {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--foreground) 28%, transparent) !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+}
+html[data-theme][data-visual-style] .app-action-secondary :is(span,svg,p) { color: inherit !important; }
+html[data-theme][data-visual-style] .app-action-secondary:active { background: color-mix(in srgb, var(--foreground) 7%, transparent) !important; }
+html :is(.app-action-button,.app-action-secondary):disabled { opacity: .45; cursor: not-allowed; }
+html :is(.app-action-button,.app-action-secondary):focus-visible { outline: 2px solid var(--app-accent, #737373); outline-offset: 3px; }
 .app-match-pair-surface { min-width: 0; border-color: color-mix(in srgb, var(--app-accent, #737373) 22%, #d4d4d4); }
+/* Finished matches retain the standalone match-up identity; scores lead, management follows. */
+.app-match-result-standalone .app-match-player-name { font-size: 1.125rem; line-height: 1.25; }
+.app-match-result-names { padding-left: 8px; }
+html[data-theme][data-visual-style] :is(.app-match-pending-divider, .app-match-result-pair-divider) { border-color: var(--app-accent, #737373) !important; }
+html[data-theme][data-visual-style] .app-match-result-divider > span { border-color: color-mix(in srgb, var(--foreground) 14%, transparent) !important; }
+html[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #fff) !important; color: var(--foreground); }
+html.dark[data-theme][data-visual-style] .app-match-result-surface { background: var(--competition-surface, #1c1d21) !important; }
+html[data-theme][data-visual-style] .app-match-winner-trophy { color: color-mix(in srgb, var(--app-accent) 55%, var(--foreground)) !important; }
+html[data-theme][data-visual-style] .app-match-result-set > span:last-child { min-height: 30px; background: transparent !important; border: 0; color: var(--foreground) !important; font-size: 1rem; line-height: 1.25; font-variant-numeric: tabular-nums; }
+html[data-theme][data-visual-style] .app-match-result-total { font-size: 1.875rem !important; line-height: 1 !important; color: var(--foreground) !important; }
+.app-match-result-row:not([data-winner]) .app-match-result-total { font-weight: 600; }
+html[data-theme][data-visual-style] .app-match-mvp-recognition { background: transparent !important; border-color: color-mix(in srgb, var(--foreground) 18%, transparent) !important; }
+html[data-theme][data-visual-style] .app-match-mvp-name { font-size: 18px !important; font-weight: 800 !important; line-height: 1.35 !important; }
+html[data-theme][data-visual-style] .app-match-mvp-star { font-size: 28px !important; line-height: 1; color: color-mix(in srgb, var(--app-accent) 55%, var(--foreground)) !important; }
 html.dark .app-match-pair-surface { border-color: color-mix(in srgb, var(--app-accent, #aaa) 30%, #525252) !important; }
 html:not(.dark) .app-main .app-card:not(.text-white),
 html:not(.dark) .app-main .app-match-pair-surface,
@@ -3225,3 +3279,199 @@ html.dark .app-dialog :is(.text-neutral-400,.text-neutral-500) { color:#a3a3a3 !
 html.dark .app-dialog button.bg-neutral-950 { background:#404040 !important; color:#fafafa !important; }
 html.dark .app-dialog button.bg-neutral-950 :is(.text-neutral-300,.text-white) { color:#e5e5e5 !important; }
 .app-dialog :is(button,a) { min-height:44px; min-width:44px; }
+/* Shared hierarchy for primary section headings. */
+.app-section-header > h2,
+h2.type-section-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.app-section-header > h2::before,
+h2.type-section-title::before {
+  content: "";
+  width: .3rem;
+  height: 1rem;
+  flex: none;
+  border-radius: 1rem;
+  background: var(--app-accent);
+}
+/* Consistent, compact scoring in match previews outside highlighted activity. */
+.match-preview-result .match-preview-partial > span,
+.match-preview-result .match-preview-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 4px rgb(0 0 0 / .16);
+}
+.match-preview-result .match-preview-partial > span { width: 24px; height: 24px; }
+.match-preview-result .match-preview-total {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--app-accent);
+  color: var(--competition-accent-contrast, #111);
+}
+.match-preview-name-line { border-color: currentColor; opacity: .2; }
+.match-preview-trophy { color: var(--app-accent); }
+html[data-theme][data-visual-style] .app-card.match-result-in-progress {
+  border: 1px solid var(--app-accent) !important;
+  box-shadow: inset 3px 0 0 var(--app-accent), 0 2px 10px color-mix(in srgb, var(--app-accent) 18%, transparent) !important;
+}
+/* Plain context labels leave the result and players in focus. */
+.personal-match-origin-label {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+}
+html[data-theme][data-visual-style] .personal-match-origin-label[data-personal-match-origin="league"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0;
+  padding: .125rem 0 !important;
+  color: var(--foreground) !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+.match-preview-featured .match-outcome-victory {
+  background: #166534 !important;
+  color: #fff !important;
+}
+.match-preview-featured .match-outcome-defeat {
+  background: #b91c1c !important;
+  color: #fff !important;
+}
+html[data-theme][data-visual-style] :is([data-route="/personal-matches"], [data-route="/matches"]) .match-outcome-victory {
+  background: #166534 !important;
+  color: #fff !important;
+}
+html[data-theme][data-visual-style] :is([data-route="/personal-matches"], [data-route="/matches"]) .match-outcome-defeat {
+  background: #b91c1c !important;
+  color: #fff !important;
+}
+html[data-theme][data-visual-style] [data-route="/"] .app-card.home-personal-result {
+  --competition-accent-contrast: #fff;
+  --activity-score-surface: #141518;
+  border: 1px solid rgb(255 255 255 / .13) !important;
+  border-top: 2px solid color-mix(in srgb, var(--app-accent) 72%, var(--foreground)) !important;
+  background: #141518 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -4px 12px rgb(0 0 0 / .2) !important;
+  backdrop-filter: none;
+}
+html[data-theme][data-visual-style="classic"] [data-route="/"] .app-card.home-personal-result {
+  --activity-score-surface: #17212e;
+  background: #17212e !important;
+}
+html[data-theme][data-visual-style] .home-personal-result [data-preview-team] .text-neutral-950 { color: #fff !important; }
+html[data-theme][data-visual-style] .home-personal-result.home-personal-result.home-personal-result.home-personal-result .match-preview-total { color: #111 !important; }
+html[data-theme][data-visual-style] .home-personal-result .match-outcome-victory { background: #166534 !important; color: #fff !important; }
+html[data-theme][data-visual-style] .home-personal-result .match-outcome-defeat { background: #b91c1c !important; color: #fff !important; }
+/* Versus previews center both partners consistently in every context. */
+[data-preview-versus] > .bg-neutral-50 {
+  text-align: center;
+}
+[data-preview-versus] > .bg-neutral-50 .type-player-name > span {
+  justify-content: center;
+}
+/* Highlighted league previews share the solid accent treatment of activity. */
+html[data-visual-style] .match-preview-featured .bg-neutral-50 {
+  background: var(--app-accent) !important;
+  color: var(--competition-accent-contrast, #111) !important;
+  border: 1px solid transparent !important;
+}
+html[data-visual-style] .match-preview-featured .bg-neutral-50 :is(.text-neutral-950, .text-neutral-800, .type-player-name) {
+  color: var(--competition-accent-contrast, #111) !important;
+}
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] {
+  background: var(--app-accent) !important;
+  color: var(--competition-accent-contrast, #111) !important;
+  border-style: solid;
+}
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] p {
+  color: var(--competition-accent-contrast, #111) !important;
+}
+html[data-visual-style] .app-card.match-preview-featured {
+  border-top: 2px solid var(--app-accent) !important;
+}
+/* Immersive chats reserve the first row for Back and global actions. */
+.app-main[data-has-floating-top-controls="true"] .app-page-header.app-match-chat-header {
+  padding-top: max(3.75rem, calc(var(--app-safe-top) + 3.75rem)) !important;
+}
+.app-main[data-has-floating-top-controls="true"] .app-page-header.app-match-chat-header[data-compact-chat-header] {
+  padding-top: calc(var(--app-safe-top) + .5rem) !important;
+}
+.app-match-chat-header[data-compact-chat-header] .type-page-title { font-size: 1.1rem !important; }
+.app-main[data-has-floating-top-controls="true"] .app-match-chat-header[data-compact-chat-header] .app-top-back-control {
+  position: static;
+  flex: 0 0 34px;
+  width: 34px;
+  justify-content: center;
+}
+.app-match-chat-header[data-compact-chat-header] .app-top-back-control span { margin-right: 0; }
+.app-match-chat-header[data-compact-chat-header] .type-page-title { line-height: 1.2 !important; letter-spacing: normal !important; }
+.match-preview-featured [data-match-event-action="true"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+html[data-visual-style] .match-preview-featured .match-preview-calendar {
+  color: var(--app-accent) !important;
+}
+.match-preview-featured [data-match-event-action="true"] {
+  flex-direction: row;
+  text-align: left;
+}
+.match-preview-featured [data-match-event-content] {
+  min-width: 0;
+  text-align: left;
+}
+html[data-visual-style] .match-preview-featured:has([data-match-preview="result"]) {
+  background: #141518 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -4px 12px rgb(0 0 0 / .2) !important;
+}
+html[data-visual-style="classic"] .match-preview-featured:has([data-match-preview="result"]) { background: #17212e !important; }
+html[data-visual-style] .match-preview-featured:has([data-match-preview="result"]) .text-neutral-500 { color: #fff !important; }
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), inset 0 -2px 0 rgb(0 0 0 / .16), 0 3px 6px rgb(0 0 0 / .18) !important;
+  cursor: pointer;
+}
+html[data-visual-style] .match-preview-featured:has([data-match-preview="result"]) {
+  padding: .75rem !important;
+  border: 1px solid rgb(255 255 255 / .13) !important;
+  border-top: 2px solid color-mix(in srgb, var(--app-accent) 72%, var(--foreground)) !important;
+  backdrop-filter: none;
+}
+/* Scheduling is a secondary action inside the highlighted fixture. */
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 55%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .08), 0 2px 4px rgb(0 0 0 / .12) !important;
+}
+html[data-visual-style] .match-preview-featured [data-match-schedule-hint] p {
+  color: var(--app-accent) !important;
+}
+html:not(.dark)[data-visual-style] .match-preview-featured [data-match-schedule-hint] p {
+  color: var(--foreground) !important;
+}
+/* Scheduling label must not inherit the dark ink of accent-filled team boxes. */
+html[data-visual-style] .app-card.match-preview-featured [data-match-schedule-hint] .match-schedule-action {
+  color: var(--foreground) !important;
+}
+/* Match detail totals echo the compact preview's accent score tile. */
+html[data-theme][data-visual-style] .app-match-result-total {
+  font-size: 26px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--app-accent) !important;
+  color: #111 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .2), 0 2px 4px rgb(0 0 0 / .18);
+}
+
+.app-match-result-head { padding-top: 4px; }

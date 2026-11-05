@@ -19,6 +19,11 @@ const publicMethods = new Map([
 
 const guardDetectors = [
   {
+    level: "league-season-chat-participant",
+    evidence: "getLeagueSeasonChatActor (authenticated season participant)",
+    test: (source, route) => route.startsWith("/api/league-season-chats/") && source.includes('from "@/lib/serverLeagueSeasonChatAccess"') && source.includes("await getLeagueSeasonChatActor("),
+  },
+  {
     level: "tournament-owner",
     evidence: "requireRapidTournamentCreator (authenticated creator)",
     test: (source, route) => route.startsWith("/api/tournaments/") && source.includes('from "@/lib/serverRapidTournaments"') && source.includes("await requireRapidTournamentCreator("),

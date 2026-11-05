@@ -5,19 +5,16 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("personal match card layout", () => {
   it("keeps origin in the header and shared match metadata below both pair panels", async () => {
-    const [card, eventMeta, setGameScore] = await Promise.all([
+    const [card, eventMeta, setGameScore, preview] = await Promise.all([
       read("src/components/personal/PersonalMatchCard.tsx"),
       read("src/components/matches/MatchEventMeta.tsx"),
       read("src/components/matches/SetGameScore.tsx"),
+      read("src/components/matches/MatchPreviewTeams.tsx"),
     ])
 
     expect(card).toContain('rounded-xl bg-neutral-50 px-3 py-2')
     expect(card).toContain("grid-cols-[minmax(0,1fr)_30px_minmax(0,1fr)]")
     expect(card).toContain(">\n                VS\n              </span>")
-    expect(card).toMatch(/aria-label=(?:"Juegos por set de la pareja A"|\{tx\("Juegos por set de la pareja A"\)\})/)
-    expect(card).toMatch(/aria-label=(?:"Juegos por set de la pareja B"|\{tx\("Juegos por set de la pareja B"\)\})/)
-    expect(card).toMatch(/aria-label=(?:"Sets ganados por la pareja A"|\{tx\("Sets ganados por la pareja A"\)\})/)
-    expect(card).toMatch(/aria-label=(?:"Sets ganados por la pareja B"|\{tx\("Sets ganados por la pareja B"\)\})/)
     expect(card).toContain("getPersonalMatchOutcome(match)")
     expect(card).toContain('outcome === "win"')
     expect(card).toContain('outcome === "loss"')
@@ -35,7 +32,12 @@ describe("personal match card layout", () => {
     expect(eventMeta).toContain("formatMatchEventDateTime")
     expect(eventMeta).toContain("weekday: \"long\"")
     expect(eventMeta).toContain("hideMissingRows?: boolean")
-    expect(card).toContain("<SetGameScore")
+    expect(card).toContain("<MatchPreviewTeams")
+    expect(preview).toContain("Juegos por set de la pareja A")
+    expect(preview).toContain("Juegos por set de la pareja B")
+    expect(preview).toContain("Sets ganados por la pareja A")
+    expect(preview).toContain("Sets ganados por la pareja B")
+    expect(preview).toContain("<SetGameScore")
     expect(setGameScore).toContain("style={{ fontWeight: won ? 700 : 400 }}")
     expect(setGameScore).toContain("border-transparent bg-neutral-100")
     expect(setGameScore).toContain("text-xs text-neutral-400")

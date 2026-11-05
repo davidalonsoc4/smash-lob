@@ -1,3 +1,4 @@
+import { areTournamentsEnabled } from "./tournamentAvailability"
 import type { Locale } from "@/i18n/translations"
 
 export type SettingsSearchCapabilities = {
@@ -784,16 +785,16 @@ export function buildSettingsSearchEntries(
           : []),
       ]
 
-  return Array.from(new Set(ids)).map((id) => {
+  return Array.from(new Set(ids)).filter(id => areTournamentsEnabled() || !["sounds", "organizeTournament"].includes(id)).map((id) => {
     const item = source[id]
 
     return {
       id,
       title: item.title,
-      description: item.description,
+      description: !areTournamentsEnabled() && id === "leagues" ? "" : item.description,
       section: copyByLocale[locale].sections[item.section],
       href: routeById[id],
-      keywords: item.keywords,
+      keywords: !areTournamentsEnabled() && id === "leagues" ? item.keywords.filter(word => !/torneo|tournament|txapelket/i.test(word)) : item.keywords,
       suggested: suggestedIds.has(id),
     }
   })

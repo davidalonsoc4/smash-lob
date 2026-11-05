@@ -1,5 +1,213 @@
-.league {
+.overview {
+  --hub-surface: var(--colorful-surface, #fff);
+  --hub-border: color-mix(in srgb, var(--foreground) 13%, transparent);
+  --hub-accent: var(--app-accent, var(--foreground));
+}
+
+:global(html.dark) .overview {
+  --hub-surface: var(--colorful-surface, var(--classic-dark-surface, #222225));
+  --hub-accent: color-mix(in srgb, var(--app-accent) 70%, var(--foreground));
+}
+
+:global(html[data-visual-style="competition"]) .overview {
+  --hub-surface: var(--competition-surface);
+}
+
+.league,
+.leagueCard,
+.tournament {
   position: relative;
+  background: var(--hub-surface);
+  border-color: var(--hub-border);
+}
+
+.leagueCard {
+  border-top: 2px solid color-mix(in srgb, var(--league-card-accent) 72%, var(--foreground));
+  box-shadow: 0 5px 18px color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.leagueCard[data-phase="active"] {
+  border-inline-start: 3px solid color-mix(in srgb, var(--league-card-accent) 72%, var(--foreground));
+  padding-inline-start: calc(1rem - 2px);
+}
+
+.logoWell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--league-card-accent) 8%, var(--hub-surface));
+}
+
+.leagueMetrics {
+  margin-inline: -1rem;
+  padding: .75rem 1rem;
+  border-block-start: 1px solid var(--hub-border);
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
+}
+
+.leagueMetrics :global(.text-neutral-500) {
+  color: color-mix(in srgb, var(--foreground) 68%, var(--hub-surface));
+}
+
+.progressTrack {
+  display: block;
+  height: .2rem;
+  margin-block-start: .5rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.archive {
+  border-color: var(--hub-border);
+  background: color-mix(in srgb, var(--hub-surface) 65%, transparent);
+}
+
+.archive .leagueCard {
+  box-shadow: none;
+}
+
+.tournament {
+  border-color: color-mix(in srgb, var(--hub-accent) 22%, var(--hub-border));
+}
+
+.trophy {
+  background: color-mix(in srgb, var(--hub-accent) 13%, var(--hub-surface));
+  color: color-mix(in srgb, var(--hub-accent) 60%, var(--foreground));
+}
+
+.competitionSection > :global(.app-section-header) {
+  padding-inline: .125rem;
+}
+
+/* A quiet accent links the section headings to the activity card without
+   adding another surface or changing the competition cards themselves. */
+.competitionSection > :global(.app-section-header) h2,
+.activityHero > :global(.app-section-header) h2 {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.competitionSection > :global(.app-section-header) h2::before,
+.activityHero > :global(.app-section-header) h2::before {
+  width: .3rem;
+  height: 1rem;
+  flex: none;
+  border-radius: 1rem;
+  background: var(--hub-accent);
+  content: "";
+}
+
+.competitionSection > :global(.app-section-header) :global(.app-section-action) {
+  color: color-mix(in srgb, var(--hub-accent) 55%, var(--foreground));
+}
+
+.activityHero {
+  min-width: 0;
+  --activity-accent-contrast: var(--competition-accent-contrast, #111);
+}
+
+.activityHero > :global(.app-section-header) {
+  min-height: 1.5rem;
+  gap: .5rem;
+  padding-inline: .125rem;
+}
+
+/* Use the same solid dark surfaces as the app's dark theme. */
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.app-card) {
+  --competition-accent-contrast: #fff;
+  --activity-score-surface: #141518;
+  border: 1px solid rgb(255 255 255 / .13) !important;
+  border-top: 2px solid color-mix(in srgb, var(--app-accent) 72%, var(--foreground)) !important;
+  background: #141518 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -4px 12px rgb(0 0 0 / .2) !important;
+  backdrop-filter: none;
+}
+
+:global(html[data-theme][data-visual-style="classic"]) .overview .activityHero :global(.app-card) {
+  --activity-score-surface: #17212e;
+  background: #17212e !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) {
+  background: var(--app-accent) !important;
+  border: 1px solid color-mix(in srgb, var(--activity-accent-contrast) 15%, transparent) !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.text-neutral-950) {
+  color: var(--activity-accent-contrast) !important;
+  text-align: center;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.bg-neutral-100) {
+  background: #f1f1f1 !important;
+  color: #525252 !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.bg-white) {
+  background: #fff !important;
+  color: #171717 !important;
+  border-color: #d4d4d4 !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global(.text-neutral-500) {
+  color: var(--competition-accent-contrast) !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global([data-match-event-meta]) {
+  border-color: color-mix(in srgb, var(--competition-accent-contrast) 20%, transparent) !important;
+}
+
+:global(html[data-visual-style]) .activityHero :global([data-match-event-meta]) :global(.text-neutral-600) {
+  color: var(--competition-accent-contrast) !important;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global([data-personal-match-origin]) {
+  background: transparent !important;
+  color: var(--competition-accent-contrast) !important;
+  border: 0 !important;
+  border-radius: 0;
+  padding: .125rem 0 !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.bg-green-100) {
+  background: #166534 !important;
+  color: #fff !important;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero :global(.bg-red-100) {
+  background: #b91c1c !important;
+  color: #fff !important;
+}
+
+.league:focus-visible,
+.leagueCard:focus-visible,
+.tournament:focus-visible {
+  outline: 2px solid var(--hub-accent);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .league:hover,
+  .leagueCard:hover,
+  .tournament:hover {
+    border-color: color-mix(in srgb, var(--hub-accent) 60%, var(--hub-border));
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview :is(button, a) {
+    transition: none;
+  }
 }
 
 .runningStatus {
@@ -26,25 +234,13 @@
   background-color: color-mix(in srgb, var(--league-card-accent) 75%, var(--foreground));
 }
 
-.topAccent {
-  --league-card-top-accent: color-mix(in srgb, var(--league-card-accent) 85%, #171717);
-  border-top-width: 2px;
-}
-
-:global(html[data-visual-style]) button.topAccent {
-  border-top-color: var(--league-card-top-accent) !important;
-}
-
-:global(html.dark) .topAccent {
-  --league-card-top-accent: color-mix(in srgb, var(--league-card-accent) 70%, #f5f5f5);
-}
-
 .activitySlides > div > div > div,
 .activitySlides > div > div > div > section {
   height: 100%;
 }
 
-.activitySlides section:has([data-match-event-meta]) {
+.activitySlides section:has([data-match-event-meta]),
+.activitySlides section:has([data-match-round-window]) {
   display: flex;
   flex-direction: column;
 }
@@ -53,13 +249,29 @@
   height: 100%;
 }
 
-.withCalendar [data-match-event-meta] {
-  padding-right: 3rem;
-}
-
-.activitySlides [data-match-event-meta] {
+.activitySlides [data-match-event-meta],
+.activitySlides [data-match-round-window] {
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: center;
+}
+
+.withCalendar :global([data-match-event-action="true"]) {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+:global(html[data-theme][data-visual-style]) .overview .activityHero .withCalendar :global([data-match-event-action] > button) {
+  color: var(--app-accent) !important;
+}
+
+/* Classic light can use a very dark accent on this deliberately dark card. */
+:global(html:not(.dark)[data-visual-style="classic"]) .overview .activityHero .withCalendar :global([data-match-event-action] > button) {
+  color: color-mix(in srgb, var(--app-accent) 35%, white) !important;
+}
+.activitySlides [data-match-round-window] {
+  align-items: flex-start;
 }

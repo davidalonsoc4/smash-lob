@@ -54,11 +54,43 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 
 ## Paneles y acciones de Partido
 
+- Con resultado, una sola superficie contiene ambas parejas en una cuadrícula
+  compartida: cabecera S1/S2/S3/Sets una sola vez y números centrados a la altura
+  del separador entre los dos nombres. Conservar nombres adaptables y total de sets
+  destacado. Ganador con trofeo de16px al final del divisor de nombres y etiqueta accesible,
+  sin otra caja. Referencia anterior con raya lateral: aef3211f; alternativas2/3
+  documentadas en PLAN/STATUS, pendientes de valoración.
+  Marcador aprobado MC93/94: separador completo y espaciado entre parejas; línea corta entre
+  compañeros más suave para distinguir agrupaciones. Referencia previa a84a7ea4.
+- El MVP resuelto se reconoce en una fila compacta debajo del marcador, con estrella
+  de acento y ámbito explícito (partido/jornada). La votación pendiente queda después
+  de confirmar el resultado. La gestión tiene menor peso visual; bloqueo y disputa
+  mantienen su explicación visible y las acciones destructivas siguen desplegables.
+  Editar resultado queda a la derecha del título. Información del resultado y Más
+  acciones comparten fila adaptable; sus contenidos se abren independientemente a
+  todo el ancho. Bloqueo y limpieza dentro de Más acciones. La estrella de
+  reconocimiento mide28px y adapta su acento al contraste. Prueba MC92: nombre MVP
+  a18px/negrita con ajuste de línea, título y metadatos secundarios; referencia71544af3.
+  En MVP avanzado, Empate técnico aparece solo en el título cuando corresponde.
+  Índice ajustado es pulsable y reutiliza StatusHelp para explicar cálculo y escala;
+  se formatea con el idioma actual. Resultado registrado/confirmación se muestran
+  solo a participantes o administradores; marcador y reconocimiento siguen visibles
+  para quien tenga acceso de consulta al partido.
+
+- Jerarquía compartida: `app-action-button`/`app-action-primary` para guardar o
+  confirmar y las acciones protagonistas Cómo llegar/Calendario de Programación
+  (negro en claro, acento en oscuro); `app-action-secondary` para
+  Cancelar/Cerrar/Editar (transparente, borde neutro y texto
+  del tema). Los helpers de `matchPanelStyles.ts` aplican los roles a todos
+  los formularios de Partido. Misma altura/tipografía, foco y disabled legibles;
+  conservar orden secundario izquierda/principal derecha y estilos destructivos.
+
 - Las cabeceras reutilizan `SectionHeader`, igual que Mis Competiciones. Dentro de
   un botón desplegable se usa `headingTag="span"` para conservar HTML válido.
 - `src/components/match/matchPanelStyles.ts` centraliza botones principales,
   secundarios, destructivos, chevrons y etiquetas suaves. Guardar y confirmar
-  destacan; editar, mapa, calendario y cancelar son secundarios.
+  destacan, al igual que mapa/calendario dentro de Programación; editar y cancelar
+  son secundarios.
 - Los pagos indican explícitamente «Por pagar» o «Por cobrar». Los avisos no
   dependen solo del color y conservan la explicación de `StatusHelp`.
 - El resultado pendiente se muestra antes de Programación y Pagos. Antes de
@@ -78,7 +110,7 @@ los gráficos, los marcadores y los indicadores estadísticos mantienen su dise�
 
 ### Acciones, parejas y contexto de jornadas (MC62)
 
-Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento/contraste calculado en oscuro. Primarios existentes bg-neutral-950 comparten criterio; navbars, iconos, selectores y acciones destructivas conservan su función visual. Paneles normales blancos en claro, respetando superficies explícitas con texto blanco. Parejas de Partido: dos columnas1fr, margen12px común, borde neutro mezclado con acento; nombres completos por FitText, sin avatares. Calendario muestra estados únicamente En curso/Fuera de plazo en cabecera, tenga o no ventanas. Actividad distingue ventana estimada de reserva, nunca inventa scheduledAt ni muestra parejas ocultas. Chats globales separan Activos/Próximos/Finalizados por proximidad (máximo jornada actual+2), con filtro de mensajes independiente y etiqueta de liga de color suave.
+Acciones principales reutilizan `app-action-button`: negro/blanco en claro y acento/contraste calculado en oscuro; las secundarias usan `app-action-secondary`, neutral y con borde. Primarios existentes bg-neutral-950 comparten criterio; navbars, iconos, selectores y acciones destructivas conservan su función visual. Paneles normales blancos en claro, respetando superficies explícitas con texto blanco. Parejas de Partido: dos columnas1fr, margen12px común, borde neutro mezclado con acento; nombres completos por FitText, sin avatares. Calendario muestra estados únicamente En curso/Fuera de plazo en cabecera, tenga o no ventanas. Actividad distingue ventana estimada de reserva, nunca inventa scheduledAt ni muestra parejas ocultas. Chats globales separan Activos/Próximos/Finalizados por proximidad (máximo jornada actual+2), con filtro de mensajes independiente y etiqueta de liga de color suave.
 
 ## Creación guiada de ligas
 - Recorrido básico: identidad de liga → participantes de temporada → resumen. Avanzada es una pantalla opcional entre participantes y resumen; comparte el mismo estado.
@@ -87,6 +119,36 @@ Acciones normales reutilizan `app-action-button`: negro/blanco en claro y acento
 - Logo: LeagueLogo + ImageCropDialog existentes; si falla su guardado se conserva el ID creado para reintentar sin duplicados.
 - Acciones locales compartidas: league-creation-primary (negro en claro/acento en oscuro), secondary y edit. Pie sticky con Atrás y un único CTA, mínimo44px y safe area. Ajustes avanzados agrupados en details con resumen de valores y chevron.
 - Contador de plazas completadas incluye jugadores existentes, cuentas vinculadas y nombres manuales. Parejas agrupadas de dos en dos; directorio bajo búsqueda y sin vaciar nombres al alternar inscripción.
+
+## Identidad de Competiciones y Mis ligas
+
+- `CompetitionsOverview.module.css` concentra estas variantes de presentación;
+  no modifica `PersonalMatchCard`, `LeagueLogo` ni el carrusel compartido.
+- Actividad personal es el foco de la home: acento puro al100%, sin borde ni
+  sombra en la tarjeta del partido, sin una segunda envoltura visual exterior.
+  Las cajas de parejas conservan sus espacios y fondo transparente, con borde
+  fino del color de superficie de las tarjetas de competiciones, sin sombra;
+  nombres con contraste del acento y marcadores con fondo propio. No añadir
+  estadísticas, mensajes ni acciones para llenar espacio.
+- En esta superficie de acento, el origen/competición aparece como texto
+  discreto sin pastilla, ajustado al ancho disponible y con contraste del tema.
+  Victoria/Derrota conservan el componente semántico compartido y su ayuda;
+  los próximos partidos mantienen el indicador de punto.
+- Sobre el acento, Victoria/Derrota usan verde/rojo opacos y texto blanco.
+  El punto de estado de partido usa `StatusDot` compartido de8px en toda la app;
+  conserva su color y añade contorno interior del tono de las
+  cajas solo cuando su contraste con el fondo sea inferior a3:1. La medición
+  responde a cambios de tema sin temporizadores y no afecta a otros contextos.
+- Los nombres de jugadores en las previews personales reutilizan `FitText`
+  en una línea, reduciendo desde14px hasta10px antes de recurrir a elipsis.
+  Respetar la alineación de cada pareja y recalcular al cambiar ancho o tema.
+- Previews de liga conservan su degradado lateral estrecho; torneos utilizan
+  copa y un tinte sutil del tema. Los colores de estado mantienen su significado.
+- Mis ligas usa logo destacado sobre un fondo suave del color de la liga,
+  borde superior propio, lateral más evidente en temporadas en curso y una
+  franja inferior para los datos existentes. Finalizadas sigue contraído.
+- Todas las variantes respetan Clásico/Competition, claro/oscuro y movimiento
+  reducido; texto secundario de métricas con contraste suficiente sobre su fondo.
 
 ## Ventanas flotantes y búsqueda
 

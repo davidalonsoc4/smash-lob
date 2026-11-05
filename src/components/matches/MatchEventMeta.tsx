@@ -2,6 +2,7 @@ import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
 import type { Locale } from "@/i18n/translations"
+import type { ReactNode } from "react"
 
 type MatchEventMetaProps = {
   eventAt: string | null
@@ -9,6 +10,7 @@ type MatchEventMetaProps = {
   locationText?: string | null
   locationFallback?: string | null
   hideMissingRows?: boolean
+  action?: ReactNode
 }
 
 function capitalizeFirst(value: string, locale: Locale) {
@@ -53,6 +55,7 @@ export function MatchEventMeta({
   locationText = null,
   locationFallback = null,
   hideMissingRows = false,
+  action,
 }: MatchEventMetaProps) {
   const { locale, tx } = useI18n()
   const normalizedLocation =
@@ -68,8 +71,7 @@ export function MatchEventMeta({
 
   if (!dateText && !location) return null
 
-  return (
-    <div data-match-event-meta className="mt-2 border-t border-neutral-100 pt-2">
+  const details = <>
       {dateText ? (
         <p className="type-caption font-semibold text-neutral-500">{dateText}</p>
       ) : null}
@@ -78,6 +80,12 @@ export function MatchEventMeta({
           {location}
         </p>
       ) : null}
+    </>
+
+  return (
+    <div data-match-event-meta data-match-event-action={action ? "true" : undefined} className="mt-2 border-t border-neutral-100 pt-2">
+      {action ? <div data-match-event-content className="min-w-0 flex-1">{details}</div> : details}
+      {action}
     </div>
   )
 }

@@ -1,0 +1,66 @@
+.accented.accented.accented { --score-surface: #141518; }
+:global(html[data-visual-style="classic"]) .accented.accented.accented { --score-surface: #17212e; }
+:global(html[data-theme][data-visual-style]) .accented.accented.accented :global([data-preview-team]) {
+  background: var(--app-accent) !important;
+  border: 1px solid color-mix(in srgb, var(--activity-accent-contrast, var(--competition-accent-contrast, #111)) 15%, transparent) !important;
+  box-shadow: none !important;
+}
+:global(html[data-theme][data-visual-style]) .accented.accented.accented :global(.text-neutral-950),
+:global(html[data-theme][data-visual-style]) .accented.accented.accented :global(.match-preview-trophy) {
+  color: var(--activity-accent-contrast, var(--competition-accent-contrast, #111)) !important;
+  text-align: left;
+}
+:global(html[data-theme][data-visual-style]) .accented.accented.accented :global(.match-preview-partial > span),
+:global(html[data-theme][data-visual-style]) .accented.accented.accented :global(.match-preview-total) {
+  background: var(--score-surface) !important;
+  color: #fff !important;
+  border: 0 !important;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgb(0 0 0 / .18) !important;
+  text-align: center !important;
+}
+.accented.accented.accented :global(.match-preview-partial > span) {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 12px !important;
+  line-height: 1.25;
+}
+.accented.accented.accented :global(.match-preview-total) { width: 32px; height: 32px; border-radius: 8px; }
+.accented.accented.accented :global(.match-preview-name-line) {
+  border-color: color-mix(in srgb, var(--activity-accent-contrast, var(--competition-accent-contrast, #111)) 24%, transparent);
+  opacity: 1;
+}
+/* Neutral results use the same row surfaces and contrast in every preview. */
+.standard { --preview-row: #f5f5f5; --preview-ink: #171717; --preview-muted: #525252; }
+:global(html.dark) .standard { --preview-row: #1c1d21; --preview-ink: #fafafa; --preview-muted: #b3b3b3; }
+:global(html[data-theme][data-visual-style]) .standard.standard.standard :global([data-preview-team]) {
+  background: var(--preview-row) !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+:global(html[data-theme][data-visual-style]) .standard.standard.standard :global(.text-neutral-950) {
+  color: var(--preview-ink) !important;
+  text-align: left;
+}
+:global(html[data-theme][data-visual-style]) .standard.standard.standard :global(.match-preview-partial > span) {
+  background: transparent !important;
+  color: var(--preview-muted) !important;
+}
+:global(html[data-theme][data-visual-style]) .standard.standard.standard :global(.match-preview-total) {
+  background: var(--app-accent) !important;
+  color: var(--activity-accent-contrast, var(--competition-accent-contrast, #111)) !important;
+  text-align: center !important;
+}
+.unboxed.unboxed { row-gap: 0; }
+:global(html[data-theme][data-visual-style]) .standard.unboxed.unboxed.unboxed :global([data-preview-team]) {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0;
+}
+:global(html[data-theme][data-visual-style]) .standard.unboxed.unboxed.unboxed :global([data-preview-team] + [data-preview-team]) {
+  border-top: 1px solid var(--app-accent) !important;
+}

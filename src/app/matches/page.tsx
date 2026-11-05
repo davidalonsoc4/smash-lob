@@ -312,6 +312,7 @@ export default function MatchesPage() {
                       }
                       leagueLocations={activeLeague.locations}
                       showMissingScheduleHint={match.id === nextPendingUserMatch?.id}
+                      featured={match.id === nextPendingUserMatch?.id}
                       hideMissingScheduleMeta
                       isCurrentUserBallCustodian={
                         Boolean(currentUserId) &&

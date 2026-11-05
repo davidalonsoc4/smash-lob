@@ -5,7 +5,7 @@ const read = (path: string) => readFile(path, "utf8")
 
 describe("league calendar match card layout", () => {
   it("uses shared versus panels while pending and finished score rows after results", async () => {
-    const [matchesPage, matchCard, teamsPanel, eventMeta, setGameScore, roundPage, statusStyles] = await Promise.all([
+    const [matchesPage, matchCard, teamsPanel, eventMeta, setGameScore, roundPage, statusStyles, preview] = await Promise.all([
       read("src/app/matches/page.tsx"),
       read("src/components/matches/MatchCard.tsx"),
       read("src/components/matches/MatchTeamsPanel.tsx"),
@@ -13,6 +13,7 @@ describe("league calendar match card layout", () => {
       read("src/components/matches/SetGameScore.tsx"),
       read("src/app/round/[id]/page.tsx"),
       read("src/lib/statusStyles.ts"),
+      read("src/components/matches/MatchPreviewTeams.tsx"),
     ])
 
     expect(matchesPage).toContain("stackTeamPlayers")
@@ -44,9 +45,10 @@ describe("league calendar match card layout", () => {
     expect(matchCard).toContain("border-dashed")
     expect(matchCard).toContain("<MatchEventMeta")
     expect(eventMeta).toContain('weekday: "long"')
-    expect(matchCard).toContain('aria-label={tx("Juegos por set de la pareja A")}')
-    expect(matchCard).toContain('aria-label={tx("Juegos por set de la pareja B")}')
-    expect(matchCard).toContain("<SetGameScore")
+    expect(preview).toContain("Juegos por set de la pareja A")
+    expect(preview).toContain("Juegos por set de la pareja B")
+    expect(matchCard).toContain("<MatchPreviewTeams")
+    expect(preview).toContain("<SetGameScore")
     expect(setGameScore).toContain("style={{ fontWeight: won ? 700 : 400 }}")
     expect(roundPage).not.toContain("stackTeamPlayers")
   })

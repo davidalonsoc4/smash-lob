@@ -25,6 +25,7 @@ type MatchResultFormProps = {
   teamALabel?: string
   teamBLabel?: string
   initiallyExpanded?: boolean
+  highlighted?: boolean
 }
 
 type SetInput = {
@@ -117,6 +118,7 @@ export function MatchResultForm({
   teamALabel,
   teamBLabel,
   initiallyExpanded = true,
+  highlighted = false,
 }: MatchResultFormProps) {
   const { t, tx } = useI18n()
   const { finishMatch } = useMatchData()
@@ -239,7 +241,7 @@ export function MatchResultForm({
   }
 
   return (
-    <AppCard className="!p-0">
+    <AppCard data-result-highlight={highlighted ? "true" : undefined} className={`!p-0 ${highlighted ? "match-result-in-progress" : ""}`}>
       {mode === "edit" || initiallyExpanded ? <div className="px-3 py-2.5"><SectionHeader title={mode === "edit" ? t.matchResult.editTitle : t.matchResult.title} /></div> : <button type="button" className="w-full px-3 py-2.5 text-left" aria-expanded={isExpanded} onClick={() => setExpanded(value => !value)}>
         <SectionHeader headingTag="span" title={t.matchResult.title} action={<span aria-hidden="true" className={matchToggleClass}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className={`h-4 w-4 ${isExpanded ? "rotate-180" : ""}`}><path d="m6 8 4 4 4-4" /></svg></span>} />
       </button>}

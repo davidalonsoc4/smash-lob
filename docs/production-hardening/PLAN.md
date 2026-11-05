@@ -1,5 +1,322 @@
+## MC143 — Publicación v1.15.40 en PRE y PROD
+- Estado: EN CURSO. Publicar el ajuste del carrusel en PRE y promover a PROD la versión completa con las migraciones de chat, según autorización explícita del usuario.
+- Gates: controles locales y CI, verificación de PRE, preflight y respaldo verificado de PROD, comprobación de migraciones y smoke posterior de PROD.
+
+## MC142 — Indicadores del carrusel de Inicio de liga
+- Estado: COMPLETO LOCAL. Geometría y márgenes igualados a Mis Competiciones, con controles interactivos.
+- Gates: comparación móvil de tamaños y márgenes, gesto y accesibilidad.
+
+## MC141 — Publicación PRE de v1.15.39
+- Estado: COMPLETO EN PRE. Candidata integrada en staging, despliegue verificado y promoción a PROD documentada.
+- Gates: validate local, CI de la candidata, alias y smoke PRE. La ejecución en PROD requiere autorización posterior.
+
+## MC140 — Claridad de tarjetas de chat
+- Estado: COMPLETO LOCAL. Ubicación retirada y divisores reforzados entre conversaciones agrupadas.
+- Gates: ESLint y pruebas móviles de ubicación, separadores y navegación en ambos temas y estilos.
+
+## MC139 — Títulos de sección de chats
+- Estado: COMPLETO LOCAL. Títulos y color unificados en chats de liga y chats globales.
+- Gates: ESLint y pruebas móviles de títulos en estilos y temas existentes.
+
+## MC138 — Chats generales en la lista global
+- Estado: COMPLETO LOCAL. Chats generales de temporadas activas integrados con búsqueda, filtros y suscripción existente.
+- Gates: lint, TypeScript, i18n y pruebas móviles de permisos, filtros, actualización y regresión de chats.
+
+## MC137 — Bordes de la lista de chats de liga
+- Estado: COMPLETO LOCAL. Borde exterior fino y separadores entre jornadas coherentes con el chat general.
+- Gates: pruebas móviles de borde, separación y navegación en estilos claro y oscuro.
+
+## MC136 — Avisos fijados compactos en chats
+- Estado: COMPLETO LOCAL. Aviso fijado de reserva compacto y compartido en chats de liga y amistosos.
+- Gates: ESLint, traducciones y pruebas móviles de avisos y acciones en temas claro y oscuro.
+
+## MC135 — Sección del chat general de liga
+- Estado: COMPLETO LOCAL. Chat general identificado por sección, liga y temporada.
+- Gates: lint, traducciones y pruebas móviles de presencia y permisos.
+
+## MC134 — Cabeceras compactas de chat
+- Estado: COMPLETO LOCAL. Identidad de liga y separación de metadatos revisadas en la cabecera compacta.
+- Gates: lint, tipos y pruebas móviles de cabecera, acciones, participantes y regresión de chats.
+
+## MC133 — Destacar registro de resultado en juego
+- Estado: COMPLETO LOCAL. Panel de registro destacado cuando el partido de liga está en juego, sin cambiar permisos ni apertura.
+- Gates: pruebas de estados, temas móviles y validación focalizada.
+
+## MC132 — Mi último encuentro en HOME de liga
+- Estado: COMPLETO LOCAL. Igualada la tarjeta personal, conservando «Jornada X» con estilo del calendario y total de sets en negro.
+- Gates: pruebas móviles claro/oscuro, comparación de geometría y estilos con Mis Competiciones, lint y tipos.
+
+## MC131 — Colores intensos en calendario de liga
+- Estado: COMPLETO LOCAL. Etiquetas Victoria/Derrota intensas en Calendario de liga.
+- Gates: comprobación móvil de Victoria y Derrota en claro/oscuro Clásico/Competition.
+
+## MC130 — Colores intensos en resultados de Mis Partidos
+- Estado: COMPLETO LOCAL, pendiente valoración. Etiquetas intensas en Mis Partidos, sin alterar Mis Competiciones.
+- Gates: pruebas móviles en temas claros y oscuros y comprobación de estilos.
+
+## MC129 — Etiqueta discreta de liga en Mis Partidos
+- Estado: COMPLETO LOCAL, pendiente valoración visual. Etiqueta de liga sin fondo en Mis Partidos, coherente con Mis Competiciones.
+- Gates: pruebas móviles en temas claro y oscuro, y validación focalizada de estilos.
+
+## MC128 — Unificar previews de resultados
+- Estado: COMPLETO LOCAL. Igualados resultados de Calendario, HOME y Mis Partidos; cabecera y etiqueta de jornada originales restauradas a petición del usuario.
+- Gates: lint, tipos y pruebas móviles de previews en temas claros y oscuros.
+
+## MC127 — Creación rápida desde Mis Competiciones
+- Estado: COMPLETO LOCAL. Botón compartido con Mis Partidos; acceso directo a amistoso o selector según permisos, respetando la disponibilidad de torneos.
+- Gates: lint, tipos, i18n y pruebas de rutas/permisos y uso móvil.
+
+## MC126 — Coherencia visual de chats de liga y partido
+- Estado: COMPLETO LOCAL. Unificada acción flotante, tarjeta de chat de liga, cabecera y participantes; corregido título truncado en chats de partido.
+- Gates: lint y tipos; pruebas de componentes y recorridos móviles de chats en temas claro/oscuro.
+
+## MC125 — Corregir bucle del servidor local
+- Estado: COMPLETO LOCAL. Servidor reiniciado con logs fuera del directorio observado por Next; `/` y `/api/health` HTTP 200, sin recompilaciones repetidas durante la observación.
+- Alcance: corrección operativa, sin modificar funcionalidad ni datos.
+
+## MC124 — Chat general de liga por temporada
+- Estado: COMPLETO LOCAL; migraciones aplicadas y verificadas en PRE, pendiente aceptación con cuentas reales.
+- Alcance: conversación privada por temporada para sus participantes, lectura en temporada terminada, acceso directo en Inicio y primero en Chats; conservar historial sin borrado automático. Base de datos PRE autorizada; código sin publicación remota.
+- Gates: pruebas de pertenencia y aislamiento entre temporadas, lectura/escritura, no leídos y regresión de chats; lint, tipos, build y verificación de migraciones/RLS.
+
+## MC123 — Torneos solo PRE y publicación v1.15.38
+- Estado: COMPLETO EN PRE. Prioridad autorizada por usuario; producción pendiente de autorización.
+- Alcance: ocultar torneos a todos en PROD, publicar cambios acumulados en PRE y preparar promoción sin ejecutarla. Sin DB ni main/PROD.
+- Gates: validate, E2E completos, audit runtime; CI y deployment PRE/alias/version verificados.
+
+## MC122 — Resultado acentuado compartido y relieve de programación
+- Estado: COMPLETO LOCAL; lint, 12 unitarias y 2 E2E móviles con build PASS.
+- Alcance: reutilizar presentación aprobada de Mis Competiciones en resultados featured de liga y sombra del aviso Añadir fecha, hora y lugar.
+- Gates: lint, unitarias de previews, build y E2E móvil de resultado/carrusel. Sin publicación.
+
+## MC121 — Chat, pagos compactos y calendario en previews
+- Estado: COMPLETO LOCAL; ESLint, 31 unitarias y 5 E2E móviles con build/typecheck PASS.
+- Alcance: título de chat debajo de controles globales, pagos cerrados al entrar en Partido y botón de calendario en previews acentuadas programadas.
+- Gates: lint, unitarias focalizadas, TypeScript/build y E2E móviles. Sin publicación.
+
+## MC120 — Previews compartidas y modo acentuado
+- Estado: COMPLETO LOCAL; lint, 13 unitarias y 5 E2E móviles con build PASS. Prioridad expresamente solicitada antes de T06.
+- Alcance: nombres centrados en versus, home de liga destacada y próximo partido propio del calendario con acento, incluido aviso de programación. Conservar cambios y contexto anteriores.
+- Gates: lint, pruebas focalizadas, build y E2E móviles de carrusel/calendario. Sin publicación.
+
+## MC119 — Proporciones y color de cajas del marcador
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Dos E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de marcador/Axe, geometría y lint. Sin publicación.
+
+## MC118 — Prueba de cajas de marcador con profundidad
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Dos E2E móviles, Axe, lint y build PASS.
+- Gates: móvil, alineación/Axe y lint. Sin publicación.
+
+## MC117 — Dos superficies para el último encuentro
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles, alineación/Axe, lint y build. Sin publicación.
+
+## MC116 — Jerarquía del separador y calendario
+- Estado: COMPLETO LOCAL. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de Actividad, alineación/Axe y lint. Sin publicación.
+
+## MC115 — Aire interior en último encuentro
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Dos E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de carrusel y resultado, Axe y lint focalizado. Sin publicación.
+
+## MC114 — Acento y alineación del calendario en Actividad
+- Estado: COMPLETO LOCAL. Diez E2E móviles, dos unitarias, Axe, tipos, lint y build PASS.
+- Gates: pruebas móviles de Actividad y calendario, contraste/Axe, tipos y lint. Sin publicación.
+
+## MC113 — Borde de acento en Actividad
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe y build PASS; captura revisada.
+- Gates: pruebas móviles de Actividad, carrusel y Axe. Sin publicación.
+
+## MC112 — Simplificar cabecera de Actividad
+- Estado: COMPLETO LOCAL. Seis E2E móviles, Axe, lint y build PASS; captura revisada.
+- Gates: móvil de Actividad y geometría, lint y build. Sin publicación.
+
+## MC111 — Probar resultado de Partido en Actividad
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Ocho unitarias, seis E2E y repetición Competition oscuro PASS; tipos/lint/build/Axe correctos.
+- Gates: pruebas móviles de Actividad, marcador/Axe, tipos y lint. Sin publicación.
+
+## MC110 — Panel oscuro con parejas en acento
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de Actividad en cuatro temas, Axe y lint. Sin publicación.
+
+## MC109 — Líneas de acento en Partido
+- Estado: COMPLETO LOCAL. Cuatro E2E móviles, Axe, lint y build PASS; capturas revisadas.
+- Gates: móvil cuatro temas, geometría/Axe y lint focalizado. Sin publicación.
+
+## MC108 — Prueba de panel oscuro con borde de acento
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: móvil cuatro temas, contraste/Axe, carrusel y lint. Sin publicación.
+
+## MC107 — Cajas blancas con panel translúcido
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles, Axe, lint y build PASS.
+- Gates: pruebas móviles de Actividad, Axe y lint. Sin publicación.
+
+## MC106 — Prueba de transparencia y nombres centrados
+- Estado: COMPLETO LOCAL, prueba pendiente de valoración. Seis E2E móviles y repetición final PASS; lint y build correctos.
+- Gates: pruebas móviles de Actividad en cuatro temas, contraste/Axe y lint. Sin publicación.
+
+## MC105 — Restaurar actividad sin textura
+- Estado: COMPLETO LOCAL. Restaurado diseño anterior; lint y diff check PASS.
+- Gates: diff y lint focalizado. Sin publicación.
+
+## MC104 — Prueba visual de actividad con textura
+- Estado: COMPLETO LOCAL, prueba visual pendiente de valoración. Actividad y calendario:10 E2E móviles PASS, build y lint correctos.
+- Gates: comprobaciones móviles de Actividad y Calendario en cuatro temas, contraste/Axe y lint. Sin publicación.
+
+## MC103 — Identidad de secciones en Mis Competiciones
+- Estado: COMPLETO LOCAL, primera prueba visual pendiente de valoración. Cuatro E2E móviles, lint y build PASS.
+- Gates: lint focalizado y pruebas móviles de Competiciones en cuatro temas. Sin publicación.
+
+## MC102 — Unificar MVP de Home y Partido
+- Estado: COMPLETO LOCAL. Panel y ayuda compartidos;10unitarias y2E2E móviles, tipos/lint/i18n/build PASS.
+- Gates: pruebas MVP, TypeScript, lint y navegador móvil. Sin publicación.
+
+## MC101 — Recuperar previews de PRE
+- Estado: COMPLETO LOCAL (27/10/2026). Restauradas cajas interiores de PRE; siete pruebas focalizadas y comparación exacta con86826104 correctas. Sin publicación.
+
+## MC98 — Publicación de rama visual en PRE
+- Estado: COMPLETO PRE (27/10/2026). v1.15.37 en staging55ce03d7; PR61/CI4gatesPASS, alias/health/SW/rutas verificados. main/Production intactos.
+- Alcance: publicar estado recuperado de previews y mejoras acumuladas de Partido/MVP. Corregir gates de publicación sin alterar diseño aprobado. Validar rama, CI y deployment/alias/health/SW remotos.
+- Gates: validate, navegador y seguridad de dependencias; verificación explícita de SHA remota y PRE. Sin DB.
+
+## MC97 — Restaurar previews con cajas interiores
+- Estado: COMPLETO LOCAL (27/10/2026). Src/tests idénticos a referencia11589c03, siete unitarias y dos E2E/build PASS. Sin publicación.
+- Alcance: revertir exclusivamente MC96/92ec830b por petición del usuario. Código y pruebas vuelven exactamente a11589c03; Partido/MVP y todo lo anterior permanecen. Versión nueva conservada en92ec830b y capturas mc96 para comparar.
+- Gates: comparación exacta de src/tests con referencia, unitarias y dos recorridos móviles de Actividad/carrusel con build. Sin publicación.
+
+## MC95 — Ayuda del índice MVP y visibilidad del resultado
+- Estado: COMPLETO LOCAL (27/10/2026). 19 unitarias y ocho E2E móviles PASS; roles, ayuda a320/393px, Axe, i18n, lint, TypeScript/build y capturas revisados. Sin publicación.
+- Alcance: empate técnico en título, índice pulsable con StatusHelp y explicación fiel a mvp.ts; gestión/confirmación de resultado solo para participantes/admins. Marcador/MVP siguen consultables.
+- Gates: unitarias MVP/ayuda, E2E roles/ayuda móvil, regresiones, Axe, i18n, lint, TypeScript y build. Sin publicación.
+
+## MC94 — Copa de ganador más visible
+- Estado: COMPLETO LOCAL (27/10/2026). Dos E2E móviles/Axe/build PASS; geometría, lint, diff check y captura correctos. Sin publicación.
+- Alcance: mantener marcador MC93 aprobado; copa de12 a16px, reservando4px entre línea y copa sin mover columnas.
+- Gates: dos E2E móviles con alineación/Axe/build, lint y diff check. Sin publicación.
+
+## MC93 — Separación visual entre parejas
+- Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración. Dos E2E móviles con geometría/Axe/build PASS, lint y diff check correctos; captura revisada. Sin publicación.
+- Alcance: separador horizontal completo con aire entre parejas, divisor corto entre compañeros más suave. Mantener superficie única, copa y columnas. Referencia anterior a84a7ea4.
+- Gates: dos E2E móviles con alineación/Axe/build, lint y diff check. Sin publicación.
+
+## MC92 — Nombre MVP y desplegables en línea
+- Estado: COMPLETO LOCAL (27/10/2026), MVP pendiente de valoración. 25 unitarias y seis E2E móviles PASS; geometría, Axe, lint, i18n, TypeScript/build y capturas revisados. Sin publicación.
+- Alcance: nombre MVP18px, contexto/metadatos secundarios; controles Información/Más acciones en una fila adaptable, contenido a todo el ancho. Copa sin cambios. Referencia visual MVP71544af3 para comparar.
+- Gates: unitarias de interacción, dos E2E móviles con geometría/Axe, lint, i18n, TypeScript y build. Sin publicación.
+
+## MC91 — Trofeo al final del separador
+- Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración. Ocho unitarias y dos E2E móviles/Axe/build PASS; lint y captura revisados. Sin publicación.
+- Alcance: mover copa del total al final del divisor de nombres del ganador, centrada con la línea y antes del primer set. Referencia anterior55943f04; mantener aef3211f y alternativas2/3.
+- Gates: unitarias del marcador y dos E2E móviles con alineación/Axe/build. Sin publicación.
+
+## MC90 — Prueba de trofeo para ganador
+- Estado: COMPLETO LOCAL (27/10/2026), pendiente de valoración visual. Ocho unitarias, dos E2E móviles/Axe/build y lint PASS; captura revisada. Sin publicación.
+- Referencia anterior: commit aef3211f, raya lateral junto a nombres, margen extra8px y columnas actuales. Variante1: quitar raya y añadir trofeo junto al total, sin mover columnas.
+- Alternativas pendientes:2) total ganador en acento, sin trofeo/raya;3) etiqueta Victoria junto a pareja ganadora. No aplicarlas sin petición.
+- Gates: unitarias del marcador y dos E2E móviles con alineación/Axe/build. Sin publicación.
+
+## MC89 — Aire a la izquierda del marcador
+- Estado: COMPLETO LOCAL (27/10/2026). Dos E2E móviles PASS, alineación a320/393px, Axe/build y diff check correctos; captura revisada. Sin publicación.
+- Alcance: añadir8px al espacio izquierdo de nombres y divisor, sin mover columnas numéricas.
+- Gates: dos recorridos móviles claro/oscuro con alineación a320/393px, Axe/build y diff check. Sin publicación.
+
+## MC88 — Marcador unificado y gestión compacta
+- Estado: COMPLETO LOCAL (27/10/2026). 28 pruebas y seis E2E móviles PASS; alineación medida a320/393px, Axe, lint, i18n, TypeScript/build y capturas revisadas. Sin publicación.
+- Alcance: superficie única y columnas compartidas, marcador centrado en separador de nombres; Editar en cabecera, gestión en desplegables y estrella MVP mayor. Conservar reglas y permisos.
+- Gates: unitarias, navegador móvil en cuatro temas con medición de alineación, Axe, lint, TypeScript y build. Sin publicación.
+
+## MC87 — Marcador y MVP de Partido
+- Estado: COMPLETO LOCAL (27/10/2026). 28 pruebas unitarias y seis E2E móviles finales PASS; Axe, i18n, lint, TypeScript y build PASS. Capturas de ambos estilos revisadas. Sin publicación.
+- Alcance: marcador sin contenedor exterior, sets alineados y ganador destacado; reconocimiento MVP compacto antes de gestión, votación después de confirmación; gestión secundaria compacta. Conservar permisos y reglas.
+- Gates: pruebas de marcador/MVP/formularios, móvil claro/oscuro Clásico/Competition, Axe, i18n, TypeScript, lint y build. Sin publicación.
+
+## MC86 — Acciones protagonistas de Programación
+- Estado: COMPLETO LOCAL (27/10/2026). Seis E2E móviles, Axe, lint, TypeScript y build PASS; captura oscura revisada. Sin publicación.
+- Alcance: restaurar Cómo llegar y Calendario como acciones principales de su panel; conservar Cancelar/Cerrar/Editar secundarios y Guardar principal. Sin cambios funcionales ni publicación.
+- Gates: seis E2E móviles existentes, lint focalizado, TypeScript y build del navegador.
+
+## MC85 — Jerarquía de acciones principales/secundarias
+- Estado: COMPLETO LOCAL (27/10/2026),21 pruebas existentes y6 E2E finales PASS; TypeScript/lint/build/Axe y capturas revisados. Sin publicación.
+- Alcance: separar estilos compartidos de acciones; Guardar principal, Cancelar/Cerrar/editar/mapa/calendario secundarios neutros. Conservar geometría, orden, estados y lógica de formularios; no alterar navbars ni acciones destructivas.
+- Gates: pruebas existentes de formularios/estilos, lint, TypeScript/build y navegador móvil claro/oscuro Clásico/Competition con acciones/contraste. Sin publicación.
+
+## MC84 — Punto de estado de partido de8px compartido
+- Estado: COMPLETO LOCAL (26/10/2026),14 pruebas existentes y12 E2E móviles PASS; lint/build y captura revisados. Sin publicación.
+- Alcance: ampliar StatusDot compartido a8px en previews, calendarios, perfiles y chats; conservar color, contorno, ayuda y alineación. No alterar indicadores de liga/torneo ni notificaciones.
+- Gates: pruebas existentes/lint y navegador móvil en Competiciones, calendario/partido y chats, claro/oscuro Clásico/Competition. Sin publicación.
+
+## MC83 — Contraste de estado y resultado sobre acento
+- Estado: COMPLETO LOCAL (26/10/2026),24 pruebas existentes y7 casos E2E verificados (6 iniciales + resultado corregido) PASS; Axe, TypeScript/lint/build/fuente PASS. Sin publicación.
+- Alcance: contorno del punto solo con contraste inferior a3:1 sobre tarjeta de actividad; resultados con fondos verde/rojo opacos y texto legible. Mantener tamaños, semántica y resto de previews.
+- Gates: TypeScript/lint/pruebas existentes y navegador móvil con Axe, temas/acento similar y distinto, Victoria/Derrota. Sin publicación.
+
+## MC82 — Eliminar contorno residual de competición
+- Estado: COMPLETO LOCAL (26/10/2026), prueba móvil Competition oscuro con Axe PASS, build y captura revisados. Sin publicación.
+- Alcance: anular sombra interior heredada de Competition en la etiqueta integrada de Actividad personal; no modificar otras etiquetas.
+- Gates: prueba móvil Competition oscuro con Axe/captura y diff limpio. Sin publicación.
+
+## MC81 — Etiquetas integradas en Actividad personal
+- Estado: COMPLETO LOCAL (26/10/2026),8/8 E2E móviles con Axe/carrusel/nombres/etiquetas PASS, build y captura revisados. Sin publicación.
+- Alcance: competición como texto discreto sobre acento, sin pastilla ni borde, menos relleno/peso; conservar Victoria/Derrota compartidas, ayuda de estado y punto de programación. Solo CSS local.
+- Gates: móvil320/393px, Clásico/Competition claro/oscuro, Axe y último encuentro; captura revisada. Sin publicación.
+
+## MC80 — Borde contextual en cajas de nombres
+- Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles con Axe/carrusel/nombres PASS, build y captura revisados. Sin publicación.
+- Alcance: borde fino del color de superficie de las tarjetas de ligas/torneos, según aclaración del usuario; conservar fondos transparentes, texto y distribución. Solo CSS local.
+- Gates: móvil320/393px, Clásico/Competition claro/oscuro, Axe/carrusel/nombres y captura visual. Sin publicación.
+
+## MC79 — Cajas de nombres transparentes
+- Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
+- Alcance: conservar cajas/alineación/espacios de parejas con fondo transparente sin borde/sombra; nombres con contraste del acento y marcadores con sus superficies propias. Solo CSS local de Actividad personal.
+- Gates: móvil320/393px Clásico/Competition claro/oscuro, Axe y variante con resultado; captura revisada, sin publicación.
+
+## MC78 — Acento suavizado en nombres
+- Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
+- Alcance: recuadros de parejas/resultados con tinte del acento más visible, manteniendo tarjeta100% y texto contextual legible. Solo CSS local.
+- Gates: navegador móvil Clásico/Competition claro/oscuro con Axe y captura revisada; sin publicación.
+
+## MC77 — Acento puro en Actividad personal
+- Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles con Axe PASS, build y captura revisados. Sin publicación.
+- Alcance: fondo de tarjeta con el acento configurado al100%, sin mezclarlo; conservar interiores apagados y adaptar metadatos al color de contraste existente del tema.
+- Gates: móvil Clásico/Competition claro/oscuro, Axe y captura visual; sin publicación.
+
+## MC76 — Superficies de acento sin bordes
+- Estado: COMPLETO LOCAL (26/10/2026), selector de fondo corregido y5/5 gates finales con Axe PASS; capturas claro/oscuro/resultados revisadas. Pendiente valoración visual; sin publicación.
+- Alcance: tarjeta de actividad sin borde/sombra, fondo sólido de acento más intenso y recuadros de parejas/resultados con el tinte apagado anterior. Solo estilos locales de la home.
+- Gates: móvil320/393px, Clásico/Competition claro/oscuro, Axe/contraste/carrusel/nombres y captura revisada. Sin publicación.
+
+## MC75 — Acento en la propia tarjeta de actividad
+- Estado: COMPLETO LOCAL (26/10/2026),5/5 E2E móviles PASS con Axe/carrusel/nombres, build PASS y captura revisada. Pendiente valoración visual del usuario; sin publicación.
+- Alcance: retirar la envoltura visual exterior de Actividad personal y trasladar borde de acento/fondo suave a la tarjeta del partido, manteniendo parejas/resultados legibles y sin cambiar otras previews.
+- Gates: navegador móvil320/393px Clásico/Competition claro/oscuro, Axe/carrusel/nombres y captura visual. Sin publicación.
+
+## MC74 — Prueba de fondo sólido suave
+- Estado: COMPLETO LOCAL (26/10/2026),4/4 E2E móviles PASS con Axe, build del navegador PASS y captura revisada. Pendiente valoración visual del usuario; sin publicación.
+- Alcance: sustituir únicamente el degradado exterior de Actividad personal por un sólido con8% del acento; conservar borde, interiores y navegación. Ajustar contraste del subtítulo si es necesario.
+- Gates: navegador móvil Clásico/Competition claro/oscuro con Axe y comprobación visual; diff limpio. Sin publicación.
+
+## MC73 — Nombres adaptables en previews personales
+- Estado: COMPLETO LOCAL (26/10/2026),17 pruebas existentes y5 E2E móviles PASS; TypeScript/lint/build del navegador PASS. Misma rama visual, sin publicación.
+- Alcance: reutilizar FitText para reducir nombres hasta10px antes de truncarlos, manteniendo una línea y alineación en tarjetas personales de próximo/último encuentro. Fondo de actividad sin cambios, pendiente de valoración del usuario.
+- Gates: pruebas existentes de FitText/tarjeta/competiciones, lint/TypeScript y navegador móvil320/393px con nombre largo y carrusel.
+
+## MC72 — Identidad visual de Competiciones y Mis ligas
+- Estado: COMPLETO LOCAL (26/10/2026), rama codex/competition-visual-identity;32 pruebas existentes PASS,23 E2E/1 omisión prevista y8 comprobaciones finales de paletas/logos PASS. TypeScript/lint/i18n/fuente/build PASS; sin publicación ni cambios de datos.
+- Alcance: jerarquía del bloque de actividad, superficies compactas de ligas/torneos y tarjetas completas de Mis ligas. Solo presentación, conservando datos, permisos, selección, navegación, carrusel y temas. Sin despliegues ni base de datos.
+- Gates: pruebas existentes de competiciones y navegación, TypeScript/lint/i18n/fuente/build; navegador con fixtures en móvil320/393px y escritorio, Clásico/Competition claro/oscuro, contraste/Axe, desplazamiento y acceso a listados/ligas. Inspección de capturas locales antes de cerrar.
+
+## MC71 — Publicación autorizada de v1.15.36 en PROD
+- Estado: COMPLETO PROD (26/10/2026 21:05 CET), v1.15.36 publicada y verificada en smashandlob.com;18 migraciones aplicadas, CI417 cuatro jobs PASS,18 comprobaciones PROD y13 PRE PASS. v1.0.0 permanece intacta. OAuth real y aceptación PWA física siguen manuales.
+- Alcance: promover el código probado en PRE, revisar/aplicar las18 migraciones versionadas pendientes en PROD, verificar despliegue/alias/versión/PWA/autorización y conservar recuperación. No activar funcionalidades pendientes ni añadir servicios/configuraciones ajenas.
+- Gates: árbol main+staging idéntico al probado, CI de PR cuatro jobs PASS, respaldo fresco/descifrado/hash, dry-run exacto/revisión de compatibilidad, lista de migraciones y advisors posteriores, smoke PROD y estado PRE confirmado. OAuth real/PWA física no se automatizan ni se dan por comprobados.
+
+## MC70 — Respaldo previo a PROD y recuperación
+- Estado: COMPLETO LOCAL (26/10/2026); copia cifrada con clave separada, seis payloads y hashes verificados, archivo PostgreSQL leído íntegramente y recuperación documentada. Sin restauración real ni autorización de publicar PROD.
+- Alcance: preservar código/despliegue actual de PROD y exportar copia cifrada/verificable de su base y archivos necesarios; documentar recuperación. No migraciones, publicación, restauración sobre datos reales ni cambios de configuración de PROD.
+- Gates: identificar proyecto/commit/deployment; exportación completa comprobada, cifrado y hash, clave protegida separada, cobertura de Storage y límites documentados; comprobar main/tag/Production intactos. No usar datos PROD en tests automatizados.
+
 ## MC69 — Publicación PRE y preparación de PROD
-- Estado: EN CURSO (26/10/2026), petición explícita anterior a T06.
+- Estado: COMPLETO PRE (26/10/2026); v1.15.36 publicada y verificada, CI415 cuatro jobs PASS y13 comprobaciones remotas PASS. PROD no promovida; diagnóstico y condiciones pendientes documentados.
 - Alcance: publicar MC64–68 como v1.15.36 en staging/PRE y emitir diagnóstico documentado de PROD; ninguna modificación de main/Production/v1.0.0 ni datos reales.
 - Gates: release:check completo local, cuatro jobs CI, SHA/árbol staging, Vercel READY/alias PRE, smoke de versión/entorno/PWA/rutas; comparar migraciones y aceptación manual pendiente antes de recomendar PROD.
 
