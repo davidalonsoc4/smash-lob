@@ -1,5 +1,5 @@
 ## MC143 — Publicación v1.15.40 en PRE y PROD
-- Estado: EN CURSO. Publicar el ajuste del carrusel en PRE y promover a PROD la versión completa con las migraciones de chat, según autorización explícita del usuario.
+- Estado: COMPLETO EN PRE Y PROD. v1.15.40 publicada y verificada con las migraciones de chat.
 - Gates: controles locales y CI, verificación de PRE, preflight y respaldo verificado de PROD, comprobación de migraciones y smoke posterior de PROD.
 
 ## MC142 — Indicadores del carrusel de Inicio de liga
