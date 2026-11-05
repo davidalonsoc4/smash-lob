@@ -178,10 +178,6 @@
   box-shadow: none !important;
 }
 
-.activityHero :global(.match-preview-pagination) {
-  padding-block-start: .125rem;
-}
-
 :global(html[data-theme][data-visual-style]) .overview .activityHero :global(.bg-green-100) {
   background: #166534 !important;
   color: #fff !important;

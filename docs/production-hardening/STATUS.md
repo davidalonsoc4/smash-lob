@@ -3740,3 +3740,9 @@ MC141: PR #63 abierta contra staging. Antes de publicar, el usuario pidió resta
 MC141: validate local completo (1694 pruebas) y nueve pruebas móviles de bandeja correctos. CI #426 detectó ocho casos E2E: cuatro referencias visuales de Inicio/Calendario que difieren por las tarjetas aprobadas y cuatro fallos del margen superior seguro en chat. Referencias revisadas y repetidas 4/4. Margen corregido para sumar 8 px al área segura. Revalidar el commit corregido antes de integrar.
 
 MC141 completo en PRE: CI #427 PASS en los cuatro controles para 0c338c34. PR #63 integrada en staging 93485e7e. Alias pre.smashandlob.com verificado sobre dpl_FvzPqtGf1C3LCNH3sBND5uKkwuvc READY. Health autenticado ok v1.15.39/pre, caché SW v1.15.39, manifest 200 y API de chat 401 sin sesión de aplicación. El smoke anónimo encuentra el 302 de protección de Vercel. Tres migraciones ya aplicadas en PRE. Guía PROD preparada, con prueba manual y preflight de base de datos pendientes para la promoción. Main remoto 1bc3f70e comprobado.
+
+MC142 iniciado: se compacta la separación visual de los indicadores de ambos carruseles de Inicio de liga y se iguala el margen superior a Mis Competiciones. Se conserva el área táctil de los botones. Publicación aplazada a petición del usuario.
+
+MC142 completo local: Playwright confirmó las mismas dimensiones de los indicadores, 6 px entre marcas y 10 px entre tarjeta e indicadores. Gesto, pulsación y Axe sin infracciones graves correctos. Capturas de Inicio revisadas y verificadas en móvil y escritorio. Sin publicación.
+
+MC143 iniciado: el usuario autoriza la publicación de PRE y la promoción completa a PROD, incluidas las migraciones pendientes. Candidata v1.15.40 para renovar la caché de la PWA. Se verificarán destino, historial de migraciones y respaldo antes de escribir en PROD.

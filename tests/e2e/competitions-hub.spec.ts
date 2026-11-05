@@ -146,6 +146,12 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
     await swipe(page, slider, "right")
     await page.screenshot({ path: testInfo.outputPath(`activity-${width}.png`), scale: "css" })
   }
+  const indicatorGeometry = (element: HTMLElement) => {
+    const markers = [...element.querySelectorAll<HTMLElement>(":scope > span, button > span")].map(marker => marker.getBoundingClientRect())
+    const slides = element.previousElementSibling!.getBoundingClientRect()
+    return [markers[0].width, markers[1].width, markers[1].left - markers[0].right, markers[0].top - slides.bottom]
+  }
+  const activityIndicators = await activity.locator(".match-preview-pagination").evaluate(indicatorGeometry)
   const navGeometry = (el: HTMLElement) => {
     const grid = el.firstElementChild!, item = el.querySelector("a")!, icon = item.querySelector("svg")!
     return [el.getBoundingClientRect().height, getComputedStyle(grid).paddingTop, getComputedStyle(grid).paddingBottom, getComputedStyle(grid).columnGap, getComputedStyle(item).fontSize, getComputedStyle(item).borderRadius, item.getBoundingClientRect().height, icon.getBoundingClientRect().width, icon.getBoundingClientRect().height]
@@ -163,6 +169,7 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   await page.reload()
   expect(await page.locator('nav[data-tour="bottom-navigation"]').evaluate(navGeometry)).toEqual(globalGeometry)
   const league = page.locator('[data-tour="home-next-match"]'), leagueSlider = league.locator(".match-slides")
+  expect(await league.locator(".match-preview-pagination").evaluate(indicatorGeometry)).toEqual(activityIndicators)
   const scheduleRow = leagueSlider.locator('[aria-hidden="false"] [data-match-event-action="true"]')
   await expect(scheduleRow).toBeVisible()
   expect(await scheduleRow.evaluate(row => {
@@ -176,6 +183,10 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   await expect(league.getByRole("heading", { name: "Próximo partido", exact: true })).toBeVisible()
   await swipe(page, leagueSlider, "right")
   await expect(league.getByRole("button", { name: "Mi próximo partido", exact: true })).toHaveAttribute("aria-pressed", "true")
+  await league.getByRole("button", { name: "Próximo partido", exact: true }).click()
+  await expect(league.getByRole("heading", { name: "Próximo partido", exact: true })).toBeVisible()
+  await league.getByRole("button", { name: "Mi próximo partido", exact: true }).click()
+  await expect(league.getByRole("heading", { name: "Mi próximo partido", exact: true })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath("league-swipe.png"), scale: "css" })
   const a11y = await new AxeBuilder({ page }).analyze()
   expect(a11y.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
