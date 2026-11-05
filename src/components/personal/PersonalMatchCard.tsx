@@ -31,7 +31,7 @@ const showPersonalMatchChevron = false
 
 type PersonalMatchCardProps = { match: PersonalMatchItem; hideEventMeta?: boolean; compactBadges?: boolean; compactResult?: boolean; unboxedResult?: boolean; calendarAction?: ReactNode }
 
-function MatchCardContent({ match, hideEventMeta = false, compactBadges = false, compactResult = false, unboxedResult = false, calendarAction, navigation }: PersonalMatchCardProps & { navigation: ReactNode }) {
+function MatchCardContent({ match, hideEventMeta = false, compactBadges = false, compactResult = false, unboxedResult = true, calendarAction, navigation }: PersonalMatchCardProps & { navigation: ReactNode }) {
   const { tx, locale } = useI18n()
   const { userLeagues } = useLeagueAccess()
   const league = userLeagues.find(item => item.id === match.leagueId)
@@ -126,7 +126,7 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
   )
 }
 
-export function PersonalMatchCard({ match, hideEventMeta = false, compactBadges = false, compactResult = false, unboxedResult = false, calendarAction }: PersonalMatchCardProps) {
+export function PersonalMatchCard({ match, hideEventMeta = false, compactBadges = false, compactResult = false, unboxedResult = true, calendarAction }: PersonalMatchCardProps) {
   const { tx } = useI18n()
   const router = useRouter()
   const { activateLeague } = useActiveLeague()

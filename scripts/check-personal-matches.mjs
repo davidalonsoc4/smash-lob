@@ -128,7 +128,7 @@ assert(listRoute.includes("personal_match_requires_current_user"), "El creador d
 assert(listRoute.includes("p_status: status"), "La creación debe persistir el estado programado/finalizado")
 
 assert(personalNav.includes('href: "/personal-matches"') && appShell.includes('pathname === "/leagues"'), "La navegación global de Competiciones debe enlazar a Mis partidos")
-assert(!leaguesPage.includes('href="/personal-matches/new"'), "La creación de amistosos pertenece a Mis partidos")
+assert(leaguesPage.includes('href="/personal-matches/new"'), "Competiciones debe ofrecer acceso a crear amistosos")
 assert(personalPage.includes('href="/personal-matches/new"'), "Mis partidos debe conservar el acceso a crear amistosos")
 assert(personalPage.includes("const pageSize = 10"), "El historial debe paginar diez partidos cada vez")
 assert(personalPage.includes("Cargar 10 más"), "Debe existir carga incremental de diez partidos")

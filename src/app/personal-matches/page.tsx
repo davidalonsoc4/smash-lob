@@ -1,11 +1,11 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useState } from "react"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
+import { FloatingCreateButton } from "@/components/ui/FloatingCreateButton"
 import { useI18n } from "@/i18n/I18nProvider"
 import {
   type PersonalMatchesDashboardPayload,
@@ -98,18 +98,7 @@ export default function PersonalMatchesPage() {
         </p>
       </header>
 
-      <Link
-        href="/personal-matches/new"
-        aria-label={tx("Crear nuevo encuentro")}
-        title={tx("Crear nuevo encuentro")}
-        className="fixed z-40 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-950 text-white shadow-xl transition active:scale-95"
-        style={{
-          bottom: "calc(78px + env(safe-area-inset-bottom, 0px))",
-          right: "max(16px, calc((100vw - 28rem) / 2 + 16px))",
-        }}
-      >
-        <span aria-hidden="true" className="text-3xl font-light leading-none">+</span>
-      </Link>
+      <FloatingCreateButton href="/personal-matches/new" label={tx("Crear nuevo encuentro")} />
 
       {!loading && dashboard.upcoming.length > 0 ? (
         <section className="space-y-2">

@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useParams } from "next/navigation"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
+import { MatchChatReservationSummary } from "@/components/match/chat/MatchChatReservationSummary"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 import { getIntlLocale } from "@/i18n/leagueText"
 import {
@@ -268,8 +269,8 @@ export default function PersonalMatchChatPage() {
   const topContent = (
     <>
       {snapshot?.match?.courtBooking?.isReserved && snapshot.match.scheduledAt && !Number.isNaN(Date.parse(snapshot.match.scheduledAt)) ? (
-        <PersonalAddToCalendarButton match={snapshot.match} triggerClassName="app-match-reservation-banner flex w-full shrink-0 items-center gap-2 border-b border-blue-100 bg-blue-50 px-3 py-2 text-left text-blue-900">
-          <span className="min-w-0 flex-1"><span className="app-match-reservation-label block type-caption font-black uppercase tracking-[0.12em]">{tx("Reserva")} · {tx("Guardar en calendario")}</span><span className="app-match-reservation-detail block type-small font-semibold">{new Intl.DateTimeFormat(getIntlLocale(locale), { dateStyle: "medium", timeStyle: "short" }).format(new Date(snapshot.match.scheduledAt))}{snapshot.match.locationName ? ` · ${snapshot.match.locationName}` : ""}</span></span>
+        <PersonalAddToCalendarButton match={snapshot.match} triggerClassName="app-match-reservation-banner flex min-h-12 w-full shrink-0 items-center gap-3 border-b border-blue-100 bg-blue-50 px-3 py-1.5 text-left text-blue-900">
+          <MatchChatReservationSummary date={new Intl.DateTimeFormat(getIntlLocale(locale), { dateStyle: "medium", timeStyle: "short" }).format(new Date(snapshot.match.scheduledAt))} location={snapshot.match.locationName} />
         </PersonalAddToCalendarButton>
       ) : null}
       {snapshot && !snapshot.readOnly && snapshot.writeUntil ? (

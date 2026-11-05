@@ -12,6 +12,8 @@ import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { AppCard } from "@/components/ui/AppCard"
 import { MatchSlides } from "@/components/ui/MatchSlides"
+import { FloatingCreateButton } from "@/components/ui/FloatingCreateButton"
+import { DialogChevron, FloatingDialog } from "@/components/ui/FloatingDialog"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
@@ -34,8 +36,9 @@ const actionClass = "app-action-button flex min-h-11 items-center justify-center
 export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | "leagues" | "tournaments" }) {
   const { t, tx, locale } = useI18n()
   const { changeActiveLeague } = useActiveLeague()
-  const { canCreateLeagues, getMembershipForLeague, isLeagueAdmin, isLeagueSpectator, userLeagues } = useLeagueAccess()
+  const { canCreateLeagues, isAccessHydrated, getMembershipForLeague, isLeagueAdmin, isLeagueSpectator, userLeagues } = useLeagueAccess()
   const canCreateCompetition = canCreateLeagues
+  const [createMenuOpen, setCreateMenuOpen] = useState(false)
   const memberLeagues = userLeagues.filter(league => getMembershipForLeague(league.id))
   const { matches, resultConfirmations } = useMatchData()
   const { seasons, playerProfiles, seasonPlayers, getActiveSeasonByLeagueId, getSeasonRoundSettings } = useSeasonSettings()
@@ -167,6 +170,16 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     </button>
   }
   return <div className={`${styles.overview} space-y-5`}>
+    {view === "summary" && isAccessHydrated ? <>
+      <FloatingCreateButton label={tx(canCreateCompetition ? "Crear" : "Nuevo partido amistoso")} href={canCreateCompetition ? undefined : "/personal-matches/new"} onClick={canCreateCompetition ? () => setCreateMenuOpen(true) : undefined} />
+      {canCreateCompetition ? <FloatingDialog open={createMenuOpen} onClose={() => setCreateMenuOpen(false)} title={tx("¿Qué quieres crear?")}>
+        <h2 className="type-panel-title font-black">{tx("¿Qué quieres crear?")}</h2>
+        <Link href="/personal-matches/new" onClick={() => setCreateMenuOpen(false)} className="app-dialog-option mt-3" data-dialog-autofocus><span>{tx("Nuevo partido amistoso")}</span><DialogChevron /></Link>
+        <Link href="/league/new" onClick={() => setCreateMenuOpen(false)} className="app-dialog-option mt-2"><span>{tx("Crear nueva liga")}</span><DialogChevron /></Link>
+        {areTournamentsEnabled() ? <Link href="/tournaments/new" onClick={() => setCreateMenuOpen(false)} className="app-dialog-option mt-2"><span>{tx("Crear torneo")}</span><DialogChevron /></Link> : null}
+        <button type="button" className="app-dialog-cancel" onClick={() => setCreateMenuOpen(false)}>{tx("Cancelar")}</button>
+      </FloatingDialog> : null}
+    </> : null}
     <header className="app-page-header">
       {view !== "summary" ? <BackButton fallbackHref="/leagues" label={t.common.back} /> : null}
       <h1 id="competitions-page-title" className="type-page-title mt-3 text-2xl font-black tracking-tight">{tx(view === "summary" ? "Mis Competiciones" : view === "leagues" ? "Mis ligas" : "Mis torneos")}{view === "leagues" ? <span className="ml-2 text-base font-medium text-neutral-400">{memberLeagues.length}</span> : null}</h1>

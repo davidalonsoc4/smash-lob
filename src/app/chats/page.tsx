@@ -1,6 +1,7 @@
 "use client"
 
 import { StatusDot } from "@/components/ui/StatusDot"
+import { LeagueSeasonChatAccess } from "@/components/league/LeagueSeasonChatAccess"
 
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
@@ -37,7 +38,8 @@ export default function ChatsPage() {
   const activeChatIdsKey = openChats.map((chat) => chat.id).join("|")
   useEffect(() => { if (!activeChatIdsKey) return; const controller = new AbortController(), activeChatIds = activeChatIdsKey.split("|").filter(Boolean); void Promise.all(activeChatIds.map(async (matchId) => { const response = await fetch(`/api/matches/${encodeURIComponent(matchId)}/chat?markRead=0`, { cache: "no-store", signal: controller.signal }).catch(() => null); if (!response?.ok) return; const data = await response.json().catch(() => null); if (data) writeMatchChatCache(matchId, data) })); return () => controller.abort() }, [activeChatIdsKey])
   return <div className="compact-page space-y-3"><header className="app-page-header"><BackButton fallbackHref="/" label={t.common.back} /><h1 className="type-page-title font-black tracking-tight">{tx("Chats")}</h1><SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} /></header>
+    <LeagueSeasonChatAccess seasonId={activeSeason.id} leagueName={activeLeague.name} seasonName={activeSeason.name} />
     {loading ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Cargando conversaciones…")}</p></AppCard> : null}{error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{tx("No se han podido cargar tus chats.")}</p> : null}{!loading && !error && chats.length === 0 ? <AppCard><p className="text-sm font-black">{tx("Todavía no tienes chats de partido.")}</p><p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Cuando participes en una jornada, su conversación aparecerá aquí.")}</p></AppCard> : null}
-    {activeChats.length > 0 ? <section data-tour="chats-conversations" className="space-y-1.5"><h2 className="type-section-title font-black text-neutral-700">{tx("Activos")}</h2><ChatCards chats={activeChats} /></section> : null}{upcomingChats.length > 0 ? <section data-tour="chats-upcoming" className="space-y-1.5 pt-1"><h2 className="type-section-title font-black text-neutral-600">{tx("Próximos")}</h2><ChatCards chats={upcomingChats} /></section> : null}{finishedChats.length > 0 ? <section data-tour="chats-finished" className="space-y-2 pt-1"><h2 className="type-section-title text-lg font-black text-neutral-600">{tx("Chats finalizados")}</h2><ChatCards chats={finishedChats} /></section> : null}
+    {activeChats.length > 0 ? <section data-tour="chats-conversations" className="space-y-1.5"><h2 className="type-section-title font-black text-neutral-700">{tx("Activos")}</h2><ChatCards chats={activeChats} /></section> : null}{upcomingChats.length > 0 ? <section data-tour="chats-upcoming" className="space-y-1.5 pt-1"><h2 className="type-section-title font-black text-neutral-700">{tx("Próximos")}</h2><ChatCards chats={upcomingChats} /></section> : null}{finishedChats.length > 0 ? <section data-tour="chats-finished" className="space-y-2 pt-1"><h2 className="type-section-title font-black text-neutral-700">{tx("Chats finalizados")}</h2><ChatCards chats={finishedChats} /></section> : null}
   </div>
 }

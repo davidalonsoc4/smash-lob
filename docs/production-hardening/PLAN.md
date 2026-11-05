@@ -1,5 +1,78 @@
+## MC141 — Publicación PRE de v1.15.39
+- Estado: EN CURSO. Validar e integrar la candidata en staging, verificar el despliegue PRE y documentar la promoción a PROD.
+- Gates: validate local, CI de la candidata, alias y smoke PRE. La ejecución en PROD requiere autorización posterior.
+
+## MC140 — Claridad de tarjetas de chat
+- Estado: COMPLETO LOCAL. Ubicación retirada y divisores reforzados entre conversaciones agrupadas.
+- Gates: ESLint y pruebas móviles de ubicación, separadores y navegación en ambos temas y estilos.
+
+## MC139 — Títulos de sección de chats
+- Estado: COMPLETO LOCAL. Títulos y color unificados en chats de liga y chats globales.
+- Gates: ESLint y pruebas móviles de títulos en estilos y temas existentes.
+
+## MC138 — Chats generales en la lista global
+- Estado: COMPLETO LOCAL. Chats generales de temporadas activas integrados con búsqueda, filtros y suscripción existente.
+- Gates: lint, TypeScript, i18n y pruebas móviles de permisos, filtros, actualización y regresión de chats.
+
+## MC137 — Bordes de la lista de chats de liga
+- Estado: COMPLETO LOCAL. Borde exterior fino y separadores entre jornadas coherentes con el chat general.
+- Gates: pruebas móviles de borde, separación y navegación en estilos claro y oscuro.
+
+## MC136 — Avisos fijados compactos en chats
+- Estado: COMPLETO LOCAL. Aviso fijado de reserva compacto y compartido en chats de liga y amistosos.
+- Gates: ESLint, traducciones y pruebas móviles de avisos y acciones en temas claro y oscuro.
+
+## MC135 — Sección del chat general de liga
+- Estado: COMPLETO LOCAL. Chat general identificado por sección, liga y temporada.
+- Gates: lint, traducciones y pruebas móviles de presencia y permisos.
+
+## MC134 — Cabeceras compactas de chat
+- Estado: COMPLETO LOCAL. Identidad de liga y separación de metadatos revisadas en la cabecera compacta.
+- Gates: lint, tipos y pruebas móviles de cabecera, acciones, participantes y regresión de chats.
+
+## MC133 — Destacar registro de resultado en juego
+- Estado: COMPLETO LOCAL. Panel de registro destacado cuando el partido de liga está en juego, sin cambiar permisos ni apertura.
+- Gates: pruebas de estados, temas móviles y validación focalizada.
+
+## MC132 — Mi último encuentro en HOME de liga
+- Estado: COMPLETO LOCAL. Igualada la tarjeta personal, conservando «Jornada X» con estilo del calendario y total de sets en negro.
+- Gates: pruebas móviles claro/oscuro, comparación de geometría y estilos con Mis Competiciones, lint y tipos.
+
+## MC131 — Colores intensos en calendario de liga
+- Estado: COMPLETO LOCAL. Etiquetas Victoria/Derrota intensas en Calendario de liga.
+- Gates: comprobación móvil de Victoria y Derrota en claro/oscuro Clásico/Competition.
+
+## MC130 — Colores intensos en resultados de Mis Partidos
+- Estado: COMPLETO LOCAL, pendiente valoración. Etiquetas intensas en Mis Partidos, sin alterar Mis Competiciones.
+- Gates: pruebas móviles en temas claros y oscuros y comprobación de estilos.
+
+## MC129 — Etiqueta discreta de liga en Mis Partidos
+- Estado: COMPLETO LOCAL, pendiente valoración visual. Etiqueta de liga sin fondo en Mis Partidos, coherente con Mis Competiciones.
+- Gates: pruebas móviles en temas claro y oscuro, y validación focalizada de estilos.
+
+## MC128 — Unificar previews de resultados
+- Estado: COMPLETO LOCAL. Igualados resultados de Calendario, HOME y Mis Partidos; cabecera y etiqueta de jornada originales restauradas a petición del usuario.
+- Gates: lint, tipos y pruebas móviles de previews en temas claros y oscuros.
+
+## MC127 — Creación rápida desde Mis Competiciones
+- Estado: COMPLETO LOCAL. Botón compartido con Mis Partidos; acceso directo a amistoso o selector según permisos, respetando la disponibilidad de torneos.
+- Gates: lint, tipos, i18n y pruebas de rutas/permisos y uso móvil.
+
+## MC126 — Coherencia visual de chats de liga y partido
+- Estado: COMPLETO LOCAL. Unificada acción flotante, tarjeta de chat de liga, cabecera y participantes; corregido título truncado en chats de partido.
+- Gates: lint y tipos; pruebas de componentes y recorridos móviles de chats en temas claro/oscuro.
+
+## MC125 — Corregir bucle del servidor local
+- Estado: COMPLETO LOCAL. Servidor reiniciado con logs fuera del directorio observado por Next; `/` y `/api/health` HTTP 200, sin recompilaciones repetidas durante la observación.
+- Alcance: corrección operativa, sin modificar funcionalidad ni datos.
+
+## MC124 — Chat general de liga por temporada
+- Estado: COMPLETO LOCAL; migraciones aplicadas y verificadas en PRE, pendiente aceptación con cuentas reales.
+- Alcance: conversación privada por temporada para sus participantes, lectura en temporada terminada, acceso directo en Inicio y primero en Chats; conservar historial sin borrado automático. Base de datos PRE autorizada; código sin publicación remota.
+- Gates: pruebas de pertenencia y aislamiento entre temporadas, lectura/escritura, no leídos y regresión de chats; lint, tipos, build y verificación de migraciones/RLS.
+
 ## MC123 — Torneos solo PRE y publicación v1.15.38
-- Estado: EN CURSO. Prioridad autorizada por usuario.
+- Estado: COMPLETO EN PRE. Prioridad autorizada por usuario; producción pendiente de autorización.
 - Alcance: ocultar torneos a todos en PROD, publicar cambios acumulados en PRE y preparar promoción sin ejecutarla. Sin DB ni main/PROD.
 - Gates: validate, E2E completos, audit runtime; CI y deployment PRE/alias/version verificados.
 

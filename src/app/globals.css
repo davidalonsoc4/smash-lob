@@ -2204,6 +2204,7 @@ html[data-match-chat-active="true"] body { background: var(--app-match-chat-safe
 /* Conversation cards use a side accent and explicit affordance to read as navigation. */
 .chat-list-stack { position: relative; }
 .chat-list-stack::before { content: ""; position: absolute; z-index: 2; inset: 0 auto 0 0; width: .22rem; background: linear-gradient(180deg,#262626,#737373 48%,#d4d4d4); pointer-events: none; }
+[data-route="/chats"] .chat-list-stack::before { display: none; }
 .chat-list-card-unread { box-shadow: 0 6px 18px rgb(15 23 42 / .08); }
 html.dark[data-style="plain"] .chat-list-stack::before { background: linear-gradient(180deg,#dbe6f3,#536a84 58%,#9fb1c7); }
 html.colorful .chat-list-stack::before { background: linear-gradient(180deg,var(--colorful-primary),var(--colorful-secondary),var(--colorful-accent)); }
@@ -2663,7 +2664,7 @@ html[data-visual-style="competition"] [data-route="/settings"] .settings-payment
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--competition-accent-contrast) 18%, transparent);
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack {
-  border: 1px solid color-mix(in srgb, var(--competition-accent) 24%, var(--competition-border));
+  border: 0;
   box-shadow: 0 18px 38px rgb(var(--competition-shadow-rgb) / calc(.2 * var(--competition-shadow-strength)));
 }
 html[data-visual-style="competition"] [data-route="/chats"] .chat-list-stack .app-card {
@@ -2795,6 +2796,12 @@ html[data-visual-style="competition"] .app-match-chat-receipt[data-read="true"] 
 html[data-visual-style="competition"] .app-match-chat-receipt[data-read="false"] {
   color: color-mix(in srgb, var(--competition-accent-contrast) 76%, var(--competition-accent-text, var(--competition-accent))) !important;
   opacity: .9;
+}
+
+html.dark:not([data-visual-style="competition"]) .league-season-chat-messages .app-match-chat-metadata[data-mine="true"],
+html.dark:not([data-visual-style="competition"]) .league-season-chat-messages .app-match-chat-metadata[data-mine="true"] .type-caption,
+html.dark:not([data-visual-style="competition"]) .league-season-chat-messages .app-match-chat-metadata[data-mine="true"] .app-match-chat-receipt {
+  color: #d4d4d8 !important;
 }
 
 html[data-visual-style="competition"] .public-spectator-hero {
@@ -3283,11 +3290,24 @@ h2.type-section-title::before {
 }
 .match-preview-name-line { border-color: currentColor; opacity: .2; }
 .match-preview-trophy { color: var(--app-accent); }
+html[data-theme][data-visual-style] .app-card.match-result-in-progress {
+  border: 1px solid var(--app-accent) !important;
+  box-shadow: inset 3px 0 0 var(--app-accent), 0 2px 10px color-mix(in srgb, var(--app-accent) 18%, transparent) !important;
+}
 /* Plain context labels leave the result and players in focus. */
 .personal-match-origin-label {
   background: transparent !important;
   border: 0 !important;
   color: var(--foreground) !important;
+  box-shadow: none !important;
+}
+html[data-theme][data-visual-style] .personal-match-origin-label[data-personal-match-origin="league"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0;
+  padding: .125rem 0 !important;
+  color: var(--foreground) !important;
+  font-weight: 500 !important;
   box-shadow: none !important;
 }
 .match-preview-featured .match-outcome-victory {
@@ -3298,6 +3318,31 @@ h2.type-section-title::before {
   background: #b91c1c !important;
   color: #fff !important;
 }
+html[data-theme][data-visual-style] :is([data-route="/personal-matches"], [data-route="/matches"]) .match-outcome-victory {
+  background: #166534 !important;
+  color: #fff !important;
+}
+html[data-theme][data-visual-style] :is([data-route="/personal-matches"], [data-route="/matches"]) .match-outcome-defeat {
+  background: #b91c1c !important;
+  color: #fff !important;
+}
+html[data-theme][data-visual-style] [data-route="/"] .app-card.home-personal-result {
+  --competition-accent-contrast: #fff;
+  --activity-score-surface: #141518;
+  border: 1px solid rgb(255 255 255 / .13) !important;
+  border-top: 2px solid color-mix(in srgb, var(--app-accent) 72%, var(--foreground)) !important;
+  background: #141518 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .14), inset 0 -4px 12px rgb(0 0 0 / .2) !important;
+  backdrop-filter: none;
+}
+html[data-theme][data-visual-style="classic"] [data-route="/"] .app-card.home-personal-result {
+  --activity-score-surface: #17212e;
+  background: #17212e !important;
+}
+html[data-theme][data-visual-style] .home-personal-result [data-preview-team] .text-neutral-950 { color: #fff !important; }
+html[data-theme][data-visual-style] .home-personal-result.home-personal-result.home-personal-result.home-personal-result .match-preview-total { color: #111 !important; }
+html[data-theme][data-visual-style] .home-personal-result .match-outcome-victory { background: #166534 !important; color: #fff !important; }
+html[data-theme][data-visual-style] .home-personal-result .match-outcome-defeat { background: #b91c1c !important; color: #fff !important; }
 /* Versus previews center both partners consistently in every context. */
 [data-preview-versus] > .bg-neutral-50 {
   text-align: center;
@@ -3329,6 +3374,18 @@ html[data-visual-style] .app-card.match-preview-featured {
 .app-main[data-has-floating-top-controls="true"] .app-page-header.app-match-chat-header {
   padding-top: max(3.75rem, calc(var(--app-safe-top) + 3.75rem)) !important;
 }
+.app-main[data-has-floating-top-controls="true"] .app-page-header.app-match-chat-header[data-compact-chat-header] {
+  padding-top: calc(var(--app-safe-top) + .5rem) !important;
+}
+.app-match-chat-header[data-compact-chat-header] .type-page-title { font-size: 1.1rem !important; }
+.app-main[data-has-floating-top-controls="true"] .app-match-chat-header[data-compact-chat-header] .app-top-back-control {
+  position: static;
+  flex: 0 0 34px;
+  width: 34px;
+  justify-content: center;
+}
+.app-match-chat-header[data-compact-chat-header] .app-top-back-control span { margin-right: 0; }
+.app-match-chat-header[data-compact-chat-header] .type-page-title { line-height: 1.2 !important; letter-spacing: normal !important; }
 .match-preview-featured [data-match-event-action="true"] {
   display: flex;
   align-items: center;

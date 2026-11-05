@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright"
 import { leagues, seasons, seasonPlayers, seasonRoundSettings, playerProfiles, allMatches } from "@/data/fakeData"
 
 const leagueId="10000000-0000-4000-8000-000000000072", seasonId="20000000-0000-4000-8000-000000000072"
-async function setup(page:Page,theme:string,style:string) {
+async function setup(page:Page,theme:string,style:string,canCreate=true) {
   let upcoming=false,windowed=false,advanced=false
   let role: "player" | "admin" = "admin"
   const league={...leagues[0],id:leagueId,name:"Liga Azul QA",accentColor:"#26b6ce",activeSeasonId:seasonId}
@@ -16,7 +16,7 @@ async function setup(page:Page,theme:string,style:string) {
   await page.route("**/api/**",route=>route.fulfill({json:{ok:true,items:[],chats:[],locations:[]}}))
   await page.route("**/api/auth/session",route=>route.fulfill({json:{user:{name:"QA",email:"qa-experience@example.test",image:null},expires:"2099-01-01T00:00:00Z"}}))
   await page.route("**/api/account/profile",route=>route.fulfill({json:{profile:{firstName:"QA",lastName:"Experience",displayName:"QA",isComplete:true,profileCompletedAt:"2026-08-03",availabilityCompletedAt:"2026-08-03",standardAvailabilityTimezone:"Europe/Madrid",standardAvailabilityWeeklySlots:{},isSuperuser:false}}}))
-  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:true,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
+  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:canCreate,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
   await page.route("**/api/personal-matches?**",route=>route.fulfill({json:{items:[],upcoming:[],hasMore:false,nextOffset:null}}))
   await page.route("**/api/tournaments",route=>route.fulfill({json:{tournaments:[]}}))
   await page.addInitScript(({theme,style})=>{
@@ -25,6 +25,302 @@ async function setup(page:Page,theme:string,style:string) {
     localStorage.setItem("smash-lob-guided-onboarding-v1",JSON.stringify(Object.fromEntries([["app-introduction",1],["home",7],["matches",2],["match",1],["chats",1],["settings",1]].map(([tourKey,tourVersion])=>[tourKey,{tourKey,tourVersion,status:"completed",completedAt:"2026-08-06T00:00:00Z",skippedAt:null}]))))
   },{theme,style})
   return {setUpcoming:()=>{upcoming=true},setWindowed:()=>{windowed=true},setRole:(next: "player" | "admin")=>{role=next},setAdvanced:()=>{advanced=true},matches,league}
+}
+
+test("league season chat opens from home and sends a message", async ({ page }, info) => {
+  await setup(page, "dark", "classic")
+  const messages: Array<{ id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }> = []
+  await page.route("**/api/league-season-chats/**", async (route) => {
+    if (route.request().method() === "POST") {
+      messages.push({ id: "msg-1", sender_user_id: "qa-user", sender_display_name: "QA", body: route.request().postDataJSON().body, created_at: "2026-10-16T12:00:00Z" })
+      await route.fulfill({ status: 201, json: { message: messages[0] } })
+    } else {
+      await route.fulfill({ json: { season: { name: "Temporada 1", league_id: leagueId }, messages, participants: [{ userId: "qa-user", displayName: "QA", avatarUrl: null, lastReadAt: null }, { userId: "friend", displayName: "Ana", avatarUrl: null, lastReadAt: "2026-10-16T13:00:00Z" }], me: "qa-user", unread: 1, readOnly: false, realtimeTopic: null } })
+    }
+  })
+  await page.goto("/")
+  await page.getByRole("link", { name: "Abrir chat de liga" }).click()
+  await expect(page.getByRole("heading", { name: "Liga Azul QA" })).toBeVisible()
+  const menu = page.getByLabel("Más opciones", { exact: true })
+  await menu.click()
+  await expect(page.getByRole("link", { name: "Notificaciones" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Ajustes" })).toBeVisible()
+  await page.keyboard.press("Escape")
+  await expect(menu).toBeFocused()
+  await page.getByPlaceholder("Escribe un mensaje…").fill("¡Hola, liga!")
+  await page.getByRole("button", { name: "Enviar mensaje" }).click()
+  await expect(page.getByText("¡Hola, liga!")).toBeVisible()
+  await expect(page.getByLabel("Leído por todos")).toBeVisible()
+  await page.getByText("2 participantes", { exact: false }).click()
+  await expect(page.getByText("QA · Ana")).toBeVisible()
+  await expect(page.locator("[data-match-chat-route='true']").first()).toBeVisible()
+  const results = await new AxeBuilder({ page }).analyze()
+  expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
+  await page.screenshot({ path: info.outputPath("league-season-chat.png") })
+})
+
+test("global chats include and filter active league conversations", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  let permitted = true
+  let unread = 2
+  await page.route("**/api/league-season-chats/**", route => permitted ? route.fulfill({ json: { season: { name: "Temporada 2", league_id: leagueId }, messages: [{ sender_display_name: "Ana", body: "Hola equipo", created_at: "2026-10-16T12:00:00Z" }], participants: [{ userId: "qa-user" }, { userId: "friend" }], unread, realtimeTopic: null } }) : route.fulfill({ status: 404, json: { error: "league_chat_not_found" } }))
+  await page.goto("/personal-matches/chats")
+  const section = page.getByRole("region", { name: "Chats de liga" })
+  await expect(section.getByRole("link", { name: /Liga Azul QA/ })).toHaveAttribute("href", `/league-chat/${seasonId}`)
+  await expect(section.getByText("Temporada 2 · 2 participantes")).toBeVisible()
+  await expect(section.getByText("Hola equipo", { exact: false })).toBeVisible()
+  await expect(section.getByLabel("Mensajes sin leer")).toHaveText("2")
+  await page.getByRole("button", { name: "Buscar y filtrar chats" }).click()
+  const dialog = page.getByRole("dialog", { name: "Buscar y filtrar chats" })
+  await dialog.getByLabel("Competición").selectOption("friendly")
+  await dialog.getByRole("button", { name: "Ver conversaciones" }).click()
+  await expect(section).toHaveCount(0)
+  await page.getByRole("button", { name: "Buscar y filtrar chats" }).click()
+  await dialog.getByLabel("Competición").selectOption("all")
+  await dialog.getByLabel("Buscar conversación").fill("Hola equipo")
+  await dialog.getByRole("button", { name: "Ver conversaciones" }).click()
+  await expect(section).toBeVisible()
+  unread = 0
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+  await expect(section.getByLabel("Mensajes sin leer")).toHaveCount(0)
+  permitted = false
+  await page.reload()
+  await expect(page.getByText("Todavía no tienes chats.")).toBeVisible()
+  await expect(section).toHaveCount(0)
+})
+
+test("competition create button opens options for creators", async ({ page }) => {
+  await setup(page, "dark", "classic", true)
+  await page.goto("/leagues")
+  const trigger = page.getByRole("button", { name: "Crear", exact: true })
+  await trigger.click()
+  const dialog = page.getByRole("dialog", { name: "¿Qué quieres crear?" })
+  await expect(dialog.getByRole("link", { name: "Nuevo partido amistoso" })).toHaveAttribute("href", "/personal-matches/new")
+  await expect(dialog.getByRole("link", { name: "Crear nueva liga" })).toHaveAttribute("href", "/league/new")
+  await expect(dialog.getByRole("link", { name: "Crear torneo" })).toHaveAttribute("href", "/tournaments/new")
+  await page.keyboard.press("Escape")
+  await expect(dialog).not.toBeVisible()
+  await expect(trigger).toBeFocused()
+})
+
+test("competition create button opens friendly directly for players", async ({ page }) => {
+  await setup(page, "light", "classic", false)
+  await page.goto("/leagues")
+  const trigger = page.getByRole("link", { name: "Nuevo partido amistoso" })
+  await expect(trigger).toHaveAttribute("href", "/personal-matches/new")
+  await trigger.click()
+  await expect(page).toHaveURL(/\/personal-matches\/new/)
+})
+
+test("finished league chat is read-only and absent for nonparticipants", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let permitted = true
+  await page.route("**/api/league-season-chats/**", async (route) => {
+    if (!permitted) { await route.fulfill({ status: 404, json: { error: "league_chat_not_found" } }); return }
+    await route.fulfill({ json: { season: { name: "Temporada 1" }, messages: [], me: "qa-user", unread: 0, readOnly: true, realtimeTopic: null } })
+  })
+  await page.goto("/chats")
+  await expect(page.getByRole("heading", { name: "Chat general" })).toBeVisible()
+  await page.getByRole("link", { name: /Liga Azul QA/ }).click()
+  await expect(page.getByText("Temporada finalizada · Solo lectura")).toBeVisible()
+  await expect(page.getByPlaceholder("Escribe un mensaje…")).toHaveCount(0)
+  permitted = false
+  await page.goto("/chats")
+  await expect(page.getByRole("link", { name: /Liga Azul QA/ })).toHaveCount(0)
+  await expect(page.getByRole("heading", { name: "Chat general" })).toHaveCount(0)
+})
+
+test("match chat title fits without truncation on a narrow mobile", async ({ page }) => {
+  const { matches } = await setup(page, "dark", "classic")
+  await page.setViewportSize({ width: 320, height: 740 })
+  await page.route("**/api/matches/*/chat*", route => route.fulfill({ json: { currentUserId: "qa-user", round: 1, readOnly: false, participants: [], messages: [] } }))
+  await page.goto(`/match/${matches[0].id}/chat`)
+  const heading = page.locator(".app-match-chat-header h1")
+  await expect(heading).toContainText("Jornada")
+  expect(await heading.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
+  expect((await page.locator("[data-compact-chat-header]").boundingBox())!.height).toBeLessThan(80)
+  const back = await page.getByRole("link", { name: "Volver" }).boundingBox()
+  const title = await heading.boundingBox()
+  const actions = await page.getByLabel("Más opciones", { exact: true }).boundingBox()
+  expect(back!.x + back!.width).toBeLessThanOrEqual(title!.x)
+  expect(title!.x + title!.width).toBeLessThanOrEqual(actions!.x)
+})
+
+for (const theme of ["light", "dark"]) {
+  test(`pinned match reservation is compact and opens calendar (${theme})`, async ({ page }) => {
+    const { matches } = await setup(page, theme, "competition")
+    await page.setViewportSize({ width: 320, height: 740 })
+    await page.route("**/api/matches/*/chat*", route => route.fulfill({ json: { currentUserId: "qa-user", round: 1, readOnly: false, participants: [], messages: [], reservationSummary: { scheduledAt: "2026-10-18T18:00:00Z", locationText: "Barakaldo · Lasesarre · Pista 1" } } }))
+    await page.goto(`/match/${matches[0].id}/chat`)
+    const banner = page.getByRole("button", { name: /Reserva.*Guardar en calendario/ })
+    await expect(banner).toBeVisible()
+    await expect(banner).toContainText("Barakaldo · Lasesarre · Pista 1")
+    expect((await banner.boundingBox())!.height).toBeLessThanOrEqual(56)
+    await banner.click()
+    await expect(page.getByRole("button", { name: "Google Calendar" })).toBeVisible()
+  })
+}
+
+for (const theme of ["light", "dark"]) for (const style of ["classic", "competition"]) {
+  test(`league chat header stays compact and aligned (${theme},${style})`, async ({ page }) => {
+    await setup(page, theme, style)
+    await page.setViewportSize({ width: 320, height: 740 })
+    await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { season: { name: "Temporada 1", league_id: leagueId }, messages: [], participants: [{ userId: "qa-user", displayName: "QA" }, { userId: "friend", displayName: "Ana" }], me: "qa-user", readOnly: false, realtimeTopic: null } }))
+    await page.goto(`/league-chat/${seasonId}`)
+    const header = page.locator("[data-compact-chat-header]")
+    await expect(header.getByRole("heading", { name: "Liga Azul QA" })).toBeVisible()
+    const back = (await header.getByRole("link", { name: "Volver" }).boundingBox())!
+    const title = (await header.getByRole("heading").boundingBox())!
+    const menu = (await page.getByLabel("Más opciones", { exact: true }).boundingBox())!
+    expect(back.x + back.width).toBeLessThanOrEqual(title.x)
+    expect(title.x + title.width).toBeLessThanOrEqual(menu.x)
+    expect((await header.boundingBox())!.height).toBeLessThan(80)
+    const season = (await header.getByText("Temporada 1", { exact: true }).boundingBox())!
+    const participants = (await header.getByText("2 participantes", { exact: true }).boundingBox())!
+    expect(participants.x - (season.x + season.width)).toBeGreaterThanOrEqual(8)
+    await header.getByText("2 participantes", { exact: false }).click()
+    await expect(page.getByText("QA · Ana")).toBeVisible()
+  })
+}
+
+test("future match result entry is not highlighted", async ({ page }) => {
+  const { matches } = await setup(page, "dark", "classic")
+  const match = matches.find(item => item.teamA.includes("davo") || item.teamB.includes("davo"))! as { id: string; status: string; sets: { a: number; b: number }[]; pointsA: number | null; pointsB: number | null; resultRecordedAt: string | null; scheduledAt: string | null }
+  match.status = "scheduled"; match.sets = []; match.pointsA = null; match.pointsB = null; match.resultRecordedAt = null; match.scheduledAt = "2026-10-17T11:30:00Z"
+  await page.goto(`/match/${match.id}`)
+  await expect(page.getByText("Registrar resultado", { exact: true })).toBeVisible()
+  await expect(page.locator('[data-result-highlight="true"]')).toHaveCount(0)
+})
+
+for (const theme of ["light", "dark"]) for (const style of ["classic", "competition"]) {
+  test(`result entry is highlighted only while the match is in progress (${theme},${style})`, async ({ page }) => {
+    const { matches } = await setup(page, theme, style)
+    const match = matches.find(item => item.teamA.includes("davo") || item.teamB.includes("davo"))! as { id: string; status: string; sets: { a: number; b: number }[]; pointsA: number | null; pointsB: number | null; resultRecordedAt: string | null; scheduledAt: string | null }
+    match.status = "scheduled"
+    match.sets = []
+    match.pointsA = null
+    match.pointsB = null
+    match.resultRecordedAt = null
+    match.scheduledAt = "2026-10-16T11:30:00Z"
+    await page.goto(`/match/${match.id}`)
+    await expect(page.locator('[data-result-highlight="true"]')).toHaveCount(1)
+    await expect(page.locator('[data-result-highlight="true"]')).toContainText("Registrar resultado")
+  })
+  test(`home personal result matches competitions activity styling (${theme},${style})`, async ({ page }) => {
+    await setup(page, theme, style)
+    await page.setViewportSize({ width: 320, height: 740 })
+    await page.goto("/leagues")
+    const hubResult = page.locator('[data-activity-accent] .app-card').filter({ has: page.locator('[data-match-preview="result"]') }).first()
+    await expect(hubResult).toBeAttached()
+    const styles = (element: Element) => { const css = getComputedStyle(element); return { background: css.backgroundColor, borderTop: css.borderTopColor, borderWidth: css.borderTopWidth, shadow: css.boxShadow, padding: css.paddingTop } }
+    const expected = await hubResult.evaluate(styles)
+    const hubAccent = await hubResult.evaluate(element => getComputedStyle(element).getPropertyValue("--app-accent"))
+    await page.goto("/")
+    const homeResult = page.locator(".home-personal-result").first()
+    await expect(homeResult).toBeVisible()
+    const homeAccent = await homeResult.evaluate(element => getComputedStyle(element).getPropertyValue("--app-accent"))
+    expect(homeAccent).toBe(hubAccent)
+    await expect(homeResult.locator("[data-match-card-header]")).toContainText("Jornada 1")
+    const labelStyle = (element: Element) => { const css = getComputedStyle(element); return { color: css.color, fontSize: css.fontSize, fontWeight: css.fontWeight, textTransform: css.textTransform, letterSpacing: css.letterSpacing } }
+    const homeLabel = await homeResult.locator("[data-match-card-header] p").evaluate(labelStyle)
+    expect(await homeResult.evaluate(styles)).toEqual(expected)
+    await expect(homeResult.locator("[data-match-event-meta]")).toHaveCount(0)
+    await expect(homeResult.getByRole("button", { name: "Victoria", exact: true })).toBeVisible()
+    expect(await homeResult.locator(".match-preview-total").first().evaluate(element => getComputedStyle(element).color)).toBe("rgb(17, 17, 17)")
+    await page.goto("/matches")
+    const calendarLabel = page.locator("[data-match-card-header] p").first()
+    await expect(calendarLabel).toContainText("Jornada 1")
+    expect(await calendarLabel.evaluate(labelStyle)).toEqual(homeLabel)
+  })
+  test(`calendar cards show round and use unboxed results (${theme},${style})`, async ({ page }, info) => {
+    const { matches } = await setup(page, theme, style)
+    await page.setViewportSize({ width: 320, height: 740 })
+    await page.goto("/")
+    const homeResult = page.locator('[data-home-match-carousel] [data-match-preview="result"]').first()
+    await expect(homeResult).toBeVisible()
+    expect(await homeResult.locator('[data-preview-team]').evaluateAll(rows => rows.every(row => getComputedStyle(row).backgroundColor === "rgba(0, 0, 0, 0)"))).toBe(true)
+    await page.goto("/matches")
+    const finished = page.locator("section.app-card").filter({ has: page.locator(`a[href="/match/${matches[0].id}"]`) })
+    await expect(finished).toBeVisible()
+    await expect(finished.locator("[data-match-card-header]")).toContainText("Jornada")
+    await expect(finished.locator('[data-match-preview="result"] [data-preview-team]')).toHaveCount(2)
+    expect(await finished.locator('[data-preview-team]').evaluateAll(rows => rows.every(row => getComputedStyle(row).backgroundColor === "rgba(0, 0, 0, 0)"))).toBe(true)
+    expect(await finished.locator('[data-preview-team]').nth(1).evaluate(row => getComputedStyle(row).borderTopWidth)).toBe("1px")
+    const pending = page.locator("section.app-card").filter({ has: page.locator(`a[href="/match/${matches.find(match => match.status === "scheduling")!.id}"]`) })
+    await expect(pending.locator("[data-match-card-header]")).toContainText("Jornada")
+    await finished.screenshot({ path: info.outputPath(`calendar-result-${theme}-${style}.png`) })
+    const victory = finished.getByRole("button", { name: "Victoria", exact: true })
+    await expect(victory).toBeVisible()
+    expect(await victory.evaluate(element => [getComputedStyle(element).backgroundColor, getComputedStyle(element).color])).toEqual(["rgb(22, 101, 52)", "rgb(255, 255, 255)"])
+  })
+  test(`calendar defeat badge is intense (${theme},${style})`, async ({ page }) => {
+    const { matches } = await setup(page, theme, style)
+    matches[0].sets = matches[0].teamA.includes("davo") ? [{ a: 2, b: 6 }] : [{ a: 6, b: 2 }]
+    matches[0].pointsA = matches[0].teamA.includes("davo") ? 0 : 1
+    matches[0].pointsB = matches[0].teamA.includes("davo") ? 1 : 0
+    await page.goto("/matches")
+    const defeat = page.getByRole("button", { name: "Derrota", exact: true }).first()
+    await expect(defeat).toBeVisible()
+    expect(await defeat.evaluate(element => [getComputedStyle(element).backgroundColor, getComputedStyle(element).color])).toEqual(["rgb(185, 28, 28)", "rgb(255, 255, 255)"])
+  })
+}
+
+for (const theme of ["light", "dark"]) for (const style of ["classic", "competition"]) {
+  test(`personal match league label is plain and readable (${theme},${style})`, async ({ page }) => {
+    await setup(page, theme, style)
+    const match = { id: "match-label-test", origin: "league", status: "finished", leagueId, leagueName: "Liga Azul QA", seasonId, seasonName: "Temporada 1", round: 1, scheduledAt: "2026-10-15T18:00:00Z", resultRecordedAt: "2026-10-15T20:00:00Z", sets: [{ a: 6, b: 2 }], participants: [{ team: 1, slot: 1, displayName: "QA", isCurrentUser: true }, { team: 1, slot: 2, displayName: "Ana" }, { team: 2, slot: 1, displayName: "Bea" }, { team: 2, slot: 2, displayName: "Carlos" }] }
+    await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [match], upcoming: [], hasMore: false, nextOffset: null } }))
+    await page.goto("/personal-matches")
+    const label = page.locator('[data-personal-match-origin="league"]').first()
+    await expect(label).toContainText("Liga Azul QA")
+    const computed = await label.evaluate(element => { const css = getComputedStyle(element); return { background: css.backgroundColor, border: css.borderTopWidth, color: css.color, foreground: getComputedStyle(document.documentElement).getPropertyValue("--foreground").trim() } })
+    expect(computed.background).toBe("rgba(0, 0, 0, 0)")
+    expect(computed.border).toBe("0px")
+    expect(await label.evaluate(element => getComputedStyle(element).color === getComputedStyle(document.body).color)).toBe(true)
+    const victory = page.getByRole("button", { name: "Victoria", exact: true })
+    await expect(victory).toBeVisible()
+    expect(await victory.evaluate(element => [getComputedStyle(element).backgroundColor, getComputedStyle(element).color])).toEqual(["rgb(22, 101, 52)", "rgb(255, 255, 255)"])
+    match.sets = [{ a: 2, b: 6 }]
+    await page.reload()
+    const defeat = page.getByRole("button", { name: "Derrota", exact: true })
+    await expect(defeat).toBeVisible()
+    expect(await defeat.evaluate(element => [getComputedStyle(element).backgroundColor, getComputedStyle(element).color])).toEqual(["rgb(185, 28, 28)", "rgb(255, 255, 255)"])
+  })
+}
+
+for (const theme of ["light", "dark"]) for (const style of ["classic", "competition"]) {
+  test(`league chat list has a single border and separated rounds (${theme},${style})`, async ({ page }) => {
+    await setup(page, theme, style)
+    await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { season: { name: "Temporada 2" }, messages: [], participants: [], me: "qa-user", unread: 0, readOnly: false, realtimeTopic: null } }))
+    await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: [1, 2, 10].map(round => ({ id: `chat-${round}`, round, status: "scheduling", coordinationStatus: null, scheduledAt: null, readOnly: false, partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null })) } }))
+    await page.goto("/chats")
+    const general = page.getByRole("link", { name: /Liga Azul QA/ }).locator(".app-card")
+    const stack = page.locator(".chat-list-stack").first()
+    const cards = stack.locator(".app-card")
+    await expect(cards).toHaveCount(2)
+    const geometry = await stack.evaluate(element => {
+      const rows = [...element.querySelectorAll<HTMLElement>(".app-card")]
+      return { outer: getComputedStyle(element).borderTopWidth, borders: rows.map(row => getComputedStyle(row).borderTopWidth), bounds: rows.map(row => ({ top: row.getBoundingClientRect().top, bottom: row.getBoundingClientRect().bottom })) }
+    })
+    expect(geometry.outer).toBe("0px")
+    expect(geometry.borders).toEqual([await general.evaluate(element => getComputedStyle(element).borderTopWidth), "1px"])
+    expect(Math.abs(geometry.bounds[0].bottom - geometry.bounds[1].top)).toBeLessThanOrEqual(1)
+    await expect(page.getByRole("link", { name: /^Jornada 1\s/ })).toBeVisible()
+    await expect(page.getByRole("link", { name: /Jornada 2/ })).toBeVisible()
+    const colors = await Promise.all(["Chat general", "Activos", "Próximos"].map(name => page.getByRole("heading", { name, exact: true }).evaluate(element => getComputedStyle(element).color)))
+    expect(new Set(colors).size).toBe(1)
+  })
+
+  test(`league chat preview presents participants, last message and unread (${theme},${style})`, async ({ page }) => {
+    await setup(page, theme, style)
+    await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { season: { name: "Temporada 1" }, messages: [{ id: "msg-1", sender_user_id: "friend", sender_display_name: "Ana", body: "Nos vemos pronto", created_at: "2026-10-16T12:00:00Z" }], participants: [{ userId: "qa-user", displayName: "QA", avatarUrl: null, lastReadAt: null }, { userId: "friend", displayName: "Ana", avatarUrl: null, lastReadAt: null }], me: "qa-user", unread: 1, readOnly: false, realtimeTopic: null } }))
+    await page.goto("/chats")
+    const card = page.getByRole("link", { name: /Liga Azul QA/ })
+    await expect(card.getByText("Temporada 2 · 2 participantes")).toBeVisible()
+    await expect(card.getByText("Nos vemos pronto", { exact: false })).toBeVisible()
+    await expect(card.getByLabel("Mensajes sin leer")).toBeVisible()
+    expect(await card.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
+  })
 }
 for(const theme of ["light","dark"]){
   test(`MVP help and result visibility respect participant and admin roles (${theme})`,async({page},info)=>{
@@ -137,6 +433,10 @@ test(`global chats filter by competition and messages while distant rounds remai
   await page.goto("/personal-matches/chats")
   await expect(page.getByRole("region",{name:"Activos"}).getByText("Jornada 2",{exact:true})).toBeVisible()
   await expect(page.getByRole("region",{name:"Próximos"}).getByText("Jornada 10",{exact:true})).toBeVisible()
+  const activeHeading = page.getByRole("heading", { name: /^Activos/ })
+  const upcomingHeading = page.getByRole("heading", { name: /^Próximos/ })
+  expect(await activeHeading.evaluate(el => [getComputedStyle(el).color, getComputedStyle(el).fontSize, getComputedStyle(el, "::before").display])).toEqual(await upcomingHeading.evaluate(el => [getComputedStyle(el).color, getComputedStyle(el).fontSize, getComputedStyle(el, "::before").display]))
+  await expect(activeHeading).toHaveClass(/type-section-title/)
   const trigger = page.getByRole("button", { name: "Buscar y filtrar chats", exact: true })
   const panel = page.getByRole("dialog", { name: "Buscar y filtrar chats", exact: true })
   await expect(page.getByRole("searchbox")).toHaveCount(0)
