@@ -3451,5 +3451,3 @@ html[data-theme][data-visual-style] .app-match-result-total {
 }
 
 .app-match-result-head { padding-top: 4px; }
-.chat-list-row + .chat-list-row, .chat-list-stack > div + div > .chat-list-row { position: relative; }
-.chat-list-row + .chat-list-row::before, .chat-list-stack > div + div > .chat-list-row::before { content: ""; position: absolute; z-index: 3; top: 0; left: 1rem; right: 1rem; height: 1px; background: currentColor; opacity: .24; pointer-events: none; }

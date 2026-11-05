@@ -3734,3 +3734,5 @@ MC140 iniciado: simplificar las tarjetas retirando la ubicación y reforzar la s
 MC140 completo local: ubicación retirada y divisores añadidos en listas globales y de liga; ESLint y ocho pruebas móviles existentes correctos. Las pruebas no incluyen una aserción visual específica de los nuevos divisores. Sin despliegue.
 
 MC141 iniciado: se confirma autorización para PRE. El primer validate detectó tres expectativas de pruebas del diseño anterior y se actualizaron al diseño aprobado. Cambios agrupados en 605f0265 e integración local de staging e2dffc0c sin conflictos. El historial de PRE confirma las tres migraciones del chat. Candidata v1.15.39 con caché PWA renovada y preparación de PROD en RELEASE-1.15.39.md. Validación completa en curso.
+
+MC141: PR #63 abierta contra staging. Antes de publicar, el usuario pidió restaurar el separador anterior entre conversaciones. Se retira la línea resaltada en las listas de liga y global, manteniendo la agrupación y las tarjetas sin ubicación.

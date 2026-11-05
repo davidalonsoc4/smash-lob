@@ -263,7 +263,7 @@ export default function PersonalMatchChatsPage() {
               <Link
                 key={`${chat.origin}:${chat.id}`}
                 href={chat.origin === "friendly" ? `/personal-matches/${encodeURIComponent(chat.id)}/chat` : `/match/${encodeURIComponent(chat.id)}/chat`}
-                className={`chat-list-row block ${index ? "-mt-px" : ""}`}
+                className={`block ${index ? "-mt-px" : ""}`}
               >
                 <AppCard
                   className={`app-card-explicit-accent !overflow-hidden !p-0 !shadow-none transition active:scale-[0.99] ${radius} ${chat.unread ? "chat-list-card-unread" : ""}`}
