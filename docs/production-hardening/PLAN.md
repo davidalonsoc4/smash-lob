@@ -1,5 +1,5 @@
 ## MC150 — Publicación PRE v1.15.43
-- Estado: EN CURSO.
+- Estado: COMPLETO EN PRE. Pendiente autorización para promoción a producción.
 - Gates: validate local, pruebas dirigidas de inicio y chats, CI de la candidata, árbol idéntico al integrar en staging y comprobaciones de versión, rutas y PWA en PRE.
 
 ## MC149 — Apertura progresiva de Chats Global

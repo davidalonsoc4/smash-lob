@@ -3804,3 +3804,11 @@ MC149 medición local. Dos compilaciones de producción con Chromium Pixel 7, se
 MC149 completo local. Validate aprobado con 1701 pruebas, compilación y presupuesto de 1 312 153 bytes gzip. ESLint conserva seis avisos preexistentes. Pasan 15 pruebas de navegador dirigidas (9 de chats, 6 de inicio/PWA). El historial completo sigue solicitándose con autorización del servidor. Sin migraciones ni publicación.
 
 MC150 iniciado. Usuario autoriza publicar en PRE el arranque ligero y Chats Global. Candidata v1.15.43 con renovación de la caché PWA. staging remoto 44805eb9, main remoto 04ba2cc4. Comparación de los árboles sin migraciones nuevas para PRE.
+
+MC150 checkpoint. Commit 0713ec75 y PR #69 hacia staging verificados. CI #441 en curso. Alias PRE conserva v1.15.42 mientras se validan la candidata y el alcance sin migraciones. Árbol candidato 097b1f8f.
+
+MC150 checkpoint. 15 pruebas locales de navegador sobre v1.15.43 aprobadas, incluidos inicio, carga por fases, chats, permisos y PWA offline. Vista previa de la rama en Vercel Ready con health v1.15.43. En CI #441 pasan código/build, Lighthouse y base de datos. Pendiente navegador completo y final de validate local.
+
+MC150 integración. Validate local aprobado (1701 pruebas, compilación y presupuesto), 15 pruebas dirigidas y CI #441 4/4. PR #69 integrada en staging como 44c7879e, árbol 097b1f8f idéntico a la candidata. Pendiente comprobación del despliegue y alias de PRE.
+
+MC150 completo en PRE. 370 pruebas de navegador aprobadas en CI #441. staging 44c7879e y despliegue dpl_8sjous6zahTZ6Xrpr3UA1iWj4G3u Ready verificados. El alias PRE sirve health v1.15.43/pre, PWA con caché v1.15.43, redirección a Mis Competiciones y rutas de liga y Chats; APIs privadas sin sesión devuelven 401. Sin migraciones. PROD comprobada en v1.15.41, main 04ba2cc4 y tag v1.0.0 intactos. La prueba con sesión real en PWA queda para el usuario antes de autorizar PROD.
