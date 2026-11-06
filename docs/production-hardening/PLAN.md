@@ -1,3 +1,7 @@
+## MC150 — Publicación PRE v1.15.43
+- Estado: EN CURSO.
+- Gates: validate local, pruebas dirigidas de inicio y chats, CI de la candidata, árbol idéntico al integrar en staging y comprobaciones de versión, rutas y PWA en PRE.
+
 ## MC149 — Apertura progresiva de Chats Global
 - Estado: COMPLETO LOCAL. Carga progresiva y reapertura con metadatos por cuenta, validadas frente a la compilación anterior.
 - Gates: prueba de apertura en pestañas nuevas con datos sintéticos y respuestas retenidas, actualización y retirada de datos al perder permisos, aislamiento de cuentas, validate y regresiones de chats.
