@@ -2,6 +2,7 @@ import type { MatchData } from "@/context/MatchDataProvider"
 import type { SeasonSnapshot } from "@/context/SeasonSettingsProvider"
 import type { League, UserLeagueMembership } from "@/data/fakeData"
 import type { LeagueLocation } from "@/lib/leagueLocations"
+import { LEAGUE_ACCESS_SCOPE_HEADER, type LeagueOverview } from "@/lib/competitionOverview"
 
 export async function createSupabaseLeague({
   leagueName,
@@ -49,30 +50,30 @@ export async function createSupabaseLeague({
   }
 }
 
-export async function fetchSupabaseLeagueSnapshot(options: { adminContext?: boolean } = {}): Promise<{
+type LeagueSnapshotAccess = {
   isSuperuser: boolean
   leagues: League[]
   canCreateLeagues: boolean
   memberships: UserLeagueMembership[]
   spectatorLeagueIds: string[]
-  matches: MatchData[]
-  seasonSnapshot: SeasonSnapshot
-}> {
-  const response = await fetch(options.adminContext ? "/api/access?context=admin" : "/api/access", { cache: "no-store" })
+}
+
+export type LeagueSnapshot = LeagueSnapshotAccess & (
+  { matches: MatchData[]; seasonSnapshot: SeasonSnapshot; overview?: never }
+  | { overview: LeagueOverview }
+)
+
+export async function fetchSupabaseLeagueSnapshot(options: { adminContext?: boolean; overview?: boolean; signal?: AbortSignal; priority?: RequestPriority } = {}): Promise<LeagueSnapshot> {
+  const response = await fetch(options.adminContext ? "/api/access?context=admin" : "/api/access", {
+    cache: "no-store", signal: options.signal, priority: options.priority,
+    headers: options.overview ? { [LEAGUE_ACCESS_SCOPE_HEADER]: "overview" } : undefined,
+  })
 
   if (!response.ok) {
     throw new Error(`access-api-${response.status}`)
   }
 
-  return (await response.json()) as {
-    isSuperuser: boolean
-    leagues: League[]
-    canCreateLeagues: boolean
-    memberships: UserLeagueMembership[]
-    spectatorLeagueIds: string[]
-    matches: MatchData[]
-    seasonSnapshot: SeasonSnapshot
-  }
+  return response.json() as Promise<LeagueSnapshot>
 }
 
 

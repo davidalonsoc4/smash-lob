@@ -6,10 +6,10 @@ import { buildSeasonRounds } from "@/lib/rounds"
 import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar"
 
 /** A round window is an estimate, never a fabricated booking. Hidden teams never leave this boundary. */
-export function getLeagueActivityMatches({ league, season, settings, matches, playerId, profiles, now }: {
-  league: League; season: Season; settings: SeasonRoundSettings; matches: MatchData[]; playerId: string; profiles: PlayerProfile[]; now: Date
+export function getLeagueActivityMatches({ league, season, settings, matches, playerId, profiles, now, useMadridDay }: {
+  league: League; season: Season; settings: SeasonRoundSettings; matches: MatchData[]; playerId: string; profiles: Pick<PlayerProfile, "id" | "displayName">[]; now: Date; useMadridDay?: boolean
 }): PersonalMatchItem[] {
-  const rounds = buildSeasonRounds({season,settings,matches})
+  const rounds = buildSeasonRounds({season,settings,matches,madridTime:useMadridDay ? now : undefined})
   const revealedThrough = season.status === "upcoming" ? 0 : getEffectiveRevealedThroughRound({seasonStatus:season.status,totalRounds:season.totalRounds,settings,matches,now})
   const visible = (round: number) => season.status !== "upcoming" && round <= revealedThrough
   const base = { origin:"league" as const,leagueId:league.id,leagueName:league.name,seasonId:season.id,seasonName:season.name,canManage:false,canDelete:false }

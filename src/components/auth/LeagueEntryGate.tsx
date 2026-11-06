@@ -73,6 +73,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     !isPersonalMatchesRoute
   useEffect(() => {
     if (
+      !isAccessHydrated ||
       isLeagueTransitioning ||
       !shouldRequireInitialSeason ||
       !canManageActiveLeagueSeason ||
@@ -84,6 +85,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     router.replace("/admin/season")
   }, [
     canManageActiveLeagueSeason,
+    isAccessHydrated,
     isLeagueTransitioning,
     isSeasonSetupRoute,
     router,
@@ -112,15 +114,15 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     isAccessInviteRoute ||
     isLeagueNavigationRoute
   useEffect(() => {
-    if (isLeagueTransitioning) {
+    if (!isAccessHydrated || isLeagueTransitioning) {
       return
     }
 
     if (spectatorMode && !spectatorAllowedRoute) {
       router.replace("/league/home")
     }
-  }, [isLeagueTransitioning, router, spectatorAllowedRoute, spectatorMode])
-  if (isIndependentChatRoute) return children
+  }, [isAccessHydrated, isLeagueTransitioning, router, spectatorAllowedRoute, spectatorMode])
+  if (isIndependentChatRoute || pathname === "/personal-matches/chats") return children
 
   if (!isAccessHydrated) {
     return <AppBootSkeleton />

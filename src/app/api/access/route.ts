@@ -4,6 +4,8 @@ import { normalizeDominantHand, normalizePreferredPlayerSide } from "@/lib/accou
 import { getPlayerPreviewTraits } from "@/lib/playerPreviewTraits"
 import { normalizeLeagueLocations } from "@/lib/leagueLocations"
 import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
+import { LEAGUE_ACCESS_SCOPE_HEADER } from "@/lib/competitionOverview"
+import { buildLeagueOverview, emptyLeagueOverview } from "@/lib/serverLeagueOverview"
 import { mapSupabaseMatch } from "@/lib/supabaseMatches"
 import { readLeagueMatchSnapshot } from "@/lib/serverLeagueMatchSnapshot"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
@@ -102,6 +104,8 @@ export async function GET(request: Request) {
     supabase,
     user: { id: userId, email, isSuperuser, canCreateLeagues },
   } = authResult.actor
+  const requestedAdminContext = new URL(request.url).searchParams.get("context") === "admin"
+  const overviewOnly = !requestedAdminContext && request.headers.get(LEAGUE_ACCESS_SCOPE_HEADER) === "overview"
 
   const [ownMembershipResult, spectatorResult] = await Promise.all([
     supabase
@@ -166,9 +170,8 @@ export async function GET(request: Request) {
       leagues: [],
       memberships: ownMemberships,
       spectatorLeagueIds: effectiveSpectatorLeagueIds,
-      matches: [],
-      seasonSnapshot: emptySeasonSnapshot,
-    })
+      ...(overviewOnly ? { overview: emptyLeagueOverview } : { matches: [], seasonSnapshot: emptySeasonSnapshot }),
+    }, { headers: { "Cache-Control": "no-store" } })
   }
 
   const leaguesQuery = supabase
@@ -205,9 +208,8 @@ export async function GET(request: Request) {
       leagues,
       memberships: isSuperuser ? [] : ownMemberships,
       spectatorLeagueIds: effectiveSpectatorLeagueIds,
-      matches: [],
-      seasonSnapshot: emptySeasonSnapshot,
-    })
+      ...(overviewOnly ? { overview: emptyLeagueOverview } : { matches: [], seasonSnapshot: emptySeasonSnapshot }),
+    }, { headers: { "Cache-Control": "no-store" } })
   }
 
   try {
@@ -229,6 +231,7 @@ export async function GET(request: Request) {
     })
   }
 
+  const emptyRows = { data: [], error: null }
   const [
     seasonsResult,
     playersResult,
@@ -258,14 +261,14 @@ export async function GET(request: Request) {
         "league_id,season_id,round_window_mode,season_starts_at,scheduled_start_at,round_window_days,requires_three_sets,mvp_system,result_confirmation_mode,manual_active_round,manual_completed_rounds,registration_fee,roster_mode,player_capacity,registration_open,roster_completed_at,schedule_mode,calendar_mode,allow_player_incidents,allow_player_substitutions,availability_recommendations_enabled,organization_balls_assigned,balls_assignment_priority,balls_assignment_mode,balls_assignment_custodian_ids,calendar_visibility_mode,revealed_through_round,opening_round_enabled,opening_round_at,opening_round_location"
       )
       .in("league_id", leagueIds),
-    readLeagueMatchSnapshot(supabase, leagueIds),
-    supabase
+    readLeagueMatchSnapshot(supabase, leagueIds, overviewOnly),
+    overviewOnly ? emptyRows : supabase
       .from("match_substitutions")
       .select(
         "id,league_id,season_id,match_id,original_player_id,substitute_player_id,substitution_type"
       )
       .in("league_id", leagueIds),
-    supabase
+    overviewOnly ? ownMembershipResult : supabase
       .from("league_memberships")
       .select("user_id,league_id,player_id,role,experience_mode")
       .in("league_id", leagueIds),
@@ -309,11 +312,10 @@ export async function GET(request: Request) {
         .filter((candidate): candidate is string => typeof candidate === "string")
     )
   )
-  const schedulingRows = (matchesResult.data ?? []).filter((match) => match.status === "scheduling"), schedulingIds = schedulingRows.map((match) => String(match.id))
-  const emptyRows = { data: [], error: null }
+  const schedulingRows = overviewOnly ? [] : (matchesResult.data ?? []).filter((match) => match.status === "scheduling"), schedulingIds = schedulingRows.map((match) => String(match.id))
   const [proposalsResult, { data: avatarUsers, error: avatarUsersError }] = await Promise.all([
     schedulingIds.length ? supabase.from("match_chat_messages").select("id,match_id,kind,payload").in("match_id", schedulingIds).in("kind", ["date_proposal", "location_proposal"]) : emptyRows,
-    linkedUserIds.length ? supabase.from("app_users").select("id,display_name,avatar_url,preferred_side,dominant_hand").in("id", linkedUserIds) : emptyRows,
+    !overviewOnly && linkedUserIds.length ? supabase.from("app_users").select("id,display_name,avatar_url,preferred_side,dominant_hand").in("id", linkedUserIds) : emptyRows,
   ])
   if (proposalsResult.error) return buildLeagueSnapshotFailure("match_chat_messages", proposalsResult.error)
   const proposalIds = (proposalsResult.data ?? []).map((message) => String(message.id)), responsesResult = proposalIds.length ? await supabase.from("match_chat_proposal_responses").select("message_id,user_id,option_key,response").in("message_id", proposalIds) : { data: [], error: null }
@@ -533,9 +535,6 @@ export async function GET(request: Request) {
   const ownMembershipByLeagueId = new Map(
     ownMemberships.map((membership) => [membership.leagueId, membership]),
   )
-  const requestedAdminContext =
-    new URL(request.url).searchParams.get("context") === "admin"
-
   const canSeeCompetitionAdminData = (leagueId: string) => {
     const membership = ownMembershipByLeagueId.get(leagueId)
     if (!membership) return isSuperuser
@@ -623,22 +622,19 @@ export async function GET(request: Request) {
           : "admin",
     }))
 
+  const seasonSnapshot = {
+    seasons, playerProfiles, seasonPlayers, seasonSettings,
+    activeSeasonIds: Object.fromEntries(leagues.map(league => [league.id, league.activeSeasonId])),
+  }
   const payload = {
     isSuperuser,
     canCreateLeagues,
     leagues,
     memberships,
     spectatorLeagueIds: effectiveSpectatorLeagueIds,
-    matches,
-    seasonSnapshot: {
-      seasons,
-      playerProfiles,
-      seasonPlayers,
-      seasonSettings,
-      activeSeasonIds: Object.fromEntries(
-        leagues.map((league) => [league.id, league.activeSeasonId])
-      ),
-    },
+    ...(overviewOnly
+      ? { overview: buildLeagueOverview({ leagues, memberships: ownMemberships, matches, snapshot: seasonSnapshot, now }) }
+      : { matches, seasonSnapshot }),
   }
   const body = JSON.stringify(payload)
   const responseBytes = Buffer.byteLength(body)

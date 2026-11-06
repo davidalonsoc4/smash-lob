@@ -37,7 +37,7 @@ const actionClass = "app-action-button flex min-h-11 items-center justify-center
 export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | "leagues" | "tournaments" }) {
   const { t, tx, locale } = useI18n()
   const { changeActiveLeague } = useActiveLeague()
-  const { canCreateLeagues, isAccessHydrated, getMembershipForLeague, isLeagueAdmin, isLeagueSpectator, userLeagues } = useLeagueAccess()
+  const { canCreateLeagues, isAccessHydrated, getMembershipForLeague, isLeagueAdmin, isLeagueSpectator, userLeagues, overview, preloadLeagueSnapshot } = useLeagueAccess()
   const canCreateCompetition = canCreateLeagues
   const [createMenuOpen, setCreateMenuOpen] = useState(false)
   const memberLeagues = userLeagues.filter(league => getMembershipForLeague(league.id))
@@ -61,6 +61,10 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   const [tournamentRequestVersion, setTournamentRequestVersion] = useState(0)
   const [now, setNow] = useState(() => new Date())
   const [activityIndex, setActivityIndex] = useState(0)
+  const canPreload = view === "summary" && Boolean(overview) && memberLeagues.length > 0
+  useEffect(() => {
+    if (canPreload) return preloadLeagueSnapshot()
+  }, [canPreload, preloadLeagueSnapshot])
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60_000)
     return () => window.clearInterval(timer)
@@ -74,25 +78,26 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       .catch(() => { if (!controller.signal.aborted) setTournamentLoadError(true) })
     return () => controller.abort()
   }, [tournamentRequestVersion, view])
-  const ownLeagueMatches: PersonalMatchItem[] = view === "summary" ? seasons.flatMap(season => {
+  const ownLeagueMatches: PersonalMatchItem[] = overview?.activity ?? (view === "summary" ? seasons.flatMap(season => {
     const league = userLeagues.find(item => item.id === season.leagueId), playerId = getMembershipForLeague(season.leagueId)?.playerId
     if (!league || !playerId || isLeagueSpectator(league.id) || !seasonPlayers.some(row => row.seasonId === season.id && row.playerId === playerId && row.status !== "withdrawn")) return []
     return getLeagueActivityMatches({ league, season, settings:getSeasonRoundSettings(season.id), matches:matches.filter(match=>match.seasonId===season.id), playerId, profiles:playerProfiles, now })
-  }) : []
+  }) : [])
   const dashboardMatches = [...(dashboard?.upcoming ?? []), ...(dashboard?.items ?? [])].filter(item => {
     if(item.origin !== "league") return true
+    if (overview) return (item.round ?? 1) <= (overview.revealedThrough[item.seasonId ?? ""] ?? 0)
     const season=seasons.find(season=>season.id===item.seasonId)
     return season?.status !== "upcoming" && (!season || isRoundRevealedToPlayers({round:item.round??1,seasonStatus:season.status,totalRounds:season.totalRounds,settings:getSeasonRoundSettings(season.id),matches:matches.filter(match=>match.seasonId===season.id),now}))
   })
   const highlights = selectCompetitionHighlights([...ownLeagueMatches, ...dashboardMatches], now)
   const visibleActivityIndex = Math.min(activityIndex, Math.max(0, highlights.length - 1))
-  const leagueRows = memberLeagues.map(league => ({ league, season: getActiveSeasonByLeagueId(league.id) }))
+  const leagueRows = memberLeagues.map(league => ({ league, season: overview?.activeSeasons[league.id] ?? getActiveSeasonByLeagueId(league.id) }))
+  const startsAt = (seasonId: string) => overview
+    ? overview.startsAt[seasonId]
+    : getSeasonRoundSettings(seasonId).scheduledStartAt ?? getSeasonRoundSettings(seasonId).seasonStartsAt
   const statusOrder = { active: 0, upcoming: 1, finished: 2 }
   const orderedLeagues = [...leagueRows].sort((a, b) => statusOrder[a.season.status] - statusOrder[b.season.status])
-  const relevantLeagues = selectCompetitionPreview(leagueRows.map(item => {
-    const settings = getSeasonRoundSettings(item.season.id)
-    return { item, phase: item.season.status, startsAt: settings.scheduledStartAt ?? settings.seasonStartsAt, createdAt: item.season.createdAt }
-  }))
+  const relevantLeagues = selectCompetitionPreview(leagueRows.map(item => ({ item, phase: item.season.status, startsAt: startsAt(item.season.id), createdAt: item.season.createdAt })))
   const visibleLeagues = view === "summary" ? relevantLeagues : orderedLeagues.filter(item => item.season.status !== "finished")
   const finishedLeagues = orderedLeagues.filter(item => item.season.status === "finished")
   const orderedTournaments = [...tournaments].sort((a, b) => {
@@ -121,7 +126,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     const status = season.totalRounds === 0 ? tx("Sin temporada") : season.status === "active" ? tx("En curso") : season.status === "upcoming" ? tx("Próximamente") : tx("Terminada")
     const running = season.totalRounds > 0 && season.status === "active"
     const summaryStatus = running ? tx("En curso") : season.totalRounds > 0 && season.status === "upcoming"
-      ? startPreviewLabel(getSeasonRoundSettings(season.id).scheduledStartAt ?? getSeasonRoundSettings(season.id).seasonStartsAt) : status
+      ? startPreviewLabel(startsAt(season.id)) : status
     const isAdmin = isLeagueAdmin(league.id)
     const isSpectator = isLeagueSpectator(league.id)
     const seasonMatches = countedMatches.filter(match => match.leagueId === league.id && match.seasonId === season.id)

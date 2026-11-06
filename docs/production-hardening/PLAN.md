@@ -1,3 +1,15 @@
+## MC150 — Publicación PRE v1.15.43
+- Estado: EN CURSO.
+- Gates: validate local, pruebas dirigidas de inicio y chats, CI de la candidata, árbol idéntico al integrar en staging y comprobaciones de versión, rutas y PWA en PRE.
+
+## MC149 — Apertura progresiva de Chats Global
+- Estado: COMPLETO LOCAL. Carga progresiva y reapertura con metadatos por cuenta, validadas frente a la compilación anterior.
+- Gates: prueba de apertura en pestañas nuevas con datos sintéticos y respuestas retenidas, actualización y retirada de datos al perder permisos, aislamiento de cuentas, validate y regresiones de chats.
+
+## MC148 — Arranque ligero de Mis Competiciones
+- Estado: COMPLETO. v1.15.42 verificada en PRE y arranque ligero validado en una rama local independiente.
+- Gates: CI y smoke para PRE v1.15.42. En la nueva rama, comprobar tamaño, permisos, contenido inicial, hidratación completa bajo demanda, precarga sin duplicados, red lenta, tipos, lint y navegador.
+
 ## MC147 — Comparativa de latencia de entrada
 - Estado: COMPLETO LOCAL. La candidata superó a v1.15.41 en las medianas de los tres recorridos simulados.
 - Gates: igualdad de respuestas y privacidad, medición repetida de la preparación de acceso y actividad, tipo, lint, compilación y regresiones de navegador.

@@ -1,6 +1,25 @@
 import type { PersonalMatchItem } from "@/lib/personalMatches"
+import type { Season } from "@/data/fakeData"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime"
+
+export const LEAGUE_ACCESS_SCOPE_HEADER = "X-Smash-Lob-Access-Scope"
+
+export type LeagueOverview = {
+  activeSeasons: Record<string, Season>
+  startsAt: Record<string, string | null>
+  revealedThrough: Record<string, number>
+  activity: PersonalMatchItem[]
+}
+
+export function resolveLeagueActiveSeason(seasons: Season[], leagueId: string, activeSeasonId?: string): Season {
+  const candidates = seasons.filter(season => season.leagueId === leagueId)
+  return candidates.find(season => season.id === activeSeasonId)
+    ?? candidates.find(season => season.status === "active")
+    ?? candidates.find(season => season.status === "upcoming")
+    ?? candidates.at(-1)
+    ?? { id: `${leagueId}-season-draft`, leagueId, name: "Sin temporada", status: "finished", totalRounds: 0, completedRounds: 0 }
+}
 
 /** Reserve a summary slot for an upcoming competition without hiding active ones. */
 export function selectCompetitionPreview<T>(entries: Array<{

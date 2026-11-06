@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises"
 import { describe, expect, it } from "vitest"
+import { createFallbackSettings } from "@/lib/seasonFallbackSettings"
 
 describe("v1.8.0 chats and polish", () => {
   it("promotes chats to player navigation with unread badge", async () => { const nav = await readFile("src/components/layout/BottomNav.tsx", "utf8"); expect(nav).toContain('href: "/chats"'); expect(nav).toContain('grid-cols-5'); expect(nav).toContain("chatUnread") })
@@ -26,7 +27,7 @@ describe("v1.8.0 chats and polish", () => {
     const profileGate = await readFile("src/components/auth/ProfileCompletionGate.tsx", "utf8")
     const migration = await readFile("supabase/migrations/20260813080000_add_optional_season_availability.sql", "utf8")
     expect(provider).toContain("availabilityRecommendationsEnabled: boolean")
-    expect(provider).toContain("availabilityRecommendationsEnabled: false")
+    expect(createFallbackSettings("fixture").availabilityRecommendationsEnabled).toBe(false)
     expect(schedule).toContain("!isFinished && availabilityRecommendationsEnabled")
     expect(settings).toContain("roundSettings.availabilityRecommendationsEnabled")
     expect(profileGate).not.toContain("<StandardAvailabilityEditor")

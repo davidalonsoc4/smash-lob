@@ -51,6 +51,51 @@ for (const scheduled of [false, true]) {
   })
 }
 
+for (const saveData of [false, true]) {
+  test(`Mis Competiciones paints first and reuses the deferred league load (saveData=${saveData})`, async ({ page }) => {
+    const { league } = await setup(page, "dark", "classic")
+    await page.addInitScript(save => Object.defineProperty(navigator, "connection", { value: { saveData: save, effectiveType: "4g" } }), saveData)
+    let release!: () => void
+    const pending = new Promise<void>(resolve => { release = resolve })
+    let overviewReads = 0, fullReads = 0
+    await page.route("**/api/access", async route => {
+      if (route.request().headers()["x-smash-lob-access-scope"] === "overview") {
+        overviewReads++
+        const season = { id: seasonId, leagueId, name: "Temporada ligera", status: "active", totalRounds: 12, completedRounds: 1 }
+        return route.fulfill({ json: {
+          isSuperuser: false, canCreateLeagues: true, leagues: [league], spectatorLeagueIds: [],
+          memberships: [{ userId: "qa-experience@example.test", leagueId, playerId: "davo", role: "admin" }],
+          overview: { activeSeasons: { [leagueId]: season }, startsAt: {}, revealedThrough: { [seasonId]: 12 }, activity: [] },
+        } })
+      }
+      fullReads++
+      await pending
+      return route.fallback()
+    })
+    try {
+      await page.goto("/leagues")
+      await expect(page.getByText("Temporada ligera", { exact: true })).toBeVisible()
+      expect(overviewReads).toBe(1)
+      expect(fullReads).toBe(0)
+      if (saveData) {
+        await page.waitForTimeout(1_800)
+        expect(fullReads).toBe(0)
+      } else {
+        await expect.poll(() => fullReads).toBe(1)
+        await expect(page.getByText("Temporada ligera", { exact: true })).toBeVisible()
+      }
+      await page.getByRole("button", { name: /Entrar en Liga Azul QA/ }).click()
+      await expect(page).toHaveURL("/league/home")
+      await expect.poll(() => fullReads).toBe(1)
+      await expect(page.locator('[data-tour="home-header"]')).toHaveCount(0)
+    } finally {
+      release()
+    }
+    await expect(page.locator('[data-tour="home-header"]')).toBeVisible()
+    expect(fullReads).toBe(1)
+  })
+}
+
 test("notification starts the match chat request while league access is pending", async ({ page }) => {
   const { matches } = await setup(page, "dark", "classic")
   let releaseAccess!: () => void
@@ -149,6 +194,47 @@ test("global chats include and filter active league conversations", async ({ pag
   await page.reload()
   await expect(page.getByText("Todavía no tienes chats.")).toBeVisible()
   await expect(section).toHaveCount(0)
+})
+
+test("global chats show available conversations before slow responses and reuse private list metadata", async ({ page, context }) => {
+  const path = "/personal-matches/chats"
+  const summary = { messages: [{ sender_display_name: "Ana", body: "Texto privado de prueba", created_at: "2026-10-16T12:00:00Z" }], participantCount: 2, unread: 2 }
+  let releaseFriendly!: () => void
+  const friendly = new Promise<void>(resolve => { releaseFriendly = resolve })
+  await setup(page, "dark", "competition")
+  await page.route("**/api/personal-matches/chats", async route => { await friendly; await route.fulfill({ json: { chats: [] } }) })
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: summary }))
+  await page.goto(path)
+  await expect(page.getByText("Texto privado de prueba", { exact: false })).toBeVisible()
+  releaseFriendly()
+  const storageKey = "smash-lob:chat-list:v1"
+  await expect.poll(() => page.evaluate(key => localStorage.getItem(key), storageKey)).toContain("Liga Azul QA")
+  expect(await page.evaluate(key => localStorage.getItem(key), storageKey)).not.toContain("Texto privado de prueba")
+
+  let releaseSummary!: () => void
+  const delayedSummary = new Promise<void>(resolve => { releaseSummary = resolve })
+  const reopened = await context.newPage()
+  await setup(reopened, "dark", "competition")
+  await reopened.route("**/api/league-season-chats/**", async route => {
+    await delayedSummary
+    await route.fulfill({ status: 403, json: { error: "league_chat_forbidden" } })
+  })
+  await reopened.goto(path)
+  await expect(reopened.getByRole("region", { name: "Chats de liga" })).toBeVisible()
+  await expect(reopened.getByText("Texto privado de prueba", { exact: false })).toHaveCount(0)
+
+  const otherAccount = await context.newPage()
+  await setup(otherAccount, "dark", "competition")
+  await otherAccount.route("**/api/auth/session", route => route.fulfill({ json: { user: { email: "another-qa@example.test" } } }))
+  await otherAccount.route("**/api/league-season-chats/**", async route => {
+    await delayedSummary
+    await route.fulfill({ status: 403, json: { error: "league_chat_forbidden" } })
+  })
+  await otherAccount.goto(path)
+  await expect(otherAccount.getByRole("heading", { name: "Chats", exact: true })).toBeVisible()
+  await expect(otherAccount.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
+  releaseSummary()
+  await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
 })
 
 test("competition create button opens options for creators", async ({ page }) => {

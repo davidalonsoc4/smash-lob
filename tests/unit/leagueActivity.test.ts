@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { getLeagueActivityMatches } from "@/lib/leagueActivity"
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
 import { selectCompetitionHighlights } from "@/lib/competitionOverview"
+import { buildLeagueOverview } from "@/lib/serverLeagueOverview"
 import { allMatches, leagues, seasons, playerProfiles, seasonRoundSettings } from "@/data/fakeData"
 import type { SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 
@@ -37,5 +38,24 @@ describe("own league activity without speculative bookings or secret teams",()=>
     expect(getLeagueActivityMatches({...context,playerId:"not-a-player"})).toEqual([])
     const entries=getLeagueActivityMatches({...context,settings:{...context.settings,calendarVisibilityMode:"progressive",revealedThroughRound:1}})
     expect(entries.filter(item=>!item.preview?.hidden).map(item=>item.round)).toEqual([1])
+  })
+  it("projects the same personal highlight and carries the progressive visibility boundary", () => {
+    const progressive = { ...context.settings, calendarVisibilityMode: "progressive" as const, revealedThroughRound: 1 }
+    const overview = buildLeagueOverview({
+      leagues: [league],
+      memberships: [{ userId: "fixture", leagueId: league.id, playerId: context.playerId, role: "player" }],
+      matches,
+      now,
+      snapshot: {
+        seasons: [context.season], seasonSettings: [progressive], playerProfiles,
+        seasonPlayers: [{ seasonId: season.id, playerId: context.playerId, status: "active" }],
+        activeSeasonIds: { [league.id]: season.id },
+      },
+    })
+    const expected = selectCompetitionHighlights(getLeagueActivityMatches({ ...context, settings: progressive }), now)
+    expect(overview.activity).toEqual(expected.map(item => item.match))
+    expect(overview.activeSeasons[league.id]).toEqual(context.season)
+    expect(overview.revealedThrough[season.id]).toBe(1)
+    expect(overview.activity.every(item => item.round === 1 || item.preview?.hidden)).toBe(true)
   })
 })
