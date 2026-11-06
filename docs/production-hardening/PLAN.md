@@ -1,3 +1,7 @@
+## MC149 — Apertura progresiva de Chats Global
+- Estado: COMPLETO LOCAL. Carga progresiva y reapertura con metadatos por cuenta, validadas frente a la compilación anterior.
+- Gates: prueba de apertura en pestañas nuevas con datos sintéticos y respuestas retenidas, actualización y retirada de datos al perder permisos, aislamiento de cuentas, validate y regresiones de chats.
+
 ## MC148 — Arranque ligero de Mis Competiciones
 - Estado: COMPLETO. v1.15.42 verificada en PRE y arranque ligero validado en una rama local independiente.
 - Gates: CI y smoke para PRE v1.15.42. En la nueva rama, comprobar tamaño, permisos, contenido inicial, hidratación completa bajo demanda, precarga sin duplicados, red lenta, tipos, lint y navegador.

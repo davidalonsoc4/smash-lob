@@ -196,6 +196,47 @@ test("global chats include and filter active league conversations", async ({ pag
   await expect(section).toHaveCount(0)
 })
 
+test("global chats show available conversations before slow responses and reuse private list metadata", async ({ page, context }) => {
+  const path = "/personal-matches/chats"
+  const summary = { messages: [{ sender_display_name: "Ana", body: "Texto privado de prueba", created_at: "2026-10-16T12:00:00Z" }], participantCount: 2, unread: 2 }
+  let releaseFriendly!: () => void
+  const friendly = new Promise<void>(resolve => { releaseFriendly = resolve })
+  await setup(page, "dark", "competition")
+  await page.route("**/api/personal-matches/chats", async route => { await friendly; await route.fulfill({ json: { chats: [] } }) })
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: summary }))
+  await page.goto(path)
+  await expect(page.getByText("Texto privado de prueba", { exact: false })).toBeVisible()
+  releaseFriendly()
+  const storageKey = "smash-lob:chat-list:v1"
+  await expect.poll(() => page.evaluate(key => localStorage.getItem(key), storageKey)).toContain("Liga Azul QA")
+  expect(await page.evaluate(key => localStorage.getItem(key), storageKey)).not.toContain("Texto privado de prueba")
+
+  let releaseSummary!: () => void
+  const delayedSummary = new Promise<void>(resolve => { releaseSummary = resolve })
+  const reopened = await context.newPage()
+  await setup(reopened, "dark", "competition")
+  await reopened.route("**/api/league-season-chats/**", async route => {
+    await delayedSummary
+    await route.fulfill({ status: 403, json: { error: "league_chat_forbidden" } })
+  })
+  await reopened.goto(path)
+  await expect(reopened.getByRole("region", { name: "Chats de liga" })).toBeVisible()
+  await expect(reopened.getByText("Texto privado de prueba", { exact: false })).toHaveCount(0)
+
+  const otherAccount = await context.newPage()
+  await setup(otherAccount, "dark", "competition")
+  await otherAccount.route("**/api/auth/session", route => route.fulfill({ json: { user: { email: "another-qa@example.test" } } }))
+  await otherAccount.route("**/api/league-season-chats/**", async route => {
+    await delayedSummary
+    await route.fulfill({ status: 403, json: { error: "league_chat_forbidden" } })
+  })
+  await otherAccount.goto(path)
+  await expect(otherAccount.getByRole("heading", { name: "Chats", exact: true })).toBeVisible()
+  await expect(otherAccount.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
+  releaseSummary()
+  await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
+})
+
 test("competition create button opens options for creators", async ({ page }) => {
   await setup(page, "dark", "classic", true)
   await page.goto("/leagues")

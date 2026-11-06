@@ -122,7 +122,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
       router.replace("/league/home")
     }
   }, [isAccessHydrated, isLeagueTransitioning, router, spectatorAllowedRoute, spectatorMode])
-  if (isIndependentChatRoute) return children
+  if (isIndependentChatRoute || pathname === "/personal-matches/chats") return children
 
   if (!isAccessHydrated) {
     return <AppBootSkeleton />
