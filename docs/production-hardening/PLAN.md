@@ -1,3 +1,7 @@
+## MC157 — Vista de Chats en la dirección local habitual
+- Estado: COMPLETO LOCAL. URL LAN habitual verificada.
+- Gates: comprobar que la dirección LAN sirve la rama actual y verificar Activos, Ver todos y retorno con datos sintéticos.
+
 ## MC156 — Chats activos primero
 - Estado: COMPLETO LOCAL. Vista de Chats en el puerto 3200.
 - Gates: pruebas de API y Playwright móvil para alcance, recuperación del historial, filtros y permisos. Build de producción, lint dirigido y presupuestos. Vista local con datos sintéticos.
