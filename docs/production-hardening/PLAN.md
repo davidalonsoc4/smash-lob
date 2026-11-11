@@ -1,3 +1,7 @@
+## MC153 — Rendimiento móvil y PWA desde staging
+- Estado: EN CURSO.
+- Alcance: medir arranque, reapertura y navegación en compilación de producción con datos sintéticos. Mantener el acceso ligero y la precarga de liga, con publicación solo en PRE.
+- Gates: comparación repetida de cada cambio, validate, Playwright de ligas, torneos, partidos, chats, permisos, notificaciones y PWA, controles de PR y verificación del árbol, rutas y PWA de PRE.
 ## MC150 — Publicación PRE v1.15.43
 - Estado: COMPLETO EN PRE. Pendiente autorización para promoción a producción.
 - Gates: validate local, pruebas dirigidas de inicio y chats, CI de la candidata, árbol idéntico al integrar en staging y comprobaciones de versión, rutas y PWA en PRE.
