@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import {
   ANNOUNCEMENTS_REFRESH_EVENT,
   fetchLeagueAnnouncements,

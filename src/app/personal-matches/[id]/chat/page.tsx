@@ -6,7 +6,7 @@ import { useParams } from "next/navigation"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
 import { MatchChatReservationSummary } from "@/components/match/chat/MatchChatReservationSummary"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import {
   MatchChatComposer,
   MatchChatReadOnlyBar,

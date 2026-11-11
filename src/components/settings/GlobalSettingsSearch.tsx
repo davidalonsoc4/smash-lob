@@ -3,7 +3,6 @@ import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialo
 import { FloatingSearchButton } from "@/components/ui/FloatingSearchButton"
 
 import {
-  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -13,8 +12,7 @@ import {
 } from "react"
 import { useRouter } from "next/navigation"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
-import { translateLeagueText } from "@/i18n/leagueText"
-import type { Locale } from "@/i18n/translations"
+import { useI18n } from "@/i18n/I18nProvider"
 import {
   getSettingsSearchCopy,
   searchSettingsEntries,
@@ -57,16 +55,14 @@ function SearchIcon({ className = "h-5 w-5" }: { className?: string }) {
 }
 
 export function GlobalSettingsSearch({
-  locale,
   entries,
   hasBottomNav = true,
 }: {
-  locale: Locale
   entries: SettingsSearchEntry[]
   hasBottomNav?: boolean
 }) {
   const router = useRouter()
-  const tx = useCallback((source: string) => translateLeagueText(locale, source), [locale])
+  const { locale, tx } = useI18n()
   const copy = getSettingsSearchCopy(locale)
   const listboxId = useId()
   const inputRef = useRef<HTMLInputElement>(null)

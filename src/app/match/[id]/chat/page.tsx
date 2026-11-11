@@ -45,7 +45,7 @@ import {
 import { fetchSupabaseMatchPlayerAvailabilities } from "@/lib/supabasePlayerAvailability"
 import { buildMatchChatCoordination, type MatchChatCoordination } from "@/lib/matchChatCoordination"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 
 type ChatKind = "text" | "date_proposal" | "location_proposal"

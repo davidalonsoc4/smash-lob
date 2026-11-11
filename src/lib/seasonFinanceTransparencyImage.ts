@@ -1,5 +1,5 @@
 import { formatMoney } from "@/lib/courtBooking"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 import type { SeasonFinanceTransparencyData } from "@/lib/seasonFinanceTransparency"
 import {

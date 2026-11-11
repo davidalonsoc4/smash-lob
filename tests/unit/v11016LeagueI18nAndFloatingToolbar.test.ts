@@ -119,6 +119,7 @@ describe("v1.10.16 league i18n and UI polish", () => {
     }
 
     expect(provider).toContain("tx: (source: string) => string")
-    expect(provider).toContain("translateLeagueText(locale, source)")
+    expect(provider).toContain('import("./locales/enText")')
+    expect(provider).toContain('import("./locales/euText")')
   })
 })

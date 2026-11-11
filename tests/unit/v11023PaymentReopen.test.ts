@@ -37,9 +37,9 @@ describe("v1.10.23 payment reopen", () => {
   })
 
   it("keeps translations for the reversible payment action", async () => {
-    const text = await read("src/i18n/leagueText.ts")
+    const [english, basque] = await Promise.all([read("src/i18n/locales/enText.ts"), read("src/i18n/locales/euText.ts")])
 
-    expect(text).toContain('"Marcar como pendiente": "Mark as pending"')
-    expect(text).toContain('"Marcar como pendiente": "Zain dagoela markatu"')
+    expect(english).toContain('"Marcar como pendiente": "Mark as pending"')
+    expect(basque).toContain('"Marcar como pendiente": "Zain dagoela markatu"')
   })
 })

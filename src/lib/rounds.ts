@@ -2,7 +2,7 @@ import type { MatchData } from "@/context/MatchDataProvider"
 import type { SeasonRoundSettings } from "@/context/SeasonSettingsProvider"
 import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
 import { SCHEDULED_SEASON_TIME_ZONE } from "@/lib/seasonScheduling"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 
 type Season = {

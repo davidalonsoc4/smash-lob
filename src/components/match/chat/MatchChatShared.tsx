@@ -16,7 +16,7 @@ import { MatchChatSendIcon } from "@/components/match/MatchChatSendIcon"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { BackButton } from "@/components/ui/BackButton"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import { MATCH_CHAT_TIME_ZONE } from "@/lib/matchChatWindow"
 import type { Locale } from "@/i18n/translations"
 

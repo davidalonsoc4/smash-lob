@@ -1,6 +1,6 @@
 import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale, translateLeagueText } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 import type { ReactNode } from "react"
 
@@ -24,12 +24,12 @@ export function formatMatchEventDateTime(
   fallback: string | null = null,
   locale: Locale = "es",
 ) {
-  if (!value) return fallback || translateLeagueText(locale, "Fecha y hora pendientes")
+  if (!value) return fallback || "Fecha y hora pendientes"
 
   const date = new Date(value)
 
   if (Number.isNaN(date.getTime())) {
-    return fallback || translateLeagueText(locale, "Fecha y hora pendientes")
+    return fallback || "Fecha y hora pendientes"
   }
 
   const weekday = capitalizeFirst(
@@ -61,12 +61,13 @@ export function MatchEventMeta({
   const normalizedLocation =
     getScheduleLocationDisplayText(locationText) ??
     getScheduleLocationDisplayText(locationFallback)
+  const pendingDate = dateFallback || tx("Fecha y hora pendientes")
   const hasDate = Boolean(eventAt || dateFallback)
   const dateText = hasDate
-    ? formatMatchEventDateTime(eventAt, dateFallback, locale)
+    ? formatMatchEventDateTime(eventAt, pendingDate, locale)
     : hideMissingRows
       ? null
-      : formatMatchEventDateTime(eventAt, dateFallback, locale)
+      : formatMatchEventDateTime(eventAt, pendingDate, locale)
   const location = normalizedLocation ?? (hideMissingRows ? null : tx("Ubicación no indicada"))
 
   if (!dateText && !location) return null

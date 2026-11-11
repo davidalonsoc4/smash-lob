@@ -1,4 +1,4 @@
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 import { createAvailabilityInstantResolver } from "@/lib/availabilityInstants"
 export type WeekdayId =

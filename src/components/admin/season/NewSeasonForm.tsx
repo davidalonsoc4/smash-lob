@@ -6,7 +6,7 @@ import { getSeasonScheduleRoundCount as scheduleRounds, getSeasonMaxBalancedLegC
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import { DEFAULT_LEAGUE_ACCENT } from "@/lib/visualStyle"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import { LeagueCreationForm } from "@/components/league/LeagueCreationForm"
 import { SeasonCreationSummary, type SeasonCreationSummaryGroup } from "./SeasonCreationSummary"
 import { useRouter } from "next/navigation"

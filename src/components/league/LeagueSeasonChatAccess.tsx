@@ -5,7 +5,7 @@ import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import { MatchChatActionLink } from "@/components/match/MatchChatFloatingAction"
 import { AppCard } from "@/components/ui/AppCard"
 import { StatusDot } from "@/components/ui/StatusDot"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 
 type Preview = { unread: number; readOnly: boolean; realtimeTopic: string | null; participantCount?: number; participants?: { userId: string }[]; messages?: { sender_display_name: string; body: string; created_at: string }[] }
 
