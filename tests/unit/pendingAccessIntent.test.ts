@@ -105,11 +105,11 @@ describe("recoverable invitation entry", () => {
     expect(payload).not.toHaveProperty("destination")
   })
 
-  it("uses a stable app id and a recovery-aware launch route", () => {
+  it("keeps the app id and launches directly into competitions", () => {
     const appManifest = manifest()
 
     expect(appManifest.id).toBe("/")
-    expect(appManifest.start_url).toBe("/launch?source=pwa")
+    expect(appManifest.start_url).toBe("/leagues")
     expect(appManifest.scope).toBe("/")
   })
 

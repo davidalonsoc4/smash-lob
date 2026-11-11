@@ -34,7 +34,7 @@ const storageKey = "smash-lob-active-league"
 export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { leagues, userLeagues, canAccessLeague, isAccessHydrated } = useLeagueAccess()
+  const { leagues, userLeagues, canAccessLeague, isAccessHydrated, prepareLeagueNavigation } = useLeagueAccess()
   const [activeLeagueId, setActiveLeagueIdState] =
     useState(defaultActiveLeagueId)
   const [grantedLeagueId, setGrantedLeagueId] = useState<string | null>(null)
@@ -178,10 +178,10 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
 
       setGrantedLeagueId(null)
       persistActiveLeague(leagueId)
-
+      prepareLeagueNavigation()
       return true
     },
-    [canAccessLeague, persistActiveLeague],
+    [canAccessLeague, persistActiveLeague, prepareLeagueNavigation],
   )
 
   // Creation and invite flows call this only after Supabase has confirmed the
@@ -208,8 +208,7 @@ export function ActiveLeagueProvider({ children }: ActiveLeagueProviderProps) {
         return
       }
 
-      // All accessible leagues are already hydrated in the client contexts.
-      // Navigating client-side avoids repeating auth and the full Supabase snapshot.
+      // The destination can reuse the full snapshot or the request started above.
       if (pathname !== "/league/home") {
         router.push("/league/home")
       } else {

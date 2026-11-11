@@ -6,7 +6,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { useStatisticsWorkspace } from "@/hooks/useStatisticsWorkspace"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 
 function formatPercent(value: number) {

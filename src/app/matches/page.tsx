@@ -19,7 +19,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { getNextMatch } from "@/lib/leagues"
 import { getActiveCalendarRoundId } from "@/lib/matchesCalendar"
 import { getMatchMvpSelection, getRoundMvpPlayerIds } from "@/lib/mvp"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import { formatShortDate } from "@/lib/rounds"
 import { getRoundStatusBadgeClassName } from "@/lib/statusStyles"
 import {

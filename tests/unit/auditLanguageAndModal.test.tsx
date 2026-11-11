@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from "react"
 import { afterEach, expect, it, vi } from "vitest"
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { I18nProvider, useI18n } from "@/i18n/I18nProvider"
 import { GuidedTourOverlay } from "@/components/onboarding/GuidedTourOverlay"
@@ -14,13 +14,13 @@ function LocaleProbe() {
   const { setLocale } = useI18n()
   return <><button onClick={() => setLocale("en")}>English</button><button onClick={() => setLocale("eu")}>Euskera</button></>
 }
-it("updates document language for each selected locale", () => {
+it("updates document language for each selected locale", async () => {
   render(<I18nProvider><LocaleProbe /></I18nProvider>)
   expect(document.documentElement.lang).toBe("es")
   fireEvent.click(screen.getByText("English"))
-  expect(document.documentElement.lang).toBe("en")
+  await waitFor(() => expect(document.documentElement.lang).toBe("en"))
   fireEvent.click(screen.getByText("Euskera"))
-  expect(document.documentElement.lang).toBe("eu")
+  await waitFor(() => expect(document.documentElement.lang).toBe("eu"))
 })
 it("contains Tab and Shift+Tab, prevents programmatic escape and restores the opening control", async () => {
   const interaction = userEvent.setup()

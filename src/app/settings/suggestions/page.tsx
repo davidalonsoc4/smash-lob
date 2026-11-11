@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState"
 import { BackButton } from "@/components/ui/BackButton"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 
 type SuggestionCategory = "improvement" | "feature" | "usability" | "other"

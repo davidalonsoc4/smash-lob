@@ -5,7 +5,7 @@ import { requestLeagueAccessRefresh } from "@/lib/appRefreshEvents"
 import { PreseasonOpeningCalendarButton } from "@/components/season/PreseasonOpeningCalendarButton"
 import { formatScheduledSeasonStart, getSeasonCountdown, SCHEDULED_SEASON_TIME_ZONE } from "@/lib/seasonScheduling"
 import { getPreseasonAccessPhase, type PreseasonOpening } from "@/lib/preseasonSecrets"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type Props = {

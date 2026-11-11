@@ -15,7 +15,7 @@ describe("installation assets behind PRE deployment protection", () => {
       `${PRODUCTION_APP_URL}/icon-pre-512.png`,
       `${PRODUCTION_APP_URL}/icon-maskable-pre-512.png`,
     ])
-    expect(value).toMatchObject({ id: "/", start_url: "/launch?source=pwa", scope: "/" })
+    expect(value).toMatchObject({ id: "/", start_url: "/leagues", scope: "/" })
     expect(value.theme_color).toBe("#000000")
     expect(value.background_color).toBe("#000000")
   })
@@ -27,7 +27,7 @@ describe("installation assets behind PRE deployment protection", () => {
     expect(value.icons?.map((icon) => icon.src)).toEqual([
       "/icon-192.png", "/icon-maskable-192.png", "/icon-512.png", "/icon-maskable-512.png",
     ])
-    expect(value).toMatchObject({ id: "/", start_url: "/launch?source=pwa", scope: "/" })
+    expect(value).toMatchObject({ id: "/", start_url: "/leagues", scope: "/" })
     expect(value.theme_color).toBe("#000000")
   })
 })
