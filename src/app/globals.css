@@ -425,6 +425,17 @@ textarea {
 @keyframes chat-message-enter { from { opacity: .25; transform: translateY(-7px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .chat-message-enter { animation: none; } }
 
+@media (prefers-reduced-motion: no-preference) {
+  [data-content-enter] {
+    animation: content-enter 150ms ease-out;
+  }
+
+  @keyframes content-enter {
+    from { opacity: .82; }
+    to { opacity: 1; }
+  }
+}
+
 /* A wrapper for title actions/avatar must not shift the shared title baseline. */
 .app-page-header > :has(.type-page-title) {
   margin-top: 0 !important;

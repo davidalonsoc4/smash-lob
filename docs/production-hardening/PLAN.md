@@ -1,3 +1,7 @@
+## MC154 — Fundido de entrada en Competiciones y Chats
+- Estado: COMPLETO LOCAL. Vista de prueba en el puerto 3200.
+- Gates: compilación de producción, lint dirigido, presupuestos y Playwright móvil con interacción, actualización progresiva y movimiento reducido. Vista local con datos sintéticos.
+
 ## MC153 — Rendimiento móvil y PWA desde staging
 - Estado: COMPLETO EN PRE. v1.15.44 verificada en el alias y en Chromium.
 - Alcance: medir arranque, reapertura y navegación en compilación de producción con datos sintéticos. Mantener el acceso ligero y la precarga de liga, con publicación solo en PRE.

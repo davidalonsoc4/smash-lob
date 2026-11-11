@@ -107,6 +107,7 @@ for (const saveData of [false, true]) {
 }
 
 test("shows the league match before personal history and updates when it arrives", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" })
   const { league, matches } = await setup(page, "dark", "classic")
   const season = { id: seasonId, leagueId, name: "Temporada ligera", status: "active", totalRounds: 12, completedRounds: 1 }
   const leagueMatch = {
@@ -137,15 +138,52 @@ test("shows the league match before personal history and updates when it arrives
     }
     return route.fulfill({ json: { items: [], upcoming: [friendly], hasMore: false, nextOffset: null } })
   })
+  await page.addInitScript(() => document.addEventListener("animationstart", event => {
+    if (event.animationName === "content-enter" && (event.target as HTMLElement).querySelector("[data-personal-match-origin]")) {
+      document.documentElement.dataset.activityEntrances = String(Number(document.documentElement.dataset.activityEntrances ?? 0) + 1)
+    }
+  }))
   try {
     await page.goto("/leagues")
     await expect(page.getByText("Rival Liga QA", { exact: true })).toBeVisible()
+    await expect(page.locator("html")).toHaveAttribute("data-activity-entrances", "1")
     await expect(page.getByRole("button", { name: "Abrir partido de Liga Azul QA" })).toBeEnabled()
   } finally {
     release()
   }
   await expect(page.getByText("Rival Amistoso QA", { exact: true })).toBeVisible()
   await expect(page.getByText("Rival Liga QA", { exact: true })).toHaveCount(0)
+  await expect(page.locator("html")).toHaveAttribute("data-activity-entrances", "1")
+})
+test("card entry respects reduced motion and remains tappable during the fade", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { messages: [], participantCount: 2, unread: 0 } }))
+  for (const [path, role, name] of [
+    ["/leagues", "button", "Entrar en Liga Azul QA"],
+    ["/personal-matches/chats", "link", /Liga Azul QA/],
+  ] as const) {
+    await page.emulateMedia({ reducedMotion: "no-preference" })
+    await page.goto(path)
+    const card = page.getByRole(role, { name })
+    await expect(card).toBeVisible()
+    await expect(card).toHaveCSS("animation-name", "content-enter")
+    await expect(card).toHaveCSS("animation-duration", "0.15s")
+    await expect(card).toHaveCSS("animation-delay", "0s")
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await expect(card).toHaveCSS("animation-name", "none")
+  }
+
+  await page.addInitScript(() => document.addEventListener("DOMContentLoaded", () => {
+    const style = document.createElement("style")
+    style.textContent = "[data-content-enter] { animation-play-state: paused !important; }"
+    document.head.append(style)
+  }))
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.goto("/leagues")
+  const league = page.getByRole("button", { name: "Entrar en Liga Azul QA" })
+  await expect(league).toHaveCSS("opacity", "0.82")
+  await league.click()
+  await expect(page.locator('[data-tour="home-header"]')).toBeVisible()
 })
 test("notification starts the match chat request while league access is pending", async ({ page }) => {
   const { matches } = await setup(page, "dark", "classic")
