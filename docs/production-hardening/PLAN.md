@@ -1,3 +1,7 @@
+## MC159 — Entrada escalonada por lote de Chats Global
+- Estado: COMPLETO LOCAL. Secuencia verificada en la URL LAN.
+- Gates: npm run validate, Playwright móvil con respuestas retenidas, escalonado inicial, refresco sin repetición, permisos y archivo. Verificación LAN.
+
 ## MC158 — Entrada estable de Chats Global
 - Estado: COMPLETO LOCAL. Corrección verificada en la URL LAN.
 - Gates: reproducción y comparación con resúmenes de liga retenidos, Playwright móvil, lint, build y presupuestos. Verificación en la URL LAN habitual.

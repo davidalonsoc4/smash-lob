@@ -434,10 +434,10 @@ textarea {
   [data-content-enter="2"] { animation-delay: 110ms; }
   [data-content-enter="3"] { animation-delay: 165ms; }
 
-  [data-chat-list-enter] { animation: chat-list-enter 140ms ease-out; }
+  [data-chat-batch-enter] [data-chat-list-enter] { animation: chat-list-enter 210ms ease-out backwards; }
 
   @keyframes chat-list-enter {
-    from { opacity: .84; }
+    from { opacity: 0; }
     to { opacity: 1; }
   }
 

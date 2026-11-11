@@ -156,36 +156,16 @@ test("shows the league match before personal history and updates when it arrives
   await expect(page.getByText("Rival Liga QA", { exact: true })).toHaveCount(0)
   await expect(page.locator("html")).toHaveAttribute("data-activity-entrances", "1")
 })
-test("competitions stagger and chat cards fade without movement", async ({ page }) => {
+test("competitions stagger and respect reduced motion", async ({ page }) => {
   await setup(page, "dark", "competition")
-  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { messages: [], participantCount: 2, unread: 0 } }))
-  await page.route("**/api/chats?**", route => route.fulfill({
-    json: { chats: [2, 2, 3, 4].map((round, index) => ({
-      id: `chat-${index}`, round, status: "scheduling", scheduledAt: null, resultRecordedAt: null,
-      readOnly: false, expired: false, partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
-    })) },
-  }))
-  for (const [path, role, name, animation, duration, delay] of [
-    ["/leagues", "button", "Entrar en Liga Azul QA", "content-enter", "0.21s", "0.055s"],
-    ["/personal-matches/chats", "link", /Liga Azul QA/, "chat-list-enter", "0.14s", "0s"],
-  ] as const) {
-    await page.emulateMedia({ reducedMotion: "no-preference" })
-    await page.goto(path)
-    const section = path === "/leagues" ? page : page.getByRole("region", { name: "Chats de liga" })
-    const card = section.getByRole(role, { name })
-    await expect(card).toBeVisible()
-    await expect(card).toHaveCSS("animation-name", animation)
-    await expect(card).toHaveCSS("animation-duration", duration)
-    await expect(card).toHaveCSS("animation-delay", delay)
-    if (path === "/personal-matches/chats") {
-      const cards = page.locator("a[data-chat-list-enter]")
-      await expect(cards).toHaveCount(5)
-      const delays = await cards.evaluateAll(elements => elements.map(element => getComputedStyle(element).animationDelay))
-      expect(delays).toEqual(["0s", "0s", "0s", "0s", "0s"])
-    }
-    await page.emulateMedia({ reducedMotion: "reduce" })
-    await expect(card).toHaveCSS("animation-name", "none")
-  }
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.goto("/leagues")
+  const card = page.getByRole("button", { name: "Entrar en Liga Azul QA" })
+  await expect(card).toHaveCSS("animation-name", "content-enter")
+  await expect(card).toHaveCSS("animation-duration", "0.21s")
+  await expect(card).toHaveCSS("animation-delay", "0.055s")
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await expect(card).toHaveCSS("animation-name", "none")
 
   await page.addInitScript(() => document.addEventListener("DOMContentLoaded", () => {
     const style = document.createElement("style")
@@ -299,35 +279,76 @@ test("global chats include and filter active league conversations", async ({ pag
   await expect(section).toHaveCount(0)
 })
 
-test("global chats keep the active rows in place when league summaries arrive", async ({ page }) => {
+test("global chats enter together in a stagger without replay on refresh", async ({ page }) => {
   await setup(page, "light", "classic")
-  let release!: () => void
-  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.addInitScript(() => {
+    const observer = new MutationObserver(() => {
+      const cards = [...document.querySelectorAll("[data-chat-batch-enter] a[data-chat-list-enter]")]
+      if (!cards.length) return
+      document.body.dataset.chatAnimations = JSON.stringify(cards.map(card => {
+        const { animationName, animationDelay, animationDuration, translate } = getComputedStyle(card)
+        return [animationName, animationDelay, animationDuration, translate]
+      }))
+      observer.disconnect()
+    })
+    observer.observe(document, { childList: true, subtree: true })
+  })
+  let releaseGeneral!: () => void
+  let releaseMatches!: () => void
+  const generalPending = new Promise<void>(resolve => { releaseGeneral = resolve })
+  const matchesPending = new Promise<void>(resolve => { releaseMatches = resolve })
+  let refreshed = false
+  await page.route(/\/api\/personal-matches\/chats\?active=1/, route => route.fulfill({ json: { chats: [{
+    id: "friendly-active", status: "scheduling", scheduledAt: null, readOnly: false,
+    partner: "Dani", rivals: ["Eva", "Fran"], unread: 0, lastMessage: null,
+  }] } }))
   await page.route("**/api/league-season-chats/**", async route => {
-    await pending
+    await generalPending
     return route.fulfill({ json: { messages: [], participantCount: 2, unread: 0 } })
   })
-  await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: [{
-    id: "active-chat", round: 2, status: "scheduling", scheduledAt: null, readOnly: false,
-    partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
-  }] } }))
-  const active = page.getByRole("region", { name: "Activos" }).getByRole("link")
-  const general = page.getByRole("region", { name: "Chats de liga" })
-  const top = () => active.evaluate(row => row.getBoundingClientRect().top + window.scrollY)
+  await page.route("**/api/chats?**", async route => {
+    await matchesPending
+    return route.fulfill({ json: { chats: (refreshed ? [2, 3] : [2]).map(round => ({
+      id: `active-chat-${round}`, round, status: "scheduling", scheduledAt: null, readOnly: false,
+      partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
+    })) } })
+  })
+  const cards = page.locator("a[data-chat-list-enter]")
   try {
+    const friendlyResponse = page.waitForResponse(/\/api\/personal-matches\/chats\?active=1/)
     await page.goto("/personal-matches/chats")
-    await expect(active).toBeVisible()
-    await expect(general).toHaveCount(0)
-    const before = await top()
-    release()
-    await expect(general.getByRole("link")).toBeVisible()
-    expect(await top()).toBeCloseTo(before, 0)
-    await expect(active).toHaveCSS("animation-delay", "0s")
-    await expect(active).toHaveCSS("translate", "none")
+    await friendlyResponse
+    await expect(page.getByText("Cargando conversaciones…", { exact: true })).toBeVisible()
+    await expect(cards).toHaveCount(0)
+    const generalResponse = page.waitForResponse("**/api/league-season-chats/**")
+    releaseGeneral()
+    await generalResponse
+    await expect(cards).toHaveCount(0)
+    releaseMatches()
+    await expect(cards).toHaveCount(3)
+    await expect(cards.nth(0)).toHaveAttribute("href", "/match/active-chat-2/chat")
+    await expect(cards.nth(1)).toHaveAttribute("href", "/personal-matches/friendly-active/chat")
+    await expect(page.locator("body")).toHaveAttribute("data-chat-animations", JSON.stringify([
+      ["chat-list-enter", "0s", "0.21s", "none"],
+      ["chat-list-enter", "0.055s", "0.21s", "none"],
+      ["chat-list-enter", "0.11s", "0.21s", "none"],
+    ]))
+    await expect(page.locator("[data-chat-batch-enter]")).toHaveCount(0)
+    refreshed = true
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+    await expect(cards).toHaveCount(4)
+    await expect(cards.nth(2)).toHaveCSS("animation-name", "none")
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.reload()
+    await expect(page.locator("body")).toHaveAttribute("data-chat-animations", /"none"/)
+    await expect(cards.first()).toHaveCSS("animation-name", "none")
   } finally {
-    release()
+    releaseGeneral()
+    releaseMatches()
   }
 })
+
 test("global chats defer past seasons and load the history on demand", async ({ page }) => {
   await setup(page, "light", "classic", true, true)
   const leagueReads: URLSearchParams[] = []
@@ -359,7 +380,7 @@ test("global chats defer past seasons and load the history on demand", async ({ 
   await page.getByRole("button", { name: "Ver solo activos", exact: true }).click()
   await expect(page.getByRole("region", { name: "Chats finalizados" })).toHaveCount(0)
 })
-test("global chats show available conversations before slow responses and reuse private list metadata", async ({ page, context }) => {
+test("global chats wait for slow friendly responses and protect private list metadata", async ({ page, context }) => {
   const path = "/personal-matches/chats"
   const summary = { messages: [{ sender_display_name: "Ana", body: "Texto privado de prueba", created_at: "2026-10-16T12:00:00Z" }], participantCount: 2, unread: 2 }
   let releaseFriendly!: () => void
@@ -367,9 +388,13 @@ test("global chats show available conversations before slow responses and reuse 
   await setup(page, "dark", "competition")
   await page.route(/\/api\/personal-matches\/chats(?:\?|$)/, async route => { await friendly; await route.fulfill({ json: { chats: [] } }) })
   await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: summary }))
+  const summaryResponse = page.waitForResponse("**/api/league-season-chats/**")
   await page.goto(path)
-  await expect(page.getByText("Texto privado de prueba", { exact: false })).toBeVisible()
+  await summaryResponse
+  const preview = page.getByText("Texto privado de prueba", { exact: false })
+  await expect(preview).toHaveCount(0)
   releaseFriendly()
+  await expect(preview).toBeVisible()
   const storageKey = "smash-lob:chat-list:v1"
   await expect.poll(() => page.evaluate(key => localStorage.getItem(key), storageKey)).toContain("Liga Azul QA")
   expect(await page.evaluate(key => localStorage.getItem(key), storageKey)).not.toContain("Texto privado de prueba")
@@ -382,8 +407,9 @@ test("global chats show available conversations before slow responses and reuse 
     await delayedSummary
     await route.fulfill({ status: 403, json: { error: "league_chat_forbidden" } })
   })
+  const forbiddenResponse = reopened.waitForResponse("**/api/league-season-chats/**")
   await reopened.goto(path)
-  await expect(reopened.getByRole("region", { name: "Chats de liga" })).toBeVisible()
+  await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
   await expect(reopened.getByText("Texto privado de prueba", { exact: false })).toHaveCount(0)
 
   const otherAccount = await context.newPage()
@@ -397,6 +423,8 @@ test("global chats show available conversations before slow responses and reuse 
   await expect(otherAccount.getByRole("heading", { name: "Chats", exact: true })).toBeVisible()
   await expect(otherAccount.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
   releaseSummary()
+  expect((await forbiddenResponse).status()).toBe(403)
+  await expect(reopened.getByText("Cargando conversaciones…", { exact: true })).toHaveCount(0)
   await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
 })
 
