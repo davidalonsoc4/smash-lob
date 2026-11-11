@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { getGlobalChatPhase } from "@/lib/globalChatOverview"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import {
   isMatchChatReadOnly,
@@ -37,10 +38,11 @@ type MessageRow = {
   created_at: string
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await requireAuthenticatedAppUser()
   if (!auth.ok) return fail(auth.error, auth.status)
 
+  const activeOnly = new URL(request.url).searchParams.get("active") === "1"
   const { supabase: db, user } = auth.actor
 
   try {
@@ -64,29 +66,37 @@ export async function GET() {
     return NextResponse.json({ chats: [], totalUnread: 0 })
   }
 
+  const matchesQuery = db.from("personal_matches").select("id,status,played_at,result_recorded_at,location_name").in("id", matchIds)
+  const activeResult = activeOnly ? await matchesQuery : null
+  if (activeResult?.error) return fail("personal_match_chats_lookup_failed", 500)
+  const now = Date.now()
+  const activeMatches = activeResult ? ((activeResult.data ?? []) as PersonalMatchRow[]).filter(match => match.status !== "finished" && getGlobalChatPhase({
+    origin: "friendly", status: match.status ?? "scheduled", scheduledAt: match.played_at,
+    readOnly: isMatchChatReadOnly({ status: match.status ?? "scheduled", resultRecordedAt: match.result_recorded_at }),
+  }, now) === "active") : null
+  const chatIds = activeMatches?.map(match => match.id) ?? matchIds
+  if (!chatIds.length) return NextResponse.json({ chats: [], totalUnread: 0 })
+
   const [matchesResult, participantsResult, messagesResult, readsResult] =
     await Promise.all([
-      db
-        .from("personal_matches")
-        .select("id,status,played_at,result_recorded_at,location_name")
-        .in("id", matchIds),
+      activeResult ?? matchesQuery,
       db
         .from("personal_match_participants")
         .select("match_id,user_id,display_name,team,slot")
-        .in("match_id", matchIds)
+        .in("match_id", chatIds)
         .order("team", { ascending: true })
         .order("slot", { ascending: true }),
       db
         .from("personal_match_chat_messages")
         .select("match_id,sender_user_id,sender_display_name,body,created_at")
-        .in("match_id", matchIds)
+        .in("match_id", chatIds)
         .order("created_at", { ascending: false })
         .limit(1200),
       db
         .from("personal_match_chat_reads")
         .select("match_id,last_read_at")
         .eq("user_id", user.id)
-        .in("match_id", matchIds),
+        .in("match_id", chatIds),
     ])
 
   const chatSchemaError = messagesResult.error || readsResult.error
@@ -125,7 +135,7 @@ export async function GET() {
 
   const ownByMatch = new Map(ownParticipants.map((row) => [row.match_id, row]))
 
-  const chats = ((matchesResult.data ?? []) as PersonalMatchRow[])
+  const chats = (activeMatches ?? (matchesResult.data ?? []) as PersonalMatchRow[])
     .map((match) => {
       const participants = participantsByMatch.get(match.id) ?? []
       const own = ownByMatch.get(match.id) ?? null

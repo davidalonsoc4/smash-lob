@@ -3,7 +3,8 @@ import AxeBuilder from "@axe-core/playwright"
 import { leagues, seasons, seasonPlayers, seasonRoundSettings, playerProfiles, allMatches } from "@/data/fakeData"
 
 const leagueId="10000000-0000-4000-8000-000000000072", seasonId="20000000-0000-4000-8000-000000000072"
-async function setup(page:Page,theme:string,style:string,canCreate=true) {
+const archivedSeasonId="20000000-0000-4000-8000-000000000073"
+async function setup(page:Page,theme:string,style:string,canCreate=true,archive=false) {
   let upcoming=false,windowed=false,advanced=false
   let role: "player" | "admin" = "admin"
   const league={...leagues[0],id:leagueId,name:"Liga Azul QA",accentColor:"#26b6ce",activeSeasonId:seasonId}
@@ -16,7 +17,7 @@ async function setup(page:Page,theme:string,style:string,canCreate=true) {
   await page.route("**/api/**",route=>route.fulfill({json:{ok:true,items:[],chats:[],locations:[]}}))
   await page.route("**/api/auth/session",route=>route.fulfill({json:{user:{name:"QA",email:"qa-experience@example.test",image:null},expires:"2099-01-01T00:00:00Z"}}))
   await page.route("**/api/account/profile",route=>route.fulfill({json:{profile:{firstName:"QA",lastName:"Experience",displayName:"QA",isComplete:true,profileCompletedAt:"2026-08-03",availabilityCompletedAt:"2026-08-03",standardAvailabilityTimezone:"Europe/Madrid",standardAvailabilityWeeklySlots:{},isSuperuser:false}}}))
-  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:canCreate,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
+  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:canCreate,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}, ...(archive ? [{...season,id:archivedSeasonId,status:"finished"}] : [])],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
   await page.route("**/api/personal-matches?**",route=>route.fulfill({json:{items:[],upcoming:[],hasMore:false,nextOffset:null}}))
   await page.route("**/api/tournaments",route=>route.fulfill({json:{tournaments:[]}}))
   await page.addInitScript(({theme,style})=>{
@@ -159,8 +160,8 @@ test("card entry staggers from top to bottom and remains tappable during the fad
   await setup(page, "dark", "competition")
   await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { messages: [], participantCount: 2, unread: 0 } }))
   await page.route("**/api/chats?**", route => route.fulfill({
-    json: { chats: [2, 3, 4, 5].map(round => ({
-      id: `chat-${round}`, round, status: "scheduling", scheduledAt: null, resultRecordedAt: null,
+    json: { chats: [2, 2, 3, 4].map((round, index) => ({
+      id: `chat-${index}`, round, status: "scheduling", scheduledAt: null, resultRecordedAt: null,
       readOnly: false, expired: false, partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
     })) },
   }))
@@ -294,17 +295,48 @@ test("global chats include and filter active league conversations", async ({ pag
   await expect(section.getByLabel("Mensajes sin leer")).toHaveCount(0)
   permitted = false
   await page.reload()
-  await expect(page.getByText("Todavía no tienes chats.")).toBeVisible()
+  await expect(page.getByText("Todavía no tienes chats activos.")).toBeVisible()
   await expect(section).toHaveCount(0)
 })
 
+test("global chats defer past seasons and load the history on demand", async ({ page }) => {
+  await setup(page, "light", "classic", true, true)
+  const leagueReads: URLSearchParams[] = []
+  const friendlyReads: URLSearchParams[] = []
+  await page.route("**/api/chats?**", route => {
+    const params = new URL(route.request().url()).searchParams
+    leagueReads.push(params)
+    const archived = params.get("seasonId") === archivedSeasonId
+    return route.fulfill({ json: { chats: [{
+      id: archived ? "archive-chat" : "active-chat", round: archived ? 1 : 2, status: archived ? "finished" : "scheduling",
+      scheduledAt: null, readOnly: archived, partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
+    }] } })
+  })
+  await page.route(/\/api\/personal-matches\/chats(?:\?|$)/, route => {
+    friendlyReads.push(new URL(route.request().url()).searchParams)
+    return route.fulfill({ json: { chats: [] } })
+  })
+  await page.goto("/personal-matches/chats")
+  await expect(page.getByRole("region", { name: "Activos" }).getByText("Jornada 2")).toBeVisible()
+  await expect(page.getByRole("region", { name: "Chats finalizados" })).toHaveCount(0)
+  expect(leagueReads.map(params => [params.get("seasonId"), params.get("activeRound")])).toEqual([[seasonId, "2"]])
+  expect(friendlyReads.every(params => params.get("active") === "1")).toBe(true)
+
+  await page.getByRole("button", { name: "Ver todos", exact: true }).click()
+  await expect(page.getByRole("region", { name: "Chats finalizados" }).getByText("Jornada 1")).toBeVisible()
+  expect(leagueReads.some(params => params.get("seasonId") === archivedSeasonId && !params.has("activeRound"))).toBe(true)
+  expect(friendlyReads.some(params => !params.has("active"))).toBe(true)
+
+  await page.getByRole("button", { name: "Ver solo activos", exact: true }).click()
+  await expect(page.getByRole("region", { name: "Chats finalizados" })).toHaveCount(0)
+})
 test("global chats show available conversations before slow responses and reuse private list metadata", async ({ page, context }) => {
   const path = "/personal-matches/chats"
   const summary = { messages: [{ sender_display_name: "Ana", body: "Texto privado de prueba", created_at: "2026-10-16T12:00:00Z" }], participantCount: 2, unread: 2 }
   let releaseFriendly!: () => void
   const friendly = new Promise<void>(resolve => { releaseFriendly = resolve })
   await setup(page, "dark", "competition")
-  await page.route("**/api/personal-matches/chats", async route => { await friendly; await route.fulfill({ json: { chats: [] } }) })
+  await page.route(/\/api\/personal-matches\/chats(?:\?|$)/, async route => { await friendly; await route.fulfill({ json: { chats: [] } }) })
   await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: summary }))
   await page.goto(path)
   await expect(page.getByText("Texto privado de prueba", { exact: false })).toBeVisible()
@@ -689,6 +721,7 @@ test(`global chats filter by competition and messages while distant rounds remai
   await page.route("**/api/chats?**",route=>route.fulfill({json:{chats:[2,3,10].map(round=>({id:`chat-${round}`,round,status:"scheduling",scheduledAt:null,resultRecordedAt:null,readOnly:false,expired:false,partner:round===10?"Jugador Lejano":"Ana",rivals:["Bea","Carlos"],unread:round===2?1:0,lastMessage:round===3?null:{sender:"Ana",body:"Mensaje de prueba",createdAt:"2026-10-16T10:00:00Z"}}))}}))
   await page.goto("/personal-matches/chats")
   await expect(page.getByRole("region",{name:"Activos"}).getByText("Jornada 2",{exact:true})).toBeVisible()
+  await page.getByRole("button", { name: "Ver todos", exact: true }).click()
   await expect(page.getByRole("region",{name:"Próximos"}).getByText("Jornada 10",{exact:true})).toBeVisible()
   const activeHeading = page.getByRole("heading", { name: /^Activos/ })
   const upcomingHeading = page.getByRole("heading", { name: /^Próximos/ })

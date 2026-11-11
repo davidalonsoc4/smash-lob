@@ -1858,6 +1858,7 @@ const ADDITIONAL_OVERRIDES = {
   } as const
 
 const FINAL_OVERRIDES = {
+    "Ver solo activos": "Ikusi txat aktiboak", "Todavía no tienes chats activos.": "Oraindik ez duzu txat aktiborik.",
     "Información del resultado": "Emaitzaren informazioa",
     "votos": "boto",
     "empate": "berdinketa",

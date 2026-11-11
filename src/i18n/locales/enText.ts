@@ -1861,6 +1861,7 @@ const ADDITIONAL_OVERRIDES = {
   } as const
 
 const FINAL_OVERRIDES = {
+    "Ver solo activos": "View active chats", "Todavía no tienes chats activos.": "You do not have any active chats yet.",
     "votos": "votes",
     "empate": "tie",
     "Empate técnico": "Technical tie",

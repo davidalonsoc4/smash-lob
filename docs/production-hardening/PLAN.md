@@ -1,3 +1,7 @@
+## MC156 — Chats activos primero
+- Estado: COMPLETO LOCAL. Vista de Chats en el puerto 3200.
+- Gates: pruebas de API y Playwright móvil para alcance, recuperación del historial, filtros y permisos. Build de producción, lint dirigido y presupuestos. Vista local con datos sintéticos.
+
 ## MC155 — Entrada escalonada de arriba abajo
 - Estado: COMPLETO LOCAL. Vista actualizada en el puerto 3200.
 - Gates: build de producción, lint dirigido, presupuestos y Playwright móvil para orden, límite, pulsación, movimiento reducido y actualización progresiva. Vista local con varias tarjetas sintéticas.

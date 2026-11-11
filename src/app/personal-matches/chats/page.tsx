@@ -112,16 +112,18 @@ function ChatList({ account }: { account: string }) {
   const { seasons, getSeasonRoundSettings } = useSeasonSettings()
   const { matches } = useMatchData()
   const [filterOpen, setFilterOpen] = useState(false)
-  const [phase, setPhase] = useState("all")
+  const [phase, setPhase] = useState("active")
+  const activeOnly = phase === "active"
   const [query, setQuery] = useState("")
   const [scope, setScope] = useState("all")
   const [conversation, setConversation] = useState("all")
   const [snapshot, setSnapshot] = useState<ChatListSnapshot>({ chats: [], generalChats: [] })
   const pending = useRef<AbortController | null>(null)
-  const friendlyRequest = useRef<ReturnType<typeof fetch> | null>(null)
-  const [loading, setLoading] = useState(true)
+  const friendlyRequests = useRef(new Map<boolean, Promise<Response>>())
+  const [loadedScope, setLoadedScope] = useState<boolean | null>(null)
+  const loading = loadedScope !== activeOnly
   const [error, setError] = useState<string | null>(null)
-  const [loadedAt, setLoadedAt] = useState(0)
+  const [loadedAt, setLoadedAt] = useState(Date.now)
 
   const leagueSeasons = useMemo(() => {
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -130,6 +132,10 @@ function ChatList({ account }: { account: string }) {
   const seasonScopes = useMemo(() => new Map(leagueSeasons.map(item => [item.seasonId, item])), [leagueSeasons])
   const chats = useMemo(() => snapshot.chats.filter(chat => chat.origin === "friendly" || isAccessHydrated && chat.leagueId && seasonScopes.get(chat.seasonId ?? "")?.leagueId === chat.leagueId), [snapshot, seasonScopes, isAccessHydrated])
   const generalChats = useMemo(() => isAccessHydrated ? snapshot.generalChats.filter(chat => seasonScopes.get(chat.seasonId)?.seasonStatus === "active") : [], [snapshot, seasonScopes, isAccessHydrated])
+  const roundBySeason = useMemo(() => new Map(seasons.map(season => {
+    const rounds = buildSeasonRounds({ season, settings: getSeasonRoundSettings(season.id), matches: matches.filter(match => match.seasonId === season.id) })
+    return [season.id, { seasonStatus: season.status, currentRound: rounds.find(round => round.status === "active")?.round ?? rounds.find(round => round.status === "overdue")?.round ?? rounds.find(round => round.status === "upcoming")?.round ?? 1 }]
+  })), [seasons, getSeasonRoundSettings, matches])
   const load = useCallback(async () => {
     pending.current?.abort()
     const controller = new AbortController()
@@ -151,15 +157,20 @@ function ChatList({ account }: { account: string }) {
         ...previous, chats: [...previous.chats.filter(chat => seasonId ? chat.seasonId !== seasonId : chat.origin !== "friendly"), ...items],
       }))
     }
-    friendlyRequest.current ??= fetch("/api/personal-matches/chats", { cache: "no-store" }).finally(() => { friendlyRequest.current = null })
-    const friendly = request(friendlyRequest.current).then(({ ok, data, denied }) => {
+    const requests = friendlyRequests.current
+    const friendlyPath = activeOnly ? "/api/personal-matches/chats?active=1" : "/api/personal-matches/chats"
+    const friendlyRequest = requests.get(activeOnly) ?? fetch(friendlyPath, { cache: "no-store" }).finally(() => requests.delete(activeOnly))
+    requests.set(activeOnly, friendlyRequest)
+    const friendly = request(friendlyRequest).then(({ ok, data, denied }) => {
       if (signal.aborted) return
       if (ok || denied) updateChats(null, ok && Array.isArray(data?.chats) ? data.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "friendly" })) : [])
       setError(ok ? null : typeof data?.error === "string" ? data.error : "personal_match_chats_lookup_failed")
     })
     const loadScope = (url: string) => request(fetch(url, { cache: "no-store", signal }))
     await Promise.all([friendly, ...(isAccessHydrated ? leagueSeasons : []).flatMap(item => {
+      if (activeOnly && item.seasonStatus !== "active") return []
       const params = new URLSearchParams({ leagueId: item.leagueId, seasonId: item.seasonId })
+      if (activeOnly) params.set("activeRound", String(roundBySeason.get(item.seasonId)?.currentRound ?? 1))
       const matches = loadScope(`/api/chats?${params}`).then(({ ok, data, denied }) => {
         if (ok || denied) updateChats(item.seasonId, ok && Array.isArray(data?.chats) ? data.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, ...item, origin: "league", locationName: null, expired: false, resultRecordedAt: null, realtimeTopic: typeof data.realtimeTopic === "string" ? data.realtimeTopic : null })) : [])
       })
@@ -174,10 +185,10 @@ function ChatList({ account }: { account: string }) {
       return [matches, general]
     })])
     if (signal.aborted) return
-    if (canPersist) writeChatListCache(account, { chats: fresh.chats.slice(0, 100).map(redact), generalChats: fresh.generalChats.slice(0, 20).map(redact) })
+    if (canPersist && activeOnly) writeChatListCache(account, { chats: fresh.chats.slice(0, 100).map(redact), generalChats: fresh.generalChats.slice(0, 20).map(redact) })
     setLoadedAt(Date.now())
-    setLoading(false)
-  }, [account, isAccessHydrated, leagueSeasons])
+    setLoadedScope(activeOnly)
+  }, [account, activeOnly, isAccessHydrated, leagueSeasons, roundBySeason])
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const cached = readChatListCache<ChatListSnapshot>(account)
@@ -205,10 +216,6 @@ function ChatList({ account }: { account: string }) {
     [chats, generalChats],
   )
   const realtimeKey = realtimeTopics.join("|")
-  const roundBySeason = useMemo(() => new Map(seasons.map(season => {
-    const rounds = buildSeasonRounds({ season, settings: getSeasonRoundSettings(season.id), matches: matches.filter(match => match.seasonId === season.id) })
-    return [season.id, { seasonStatus: season.status, currentRound: rounds.find(round => round.status === "active")?.round ?? rounds.find(round => round.status === "overdue")?.round ?? rounds.find(round => round.status === "upcoming")?.round ?? 1 }]
-  })), [seasons, getSeasonRoundSettings, matches])
   const groupedChats = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase()
     const scoped = chats.filter(chat => (scope === "all" || scope === "friendly" && chat.origin === "friendly" || chat.leagueId === scope)
@@ -230,10 +237,10 @@ function ChatList({ account }: { account: string }) {
     return () => unsubscribes.forEach((unsubscribe) => unsubscribe())
   }, [load, realtimeKey])
 
-  const hasFilters = Boolean(query.trim() || scope !== "all" || conversation !== "all" || phase !== "all")
+  const hasFilters = Boolean(query.trim() || scope !== "all" || conversation !== "all" || (phase !== "active" && phase !== "all"))
   const visibleGeneralChats = generalChats.filter(chat => (scope === "all" || scope === chat.leagueId) && (phase === "all" || phase === "active") && (conversation === "all" || conversation === "started" && Boolean(chat.lastMessage) || conversation === "empty" && !chat.lastMessage || conversation === "unread" && chat.unread > 0) && (!query.trim() || [chat.leagueName, chat.seasonName, chat.lastMessage?.sender, chat.lastMessage?.body].some(value => value?.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))))
   const resultCount = visibleGeneralChats.length + Object.values(groupedChats).reduce((total, group) => total + group.length, 0)
-  function clearFilters() { setQuery(""); setScope("all"); setConversation("all"); setPhase("all") }
+  function clearFilters() { setQuery(""); setScope("all"); setConversation("all"); setPhase("active") }
   return (
     <div className="compact-page space-y-3">
       <header className="app-page-header">
@@ -241,6 +248,11 @@ function ChatList({ account }: { account: string }) {
         <h1 className="type-page-title font-black tracking-tight">Chats</h1>
       </header>
 
+      <div className="flex justify-end">
+        <button type="button" className="app-section-action min-h-11 px-2 text-sm font-semibold" onClick={() => setPhase(activeOnly ? "all" : "active")}>
+          {tx(activeOnly ? "Ver todos" : "Ver solo activos")}
+        </button>
+      </div>
       <FloatingSearchButton label={tx("Buscar y filtrar chats")} open={filterOpen} onClick={() => setFilterOpen(true)} active={hasFilters} activeLabel={tx("Filtros activos")} />
       <FloatingDialog open={filterOpen} onClose={() => setFilterOpen(false)} title={tx("Buscar y filtrar chats")} variant="search">
         <div className="flex items-center justify-between gap-3 border-b border-neutral-200 p-3"><h2>{tx("Buscar y filtrar chats")}</h2><DialogCloseButton onClick={() => setFilterOpen(false)} /></div>
@@ -255,15 +267,12 @@ function ChatList({ account }: { account: string }) {
           <p role="status" className="text-xs text-neutral-600">{resultCount} {tx(resultCount === 1 ? "conversación encontrada" : "conversaciones encontradas")}</p>
         </div><div className="border-t border-neutral-200 p-3"><button type="button" className="app-dialog-primary w-full" onClick={() => setFilterOpen(false)}>{tx("Ver conversaciones")}</button></div>
       </FloatingDialog>
-      {!loading && (chats.length > 0 || generalChats.length > 0) && resultCount === 0 ? <AppCard><p className="text-sm text-neutral-500">{tx("No hay conversaciones con estos filtros.")}</p><button type="button" className="mt-3 app-dialog-option" onClick={clearFilters}>{tx("Limpiar filtros")}</button></AppCard> : null}
-      {(loading || !isAccessHydrated) && chats.length === 0 && generalChats.length === 0 ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Cargando conversaciones…")}</p></AppCard> : null}
+      {(loading || !isAccessHydrated) && resultCount === 0 ? <AppCard><p role="status" className="text-sm font-semibold text-neutral-500">{tx("Cargando conversaciones…")}</p></AppCard> : null}
       {error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{errorMessage(error)}</p> : null}
-      {isAccessHydrated && !loading && !error && chats.length === 0 && generalChats.length === 0 ? (
-        <AppCard>
-          <p className="text-sm font-black">{tx("Todavía no tienes chats.")}</p>
-          <p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Las conversaciones de tus ligas y amistosos aparecerán aquí.")}</p>
-        </AppCard>
-      ) : null}
+      {isAccessHydrated && !loading && !error && resultCount === 0 ? <AppCard>
+        <p className="text-sm font-semibold text-neutral-500">{hasFilters ? tx("No hay conversaciones con estos filtros.") : activeOnly ? tx("Todavía no tienes chats activos.") : tx("Todavía no tienes chats.")}</p>
+        {hasFilters ? <button type="button" className="mt-3 app-dialog-option" onClick={clearFilters}>{tx("Limpiar filtros")}</button> : null}
+      </AppCard> : null}
 
       {visibleGeneralChats.length > 0 ? <section className="space-y-1.5" aria-label={tx("Chats de liga")}>
         <h2 className="type-section-title font-black text-neutral-700">{tx("Chats de liga")}</h2>
