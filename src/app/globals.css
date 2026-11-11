@@ -434,6 +434,13 @@ textarea {
   [data-content-enter="2"] { animation-delay: 110ms; }
   [data-content-enter="3"] { animation-delay: 165ms; }
 
+  [data-chat-list-enter] { animation: chat-list-enter 140ms ease-out; }
+
+  @keyframes chat-list-enter {
+    from { opacity: .84; }
+    to { opacity: 1; }
+  }
+
   @keyframes content-enter {
     from { opacity: .48; translate: 0 -6px; }
     to { opacity: 1; translate: 0 0; }

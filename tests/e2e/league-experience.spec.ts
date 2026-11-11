@@ -156,7 +156,7 @@ test("shows the league match before personal history and updates when it arrives
   await expect(page.getByText("Rival Liga QA", { exact: true })).toHaveCount(0)
   await expect(page.locator("html")).toHaveAttribute("data-activity-entrances", "1")
 })
-test("card entry staggers from top to bottom and remains tappable during the fade", async ({ page }) => {
+test("competitions stagger and chat cards fade without movement", async ({ page }) => {
   await setup(page, "dark", "competition")
   await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { messages: [], participantCount: 2, unread: 0 } }))
   await page.route("**/api/chats?**", route => route.fulfill({
@@ -165,23 +165,23 @@ test("card entry staggers from top to bottom and remains tappable during the fad
       readOnly: false, expired: false, partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
     })) },
   }))
-  for (const [path, role, name, delay] of [
-    ["/leagues", "button", "Entrar en Liga Azul QA", "0.055s"],
-    ["/personal-matches/chats", "link", /Liga Azul QA/, "0s"],
+  for (const [path, role, name, animation, duration, delay] of [
+    ["/leagues", "button", "Entrar en Liga Azul QA", "content-enter", "0.21s", "0.055s"],
+    ["/personal-matches/chats", "link", /Liga Azul QA/, "chat-list-enter", "0.14s", "0s"],
   ] as const) {
     await page.emulateMedia({ reducedMotion: "no-preference" })
     await page.goto(path)
     const section = path === "/leagues" ? page : page.getByRole("region", { name: "Chats de liga" })
     const card = section.getByRole(role, { name })
     await expect(card).toBeVisible()
-    await expect(card).toHaveCSS("animation-name", "content-enter")
-    await expect(card).toHaveCSS("animation-duration", "0.21s")
+    await expect(card).toHaveCSS("animation-name", animation)
+    await expect(card).toHaveCSS("animation-duration", duration)
     await expect(card).toHaveCSS("animation-delay", delay)
     if (path === "/personal-matches/chats") {
-      const cards = page.locator("a[data-content-enter]")
+      const cards = page.locator("a[data-chat-list-enter]")
       await expect(cards).toHaveCount(5)
       const delays = await cards.evaluateAll(elements => elements.map(element => getComputedStyle(element).animationDelay))
-      expect(delays).toEqual(["0s", "0.055s", "0.11s", "0.165s", "0.165s"])
+      expect(delays).toEqual(["0s", "0s", "0s", "0s", "0s"])
     }
     await page.emulateMedia({ reducedMotion: "reduce" })
     await expect(card).toHaveCSS("animation-name", "none")
@@ -299,6 +299,35 @@ test("global chats include and filter active league conversations", async ({ pag
   await expect(section).toHaveCount(0)
 })
 
+test("global chats keep the active rows in place when league summaries arrive", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route("**/api/league-season-chats/**", async route => {
+    await pending
+    return route.fulfill({ json: { messages: [], participantCount: 2, unread: 0 } })
+  })
+  await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: [{
+    id: "active-chat", round: 2, status: "scheduling", scheduledAt: null, readOnly: false,
+    partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
+  }] } }))
+  const active = page.getByRole("region", { name: "Activos" }).getByRole("link")
+  const general = page.getByRole("region", { name: "Chats de liga" })
+  const top = () => active.evaluate(row => row.getBoundingClientRect().top + window.scrollY)
+  try {
+    await page.goto("/personal-matches/chats")
+    await expect(active).toBeVisible()
+    await expect(general).toHaveCount(0)
+    const before = await top()
+    release()
+    await expect(general.getByRole("link")).toBeVisible()
+    expect(await top()).toBeCloseTo(before, 0)
+    await expect(active).toHaveCSS("animation-delay", "0s")
+    await expect(active).toHaveCSS("translate", "none")
+  } finally {
+    release()
+  }
+})
 test("global chats defer past seasons and load the history on demand", async ({ page }) => {
   await setup(page, "light", "classic", true, true)
   const leagueReads: URLSearchParams[] = []

@@ -1,3 +1,7 @@
+## MC158 — Entrada estable de Chats Global
+- Estado: COMPLETO LOCAL. Corrección verificada en la URL LAN.
+- Gates: reproducción y comparación con resúmenes de liga retenidos, Playwright móvil, lint, build y presupuestos. Verificación en la URL LAN habitual.
+
 ## MC157 — Vista de Chats en la dirección local habitual
 - Estado: COMPLETO LOCAL. URL LAN habitual verificada.
 - Gates: comprobar que la dirección LAN sirve la rama actual y verificar Activos, Ver todos y retorno con datos sintéticos.
