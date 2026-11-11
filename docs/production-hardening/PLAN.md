@@ -1,3 +1,7 @@
+## MC155 — Entrada escalonada de arriba abajo
+- Estado: COMPLETO LOCAL. Vista actualizada en el puerto 3200.
+- Gates: build de producción, lint dirigido, presupuestos y Playwright móvil para orden, límite, pulsación, movimiento reducido y actualización progresiva. Vista local con varias tarjetas sintéticas.
+
 ## MC154 — Fundido de entrada en Competiciones y Chats
 - Estado: COMPLETO LOCAL. Vista de prueba en el puerto 3200.
 - Gates: compilación de producción, lint dirigido, presupuestos y Playwright móvil con interacción, actualización progresiva y movimiento reducido. Vista local con datos sintéticos.

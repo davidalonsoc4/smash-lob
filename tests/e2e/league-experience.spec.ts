@@ -155,20 +155,33 @@ test("shows the league match before personal history and updates when it arrives
   await expect(page.getByText("Rival Liga QA", { exact: true })).toHaveCount(0)
   await expect(page.locator("html")).toHaveAttribute("data-activity-entrances", "1")
 })
-test("card entry respects reduced motion and remains tappable during the fade", async ({ page }) => {
+test("card entry staggers from top to bottom and remains tappable during the fade", async ({ page }) => {
   await setup(page, "dark", "competition")
   await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { messages: [], participantCount: 2, unread: 0 } }))
-  for (const [path, role, name] of [
-    ["/leagues", "button", "Entrar en Liga Azul QA"],
-    ["/personal-matches/chats", "link", /Liga Azul QA/],
+  await page.route("**/api/chats?**", route => route.fulfill({
+    json: { chats: [2, 3, 4, 5].map(round => ({
+      id: `chat-${round}`, round, status: "scheduling", scheduledAt: null, resultRecordedAt: null,
+      readOnly: false, expired: false, partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
+    })) },
+  }))
+  for (const [path, role, name, delay] of [
+    ["/leagues", "button", "Entrar en Liga Azul QA", "0.055s"],
+    ["/personal-matches/chats", "link", /Liga Azul QA/, "0s"],
   ] as const) {
     await page.emulateMedia({ reducedMotion: "no-preference" })
     await page.goto(path)
-    const card = page.getByRole(role, { name })
+    const section = path === "/leagues" ? page : page.getByRole("region", { name: "Chats de liga" })
+    const card = section.getByRole(role, { name })
     await expect(card).toBeVisible()
     await expect(card).toHaveCSS("animation-name", "content-enter")
-    await expect(card).toHaveCSS("animation-duration", "0.15s")
-    await expect(card).toHaveCSS("animation-delay", "0s")
+    await expect(card).toHaveCSS("animation-duration", "0.21s")
+    await expect(card).toHaveCSS("animation-delay", delay)
+    if (path === "/personal-matches/chats") {
+      const cards = page.locator("a[data-content-enter]")
+      await expect(cards).toHaveCount(5)
+      const delays = await cards.evaluateAll(elements => elements.map(element => getComputedStyle(element).animationDelay))
+      expect(delays).toEqual(["0s", "0.055s", "0.11s", "0.165s", "0.165s"])
+    }
     await page.emulateMedia({ reducedMotion: "reduce" })
     await expect(card).toHaveCSS("animation-name", "none")
   }
@@ -181,7 +194,7 @@ test("card entry respects reduced motion and remains tappable during the fade", 
   await page.emulateMedia({ reducedMotion: "no-preference" })
   await page.goto("/leagues")
   const league = page.getByRole("button", { name: "Entrar en Liga Azul QA" })
-  await expect(league).toHaveCSS("opacity", "0.82")
+  await expect(league).toHaveCSS("opacity", "0.48")
   await league.click()
   await expect(page.locator('[data-tour="home-header"]')).toBeVisible()
 })

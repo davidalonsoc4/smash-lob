@@ -267,13 +267,14 @@ function ChatList({ account }: { account: string }) {
 
       {visibleGeneralChats.length > 0 ? <section className="space-y-1.5" aria-label={tx("Chats de liga")}>
         <h2 className="type-section-title font-black text-neutral-700">{tx("Chats de liga")}</h2>
-        <div className="overflow-hidden rounded-xl">{visibleGeneralChats.map((chat, index) => <Link key={chat.seasonId} data-content-enter href={`/league-chat/${encodeURIComponent(chat.seasonId)}`} className={`block ${index ? "-mt-px" : ""}`}><AppCard className={`app-card-explicit-accent !p-0 !shadow-none ${visibleGeneralChats.length === 1 ? "!rounded-xl" : index === 0 ? "!rounded-t-xl !rounded-b-none" : index === visibleGeneralChats.length - 1 ? "!rounded-b-xl !rounded-t-none" : "!rounded-none"}`}><div className="min-w-0 px-4 py-3"><div className="flex items-center gap-2"><p className="type-panel-title min-w-0 flex-1 truncate font-black">{chat.leagueName}</p>{chat.unread > 0 ? <span aria-label={tx("Mensajes sin leer")} className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1.5 type-caption font-black text-white">{chat.unread > 99 ? "99+" : chat.unread}</span> : null}</div><p className="mt-2 type-small font-semibold text-neutral-600">{chat.seasonName} · {chat.participants} {tx(chat.participants === 1 ? "participante" : "participantes")}</p><div className="mt-2 flex min-w-0 items-center gap-2 border-t border-neutral-100 pt-2"><p className="min-w-0 flex-1 truncate type-caption font-semibold text-neutral-500">{chat.lastMessage?.sender ? <><span className="font-black">{chat.lastMessage.sender}</span>: {chat.lastMessage.body}</> : tx(chat.lastMessage ? "Cargando conversaciones…" : "Sin mensajes todavía")}</p><span className="shrink-0 type-caption font-semibold text-neutral-400">{formatChatDate(chat.lastMessage?.createdAt ?? null)}</span></div></div></AppCard></Link>)}</div>
+        <div className="overflow-hidden rounded-xl">{visibleGeneralChats.map((chat, index) => <Link key={chat.seasonId} data-content-enter={Math.min(index, 3)} href={`/league-chat/${encodeURIComponent(chat.seasonId)}`} className={`block ${index ? "-mt-px" : ""}`}><AppCard className={`app-card-explicit-accent !p-0 !shadow-none ${visibleGeneralChats.length === 1 ? "!rounded-xl" : index === 0 ? "!rounded-t-xl !rounded-b-none" : index === visibleGeneralChats.length - 1 ? "!rounded-b-xl !rounded-t-none" : "!rounded-none"}`}><div className="min-w-0 px-4 py-3"><div className="flex items-center gap-2"><p className="type-panel-title min-w-0 flex-1 truncate font-black">{chat.leagueName}</p>{chat.unread > 0 ? <span aria-label={tx("Mensajes sin leer")} className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1.5 type-caption font-black text-white">{chat.unread > 99 ? "99+" : chat.unread}</span> : null}</div><p className="mt-2 type-small font-semibold text-neutral-600">{chat.seasonName} · {chat.participants} {tx(chat.participants === 1 ? "participante" : "participantes")}</p><div className="mt-2 flex min-w-0 items-center gap-2 border-t border-neutral-100 pt-2"><p className="min-w-0 flex-1 truncate type-caption font-semibold text-neutral-500">{chat.lastMessage?.sender ? <><span className="font-black">{chat.lastMessage.sender}</span>: {chat.lastMessage.body}</> : tx(chat.lastMessage ? "Cargando conversaciones…" : "Sin mensajes todavía")}</p><span className="shrink-0 type-caption font-semibold text-neutral-400">{formatChatDate(chat.lastMessage?.createdAt ?? null)}</span></div></div></AppCard></Link>)}</div>
       </section> : null}
       {chats.length > 0 ? (
         <div className="space-y-3" data-personal-match-chats-list>
-          {([ ["active", tx("Activos")], ["upcoming", tx("Próximos")], ["finished", tx("Chats finalizados")] ] as const).map(([groupKey, groupLabel]) => {
+          {([ ["active", tx("Activos")], ["upcoming", tx("Próximos")], ["finished", tx("Chats finalizados")] ] as const).map(([groupKey, groupLabel], groupIndex, groups) => {
             const sectionChats = groupedChats[groupKey]
             if (!sectionChats.length) return null
+            const precedingCards = groups.slice(0, groupIndex).reduce((count, [key]) => count + groupedChats[key].length, visibleGeneralChats.length)
             return <section key={groupKey} aria-label={groupLabel} className="space-y-1.5">
               <h2 className="type-section-title font-black text-neutral-700">{groupLabel}<span className="ml-1.5 text-neutral-400">{sectionChats.length}</span></h2>
               <div className="overflow-hidden rounded-xl">
@@ -293,7 +294,8 @@ function ChatList({ account }: { account: string }) {
 
             return (
               <Link
-                key={`${chat.origin}:${chat.id}`} data-content-enter
+                key={`${chat.origin}:${chat.id}`}
+                data-content-enter={Math.min(precedingCards + index, 3)}
                 href={chat.origin === "friendly" ? `/personal-matches/${encodeURIComponent(chat.id)}/chat` : `/match/${encodeURIComponent(chat.id)}/chat`}
                 onNavigate={chat.origin === "league" ? () => warmChatEntry(account, `/api/matches/${encodeURIComponent(chat.id)}/chat`) : undefined}
                 className={`block ${index ? "-mt-px" : ""}`}

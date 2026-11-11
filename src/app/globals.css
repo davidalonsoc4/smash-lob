@@ -427,12 +427,16 @@ textarea {
 
 @media (prefers-reduced-motion: no-preference) {
   [data-content-enter] {
-    animation: content-enter 150ms ease-out;
+    animation: content-enter 210ms ease-out backwards;
   }
 
+  [data-content-enter="1"] { animation-delay: 55ms; }
+  [data-content-enter="2"] { animation-delay: 110ms; }
+  [data-content-enter="3"] { animation-delay: 165ms; }
+
   @keyframes content-enter {
-    from { opacity: .82; }
-    to { opacity: 1; }
+    from { opacity: .48; translate: 0 -6px; }
+    to { opacity: 1; translate: 0 0; }
   }
 }
 
