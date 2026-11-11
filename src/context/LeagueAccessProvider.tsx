@@ -93,6 +93,7 @@ type LeagueAccessContextValue = {
   isAccessHydrated: boolean;
   overview?: LeagueOverview;
   preloadLeagueSnapshot: () => void | (() => void);
+  prepareLeagueNavigation: () => void;
   userLeagues: League[];
   refreshLeagueAccess: () => Promise<boolean>;
   createLeague: (settings: {
@@ -555,7 +556,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const refreshCompactOverview = Boolean(overview);
   const scopeReady = Boolean(currentHydration?.scope === requiredScope || (overviewOnly && currentHydration?.scope === "full"));
   const isAccessHydrated = sessionStatus === "unauthenticated" || scopeReady;
-  const { schedule: preloadLeagueSnapshot, take: takePreloadedAccess, clear: clearPreloadedAccess } = useLeagueSnapshotPreload(userId);
+  const { schedule: preloadLeagueSnapshot, start: startLeagueSnapshot, take: takePreloadedAccess, clear: clearPreloadedAccess } = useLeagueSnapshotPreload(userId);
+  const prepareLeagueNavigation = useCallback(() => {
+    if (overview) startLeagueSnapshot("high");
+  }, [overview, startLeagueSnapshot]);
 
   function persistLeagues(nextLeaguesInput: League[]) {
     const nextLeagues = uniqueLeaguesById(nextLeaguesInput);
@@ -1895,6 +1899,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       isAccessHydrated,
       overview,
       preloadLeagueSnapshot,
+      prepareLeagueNavigation,
       userLeagues,
       refreshLeagueAccess,
       createLeague,
@@ -1969,6 +1974,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       isAccessHydrated,
       overview,
       preloadLeagueSnapshot,
+      prepareLeagueNavigation,
       userId,
       userLeagues,
       userMemberships,

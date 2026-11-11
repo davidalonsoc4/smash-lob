@@ -72,6 +72,14 @@ for (const saveData of [false, true]) {
       await pending
       return route.fallback()
     })
+    let releaseNavigation!: () => void
+    const navigationPending = new Promise<void>(resolve => { releaseNavigation = resolve })
+    if (saveData) {
+      await page.route("**/league/home**", async route => {
+        await navigationPending
+        return route.fallback()
+      })
+    }
     try {
       await page.goto("/leagues")
       await expect(page.getByText("Temporada ligera", { exact: true })).toBeVisible()
@@ -85,10 +93,12 @@ for (const saveData of [false, true]) {
         await expect(page.getByText("Temporada ligera", { exact: true })).toBeVisible()
       }
       await page.getByRole("button", { name: /Entrar en Liga Azul QA/ }).click()
-      await expect(page).toHaveURL("/league/home")
       await expect.poll(() => fullReads).toBe(1)
+      releaseNavigation()
+      await expect(page).toHaveURL("/league/home")
       await expect(page.locator('[data-tour="home-header"]')).toHaveCount(0)
     } finally {
+      releaseNavigation()
       release()
     }
     await expect(page.locator('[data-tour="home-header"]')).toBeVisible()
@@ -96,6 +106,47 @@ for (const saveData of [false, true]) {
   })
 }
 
+test("shows the league match before personal history and updates when it arrives", async ({ page }) => {
+  const { league, matches } = await setup(page, "dark", "classic")
+  const season = { id: seasonId, leagueId, name: "Temporada ligera", status: "active", totalRounds: 12, completedRounds: 1 }
+  const leagueMatch = {
+    id: matches[0].id, origin: "league", status: "scheduled", scheduledAt: "2026-10-16T19:00:00Z",
+    resultRecordedAt: null, locationName: null, sets: [], canManage: true, canDelete: false,
+    leagueId, leagueName: league.name, seasonId, seasonName: season.name, round: 2,
+    participants: [
+      { team: 1, slot: 1, displayName: "QA Jugador", isCurrentUser: true },
+      { team: 2, slot: 1, displayName: "Rival Liga QA", isCurrentUser: false },
+    ],
+  }
+  await page.route("**/api/access", route => {
+    if (route.request().headers()["x-smash-lob-access-scope"] !== "overview") return route.fallback()
+    return route.fulfill({ json: {
+      isSuperuser: false, canCreateLeagues: true, leagues: [league], spectatorLeagueIds: [],
+      memberships: [{ userId: "qa-experience@example.test", leagueId, playerId: "davo", role: "admin" }],
+      overview: { activeSeasons: { [leagueId]: season }, startsAt: {}, revealedThrough: { [seasonId]: 12 }, activity: [leagueMatch] },
+    } })
+  })
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route("**/api/personal-matches?**", async route => {
+    await pending
+    const friendly = {
+      ...leagueMatch, id: "friendly-qa", origin: "friendly", scheduledAt: "2026-10-16T15:00:00Z",
+      leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null,
+      participants: [leagueMatch.participants[0], { ...leagueMatch.participants[1], displayName: "Rival Amistoso QA" }],
+    }
+    return route.fulfill({ json: { items: [], upcoming: [friendly], hasMore: false, nextOffset: null } })
+  })
+  try {
+    await page.goto("/leagues")
+    await expect(page.getByText("Rival Liga QA", { exact: true })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Abrir partido de Liga Azul QA" })).toBeEnabled()
+  } finally {
+    release()
+  }
+  await expect(page.getByText("Rival Amistoso QA", { exact: true })).toBeVisible()
+  await expect(page.getByText("Rival Liga QA", { exact: true })).toHaveCount(0)
+})
 test("notification starts the match chat request while league access is pending", async ({ page }) => {
   const { matches } = await setup(page, "dark", "classic")
   let releaseAccess!: () => void
