@@ -10,6 +10,7 @@ import { createChatListMemory } from "@/lib/chatListMemory"
 import { clearChatListCache } from "@/lib/chatListCache"
 import { createPersonalMatchesDashboard } from "@/lib/personalMatchesDashboard"
 import { clearChatEntryPreviews } from "@/lib/chatEntryRequest"
+import { clearMatchChatMemory } from "@/lib/matchChatCache"
 import { createLeagueScreenData } from "@/lib/leagueScreenData"
 import { ANNOUNCEMENTS_REFRESH_EVENT } from "@/lib/announcements"
 import { createTournamentList } from "@/lib/tournamentList"
@@ -198,6 +199,7 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
     }
     const membershipChanged = () => {
       clearChatEntryPreviews()
+      clearMatchChatMemory()
       chats.discard()
       leagueScreenData.stopPreview()
       preview.discard()
@@ -219,6 +221,7 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
       window.removeEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, chatChanged)
       window.removeEventListener(ANNOUNCEMENTS_REFRESH_EVENT, announcements.invalidate)
       clearChatEntryPreviews()
+      clearMatchChatMemory()
       chats.cancel()
       leagueScreenData.stopPreview()
       preview.cancel()

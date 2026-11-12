@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useSession } from "next-auth/react"
 import { openChatWithPreview } from "@/lib/chatEntryRequest"
+import { clearMatchChatCache, readMatchChatCache, writeMatchChatCache } from "@/lib/matchChatCache"
 import { useParams } from "next/navigation"
 import { useChatReservationPhase } from "@/hooks/useChatReservationPhase"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
@@ -90,11 +91,17 @@ function mapSnapshot(value: unknown): PersonalChatSnapshot {
 
 export default function PersonalMatchChatPage() {
   const account = useSession().data?.user?.email
-  const { tx, locale } = useI18n()
   const id = String(useParams<{ id: string }>().id ?? "")
-  const [snapshot, setSnapshot] = useState<PersonalChatSnapshot | null>(null)
+  return <PersonalMatchChat key={JSON.stringify([account, id])} account={account} id={id} />
+}
+
+function PersonalMatchChat({ account, id }: { account?: string | null; id: string }) {
+  const { tx, locale } = useI18n()
+  const cacheKey = `personal-chat:${id}`
+  const [initialSnapshot] = useState(() => account ? readMatchChatCache(cacheKey, account) as PersonalChatSnapshot | null : null)
+  const [snapshot, setSnapshot] = useState(initialSnapshot)
   const [body, setBody] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!initialSnapshot)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const viewportRef = useRef<HTMLDivElement | null>(null)
@@ -102,7 +109,7 @@ export default function PersonalMatchChatPage() {
   const composerRef = useRef<HTMLTextAreaElement | null>(null)
 
   const loadChat = useCallback(
-    async (options?: { markRead?: boolean; silent?: boolean }) => {
+    async (options?: { markRead?: boolean; silent?: boolean; signal?: AbortSignal }) => {
       const markRead = options?.markRead !== false
       if (!options?.silent) setError(null)
 
@@ -111,23 +118,29 @@ export default function PersonalMatchChatPage() {
           `/api/personal-matches/${encodeURIComponent(id)}/chat${
             markRead ? "" : "?markRead=0"
           }`,
-          { cache: "no-store" },
+          { cache: "no-store", signal: options?.signal },
         )
         const payload = await response.json().catch(() => null)
+        if (options?.signal?.aborted) return
         if (!response.ok) {
-          if ([401, 403, 404].includes(response.status)) setSnapshot(null)
+          if ([401, 403, 404].includes(response.status)) {
+            if (account) clearMatchChatCache(cacheKey, account)
+            setSnapshot(null)
+          }
           throw new Error(
             payload && typeof payload.error === "string"
               ? payload.error
               : "personal_match_chat_lookup_failed",
           )
         }
-        setSnapshot(mapSnapshot(payload))
+        const nextSnapshot = mapSnapshot(payload)
+        if (account) writeMatchChatCache(cacheKey, account, nextSnapshot)
+        setSnapshot(nextSnapshot)
         if (markRead) {
           window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
         }
       } catch (loadError) {
-        if (!options?.silent) {
+        if (!options?.silent && !options?.signal?.aborted) {
           setError(
             loadError instanceof Error &&
               loadError.message === "personal_match_chat_schema_missing"
@@ -136,21 +149,25 @@ export default function PersonalMatchChatPage() {
           )
         }
       } finally {
-        if (!options?.silent) setLoading(false)
+        if (!options?.silent && !options?.signal?.aborted) setLoading(false)
       }
     },
-    [id],
+    [account, cacheKey, id],
   )
 
   useEffect(() => {
-    let active = true
-    const timer = window.setTimeout(() => void openChatWithPreview(account, `/api/personal-matches/${encodeURIComponent(id)}/chat`, payload => {
-      if (!active) return
-      setSnapshot({ ...mapSnapshot(payload), realtimeTopic: null })
-      setLoading(false)
-    }, loadChat), 0)
-    return () => { active = false; window.clearTimeout(timer) }
-  }, [account, id, loadChat])
+    const controller = new AbortController()
+    const refresh = () => loadChat({ signal: controller.signal })
+    const timer = window.setTimeout(() => {
+      if (initialSnapshot) void refresh()
+      else void openChatWithPreview(account, `/api/personal-matches/${encodeURIComponent(id)}/chat`, payload => {
+        if (controller.signal.aborted) return
+        setSnapshot({ ...mapSnapshot(payload), realtimeTopic: null })
+        setLoading(false)
+      }, refresh)
+    }, 0)
+    return () => { controller.abort(); window.clearTimeout(timer) }
+  }, [account, id, initialSnapshot, loadChat])
 
   useEffect(() => {
     if (!snapshot?.realtimeTopic) return

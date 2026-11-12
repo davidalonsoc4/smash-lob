@@ -135,17 +135,26 @@ function MentionText({ body, participants }: { body: string; participants: Parti
 
 export default function MatchChatPage() {
   const account = useSession().data?.user?.email
-  const { tx, locale } = useI18n()
   const id = String(useParams<{ id: string }>().id)
+  return <MatchChat key={JSON.stringify([account, id])} account={account} id={id} />
+}
+
+function MatchChat({ account, id }: { account?: string | null; id: string }) {
+  const { tx, locale } = useI18n()
   useMatchLeagueContext(id)
-  const { matches, players, activeLeague, activeSeason, rounds } = useCurrentLeagueData()
-  const { hydrateMatches } = useMatchData()
-  const { getMembershipForLeague, isAccessHydrated, isLeagueAdmin } = useLeagueAccess()
+  const { hydrateMatches, matches: storedMatches } = useMatchData()
+  const { canAccessLeague, getMembershipForLeague, isAccessHydrated, isLeagueAdmin } = useLeagueAccess()
+  const storedMatch = storedMatches.find(item => item.id === id)
+  const { matches, players, activeLeague, activeSeason, rounds } = useCurrentLeagueData(storedMatch?.seasonId, storedMatch && canAccessLeague(storedMatch.leagueId) ? storedMatch.leagueId : undefined)
   const match = matches.find((item) => item.id === id)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [participants, setParticipants] = useState<Participant[]>([])
-  const [me, setMe] = useState("")
-  const [round, setRound] = useState<number | null>(null)
+  const [initialSnapshot] = useState(() => {
+    const cached = account ? readMatchChatCache(id, account) : null
+    return cached ? mapLoadedChatSnapshot(cached) : null
+  })
+  const [messages, setMessages] = useState(initialSnapshot?.messages ?? [])
+  const [participants, setParticipants] = useState(initialSnapshot?.participants ?? [])
+  const [me, setMe] = useState(initialSnapshot?.currentUserId ?? "")
+  const [round, setRound] = useState(initialSnapshot?.round ?? null)
   const [body, setBody] = useState("")
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [expandedProposalId, setExpandedProposalId] = useState<string | null>(null)
@@ -154,18 +163,18 @@ export default function MatchChatPage() {
   const [error, setError] = useState("")
   const [pendingVote, setPendingVote] = useState<string | null>(null)
   const votingRef = useRef(false)
-  const [readOnly, setReadOnly] = useState(false)
-  const [writeUntil, setWriteUntil] = useState<string | null>(null)
+  const [readOnly, setReadOnly] = useState(initialSnapshot?.readOnly ?? false)
+  const [writeUntil, setWriteUntil] = useState(initialSnapshot?.writeUntil ?? null)
   const [actionMode, setActionMode] = useState<ActionMode>(null)
   const [dateDraft, setDateDraft] = useState("")
   const [dateOptions, setDateOptions] = useState<string[]>([])
   const [locationDraft, setLocationDraft] = useState("")
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
-  const [realtimeTopic, setRealtimeTopic] = useState<string | null>(null)
-  const [coordination, setCoordination] = useState<MatchChatCoordination | null>(null)
-  const [reservationSummary, setReservationSummary] = useState<ReservationSummary | null>(null)
+  const [realtimeTopic, setRealtimeTopic] = useState(initialSnapshot?.realtimeTopic ?? null)
+  const [coordination, setCoordination] = useState(initialSnapshot?.coordination ?? null)
+  const [reservationSummary, setReservationSummary] = useState(initialSnapshot?.reservationSummary ?? null)
   const [matchAvailabilities, setMatchAvailabilities] = useState<PlayerAvailability[]>([])
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const [initialLoadComplete, setInitialLoadComplete] = useState(Boolean(initialSnapshot))
   const playerSeasonReadOnly = activeSeason.status === "upcoming" && !isLeagueAdmin(activeLeague.id)
   const effectiveReadOnly = readOnly || playerSeasonReadOnly
   const matchFinished = Boolean(match?.status === "finished" || match?.resultRecordedAt)
@@ -255,16 +264,15 @@ export default function MatchChatPage() {
     let cancelled = false
     const runLoad = () => loadFromServer(undefined, false, () => cancelled)
     const initialTimer = window.setTimeout(() => {
-      const cached = account ? readMatchChatCache(id, account) : null
-      if (cached) applySnapshot(mapLoadedChatSnapshot(cached))
-      void openChatWithPreview(account, `/api/matches/${encodeURIComponent(id)}/chat`, payload => {
+      if (initialSnapshot) void runLoad()
+      else void openChatWithPreview(account, `/api/matches/${encodeURIComponent(id)}/chat`, payload => {
         if (!cancelled) applySnapshot(mapLoadedChatSnapshot({ ...record(payload), realtimeTopic: null }))
       }, runLoad)
     }, 0)
     const handleVisibility = () => { if (!document.hidden) void runLoad() }
     document.addEventListener("visibilitychange", handleVisibility)
     return () => { cancelled = true; window.clearTimeout(initialTimer); document.removeEventListener("visibilitychange", handleVisibility) }
-  }, [account, applySnapshot, id, loadFromServer])
+  }, [account, applySnapshot, id, initialSnapshot, loadFromServer])
 
   useEffect(() => subscribeChatRealtime(realtimeTopic, () => {
     if (!document.hidden) void loadFromServer(undefined, true)

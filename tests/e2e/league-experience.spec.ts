@@ -174,6 +174,53 @@ test("personal matches and profile keep the app visible with compact league acce
   }
 })
 
+test("global friendly detail and reopened chat stay usable while reads are pending", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  const id = "qa-warm-friendly"
+  const match = {
+    id, origin: "friendly", status: "scheduled", scheduledAt: "2026-10-19T10:00:00Z",
+    locationName: "Pista de prueba", sets: [], canManage: true,
+    participants: [{ team: 1, slot: 1, displayName: "QA amistoso", isCurrentUser: true }],
+  }
+  await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [], upcoming: [match], hasMore: false, nextOffset: null } }))
+  let releaseDetail!: () => void
+  const detailPending = new Promise<void>(resolve => { releaseDetail = resolve })
+  await page.route(`**/api/personal-matches/${id}`, async route => {
+    await detailPending
+    return route.fulfill({ json: { item: match } })
+  })
+  let releaseChat!: () => void
+  const chatPending = new Promise<void>(resolve => { releaseChat = resolve })
+  let chatReads = 0
+  await page.route(`**/api/personal-matches/${id}/chat`, async route => {
+    if (route.request().method() === "GET" && ++chatReads > 1) await chatPending
+    return route.fulfill({ json: { match, currentUserId: "qa-user", participants: [], readOnly: false,
+      messages: [{ id: "first", sender_user_id: "other", sender_display_name: "QA", body: "Mensaje guardado", created_at: "2026-10-15T10:00:00Z" }],
+    } })
+  })
+  try {
+    await page.goto("/leagues")
+    await page.getByRole("link", { name: "Abrir partido de Amistoso" }).click()
+    await expect(page.getByRole("heading", { name: "Partido", exact: true })).toBeVisible()
+    await expect(page.getByText("QA amistoso", { exact: true }).first()).toBeVisible()
+    await expect(page.getByText("Cargando partido...")).toHaveCount(0)
+    releaseDetail()
+    await page.getByRole("link", { name: "Abrir chat del partido" }).click()
+    await expect(page.getByText("Mensaje guardado")).toBeVisible()
+    await page.getByRole("link", { name: "Abrir detalle del partido" }).click()
+    await page.getByRole("link", { name: "Abrir chat del partido" }).click()
+    await expect.poll(() => chatReads).toBe(2)
+    await expect(page.getByText("Mensaje guardado")).toBeVisible()
+    await page.getByPlaceholder("Escribe un mensaje…").fill("Borrador de prueba")
+    await expect(page.getByRole("button", { name: "Enviar mensaje" })).toBeEnabled()
+    releaseChat()
+    await expect(page.getByPlaceholder("Escribe un mensaje…")).toHaveValue("Borrador de prueba")
+  } finally {
+    releaseDetail()
+    releaseChat()
+  }
+})
+
 test("shows the league match before personal history and updates when it arrives", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" })
   const { league, matches } = await setup(page, "dark", "classic")
@@ -277,6 +324,35 @@ test("notification starts the match chat request while league access is pending"
   await expect(page).toHaveURL(new RegExp(`${target}$`))
   await expect(page.getByPlaceholder("Escribe un mensaje…")).toBeVisible()
   expect(chatReads).toBe(1)
+})
+
+test("league chat keeps cached messages and composer on a round trip to the match", async ({ page }) => {
+  const { matches } = await setup(page, "dark", "competition")
+  const match = matches.find(item => item.teamA.includes("davo") || item.teamB.includes("davo"))!
+  let releaseChat!: () => void
+  const chatPending = new Promise<void>(resolve => { releaseChat = resolve })
+  let reads = 0
+  await page.route(`**/api/matches/${match.id}/chat`, async route => {
+    if (++reads > 1) await chatPending
+    return route.fulfill({ json: {
+      currentUserId: "qa-user", round: match.round, readOnly: false, participants: [],
+      messages: [{ id: "cached", kind: "text", sender_user_id: "qa-user", sender_display_name: "QA", body: "Mensaje de liga guardado", created_at: "2026-10-15T10:00:00Z", responses: [] }],
+    } })
+  })
+  try {
+    await page.goto(`/match/${match.id}/chat`)
+    await expect(page.getByText("Mensaje de liga guardado")).toBeVisible()
+    await page.getByRole("link", { name: "Abrir detalle del partido" }).click()
+    await page.getByRole("link", { name: "Abrir chat del partido" }).click()
+    await expect.poll(() => reads).toBe(2)
+    await expect(page.getByText("Mensaje de liga guardado")).toBeVisible()
+    await page.getByPlaceholder("Escribe un mensaje…").fill("Borrador de liga")
+    await expect(page.getByRole("button", { name: "Enviar mensaje" })).toBeEnabled()
+    releaseChat()
+    await expect(page.getByPlaceholder("Escribe un mensaje…")).toHaveValue("Borrador de liga")
+  } finally {
+    releaseChat()
+  }
 })
 
 test("season chat loads without waiting for the league snapshot", async ({ page }) => {
