@@ -245,7 +245,6 @@ export default function PersonalMatchChatPage() {
       } else {
         void loadChat({ silent: true })
       }
-      requestAnimationFrame(() => composerRef.current?.focus())
     } catch (sendError) {
       setSnapshot((current) =>
         current

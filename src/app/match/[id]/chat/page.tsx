@@ -365,7 +365,7 @@ export default function MatchChatPage() {
     if (kind === "text") { setBody(""); setReplyingTo(null); if (composerRef.current) composerRef.current.style.height = "auto"; if (refocusComposer) focusComposerAfterSend() }
     if (kind === "date_proposal") { setDateDraft(""); setDateOptions([]) }
     if (kind === "location_proposal") setLocationDraft("")
-    const response = await fetch(`/api/matches/${encodeURIComponent(id)}/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text, kind, payload, clientId }) })
+    const response = await fetch(`/api/matches/${encodeURIComponent(id)}/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text, kind, payload, clientId }) }).catch(() => Response.error())
     const data = await response.json().catch(() => null)
     pendingMessagesRef.current.delete(optimisticId)
     if (response.ok) { const confirmed = data?.message as Message | undefined; setMessages((current) => { if (!confirmed) return current.filter((message) => message.id !== optimisticId); if (current.some((message) => message.id === confirmed.id)) return current.filter((message) => message.id !== optimisticId); return current.some((message) => message.id === optimisticId) ? current.map((message) => message.id === optimisticId ? confirmed : message) : [...current, confirmed] }); void loadFromServer(match) }

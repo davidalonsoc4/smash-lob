@@ -312,6 +312,76 @@ test("appearance migrates the league accent and keeps six fixed choices", async 
   await expect(page.locator("html")).toHaveCSS("--app-accent", "#477BD1")
 })
 
+test("league chat fits the visual viewport when the keyboard opens", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: {
+    season: { name: "Temporada 1", league_id: leagueId }, me: "qa-user", readOnly: false, realtimeTopic: null,
+    messages: [{ id: "incoming", sender_user_id: "friend", sender_display_name: "Ana", body: "Mensaje visible", created_at: "2026-10-16T11:00:00Z" }],
+  } }))
+  await page.goto(`/league-chat/${seasonId}`)
+  const composer = page.getByPlaceholder("Escribe un mensaje…")
+  await composer.focus()
+  await page.evaluate(() => {
+    const viewport = window.visualViewport!
+    Object.defineProperties(viewport, { height: { configurable: true, value: 416 }, offsetTop: { configurable: true, value: 72 } })
+    viewport.dispatchEvent(new Event("resize"))
+    viewport.dispatchEvent(new Event("scroll"))
+  })
+  const bounds = () => page.locator("[data-compact-chat-header]").evaluate(header => ({
+    top: Math.round(header.getBoundingClientRect().top),
+    bottom: Math.round(header.parentElement!.getBoundingClientRect().bottom),
+  }))
+  await expect.poll(bounds, { timeout: 2000 }).toEqual({ top: 72, bottom: 488 })
+  await expect(page.getByText("Mensaje visible", { exact: true })).toBeVisible()
+  await expect(composer).toBeFocused()
+  await composer.blur()
+  await page.evaluate(() => {
+    const viewport = window.visualViewport!
+    Reflect.deleteProperty(viewport, "height")
+    Reflect.deleteProperty(viewport, "offsetTop")
+    viewport.dispatchEvent(new Event("resize"))
+  })
+  await expect.poll(async () => (await bounds()).top).toBe(0)
+})
+
+test("league chat shows a pending send immediately and restores a failed draft", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  let release!: () => void
+  const firstResponse = new Promise<void>(resolve => { release = resolve })
+  let posts = 0, reads = 0
+  await page.route("**/api/league-season-chats/**", async route => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON().body
+      if (++posts === 1) {
+        await firstResponse
+        return route.fulfill({ status: 201, json: { message: { id: "sent", sender_user_id: "qa-user", sender_display_name: "QA", body, created_at: "2026-10-16T12:00:00Z" } } })
+      }
+      return route.fulfill({ status: 500, json: {} })
+    }
+    reads++
+    return route.fulfill({ json: { season: { name: "Temporada 1" }, messages: [], me: "qa-user", readOnly: false, realtimeTopic: null } })
+  })
+  await page.goto(`/league-chat/${seasonId}`)
+  const composer = page.getByPlaceholder("Escribe un mensaje…")
+  await composer.fill("Envío instantáneo QA")
+  const sent = page.locator(".league-season-chat-messages").getByText("Envío instantáneo QA", { exact: true })
+  try {
+    await composer.press("Enter")
+    await expect(sent).toBeVisible({ timeout: 2000 })
+    await expect(composer).toHaveValue("")
+  } finally {
+    release()
+  }
+  await expect(sent).toHaveCount(1)
+  await composer.fill("Borrador recuperado QA")
+  await expect(page.getByRole("button", { name: "Enviar mensaje" })).toBeEnabled()
+  await composer.press("Enter")
+  await expect(page.getByText(/No se ha podido cargar o enviar el mensaje/)).toBeVisible()
+  await expect(composer).toHaveValue("Borrador recuperado QA")
+  await expect(page.locator(".league-season-chat-messages").getByText("Borrador recuperado QA", { exact: true })).toHaveCount(0)
+  expect(reads).toBe(1)
+})
+
 test("league season chat opens from home and sends a message", async ({ page }, info) => {
   await setup(page, "dark", "classic")
   const messages: Array<{ id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }> = []
