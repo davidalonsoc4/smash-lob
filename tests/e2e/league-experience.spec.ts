@@ -428,6 +428,71 @@ test("global chats wait for slow friendly responses and protect private list met
   await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
 })
 
+test("global profile reuses history on return and revalidates without hiding it", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let email = "qa-experience@example.test"
+  let fail = false
+  const requests: string[] = []
+  const historyApi = /\/api\/personal-matches\?limit=50&/
+  let releaseOther!: () => void
+  const otherPending = new Promise<void>(resolve => { releaseOther = resolve })
+  await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { email }, expires: "2099-01-01T00:00:00Z" } }))
+  await page.route(historyApi, async route => {
+    const account = route.request().headers()["x-smash-lob-profile-account"]
+    requests.push(account)
+    if (account === "other-qa%40example.test") await otherPending
+    return route.fulfill({ status: fail ? 500 : 200, json: { items: [], hasMore: false, nextOffset: null } })
+  })
+  const profile = "/personal-matches/profile"
+  const stats = page.locator("[data-personal-profile-sections]")
+  const loading = page.getByText("Calculando tu histórico completo...", { exact: true })
+  const notify = (type: string) => page.evaluate(event => {
+    (event === "visibilitychange" ? document : window).dispatchEvent(new Event(event))
+  }, type)
+  try {
+    await page.goto(profile)
+    await expect(stats).toBeVisible()
+    await expect(page.locator(".personal-profile-enter")).toHaveCount(1)
+    expect(requests).toEqual(["qa-experience%40example.test"])
+    await page.locator('a[data-tour="floating-settings"]').click()
+    await expect(page.getByRole("heading", { name: "Ajustes", exact: true })).toBeVisible()
+    await page.getByRole("link", { name: /Volver|Atrás/ }).first().click()
+    await expect(page).toHaveURL(profile)
+    await expect(stats).toBeVisible()
+    await expect(loading).toHaveCount(0)
+    await expect(page.locator(".personal-profile-enter")).toHaveCount(0)
+    await notify("visibilitychange")
+    expect(requests).toHaveLength(1)
+
+    fail = true
+    await page.clock.setFixedTime(new Date("2026-10-16T12:01:01Z"))
+    const failedRefresh = page.waitForResponse(historyApi)
+    await notify("visibilitychange")
+    expect((await failedRefresh).status()).toBe(500)
+    await expect(stats).toBeVisible()
+    await expect(loading).toHaveCount(0)
+
+    fail = false
+    const savedResultRefresh = page.waitForResponse(historyApi)
+    await notify("smash-lob:refresh-personal-profile-history")
+    expect((await savedResultRefresh).status()).toBe(200)
+    await expect(stats).toBeVisible()
+
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    email = "other-qa@example.test"
+    await notify("visibilitychange")
+    await expect.poll(() => requests.at(-1)).toBe("other-qa%40example.test")
+    await expect(loading).toBeVisible()
+    await expect(stats).toHaveCount(0)
+    releaseOther()
+    await expect(stats).toBeVisible()
+    await expect(page.locator(".personal-profile-enter")).toHaveCSS("animation-name", "none")
+    expect(requests).toEqual(Array(3).fill("qa-experience%40example.test").concat("other-qa%40example.test"))
+  } finally {
+    releaseOther()
+  }
+})
+
 test("competition create button opens options for creators", async ({ page }) => {
   await setup(page, "dark", "classic", true)
   await page.goto("/leagues")

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
+import { requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import { useRouter } from "next/navigation"
 import {
   PersonalMatchParticipantSelector,
@@ -228,6 +229,7 @@ export default function NewPersonalMatchPage() {
         throw new Error(payload.error ?? "personal_match_create_failed")
       }
 
+      if (includeResult) requestPersonalProfileHistoryRefresh()
       router.replace(`/personal-matches/${encodeURIComponent(payload.id)}`)
     } catch (caughtError) {
       const code = caughtError instanceof Error ? caughtError.message : ""

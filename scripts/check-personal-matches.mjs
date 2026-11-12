@@ -249,7 +249,7 @@ assert(personalProfilePage.includes("Todas las ligas") && personalProfilePage.in
 assert(personalProfileStats.includes("filterPersonalProfileMatches") && personalProfileStats.includes("getPersonalProfileStats"), "Las estadísticas globales deben calcularse desde el historial personal")
 assert(personalProfileStats.includes("getPersonalProfileHeadToHead") && personalProfileStats.includes("bestTeammate") && personalProfileStats.includes("nemesis"), "El perfil global debe incluir parejas, rivales y cara a cara")
 assert(personalProfileStats.includes("decidingSetMatches") && personalProfileStats.includes("comebackWins") && personalProfileStats.includes("currentForm"), "El perfil global debe incluir rendimiento avanzado y forma reciente")
-assert(personalProfilePage.includes("includeAvatars=1"), "El perfil global debe cargar avatares para relaciones y cara a cara")
+assert((await readFile("src/lib/personalProfileHistory.ts", "utf8")).includes("includeAvatars=1"), "El perfil global debe cargar avatares para relaciones y cara a cara")
 assert(profileTabs.includes("Parejas / rivales") && profileTabs.includes("Cara a cara") && personalProfileView.includes("Mejor pareja") && personalProfileView.includes("Némesis"), "La UI del perfil debe exponer las nuevas estadísticas")
 assert(personalProfileView.includes("Enfrentamientos directos") && personalProfileView.includes("Rendimiento de la pareja"), "Cara a cara debe distinguir rivalidad y partidos como pareja")
 assert(personalMatchesLib.includes("personKey?: string | null"), "Los participantes del histórico deben exponer una identidad estable opcional")

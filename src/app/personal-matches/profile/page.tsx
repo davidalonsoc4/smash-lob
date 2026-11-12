@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react"
 import { PersonalProfileStatistics } from "@/components/personal/PersonalProfileStatistics"
 import type { PersonalProfileSection } from "@/components/player/ProfileSectionTabs"
 import { PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
@@ -13,7 +13,7 @@ import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
-import type { PersonalMatchItem, PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
+import type { PersonalMatchItem } from "@/lib/personalMatches"
 import {
   filterPersonalProfileMatches,
   getPersonalProfileHeadToHead,
@@ -21,41 +21,21 @@ import {
   type PersonalProfileOriginFilter,
 } from "@/lib/personalProfileStats"
 
-async function loadAllFinishedMatches() {
-  const items: PersonalMatchItem[] = []
-  let offset = 0
-
-  for (let page = 0; page < 200; page += 1) {
-    const response = await fetch(
-      `/api/personal-matches?limit=50&offset=${offset}&includeUpcoming=0&includeAvatars=1`,
-      { cache: "no-store" },
-    )
-    const payload = (await response.json()) as PersonalMatchesDashboardPayload & { error?: string }
-
-    if (!response.ok) throw new Error(payload.error ?? "personal_profile_lookup_failed")
-
-    items.push(...payload.items.filter((match) => match.status === "finished"))
-    if (!payload.hasMore || payload.nextOffset === null) return items
-    offset = payload.nextOffset
-  }
-
-  throw new Error("personal_profile_history_too_large")
-}
+const emptyHistory: PersonalMatchItem[] = []
 
 export default function PersonalProfilePage() {
-  const { tx } = useI18n()
+  const { t, tx } = useI18n()
   const router = useRouter()
-  const { t } = useI18n()
-  const { profile } = useAccountProfile()
+  const { history, profile } = useAccountProfile()
   const { getMembershipForLeague, userLeagues } = useLeagueAccess()
   const participatingLeagues = useMemo(
     () => userLeagues.filter((league) => getMembershipForLeague(league.id)),
     [getMembershipForLeague, userLeagues],
   )
   const { activateLeague } = useActiveLeague()
-  const [items, setItems] = useState<PersonalMatchItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { items: cachedItems, failed } = useSyncExternalStore(history.subscribe, history.getSnapshot, history.getSnapshot)
+  const [animate] = useState(cachedItems === null)
+  const items = cachedItems ?? emptyHistory
   const [origin, setOrigin] = useState<PersonalProfileOriginFilter>("all")
   const [leagueId, setLeagueId] = useState("")
   const [seasonId, setSeasonId] = useState("")
@@ -63,23 +43,14 @@ export default function PersonalProfilePage() {
   const [comparisonKey, setComparisonKey] = useState("")
 
   useEffect(() => {
-    let cancelled = false
-
-    void loadAllFinishedMatches()
-      .then((matches) => {
-        if (!cancelled) setItems(matches)
-      })
-      .catch(() => {
-        if (!cancelled) setError("No se han podido cargar tus estadísticas globales.")
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
+    const timer = window.setTimeout(history.refresh, 0)
+    const refreshVisible = () => { if (!document.hidden) history.refresh() }
+    document.addEventListener("visibilitychange", refreshVisible)
     return () => {
-      cancelled = true
+      window.clearTimeout(timer)
+      document.removeEventListener("visibilitychange", refreshVisible)
     }
-  }, [])
+  }, [history])
 
   const leagues = useMemo(() => {
     const byId = new Map<string, string>()
@@ -183,29 +154,31 @@ export default function PersonalProfilePage() {
         ) : null}
       </AppCard>
 
-      {loading ? (
+      {!cachedItems && !failed ? (
         <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Calculando tu histórico completo...")}</p></AppCard>
-      ) : error ? (
-        <AppCard><p className="text-sm font-bold text-red-700">{error}</p></AppCard>
+      ) : failed ? (
+        <AppCard><p className="text-sm font-bold text-red-700">{tx("No se han podido cargar tus estadísticas globales.")}</p></AppCard>
       ) : (
-        <PersonalProfileStatistics
-          stats={stats}
-          section={section}
-          onSectionChange={setSection}
-          comparisonPeople={comparisonPeople}
-          comparisonKey={effectiveComparisonKey}
-          onComparisonChange={setComparisonKey}
-          onRelationSelect={openHeadToHead}
-          onOpenPlayerProfile={openPlayerProfile}
-          headToHead={headToHead}
-          summaryContent={stats.matchesPlayed === 0 ? (
-            <EmptyState
-              title={tx("No hay partidos para este filtro")}
-              description={tx("Prueba otro ámbito o registra nuevos resultados para ampliar tus estadísticas.")}
-              action={{ label: "Volver a Mis partidos", href: "/personal-matches" }}
-            />
-          ) : undefined}
-        />
+        <div className={animate ? "personal-profile-enter" : undefined}>
+          <PersonalProfileStatistics
+            stats={stats}
+            section={section}
+            onSectionChange={setSection}
+            comparisonPeople={comparisonPeople}
+            comparisonKey={effectiveComparisonKey}
+            onComparisonChange={setComparisonKey}
+            onRelationSelect={openHeadToHead}
+            onOpenPlayerProfile={openPlayerProfile}
+            headToHead={headToHead}
+            summaryContent={stats.matchesPlayed === 0 ? (
+              <EmptyState
+                title={tx("No hay partidos para este filtro")}
+                description={tx("Prueba otro ámbito o registra nuevos resultados para ampliar tus estadísticas.")}
+                action={{ label: "Volver a Mis partidos", href: "/personal-matches" }}
+              />
+            ) : undefined}
+          />
+        </div>
       )}
     </div>
   )

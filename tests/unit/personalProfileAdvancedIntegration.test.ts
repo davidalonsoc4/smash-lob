@@ -36,16 +36,17 @@ describe("personal profile advanced statistics", () => {
   })
 
   it("uses stable participant identities and requests avatars only for the profile history", async () => {
-    const [types, route, server, page] = await Promise.all([
+    const [types, route, server, page, history] = await Promise.all([
       read("src/lib/personalMatches.ts"),
       read("src/app/api/personal-matches/route.ts"),
       read("src/lib/serverPersonalMatches.ts"),
       read("src/app/personal-matches/profile/page.tsx"),
+      read("src/lib/personalProfileHistory.ts"),
     ])
 
     expect(types).toContain("personKey?: string | null")
     expect(route).toContain('searchParams.get("includeAvatars")')
-    expect(page).toContain("includeAvatars=1")
+    expect(history).toContain("includeAvatars=1")
     expect(server).toContain("getParticipantPersonKey")
     expect(server).toContain('`user:${userId}`')
     expect(server).toContain('`player:${playerId}`')

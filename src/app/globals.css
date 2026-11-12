@@ -441,6 +441,8 @@ textarea {
   [data-card-list-enter] > :nth-child(3) { animation-delay: 110ms; }
   [data-card-list-enter] > :nth-child(4) { animation-delay: 165ms; }
 
+  .personal-profile-enter { animation: card-list-enter 180ms ease-out; }
+
   @keyframes card-list-enter {
     from { opacity: .48; }
     to { opacity: 1; }
