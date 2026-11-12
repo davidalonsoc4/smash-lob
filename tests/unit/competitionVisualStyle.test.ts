@@ -53,11 +53,11 @@ describe("Competition visual style", () => {
     expect(normalizeAccentColor(null)).toBe(DEFAULT_LEAGUE_ACCENT)
   })
 
-  it("supports curated Competition accents and the league-derived option", () => {
+  it("migrates the league-derived Competition accent to the curated default", () => {
     expect(normalizeCompetitionAccent("blue")).toBe("blue")
-    expect(normalizeCompetitionAccent("unknown")).toBe("league")
-    expect(getCompetitionAccentColor("blue", "#123456")).toBe("#477BD1")
-    expect(getCompetitionAccentColor("league", "#123456")).toBe("#123456")
+    expect(normalizeCompetitionAccent("unknown")).toBe("gold")
+    expect(normalizeCompetitionAccent("league")).toBe("gold")
+    expect(getCompetitionAccentColor("blue")).toBe("#477BD1")
   })
 
   it("opens Competition to everyone even with legacy restrictions configured", () => {

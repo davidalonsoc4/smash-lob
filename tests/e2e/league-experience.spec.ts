@@ -293,6 +293,25 @@ test("season chat loads without waiting for the league snapshot", async ({ page 
   }
 })
 
+test("appearance migrates the league accent and keeps six fixed choices", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem("qa-legacy-accent")) return
+    sessionStorage.setItem("qa-legacy-accent", "1")
+    localStorage.setItem("smash-lob-competition-accent", "league")
+  })
+  await page.goto("/settings/appearance")
+  const accents = page.locator("#competition-accent")
+  await expect(accents.getByRole("button")).toHaveCount(6)
+  await expect(accents.getByRole("button", { name: /Dorado/ })).toHaveAttribute("aria-pressed", "true")
+  await expect(page.locator("html")).toHaveCSS("--app-accent", "#D7A544")
+  const blue = accents.getByRole("button", { name: /Azul competición/ })
+  await blue.click()
+  await page.reload()
+  await expect(blue).toHaveAttribute("aria-pressed", "true")
+  await expect(page.locator("html")).toHaveCSS("--app-accent", "#477BD1")
+})
+
 test("league season chat opens from home and sends a message", async ({ page }, info) => {
   await setup(page, "dark", "classic")
   const messages: Array<{ id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }> = []
@@ -305,7 +324,10 @@ test("league season chat opens from home and sends a message", async ({ page }, 
     }
   })
   await page.goto("/league/home")
-  await page.getByRole("link", { name: "Abrir chat de liga" }).click()
+  const chat = page.getByRole("link", { name: "Abrir chat de liga" })
+  await expect(chat).toHaveCSS("box-shadow", /rgb\(255, 255, 255\) 0px 0px 0px 2px inset/)
+  await expect(chat.getByLabel("Mensajes sin leer")).toBeVisible()
+  await chat.click()
   await expect(page.getByRole("heading", { name: "Liga Azul QA" })).toBeVisible()
   const menu = page.getByLabel("Más opciones", { exact: true })
   await menu.click()

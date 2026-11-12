@@ -1,3 +1,7 @@
+## MC171 — Contraste del chat flotante y acentos de apariencia
+- Estado: EN CURSO.
+- Gates: validate, Playwright móvil del chat de liga y selector de acento y comprobación de ambos ajustes en LAN 3000.
+
 ## MC170 — Navegación y actualización de las pantallas de liga
 - Estado: COMPLETO LOCAL. Verificado en LAN 3000.
 - Gates: comparativa en build de producción y LAN 3000, validate, Playwright móvil con cambios de datos y navegación, permisos y PWA.
