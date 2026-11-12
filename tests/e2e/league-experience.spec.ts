@@ -582,6 +582,187 @@ test("league navigation keeps the unread badge current without refetching on unr
   expect(reads).toBe(initialReads + 1)
 })
 
+test("league tabs reuse content and apply chat and announcement changes in place", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let chatReads = 0, summaryReads = 0, announcementReads = 0, accessReads = 0
+  let message = "Primer mensaje QA", general = "Primer resumen QA", announcement = "Primer comunicado QA", unread = 1
+  let blocked = false, denied = false
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route("**/api/access", route => { accessReads++; return route.fallback() })
+  await page.route("**/api/chats?**", async route => {
+    chatReads++
+    expect(new URL(route.request().url()).searchParams.get("seasonId")).toBe(seasonId)
+    if (blocked) await pending
+    if (denied) return route.fulfill({ status: 403, json: {} })
+    return route.fulfill({ json: { totalUnread: unread, chats: [{ id: "chat-qa", round: 2, status: "scheduling", partner: "Ana", rivals: ["Bea", "Carlos"], unread, lastMessage: { sender: "Ana", body: message, createdAt: "2026-10-16T10:00:00Z" } }] } })
+  })
+  await page.route("**/api/league-season-chats/*?summary=1", route => {
+    summaryReads++
+    return route.fulfill({ json: { unread, readOnly: false, messages: [{ sender_display_name: "Ana", body: general, created_at: "2026-10-16T10:00:00Z" }] } })
+  })
+  await page.route("**/api/leagues/*/announcements?homeOnly=1", route => {
+    announcementReads++
+    return route.fulfill({ json: { announcements: [{ id: "notice-qa", leagueId, title: announcement, body: "Comunicado sintético", publishedAt: "2026-10-16T10:00:00Z" }] } })
+  })
+  await page.goto("/league/home")
+  const nav = page.locator("nav[data-tour=bottom-navigation]")
+  const go = async (path: string) => {
+    await nav.locator(`a[href="${path}"]`).click()
+    await expect(page).toHaveURL(path)
+    await expect(page.locator("main h1").first()).toBeVisible()
+  }
+  const badge = nav.locator('a[href="/chats"]')
+  await expect(badge.getByText("1", { exact: true })).toBeVisible()
+  await expect(page.getByText(announcement, { exact: true })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Abrir chat de liga" })).toBeVisible()
+  const initial = [chatReads, summaryReads, announcementReads, accessReads]
+  await go("/matches")
+  await go("/ranking")
+  await go("/profile")
+  await expect(page.locator(".personal-profile-enter")).toHaveCount(1)
+  await go("/chats")
+  const conversation = page.locator('a[href="/match/chat-qa/chat"]')
+  await expect(conversation).toContainText(message)
+  await expect(page.getByText(general, { exact: false })).toBeVisible()
+  await expect(page.locator("[data-card-list-enter]")).toHaveCount(1)
+  await go("/league/home")
+  await expect(page.getByText(announcement, { exact: true })).toBeVisible()
+  await go("/matches")
+  await expect(page.locator("[data-card-list-enter]")).toHaveCount(0)
+  await go("/profile")
+  await expect(page.locator(".personal-profile-enter")).toHaveCount(0)
+  await go("/chats")
+  await expect(conversation).toContainText(message)
+  await expect(page.locator("[data-card-list-enter]")).toHaveCount(0)
+  expect([chatReads, summaryReads, announcementReads, accessReads]).toEqual(initial)
+
+  blocked = true
+  unread = 4
+  general = "Nuevo resumen QA"
+  const newMessage = "Mensaje actualizado QA"
+  const revalidation = page.waitForRequest("**/api/chats?**")
+  try {
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+    await revalidation
+    await expect(conversation).toContainText(message)
+    await expect(page.getByText("Cargando conversaciones…", { exact: true })).toHaveCount(0)
+    message = newMessage
+  } finally {
+    blocked = false
+    release()
+  }
+  await expect(conversation).toContainText(newMessage)
+  await expect(badge.getByText("4", { exact: true })).toBeVisible()
+  await expect(page.getByText(general, { exact: false })).toBeVisible()
+  await expect(page.locator("[data-card-list-enter]")).toHaveCount(0)
+
+  announcement = "Comunicado actualizado QA"
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:announcements-refresh")))
+  await go("/league/home")
+  await expect(page.getByText(announcement, { exact: true })).toBeVisible()
+  await go("/chats")
+  denied = true
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+  await expect(conversation).toHaveCount(0)
+  await expect(badge.getByText("4", { exact: true })).toHaveCount(0)
+})
+
+test("saving a league result updates warmed ranking, matches and profile on return", async ({ page }) => {
+  const { matches } = await setup(page, "light", "classic")
+  const match = matches.find(item => item.round === 2 && [...item.teamA, ...item.teamB].includes("davo"))!
+  match.id = "30000000-0000-4000-8000-000000000072"
+  Object.assign(match, { status: "scheduled", scheduledAt: "2026-10-16T11:30:00Z" })
+  const winningTeam = match.teamA.includes("davo") ? "A" : "B"
+  const topic = "realtime:qa-league-overview"
+  let notify: ((leagueDataChanged: boolean) => void) | undefined
+  await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: [], realtimeTopic: "qa-league-overview" } }))
+  await page.routeWebSocket("**/realtime/v1/websocket**", socket => {
+    socket.onMessage(message => {
+      if (typeof message !== "string") return
+      const [joinRef, ref, channel, event] = JSON.parse(message)
+      if (event === "phx_join" || event === "heartbeat" || event === "phx_leave") {
+        socket.send(JSON.stringify([joinRef, ref, channel, "phx_reply", { status: "ok", response: {} }]))
+      }
+      if (event === "phx_join" && channel === topic) {
+        notify = leagueDataChanged => socket.send(JSON.stringify([joinRef, null, channel, "broadcast", {
+          type: "broadcast", event: "refresh", payload: { leagueDataChanged },
+        }]))
+      }
+    })
+  })
+  let saved = 0
+  await page.route(`**/api/matches/${match.id}/result`, route => {
+    expect(route.request().method()).toBe("PUT")
+    const { sets } = route.request().postDataJSON()
+    expect(sets).toHaveLength(3)
+    Object.assign(match, { sets, status: "finished", resultRecordedAt: "2026-10-16T12:00:00Z", pointsA: winningTeam === "A" ? 2 : 1, pointsB: winningTeam === "B" ? 2 : 1 })
+    saved++
+    return route.fulfill({ json: { match } })
+  })
+  await page.goto("/league/home")
+  const nav = page.locator("nav[data-tour=bottom-navigation]")
+  const go = async (path: string) => {
+    await nav.locator(`a[href="${path}"]`).click()
+    await expect(page).toHaveURL(path)
+  }
+  await go("/ranking")
+  const rankingRow = page.locator('.app-ranking-row[href$="/davo"]')
+  const played = rankingRow.locator(":scope > div").nth(1)
+  await expect(played).toBeVisible()
+  const beforePlayed = Number(await played.innerText())
+  await go("/profile")
+  const profilePoints = page.getByText("Puntos", { exact: true }).first().locator("..").locator("p").last()
+  await expect(profilePoints).toBeVisible()
+  const beforePoints = Number(await profilePoints.innerText())
+  await go("/matches")
+  await page.locator(`a[href="/match/${match.id}"]`).first().click()
+  const result = page.getByRole("region", { name: "Resultado del partido", exact: true })
+  await result.getByRole("button", { name: "Registrar resultado", exact: true }).click()
+  for (const team of ["A", "B"]) for (const set of [1, 2, 3]) {
+    await result.getByRole("textbox", { name: `Pareja ${team} Set ${set}`, exact: true }).fill((team === winningTeam) === (set !== 2) ? "6" : "1")
+  }
+  await result.getByRole("button", { name: "Guardar resultado", exact: true }).click()
+  await expect(result.getByRole("heading", { name: "Resultado registrado", exact: true })).toBeVisible()
+  expect(saved).toBe(1)
+
+  await go("/ranking")
+  await expect(played).toHaveText(String(beforePlayed + 1))
+  await go("/profile")
+  await expect(profilePoints).toHaveText(String(beforePoints + 2))
+  await go("/matches")
+  await expect(page.locator("section.app-card").filter({ has: page.locator(`a[href="/match/${match.id}"]`) }).first()).toContainText(/6.*1|1.*6/)
+  await go("/league/home")
+  await expect(page.locator("[data-home-match-carousel]").last()).toContainText("Jornada 2")
+  await expect(page.locator(".app-skeleton")).toHaveCount(0)
+  await go("/ranking")
+  const points = rankingRow.locator(":scope > div").last()
+  const savedPoints = Number(await points.innerText())
+  await expect.poll(() => Boolean(notify)).toBe(true)
+  const chatRead = page.waitForResponse("**/api/chats?**")
+  let unexpectedAccess = 0
+  const countAccess = (request: { url: () => string }) => {
+    if (new URL(request.url()).pathname === "/api/access") unexpectedAccess++
+  }
+  page.on("request", countAccess)
+  notify!(false)
+  await chatRead
+  expect(unexpectedAccess).toBe(0)
+  page.off("request", countAccess)
+
+  Object.assign(match, {
+    sets: [{ a: 1, b: 6 }, { a: 6, b: 1 }, { a: winningTeam === "A" ? 1 : 6, b: winningTeam === "B" ? 1 : 6 }],
+    pointsA: winningTeam === "A" ? 1 : 2,
+    pointsB: winningTeam === "B" ? 1 : 2,
+  })
+  const updated = page.waitForResponse(response => new URL(response.url()).pathname === "/api/access")
+  notify!(true)
+  expect((await updated).ok()).toBe(true)
+  await expect(points).toHaveText(String(savedPoints - 1))
+  await expect(played).toHaveText(String(beforePlayed + 1))
+  await expect(page.locator(".app-skeleton")).toHaveCount(0)
+})
+
 test("tournaments reuses the hub list until tournament data changes", async ({ page }) => {
   await setup(page, "light", "classic")
   let reads = 0

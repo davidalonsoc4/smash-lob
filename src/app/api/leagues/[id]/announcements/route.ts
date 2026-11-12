@@ -1,3 +1,4 @@
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { NextResponse } from "next/server"
 import { getServerLeagueViewer } from "@/lib/serverLeagueAccess"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
@@ -155,6 +156,11 @@ export async function GET(
 
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
+  }
+
+  const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(access.actor.user.email)) {
+    return NextResponse.json({ error: "session_changed" }, { status: 403 })
   }
 
   const now = new Date().toISOString()

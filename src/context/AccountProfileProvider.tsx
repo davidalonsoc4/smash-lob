@@ -9,6 +9,8 @@ import { createPaymentLedger } from "@/lib/paymentLedger"
 import { createChatListMemory } from "@/lib/chatListMemory"
 import { clearChatListCache } from "@/lib/chatListCache"
 import { createPersonalMatchesDashboard } from "@/lib/personalMatchesDashboard"
+import { createLeagueScreenData } from "@/lib/leagueScreenData"
+import { ANNOUNCEMENTS_REFRESH_EVENT } from "@/lib/announcements"
 import { createTournamentList } from "@/lib/tournamentList"
 import { createPersonalProfileHistory } from "@/lib/personalProfileHistory"
 
@@ -18,6 +20,7 @@ type AccountProfileContextValue = {
   history: ReturnType<typeof createPersonalProfileHistory>
   matchDashboard: ReturnType<typeof createPersonalMatchesDashboard>
   competitionEntrance: { hasShown: () => boolean; markShown: () => void }
+  leagueScreenData: ReturnType<typeof createLeagueScreenData>
   tournamentList: ReturnType<typeof createTournamentList>
   ledger: ReturnType<typeof createPaymentLedger>
   profile: AccountProfile | null
@@ -63,6 +66,7 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
     let shown = false
     return { hasShown: () => shown, markShown: () => { shown = true } }
   })
+  const [leagueScreenData] = useState(() => createLeagueScreenData(account))
   const [tournamentList] = useState(() => createTournamentList(account))
   const [profile, setProfile] = useState<AccountProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -180,7 +184,10 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
+    const { chats, preview, announcements } = leagueScreenData
+    const chatChanged = () => { chatList.invalidate(); chats.invalidate(); preview.invalidate() }
     const matchChanged = () => {
+      chats.invalidate()
       matchDashboard.invalidate()
       chatList.invalidate()
     }
@@ -189,20 +196,30 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
       matchChanged()
     }
     const membershipChanged = () => {
+      chats.discard()
+      leagueScreenData.stopPreview()
+      preview.discard()
+      announcements.discard()
       chatList.discard()
       clearChatListCache()
       history.discard()
       matchDashboard.discard()
       ledger.discard()
     }
-    window.addEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, chatList.invalidate)
+    window.addEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, chatChanged)
+    window.addEventListener(ANNOUNCEMENTS_REFRESH_EVENT, announcements.invalidate)
     window.addEventListener(LEAGUE_MEMBERSHIP_CHANGED_EVENT, membershipChanged)
     window.addEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, historyChanged)
     window.addEventListener(MATCH_DASHBOARD_REFRESH_EVENT, matchChanged)
     window.addEventListener(TOURNAMENT_LIST_REFRESH_EVENT, tournamentList.invalidate)
     window.addEventListener(PAYMENT_LEDGER_REFRESH_EVENT, ledger.invalidate)
     return () => {
-      window.removeEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, chatList.invalidate)
+      window.removeEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, chatChanged)
+      window.removeEventListener(ANNOUNCEMENTS_REFRESH_EVENT, announcements.invalidate)
+      chats.cancel()
+      leagueScreenData.stopPreview()
+      preview.cancel()
+      announcements.cancel()
       window.removeEventListener(LEAGUE_MEMBERSHIP_CHANGED_EVENT, membershipChanged)
       window.removeEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, historyChanged)
       window.removeEventListener(MATCH_DASHBOARD_REFRESH_EVENT, matchChanged)
@@ -213,11 +230,11 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
       history.cancel()
       ledger.cancel()
     }
-  }, [chatList, history, ledger, matchDashboard, tournamentList])
+  }, [chatList, history, leagueScreenData, ledger, matchDashboard, tournamentList])
 
   const value = useMemo(
-    () => ({ account, chatList, competitionEntrance, history, ledger, matchDashboard, tournamentList, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
-    [account, chatList, competitionEntrance, error, history, isLoading, ledger, matchDashboard, profile, refreshProfile, saveAvatar, saveProfile, tournamentList],
+    () => ({ account, chatList, competitionEntrance, history, leagueScreenData, ledger, matchDashboard, tournamentList, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
+    [account, chatList, competitionEntrance, error, history, isLoading, leagueScreenData, ledger, matchDashboard, profile, refreshProfile, saveAvatar, saveProfile, tournamentList],
   )
 
   return (

@@ -1,3 +1,7 @@
+## MC170 — Navegación y actualización de las pantallas de liga
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: comparativa en build de producción y LAN 3000, validate, Playwright móvil con cambios de datos y navegación, permisos y PWA.
+
 ## MC169 — Primera entrada a Mis Competiciones
 - Estado: COMPLETO LOCAL. Verificado en LAN 3000.
 - Gates: comparativa LAN 3000, validate, Playwright móvil de ida y vuelta, movimiento reducido y PWA.

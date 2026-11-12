@@ -1,36 +1,24 @@
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useLeagueScreenScope } from "@/hooks/useLeagueScreenScope"
+import { useSessionResource } from "@/hooks/useSessionResource"
 import { useI18n } from "@/i18n/I18nProvider"
-import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import { MatchChatActionLink } from "@/components/match/MatchChatFloatingAction"
 import { AppCard } from "@/components/ui/AppCard"
 import { StatusDot } from "@/components/ui/StatusDot"
 import { getIntlLocale } from "@/i18n/localeFormatting"
 
-type Preview = { unread: number; readOnly: boolean; realtimeTopic: string | null; participantCount?: number; participants?: { userId: string }[]; messages?: { sender_display_name: string; body: string; created_at: string }[] }
-
-export function LeagueSeasonChatAccess({ seasonId, floating = false, leagueName, seasonName }: { seasonId: string; floating?: boolean; leagueName?: string; seasonName?: string }) {
+export function LeagueSeasonChatAccess({ leagueId, seasonId, floating = false, leagueName, seasonName }: { leagueId: string; seasonId: string; floating?: boolean; leagueName?: string; seasonName?: string }) {
   const { tx, locale } = useI18n()
-  const [preview, setPreview] = useState<Preview | null>(null)
+  const { leagueScreenData } = useAccountProfile()
+  const scope = useLeagueScreenScope(leagueId)
+  const resource = leagueScreenData.preview.get(scope, seasonId)
+  const { data: preview } = useSessionResource(resource)
+  const realtimeTopic = preview?.realtimeTopic
   useEffect(() => {
-    let alive = true
-    async function load() {
-      const response = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}?summary=1`, { cache: "no-store" }).catch(() => null)
-      if (!alive) return
-      if (!response?.ok) { setPreview(null); return }
-      const data = await response.json() as Preview
-      if (alive) setPreview(data)
-    }
-    void load()
-    const onVisible = () => { if (!document.hidden) void load() }
-    document.addEventListener("visibilitychange", onVisible)
-    return () => { alive = false; document.removeEventListener("visibilitychange", onVisible) }
-  }, [seasonId])
-  useEffect(() => subscribeChatRealtime(preview?.realtimeTopic ?? null, () => {
-    void fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}?summary=1`, { cache: "no-store" }).then(async (response) => {
-      if (response.ok) setPreview(await response.json() as Preview)
-    }).catch(() => undefined)
-  }), [preview?.realtimeTopic, seasonId])
+    leagueScreenData.watchPreview(resource, realtimeTopic)
+  }, [leagueScreenData, realtimeTopic, resource])
   if (!preview || (floating && preview.readOnly)) return null
   const href = `/league-chat/${encodeURIComponent(seasonId)}`
   if (!floating) {

@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import { useLeagueScreenEntrance } from "@/hooks/useLeagueScreenScope"
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { SeasonContextLineSelector, SeasonContextLine } from "@/components/layout/SeasonContextLine"
@@ -64,6 +65,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
       Boolean(resolvedPlayerIdOrSlug) &&
       (item.id === resolvedPlayerIdOrSlug || item.slug === resolvedPlayerIdOrSlug),
   )
+  const animate = useLeagueScreenEntrance("profile", activeLeague.id, isSelf && Boolean(player))
   const leagueMatches = useMemo(
     () => allMatches.filter((match) => match.leagueId === activeLeague.id),
     [activeLeague.id, allMatches],
@@ -247,7 +249,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
           headToHead={headToHead}
           contextLabel={tx("Comparación de liga y temporada")}
           summaryContent={(
-            <div className="space-y-3">
+            <div className={`space-y-3${animate ? " personal-profile-enter" : ""}`}>
               <div className="grid grid-cols-2 gap-2">
                 <AppCard accentStrip className="overflow-hidden !p-0"><div className="flex items-center justify-between gap-2 px-3 py-2"><p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">{t.profile.points}</p><p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">{selectedStats.points}</p></div></AppCard>
                 <AppCard accentStrip className="overflow-hidden !p-0"><div className="flex items-center justify-between gap-2 px-3 py-2"><p className="truncate text-xs font-black uppercase tracking-wide text-neutral-500">{t.ranking.gamesDiff}</p><p className="shrink-0 text-xl font-black tracking-tight text-neutral-950">{`${selectedStats.gamesDiff > 0 ? "+" : ""}${selectedStats.gamesDiff}`}</p></div></AppCard>

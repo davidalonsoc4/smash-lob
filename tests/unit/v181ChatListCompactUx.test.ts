@@ -8,8 +8,8 @@ describe("v1.8.1 chats list and compact match-chat UX", () => {
     expect(page).toContain('{tx("Chats finalizados")}<')
     expect(page).toContain("compactParticipantName(name, names)")
     expect(page).toContain('return `${tx("con")} ${participantName(chat.partner)')
-    expect(page.indexOf('<ChatCards chats={activeChats} />')).toBeGreaterThanOrEqual(0)
-    expect(page.indexOf('<ChatCards chats={activeChats} />')).toBeLessThan(page.indexOf("<ChatCards chats={finishedChats} />"))
+    expect(page.indexOf('<ChatCards chats={activeChats}')).toBeGreaterThanOrEqual(0)
+    expect(page.indexOf('<ChatCards chats={activeChats}')).toBeLessThan(page.indexOf("<ChatCards chats={finishedChats}"))
   })
 
   it("keeps recommended location names fully visible", async () => {
