@@ -1,3 +1,7 @@
+## MC160 — Recuperar la vista escalonada en LAN
+- Estado: COMPLETO LOCAL. El puerto 3000 sirve v1.15.44 desde codex/card-entry-preview.
+- Gates: reproducir el salto con la versión anterior, verificar health y el proceso de la candidata, repetir Playwright móvil con las mismas respuestas sintéticas y el resumen retenido.
+
 ## MC159 — Entrada escalonada por lote de Chats Global
 - Estado: COMPLETO LOCAL. Secuencia verificada en la URL LAN.
 - Gates: npm run validate, Playwright móvil con respuestas retenidas, escalonado inicial, refresco sin repetición, permisos y archivo. Verificación LAN.
