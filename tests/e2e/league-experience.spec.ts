@@ -234,6 +234,15 @@ test("competitions stagger and respect reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await expect(card).toHaveCSS("animation-name", "none")
 
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  const nav = page.getByRole("navigation", { name: "Navegación global" })
+  await nav.getByRole("link", { name: "Mis partidos" }).click()
+  await expect(page).toHaveURL(/\/personal-matches$/)
+  await nav.getByRole("link", { name: "Competiciones" }).click()
+  await expect(card).toBeVisible()
+  await expect(card).toHaveCSS("animation-name", "none")
+  await expect(page.locator("[data-content-enter]")).toHaveCount(0)
+
   await page.addInitScript(() => document.addEventListener("DOMContentLoaded", () => {
     const style = document.createElement("style")
     style.textContent = "[data-content-enter] { animation-play-state: paused !important; }"

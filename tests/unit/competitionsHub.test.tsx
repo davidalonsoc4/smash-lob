@@ -14,7 +14,7 @@ const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es"
   { id: "c", name: "Liga C", status: "upcoming" }, { id: "d", name: "Liga D", status: "finished" },
 ] }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: state.refresh }) }))
-let resources: { account: string; matchDashboard: ReturnType<typeof createPersonalMatchesDashboard>; tournamentList: ReturnType<typeof createTournamentList> }
+let resources: { account: string; competitionEntrance: { hasShown: () => boolean; markShown: () => void }; matchDashboard: ReturnType<typeof createPersonalMatchesDashboard>; tournamentList: ReturnType<typeof createTournamentList> }
 vi.mock("@/context/AccountProfileProvider", () => ({ useAccountProfile: () => resources }))
 vi.mock("@/lib/tournamentAvailability", () => ({ areTournamentsEnabled: () => state.tournamentsEnabled }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: state.locale, tx: (text: string) => text, t: { common: { refreshApp: "Actualizar", back: "Volver" } } }) }))
@@ -27,7 +27,7 @@ vi.mock("@/components/personal/PersonalMatchCard", () => ({ PersonalMatchCard: (
 const empty = { items: [], upcoming: [], hasMore: false, nextOffset: null }
 beforeEach(() => {
   const account = "qa-hub@example.test"
-  resources = { account, matchDashboard: createPersonalMatchesDashboard(account), tournamentList: createTournamentList(account) }
+  resources = { account, competitionEntrance: { hasShown: () => false, markShown: vi.fn() }, matchDashboard: createPersonalMatchesDashboard(account), tournamentList: createTournamentList(account) }
   state.locale = "es"; state.canCreateLeagues = true; state.tournamentsEnabled = true; state.matches = []; HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", "") }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open") }; vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => empty })) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.clearAllMocks() })
 

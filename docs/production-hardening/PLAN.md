@@ -1,3 +1,7 @@
+## MC169 — Primera entrada a Mis Competiciones
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: comparativa LAN 3000, validate, Playwright móvil de ida y vuelta, movimiento reducido y PWA.
+
 ## MC168 — Regreso estable a Chats Global
 - Estado: COMPLETO LOCAL. Verificado en LAN 3000.
 - Gates: validate, Playwright móvil de vuelta a Chats y revalidación, controles de permisos y PWA, comparativa en LAN 3000.

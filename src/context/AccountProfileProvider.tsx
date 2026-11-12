@@ -17,6 +17,7 @@ type AccountProfileContextValue = {
   chatList: ReturnType<typeof createChatListMemory>
   history: ReturnType<typeof createPersonalProfileHistory>
   matchDashboard: ReturnType<typeof createPersonalMatchesDashboard>
+  competitionEntrance: { hasShown: () => boolean; markShown: () => void }
   tournamentList: ReturnType<typeof createTournamentList>
   ledger: ReturnType<typeof createPaymentLedger>
   profile: AccountProfile | null
@@ -58,6 +59,10 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   const [history] = useState(() => createPersonalProfileHistory(account))
   const [ledger] = useState(() => createPaymentLedger(account))
   const [matchDashboard] = useState(() => createPersonalMatchesDashboard(account))
+  const [competitionEntrance] = useState(() => {
+    let shown = false
+    return { hasShown: () => shown, markShown: () => { shown = true } }
+  })
   const [tournamentList] = useState(() => createTournamentList(account))
   const [profile, setProfile] = useState<AccountProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -211,8 +216,8 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   }, [chatList, history, ledger, matchDashboard, tournamentList])
 
   const value = useMemo(
-    () => ({ account, chatList, history, ledger, matchDashboard, tournamentList, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
-    [account, chatList, error, history, isLoading, ledger, matchDashboard, profile, refreshProfile, saveAvatar, saveProfile, tournamentList],
+    () => ({ account, chatList, competitionEntrance, history, ledger, matchDashboard, tournamentList, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
+    [account, chatList, competitionEntrance, error, history, isLoading, ledger, matchDashboard, profile, refreshProfile, saveAvatar, saveProfile, tournamentList],
   )
 
   return (
