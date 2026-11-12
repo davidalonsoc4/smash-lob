@@ -8,27 +8,17 @@ import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { FloatingCreateButton } from "@/components/ui/FloatingCreateButton"
 import { useI18n } from "@/i18n/I18nProvider"
-import {
-  type PersonalMatchesDashboardPayload,
-} from "@/lib/personalMatches"
+import type { PersonalMatchesDashboardPayload } from "@/lib/personalMatches"
+import { cardListEntrance } from "@/lib/cardListEntrance"
 
 const pageSize = 10
-
-function emptyDashboard(): PersonalMatchesDashboardPayload {
-  return {
-    items: [],
-    hasMore: false,
-    nextOffset: null,
-    upcoming: [],
-  }
-}
+const emptyDashboard: PersonalMatchesDashboardPayload = { items: [], hasMore: false, nextOffset: null, upcoming: [] }
 
 export default function PersonalMatchesPage() {
-  const { tx } = useI18n()
-  const { t } = useI18n()
+  const { t, tx } = useI18n()
   const { account, dashboard: firstPage, failed, refreshing } = usePersonalMatchesDashboard()
   const [expanded, setExpanded] = useState<{ account: string; dashboard: PersonalMatchesDashboardPayload }>()
-  const dashboard = (expanded?.account === account ? expanded.dashboard : firstPage) ?? emptyDashboard()
+  const dashboard = (expanded?.account === account ? expanded.dashboard : firstPage) ?? emptyDashboard
   const loading = !firstPage && !failed
   const [loadingMore, setLoadingMore] = useState(false)
   const [paginationError, setError] = useState<string | null>(null)
@@ -111,7 +101,7 @@ export default function PersonalMatchesPage() {
             action={{ label: tx("Crear mi primer encuentro"), href: "/personal-matches/new" }}
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" {...cardListEntrance}>
             {dashboard.items.map((match) => (
               <PersonalMatchCard key={`${match.origin}-${match.id}`} match={match} compactBadges />
             ))}

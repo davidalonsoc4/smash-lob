@@ -1,3 +1,7 @@
+## MC162 — Entrada escalonada en listas
+- Estado: COMPLETO LOCAL. Cuatro rutas verificadas en LAN 3000 y diagnóstico de Mi perfil registrado.
+- Gates: npm run validate, Playwright móvil en las cuatro rutas con movimiento reducido y LAN 3000. Diagnóstico del recorrido Mi perfil → Ajustes → Mi perfil.
+
 ## MC161 — Acciones de Chats y Mis Competiciones
 - Estado: COMPLETO LOCAL. Ambas acciones verificadas en LAN 3000.
 - Gates: npm run validate, Playwright móvil del historial y de creación, inspección visual y verificación de ambas rutas en LAN 3000.

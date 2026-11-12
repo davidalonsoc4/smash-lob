@@ -20,6 +20,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { cardListEntrance } from "@/lib/cardListEntrance"
 import { selectCompetitionHighlights, selectCompetitionPreview } from "@/lib/competitionOverview"
 import { calculateLeaguePairRanking } from "@/lib/leaguePairRanking"
 import { calculateSeasonRanking } from "@/lib/ranking"
@@ -197,7 +198,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     {(view === "leagues" || memberLeagues.length > 0 || canCreateCompetition) && (view === "summary" || view === "leagues") ? <section aria-labelledby={view === "summary" ? "competitions-leagues" : "competitions-page-title"} className={`${styles.competitionSection} space-y-2`}>
       {view === "summary" ? <div className="app-section-header flex items-center justify-between gap-2"><h2 id="competitions-leagues" className="type-panel-title font-black">{tx("Mis ligas")}</h2>
         <Link href="/leagues/all" className="app-section-action inline-flex items-center gap-1 text-sm font-semibold text-neutral-500">{tx("Ver todas")} <span aria-hidden="true">›</span></Link></div> : null}
-      {visibleLeagues.map(leagueRow)}
+      {view === "leagues" && visibleLeagues.length ? <div className="space-y-2" {...cardListEntrance}>{visibleLeagues.map(leagueRow)}</div> : visibleLeagues.map(leagueRow)}
       {!visibleLeagues.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx(memberLeagues.length ? "No tienes ligas activas o próximas." : "Aún no formas parte de ninguna liga.")}</p>{view === "summary" && canCreateCompetition ? <Link href="/league/new" className={`${actionClass} mt-3`}>{tx("Crear nueva liga")}</Link> : null}</AppCard> : null}
       {view === "leagues" ? <>
         {finishedLeagues.length ? <details className={`${styles.archive} rounded-2xl border p-3`}><summary className="cursor-pointer py-2 text-sm font-black">{tx("Finalizadas")} · {finishedLeagues.length}</summary><div className="mt-2 space-y-2">{finishedLeagues.map(leagueRow)}</div></details> : null}
@@ -207,7 +208,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     </section> : null}
     {areTournamentsEnabled() && (view === "tournaments" || tournaments.length > 0 || canCreateCompetition) && (view === "summary" || view === "tournaments") ? <section aria-labelledby="competitions-tournaments" className={`${view === "summary" ? styles.competitionSection : ""} space-y-2`}>
       <div className="app-section-header flex items-center justify-between gap-2"><h2 id="competitions-tournaments" className="type-panel-title font-black">{tx("Mis torneos")} {view !== "summary" ? <span className="text-neutral-400">· {tournaments.length}</span> : null}</h2>{view === "summary" ? <Link href="/tournaments" className="app-section-action inline-flex items-center gap-1 text-sm font-semibold text-neutral-500">{tx("Ver todos")} <span aria-hidden="true">›</span></Link> : <Link href="/tournaments/new" className="min-h-11 inline-flex shrink-0 items-center text-sm font-black underline underline-offset-4">{tx("Crear")}</Link>}</div>
-      {tournamentLoadError ? <AppCard><p role="alert" className="text-sm font-semibold text-neutral-500">{tx("No se han podido cargar tus torneos.")}</p><button type="button" onClick={() => setTournamentRequestVersion((value) => value + 1)} className="mt-2 text-sm font-black underline">{tx("Reintentar")}</button></AppCard> : visibleTournaments.map(tournamentRow)}
+      {tournamentLoadError ? <AppCard><p role="alert" className="text-sm font-semibold text-neutral-500">{tx("No se han podido cargar tus torneos.")}</p><button type="button" onClick={() => setTournamentRequestVersion((value) => value + 1)} className="mt-2 text-sm font-black underline">{tx("Reintentar")}</button></AppCard> : view === "tournaments" && visibleTournaments.length ? <div className="space-y-2" {...cardListEntrance}>{visibleTournaments.map(tournamentRow)}</div> : visibleTournaments.map(tournamentRow)}
       {!tournamentLoadError && !visibleTournaments.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Todavía no tienes torneos.")}</p>{view === "summary" ? <Link href="/tournaments/new" className={`${actionClass} mt-3`}>{tx("Crear torneo rápido")}</Link> : null}</AppCard> : null}
       {view === "tournaments" && finishedTournaments.length ? <details className="rounded-2xl border border-neutral-200 p-3"><summary className="cursor-pointer py-2 text-sm font-black">{tx("Finalizados")} · {finishedTournaments.length}</summary><div className="mt-2 space-y-2">{finishedTournaments.map(tournamentRow)}</div></details> : null}
     </section> : null}
