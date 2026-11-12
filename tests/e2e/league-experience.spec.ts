@@ -1104,16 +1104,64 @@ for (const theme of ["light", "dark"]) {
   test(`pinned match reservation is compact and opens calendar (${theme})`, async ({ page }) => {
     const { matches } = await setup(page, theme, "competition")
     await page.setViewportSize({ width: 320, height: 740 })
-    await page.route("**/api/matches/*/chat*", route => route.fulfill({ json: { currentUserId: "qa-user", round: 1, readOnly: false, participants: [], messages: [], reservationSummary: { scheduledAt: "2026-10-18T18:00:00Z", locationText: "Barakaldo · Lasesarre · Pista 1" } } }))
-    await page.goto(`/match/${matches[0].id}/chat`)
+    const match = matches.find(item => item.teamA.includes("davo") || item.teamB.includes("davo"))!
+    const scheduledAt = "2026-10-18T18:00:00Z"
+    const location = "Barakaldo · Lasesarre · Pista 1"
+    const updatedLocation = "Barakaldo · Lasesarre · Pista 2"
+    Object.assign(match, { status: "scheduled", scheduledAt, location, resultRecordedAt: null })
+    let releaseHistory!: () => void
+    const history = new Promise<void>(resolve => { releaseHistory = resolve })
+    await page.route("**/api/matches/*/chat*", async route => {
+      await history
+      await route.fulfill({ json: {
+        currentUserId: "qa-user", round: match.round, readOnly: false, participants: [],
+        reservationSummary: { scheduledAt, locationText: updatedLocation },
+        messages: [location, updatedLocation].map((locationText, index) => ({
+          id: `reservation-${index}`, kind: "text", sender_user_id: "qa-user", sender_display_name: "QA", body: "", created_at: "2026-10-16T11:00:00Z",
+          payload: { systemType: "reservation_confirmed", scheduledAt: "2026-10-18T18:00:00.000+00:00", locationText },
+        })),
+      } })
+    })
+    await page.goto(`/match/${match.id}/chat`)
     const banner = page.getByRole("button", { name: /Reserva.*Guardar en calendario/ })
-    await expect(banner).toBeVisible()
-    await expect(banner).toContainText("Barakaldo · Lasesarre · Pista 1")
+    try {
+      await expect(banner).toContainText(location, { timeout: 5_000 })
+      await expect(banner).toBeVisible()
+    } finally {
+      releaseHistory()
+    }
+    await expect(banner).toContainText(updatedLocation)
+    await expect(page.getByRole("button", { name: "Añadir al calendario", exact: true })).toHaveCount(1)
     expect((await banner.boundingBox())!.height).toBeLessThanOrEqual(56)
     await banner.click()
     await expect(page.getByRole("button", { name: "Google Calendar" })).toBeVisible()
   })
 }
+
+test("an elapsed match reservation stays in history without a calendar action", async ({ page }) => {
+  const { matches } = await setup(page, "dark", "competition")
+  const match = matches.find(item => item.teamA.includes("davo") || item.teamB.includes("davo"))!
+  const scheduledAt = "2026-10-09T18:00:00Z"
+  const locationText = "Barakaldo · Lasesarre · Pista 1"
+  Object.assign(match, { status: "scheduled", scheduledAt, location: locationText, resultRecordedAt: null })
+  let resultRecorded = false
+  await page.route("**/api/matches/*/chat*", route => route.fulfill({ json: {
+    currentUserId: "qa-user", round: match.round, readOnly: false, participants: [],
+    reservationSummary: resultRecorded ? null : { scheduledAt, locationText },
+    messages: [{ id: "reservation", kind: "text", sender_user_id: "qa-user", sender_display_name: "QA", body: "", created_at: scheduledAt, payload: { systemType: "reservation_confirmed", scheduledAt, locationText } }],
+  } }))
+  await page.goto(`/match/${match.id}/chat`)
+  await expect(page.getByText("Partido programado", { exact: true })).toBeVisible()
+  await expect(page.getByPlaceholder("Escribe un mensaje…")).toBeEditable()
+  const reminder = page.getByRole("link", { name: "Resultado pendiente Ver partido" })
+  await expect(reminder).toHaveAttribute("href", `/match/${match.id}`)
+  await expect(page.getByRole("button", { name: /Reserva.*Guardar en calendario/ })).toHaveCount(0)
+  await expect(page.getByRole("button", { name: "Añadir al calendario" })).toHaveCount(0)
+  resultRecorded = true
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")))
+  await expect(reminder).toHaveCount(0)
+  await expect(page.getByText("Partido programado", { exact: true })).toBeVisible()
+})
 
 for (const theme of ["light", "dark"]) for (const style of ["classic", "competition"]) {
   test(`league chat header stays compact and aligned (${theme},${style})`, async ({ page }) => {

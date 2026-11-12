@@ -5,8 +5,9 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { useSession } from "next-auth/react"
 import { openChatWithPreview } from "@/lib/chatEntryRequest"
 import { useParams } from "next/navigation"
+import { useChatReservationPhase } from "@/hooks/useChatReservationPhase"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
-import { MatchChatReservationSummary } from "@/components/match/chat/MatchChatReservationSummary"
+import { MatchChatReservationSummary, MatchChatResultPendingBanner } from "@/components/match/chat/MatchChatReservationSummary"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 import { getIntlLocale } from "@/i18n/localeFormatting"
 import {
@@ -275,13 +276,17 @@ export default function PersonalMatchChatPage() {
     }
   }
 
+  const match = snapshot?.match
+  const reservedAt = match?.status === "scheduled" && !match.resultRecordedAt && match.courtBooking?.isReserved ? match.scheduledAt : null
+  const reservationPhase = useChatReservationPhase(reservedAt)
   const topContent = (
     <>
-      {snapshot?.match?.courtBooking?.isReserved && snapshot.match.scheduledAt && !Number.isNaN(Date.parse(snapshot.match.scheduledAt)) ? (
-        <PersonalAddToCalendarButton match={snapshot.match} triggerClassName="app-match-reservation-banner flex min-h-12 w-full shrink-0 items-center gap-3 border-b border-blue-100 bg-blue-50 px-3 py-1.5 text-left text-blue-900">
-          <MatchChatReservationSummary date={new Intl.DateTimeFormat(getIntlLocale(locale), { dateStyle: "medium", timeStyle: "short" }).format(new Date(snapshot.match.scheduledAt))} location={snapshot.match.locationName} />
+      {match && reservedAt && reservationPhase === "upcoming" ? (
+        <PersonalAddToCalendarButton match={match} triggerClassName="app-match-reservation-banner flex min-h-12 w-full shrink-0 items-center gap-3 border-b border-blue-100 bg-blue-50 px-3 py-1.5 text-left text-blue-900">
+          <MatchChatReservationSummary date={new Intl.DateTimeFormat(getIntlLocale(locale), { dateStyle: "medium", timeStyle: "short" }).format(new Date(reservedAt))} location={match.locationName} />
         </PersonalAddToCalendarButton>
       ) : null}
+      {reservationPhase === "result_pending" && !snapshot?.readOnly && !snapshot?.expired ? <MatchChatResultPendingBanner href={`/personal-matches/${id}`} /> : null}
       {snapshot && !snapshot.readOnly && snapshot.writeUntil ? (
         <MatchChatWriteWindowBanner writeUntil={snapshot.writeUntil} />
       ) : null}

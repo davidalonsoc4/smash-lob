@@ -6,10 +6,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useMatchLeagueContext } from "@/hooks/useMatchLeagueContext"
+import { useChatReservationPhase } from "@/hooks/useChatReservationPhase"
 import { MatchTeamsPanel } from "@/components/matches/MatchTeamsPanel"
 import { AddToCalendarButton } from "@/components/match/AddToCalendarButton"
 import { MatchReservationConfirmation } from "@/components/match/MatchReservationConfirmation"
-import { MatchChatReservationSummary } from "@/components/match/chat/MatchChatReservationSummary"
+import { MatchChatReservationSummary, MatchChatResultPendingBanner } from "@/components/match/chat/MatchChatReservationSummary"
 import {
   MatchChatComposer,
   MatchChatFrame,
@@ -33,6 +34,7 @@ import { fetchChatEntry, openChatWithPreview } from "@/lib/chatEntryRequest"
 import { useSession } from "next-auth/react"
 import {
   getLeagueLocationOptionLabel,
+  getScheduleLocationDisplayText,
   sortLeagueLocationsByOptionLabel,
 } from "@/lib/leagueLocations"
 import {
@@ -138,7 +140,7 @@ export default function MatchChatPage() {
   useMatchLeagueContext(id)
   const { matches, players, activeLeague, activeSeason, rounds } = useCurrentLeagueData()
   const { hydrateMatches } = useMatchData()
-  const { isLeagueAdmin } = useLeagueAccess()
+  const { getMembershipForLeague, isAccessHydrated, isLeagueAdmin } = useLeagueAccess()
   const match = matches.find((item) => item.id === id)
   const [messages, setMessages] = useState<Message[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
@@ -178,6 +180,12 @@ export default function MatchChatPage() {
   const matchRound = match?.round ?? round
   const matchPlayerIdsKey = match ? [...new Set([...match.teamA, ...match.teamB])].join("|") : ""
   const matchPlayerIds = matchPlayerIdsKey.split("|").filter(Boolean)
+  const viewerPlayerId = getMembershipForLeague(activeLeague.id)?.playerId
+  const canPreviewReservation = account && isAccessHydrated && viewerPlayerId && matchPlayerIds.includes(viewerPlayerId)
+  const visibleReservation = !initialLoadComplete && canPreviewReservation && match?.status === "scheduled" && !matchFinished && match.scheduledAt
+    ? { scheduledAt: match.scheduledAt, locationText: getScheduleLocationDisplayText(match.location) ?? tx("Pista reservada") }
+    : reservationSummary
+  const reservationPhase = useChatReservationPhase(matchFinished ? null : visibleReservation?.scheduledAt)
   const matchRoundWindow = rounds.find((item) => item.round === matchRound) ?? null
   const proposalCalendarDays = buildProposalCalendarDays(matchRoundWindow?.startsAt ?? null, matchRoundWindow?.endsAt ?? null)
   const proposalWindowStart = proposalCalendarDays[0] ?? null
@@ -449,15 +457,16 @@ export default function MatchChatPage() {
   return (
     <MatchChatFrame viewportRef={viewportRef} backHref={`/match/${id}`} title={matchRound ? tx(`Jornada ${matchRound}`) : tx("Chat del partido")} titleHref={`/match/${id}`}>
       {SHOW_MATCH_TEAMS_PANEL && match ? <div className="shrink-0 px-3 pt-2"><div className="rounded-2xl border border-neutral-200 bg-white p-2.5 shadow-sm"><MatchTeamsPanel teamA={match.teamA} teamB={match.teamB} players={players} mode="versus" linkPlayers={false} /></div></div> : null}
+      {visibleReservation && reservationPhase === "upcoming" && match ? (
+        <AddToCalendarButton leagueName={activeLeague.name} seasonName={activeSeason.name} round={matchRound ?? match.round} teamA={match.teamA} teamB={match.teamB} players={players} scheduledAt={visibleReservation.scheduledAt} location={visibleReservation.locationText} className="shrink-0"
+          triggerClassName="app-match-reservation-banner w-full text-left flex min-h-12 shrink-0 items-center gap-3 border-b border-blue-100 bg-blue-50 px-3 py-1.5 text-blue-900"
+        >
+          <MatchChatReservationSummary date={reservationSummaryDate(visibleReservation.scheduledAt, locale)} location={visibleReservation.locationText} />
+        </AddToCalendarButton>
+      ) : null}
+      {reservationPhase === "result_pending" && !effectiveReadOnly && activeSeason.status !== "finished" && match?.incidentStatus !== "open" ? <MatchChatResultPendingBanner href={`/match/${id}`} /> : null}
       {!initialLoadComplete && !error ? <p role="status" className="pointer-events-none absolute inset-x-0 top-1/2 text-center text-sm font-semibold text-neutral-500">{tx("Cargando...")}</p> : null}
       <div data-tour="chat-messages" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-neutral-100" style={{ visibility: initialLoadComplete ? "visible" : "hidden" }}>
-        {reservationSummary && match ? (
-          <AddToCalendarButton leagueName={activeLeague.name} seasonName={activeSeason.name} round={matchRound ?? match.round} teamA={match.teamA} teamB={match.teamB} players={players} scheduledAt={reservationSummary.scheduledAt} location={match.location ?? reservationSummary.locationText} className="shrink-0"
-            triggerClassName="app-match-reservation-banner w-full text-left flex min-h-12 shrink-0 items-center gap-3 border-b border-blue-100 bg-blue-50 px-3 py-1.5 text-blue-900"
-          >
-            <MatchChatReservationSummary date={reservationSummaryDate(reservationSummary.scheduledAt, locale)} location={reservationSummary.locationText} />
-          </AddToCalendarButton>
-        ) : null}
         {!effectiveReadOnly && !hasConfirmedReservation && displayedCoordination?.status === "awaiting_booking" ? <MatchReservationConfirmation matchId={id} coordination={displayedCoordination} locations={activeLeague.locations} participantIds={participants.map((item) => item.playerId)} players={players} requireReservationPayments currentPlayerId={participants.find((item) => item.userId === me)?.playerId ?? ""} onConfirmed={() => loadFromServer(match)} onInvalidated={async () => { await loadFromServer(match); openProposalMode("date") }} /> : null}
         <div ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2">
         {initialLoadComplete && messages.length === 0 && !error ? <p className="py-16 text-center text-sm font-semibold text-neutral-500">{effectiveReadOnly ? tx("Aún no hay mensajes") : tx("Todavía no hay mensajes. Escribe para organizar el partido.")}</p> : null}
@@ -473,7 +482,8 @@ export default function MatchChatPage() {
             if (message.kind === "text" && payload.systemType === "reservation_confirmed") {
               const scheduledAt = typeof payload.scheduledAt === "string" ? payload.scheduledAt : null
               const locationText = typeof payload.locationText === "string" ? payload.locationText : null
-              return <div key={messageKey} className={`flex justify-center ${rowSpacing} ${enterClass}`}><div className="w-[96%] rounded-2xl border border-emerald-200 bg-emerald-50 p-2.5 text-neutral-950 shadow-sm"><p className="type-caption font-black uppercase tracking-[0.14em] text-emerald-700">{tx("Partido programado")}</p><p className="mt-1 text-sm font-black">{scheduledAt ? proposalDate(scheduledAt, locale) : String(payload.dateLabel ?? "")}</p><p className="mt-0.5 text-xs font-bold text-neutral-600">{locationText ?? tx("Pista reservada")}</p>{match && scheduledAt ? <div className="mt-2"><AddToCalendarButton leagueName={activeLeague.name} seasonName={activeSeason.name} round={matchRound ?? match.round} teamA={match.teamA} teamB={match.teamB} players={players} scheduledAt={scheduledAt} location={typeof payload.location === "string" ? payload.location : locationText} /></div> : null}</div></div>
+              const isCurrentReservation = reservationPhase === "upcoming" && visibleReservation?.locationText === locationText && Date.parse(visibleReservation.scheduledAt) === Date.parse(scheduledAt ?? "")
+              return <div key={messageKey} className={`flex justify-center ${rowSpacing} ${enterClass}`}><div className="w-[96%] rounded-2xl border border-emerald-200 bg-emerald-50 p-2.5 text-neutral-950 shadow-sm"><p className="type-caption font-black uppercase tracking-[0.14em] text-emerald-700">{tx("Partido programado")}</p><p className="mt-1 text-sm font-black">{scheduledAt ? proposalDate(scheduledAt, locale) : String(payload.dateLabel ?? "")}</p><p className="mt-0.5 text-xs font-bold text-neutral-600">{locationText ?? tx("Pista reservada")}</p>{match && scheduledAt && isCurrentReservation ? <div className="mt-2"><AddToCalendarButton leagueName={activeLeague.name} seasonName={activeSeason.name} round={matchRound ?? match.round} teamA={match.teamA} teamB={match.teamB} players={players} scheduledAt={scheduledAt} location={typeof payload.location === "string" ? payload.location : locationText} /></div> : null}</div></div>
             }
             if (message.kind !== "text") {
               const proposalExpanded = expandedProposalId === message.id

@@ -287,6 +287,7 @@ test("calendar view selector fits without horizontal scrolling", async ({ page }
 })
 
 test("friendly chat reservation opens calendar options in both Competition modes", async ({ page }, testInfo) => {
+  await page.clock.setFixedTime(new Date("2026-08-10T12:00:00Z"))
   await page.route("**/api/personal-matches/qa-friendly/chat*", async route => {
     await route.fulfill({ json: { currentUserId: "qa-user", messages: [], participants: [], readOnly: false, match: { id: "qa-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2026-08-12T17:00:00Z", locationName: "Pista QA", participants: [{ team: 1, slot: 1, displayName: "Ana QA" }, { team: 2, slot: 1, displayName: "Rival QA" }], courtBooking: { isReserved: true } } } })
   })
