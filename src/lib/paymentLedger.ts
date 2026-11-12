@@ -1,4 +1,8 @@
-﻿export type PaymentLedgerSource = "league" | "friendly"
+import { requestPaymentLedgerRefresh } from "@/lib/appRefreshEvents"
+import { createSessionResource } from "@/lib/sessionResource"
+
+export const PAYMENT_LEDGER_ACCOUNT_HEADER = "x-smash-lob-ledger-account"
+export type PaymentLedgerSource = "league" | "friendly"
 export type PaymentLedgerDirection = "owe" | "owed"
 
 export type PaymentLedgerItem = {
@@ -75,8 +79,9 @@ export function getPaymentLedgerPendingSummary(items: PaymentLedgerItem[]) {
   )
 }
 
-export async function fetchPaymentLedger(): Promise<PaymentLedgerPayload> {
-  const response = await fetch("/api/payments/ledger", { cache: "no-store" })
+async function fetchPaymentLedger(account: string, signal: AbortSignal): Promise<PaymentLedgerPayload | null> {
+  const response = await fetch("/api/payments/ledger", { cache: "no-store", signal, headers: { [PAYMENT_LEDGER_ACCOUNT_HEADER]: account } })
+  if (response.status === 401 || response.status === 403) return null
   const payload = (await response.json().catch(() => null)) as PaymentLedgerPayload | null
 
   if (!response.ok || !payload || !Array.isArray(payload.items)) {
@@ -84,6 +89,11 @@ export async function fetchPaymentLedger(): Promise<PaymentLedgerPayload> {
   }
 
   return payload
+}
+
+export function createPaymentLedger(email: string) {
+  const account = encodeURIComponent(email.trim().toLowerCase())
+  return createSessionResource(signal => fetchPaymentLedger(account, signal), 30_000)
 }
 
 export async function setPaymentLedgerTransferPaid(
@@ -103,5 +113,6 @@ export async function setPaymentLedgerTransferPaid(
     },
   )
 
+  if (response.ok) requestPaymentLedgerRefresh()
   return response.ok
 }

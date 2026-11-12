@@ -428,6 +428,53 @@ test("global chats wait for slow friendly responses and protect private list met
   await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
 })
 
+test("settings and payments share the ledger and refresh it after a transfer changes", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let paid = false
+  let reads = 0
+  let adminReads = 0
+  await page.addInitScript(id => localStorage.setItem("smash-lob-active-league", id), leagueId)
+  await page.route("**/api/leagues/*/activity?limit=200", route => {
+    adminReads += 1
+    return route.fulfill({ json: { items: [] } })
+  })
+  await page.route("**/api/payments/ledger", route => {
+    reads += 1
+    expect(route.request().headers()["x-smash-lob-ledger-account"]).toBe("qa-experience%40example.test")
+    return route.fulfill({ json: { items: [{
+      source: "friendly", matchId: "qa-friendly", transferId: "qa-transfer", direction: "owe",
+      amount: 12, isPaid: paid, paidAt: null, eventAt: "2026-10-15T11:00:00Z",
+      fromName: "QA", toName: "Rival QA", leagueId: null, leagueName: null, seasonId: null,
+      seasonName: null, round: null, href: "/personal-matches/qa-friendly",
+    }] } })
+  })
+  await page.route("**/api/personal-matches/qa-friendly/court-booking/transfers/qa-transfer", route => {
+    paid = Boolean(route.request().postDataJSON().isPaid)
+    return route.fulfill({ json: { ok: true } })
+  })
+  await page.goto("/settings?returnTo=%2Fpersonal-matches%2Fprofile")
+  await expect(page.locator("#payments")).toContainText("Debes")
+  expect(reads).toBe(1)
+  await page.locator("#payments").click()
+  await expect(page).toHaveURL("/payments")
+  const markPaid = page.getByRole("button", { name: "Marcar como pagado", exact: true }).first()
+  await expect(markPaid).toBeVisible()
+  expect(reads).toBe(1)
+  await markPaid.click()
+  await expect(markPaid).toHaveCount(0)
+  expect(reads).toBe(2)
+  expect(adminReads).toBe(0)
+  const adminResponse = page.waitForResponse("**/api/leagues/*/activity?limit=200")
+  await page.getByRole("button", { name: "Admin", exact: true }).click()
+  expect((await adminResponse).status()).toBe(200)
+  await expect(page.getByText("Todos los movimientos", { exact: true })).toBeVisible()
+  expect(adminReads).toBe(1)
+  await page.goBack()
+  await expect(page.locator("#payments")).not.toContainText("Debes")
+  await expect(page.locator("#payments")).toContainText("Mis pagos")
+  expect(reads).toBe(2)
+})
+
 test("global profile reuses history on return and revalidates without hiding it", async ({ page }) => {
   await setup(page, "light", "classic")
   let email = "qa-experience@example.test"

@@ -4,11 +4,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useSession } from "next-auth/react"
 import type { AccountProfile, DominantHand, PreferredPlayerSide } from "@/lib/accountProfile"
 import type { WeeklyAvailability } from "@/lib/playerAvailability"
-import { PERSONAL_PROFILE_HISTORY_REFRESH_EVENT } from "@/lib/appRefreshEvents"
+import { PAYMENT_LEDGER_REFRESH_EVENT, PERSONAL_PROFILE_HISTORY_REFRESH_EVENT } from "@/lib/appRefreshEvents"
+import { createPaymentLedger } from "@/lib/paymentLedger"
 import { createPersonalProfileHistory } from "@/lib/personalProfileHistory"
 
 type AccountProfileContextValue = {
   history: ReturnType<typeof createPersonalProfileHistory>
+  ledger: ReturnType<typeof createPaymentLedger>
   profile: AccountProfile | null
   isLoading: boolean
   error: string | null
@@ -43,7 +45,9 @@ async function readProfileResponse(response: Response) {
 
 export function AccountProfileProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
-  const [history] = useState(() => createPersonalProfileHistory(session?.user?.email ?? ""))
+  const account = session?.user?.email ?? ""
+  const [history] = useState(() => createPersonalProfileHistory(account))
+  const [ledger] = useState(() => createPaymentLedger(account))
   const [profile, setProfile] = useState<AccountProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -161,15 +165,18 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
 
   useEffect(() => {
     window.addEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, history.invalidate)
+    window.addEventListener(PAYMENT_LEDGER_REFRESH_EVENT, ledger.invalidate)
     return () => {
       window.removeEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, history.invalidate)
+      window.removeEventListener(PAYMENT_LEDGER_REFRESH_EVENT, ledger.invalidate)
       history.cancel()
+      ledger.cancel()
     }
-  }, [history])
+  }, [history, ledger])
 
   const value = useMemo(
-    () => ({ history, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
-    [error, history, isLoading, profile, refreshProfile, saveAvatar, saveProfile],
+    () => ({ history, ledger, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
+    [error, history, isLoading, ledger, profile, refreshProfile, saveAvatar, saveProfile],
   )
 
   return (

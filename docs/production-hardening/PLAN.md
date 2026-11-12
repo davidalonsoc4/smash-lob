@@ -1,3 +1,7 @@
+## MC164 — Reutilización de datos de Ajustes y Pagos
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: npm run validate, Playwright móvil de Ajustes/Pagos y Mi perfil, comparativa de reapertura y verificación LAN 3000.
+
 ## MC163 — Reapertura de Mi perfil
 - Estado: COMPLETO LOCAL. Historial y fundido verificados en LAN 3000.
 - Gates: npm run validate, Playwright móvil para retorno, caducidad, fallos, cambios de resultados y aislamiento de sesión, comparativa sintética y LAN 3000.

@@ -3,6 +3,7 @@ import {
   parseMatchScheduleDate,
 } from "@/lib/matchScheduleTime"
 import { normalizeCourtBooking } from "@/lib/courtBooking"
+import { requestPaymentLedgerRefresh } from "@/lib/appRefreshEvents"
 import type {
   CourtBooking,
   CourtBookingReservation,
@@ -389,7 +390,9 @@ export async function updateSupabaseCourtBooking({
     }
   )
 
-  return readMatchResponse(response, "match-court-booking-api")
+  const match = await readMatchResponse(response, "match-court-booking-api")
+  requestPaymentLedgerRefresh()
+  return match
 }
 
 export async function clearSupabaseCourtBooking(matchId: string) {
@@ -401,7 +404,9 @@ export async function clearSupabaseCourtBooking(matchId: string) {
     }
   )
 
-  return readMatchResponse(response, "match-court-booking-clear-api")
+  const match = await readMatchResponse(response, "match-court-booking-clear-api")
+  requestPaymentLedgerRefresh()
+  return match
 }
 
 export async function updateSupabaseCourtBookingTransferPaymentStatus({
@@ -423,7 +428,9 @@ export async function updateSupabaseCourtBookingTransferPaymentStatus({
     }
   )
 
-  return readMatchResponse(response, "match-court-booking-transfer-api")
+  const match = await readMatchResponse(response, "match-court-booking-transfer-api")
+  requestPaymentLedgerRefresh()
+  return match
 }
 
 export async function sendSupabaseCourtBookingPaymentReminder({

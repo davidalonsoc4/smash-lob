@@ -220,7 +220,7 @@ assert(paymentLedgerRoute.includes('.from("league_memberships")') && paymentLedg
 assert(paymentLedgerRoute.includes('requireAuthenticatedAppUser'), "El ledger global debe exigir autenticación")
 assert(paymentsPage.includes('type PaymentScope = "all" | "league" | "friendly"'), "Mis pagos debe ofrecer Todos, Liga actual y Amistosos")
 assert(paymentsPage.includes('filterPaymentLedgerItems') && paymentsPage.includes('selectedLeagueId') && paymentsPage.includes('selectedSeasonId'), "Los filtros de Mis pagos deben separar Todos, una liga/temporada concreta y los amistosos")
-assert(settingsPage.includes("fetchPaymentLedger") && settingsPage.includes("getPaymentLedgerPendingSummary"), "Ajustes debe mostrar el resumen global de pagos pendientes")
+assert(settingsPage.includes("useSessionResource(ledger)") && settingsPage.includes("getPaymentLedgerPendingSummary"), "Ajustes debe mostrar el resumen global de pagos pendientes")
 assert(detailPage.includes("<PersonalMatchResultForm"), "El detalle debe permitir registrar/corregir resultado")
 assert(schedulePanel.includes("<MatchScheduleForm"), "El detalle debe delegar ubicación y mapa en el panel compartido")
 assert(schedulePanel.includes("PersonalAddToCalendarButton"), "El detalle debe permitir añadir al calendario")

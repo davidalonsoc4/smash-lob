@@ -1,7 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react"
+import { useMemo, useState } from "react"
+import { useSessionResource } from "@/hooks/useSessionResource"
 import { PersonalProfileStatistics } from "@/components/personal/PersonalProfileStatistics"
 import type { PersonalProfileSection } from "@/components/player/ProfileSectionTabs"
 import { PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
@@ -33,7 +34,7 @@ export default function PersonalProfilePage() {
     [getMembershipForLeague, userLeagues],
   )
   const { activateLeague } = useActiveLeague()
-  const { items: cachedItems, failed } = useSyncExternalStore(history.subscribe, history.getSnapshot, history.getSnapshot)
+  const { data: cachedItems, failed } = useSessionResource(history)
   const [animate] = useState(cachedItems === null)
   const items = cachedItems ?? emptyHistory
   const [origin, setOrigin] = useState<PersonalProfileOriginFilter>("all")
@@ -41,16 +42,6 @@ export default function PersonalProfilePage() {
   const [seasonId, setSeasonId] = useState("")
   const [section, setSection] = useState<PersonalProfileSection>("summary")
   const [comparisonKey, setComparisonKey] = useState("")
-
-  useEffect(() => {
-    const timer = window.setTimeout(history.refresh, 0)
-    const refreshVisible = () => { if (!document.hidden) history.refresh() }
-    document.addEventListener("visibilitychange", refreshVisible)
-    return () => {
-      window.clearTimeout(timer)
-      document.removeEventListener("visibilitychange", refreshVisible)
-    }
-  }, [history])
 
   const leagues = useMemo(() => {
     const byId = new Map<string, string>()
