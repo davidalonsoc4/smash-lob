@@ -455,6 +455,8 @@ for (const theme of ["light", "dark"] as const) {
       await page.setViewportSize({ width, height: 852 })
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
     }
+    await page.waitForFunction(() => Array.from(document.querySelectorAll("[data-content-enter]"))
+      .every(card => card.getAnimations().every(animation => animation.playState === "finished")))
     const filledAccessibility = await new AxeBuilder({ page }).analyze()
     expect(filledAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: testInfo.outputPath("hub-filled-custom-accent.png"), fullPage: true, scale: "css" })
