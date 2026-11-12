@@ -2,6 +2,7 @@ import { fetchLeagueAnnouncements } from "@/lib/announcements"
 import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { createSessionResource } from "@/lib/sessionResource"
+import type { ActivityEvent } from "@/lib/activity"
 
 export type LeagueChatItem = {
   id: string
@@ -60,6 +61,16 @@ export function createLeagueScreenData(account: string) {
     read<ChatPreview>(`/api/league-season-chats/${encodeURIComponent(seasonId)}?summary=1`, signal))
   const announcements = createScopedResources((signal, leagueId: string) =>
     fetchLeagueAnnouncements(leagueId, { homeOnly: true, headers, signal }))
+  const activity = createScopedResources(async (signal, leagueId: string, view: string) => {
+    const query = new URLSearchParams({ limit: view === "notifications" ? "180" : "160" })
+    if (view === "player") query.set("clampToViewerJoinDate", "1")
+    const data = await read<{ items?: ActivityEvent[] }>(`/api/leagues/${encodeURIComponent(leagueId)}/activity?${query}`, signal)
+    return data && (data.items ?? [])
+  })
+  const notificationReads = createSessionResource(async signal => {
+    const data = await read<{ items?: { event_id: string }[] }>("/api/notifications/read-state", signal)
+    return data && new Set((data.items ?? []).map(item => item.event_id))
+  }, 30_000)
   type PreviewResource = ReturnType<typeof preview.get>
   let watchedPreview: { resource: PreviewResource; topic: string; unsubscribe: () => void } | null = null
   function stopPreview() {
@@ -74,5 +85,5 @@ export function createLeagueScreenData(account: string) {
     }) }
   }
   const entrances = new Set<string>()
-  return { chats, preview, announcements, watchPreview, stopPreview, entrances: { has: (key: string) => entrances.has(key), add: (key: string) => { entrances.add(key) } } }
+  return { chats, preview, announcements, activity, notificationReads, watchPreview, stopPreview, entrances: { has: (key: string) => entrances.has(key), add: (key: string) => { entrances.add(key) } } }
 }

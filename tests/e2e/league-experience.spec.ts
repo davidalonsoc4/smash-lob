@@ -1007,6 +1007,55 @@ test("tournaments reuses the hub list until tournament data changes", async ({ p
   expect(reads).toBe(2)
 })
 
+test("league notifications and activity keep their lists during refresh", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  const reads = { activity: 0, notifications: 0 }
+  let marked = false
+  const event = { id: "30000000-0000-4000-8000-000000000072", leagueId, seasonId, matchId: null, actorUserId: "other",
+    actorEmail: "other@example.test", actorDisplayName: "QA", actorAvatarUrl: null,
+    actorAvatarInitials: null, type: "league_announcement_published", title: "Comunicado sintético",
+    description: "Detalle sintético", metadata: {}, createdAt: "2026-10-15T10:00:00Z" }
+  await page.route("**/api/leagues/*/activity?**", async route => {
+    const limit = new URL(route.request().url()).searchParams.get("limit")
+    if (limit !== "160" && limit !== "180") return route.fallback()
+    const view = limit === "180" ? "notifications" : "activity"
+    const refreshing = ++reads[view] > 1
+    if (refreshing) await pending
+    return route.fulfill({ json: { items: [refreshing ? { ...event, title: "Comunicado actualizado" } : event] } })
+  })
+  await page.route("**/api/notifications/read-state", route => {
+    if (route.request().method() === "POST") marked = true
+    return route.fulfill({ json: { items: marked ? [{ event_id: event.id }] : [] } })
+  })
+  try {
+    await page.goto("/notifications")
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Marcar todas como leídas" }).click()
+    await expect.poll(() => marked).toBe(true)
+    await page.getByRole("link", { name: /Ajustes de notificaciones/ }).click()
+    await expect(page).toHaveURL(/\/settings\/notifications$/)
+    await page.goBack()
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Marcar todas como leídas" })).toHaveCount(0)
+    await page.getByRole("button", { name: "Actualizar", exact: true }).click()
+    await expect.poll(() => reads.notifications).toBeGreaterThan(1)
+    await expect(page.getByText("Cargando notificaciones...")).toHaveCount(0)
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await page.goto("/activity?scope=all")
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Actualizar", exact: true }).click()
+    await expect.poll(() => reads.activity).toBe(2)
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await expect(page.getByText(/Cargando actividad/)).toHaveCount(0)
+    release()
+    await expect(page.getByText("Comunicado actualizado", { exact: true })).toBeVisible()
+  } finally {
+    release()
+  }
+})
+
 test("settings and payments share the ledger and refresh it after a transfer changes", async ({ page }) => {
   await setup(page, "light", "classic")
   let paid = false

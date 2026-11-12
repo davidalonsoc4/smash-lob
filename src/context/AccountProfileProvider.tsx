@@ -186,11 +186,12 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
-    const { chats, preview, announcements } = leagueScreenData
+    const { chats, preview, announcements, activity, notificationReads } = leagueScreenData
     const chatChanged = () => { chatList.invalidate(); chats.invalidate(); preview.invalidate() }
     const matchChanged = () => {
       chats.invalidate()
       matchDashboard.invalidate()
+      activity.invalidate()
       chatList.invalidate()
     }
     const historyChanged = () => {
@@ -204,6 +205,8 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
       leagueScreenData.stopPreview()
       preview.discard()
       announcements.discard()
+      activity.discard()
+      notificationReads.discard()
       chatList.discard()
       clearChatListCache()
       history.discard()
@@ -226,6 +229,8 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
       leagueScreenData.stopPreview()
       preview.cancel()
       announcements.cancel()
+      activity.cancel()
+      notificationReads.cancel()
       window.removeEventListener(LEAGUE_MEMBERSHIP_CHANGED_EVENT, membershipChanged)
       window.removeEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, historyChanged)
       window.removeEventListener(MATCH_DASHBOARD_REFRESH_EVENT, matchChanged)
