@@ -312,6 +312,62 @@ test("appearance migrates the league accent and keeps six fixed choices", async 
   await expect(page.locator("html")).toHaveCSS("--app-accent", "#477BD1")
 })
 
+for (const saveData of [false, true]) {
+  test(`league inbox warms only recent active threads without marking reads (saveData=${saveData})`, async ({ page }) => {
+    await setup(page, "dark", "classic")
+    await page.addInitScript(save => Object.defineProperty(navigator, "connection", { value: { saveData: save, effectiveType: "4g" } }), saveData)
+    await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: ["active-a", "active-b"].map(id => ({
+      id, round: 2, status: "scheduling", readOnly: false, partner: "Ana", rivals: ["Bea"], unread: 1, lastMessage: null,
+    })) } }))
+    const previews: string[] = []
+    await page.route("**/api/matches/*/chat?**", route => {
+      const url = new URL(route.request().url())
+      expect(url.searchParams.get("markRead")).toBe("0")
+      previews.push(url.pathname)
+      return route.fulfill({ json: { messages: [] } })
+    })
+    let opened = 0
+    let release!: () => void
+    const pending = new Promise<void>(resolve => { release = resolve })
+    await page.route("**/api/league-season-chats/**", async route => {
+      const url = new URL(route.request().url())
+      const summary = url.searchParams.get("summary") === "1"
+      const preview = url.searchParams.get("preview") === "1"
+      if (preview) {
+        expect(url.searchParams.get("markRead")).toBe("0")
+        expect(route.request().headers()["x-smash-lob-chat-list-account"]).toBe("qa-experience%40example.test")
+        previews.push(url.pathname)
+      } else if (!summary) {
+        opened++
+        await pending
+      }
+      return route.fulfill({ json: {
+        season: { name: "Temporada 1" }, me: "qa-user", unread: 1, readOnly: false, realtimeTopic: null,
+        messages: summary ? [] : [{ id: "message", sender_user_id: "friend", sender_display_name: "Ana", body: preview ? "Historial precargado QA" : "Historial confirmado QA", created_at: "2026-10-16T11:00:00Z" }],
+      } })
+    })
+    await page.goto("/chats")
+    const thread = page.locator(`a[href="/league-chat/${seasonId}"]`)
+    await expect(thread).toBeVisible()
+    try {
+      if (saveData) {
+        await page.waitForTimeout(500)
+        expect(previews).toEqual([])
+      } else {
+        await expect.poll(() => previews).toEqual([`/api/league-season-chats/${seasonId}`, "/api/matches/active-a/chat"])
+      }
+      expect(opened).toBe(0)
+      await thread.click()
+      if (!saveData) await expect(page.getByText("Historial precargado QA", { exact: true })).toBeVisible()
+      await expect.poll(() => opened).toBe(1)
+    } finally {
+      release()
+    }
+    await expect(page.getByText("Historial confirmado QA", { exact: true })).toBeVisible()
+    await expect(page.getByText("Historial precargado QA", { exact: true })).toHaveCount(0)
+  })
+}
+
 test("league chat fits the visual viewport when the keyboard opens", async ({ page }) => {
   await setup(page, "dark", "competition")
   await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: {
@@ -395,7 +451,8 @@ test("league season chat opens from home and sends a message", async ({ page }, 
   })
   await page.goto("/league/home")
   const chat = page.getByRole("link", { name: "Abrir chat de liga" })
-  await expect(chat).toHaveCSS("box-shadow", /rgb\(255, 255, 255\) 0px 0px 0px 2px inset/)
+  await expect(chat).toHaveCSS("box-shadow", "rgb(255, 255, 255) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0.4) 0px 5px 14px 0px")
+  await expect(chat).toHaveCSS("border-width", "0px")
   await expect(chat.getByLabel("Mensajes sin leer")).toBeVisible()
   await chat.click()
   await expect(page.getByRole("heading", { name: "Liga Azul QA" })).toBeVisible()

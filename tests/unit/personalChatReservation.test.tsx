@@ -4,6 +4,7 @@ import { afterEach, expect, it, vi } from "vitest"
 import PersonalChat from "@/app/personal-matches/[id]/chat/page"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
+vi.mock("next-auth/react", () => ({ useSession: () => ({ data: { user: { email: "qa@example.test" } } }) }))
 vi.mock("next/navigation", () => ({ useParams: () => ({ id: "qa-friendly" }) }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ tx: (text: string) => text, locale: "es" }) }))
 vi.mock("@/lib/chatRealtimeClient", () => ({ CHAT_UNREAD_LOCAL_REFRESH_EVENT: "qa-unread", subscribeChatRealtime: () => () => {} }))

@@ -29,7 +29,7 @@ import { useMatchData } from "@/context/MatchDataProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { CHAT_UNREAD_LOCAL_REFRESH_EVENT, subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import { clearMatchChatCache, readMatchChatCache, writeMatchChatCache } from "@/lib/matchChatCache"
-import { fetchChatEntry } from "@/lib/chatEntryRequest"
+import { fetchChatEntry, openChatWithPreview } from "@/lib/chatEntryRequest"
 import { useSession } from "next-auth/react"
 import {
   getLeagueLocationOptionLabel,
@@ -249,7 +249,9 @@ export default function MatchChatPage() {
     const initialTimer = window.setTimeout(() => {
       const cached = account ? readMatchChatCache(id, account) : null
       if (cached) applySnapshot(mapLoadedChatSnapshot(cached))
-      void runLoad()
+      void openChatWithPreview(account, `/api/matches/${encodeURIComponent(id)}/chat`, payload => {
+        if (!cancelled) applySnapshot(mapLoadedChatSnapshot({ ...record(payload), realtimeTopic: null }))
+      }, runLoad)
     }, 0)
     const handleVisibility = () => { if (!document.hidden) void runLoad() }
     document.addEventListener("visibilitychange", handleVisibility)

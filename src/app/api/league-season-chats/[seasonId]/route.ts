@@ -46,6 +46,7 @@ export async function GET(request: Request, context: Context) {
     const profile = profileById.get(member.user_id)
     return { userId: member.user_id, displayName: profile?.display_name || "Jugador", avatarUrl: profile?.avatar_url ?? null, lastReadAt: member.last_read_at }
   })
+  const pageSize = searchParams.get("preview") === "1" ? 20 : 200
   const before = searchParams.get("before")
   if (before && !validateUuid(before)) return fail("invalid_message_cursor", 400)
   let query = supabase.from("league_season_chat_messages")
@@ -57,13 +58,13 @@ export async function GET(request: Request, context: Context) {
     if (!cursor.data) return fail("invalid_message_cursor", 400)
     query = query.or(`created_at.lt.${cursor.data.created_at},and(created_at.eq.${cursor.data.created_at},id.lt.${before})`)
   }
-  const result = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(201)
+  const result = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(pageSize + 1)
   if (result.error) return fail("league_chat_messages_failed", 500)
   const rows = result.data ?? []
-  const hasMore = rows.length > 200
-  const messages = rows.slice(0, 200).reverse()
+  const hasMore = rows.length > pageSize
+  const messages = rows.slice(0, pageSize).reverse()
   const unread = messages.filter((message) => message.sender_user_id !== user.id && (!lastReadAt || message.created_at > lastReadAt)).length
-  if (!before && searchParams.get("markRead") !== "0") {
+  if (pageSize === 200 && !before && searchParams.get("markRead") !== "0") {
     const lastRead = messages.at(-1)?.created_at
     if (lastRead && (!lastReadAt || lastRead > lastReadAt)) {
       const read = await supabase.from("league_season_chat_participants")

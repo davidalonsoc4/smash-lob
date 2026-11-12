@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
+import { useSession } from "next-auth/react"
+import { openChatWithPreview } from "@/lib/chatEntryRequest"
 import { useParams } from "next/navigation"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
 import { MatchChatReservationSummary } from "@/components/match/chat/MatchChatReservationSummary"
@@ -86,6 +88,7 @@ function mapSnapshot(value: unknown): PersonalChatSnapshot {
 }
 
 export default function PersonalMatchChatPage() {
+  const account = useSession().data?.user?.email
   const { tx, locale } = useI18n()
   const id = String(useParams<{ id: string }>().id ?? "")
   const [snapshot, setSnapshot] = useState<PersonalChatSnapshot | null>(null)
@@ -111,6 +114,7 @@ export default function PersonalMatchChatPage() {
         )
         const payload = await response.json().catch(() => null)
         if (!response.ok) {
+          if ([401, 403, 404].includes(response.status)) setSnapshot(null)
           throw new Error(
             payload && typeof payload.error === "string"
               ? payload.error
@@ -138,9 +142,14 @@ export default function PersonalMatchChatPage() {
   )
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadChat(), 0)
-    return () => window.clearTimeout(timer)
-  }, [loadChat])
+    let active = true
+    const timer = window.setTimeout(() => void openChatWithPreview(account, `/api/personal-matches/${encodeURIComponent(id)}/chat`, payload => {
+      if (!active) return
+      setSnapshot({ ...mapSnapshot(payload), realtimeTopic: null })
+      setLoading(false)
+    }, loadChat), 0)
+    return () => { active = false; window.clearTimeout(timer) }
+  }, [account, id, loadChat])
 
   useEffect(() => {
     if (!snapshot?.realtimeTopic) return

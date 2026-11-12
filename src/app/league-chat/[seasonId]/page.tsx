@@ -1,6 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useSession } from "next-auth/react"
+import { openChatWithPreview } from "@/lib/chatEntryRequest"
 import { useParams } from "next/navigation"
 import { BackButton } from "@/components/ui/BackButton"
 import { MatchChatComposer, MatchChatReadOnlyBar, MatchChatTextMessage, resizeMatchChatComposer, useMatchChatViewport } from "@/components/match/chat/MatchChatShared"
@@ -24,6 +26,7 @@ function mergeMessages(previous: Message[], incoming: Message[]) {
 }
 
 function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
+  const account = useSession().data?.user?.email
   const { tx } = useI18n()
   const { leagues } = useLeagueAccess()
   const [chat, setChat] = useState<Chat | null>(null)
@@ -58,7 +61,13 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     })
     setError(false)
   }, [seasonId])
-  useEffect(() => { void Promise.resolve().then(load) }, [load])
+  useEffect(() => {
+    let active = true
+    const timer = window.setTimeout(() => void openChatWithPreview(account, `/api/league-season-chats/${encodeURIComponent(seasonId)}`, payload => {
+      if (active) setChat({ ...(payload as Chat), realtimeTopic: null })
+    }, load), 0)
+    return () => { active = false; window.clearTimeout(timer) }
+  }, [account, load, seasonId])
   useEffect(() => subscribeChatRealtime(chat?.realtimeTopic ?? null, () => { void load() }), [chat?.realtimeTopic, load])
   useLayoutEffect(() => {
     const panel = messagesRef.current

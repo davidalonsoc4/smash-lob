@@ -17,7 +17,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { clearChatListCache, readChatListCache, writeChatListCache } from "@/lib/chatListCache"
-import { warmChatEntry } from "@/lib/chatEntryRequest"
+import { scheduleChatEntryPreviews, warmChatEntry } from "@/lib/chatEntryRequest"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { StatusDot } from "@/components/ui/StatusDot"
@@ -283,6 +283,14 @@ function ChatList({ account }: { account: string }) {
 
   const hasFilters = Boolean(query.trim() || scope !== "all" || conversation !== "all" || (phase !== "active" && phase !== "all"))
   const visibleGeneralChats = generalChats.filter(chat => (scope === "all" || scope === chat.leagueId) && (phase === "all" || phase === "active") && (conversation === "all" || conversation === "started" && Boolean(chat.lastMessage) || conversation === "empty" && !chat.lastMessage || conversation === "unread" && chat.unread > 0) && (!query.trim() || [chat.leagueName, chat.seasonName, chat.lastMessage?.sender, chat.lastMessage?.body].some(value => value?.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))))
+  const firstActive = groupedChats.active[0]
+  const activeEndpoint = firstActive && `/api/${firstActive.origin === "friendly" ? "personal-matches" : "matches"}/${encodeURIComponent(firstActive.id)}/chat`
+  const generalSeason = visibleGeneralChats.find(chat => snapshot.generalChats.some(item => item.seasonId === chat.seasonId))?.seasonId
+  const generalEndpoint = generalSeason && `/api/league-season-chats/${encodeURIComponent(generalSeason)}`
+  useEffect(() => {
+    if (!isAccessHydrated || loadedScope === null || hasFilters || phase !== "active") return
+    return scheduleChatEntryPreviews(account, activeEndpoint || generalEndpoint, generalEndpoint)
+  }, [account, activeEndpoint, generalEndpoint, hasFilters, isAccessHydrated, loadedScope, phase])
   const resultCount = isAccessHydrated && loadedScope !== null ? visibleGeneralChats.length + Object.values(groupedChats).reduce((total, group) => total + group.length, 0) : 0
   const staggerStep = Math.min(55, 165 / Math.max(1, resultCount - 1))
   const staggerStyle = (index: number): CSSProperties | undefined => stagger ? { animationDelay: `${index * staggerStep}ms` } : undefined

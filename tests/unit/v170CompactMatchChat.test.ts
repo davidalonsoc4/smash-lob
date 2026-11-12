@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 describe("v1.7.0 compact match chat", () => {
   it("keeps the participant-only API and message limits", async () => {
     const api = await readFile("src/app/api/matches/[matchId]/chat/route.ts", "utf8")
-    for (const token of ["getServerMatchActor", "requireLeagueAccess: true", "requireParticipant: true", "participantPlayerId", "body.length > 2000", "Date.now() - 10_000", ">= 8", ".limit(60)"]) expect(api).toContain(token)
+    for (const token of ["getServerMatchActor", "requireLeagueAccess: true", "requireParticipant: true", "participantPlayerId", "body.length > 2000", "Date.now() - 10_000", ">= 8", ".limit(preview ? 20 : 60)"]) expect(api).toContain(token)
   })
   it("keeps the mobile realtime and detail entry contracts", async () => {
     const [page, shared, detail] = await Promise.all([
