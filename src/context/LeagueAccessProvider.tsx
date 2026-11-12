@@ -518,7 +518,8 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const pathname = usePathname();
   const adminSnapshotContext = pathname === "/admin" || pathname.startsWith("/admin/");
   const overviewOnly = pathname === "/leagues";
-  const requiredScope = overviewOnly ? "overview" : adminSnapshotContext ? "admin" : "full";
+  const acceptsOverview = overviewOnly || pathname === "/personal-matches" || pathname === "/personal-matches/profile";
+  const requiredScope = acceptsOverview ? "overview" : adminSnapshotContext ? "admin" : "full";
   const { hydrateMatches } = useMatchData();
   const {
     hydrateSeasonSnapshot,
@@ -554,7 +555,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const currentHydration = hydration?.userId === userId ? hydration : undefined;
   const overview = overviewOnly ? currentHydration?.overview : undefined;
   const refreshCompactOverview = Boolean(overview);
-  const scopeReady = Boolean(currentHydration?.scope === requiredScope || (overviewOnly && currentHydration?.scope === "full"));
+  const scopeReady = Boolean(currentHydration?.scope === requiredScope || (requiredScope === "overview" && currentHydration?.scope === "full"));
   const isAccessHydrated = sessionStatus === "unauthenticated" || scopeReady;
   const { schedule: preloadLeagueSnapshot, start: startLeagueSnapshot, take: takePreloadedAccess, clear: clearPreloadedAccess } = useLeagueSnapshotPreload(userId);
   const prepareLeagueNavigation = useCallback(() => {
@@ -604,7 +605,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       try {
         const preloaded = requiredScope === "full" ? await takePreloadedAccess() : null;
         if (isCancelled) return;
-        const snapshot = preloaded ?? await fetchSupabaseLeagueSnapshot({ adminContext: adminSnapshotContext, overview: overviewOnly });
+        const snapshot = preloaded ?? await fetchSupabaseLeagueSnapshot({ adminContext: adminSnapshotContext, overview: requiredScope === "overview" });
 
         if (isCancelled) {
           return;
@@ -673,7 +674,6 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     };
   }, [
     adminSnapshotContext,
-    overviewOnly,
     refreshCompactOverview,
     requiredScope,
     scopeReady,

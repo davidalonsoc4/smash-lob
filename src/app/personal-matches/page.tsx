@@ -17,12 +17,12 @@ const emptyDashboard: PersonalMatchesDashboardPayload = { items: [], hasMore: fa
 export default function PersonalMatchesPage() {
   const { t, tx } = useI18n()
   const { account, dashboard: firstPage, failed, refreshing } = usePersonalMatchesDashboard()
+  const [animateHistory] = useState(firstPage === null)
   const [expanded, setExpanded] = useState<{ account: string; dashboard: PersonalMatchesDashboardPayload }>()
   const dashboard = (expanded?.account === account ? expanded.dashboard : firstPage) ?? emptyDashboard
   const loading = !firstPage && !failed
   const [loadingMore, setLoadingMore] = useState(false)
   const [paginationError, setError] = useState<string | null>(null)
-
   const error = paginationError ?? (failed ? "No se ha podido cargar tu historial de partidos." : null)
 
   async function loadMore() {
@@ -101,7 +101,7 @@ export default function PersonalMatchesPage() {
             action={{ label: tx("Crear mi primer encuentro"), href: "/personal-matches/new" }}
           />
         ) : (
-          <div className="space-y-2" {...cardListEntrance}>
+          <div className="space-y-2" {...(animateHistory ? cardListEntrance : {})}>
             {dashboard.items.map((match) => (
               <PersonalMatchCard key={`${match.origin}-${match.id}`} match={match} compactBadges />
             ))}

@@ -1,3 +1,7 @@
+## MC167 — Navegación estable a Mis partidos y Mi perfil
+- Estado: COMPLETO LOCAL. Verificado en el puerto LAN 3000.
+- Gates: reproducir ambos esqueletos con movimiento reducido, acceso de liga y respuesta de ruta retenidos, npm run validate, Playwright móvil de navegación, permisos y PWA, LAN 3000.
+
 ## MC166 — Actualización del contador de chats de liga
 - Estado: COMPLETO LOCAL. Navegación y actualización verificadas en LAN 3000.
 - Gates: validate, Playwright de navegación y avisos de no leídos, comparación LAN 3000.

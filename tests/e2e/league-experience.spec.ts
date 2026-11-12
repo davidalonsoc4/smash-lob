@@ -107,6 +107,73 @@ for (const saveData of [false, true]) {
   })
 }
 
+test("personal matches and profile keep the app visible with compact league access", async ({ page }) => {
+  const { league } = await setup(page, "dark", "competition")
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true, effectiveType: "4g" } }))
+  let fullReads = 0
+  let releaseFull!: () => void
+  const fullPending = new Promise<void>(resolve => { releaseFull = resolve })
+  let releaseProfileRoute!: () => void
+  let profileRouteRequested!: () => void
+  const profileRoutePending = new Promise<void>(resolve => { releaseProfileRoute = resolve })
+  const profileRouteStarted = new Promise<void>(resolve => { profileRouteRequested = resolve })
+  await page.route("**/personal-matches/profile**", async route => {
+    if (route.request().headers().rsc === "1") {
+      profileRouteRequested()
+      await profileRoutePending
+    }
+    return route.fallback()
+  })
+  await page.route("**/api/access", async route => {
+    if (route.request().headers()["x-smash-lob-access-scope"] !== "overview") {
+      fullReads += 1
+      await fullPending
+      return route.fallback()
+    }
+    const season = { id: seasonId, leagueId, name: "Temporada ligera", status: "active", totalRounds: 12, completedRounds: 1 }
+    return route.fulfill({ json: {
+      isSuperuser: false, canCreateLeagues: true, leagues: [league], spectatorLeagueIds: [],
+      memberships: [{ userId: "qa-experience@example.test", leagueId, playerId: "davo", role: "admin" }],
+      overview: { activeSeasons: { [leagueId]: season }, startsAt: {}, revealedThrough: { [seasonId]: 12 }, activity: [] },
+    } })
+  })
+  const match = { id: "qa-stable-history", origin: "friendly", status: "finished", scheduledAt: "2026-10-15T10:00:00Z",
+    resultRecordedAt: "2026-10-15T11:00:00Z", locationName: "Pista de prueba", sets: [{ a: 6, b: 3 }],
+    participants: [{ team: 1, slot: 1, displayName: "QA estable", isCurrentUser: true }],
+  }
+  await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [match], upcoming: [], hasMore: false, nextOffset: null } }))
+  try {
+    await page.goto("/leagues")
+    const nav = page.getByRole("navigation", { name: "Navegación global" })
+    await expect(page.getByText("QA estable", { exact: true })).toBeVisible()
+    await page.evaluate(() => {
+      const watch = new MutationObserver(() => {
+        if (!document.querySelector(".app-shell-frame")?.getClientRects().length || document.querySelector('[aria-label="Cargando Smash & Lob"]')?.getClientRects().length) {
+          document.body.dataset.shellDisappeared = "true"
+        }
+      })
+      watch.observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "style"] })
+    })
+    await nav.getByRole("link", { name: "Mis partidos", exact: true }).click()
+    await expect(page.getByRole("heading", { name: "Mis partidos", exact: true })).toBeVisible()
+    await expect(page.getByText("QA estable", { exact: true })).toBeVisible()
+    await expect(page.locator("[data-card-list-enter]")).toHaveCount(0)
+    await nav.getByRole("link", { name: "Mi perfil", exact: true }).click()
+    await profileRouteStarted
+    await expect(page.getByRole("heading", { name: "Mis partidos", exact: true })).toBeVisible()
+    releaseProfileRoute()
+    await expect(page.locator("[data-personal-profile-sections]")).toBeVisible()
+    await nav.getByRole("link", { name: "Mis partidos", exact: true }).click()
+    await expect(page.getByText("QA estable", { exact: true })).toBeVisible()
+    await expect(page.locator("body")).not.toHaveAttribute("data-shell-disappeared", "true")
+    expect(fullReads).toBe(0)
+  } finally {
+    releaseProfileRoute()
+    releaseFull()
+  }
+})
+
 test("shows the league match before personal history and updates when it arrives", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" })
   const { league, matches } = await setup(page, "dark", "classic")
