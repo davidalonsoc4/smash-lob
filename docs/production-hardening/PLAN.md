@@ -1,3 +1,7 @@
+## MC166 — Actualización del contador de chats de liga
+- Estado: COMPLETO LOCAL. Navegación y actualización verificadas en LAN 3000.
+- Gates: validate, Playwright de navegación y avisos de no leídos, comparación LAN 3000.
+
 ## MC165 — Reutilización de datos de partidos y torneos
 - Estado: COMPLETO LOCAL. Ambas rutas verificadas en LAN 3000.
 - Gates: validate, Playwright móvil de navegación e invalidaciones, comparativa sintética y LAN 3000.

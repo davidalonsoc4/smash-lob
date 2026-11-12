@@ -150,7 +150,7 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
 
   const chatUnreadScope = activeLeagueId && activeSeason.id ? `${activeLeagueId}:${activeSeason.id}` : ""
   const chatUnread = !spectatorMode && chatUnreadState.scope === chatUnreadScope ? chatUnreadState.count : 0
-
+  const isChatRoute = pathname === "/chats" || pathname.startsWith("/league-chat/") || pathname.endsWith("/chat")
   useEffect(() => {
     if (spectatorMode || !activeLeagueId || !activeSeason.id) return
     let active = true
@@ -180,7 +180,7 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
       window.removeEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, handleLocalUnreadRefresh)
       unsubscribeRealtime()
     }
-  }, [activeLeagueId, activeSeason.id, pathname, spectatorMode])
+  }, [activeLeagueId, activeSeason.id, isChatRoute, spectatorMode])
 
   const playerNavItems: NavItem[] = [
     {

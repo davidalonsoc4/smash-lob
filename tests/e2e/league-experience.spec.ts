@@ -23,7 +23,7 @@ async function setup(page:Page,theme:string,style:string,canCreate=true,archive=
   await page.addInitScript(({theme,style})=>{
     localStorage.setItem("smash-lob-theme-mode",theme);localStorage.setItem("smash-lob-visual-style",style)
     localStorage.setItem("smash-lob:competition-launch-popup-v2:qa-experience@example.test","dismissed")
-    localStorage.setItem("smash-lob-guided-onboarding-v1",JSON.stringify(Object.fromEntries([["app-introduction",1],["home",7],["matches",2],["match",1],["chats",1],["settings",1]].map(([tourKey,tourVersion])=>[tourKey,{tourKey,tourVersion,status:"completed",completedAt:"2026-08-06T00:00:00Z",skippedAt:null}]))))
+    localStorage.setItem("smash-lob-guided-onboarding-v1",JSON.stringify(Object.fromEntries([["app-introduction",1],["home",7],["matches",2],["ranking",2],["match",1],["chats",1],["settings",1]].map(([tourKey,tourVersion])=>[tourKey,{tourKey,tourVersion,status:"completed",completedAt:"2026-08-06T00:00:00Z",skippedAt:null}]))))
   },{theme,style})
   return {setUpcoming:()=>{upcoming=true},setWindowed:()=>{windowed=true},setRole:(next: "player" | "admin")=>{role=next},setAdvanced:()=>{advanced=true},matches,league}
 }
@@ -426,6 +426,32 @@ test("global chats wait for slow friendly responses and protect private list met
   expect((await forbiddenResponse).status()).toBe(403)
   await expect(reopened.getByText("Cargando conversaciones…", { exact: true })).toHaveCount(0)
   await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
+})
+
+test("league navigation keeps the unread badge current without refetching on unrelated screens", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let unread = 1
+  let reads = 0
+  await page.route("**/api/chats?**", route => {
+    reads += 1
+    return route.fulfill({ json: { chats: [], totalUnread: unread } })
+  })
+  await page.goto("/leagues")
+  await page.getByRole("button", { name: "Entrar en Liga Azul QA" }).click()
+  await expect(page).toHaveURL("/league/home")
+  const nav = page.locator("nav[data-tour=bottom-navigation]")
+  const badge = nav.locator('a[href="/chats"]')
+  await expect(badge.getByText("1", { exact: true })).toBeVisible()
+  const initialReads = reads
+  for (const path of ["/matches", "/ranking", "/matches"]) {
+    await nav.locator(`a[href="${path}"]`).click()
+    await expect(page).toHaveURL(path)
+    await expect(badge.getByText("1", { exact: true })).toBeVisible()
+  }
+  unread = 4
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+  await expect(badge.getByText("4", { exact: true })).toBeVisible()
+  expect(reads).toBe(initialReads + 1)
 })
 
 test("tournaments reuses the hub list until tournament data changes", async ({ page }) => {
