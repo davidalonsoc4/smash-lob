@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { broadcastLeagueSeasonChatRefresh, getLeagueSeasonChatRealtimeTopic } from "@/lib/serverChatRealtime"
@@ -13,6 +14,8 @@ export async function GET(request: Request, context: Context) {
   const access = await getLeagueSeasonChatActor(seasonId)
   if (!access.ok) return fail(access.error, access.status)
   const { supabase, user } = access.actor
+  const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(user.email)) return fail("session_changed", 403)
   const searchParams = new URL(request.url).searchParams
   const lastReadAt = access.participant.last_read_at
   const summary = { season: access.season, readOnly: access.season.status !== "active", realtimeTopic: getLeagueSeasonChatRealtimeTopic(seasonId) }

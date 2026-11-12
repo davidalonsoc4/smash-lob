@@ -8,10 +8,10 @@ import type { MatchChatParticipant } from "@/components/match/chat/MatchChatShar
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
+import { CHAT_UNREAD_LOCAL_REFRESH_EVENT, subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 
 type Message = { id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }
-type Chat = { messages: Message[]; participants?: MatchChatParticipant[]; me: string; readOnly: boolean; hasMore: boolean; season: { name: string; league_id?: string }; realtimeTopic: string | null }
+type Chat = { unread?: number; messages: Message[]; participants?: MatchChatParticipant[]; me: string; readOnly: boolean; hasMore: boolean; season: { name: string; league_id?: string }; realtimeTopic: string | null }
 
 export default function LeagueSeasonChatPage() {
   const { seasonId } = useParams<{ seasonId: string }>()
@@ -31,6 +31,7 @@ export default function LeagueSeasonChatPage() {
     const response = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}`, { cache: "no-store" }).catch(() => null)
     if (!response?.ok) { setError(true); return }
     const next = await response.json() as Chat
+    if (next.unread) window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
     setChat((current) => {
       if (!current || current.messages.length <= next.messages.length) return next
       const all = new Map([...current.messages, ...next.messages].map((message) => [message.id, message]))
@@ -63,7 +64,11 @@ export default function LeagueSeasonChatPage() {
     const response = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body }),
     }).catch(() => null)
-    if (response?.ok) { setBody(""); await load() } else setError(true)
+    if (response?.ok) {
+      window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
+      setBody("")
+      await load()
+    } else setError(true)
     setSending(false)
   }
   return <div ref={viewportRef} className="fixed inset-x-0 top-0 z-[60] mx-auto flex h-[100dvh] w-full max-w-md min-h-0 flex-col overflow-hidden bg-stone-50">

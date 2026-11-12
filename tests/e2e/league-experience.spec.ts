@@ -416,6 +416,58 @@ test("global chats enter together in a stagger without replay on refresh", async
   }
 })
 
+test("global chats reopen from memory and refresh a read without replacing the list", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  let reads = 0
+  let changed = false
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: [{
+    id: "active-chat", round: 2, status: "scheduling", scheduledAt: null, readOnly: false,
+    partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
+  }] } }))
+  await page.route("**/api/league-season-chats/**", async route => {
+    reads += 1
+    expect(route.request().headers()["x-smash-lob-chat-list-account"]).toBe("qa-experience%40example.test")
+    if (changed) await pending
+    return route.fulfill({ json: { messages: [{
+      sender_display_name: "QA", body: changed ? "Mensaje actualizado" : "Mensaje en memoria", created_at: "2026-10-16T11:00:00Z",
+    }], participantCount: 2, unread: changed ? 0 : 2 } })
+  })
+  const nav = page.getByRole("navigation", { name: "Navegación global" })
+  const old = page.getByText("Mensaje en memoria", { exact: false })
+  const cards = page.locator("a[data-chat-list-enter]")
+  const open = (name: string) => nav.getByRole("link", { name, exact: true }).click()
+  try {
+    await page.goto("/personal-matches/chats")
+    await expect(old).toBeVisible()
+    expect(reads).toBe(1)
+    const order = await cards.evaluateAll(rows => rows.map(row => row.getAttribute("href")))
+    await open("Mis partidos")
+    await expect(page).toHaveURL("/personal-matches")
+    await open("Chats")
+    await expect(old).toBeVisible()
+    await expect(page.locator("[data-chat-batch-enter]")).toHaveCount(0)
+    expect(reads).toBe(1)
+
+    await open("Mis partidos")
+    await expect(page).toHaveURL("/personal-matches")
+    changed = true
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+    await open("Chats")
+    await expect.poll(() => reads).toBe(2)
+    await expect(old).toBeVisible()
+    expect(await cards.evaluateAll(rows => rows.map(row => row.getAttribute("href")))).toEqual(order)
+    await expect(page.locator("[data-chat-batch-enter]")).toHaveCount(0)
+    release()
+    await expect(page.getByText("Mensaje actualizado", { exact: false })).toBeVisible()
+    await expect(page.getByLabel("Mensajes sin leer")).toHaveCount(0)
+    expect(reads).toBe(2)
+  } finally {
+    release()
+  }
+})
+
 test("global chats defer past seasons and load the history on demand", async ({ page }) => {
   await setup(page, "light", "classic", true, true)
   const leagueReads: URLSearchParams[] = []

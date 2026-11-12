@@ -1,3 +1,7 @@
+## MC168 — Regreso estable a Chats Global
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: validate, Playwright móvil de vuelta a Chats y revalidación, controles de permisos y PWA, comparativa en LAN 3000.
+
 ## MC167 — Navegación estable a Mis partidos y Mi perfil
 - Estado: COMPLETO LOCAL. Verificado en el puerto LAN 3000.
 - Gates: reproducir ambos esqueletos con movimiento reducido, acceso de liga y respuesta de ruta retenidos, npm run validate, Playwright móvil de navegación, permisos y PWA, LAN 3000.

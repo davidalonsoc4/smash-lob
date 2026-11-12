@@ -2,7 +2,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase"
 
 export const CHAT_REALTIME_EVENT = "refresh"
-export const CHAT_UNREAD_LOCAL_REFRESH_EVENT = "smash-lob:chat-unread-refresh"
+export { CHAT_UNREAD_LOCAL_REFRESH_EVENT } from "@/lib/appRefreshEvents"
 
 type SubscriptionEntry = {
   channel: RealtimeChannel

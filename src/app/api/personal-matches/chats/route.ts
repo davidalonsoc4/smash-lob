@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { getGlobalChatPhase } from "@/lib/globalChatOverview"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import {
@@ -41,6 +42,8 @@ type MessageRow = {
 export async function GET(request: Request) {
   const auth = await requireAuthenticatedAppUser()
   if (!auth.ok) return fail(auth.error, auth.status)
+  const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(auth.actor.user.email)) return fail("session_changed", 403)
 
   const activeOnly = new URL(request.url).searchParams.get("active") === "1"
   const { supabase: db, user } = auth.actor

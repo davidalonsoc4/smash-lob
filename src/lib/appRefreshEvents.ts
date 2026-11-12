@@ -1,3 +1,4 @@
+export const CHAT_UNREAD_LOCAL_REFRESH_EVENT = "smash-lob:chat-unread-refresh"
 export const LEAGUE_ACCESS_REFRESH_EVENT = "smash-lob:refresh-league-access"
 export const PAYMENT_LEDGER_REFRESH_EVENT = "smash-lob:refresh-payment-ledger"
 export const PERSONAL_PROFILE_HISTORY_REFRESH_EVENT = "smash-lob:refresh-personal-profile-history"

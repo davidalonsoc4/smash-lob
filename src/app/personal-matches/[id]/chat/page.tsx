@@ -231,6 +231,7 @@ export default function PersonalMatchChatPage() {
         throw new Error("send_failed")
       }
 
+      window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
       const confirmed = payload?.message as PersonalChatMessage | undefined
       if (confirmed?.id) {
         setSnapshot((current) => {

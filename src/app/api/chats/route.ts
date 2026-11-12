@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { getGlobalChatPhase } from "@/lib/globalChatOverview"
 import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
 import { isMatchChatReadOnly } from "@/lib/matchChatWindow"
@@ -41,6 +42,8 @@ const playerIds = (value: unknown) =>
 export async function GET(request: Request) {
   const auth = await requireAuthenticatedAppUser()
   if (!auth.ok) return fail(auth.error, auth.status)
+  const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(auth.actor.user.email)) return fail("session_changed", 403)
 
   const searchParams = new URL(request.url).searchParams
   const activeRound = searchParams.get("activeRound")

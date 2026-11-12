@@ -5,6 +5,9 @@ import { useSession } from "next-auth/react"
 import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
 import { FloatingSearchButton } from "@/components/ui/FloatingSearchButton"
 import { useMatchData } from "@/context/MatchDataProvider"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { LEAGUE_MEMBERSHIP_CHANGED_EVENT } from "@/lib/appRefreshEvents"
+import { CHAT_LIST_ACCOUNT_HEADER, emptyChatList, type ChatListSnapshot, type GeneralLeagueChat, type PersonalChatOverviewItem } from "@/lib/chatListMemory"
 import { buildSeasonRounds } from "@/lib/rounds"
 import { groupGlobalChats } from "@/lib/globalChatOverview"
 import { getPersonalMatchOriginBadgeStyle } from "@/lib/personalMatches"
@@ -24,41 +27,6 @@ import {
   subscribeChatRealtime,
 } from "@/lib/chatRealtimeClient"
 
-type PersonalChatOverviewItem = {
-  id: string
-  origin: "friendly" | "league"
-  leagueName?: string
-  leagueId?: string
-  seasonId?: string
-  seasonStatus?: string
-  currentRound?: number
-  round?: number
-  status: string
-  scheduledAt: string | null
-  resultRecordedAt: string | null
-  locationName: string | null
-  readOnly: boolean
-  expired: boolean
-  partner: string
-  rivals: string[]
-  unread: number
-  lastMessage: {
-    sender: string
-    body: string
-    createdAt: string
-  } | null
-  realtimeTopic: string | null
-}
-type GeneralLeagueChat = {
-  leagueId: string
-  leagueName: string
-  seasonId: string
-  seasonName: string
-  unread: number
-  participants: number
-  lastMessage: { sender: string; body: string; createdAt: string } | null
-  realtimeTopic: string | null
-}
 function formatChatDate(value: string | null) {
   const date = value ? new Date(value) : null
   if (!date || Number.isNaN(date.getTime())) return ""
@@ -96,13 +64,13 @@ function errorMessage(error: string | null) {
   return "No se han podido cargar tus chats de amistosos."
 }
 const CHAT_LIST_TIMEOUT_MS = 5000
-async function readChatScope(url: string, signal: AbortSignal) {
-  const response = await fetch(url, { cache: "no-store", signal }).catch(() => null)
+async function readChatScope(url: string, signal: AbortSignal, account: string) {
+  const response = await fetch(url, { cache: "no-store", signal, headers: { [CHAT_LIST_ACCOUNT_HEADER]: account } }).catch(() => null)
   const data = await response?.json().catch(() => null)
   return { ok: Boolean(response?.ok && data), data, denied: [401, 403, 404].includes(response?.status ?? 0) }
 }
 
-type ChatListSnapshot = { chats: PersonalChatOverviewItem[]; generalChats: GeneralLeagueChat[] }
+const matchChatScope = (chat: PersonalChatOverviewItem) => chat.origin === "friendly" ? null : chat.seasonId ?? null
 const redact = <T extends PersonalChatOverviewItem | GeneralLeagueChat>(chat: T): T => ({
   ...chat, realtimeTopic: null, lastMessage: chat.lastMessage && { ...chat.lastMessage, sender: "", body: "" },
 })
@@ -115,6 +83,8 @@ export default function PersonalMatchChatsPage() {
 
 function ChatList({ account }: { account: string }) {
   const { tx } = useI18n()
+  const { chatList } = useAccountProfile()
+  const [initial] = useState(chatList.read)
   const { userLeagues, isAccessHydrated } = useLeagueAccess()
   const { seasons, getSeasonRoundSettings } = useSeasonSettings()
   const { matches } = useMatchData()
@@ -124,15 +94,20 @@ function ChatList({ account }: { account: string }) {
   const [query, setQuery] = useState("")
   const [scope, setScope] = useState("all")
   const [conversation, setConversation] = useState("all")
-  const [snapshot, setSnapshot] = useState<ChatListSnapshot>({ chats: [], generalChats: [] })
+  const [snapshot, setSnapshot] = useState(initial?.snapshot ?? emptyChatList)
+  const snapshotRef = useRef(snapshot)
+  const publishSnapshot = useCallback((next: ChatListSnapshot) => {
+    snapshotRef.current = next
+    setSnapshot(next)
+  }, [])
   const pending = useRef<AbortController | null>(null)
   const friendlyRequests = useRef(new Map<boolean, ReturnType<typeof readChatScope>>())
-  const [loadedScope, setLoadedScope] = useState<boolean | null>(null)
+  const presentedScope = useRef<boolean | null>(initial ? true : null)
+  const [loadedScope, setLoadedScope] = useState<boolean | null>(initial ? true : null)
   const loading = loadedScope !== activeOnly
-  const [stagger, setStagger] = useState(true)
-  const hasPresented = useRef(false)
+  const [stagger, setStagger] = useState(!initial)
   const [error, setError] = useState<string | null>(null)
-  const [loadedAt, setLoadedAt] = useState(Date.now)
+  const [loadedAt, setLoadedAt] = useState(() => initial?.loadedAt ?? Date.now())
   const leagueSeasons = useMemo(() => {
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
     return userLeagues.flatMap((league) => seasons.filter((season) => season.leagueId === league.id && uuid.test(league.id) && uuid.test(season.id)).map((season) => ({ leagueId: league.id, leagueName: league.name, seasonId: season.id, seasonName: season.name, seasonStatus: season.status })))
@@ -151,7 +126,11 @@ function ChatList({ account }: { account: string }) {
     const rounds = buildSeasonRounds({ season, settings: getSeasonRoundSettings(season.id), matches: matches.filter(match => match.seasonId === season.id) })
     return [season.id, { seasonStatus: season.status, currentRound: rounds.find(round => round.status === "active")?.round ?? rounds.find(round => round.status === "overdue")?.round ?? rounds.find(round => round.status === "upcoming")?.round ?? 1 }]
   })), [seasons, getSeasonRoundSettings, matches])
+  const cacheKey = leagueSeasons.filter(item => item.seasonStatus === "active")
+    .map(item => `${item.leagueId}:${item.seasonId}:${roundBySeason.get(item.seasonId)?.currentRound ?? 1}`).sort().join("|")
+  const accountHeader = encodeURIComponent(account.trim().toLowerCase())
   const load = useCallback(async () => {
+    const version = chatList.version()
     pending.current?.abort()
     const controller = new AbortController()
     pending.current = controller
@@ -160,7 +139,7 @@ function ChatList({ account }: { account: string }) {
     if (!friendlyRequest) {
       const controller = new AbortController()
       const timer = window.setTimeout(() => controller.abort(), CHAT_LIST_TIMEOUT_MS)
-      friendlyRequest = readChatScope(`/api/personal-matches/chats${activeOnly ? "?active=1" : ""}`, controller.signal).finally(() => window.clearTimeout(timer))
+      friendlyRequest = readChatScope(`/api/personal-matches/chats${activeOnly ? "?active=1" : ""}`, controller.signal, accountHeader).finally(() => window.clearTimeout(timer))
       friendlyRequests.current.set(activeOnly, friendlyRequest)
     }
     if (!isAccessHydrated) return
@@ -171,29 +150,37 @@ function ChatList({ account }: { account: string }) {
     let canPersist = true
     const request = async (network: ReturnType<typeof readChatScope>) => {
       const result = await network
-      if (!signal.aborted && result.denied) clearChatListCache()
+      if (!signal.aborted && result.denied) { chatList.drop(); clearChatListCache() }
       if (!result.denied && !result.ok) canPersist = false
       return result
     }
-    const updateChats = (seasonId: string | null, items: PersonalChatOverviewItem[]) => {
+    const updateChats = (seasonId: string | null, items: PersonalChatOverviewItem[], denied: boolean) => {
+      if (denied && !signal.aborted) {
+        const current = snapshotRef.current
+        publishSnapshot({ ...current, chats: current.chats.filter(chat => matchChatScope(chat) !== seasonId) })
+      }
       updatedChats.add(seasonId)
       fresh.chats.push(...items)
     }
     const friendly = request(friendlyRequest).then(result => {
-      if (result.ok || result.denied) updateChats(null, result.ok && Array.isArray(result.data?.chats) ? result.data.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "friendly" })) : [])
+      if (result.ok || result.denied) updateChats(null, result.ok && Array.isArray(result.data?.chats) ? result.data.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, origin: "friendly" })) : [], result.denied)
       return result.ok ? null : typeof result.data?.error === "string" ? result.data.error : "personal_match_chats_lookup_failed"
     })
-    const loadScope = (url: string) => request(readChatScope(url, signal))
+    const loadScope = (url: string) => request(readChatScope(url, signal, accountHeader))
     const [friendlyError] = await Promise.all([friendly, ...leagueSeasons.flatMap(item => {
       if (activeOnly && item.seasonStatus !== "active") return []
       const params = new URLSearchParams({ leagueId: item.leagueId, seasonId: item.seasonId })
       if (activeOnly) params.set("activeRound", String(roundBySeason.get(item.seasonId)?.currentRound ?? 1))
       const matches = loadScope(`/api/chats?${params}`).then(({ ok, data, denied }) => {
-        if (ok || denied) updateChats(item.seasonId, ok && Array.isArray(data?.chats) ? data.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, ...item, origin: "league", locationName: null, expired: false, resultRecordedAt: null, realtimeTopic: typeof data.realtimeTopic === "string" ? data.realtimeTopic : null })) : [])
+        if (ok || denied) updateChats(item.seasonId, ok && Array.isArray(data?.chats) ? data.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, ...item, origin: "league", locationName: null, expired: false, resultRecordedAt: null, realtimeTopic: typeof data.realtimeTopic === "string" ? data.realtimeTopic : null })) : [], denied)
       })
       if (item.seasonStatus !== "active") return [matches]
       const general = loadScope(`/api/league-season-chats/${item.seasonId}?summary=1`).then(({ ok, data, denied }) => {
         if (!(ok || denied)) return
+        if (denied && !signal.aborted) {
+          const current = snapshotRef.current
+          publishSnapshot({ ...current, generalChats: current.generalChats.filter(chat => chat.seasonId !== item.seasonId) })
+        }
         const last = ok && Array.isArray(data?.messages) ? data.messages.at(-1) : null
         const chat = ok && Array.isArray(data?.messages) ? { ...item, unread: typeof data.unread === "number" ? data.unread : 0, participants: typeof data.participantCount === "number" ? data.participantCount : data.participants?.length ?? 0, lastMessage: last ? { sender: last.sender_display_name, body: last.body, createdAt: last.created_at } : null, realtimeTopic: typeof data.realtimeTopic === "string" ? data.realtimeTopic : null } : null
         if (chat) fresh.generalChats.push(chat)
@@ -202,48 +189,68 @@ function ChatList({ account }: { account: string }) {
       return [matches, general]
     })])
     window.clearTimeout(timer)
-    if (pending.current !== controller || signal.aborted && signal.reason !== "timeout") return
+    if (pending.current !== controller || version !== chatList.version() || signal.aborted && signal.reason !== "timeout") return
     friendlyRequests.current.delete(activeOnly)
-    if (hasPresented.current) setStagger(false)
-    hasPresented.current = true
-    setSnapshot(previous => ({
-      chats: [...previous.chats.filter(chat => !updatedChats.has(chat.origin === "friendly" ? null : chat.seasonId ?? null)), ...fresh.chats],
+    if (presentedScope.current !== null) setStagger(false)
+    presentedScope.current = activeOnly
+    const previous = snapshotRef.current
+    publishSnapshot({
+      chats: [...previous.chats.filter(chat => !updatedChats.has(matchChatScope(chat))), ...fresh.chats],
       generalChats: [...previous.generalChats.filter(chat => !updatedGeneral.has(chat.seasonId)), ...fresh.generalChats],
-    }))
+    })
+    const now = Date.now()
     setError(friendlyError)
-    if (canPersist && activeOnly) writeChatListCache(account, { chats: fresh.chats.slice(0, 100).map(redact), generalChats: fresh.generalChats.slice(0, 20).map(redact) })
-    setLoadedAt(Date.now())
+    if (canPersist && activeOnly) {
+      chatList.save(fresh, cacheKey, now)
+      writeChatListCache(account, { chats: fresh.chats.slice(0, 100).map(redact), generalChats: fresh.generalChats.slice(0, 20).map(redact) })
+    }
+    setLoadedAt(now)
     setLoadedScope(activeOnly)
-  }, [account, activeOnly, isAccessHydrated, leagueSeasons, roundBySeason])
+  }, [account, accountHeader, activeOnly, cacheKey, chatList, isAccessHydrated, leagueSeasons, publishSnapshot, roundBySeason])
   useEffect(() => {
+    if (initial) return
     const timer = window.setTimeout(() => {
       const cached = readChatListCache<ChatListSnapshot>(account)
-      if (cached) { setSnapshot(cached); setLoadedAt(Date.now()) }
+      if (cached && presentedScope.current === null) publishSnapshot(cached)
     }, 0)
     return () => window.clearTimeout(timer)
-  }, [account])
+  }, [account, initial, publishSnapshot])
   useEffect(() => {
-    const timer = window.setTimeout(() => void load(), 0)
+    let timer = window.setTimeout(() => {
+      if (initial && !isAccessHydrated) return
+      if (activeOnly && presentedScope.current === true && chatList.isFresh(cacheKey)) return
+      void load()
+    }, 0)
+    const membershipChanged = () => {
+      pending.current?.abort()
+      friendlyRequests.current.clear()
+      publishSnapshot(emptyChatList)
+      setLoadedScope(null)
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => void load(), 0)
+    }
     const handleVisibility = () => {
       if (document.visibilityState === "visible") void load()
     }
     const handleLocalRefresh = () => void load()
     document.addEventListener("visibilitychange", handleVisibility)
     window.addEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, handleLocalRefresh)
+    window.addEventListener(LEAGUE_MEMBERSHIP_CHANGED_EVENT, membershipChanged)
     return () => {
       pending.current?.abort()
       window.clearTimeout(timer)
       document.removeEventListener("visibilitychange", handleVisibility)
       window.removeEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, handleLocalRefresh)
+      window.removeEventListener(LEAGUE_MEMBERSHIP_CHANGED_EVENT, membershipChanged)
     }
-  }, [load])
+  }, [activeOnly, cacheKey, chatList, initial, isAccessHydrated, load, publishSnapshot])
   useEffect(() => {
     if (loadedScope === null) return
     const timer = window.setTimeout(() => setStagger(false), 375)
     return () => window.clearTimeout(timer)
   }, [loadedScope])
   const realtimeTopics = useMemo(
-    () => [...new Set([...chats, ...generalChats].map((chat) => chat.realtimeTopic).filter((topic): topic is string => Boolean(topic)))],
+    () => [...new Set([...chats, ...generalChats].map((chat) => chat.realtimeTopic).filter((topic): topic is string => Boolean(topic)))].sort(),
     [chats, generalChats],
   )
   const realtimeKey = realtimeTopics.join("|")
@@ -257,20 +264,26 @@ function ChatList({ account }: { account: string }) {
   }, [chats, loadedAt, query, scope, conversation, phase, roundBySeason, tx])
   useEffect(() => {
     if (!realtimeKey) return
+    let timer: number | undefined
     const unsubscribes = realtimeKey
       .split("|")
       .filter(Boolean)
       .map((topic) =>
         subscribeChatRealtime(topic, () => {
-          if (document.visibilityState === "visible") void load()
+          if (document.hidden) return
+          window.clearTimeout(timer)
+          timer = window.setTimeout(() => void load(), 80)
         }),
       )
-    return () => unsubscribes.forEach((unsubscribe) => unsubscribe())
+    return () => {
+      window.clearTimeout(timer)
+      unsubscribes.forEach(unsubscribe => unsubscribe())
+    }
   }, [load, realtimeKey])
 
   const hasFilters = Boolean(query.trim() || scope !== "all" || conversation !== "all" || (phase !== "active" && phase !== "all"))
   const visibleGeneralChats = generalChats.filter(chat => (scope === "all" || scope === chat.leagueId) && (phase === "all" || phase === "active") && (conversation === "all" || conversation === "started" && Boolean(chat.lastMessage) || conversation === "empty" && !chat.lastMessage || conversation === "unread" && chat.unread > 0) && (!query.trim() || [chat.leagueName, chat.seasonName, chat.lastMessage?.sender, chat.lastMessage?.body].some(value => value?.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()))))
-  const resultCount = loadedScope !== null ? visibleGeneralChats.length + Object.values(groupedChats).reduce((total, group) => total + group.length, 0) : 0
+  const resultCount = isAccessHydrated && loadedScope !== null ? visibleGeneralChats.length + Object.values(groupedChats).reduce((total, group) => total + group.length, 0) : 0
   const staggerStep = Math.min(55, 165 / Math.max(1, resultCount - 1))
   const staggerStyle = (index: number): CSSProperties | undefined => stagger ? { animationDelay: `${index * staggerStep}ms` } : undefined
   function clearFilters() { setQuery(""); setScope("all"); setConversation("all"); setPhase("active") }
