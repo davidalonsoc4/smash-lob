@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
+import { getGlobalChatPhase } from "@/lib/globalChatOverview"
 import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
 import { isMatchChatReadOnly } from "@/lib/matchChatWindow"
 import { getEffectiveRevealedThroughRound } from "@/lib/progressiveCalendar"
@@ -40,8 +42,13 @@ const playerIds = (value: unknown) =>
 export async function GET(request: Request) {
   const auth = await requireAuthenticatedAppUser()
   if (!auth.ok) return fail(auth.error, auth.status)
+  const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(auth.actor.user.email)) return fail("session_changed", 403)
 
   const searchParams = new URL(request.url).searchParams
+  const activeRound = searchParams.get("activeRound")
+  const currentRound = Number(activeRound)
+  if (activeRound !== null && (!Number.isSafeInteger(currentRound) || currentRound < 1)) return fail("invalid_active_round", 400)
   const leagueId = searchParams.get("leagueId") ?? ""
   const seasonId = searchParams.get("seasonId") ?? ""
   if (!validateUuid(leagueId)) return fail("invalid_league_id", 400)
@@ -135,10 +142,18 @@ export async function GET(request: Request) {
     visibleMatchRows = allMatchRows.filter((match) => Number(match.round) <= revealedThrough)
   }
 
+  const now = Date.now()
   const matchRows = visibleMatchRows.filter((match) => {
     const teamA = playerIds(match.team_a)
     const teamB = playerIds(match.team_b)
-    return teamA.includes(playerId) || teamB.includes(playerId)
+    if (!(teamA.includes(playerId) || teamB.includes(playerId))) return false
+    if (activeRound === null) return true
+    if (seasonStatus !== "active" || match.status === "finished") return false
+    return getGlobalChatPhase({
+      origin: "league", seasonStatus, currentRound, round: Number(match.round), status: String(match.status),
+      scheduledAt: typeof match.scheduled_at === "string" ? match.scheduled_at : null,
+      readOnly: isMatchChatReadOnly({ status: String(match.status), resultRecordedAt: typeof match.result_recorded_at === "string" ? match.result_recorded_at : null }),
+    }, now) === "active"
   })
   const matchIds = matchRows.map((match) => String(match.id))
   if (!matchIds.length) {

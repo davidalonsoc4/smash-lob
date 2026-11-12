@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { signIn, useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import { AppBootSkeleton } from "@/components/loading/PageSkeletons"
@@ -16,7 +16,7 @@ type AuthGateProps = {
 
 export function AuthGate({ children }: AuthGateProps) {
   const { t } = useI18n()
-  const { status } = useSession()
+  const { data, status } = useSession()
   const pathname = usePathname()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectatorInviteRoute = pathname.startsWith("/spectate/")
@@ -121,5 +121,5 @@ export function AuthGate({ children }: AuthGateProps) {
     )
   }
 
-  return children
+  return <Fragment key={data?.user?.email}>{children}</Fragment>
 }

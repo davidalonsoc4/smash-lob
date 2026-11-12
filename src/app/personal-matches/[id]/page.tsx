@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useI18n } from "@/i18n/I18nProvider"
+import { requestMatchDashboardRefresh, requestPaymentLedgerRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import { useEffect, useMemo, useState } from "react"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { MatchChatFloatingAction } from "@/components/match/MatchChatFloatingAction"
@@ -60,6 +61,9 @@ export default function PersonalMatchDetailPage() {
         method: "DELETE",
       })
       if (!response.ok) throw new Error("personal_match_delete_failed")
+      requestPaymentLedgerRefresh()
+      if (item.status === "finished") requestPersonalProfileHistoryRefresh()
+      else requestMatchDashboardRefresh()
       router.replace("/personal-matches")
     } catch {
       setError("No se ha podido eliminar el partido.")

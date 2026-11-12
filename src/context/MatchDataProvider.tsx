@@ -15,6 +15,7 @@ import {
   type SeasonScheduleMode,
 } from "@/lib/calendar";
 import { getRoundMvpSelection } from "@/lib/mvp";
+import { requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents";
 import { calculateSeasonRanking } from "@/lib/ranking";
 import { getMatchResultConfirmationState } from "@/lib/resultConfirmations";
 import {
@@ -1188,6 +1189,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
             currentConfirmations.filter((item) => item.matchId !== matchId),
           ),
         );
+        requestPersonalProfileHistoryRefresh();
         return true;
       }
 
@@ -1210,6 +1212,7 @@ export function MatchDataProvider({ children }: MatchDataProviderProps) {
           description: getActivityMatchDescription(updatedMatch),
         });
 
+        requestPersonalProfileHistoryRefresh();
         return true;
       } catch (error) {
         recordSupabaseError("clear-match-result", error);

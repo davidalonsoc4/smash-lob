@@ -3,6 +3,7 @@
 import { CourtBookingPanel } from "@/components/match/CourtBookingPanel"
 import type { CourtBookingReservation } from "@/context/MatchDataProvider"
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
+import { requestPaymentLedgerRefresh } from "@/lib/appRefreshEvents"
 import { buildPersonalMatchDetailModel } from "@/lib/personalMatchDetailModel"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 
@@ -37,6 +38,7 @@ export function PersonalMatchCourtBookingPanel({
       item?: PersonalMatchItem
     } | null
     if (!response.ok || !payload?.item) return false
+    requestPaymentLedgerRefresh()
     onUpdated(payload.item)
     return true
   }
@@ -54,6 +56,7 @@ export function PersonalMatchCourtBookingPanel({
       item?: PersonalMatchItem
     } | null
     if (!response.ok || !payload?.item) return false
+    requestPaymentLedgerRefresh()
     onUpdated(payload.item)
     return true
   }

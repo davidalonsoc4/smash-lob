@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { MatchCard } from "@/components/matches/MatchCard"
+import { cardListEntrance } from "@/lib/cardListEntrance"
 import { SeasonContextLineSelector } from "@/components/layout/SeasonContextLine"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -14,6 +15,7 @@ import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMvp } from "@/context/MvpProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
+import { useLeagueScreenEntrance } from "@/hooks/useLeagueScreenScope"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getNextMatch } from "@/lib/leagues"
@@ -80,6 +82,7 @@ export default function MatchesPage() {
       })
     : null
   const activeRoundId = getActiveCalendarRoundId(activeSeason.status, rounds)
+  const animate = useLeagueScreenEntrance("matches", activeLeague.id, Boolean(activeRoundId && visibleMatches.length))
   const activeRoundRef = useRef<HTMLElement | null>(null)
 
   function getRoundWindowText(round: (typeof rounds)[number]) {
@@ -279,7 +282,7 @@ export default function MatchesPage() {
                   <p className="mx-auto mt-1 max-w-sm text-sm font-semibold text-neutral-600">{t.matches.byeRoundDescription}</p>
                 </AppCard>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4" {...(animate && round.id === activeRoundId ? cardListEntrance : {})}>
                   {roundMatches.map((match) => (
                     <MatchCard
                       key={match.id}

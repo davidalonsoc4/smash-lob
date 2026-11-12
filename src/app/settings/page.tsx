@@ -2,7 +2,9 @@
 
 import { areTournamentsEnabled } from "@/lib/tournamentAvailability"
 import type { ReactNode } from "react"
-import { useEffect, useMemo, useState } from "react"
+import { useState } from "react"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useSessionResource } from "@/hooks/useSessionResource"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
@@ -24,7 +26,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { APP_VERSION_LABEL } from "@/lib/appVersion"
 import { isAvatarLabEnabled } from "@/lib/avatarLabAccess"
 import { formatMoney } from "@/lib/courtBooking"
-import { fetchPaymentLedger, getPaymentLedgerPendingSummary } from "@/lib/paymentLedger"
+import { getPaymentLedgerPendingSummary } from "@/lib/paymentLedger"
 import { accountDeletionApiConfirmation, isAccountDeletionConfirmation } from "@/lib/accountDeletionConfirmation"
 const settingsVersionLabel = `Smash & Lob · ${APP_VERSION_LABEL}`
 type SettingsSectionProps = {
@@ -525,35 +527,14 @@ function PlayerSettingsPage({ tournamentId }: { tournamentId?: string }) {
   const [unlinkLeagueError, setUnlinkLeagueError] = useState<string | null>(null)
   const [isSavingExperienceMode, setIsSavingExperienceMode] = useState(false)
   const [experienceModeError, setExperienceModeError] = useState<string | null>(null)
-  const [paymentLedgerItems, setPaymentLedgerItems] = useState<Awaited<ReturnType<typeof fetchPaymentLedger>>["items"]>([])
-  const [paymentLedgerLoaded, setPaymentLedgerLoaded] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-
-    fetchPaymentLedger()
-      .then((payload) => {
-        if (!cancelled) setPaymentLedgerItems(payload.items)
-      })
-      .catch(() => null)
-      .finally(() => {
-        if (!cancelled) setPaymentLedgerLoaded(true)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const pendingPaymentSummary = useMemo(
-    () => getPaymentLedgerPendingSummary(paymentLedgerItems),
-    [paymentLedgerItems],
-  )
+  const { ledger } = useAccountProfile()
+  const { data: paymentLedger } = useSessionResource(ledger)
+  const pendingPaymentSummary = getPaymentLedgerPendingSummary(paymentLedger?.items ?? [])
   const owedByMeAmount = pendingPaymentSummary.owedByMe
   const owedToMeAmount = pendingPaymentSummary.owedToMe
   const pendingPaymentCount =
     pendingPaymentSummary.owedByMeCount + pendingPaymentSummary.owedToMeCount
-  const hasPendingPayments = paymentLedgerLoaded && pendingPaymentCount > 0
+  const hasPendingPayments = pendingPaymentCount > 0
 
   async function handleExperienceModeChange(
     mode: "admin" | "player" | "player_experience",

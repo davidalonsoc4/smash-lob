@@ -7,6 +7,9 @@ import type { CSSProperties } from "react"
 import styles from "./CompetitionsOverview.module.css"
 import { CalendarEventButton } from "@/components/calendar/CalendarEventButton"
 import { useEffect, useState } from "react"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useSessionResource } from "@/hooks/useSessionResource"
+import type { TournamentListItem } from "@/lib/tournamentList"
 import { usePersonalMatchesDashboard } from "@/hooks/usePersonalMatchesDashboard"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
@@ -20,6 +23,7 @@ import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { useI18n } from "@/i18n/I18nProvider"
+import { cardListEntrance } from "@/lib/cardListEntrance"
 import { selectCompetitionHighlights, selectCompetitionPreview } from "@/lib/competitionOverview"
 import { calculateLeaguePairRanking } from "@/lib/leaguePairRanking"
 import { calculateSeasonRanking } from "@/lib/ranking"
@@ -56,9 +60,14 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     }).countsForRanking,
   })) : []
   const { dashboard, failed: loadError } = usePersonalMatchesDashboard(view === "summary")
-  const [tournaments, setTournaments] = useState<Array<{ id: string; name: string; description: string; startsAt: string; createdAt?: string; status: "draft" | "in_progress" | "finished" }>>([])
-  const [tournamentLoadError, setTournamentLoadError] = useState(false)
-  const [tournamentRequestVersion, setTournamentRequestVersion] = useState(0)
+  const { competitionEntrance, tournamentList } = useAccountProfile()
+  const [animateSummary] = useState(() => !competitionEntrance.hasShown())
+  const showSummaryEntrance = view === "summary" && animateSummary
+  useEffect(() => {
+    if (view === "summary" && isAccessHydrated) competitionEntrance.markShown()
+  }, [competitionEntrance, isAccessHydrated, view])
+  const { data: tournamentItems, failed: tournamentLoadError } = useSessionResource(tournamentList, areTournamentsEnabled() && view !== "leagues")
+  const tournaments = tournamentItems ?? []
   const [now, setNow] = useState(() => new Date())
   const [activityIndex, setActivityIndex] = useState(0)
   const canPreload = view === "summary" && Boolean(overview) && memberLeagues.length > 0
@@ -69,15 +78,6 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     const timer = window.setInterval(() => setNow(new Date()), 60_000)
     return () => window.clearInterval(timer)
   }, [])
-  useEffect(() => {
-    if (!areTournamentsEnabled() || view === "leagues") return
-    const controller = new AbortController()
-    fetch("/api/tournaments", { cache: "no-store", signal: controller.signal })
-      .then(async (response) => { if (!response.ok) throw new Error("tournaments_failed"); return response.json() })
-      .then((data) => { if (!controller.signal.aborted) { setTournaments(Array.isArray(data?.tournaments) ? data.tournaments : []); setTournamentLoadError(false) } })
-      .catch(() => { if (!controller.signal.aborted) setTournamentLoadError(true) })
-    return () => controller.abort()
-  }, [tournamentRequestVersion, view])
   const ownLeagueMatches: PersonalMatchItem[] = overview?.activity ?? (view === "summary" ? seasons.flatMap(season => {
     const league = userLeagues.find(item => item.id === season.leagueId), playerId = getMembershipForLeague(season.leagueId)?.playerId
     if (!league || !playerId || isLeagueSpectator(league.id) || !seasonPlayers.some(row => row.seasonId === season.id && row.playerId === playerId && row.status !== "withdrawn")) return []
@@ -116,13 +116,13 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       : countdown.days === 1 ? tx("Mañana")
         : `${tx("Hoy")} · ${new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { hour: "2-digit", minute: "2-digit", timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(new Date(countdown.startsAt))}`
   }
-  function tournamentRow(item: (typeof tournaments)[number]) {
+  function tournamentRow(item: TournamentListItem, index: number) {
     const label = item.status === "in_progress" ? tx("En curso") : item.status === "finished" ? tx("Finalizado") : startPreviewLabel(item.startsAt)
-    return <Link key={item.id} href={`/tournaments/${item.id}`} className={`${view === "summary" ? styles.tournament : "border-neutral-200 bg-white shadow-sm"} flex min-h-16 items-center gap-3 rounded-2xl border p-3 transition active:scale-[0.99]`}>
+    return <Link key={item.id} data-content-enter={showSummaryEntrance ? Math.min(1 + visibleLeagues.length + index, 3) : undefined} href={`/tournaments/${item.id}`} className={`${view === "summary" ? styles.tournament : "border-neutral-200 bg-white shadow-sm"} flex min-h-16 items-center gap-3 rounded-2xl border p-3 transition active:scale-[0.99]`}>
       <span aria-hidden="true" className={`${view === "summary" ? styles.trophy : "bg-neutral-100 text-neutral-700"} flex h-11 w-11 shrink-0 items-center justify-center rounded-xl`}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-6 w-6"><path d="M8 3h8v6a4 4 0 0 1-8 0V3Zm0 2H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 13v5m-4 3h8m-7-3h6v3H9z" /></svg></span>
       <span className="min-w-0 flex-1"><span className="block truncate text-base font-black">{item.name}</span><span className="mt-1 flex items-center justify-between gap-2"><span className="min-w-0 truncate text-xs font-semibold text-neutral-500">{new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.startsAt))}</span><span className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-semibold ${item.status === "in_progress" ? styles.runningStatus : "text-neutral-600"}`}>{item.status === "in_progress" ? <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" /> : null}{label}</span></span></span><span aria-hidden="true" className="text-neutral-400">›</span></Link>
   }
-  function leagueRow({ league, season }: (typeof leagueRows)[number]) {
+  function leagueRow({ league, season }: (typeof leagueRows)[number], index: number) {
     const status = season.totalRounds === 0 ? tx("Sin temporada") : season.status === "active" ? tx("En curso") : season.status === "upcoming" ? tx("Próximamente") : tx("Terminada")
     const running = season.totalRounds > 0 && season.status === "active"
     const summaryStatus = running ? tx("En curso") : season.totalRounds > 0 && season.status === "upcoming"
@@ -134,7 +134,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     const seasonPlayerCount = view === "leagues" ? seasonPlayers.filter(player => player.seasonId === season.id).length : 0
     const ranking = view === "leagues" ? (league.modality === "fixed_pairs" ? calculateLeaguePairRanking : calculateSeasonRanking)({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches }) : []
     const leader = ranking.find(player => player.points > 0) ?? null
-    return <button key={league.id} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} data-phase={season.totalRounds ? season.status : "empty"} style={{ "--league-card-accent": normalizeAccentColor(league.accentColor) } as CSSProperties} className={`${view === "summary" ? styles.league : styles.leagueCard} w-full rounded-2xl border text-left transition active:scale-[0.99] ${view === "leagues" ? "p-4" : "p-3"}`}>
+    return <button key={league.id} data-content-enter={showSummaryEntrance ? Math.min(index + 1, 3) : undefined} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} data-phase={season.totalRounds ? season.status : "empty"} style={{ "--league-card-accent": normalizeAccentColor(league.accentColor) } as CSSProperties} className={`${view === "summary" ? styles.league : styles.leagueCard} w-full rounded-2xl border text-left transition active:scale-[0.99] ${view === "leagues" ? "p-4" : "p-3"}`}>
       <span className={`flex min-w-0 gap-3 ${view === "summary" ? "items-center" : "items-start"}`}>
         <span className={view === "leagues" ? styles.logoWell : "shrink-0"}><LeagueLogo league={league} size={view === "leagues" ? "lg" : "md"} /></span>
         <span className="min-w-0 flex-1">
@@ -186,7 +186,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
         {highlights.length ? <p className="min-w-0 text-right text-xs font-semibold text-neutral-600">{tx(highlights[visibleActivityIndex].kind === "live" ? "Tu partido en curso" : highlights[visibleActivityIndex].kind === "next" ? "Tu próximo partido" : "Tu último encuentro")}</p> : null}
       </div>
       {!dashboard && !loadError && !highlights.length ? <AppCard><p role="status" className="text-sm text-neutral-500">{tx("Cargando tus partidos…")}</p></AppCard> : loadError ? <AppCard><p role="alert" className="text-sm text-neutral-500">{tx("No se ha podido cargar tu actividad personal.")}</p></AppCard> : highlights.length ? <>
-        <div className={styles.activitySlides}><MatchSlides index={visibleActivityIndex} onChange={setActivityIndex} label={tx("Actividad personal")}>
+        <div data-content-enter={showSummaryEntrance ? 0 : undefined} className={styles.activitySlides}><MatchSlides index={visibleActivityIndex} onChange={setActivityIndex} label={tx("Actividad personal")}>
           {highlights.map(highlight => <div key={highlight.kind} className={`relative h-full ${highlight.kind === "next" ? styles.withCalendar : ""}`}>
             <PersonalMatchCard match={highlight.match} hideEventMeta={highlight.kind === "last"} compactResult={false} unboxedResult={highlight.kind === "last"} compactBadges calendarAction={highlight.kind === "next" && highlight.match.scheduledAt ? <CalendarEventButton event={{ title: `${highlight.match.leagueName ?? tx("Partido")}: ${highlight.match.participants.filter(player => player.team === 1).map(player => player.displayName).join(" / ")} vs ${highlight.match.participants.filter(player => player.team === 2).map(player => player.displayName).join(" / ")}`, description: highlight.match.seasonName ?? "Smash & Lob", start: highlight.match.scheduledAt, location: highlight.match.locationName }} className="relative z-10 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-neutral-500 transition hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2"><span className="sr-only">{tx("Añadir al calendario")}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M8 2v4m8-4v4M3 10h18M14 17h6m-3-3v6M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" /></svg></CalendarEventButton> : null} />
           </div>)}
@@ -197,7 +197,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     {(view === "leagues" || memberLeagues.length > 0 || canCreateCompetition) && (view === "summary" || view === "leagues") ? <section aria-labelledby={view === "summary" ? "competitions-leagues" : "competitions-page-title"} className={`${styles.competitionSection} space-y-2`}>
       {view === "summary" ? <div className="app-section-header flex items-center justify-between gap-2"><h2 id="competitions-leagues" className="type-panel-title font-black">{tx("Mis ligas")}</h2>
         <Link href="/leagues/all" className="app-section-action inline-flex items-center gap-1 text-sm font-semibold text-neutral-500">{tx("Ver todas")} <span aria-hidden="true">›</span></Link></div> : null}
-      {visibleLeagues.map(leagueRow)}
+      {view === "leagues" && visibleLeagues.length ? <div className="space-y-2" {...cardListEntrance}>{visibleLeagues.map(leagueRow)}</div> : visibleLeagues.map(leagueRow)}
       {!visibleLeagues.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx(memberLeagues.length ? "No tienes ligas activas o próximas." : "Aún no formas parte de ninguna liga.")}</p>{view === "summary" && canCreateCompetition ? <Link href="/league/new" className={`${actionClass} mt-3`}>{tx("Crear nueva liga")}</Link> : null}</AppCard> : null}
       {view === "leagues" ? <>
         {finishedLeagues.length ? <details className={`${styles.archive} rounded-2xl border p-3`}><summary className="cursor-pointer py-2 text-sm font-black">{tx("Finalizadas")} · {finishedLeagues.length}</summary><div className="mt-2 space-y-2">{finishedLeagues.map(leagueRow)}</div></details> : null}
@@ -207,7 +207,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     </section> : null}
     {areTournamentsEnabled() && (view === "tournaments" || tournaments.length > 0 || canCreateCompetition) && (view === "summary" || view === "tournaments") ? <section aria-labelledby="competitions-tournaments" className={`${view === "summary" ? styles.competitionSection : ""} space-y-2`}>
       <div className="app-section-header flex items-center justify-between gap-2"><h2 id="competitions-tournaments" className="type-panel-title font-black">{tx("Mis torneos")} {view !== "summary" ? <span className="text-neutral-400">· {tournaments.length}</span> : null}</h2>{view === "summary" ? <Link href="/tournaments" className="app-section-action inline-flex items-center gap-1 text-sm font-semibold text-neutral-500">{tx("Ver todos")} <span aria-hidden="true">›</span></Link> : <Link href="/tournaments/new" className="min-h-11 inline-flex shrink-0 items-center text-sm font-black underline underline-offset-4">{tx("Crear")}</Link>}</div>
-      {tournamentLoadError ? <AppCard><p role="alert" className="text-sm font-semibold text-neutral-500">{tx("No se han podido cargar tus torneos.")}</p><button type="button" onClick={() => setTournamentRequestVersion((value) => value + 1)} className="mt-2 text-sm font-black underline">{tx("Reintentar")}</button></AppCard> : visibleTournaments.map(tournamentRow)}
+      {tournamentLoadError ? <AppCard><p role="alert" className="text-sm font-semibold text-neutral-500">{tx("No se han podido cargar tus torneos.")}</p><button type="button" onClick={() => tournamentList.invalidate()} className="mt-2 text-sm font-black underline">{tx("Reintentar")}</button></AppCard> : view === "tournaments" && visibleTournaments.length ? <div className="space-y-2" {...cardListEntrance}>{visibleTournaments.map(tournamentRow)}</div> : visibleTournaments.map(tournamentRow)}
       {!tournamentLoadError && !visibleTournaments.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Todavía no tienes torneos.")}</p>{view === "summary" ? <Link href="/tournaments/new" className={`${actionClass} mt-3`}>{tx("Crear torneo rápido")}</Link> : null}</AppCard> : null}
       {view === "tournaments" && finishedTournaments.length ? <details className="rounded-2xl border border-neutral-200 p-3"><summary className="cursor-pointer py-2 text-sm font-black">{tx("Finalizados")} · {finishedTournaments.length}</summary><div className="mt-2 space-y-2">{finishedTournaments.map(tournamentRow)}</div></details> : null}
     </section> : null}

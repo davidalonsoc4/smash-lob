@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 import { getEmptyCourtBooking } from "@/lib/courtBooking"
+import { createPersonalMatchesDashboard } from "@/lib/personalMatchesDashboard"
+import { createTournamentList } from "@/lib/tournamentList"
 import LeaguesPage from "@/app/leagues/page"
 import { CompetitionsOverview } from "@/components/competitions/CompetitionsOverview"
 
@@ -12,7 +14,8 @@ const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es"
   { id: "c", name: "Liga C", status: "upcoming" }, { id: "d", name: "Liga D", status: "finished" },
 ] }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: state.refresh }) }))
-vi.mock("next-auth/react", () => ({ useSession: () => ({ data: null }) }))
+let resources: { account: string; competitionEntrance: { hasShown: () => boolean; markShown: () => void }; matchDashboard: ReturnType<typeof createPersonalMatchesDashboard>; tournamentList: ReturnType<typeof createTournamentList> }
+vi.mock("@/context/AccountProfileProvider", () => ({ useAccountProfile: () => resources }))
 vi.mock("@/lib/tournamentAvailability", () => ({ areTournamentsEnabled: () => state.tournamentsEnabled }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ locale: state.locale, tx: (text: string) => text, t: { common: { refreshApp: "Actualizar", back: "Volver" } } }) }))
 vi.mock("@/context/ActiveLeagueProvider", () => ({ useActiveLeague: () => ({ activeLeagueId: "a", changeActiveLeague: state.enter }) }))
@@ -22,7 +25,10 @@ vi.mock("@/context/SeasonSettingsProvider", () => ({ useSeasonSettings: () => ({
 vi.mock("@/components/league/LeagueLogo", () => ({ LeagueLogo: () => <span /> }))
 vi.mock("@/components/personal/PersonalMatchCard", () => ({ PersonalMatchCard: ({ match }: { match: PersonalMatchItem }) => <div data-testid="highlight">{match.id}</div> }))
 const empty = { items: [], upcoming: [], hasMore: false, nextOffset: null }
-beforeEach(() => { state.locale = "es"; state.canCreateLeagues = true; state.tournamentsEnabled = true; state.matches = []; HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", "") }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open") }; vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => empty })) })
+beforeEach(() => {
+  const account = "qa-hub@example.test"
+  resources = { account, competitionEntrance: { hasShown: () => false, markShown: vi.fn() }, matchDashboard: createPersonalMatchesDashboard(account), tournamentList: createTournamentList(account) }
+  state.locale = "es"; state.canCreateLeagues = true; state.tournamentsEnabled = true; state.matches = []; HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", "") }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open") }; vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => empty })) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.clearAllMocks() })
 
 it("limits the summary to two leagues and links to separate lists without changing context", async () => {
@@ -81,7 +87,7 @@ it("keeps complete tournaments and creation on their existing routes", async () 
   expect(screen.getByRole("link", { name: "Crear" })).toHaveAttribute("href", "/tournaments/new")
   expect(screen.getByRole("link", { name: "Volver" })).toHaveAttribute("href", "/leagues")
   expect(state.enter).not.toHaveBeenCalled()
-  expect(fetch).toHaveBeenCalledTimes(1)
+  await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1))
 })
 it("previews an active and the nearest upcoming tournament without changing the full list", async () => {
   const tournaments = [

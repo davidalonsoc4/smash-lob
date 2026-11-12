@@ -4,6 +4,7 @@ import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
 import { buildPersonalMatchDetailModel } from "@/lib/personalMatchDetailModel"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
+import { requestMatchDashboardRefresh } from "@/lib/appRefreshEvents"
 
 export function PersonalMatchSchedulePanel({
   match,
@@ -39,6 +40,7 @@ export function PersonalMatchSchedulePanel({
         item?: PersonalMatchItem
       } | null
       if (!response.ok || !payload?.item) return false
+      requestMatchDashboardRefresh()
       onUpdated(payload.item)
       return true
     } catch {

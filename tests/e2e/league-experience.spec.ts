@@ -3,7 +3,8 @@ import AxeBuilder from "@axe-core/playwright"
 import { leagues, seasons, seasonPlayers, seasonRoundSettings, playerProfiles, allMatches } from "@/data/fakeData"
 
 const leagueId="10000000-0000-4000-8000-000000000072", seasonId="20000000-0000-4000-8000-000000000072"
-async function setup(page:Page,theme:string,style:string,canCreate=true) {
+const archivedSeasonId="20000000-0000-4000-8000-000000000073"
+async function setup(page:Page,theme:string,style:string,canCreate=true,archive=false) {
   let upcoming=false,windowed=false,advanced=false
   let role: "player" | "admin" = "admin"
   const league={...leagues[0],id:leagueId,name:"Liga Azul QA",accentColor:"#26b6ce",activeSeasonId:seasonId}
@@ -16,13 +17,13 @@ async function setup(page:Page,theme:string,style:string,canCreate=true) {
   await page.route("**/api/**",route=>route.fulfill({json:{ok:true,items:[],chats:[],locations:[]}}))
   await page.route("**/api/auth/session",route=>route.fulfill({json:{user:{name:"QA",email:"qa-experience@example.test",image:null},expires:"2099-01-01T00:00:00Z"}}))
   await page.route("**/api/account/profile",route=>route.fulfill({json:{profile:{firstName:"QA",lastName:"Experience",displayName:"QA",isComplete:true,profileCompletedAt:"2026-08-03",availabilityCompletedAt:"2026-08-03",standardAvailabilityTimezone:"Europe/Madrid",standardAvailabilityWeeklySlots:{},isSuperuser:false}}}))
-  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:canCreate,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
+  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:canCreate,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}, ...(archive ? [{...season,id:archivedSeasonId,status:"finished"}] : [])],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
   await page.route("**/api/personal-matches?**",route=>route.fulfill({json:{items:[],upcoming:[],hasMore:false,nextOffset:null}}))
   await page.route("**/api/tournaments",route=>route.fulfill({json:{tournaments:[]}}))
   await page.addInitScript(({theme,style})=>{
     localStorage.setItem("smash-lob-theme-mode",theme);localStorage.setItem("smash-lob-visual-style",style)
     localStorage.setItem("smash-lob:competition-launch-popup-v2:qa-experience@example.test","dismissed")
-    localStorage.setItem("smash-lob-guided-onboarding-v1",JSON.stringify(Object.fromEntries([["app-introduction",1],["home",7],["matches",2],["match",1],["chats",1],["settings",1]].map(([tourKey,tourVersion])=>[tourKey,{tourKey,tourVersion,status:"completed",completedAt:"2026-08-06T00:00:00Z",skippedAt:null}]))))
+    localStorage.setItem("smash-lob-guided-onboarding-v1",JSON.stringify(Object.fromEntries([["app-introduction",1],["home",7],["matches",2],["ranking",2],["match",1],["chats",1],["settings",1]].map(([tourKey,tourVersion])=>[tourKey,{tourKey,tourVersion,status:"completed",completedAt:"2026-08-06T00:00:00Z",skippedAt:null}]))))
   },{theme,style})
   return {setUpcoming:()=>{upcoming=true},setWindowed:()=>{windowed=true},setRole:(next: "player" | "admin")=>{role=next},setAdvanced:()=>{advanced=true},matches,league}
 }
@@ -106,7 +107,75 @@ for (const saveData of [false, true]) {
   })
 }
 
+test("personal matches and profile keep the app visible with compact league access", async ({ page }) => {
+  const { league } = await setup(page, "dark", "competition")
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.addInitScript(() => Object.defineProperty(navigator, "connection", { value: { saveData: true, effectiveType: "4g" } }))
+  let fullReads = 0
+  let releaseFull!: () => void
+  const fullPending = new Promise<void>(resolve => { releaseFull = resolve })
+  let releaseProfileRoute!: () => void
+  let profileRouteRequested!: () => void
+  const profileRoutePending = new Promise<void>(resolve => { releaseProfileRoute = resolve })
+  const profileRouteStarted = new Promise<void>(resolve => { profileRouteRequested = resolve })
+  await page.route("**/personal-matches/profile**", async route => {
+    if (route.request().headers().rsc === "1") {
+      profileRouteRequested()
+      await profileRoutePending
+    }
+    return route.fallback()
+  })
+  await page.route("**/api/access", async route => {
+    if (route.request().headers()["x-smash-lob-access-scope"] !== "overview") {
+      fullReads += 1
+      await fullPending
+      return route.fallback()
+    }
+    const season = { id: seasonId, leagueId, name: "Temporada ligera", status: "active", totalRounds: 12, completedRounds: 1 }
+    return route.fulfill({ json: {
+      isSuperuser: false, canCreateLeagues: true, leagues: [league], spectatorLeagueIds: [],
+      memberships: [{ userId: "qa-experience@example.test", leagueId, playerId: "davo", role: "admin" }],
+      overview: { activeSeasons: { [leagueId]: season }, startsAt: {}, revealedThrough: { [seasonId]: 12 }, activity: [] },
+    } })
+  })
+  const match = { id: "qa-stable-history", origin: "friendly", status: "finished", scheduledAt: "2026-10-15T10:00:00Z",
+    resultRecordedAt: "2026-10-15T11:00:00Z", locationName: "Pista de prueba", sets: [{ a: 6, b: 3 }],
+    participants: [{ team: 1, slot: 1, displayName: "QA estable", isCurrentUser: true }],
+  }
+  await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [match], upcoming: [], hasMore: false, nextOffset: null } }))
+  try {
+    await page.goto("/leagues")
+    const nav = page.getByRole("navigation", { name: "Navegación global" })
+    await expect(page.getByText("QA estable", { exact: true })).toBeVisible()
+    await page.evaluate(() => {
+      const watch = new MutationObserver(() => {
+        if (!document.querySelector(".app-shell-frame")?.getClientRects().length || document.querySelector('[aria-label="Cargando Smash & Lob"]')?.getClientRects().length) {
+          document.body.dataset.shellDisappeared = "true"
+        }
+      })
+      watch.observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "style"] })
+    })
+    await nav.getByRole("link", { name: "Mis partidos", exact: true }).click()
+    await expect(page.getByRole("heading", { name: "Mis partidos", exact: true })).toBeVisible()
+    await expect(page.getByText("QA estable", { exact: true })).toBeVisible()
+    await expect(page.locator("[data-card-list-enter]")).toHaveCount(0)
+    await nav.getByRole("link", { name: "Mi perfil", exact: true }).click()
+    await profileRouteStarted
+    await expect(page.getByRole("heading", { name: "Mis partidos", exact: true })).toBeVisible()
+    releaseProfileRoute()
+    await expect(page.locator("[data-personal-profile-sections]")).toBeVisible()
+    await nav.getByRole("link", { name: "Mis partidos", exact: true }).click()
+    await expect(page.getByText("QA estable", { exact: true })).toBeVisible()
+    await expect(page.locator("body")).not.toHaveAttribute("data-shell-disappeared", "true")
+    expect(fullReads).toBe(0)
+  } finally {
+    releaseProfileRoute()
+    releaseFull()
+  }
+})
+
 test("shows the league match before personal history and updates when it arrives", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" })
   const { league, matches } = await setup(page, "dark", "classic")
   const season = { id: seasonId, leagueId, name: "Temporada ligera", status: "active", totalRounds: 12, completedRounds: 1 }
   const leagueMatch = {
@@ -137,15 +206,54 @@ test("shows the league match before personal history and updates when it arrives
     }
     return route.fulfill({ json: { items: [], upcoming: [friendly], hasMore: false, nextOffset: null } })
   })
+  await page.addInitScript(() => document.addEventListener("animationstart", event => {
+    if (event.animationName === "content-enter" && (event.target as HTMLElement).querySelector("[data-personal-match-origin]")) {
+      document.documentElement.dataset.activityEntrances = String(Number(document.documentElement.dataset.activityEntrances ?? 0) + 1)
+    }
+  }))
   try {
     await page.goto("/leagues")
     await expect(page.getByText("Rival Liga QA", { exact: true })).toBeVisible()
+    await expect(page.locator("html")).toHaveAttribute("data-activity-entrances", "1")
     await expect(page.getByRole("button", { name: "Abrir partido de Liga Azul QA" })).toBeEnabled()
   } finally {
     release()
   }
   await expect(page.getByText("Rival Amistoso QA", { exact: true })).toBeVisible()
   await expect(page.getByText("Rival Liga QA", { exact: true })).toHaveCount(0)
+  await expect(page.locator("html")).toHaveAttribute("data-activity-entrances", "1")
+})
+test("competitions stagger and respect reduced motion", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.goto("/leagues")
+  const card = page.getByRole("button", { name: "Entrar en Liga Azul QA" })
+  await expect(card).toHaveCSS("animation-name", "content-enter")
+  await expect(card).toHaveCSS("animation-duration", "0.21s")
+  await expect(card).toHaveCSS("animation-delay", "0.055s")
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await expect(card).toHaveCSS("animation-name", "none")
+
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  const nav = page.getByRole("navigation", { name: "Navegación global" })
+  await nav.getByRole("link", { name: "Mis partidos" }).click()
+  await expect(page).toHaveURL(/\/personal-matches$/)
+  await nav.getByRole("link", { name: "Competiciones" }).click()
+  await expect(card).toBeVisible()
+  await expect(card).toHaveCSS("animation-name", "none")
+  await expect(page.locator("[data-content-enter]")).toHaveCount(0)
+
+  await page.addInitScript(() => document.addEventListener("DOMContentLoaded", () => {
+    const style = document.createElement("style")
+    style.textContent = "[data-content-enter] { animation-play-state: paused !important; }"
+    document.head.append(style)
+  }))
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.goto("/leagues")
+  const league = page.getByRole("button", { name: "Entrar en Liga Azul QA" })
+  await expect(league).toHaveCSS("opacity", "0.48")
+  await league.click()
+  await expect(page.locator('[data-tour="home-header"]')).toBeVisible()
 })
 test("notification starts the match chat request while league access is pending", async ({ page }) => {
   const { matches } = await setup(page, "dark", "classic")
@@ -185,6 +293,25 @@ test("season chat loads without waiting for the league snapshot", async ({ page 
   }
 })
 
+test("appearance migrates the league accent and keeps six fixed choices", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem("qa-legacy-accent")) return
+    sessionStorage.setItem("qa-legacy-accent", "1")
+    localStorage.setItem("smash-lob-competition-accent", "league")
+  })
+  await page.goto("/settings/appearance")
+  const accents = page.locator("#competition-accent")
+  await expect(accents.getByRole("button")).toHaveCount(6)
+  await expect(accents.getByRole("button", { name: /Dorado/ })).toHaveAttribute("aria-pressed", "true")
+  await expect(page.locator("html")).toHaveCSS("--app-accent", "#D7A544")
+  const blue = accents.getByRole("button", { name: /Azul competición/ })
+  await blue.click()
+  await page.reload()
+  await expect(blue).toHaveAttribute("aria-pressed", "true")
+  await expect(page.locator("html")).toHaveCSS("--app-accent", "#477BD1")
+})
+
 test("league season chat opens from home and sends a message", async ({ page }, info) => {
   await setup(page, "dark", "classic")
   const messages: Array<{ id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }> = []
@@ -197,7 +324,10 @@ test("league season chat opens from home and sends a message", async ({ page }, 
     }
   })
   await page.goto("/league/home")
-  await page.getByRole("link", { name: "Abrir chat de liga" }).click()
+  const chat = page.getByRole("link", { name: "Abrir chat de liga" })
+  await expect(chat).toHaveCSS("box-shadow", /rgb\(255, 255, 255\) 0px 0px 0px 2px inset/)
+  await expect(chat.getByLabel("Mensajes sin leer")).toBeVisible()
+  await chat.click()
   await expect(page.getByRole("heading", { name: "Liga Azul QA" })).toBeVisible()
   const menu = page.getByLabel("Más opciones", { exact: true })
   await menu.click()
@@ -243,21 +373,178 @@ test("global chats include and filter active league conversations", async ({ pag
   await expect(section.getByLabel("Mensajes sin leer")).toHaveCount(0)
   permitted = false
   await page.reload()
-  await expect(page.getByText("Todavía no tienes chats.")).toBeVisible()
+  await expect(page.getByText("Todavía no tienes chats activos.")).toBeVisible()
   await expect(section).toHaveCount(0)
 })
 
-test("global chats show available conversations before slow responses and reuse private list metadata", async ({ page, context }) => {
+test("global chats enter together in a stagger without replay on refresh", async ({ page }) => {
+  await setup(page, "light", "classic")
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await page.addInitScript(() => {
+    const observer = new MutationObserver(() => {
+      const cards = [...document.querySelectorAll("[data-chat-batch-enter] a[data-chat-list-enter]")]
+      if (!cards.length) return
+      document.body.dataset.chatAnimations = JSON.stringify(cards.map(card => {
+        const { animationName, animationDelay, animationDuration, translate } = getComputedStyle(card)
+        return [animationName, animationDelay, animationDuration, translate]
+      }))
+      observer.disconnect()
+    })
+    observer.observe(document, { childList: true, subtree: true })
+  })
+  let releaseGeneral!: () => void
+  let releaseMatches!: () => void
+  const generalPending = new Promise<void>(resolve => { releaseGeneral = resolve })
+  const matchesPending = new Promise<void>(resolve => { releaseMatches = resolve })
+  let refreshed = false
+  await page.route(/\/api\/personal-matches\/chats\?active=1/, route => route.fulfill({ json: { chats: [{
+    id: "friendly-active", status: "scheduling", scheduledAt: null, readOnly: false,
+    partner: "Dani", rivals: ["Eva", "Fran"], unread: 0, lastMessage: null,
+  }] } }))
+  await page.route("**/api/league-season-chats/**", async route => {
+    await generalPending
+    return route.fulfill({ json: { messages: [], participantCount: 2, unread: 0 } })
+  })
+  await page.route("**/api/chats?**", async route => {
+    await matchesPending
+    return route.fulfill({ json: { chats: (refreshed ? [2, 3] : [2]).map(round => ({
+      id: `active-chat-${round}`, round, status: "scheduling", scheduledAt: null, readOnly: false,
+      partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
+    })) } })
+  })
+  const cards = page.locator("a[data-chat-list-enter]")
+  try {
+    const friendlyResponse = page.waitForResponse(/\/api\/personal-matches\/chats\?active=1/)
+    await page.goto("/personal-matches/chats")
+    await friendlyResponse
+    await expect(page.getByText("Cargando conversaciones…", { exact: true })).toBeVisible()
+    await expect(cards).toHaveCount(0)
+    const generalResponse = page.waitForResponse("**/api/league-season-chats/**")
+    releaseGeneral()
+    await generalResponse
+    await expect(cards).toHaveCount(0)
+    releaseMatches()
+    await expect(cards).toHaveCount(3)
+    await expect(cards.nth(0)).toHaveAttribute("href", "/match/active-chat-2/chat")
+    await expect(cards.nth(1)).toHaveAttribute("href", "/personal-matches/friendly-active/chat")
+    await expect(page.locator("body")).toHaveAttribute("data-chat-animations", JSON.stringify([
+      ["chat-list-enter", "0s", "0.21s", "none"],
+      ["chat-list-enter", "0.055s", "0.21s", "none"],
+      ["chat-list-enter", "0.11s", "0.21s", "none"],
+    ]))
+    await expect(page.locator("[data-chat-batch-enter]")).toHaveCount(0)
+    refreshed = true
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+    await expect(cards).toHaveCount(4)
+    await expect(cards.nth(2)).toHaveCSS("animation-name", "none")
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.reload()
+    await expect(page.locator("body")).toHaveAttribute("data-chat-animations", /"none"/)
+    await expect(cards.first()).toHaveCSS("animation-name", "none")
+  } finally {
+    releaseGeneral()
+    releaseMatches()
+  }
+})
+
+test("global chats reopen from memory and refresh a read without replacing the list", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  let reads = 0
+  let changed = false
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: [{
+    id: "active-chat", round: 2, status: "scheduling", scheduledAt: null, readOnly: false,
+    partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
+  }] } }))
+  await page.route("**/api/league-season-chats/**", async route => {
+    reads += 1
+    expect(route.request().headers()["x-smash-lob-chat-list-account"]).toBe("qa-experience%40example.test")
+    if (changed) await pending
+    return route.fulfill({ json: { messages: [{
+      sender_display_name: "QA", body: changed ? "Mensaje actualizado" : "Mensaje en memoria", created_at: "2026-10-16T11:00:00Z",
+    }], participantCount: 2, unread: changed ? 0 : 2 } })
+  })
+  const nav = page.getByRole("navigation", { name: "Navegación global" })
+  const old = page.getByText("Mensaje en memoria", { exact: false })
+  const cards = page.locator("a[data-chat-list-enter]")
+  const open = (name: string) => nav.getByRole("link", { name, exact: true }).click()
+  try {
+    await page.goto("/personal-matches/chats")
+    await expect(old).toBeVisible()
+    expect(reads).toBe(1)
+    const order = await cards.evaluateAll(rows => rows.map(row => row.getAttribute("href")))
+    await open("Mis partidos")
+    await expect(page).toHaveURL("/personal-matches")
+    await open("Chats")
+    await expect(old).toBeVisible()
+    await expect(page.locator("[data-chat-batch-enter]")).toHaveCount(0)
+    expect(reads).toBe(1)
+
+    await open("Mis partidos")
+    await expect(page).toHaveURL("/personal-matches")
+    changed = true
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+    await open("Chats")
+    await expect.poll(() => reads).toBe(2)
+    await expect(old).toBeVisible()
+    expect(await cards.evaluateAll(rows => rows.map(row => row.getAttribute("href")))).toEqual(order)
+    await expect(page.locator("[data-chat-batch-enter]")).toHaveCount(0)
+    release()
+    await expect(page.getByText("Mensaje actualizado", { exact: false })).toBeVisible()
+    await expect(page.getByLabel("Mensajes sin leer")).toHaveCount(0)
+    expect(reads).toBe(2)
+  } finally {
+    release()
+  }
+})
+
+test("global chats defer past seasons and load the history on demand", async ({ page }) => {
+  await setup(page, "light", "classic", true, true)
+  const leagueReads: URLSearchParams[] = []
+  const friendlyReads: URLSearchParams[] = []
+  await page.route("**/api/chats?**", route => {
+    const params = new URL(route.request().url()).searchParams
+    leagueReads.push(params)
+    const archived = params.get("seasonId") === archivedSeasonId
+    return route.fulfill({ json: { chats: [{
+      id: archived ? "archive-chat" : "active-chat", round: archived ? 1 : 2, status: archived ? "finished" : "scheduling",
+      scheduledAt: null, readOnly: archived, partner: "Ana", rivals: ["Bea", "Carlos"], unread: 0, lastMessage: null,
+    }] } })
+  })
+  await page.route(/\/api\/personal-matches\/chats(?:\?|$)/, route => {
+    friendlyReads.push(new URL(route.request().url()).searchParams)
+    return route.fulfill({ json: { chats: [] } })
+  })
+  await page.goto("/personal-matches/chats")
+  await expect(page.getByRole("region", { name: "Activos" }).getByText("Jornada 2")).toBeVisible()
+  await expect(page.getByRole("region", { name: "Chats finalizados" })).toHaveCount(0)
+  expect(leagueReads.map(params => [params.get("seasonId"), params.get("activeRound")])).toEqual([[seasonId, "2"]])
+  expect(friendlyReads.every(params => params.get("active") === "1")).toBe(true)
+
+  await page.getByRole("button", { name: "Ver todos", exact: true }).click()
+  await expect(page.getByRole("region", { name: "Chats finalizados" }).getByText("Jornada 1")).toBeVisible()
+  expect(leagueReads.some(params => params.get("seasonId") === archivedSeasonId && !params.has("activeRound"))).toBe(true)
+  expect(friendlyReads.some(params => !params.has("active"))).toBe(true)
+
+  await page.getByRole("button", { name: "Ver solo activos", exact: true }).click()
+  await expect(page.getByRole("region", { name: "Chats finalizados" })).toHaveCount(0)
+})
+test("global chats wait for slow friendly responses and protect private list metadata", async ({ page, context }) => {
   const path = "/personal-matches/chats"
   const summary = { messages: [{ sender_display_name: "Ana", body: "Texto privado de prueba", created_at: "2026-10-16T12:00:00Z" }], participantCount: 2, unread: 2 }
   let releaseFriendly!: () => void
   const friendly = new Promise<void>(resolve => { releaseFriendly = resolve })
   await setup(page, "dark", "competition")
-  await page.route("**/api/personal-matches/chats", async route => { await friendly; await route.fulfill({ json: { chats: [] } }) })
+  await page.route(/\/api\/personal-matches\/chats(?:\?|$)/, async route => { await friendly; await route.fulfill({ json: { chats: [] } }) })
   await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: summary }))
+  const summaryResponse = page.waitForResponse("**/api/league-season-chats/**")
   await page.goto(path)
-  await expect(page.getByText("Texto privado de prueba", { exact: false })).toBeVisible()
+  await summaryResponse
+  const preview = page.getByText("Texto privado de prueba", { exact: false })
+  await expect(preview).toHaveCount(0)
   releaseFriendly()
+  await expect(preview).toBeVisible()
   const storageKey = "smash-lob:chat-list:v1"
   await expect.poll(() => page.evaluate(key => localStorage.getItem(key), storageKey)).toContain("Liga Azul QA")
   expect(await page.evaluate(key => localStorage.getItem(key), storageKey)).not.toContain("Texto privado de prueba")
@@ -270,8 +557,9 @@ test("global chats show available conversations before slow responses and reuse 
     await delayedSummary
     await route.fulfill({ status: 403, json: { error: "league_chat_forbidden" } })
   })
+  const forbiddenResponse = reopened.waitForResponse("**/api/league-season-chats/**")
   await reopened.goto(path)
-  await expect(reopened.getByRole("region", { name: "Chats de liga" })).toBeVisible()
+  await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
   await expect(reopened.getByText("Texto privado de prueba", { exact: false })).toHaveCount(0)
 
   const otherAccount = await context.newPage()
@@ -285,7 +573,347 @@ test("global chats show available conversations before slow responses and reuse 
   await expect(otherAccount.getByRole("heading", { name: "Chats", exact: true })).toBeVisible()
   await expect(otherAccount.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
   releaseSummary()
+  expect((await forbiddenResponse).status()).toBe(403)
+  await expect(reopened.getByText("Cargando conversaciones…", { exact: true })).toHaveCount(0)
   await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
+})
+
+test("league navigation keeps the unread badge current without refetching on unrelated screens", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let unread = 1
+  let reads = 0
+  await page.route("**/api/chats?**", route => {
+    reads += 1
+    return route.fulfill({ json: { chats: [], totalUnread: unread } })
+  })
+  await page.goto("/leagues")
+  await page.getByRole("button", { name: "Entrar en Liga Azul QA" }).click()
+  await expect(page).toHaveURL("/league/home")
+  const nav = page.locator("nav[data-tour=bottom-navigation]")
+  const badge = nav.locator('a[href="/chats"]')
+  await expect(badge.getByText("1", { exact: true })).toBeVisible()
+  const initialReads = reads
+  for (const path of ["/matches", "/ranking", "/matches"]) {
+    await nav.locator(`a[href="${path}"]`).click()
+    await expect(page).toHaveURL(path)
+    await expect(badge.getByText("1", { exact: true })).toBeVisible()
+  }
+  unread = 4
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+  await expect(badge.getByText("4", { exact: true })).toBeVisible()
+  expect(reads).toBe(initialReads + 1)
+})
+
+test("league tabs reuse content and apply chat and announcement changes in place", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let chatReads = 0, summaryReads = 0, announcementReads = 0, accessReads = 0
+  let message = "Primer mensaje QA", general = "Primer resumen QA", announcement = "Primer comunicado QA", unread = 1
+  let blocked = false, denied = false
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  await page.route("**/api/access", route => { accessReads++; return route.fallback() })
+  await page.route("**/api/chats?**", async route => {
+    chatReads++
+    expect(new URL(route.request().url()).searchParams.get("seasonId")).toBe(seasonId)
+    if (blocked) await pending
+    if (denied) return route.fulfill({ status: 403, json: {} })
+    return route.fulfill({ json: { totalUnread: unread, chats: [{ id: "chat-qa", round: 2, status: "scheduling", partner: "Ana", rivals: ["Bea", "Carlos"], unread, lastMessage: { sender: "Ana", body: message, createdAt: "2026-10-16T10:00:00Z" } }] } })
+  })
+  await page.route("**/api/league-season-chats/*?summary=1", route => {
+    summaryReads++
+    return route.fulfill({ json: { unread, readOnly: false, messages: [{ sender_display_name: "Ana", body: general, created_at: "2026-10-16T10:00:00Z" }] } })
+  })
+  await page.route("**/api/leagues/*/announcements?homeOnly=1", route => {
+    announcementReads++
+    return route.fulfill({ json: { announcements: [{ id: "notice-qa", leagueId, title: announcement, body: "Comunicado sintético", publishedAt: "2026-10-16T10:00:00Z" }] } })
+  })
+  await page.goto("/league/home")
+  const nav = page.locator("nav[data-tour=bottom-navigation]")
+  const go = async (path: string) => {
+    await nav.locator(`a[href="${path}"]`).click()
+    await expect(page).toHaveURL(path)
+    await expect(page.locator("main h1").first()).toBeVisible()
+  }
+  const badge = nav.locator('a[href="/chats"]')
+  await expect(badge.getByText("1", { exact: true })).toBeVisible()
+  await expect(page.getByText(announcement, { exact: true })).toBeVisible()
+  await expect(page.getByRole("link", { name: "Abrir chat de liga" })).toBeVisible()
+  const initial = [chatReads, summaryReads, announcementReads, accessReads]
+  await go("/matches")
+  await go("/ranking")
+  await go("/profile")
+  await expect(page.locator(".personal-profile-enter")).toHaveCount(1)
+  await go("/chats")
+  const conversation = page.locator('a[href="/match/chat-qa/chat"]')
+  await expect(conversation).toContainText(message)
+  await expect(page.getByText(general, { exact: false })).toBeVisible()
+  await expect(page.locator("[data-card-list-enter]")).toHaveCount(1)
+  await go("/league/home")
+  await expect(page.getByText(announcement, { exact: true })).toBeVisible()
+  await go("/matches")
+  await expect(page.locator("[data-card-list-enter]")).toHaveCount(0)
+  await go("/profile")
+  await expect(page.locator(".personal-profile-enter")).toHaveCount(0)
+  await go("/chats")
+  await expect(conversation).toContainText(message)
+  await expect(page.locator("[data-card-list-enter]")).toHaveCount(0)
+  expect([chatReads, summaryReads, announcementReads, accessReads]).toEqual(initial)
+
+  blocked = true
+  unread = 4
+  general = "Nuevo resumen QA"
+  const newMessage = "Mensaje actualizado QA"
+  const revalidation = page.waitForRequest("**/api/chats?**")
+  try {
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+    await revalidation
+    await expect(conversation).toContainText(message)
+    await expect(page.getByText("Cargando conversaciones…", { exact: true })).toHaveCount(0)
+    message = newMessage
+  } finally {
+    blocked = false
+    release()
+  }
+  await expect(conversation).toContainText(newMessage)
+  await expect(badge.getByText("4", { exact: true })).toBeVisible()
+  await expect(page.getByText(general, { exact: false })).toBeVisible()
+  await expect(page.locator("[data-card-list-enter]")).toHaveCount(0)
+
+  announcement = "Comunicado actualizado QA"
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:announcements-refresh")))
+  await go("/league/home")
+  await expect(page.getByText(announcement, { exact: true })).toBeVisible()
+  await go("/chats")
+  denied = true
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+  await expect(conversation).toHaveCount(0)
+  await expect(badge.getByText("4", { exact: true })).toHaveCount(0)
+})
+
+test("saving a league result updates warmed ranking, matches and profile on return", async ({ page }) => {
+  const { matches } = await setup(page, "light", "classic")
+  const match = matches.find(item => item.round === 2 && [...item.teamA, ...item.teamB].includes("davo"))!
+  match.id = "30000000-0000-4000-8000-000000000072"
+  Object.assign(match, { status: "scheduled", scheduledAt: "2026-10-16T11:30:00Z" })
+  const winningTeam = match.teamA.includes("davo") ? "A" : "B"
+  const topic = "realtime:qa-league-overview"
+  let notify: ((leagueDataChanged: boolean) => void) | undefined
+  await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: [], realtimeTopic: "qa-league-overview" } }))
+  await page.routeWebSocket("**/realtime/v1/websocket**", socket => {
+    socket.onMessage(message => {
+      if (typeof message !== "string") return
+      const [joinRef, ref, channel, event] = JSON.parse(message)
+      if (event === "phx_join" || event === "heartbeat" || event === "phx_leave") {
+        socket.send(JSON.stringify([joinRef, ref, channel, "phx_reply", { status: "ok", response: {} }]))
+      }
+      if (event === "phx_join" && channel === topic) {
+        notify = leagueDataChanged => socket.send(JSON.stringify([joinRef, null, channel, "broadcast", {
+          type: "broadcast", event: "refresh", payload: { leagueDataChanged },
+        }]))
+      }
+    })
+  })
+  let saved = 0
+  await page.route(`**/api/matches/${match.id}/result`, route => {
+    expect(route.request().method()).toBe("PUT")
+    const { sets } = route.request().postDataJSON()
+    expect(sets).toHaveLength(3)
+    Object.assign(match, { sets, status: "finished", resultRecordedAt: "2026-10-16T12:00:00Z", pointsA: winningTeam === "A" ? 2 : 1, pointsB: winningTeam === "B" ? 2 : 1 })
+    saved++
+    return route.fulfill({ json: { match } })
+  })
+  await page.goto("/league/home")
+  const nav = page.locator("nav[data-tour=bottom-navigation]")
+  const go = async (path: string) => {
+    await nav.locator(`a[href="${path}"]`).click()
+    await expect(page).toHaveURL(path)
+  }
+  await go("/ranking")
+  const rankingRow = page.locator('.app-ranking-row[href$="/davo"]')
+  const played = rankingRow.locator(":scope > div").nth(1)
+  await expect(played).toBeVisible()
+  const beforePlayed = Number(await played.innerText())
+  await go("/profile")
+  const profilePoints = page.getByText("Puntos", { exact: true }).first().locator("..").locator("p").last()
+  await expect(profilePoints).toBeVisible()
+  const beforePoints = Number(await profilePoints.innerText())
+  await go("/matches")
+  await page.locator(`a[href="/match/${match.id}"]`).first().click()
+  const result = page.getByRole("region", { name: "Resultado del partido", exact: true })
+  await result.getByRole("button", { name: "Registrar resultado", exact: true }).click()
+  for (const team of ["A", "B"]) for (const set of [1, 2, 3]) {
+    await result.getByRole("textbox", { name: `Pareja ${team} Set ${set}`, exact: true }).fill((team === winningTeam) === (set !== 2) ? "6" : "1")
+  }
+  await result.getByRole("button", { name: "Guardar resultado", exact: true }).click()
+  await expect(result.getByRole("heading", { name: "Resultado registrado", exact: true })).toBeVisible()
+  expect(saved).toBe(1)
+
+  await go("/ranking")
+  await expect(played).toHaveText(String(beforePlayed + 1))
+  await go("/profile")
+  await expect(profilePoints).toHaveText(String(beforePoints + 2))
+  await go("/matches")
+  await expect(page.locator("section.app-card").filter({ has: page.locator(`a[href="/match/${match.id}"]`) }).first()).toContainText(/6.*1|1.*6/)
+  await go("/league/home")
+  await expect(page.locator("[data-home-match-carousel]").last()).toContainText("Jornada 2")
+  await expect(page.locator(".app-skeleton")).toHaveCount(0)
+  await go("/ranking")
+  const points = rankingRow.locator(":scope > div").last()
+  const savedPoints = Number(await points.innerText())
+  await expect.poll(() => Boolean(notify)).toBe(true)
+  const chatRead = page.waitForResponse("**/api/chats?**")
+  let unexpectedAccess = 0
+  const countAccess = (request: { url: () => string }) => {
+    if (new URL(request.url()).pathname === "/api/access") unexpectedAccess++
+  }
+  page.on("request", countAccess)
+  notify!(false)
+  await chatRead
+  expect(unexpectedAccess).toBe(0)
+  page.off("request", countAccess)
+
+  Object.assign(match, {
+    sets: [{ a: 1, b: 6 }, { a: 6, b: 1 }, { a: winningTeam === "A" ? 1 : 6, b: winningTeam === "B" ? 1 : 6 }],
+    pointsA: winningTeam === "A" ? 1 : 2,
+    pointsB: winningTeam === "B" ? 1 : 2,
+  })
+  const updated = page.waitForResponse(response => new URL(response.url()).pathname === "/api/access")
+  notify!(true)
+  expect((await updated).ok()).toBe(true)
+  await expect(points).toHaveText(String(savedPoints - 1))
+  await expect(played).toHaveText(String(beforePlayed + 1))
+  await expect(page.locator(".app-skeleton")).toHaveCount(0)
+})
+
+test("tournaments reuses the hub list until tournament data changes", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let reads = 0
+  await page.route("**/api/tournaments", route => {
+    const name = ++reads === 1 ? "Torneo previo QA" : "Torneo actualizado QA"
+    expect(route.request().headers()["x-smash-lob-tournament-account"]).toBe("qa-experience%40example.test")
+    return route.fulfill({ json: { tournaments: [{ id: "tournament-qa", name, description: "", status: "in_progress", startsAt: "2026-10-20T10:00:00Z" }] } })
+  })
+  await page.goto("/leagues")
+  await expect(page.getByText("Torneo previo QA", { exact: true })).toBeVisible()
+  await page.getByRole("link", { name: /Ver todos/ }).click()
+  await expect(page).toHaveURL("/tournaments")
+  await expect(page.getByText("Torneo previo QA", { exact: true })).toBeVisible()
+  expect(reads).toBe(1)
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:refresh-tournament-list")))
+  await expect(page.getByText("Torneo actualizado QA", { exact: true })).toBeVisible()
+  expect(reads).toBe(2)
+})
+
+test("settings and payments share the ledger and refresh it after a transfer changes", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let paid = false
+  let reads = 0
+  let adminReads = 0
+  await page.addInitScript(id => localStorage.setItem("smash-lob-active-league", id), leagueId)
+  await page.route("**/api/leagues/*/activity?limit=200", route => {
+    adminReads += 1
+    return route.fulfill({ json: { items: [] } })
+  })
+  await page.route("**/api/payments/ledger", route => {
+    reads += 1
+    expect(route.request().headers()["x-smash-lob-ledger-account"]).toBe("qa-experience%40example.test")
+    return route.fulfill({ json: { items: [{
+      source: "friendly", matchId: "qa-friendly", transferId: "qa-transfer", direction: "owe",
+      amount: 12, isPaid: paid, paidAt: null, eventAt: "2026-10-15T11:00:00Z",
+      fromName: "QA", toName: "Rival QA", leagueId: null, leagueName: null, seasonId: null,
+      seasonName: null, round: null, href: "/personal-matches/qa-friendly",
+    }] } })
+  })
+  await page.route("**/api/personal-matches/qa-friendly/court-booking/transfers/qa-transfer", route => {
+    paid = Boolean(route.request().postDataJSON().isPaid)
+    return route.fulfill({ json: { ok: true } })
+  })
+  await page.goto("/settings?returnTo=%2Fpersonal-matches%2Fprofile")
+  await expect(page.locator("#payments")).toContainText("Debes")
+  expect(reads).toBe(1)
+  await page.locator("#payments").click()
+  await expect(page).toHaveURL("/payments")
+  const markPaid = page.getByRole("button", { name: "Marcar como pagado", exact: true }).first()
+  await expect(markPaid).toBeVisible()
+  expect(reads).toBe(1)
+  await markPaid.click()
+  await expect(markPaid).toHaveCount(0)
+  expect(reads).toBe(2)
+  expect(adminReads).toBe(0)
+  const adminResponse = page.waitForResponse("**/api/leagues/*/activity?limit=200")
+  await page.getByRole("button", { name: "Admin", exact: true }).click()
+  expect((await adminResponse).status()).toBe(200)
+  await expect(page.getByText("Todos los movimientos", { exact: true })).toBeVisible()
+  expect(adminReads).toBe(1)
+  await page.goBack()
+  await expect(page.locator("#payments")).not.toContainText("Debes")
+  await expect(page.locator("#payments")).toContainText("Mis pagos")
+  expect(reads).toBe(2)
+})
+
+test("global profile reuses history on return and revalidates without hiding it", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let email = "qa-experience@example.test"
+  let fail = false
+  const requests: string[] = []
+  const historyApi = /\/api\/personal-matches\?limit=50&/
+  let releaseOther!: () => void
+  const otherPending = new Promise<void>(resolve => { releaseOther = resolve })
+  await page.route("**/api/auth/session", route => route.fulfill({ json: { user: { email }, expires: "2099-01-01T00:00:00Z" } }))
+  await page.route(historyApi, async route => {
+    const account = route.request().headers()["x-smash-lob-profile-account"]
+    requests.push(account)
+    if (account === "other-qa%40example.test") await otherPending
+    return route.fulfill({ status: fail ? 500 : 200, json: { items: [], hasMore: false, nextOffset: null } })
+  })
+  const profile = "/personal-matches/profile"
+  const stats = page.locator("[data-personal-profile-sections]")
+  const loading = page.getByText("Calculando tu histórico completo...", { exact: true })
+  const notify = (type: string) => page.evaluate(event => {
+    (event === "visibilitychange" ? document : window).dispatchEvent(new Event(event))
+  }, type)
+  try {
+    await page.goto(profile)
+    await expect(stats).toBeVisible()
+    await expect(page.locator(".personal-profile-enter")).toHaveCount(1)
+    expect(requests).toEqual(["qa-experience%40example.test"])
+    await page.locator('a[data-tour="floating-settings"]').click()
+    await expect(page.getByRole("heading", { name: "Ajustes", exact: true })).toBeVisible()
+    await page.getByRole("link", { name: /Volver|Atrás/ }).first().click()
+    await expect(page).toHaveURL(profile)
+    await expect(stats).toBeVisible()
+    await expect(loading).toHaveCount(0)
+    await expect(page.locator(".personal-profile-enter")).toHaveCount(0)
+    await notify("visibilitychange")
+    expect(requests).toHaveLength(1)
+
+    fail = true
+    await page.clock.setFixedTime(new Date("2026-10-16T12:01:01Z"))
+    const failedRefresh = page.waitForResponse(historyApi)
+    await notify("visibilitychange")
+    expect((await failedRefresh).status()).toBe(500)
+    await expect(stats).toBeVisible()
+    await expect(loading).toHaveCount(0)
+
+    fail = false
+    const savedResultRefresh = page.waitForResponse(historyApi)
+    await notify("smash-lob:refresh-personal-profile-history")
+    expect((await savedResultRefresh).status()).toBe(200)
+    await expect(stats).toBeVisible()
+
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    email = "other-qa@example.test"
+    await notify("visibilitychange")
+    await expect.poll(() => requests.at(-1)).toBe("other-qa%40example.test")
+    await expect(loading).toBeVisible()
+    await expect(stats).toHaveCount(0)
+    releaseOther()
+    await expect(stats).toBeVisible()
+    await expect(page.locator(".personal-profile-enter")).toHaveCSS("animation-name", "none")
+    expect(requests).toEqual(Array(3).fill("qa-experience%40example.test").concat("other-qa%40example.test"))
+  } finally {
+    releaseOther()
+  }
 })
 
 test("competition create button opens options for creators", async ({ page }) => {
@@ -638,6 +1266,7 @@ test(`global chats filter by competition and messages while distant rounds remai
   await page.route("**/api/chats?**",route=>route.fulfill({json:{chats:[2,3,10].map(round=>({id:`chat-${round}`,round,status:"scheduling",scheduledAt:null,resultRecordedAt:null,readOnly:false,expired:false,partner:round===10?"Jugador Lejano":"Ana",rivals:["Bea","Carlos"],unread:round===2?1:0,lastMessage:round===3?null:{sender:"Ana",body:"Mensaje de prueba",createdAt:"2026-10-16T10:00:00Z"}}))}}))
   await page.goto("/personal-matches/chats")
   await expect(page.getByRole("region",{name:"Activos"}).getByText("Jornada 2",{exact:true})).toBeVisible()
+  await page.getByRole("button", { name: "Ver todos", exact: true }).click()
   await expect(page.getByRole("region",{name:"Próximos"}).getByText("Jornada 10",{exact:true})).toBeVisible()
   const activeHeading = page.getByRole("heading", { name: /^Activos/ })
   const upcomingHeading = page.getByRole("heading", { name: /^Próximos/ })

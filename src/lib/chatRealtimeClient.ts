@@ -2,24 +2,24 @@ import type { RealtimeChannel } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase"
 
 export const CHAT_REALTIME_EVENT = "refresh"
-export const CHAT_UNREAD_LOCAL_REFRESH_EVENT = "smash-lob:chat-unread-refresh"
+export { CHAT_UNREAD_LOCAL_REFRESH_EVENT } from "@/lib/appRefreshEvents"
 
 type SubscriptionEntry = {
   channel: RealtimeChannel
-  listeners: Set<() => void>
+  listeners: Set<(leagueDataChanged?: boolean) => void>
 }
 
 const subscriptions = new Map<string, SubscriptionEntry>()
 
-export function subscribeChatRealtime(topic: string | null | undefined, listener: () => void): () => void {
+export function subscribeChatRealtime(topic: string | null | undefined, listener: (leagueDataChanged?: boolean) => void): () => void {
   if (!topic) return () => undefined
   let entry = subscriptions.get(topic)
   if (!entry) {
-    const listeners = new Set<() => void>()
+    const listeners = new Set<(leagueDataChanged?: boolean) => void>()
     const channel = supabase
       .channel(topic, { config: { private: false } })
-      .on("broadcast", { event: CHAT_REALTIME_EVENT }, () => {
-        for (const current of listeners) current()
+      .on<{ leagueDataChanged?: boolean }>("broadcast", { event: CHAT_REALTIME_EVENT }, ({ payload }) => {
+        for (const current of listeners) current(payload?.leagueDataChanged === true)
       })
       .subscribe((status) => {
         if (status === "SUBSCRIBED") for (const current of listeners) current()

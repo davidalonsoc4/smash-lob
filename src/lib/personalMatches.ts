@@ -6,6 +6,8 @@ export type PersonalMatchSet = {
 export type PersonalMatchTeam = 1 | 2
 export type PersonalMatchSlot = 1 | 2
 export type PersonalMatchOrigin = "friendly" | "league"
+export const PERSONAL_PROFILE_ACCOUNT_HEADER = "x-smash-lob-profile-account"
+
 export type PersonalMatchStatus = "scheduled" | "finished"
 
 export type PersonalMatchParticipant = {

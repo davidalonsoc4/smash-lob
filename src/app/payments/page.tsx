@@ -1,7 +1,9 @@
-﻿"use client"
+"use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useSessionResource } from "@/hooks/useSessionResource"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { type MatchData, useMatchData } from "@/context/MatchDataProvider"
@@ -17,7 +19,6 @@ import {
 } from "@/lib/activity"
 import { formatMoney, roundMoney } from "@/lib/courtBooking"
 import {
-  fetchPaymentLedger,
   filterPaymentLedgerItems,
   getPaymentLedgerPendingSummary,
   setPaymentLedgerTransferPaid,
@@ -318,9 +319,11 @@ export default function PaymentsPage() {
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const [isEventsLoading, setIsEventsLoading] = useState(true)
   const [eventsError, setEventsError] = useState<string | null>(null)
-  const [ledgerItems, setLedgerItems] = useState<PaymentLedgerItem[]>([])
-  const [isLedgerLoading, setIsLedgerLoading] = useState(true)
-  const [ledgerError, setLedgerError] = useState<string | null>(null)
+  const { ledger } = useAccountProfile()
+  const { data: paymentLedger, failed: ledgerFailed } = useSessionResource(ledger)
+  const ledgerItems = paymentLedger?.items
+  const isLedgerLoading = !paymentLedger && !ledgerFailed
+  const ledgerError = ledgerFailed ? "No se han podido cargar tus pagos." : null
   const [paymentScope, setPaymentScope] = useState<PaymentScope>("all")
   const [updatingTransferId, setUpdatingTransferId] = useState<string | null>(null)
   const [paymentStatusError, setPaymentStatusError] = useState<string | null>(null)
@@ -328,47 +331,8 @@ export default function PaymentsPage() {
   const [selectedLeagueId, setSelectedLeagueId] = useState(activeLeague.id)
   const [selectedSeasonId, setSelectedSeasonId] = useState(activeSeason.id)
 
-  const refreshLedger = useCallback(async () => {
-    try {
-      const payload = await fetchPaymentLedger()
-      setLedgerItems(payload.items)
-      setLedgerError(null)
-    } catch {
-      setLedgerError("No se han podido cargar tus pagos.")
-    } finally {
-      setIsLedgerLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
-    let isMounted = true
-
-    async function loadLedger() {
-      try {
-        const payload = await fetchPaymentLedger()
-        if (isMounted) {
-          setLedgerItems(payload.items)
-          setLedgerError(null)
-        }
-      } catch {
-        if (isMounted) {
-          setLedgerError("No se han podido cargar tus pagos.")
-        }
-      } finally {
-        if (isMounted) {
-          setIsLedgerLoading(false)
-        }
-      }
-    }
-
-    void loadLedger()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  useEffect(() => {
+    if (activeTab !== "all" || !canViewAllMovements) return
     let isMounted = true
 
     async function loadEvents() {
@@ -400,7 +364,7 @@ export default function PaymentsPage() {
     return () => {
       isMounted = false
     }
-  }, [activeLeague.id, tx])
+  }, [activeLeague.id, activeTab, canViewAllMovements, tx])
 
   const paymentEvents = useMemo(
     () => events.filter(isPaymentActivityEvent),
@@ -425,7 +389,7 @@ export default function PaymentsPage() {
 
   const scopedLedgerItems = useMemo(
     () =>
-      filterPaymentLedgerItems(ledgerItems, {
+      filterPaymentLedgerItems(ledgerItems ?? [], {
         scope: paymentScope,
         leagueId: selectedLeague.id,
         seasonId: selectedSeason.id,
@@ -563,7 +527,7 @@ export default function PaymentsPage() {
 
     const saved = await setPaymentLedgerTransferPaid(item, isPaid)
     if (saved) {
-      await refreshLedger()
+      await ledger.refresh()
     } else {
       setPaymentStatusError(
         isPaid

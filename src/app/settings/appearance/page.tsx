@@ -101,7 +101,7 @@ function PaletteSwatches({ palette }: { palette: Exclude<Palette, "league"> }) {
 }
 
 function CompetitionAccentSwatch({ value }: { value: CompetitionAccent }) {
-  const color = value === "league" ? "var(--league-accent, #D7A544)" : COMPETITION_ACCENT_COLORS[value]
+  const color = COMPETITION_ACCENT_COLORS[value]
   return <span aria-hidden="true" className="h-6 w-6 rounded-full border border-white/80 shadow-sm" style={{ backgroundColor: color }} />
 }
 
@@ -251,7 +251,6 @@ export default function AppearancePage() {
   ]
   const selectedPalette = paletteOptions.find((option) => option.value === palette)
   const competitionAccentOptions: Array<{ value: CompetitionAccent; label: string; description: string }> = [
-    { value: "league", label: t.settings.competitionAccentLeague, description: t.settings.competitionAccentLeagueDescription },
     { value: "gold", label: t.settings.competitionAccentGold, description: t.settings.competitionAccentGoldDescription },
     { value: "blue", label: t.settings.competitionAccentBlue, description: t.settings.competitionAccentBlueDescription },
     { value: "green", label: t.settings.competitionAccentGreen, description: t.settings.competitionAccentGreenDescription },

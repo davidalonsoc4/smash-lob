@@ -109,7 +109,7 @@ function applyAppearance(themeMode: ThemeMode, visualStyle: VisualStyle, palette
   const root = document.documentElement
   const effectivePalette = visualStyle === "competition" ? "league" : palette
   const effectiveAccent = visualStyle === "competition"
-    ? getCompetitionAccentColor(competitionAccent, leagueAccent)
+    ? getCompetitionAccentColor(competitionAccent)
     : getClassicAccentColor(palette, themeMode)
   const colorful = visualStyle === "classic" && palette !== "classic"
 

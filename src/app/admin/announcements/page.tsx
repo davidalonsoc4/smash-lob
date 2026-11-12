@@ -70,7 +70,7 @@ export default function AdminAnnouncementsPage() {
 
     fetchLeagueAnnouncements(activeLeague.id)
       .then((items) => {
-        if (!cancelled) setAnnouncements(items)
+        if (!cancelled) setAnnouncements(items ?? [])
       })
       .catch(() => {
         if (!cancelled) setError("No se han podido cargar los comunicados.")
