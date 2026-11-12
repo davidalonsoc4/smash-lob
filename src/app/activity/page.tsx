@@ -432,7 +432,7 @@ function ActivityPageContent() {
   const { leagueScreenData } = useAccountProfile()
   const activity = leagueScreenData.activity.get(currentUserId, activeLeague.id, canAccessAdmin ? "admin" : "player")
   const { data, failed } = useSessionResource(activity)
-  const events = data ?? []
+  const events = useMemo(() => data ?? [], [data])
   const isLoading = !data && !failed
   const error = failed ? t.activity.loadErrorDescription : null
   const [scope, setScope] = useState<ActivityScope>(initialScope)

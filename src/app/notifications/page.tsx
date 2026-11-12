@@ -711,7 +711,7 @@ export default function NotificationsPage() {
   const { notificationReads } = leagueScreenData;
   const feed = useSessionResource(activity);
   const reads = useSessionResource(notificationReads);
-  const events = feed.data ?? [];
+  const events = useMemo(() => feed.data ?? [], [feed.data]);
   const isLoading = (!feed.data && !feed.failed) || (!reads.data && !reads.failed);
   const error = feed.failed ? tx("No se han podido cargar las notificaciones.") : null;
   const [pendingReads, setPendingReads] = useState<Set<string>>(new Set());
