@@ -4,12 +4,17 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useSession } from "next-auth/react"
 import type { AccountProfile, DominantHand, PreferredPlayerSide } from "@/lib/accountProfile"
 import type { WeeklyAvailability } from "@/lib/playerAvailability"
-import { PAYMENT_LEDGER_REFRESH_EVENT, PERSONAL_PROFILE_HISTORY_REFRESH_EVENT } from "@/lib/appRefreshEvents"
+import { LEAGUE_MEMBERSHIP_CHANGED_EVENT, MATCH_DASHBOARD_REFRESH_EVENT, PAYMENT_LEDGER_REFRESH_EVENT, PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, TOURNAMENT_LIST_REFRESH_EVENT } from "@/lib/appRefreshEvents"
 import { createPaymentLedger } from "@/lib/paymentLedger"
+import { createPersonalMatchesDashboard } from "@/lib/personalMatchesDashboard"
+import { createTournamentList } from "@/lib/tournamentList"
 import { createPersonalProfileHistory } from "@/lib/personalProfileHistory"
 
 type AccountProfileContextValue = {
+  account: string
   history: ReturnType<typeof createPersonalProfileHistory>
+  matchDashboard: ReturnType<typeof createPersonalMatchesDashboard>
+  tournamentList: ReturnType<typeof createTournamentList>
   ledger: ReturnType<typeof createPaymentLedger>
   profile: AccountProfile | null
   isLoading: boolean
@@ -48,6 +53,8 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   const account = session?.user?.email ?? ""
   const [history] = useState(() => createPersonalProfileHistory(account))
   const [ledger] = useState(() => createPaymentLedger(account))
+  const [matchDashboard] = useState(() => createPersonalMatchesDashboard(account))
+  const [tournamentList] = useState(() => createTournamentList(account))
   const [profile, setProfile] = useState<AccountProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -164,19 +171,36 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
-    window.addEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, history.invalidate)
+    const historyChanged = () => {
+      history.invalidate()
+      matchDashboard.invalidate()
+    }
+    const membershipChanged = () => {
+      history.discard()
+      matchDashboard.discard()
+      ledger.discard()
+    }
+    window.addEventListener(LEAGUE_MEMBERSHIP_CHANGED_EVENT, membershipChanged)
+    window.addEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, historyChanged)
+    window.addEventListener(MATCH_DASHBOARD_REFRESH_EVENT, matchDashboard.invalidate)
+    window.addEventListener(TOURNAMENT_LIST_REFRESH_EVENT, tournamentList.invalidate)
     window.addEventListener(PAYMENT_LEDGER_REFRESH_EVENT, ledger.invalidate)
     return () => {
-      window.removeEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, history.invalidate)
+      window.removeEventListener(LEAGUE_MEMBERSHIP_CHANGED_EVENT, membershipChanged)
+      window.removeEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, historyChanged)
+      window.removeEventListener(MATCH_DASHBOARD_REFRESH_EVENT, matchDashboard.invalidate)
+      window.removeEventListener(TOURNAMENT_LIST_REFRESH_EVENT, tournamentList.invalidate)
+      matchDashboard.cancel()
+      tournamentList.cancel()
       window.removeEventListener(PAYMENT_LEDGER_REFRESH_EVENT, ledger.invalidate)
       history.cancel()
       ledger.cancel()
     }
-  }, [history, ledger])
+  }, [history, ledger, matchDashboard, tournamentList])
 
   const value = useMemo(
-    () => ({ history, ledger, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
-    [error, history, isLoading, ledger, profile, refreshProfile, saveAvatar, saveProfile],
+    () => ({ account, history, ledger, matchDashboard, tournamentList, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
+    [account, error, history, isLoading, ledger, matchDashboard, profile, refreshProfile, saveAvatar, saveProfile, tournamentList],
   )
 
   return (

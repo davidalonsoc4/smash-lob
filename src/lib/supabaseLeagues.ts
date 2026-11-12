@@ -3,6 +3,7 @@ import type { SeasonSnapshot } from "@/context/SeasonSettingsProvider"
 import type { League, UserLeagueMembership } from "@/data/fakeData"
 import type { LeagueLocation } from "@/lib/leagueLocations"
 import { LEAGUE_ACCESS_SCOPE_HEADER, type LeagueOverview } from "@/lib/competitionOverview"
+import { requestMatchDashboardRefresh } from "@/lib/appRefreshEvents"
 
 export async function createSupabaseLeague({
   leagueName,
@@ -43,6 +44,7 @@ export async function createSupabaseLeague({
     throw new Error(`create-league-api-${response.status}`)
   }
 
+  requestMatchDashboardRefresh()
   return (await response.json()) as {
     league: League
     membership: UserLeagueMembership | null

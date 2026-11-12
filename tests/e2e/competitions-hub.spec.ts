@@ -195,7 +195,7 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   expect(a11y.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })
 
-test("personal matches shows recent activity while revalidating after navigation", async ({ page }) => {
+test("personal matches reuses the hub history until match data changes", async ({ page }) => {
   let releaseRefresh!: () => void
   const refreshPending = new Promise<void>(resolve => { releaseRefresh = resolve })
   let reads = 0
@@ -216,7 +216,10 @@ test("personal matches shows recent activity while revalidating after navigation
     await navbar.getByRole("link", { name: "Mis partidos" }).click()
     await expect(page.getByRole("heading", { name: "Mis partidos" })).toBeVisible()
     await expect(page.getByText("Dato en memoria")).toBeVisible()
+    expect(reads).toBe(1)
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:refresh-match-dashboard")))
     await expect.poll(() => reads).toBe(2)
+    await expect(page.getByText("Dato en memoria")).toBeVisible()
   } finally {
     releaseRefresh()
   }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
-import { requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
+import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import {
   PersonalMatchParticipantSelector,
   type EditablePersonalMatchParticipant,
@@ -114,6 +114,7 @@ export function PersonalMatchParticipantsPanel({
       }
 
       if (payload.item.status === "finished") requestPersonalProfileHistoryRefresh()
+      else requestMatchDashboardRefresh()
       onUpdated(payload.item)
       setParticipants(editableParticipants(payload.item))
       setEditing(false)

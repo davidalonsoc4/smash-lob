@@ -3,7 +3,7 @@ import {
   parseMatchScheduleDate,
 } from "@/lib/matchScheduleTime"
 import { normalizeCourtBooking } from "@/lib/courtBooking"
-import { requestPaymentLedgerRefresh } from "@/lib/appRefreshEvents"
+import { requestMatchDashboardRefresh, requestPaymentLedgerRefresh } from "@/lib/appRefreshEvents"
 import type {
   CourtBooking,
   CourtBookingReservation,
@@ -286,7 +286,9 @@ export async function updateSupabaseMatchSchedule({
     }
   )
 
-  return readMatchResponse(response, "match-schedule-api")
+  const match = await readMatchResponse(response, "match-schedule-api")
+  requestMatchDashboardRefresh()
+  return match
 }
 
 export async function postponeSupabaseMatch(matchId: string) {
@@ -298,7 +300,9 @@ export async function postponeSupabaseMatch(matchId: string) {
     }
   )
 
-  return readMatchResponse(response, "match-postpone-api")
+  const match = await readMatchResponse(response, "match-postpone-api")
+  requestMatchDashboardRefresh()
+  return match
 }
 
 export async function clearSupabaseMatchSchedule(matchId: string) {
@@ -310,7 +314,9 @@ export async function clearSupabaseMatchSchedule(matchId: string) {
     }
   )
 
-  return readMatchResponse(response, "match-schedule-clear-api")
+  const match = await readMatchResponse(response, "match-schedule-clear-api")
+  requestMatchDashboardRefresh()
+  return match
 }
 
 export async function finishSupabaseMatch({

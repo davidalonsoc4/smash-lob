@@ -428,6 +428,25 @@ test("global chats wait for slow friendly responses and protect private list met
   await expect(reopened.getByRole("region", { name: "Chats de liga" })).toHaveCount(0)
 })
 
+test("tournaments reuses the hub list until tournament data changes", async ({ page }) => {
+  await setup(page, "light", "classic")
+  let reads = 0
+  await page.route("**/api/tournaments", route => {
+    const name = ++reads === 1 ? "Torneo previo QA" : "Torneo actualizado QA"
+    expect(route.request().headers()["x-smash-lob-tournament-account"]).toBe("qa-experience%40example.test")
+    return route.fulfill({ json: { tournaments: [{ id: "tournament-qa", name, description: "", status: "in_progress", startsAt: "2026-10-20T10:00:00Z" }] } })
+  })
+  await page.goto("/leagues")
+  await expect(page.getByText("Torneo previo QA", { exact: true })).toBeVisible()
+  await page.getByRole("link", { name: /Ver todos/ }).click()
+  await expect(page).toHaveURL("/tournaments")
+  await expect(page.getByText("Torneo previo QA", { exact: true })).toBeVisible()
+  expect(reads).toBe(1)
+  await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:refresh-tournament-list")))
+  await expect(page.getByText("Torneo actualizado QA", { exact: true })).toBeVisible()
+  expect(reads).toBe(2)
+})
+
 test("settings and payments share the ledger and refresh it after a transfer changes", async ({ page }) => {
   await setup(page, "light", "classic")
   let paid = false

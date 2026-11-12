@@ -2,6 +2,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
+import { requestTournamentListRefresh } from "@/lib/appRefreshEvents"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { resolveTraditionalTournament,type TraditionalResolvedMatch } from "@/lib/traditionalTournament"
 import { traditionalMatchLabel,traditionalSourceLabel } from "@/lib/traditionalTournamentLabels"
@@ -36,7 +37,10 @@ export function TraditionalTournamentPage({data,state,view,onRefresh}:{data:Tour
     setBusy(true)
     try{
       const response=await fetch(`/api/tournaments/${encodeURIComponent(tournament.id)}/traditional`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,revision:state.revision,...payload})})
-      if(response.ok)return null
+      if(response.ok){
+        if(action==="start"||action==="finish")requestTournamentListRefresh()
+        return null
+      }
       const body=await response.json().catch(()=>({}))
       return tx(body.error==="played_traditional_match_changed"?"Este cambio alteraría los rivales de un partido ya disputado. Conserva el resultado o revisa la incidencia con el organizador.":body.error==="traditional_knockout_requires_winner"?"Una eliminatoria necesita un ganador. No se puede guardar un empate.":response.status===409?"El torneo ha cambiado o la acción está bloqueada. Actualiza antes de continuar.":"No se ha podido guardar. Revisa los datos y tu conexión.")
     }catch{return tx("No se ha podido guardar. Revisa los datos y tu conexión.")}

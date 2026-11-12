@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { RapidTournamentCreateForm } from "@/components/tournament/RapidTournamentCreateForm"
 import { useI18n } from "@/i18n/I18nProvider"
+import { requestTournamentListRefresh } from "@/lib/appRefreshEvents"
 import { buildRapidScheduleChecks, calculateRapidStandings, getRapidRoundAt, getTournamentChampions, type RapidStanding } from "@/lib/rapidTournament"
 import { readLegacyRapidConfiguration } from "@/lib/tournamentConfiguration"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
@@ -103,6 +104,7 @@ export function RapidTournamentPage({ tournamentId, view }: { tournamentId: stri
       if (action === "start" || action === "restart") await enableRapidAudio(tournamentId)
       const response = await fetch(`/api/tournaments/${encodeURIComponent(tournamentId)}${action === "delete" ? "" : `/${action}`}`, { method: action === "delete" ? "DELETE" : "POST" })
       if (!response.ok) { if (action === "start" || action === "restart") disableRapidAudio(); setActionError(tx(action === "draw" ? "El sorteo está bloqueado porque el torneo ya ha comenzado." : action === "start" ? "No se ha podido iniciar el torneo." : action === "next-round" ? "Completa todos los resultados de la ronda actual antes de generar la siguiente." : action === "finish" ? "Registra todos los resultados antes de finalizar." : "No se ha podido completar la acción. Comprueba tu conexión e inténtalo de nuevo.")); return }
+      if (action === "start" || action === "finish" || action === "restart" || action === "delete") requestTournamentListRefresh()
       if (action === "delete") { disableRapidAudio(); router.replace("/leagues"); return }
       if (action === "start" || action === "restart") { refresh(); router.push(`/tournaments/${tournamentId}/live`) }
       else refresh()
@@ -222,6 +224,7 @@ export function TournamentInviteFlow({ code }: { code: string }) {
       const response = await fetch(`/api/tournament-invites/${encodeURIComponent(code)}/claim`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ playerId: selectedPlayerId }) })
       const result = await response.json().catch(() => null)
       if (!response.ok || typeof result?.tournamentId !== "string") throw new Error("invite_not_available")
+      requestTournamentListRefresh()
       router.replace(`/tournaments/${result.tournamentId}/players`)
     } catch { setError(tx("No se ha podido aceptar la invitación. Puede que el jugador ya esté vinculado o que el enlace haya caducado.")) }
     finally { setBusy(false) }

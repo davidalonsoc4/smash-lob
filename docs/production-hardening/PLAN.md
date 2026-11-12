@@ -1,3 +1,7 @@
+## MC165 — Reutilización de datos de partidos y torneos
+- Estado: COMPLETO LOCAL. Ambas rutas verificadas en LAN 3000.
+- Gates: validate, Playwright móvil de navegación e invalidaciones, comparativa sintética y LAN 3000.
+
 ## MC164 — Reutilización de datos de Ajustes y Pagos
 - Estado: COMPLETO LOCAL. Verificado en LAN 3000.
 - Gates: npm run validate, Playwright móvil de Ajustes/Pagos y Mi perfil, comparativa de reapertura y verificación LAN 3000.

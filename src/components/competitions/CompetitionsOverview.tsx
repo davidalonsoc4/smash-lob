@@ -7,6 +7,9 @@ import type { CSSProperties } from "react"
 import styles from "./CompetitionsOverview.module.css"
 import { CalendarEventButton } from "@/components/calendar/CalendarEventButton"
 import { useEffect, useState } from "react"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useSessionResource } from "@/hooks/useSessionResource"
+import type { TournamentListItem } from "@/lib/tournamentList"
 import { usePersonalMatchesDashboard } from "@/hooks/usePersonalMatchesDashboard"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { PersonalMatchCard } from "@/components/personal/PersonalMatchCard"
@@ -57,9 +60,9 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     }).countsForRanking,
   })) : []
   const { dashboard, failed: loadError } = usePersonalMatchesDashboard(view === "summary")
-  const [tournaments, setTournaments] = useState<Array<{ id: string; name: string; description: string; startsAt: string; createdAt?: string; status: "draft" | "in_progress" | "finished" }>>([])
-  const [tournamentLoadError, setTournamentLoadError] = useState(false)
-  const [tournamentRequestVersion, setTournamentRequestVersion] = useState(0)
+  const { tournamentList } = useAccountProfile()
+  const { data: tournamentItems, failed: tournamentLoadError } = useSessionResource(tournamentList, areTournamentsEnabled() && view !== "leagues")
+  const tournaments = tournamentItems ?? []
   const [now, setNow] = useState(() => new Date())
   const [activityIndex, setActivityIndex] = useState(0)
   const canPreload = view === "summary" && Boolean(overview) && memberLeagues.length > 0
@@ -70,15 +73,6 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     const timer = window.setInterval(() => setNow(new Date()), 60_000)
     return () => window.clearInterval(timer)
   }, [])
-  useEffect(() => {
-    if (!areTournamentsEnabled() || view === "leagues") return
-    const controller = new AbortController()
-    fetch("/api/tournaments", { cache: "no-store", signal: controller.signal })
-      .then(async (response) => { if (!response.ok) throw new Error("tournaments_failed"); return response.json() })
-      .then((data) => { if (!controller.signal.aborted) { setTournaments(Array.isArray(data?.tournaments) ? data.tournaments : []); setTournamentLoadError(false) } })
-      .catch(() => { if (!controller.signal.aborted) setTournamentLoadError(true) })
-    return () => controller.abort()
-  }, [tournamentRequestVersion, view])
   const ownLeagueMatches: PersonalMatchItem[] = overview?.activity ?? (view === "summary" ? seasons.flatMap(season => {
     const league = userLeagues.find(item => item.id === season.leagueId), playerId = getMembershipForLeague(season.leagueId)?.playerId
     if (!league || !playerId || isLeagueSpectator(league.id) || !seasonPlayers.some(row => row.seasonId === season.id && row.playerId === playerId && row.status !== "withdrawn")) return []
@@ -117,7 +111,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
       : countdown.days === 1 ? tx("Mañana")
         : `${tx("Hoy")} · ${new Intl.DateTimeFormat(locale === "eu" ? "eu-ES" : locale === "en" ? "en-GB" : "es-ES", { hour: "2-digit", minute: "2-digit", timeZone: SCHEDULED_SEASON_TIME_ZONE }).format(new Date(countdown.startsAt))}`
   }
-  function tournamentRow(item: (typeof tournaments)[number], index: number) {
+  function tournamentRow(item: TournamentListItem, index: number) {
     const label = item.status === "in_progress" ? tx("En curso") : item.status === "finished" ? tx("Finalizado") : startPreviewLabel(item.startsAt)
     return <Link key={item.id} data-content-enter={view === "summary" ? Math.min(1 + visibleLeagues.length + index, 3) : undefined} href={`/tournaments/${item.id}`} className={`${view === "summary" ? styles.tournament : "border-neutral-200 bg-white shadow-sm"} flex min-h-16 items-center gap-3 rounded-2xl border p-3 transition active:scale-[0.99]`}>
       <span aria-hidden="true" className={`${view === "summary" ? styles.trophy : "bg-neutral-100 text-neutral-700"} flex h-11 w-11 shrink-0 items-center justify-center rounded-xl`}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-6 w-6"><path d="M8 3h8v6a4 4 0 0 1-8 0V3Zm0 2H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 13v5m-4 3h8m-7-3h6v3H9z" /></svg></span>
@@ -208,7 +202,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     </section> : null}
     {areTournamentsEnabled() && (view === "tournaments" || tournaments.length > 0 || canCreateCompetition) && (view === "summary" || view === "tournaments") ? <section aria-labelledby="competitions-tournaments" className={`${view === "summary" ? styles.competitionSection : ""} space-y-2`}>
       <div className="app-section-header flex items-center justify-between gap-2"><h2 id="competitions-tournaments" className="type-panel-title font-black">{tx("Mis torneos")} {view !== "summary" ? <span className="text-neutral-400">· {tournaments.length}</span> : null}</h2>{view === "summary" ? <Link href="/tournaments" className="app-section-action inline-flex items-center gap-1 text-sm font-semibold text-neutral-500">{tx("Ver todos")} <span aria-hidden="true">›</span></Link> : <Link href="/tournaments/new" className="min-h-11 inline-flex shrink-0 items-center text-sm font-black underline underline-offset-4">{tx("Crear")}</Link>}</div>
-      {tournamentLoadError ? <AppCard><p role="alert" className="text-sm font-semibold text-neutral-500">{tx("No se han podido cargar tus torneos.")}</p><button type="button" onClick={() => setTournamentRequestVersion((value) => value + 1)} className="mt-2 text-sm font-black underline">{tx("Reintentar")}</button></AppCard> : view === "tournaments" && visibleTournaments.length ? <div className="space-y-2" {...cardListEntrance}>{visibleTournaments.map(tournamentRow)}</div> : visibleTournaments.map(tournamentRow)}
+      {tournamentLoadError ? <AppCard><p role="alert" className="text-sm font-semibold text-neutral-500">{tx("No se han podido cargar tus torneos.")}</p><button type="button" onClick={() => tournamentList.invalidate()} className="mt-2 text-sm font-black underline">{tx("Reintentar")}</button></AppCard> : view === "tournaments" && visibleTournaments.length ? <div className="space-y-2" {...cardListEntrance}>{visibleTournaments.map(tournamentRow)}</div> : visibleTournaments.map(tournamentRow)}
       {!tournamentLoadError && !visibleTournaments.length ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Todavía no tienes torneos.")}</p>{view === "summary" ? <Link href="/tournaments/new" className={`${actionClass} mt-3`}>{tx("Crear torneo rápido")}</Link> : null}</AppCard> : null}
       {view === "tournaments" && finishedTournaments.length ? <details className="rounded-2xl border border-neutral-200 p-3"><summary className="cursor-pointer py-2 text-sm font-black">{tx("Finalizados")} · {finishedTournaments.length}</summary><div className="mt-2 space-y-2">{finishedTournaments.map(tournamentRow)}</div></details> : null}
     </section> : null}

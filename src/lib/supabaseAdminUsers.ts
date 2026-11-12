@@ -1,4 +1,5 @@
 import type { LeagueMemberRole } from "@/data/fakeData"
+import { requestLeagueMembershipRefresh } from "@/lib/appRefreshEvents"
 
 export type LeagueUserManagementPlayer = {
   playerId: string
@@ -79,6 +80,7 @@ export async function unlinkSupabaseLeagueMembership({
     throw new Error(`membership-delete-api-${response.status}`)
   }
 
+  requestLeagueMembershipRefresh()
   return (await response.json()) as {
     leagueId: string
     playerId: string
