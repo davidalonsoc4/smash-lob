@@ -1,3 +1,7 @@
+## MC161 — Acciones de Chats y Mis Competiciones
+- Estado: COMPLETO LOCAL. Ambas acciones verificadas en LAN 3000.
+- Gates: npm run validate, Playwright móvil del historial y de creación, inspección visual y verificación de ambas rutas en LAN 3000.
+
 ## MC160 — Recuperar la vista escalonada en LAN
 - Estado: COMPLETO LOCAL. El puerto 3000 sirve v1.15.44 desde codex/card-entry-preview.
 - Gates: reproducir el salto con la versión anterior, verificar health y el proceso de la candidata, repetir Playwright móvil con las mismas respuestas sintéticas y el resumen retenido.

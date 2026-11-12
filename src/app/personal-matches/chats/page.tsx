@@ -278,14 +278,13 @@ function ChatList({ account }: { account: string }) {
     <div className="compact-page space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/personal-matches" label="Volver" />
-        <h1 className="type-page-title font-black tracking-tight">Chats</h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="type-page-title font-black tracking-tight">Chats</h1>
+          <button type="button" className="type-caption min-h-11 shrink-0 rounded-lg px-2 font-medium text-neutral-600 underline-offset-4 hover:underline focus-visible:outline-2 dark:text-neutral-400" onClick={() => setPhase(activeOnly ? "all" : "active")}>
+            {tx(activeOnly ? "Ver todos" : "Ver solo activos")}
+          </button>
+        </div>
       </header>
-
-      <div className="flex justify-end">
-        <button type="button" className="app-section-action min-h-11 px-2 text-sm font-semibold" onClick={() => setPhase(activeOnly ? "all" : "active")}>
-          {tx(activeOnly ? "Ver todos" : "Ver solo activos")}
-        </button>
-      </div>
       <FloatingSearchButton label={tx("Buscar y filtrar chats")} open={filterOpen} onClick={() => setFilterOpen(true)} active={hasFilters} activeLabel={tx("Filtros activos")} />
       <FloatingDialog open={filterOpen} onClose={() => setFilterOpen(false)} title={tx("Buscar y filtrar chats")} variant="search">
         <div className="flex items-center justify-between gap-3 border-b border-neutral-200 p-3"><h2>{tx("Buscar y filtrar chats")}</h2><DialogCloseButton onClick={() => setFilterOpen(false)} /></div>

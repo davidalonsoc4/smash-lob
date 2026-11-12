@@ -3232,6 +3232,10 @@ html.dark .app-main :is(button, a).bg-neutral-950 {
 }
 html[data-theme][data-visual-style] .app-action-button :is(span,svg),
 html .app-main :is(button,a).bg-neutral-950 :is(span,svg,p) { color: inherit !important; }
+.app-floating-create {
+  box-shadow: inset 0 0 0 2px #fff, 0 0 0 1px #171717, 0 5px 14px #0006;
+}
+
 /* Secondary decisions stay neutral instead of inheriting the primary fill. */
 html[data-theme][data-visual-style] .app-action-secondary {
   background: transparent !important;
