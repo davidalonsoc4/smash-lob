@@ -73,7 +73,7 @@ export function PersonalMatchCourtBookingPanel({
       players={view.players}
       currentUserId={view.currentUserId}
       canManage
-      canManageAllPayments={match.canManage}
+      canManageAllPayments={match.canDelete}
       booking={match.courtBooking ?? getEmptyCourtBooking()}
       actions={{
         update: (input) => requestBooking("PUT", input),
