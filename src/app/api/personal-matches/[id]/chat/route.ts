@@ -1,3 +1,4 @@
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { loadPersonalMatch } from "@/lib/serverPersonalMatches"
@@ -145,6 +146,10 @@ export async function GET(request: Request, { params }: Ctx) {
   if ("denied" in gate) return gate.denied
 
   const { db, user, match } = gate
+  const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(user.email)) return NextResponse.json({ error: "session_changed" }, { status: 403 })
+  const query = new URL(request.url).searchParams
+  const preview = query.get("preview") === "1"
 
   try {
     try {
@@ -163,7 +168,7 @@ export async function GET(request: Request, { params }: Ctx) {
         .select("id,sender_user_id,sender_display_name,body,created_at")
         .eq("match_id", match.id)
         .order("created_at", { ascending: false })
-        .limit(60),
+        .limit(preview ? 20 : 60),
       linkedUserIds.length
         ? db
             .from("personal_match_chat_reads")
@@ -191,7 +196,7 @@ export async function GET(request: Request, { params }: Ctx) {
     const latestIncoming = [...ordered]
       .reverse()
       .find((message) => String(message.sender_user_id) !== user.id)
-    const markRead = new URL(request.url).searchParams.get("markRead") !== "0"
+    const markRead = !preview && query.get("markRead") !== "0"
 
     if (
       markRead &&

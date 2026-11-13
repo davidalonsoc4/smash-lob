@@ -29,7 +29,7 @@ describe("v1.7.0 match chat viewport polish", () => {
     expect(shared).toContain('pageBody.style.overflow = "hidden"')
     expect(shared).toContain('visualViewport?.addEventListener("resize", handleViewportResize)')
     expect(shared).toContain('visualViewport?.addEventListener("scroll", handleViewportScroll)')
-    expect(shared).toContain('composer?.addEventListener("focus", handleComposerFocus)')
+    expect(shared).toContain('root.addEventListener("focusin", handleComposerFocus)')
     expect(shared).toContain('syncViewport(true, true)')
     expect(shared).toContain('for (const delay of [0, 80, 180, 320])')
     expect(shared).toContain('className="fixed inset-x-0 top-0 z-[60] mx-auto flex w-full max-w-md min-h-0 flex-col overflow-hidden bg-stone-50"')

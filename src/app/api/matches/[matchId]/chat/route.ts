@@ -1,3 +1,4 @@
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { NextResponse } from "next/server"
 import { getServerMatchActor } from "@/lib/serverMatchAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
@@ -88,14 +89,17 @@ function parseStructuredMessage(input: ChatBody) {
 function mentionedParticipants(text: string, participants: ChatParticipant[], senderUserId: string) { const tokens = new Set(Array.from(text.matchAll(/@([A-Za-z0-9_]+)/g), (match) => match[1].toLocaleLowerCase("es-ES"))); return participants.filter((item) => item.userId && item.userId !== senderUserId && tokens.has(item.handle.toLocaleLowerCase("es-ES"))) }
 
 export async function GET(request: Request, { params }: Ctx) {
-  const { matchId } = await params, markRead = new URL(request.url).searchParams.get("markRead") !== "0"
+  const { matchId } = await params, query = new URL(request.url).searchParams
+  const preview = query.get("preview") === "1", markRead = !preview && query.get("markRead") !== "0"
   const gate = await participant(matchId)
   if ("denied" in gate) return gate.denied
   const { db, user, match, isAdmin } = gate
+  const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(user.email)) return NextResponse.json({ error: "session_changed" }, { status: 403 })
   try {
     const [participants, seasonReadOnly, { data, error }, coordination] = await Promise.all([
       getParticipants(db, match), seasonChatReadOnly({ db, user, match, isAdmin }),
-      db.from("match_chat_messages").select("id,sender_user_id,sender_display_name,body,kind,payload,created_at").eq("match_id", matchId).order("created_at", { ascending: false }).limit(60),
+      db.from("match_chat_messages").select("id,sender_user_id,sender_display_name,body,kind,payload,created_at").eq("match_id", matchId).order("created_at", { ascending: false }).limit(preview ? 20 : 60),
       getServerMatchChatCoordination({ db, match }),
     ])
     if (error) return dbError(error.message)
@@ -144,6 +148,8 @@ export async function PATCH(request: Request, { params }: Ctx) {
   const gate = await participant(matchId)
   if ("denied" in gate) return gate.denied
   const { db, user, match, isAdmin } = gate
+  const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(user.email)) return NextResponse.json({ error: "session_changed" }, { status: 403 })
   const seasonReadOnly = await seasonChatReadOnly({ db, user, match, isAdmin }).catch(() => null)
   if (seasonReadOnly === null) return reply("season_lookup_failed", 500)
   if (seasonReadOnly) return reply("match_chat_read_only", 409)

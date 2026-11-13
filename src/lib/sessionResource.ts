@@ -53,6 +53,9 @@ export function createSessionResource<T>(load: (signal: AbortSignal) => Promise<
     refresh,
     cancel,
     invalidate,
+    update(updateData: (data: T | null) => T) {
+      publish({ ...snapshot, data: updateData(snapshot.data), failed: false })
+    },
     discard() {
       publish({ data: null, failed: false, refreshing: false })
       return invalidate()

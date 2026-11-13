@@ -50,7 +50,7 @@ import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
 export default function MatchDetailPage() {
   const { tx, t, locale } = useI18n()
   const { currentUserId } = useCurrentUser()
-  const { isLeagueAdmin, isSuperuser } = useLeagueAccess()
+  const { canAccessLeague, isLeagueAdmin, isSuperuser } = useLeagueAccess()
   const {
     clearMatchResult,
     resultConfirmations,
@@ -61,6 +61,7 @@ export default function MatchDetailPage() {
   const { playerProfiles, seasonPlayers, getSeasonRoundSettings } = useSeasonSettings()
   const { votes, clearVotesForMatch } = useMvp()
   const params = useParams<{ id: string }>()
+  const storedMatch = storedMatches.find(item => item.id === params.id)
   const isResolvingLeague = useMatchLeagueContext(params.id)
   const searchParams = useSearchParams()
   const {
@@ -72,7 +73,7 @@ export default function MatchDetailPage() {
     players,
     rankingPlayers,
     matches,
-  } = useCurrentLeagueData(storedMatches.find((item) => item.id === params.id)?.seasonId)
+  } = useCurrentLeagueData(storedMatch?.seasonId, storedMatch && canAccessLeague(storedMatch.leagueId) ? storedMatch.leagueId : undefined)
   const [isEditingResult, setIsEditingResult] = useState(false)
   const [isClearingResult, setIsClearingResult] = useState(false)
   const [isUpdatingResultLock, setIsUpdatingResultLock] = useState(false)

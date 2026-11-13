@@ -1,5 +1,5 @@
 ## MC171 — Contraste del chat flotante y acentos de apariencia
-- Estado: EN CURSO.
+- Estado: CHAT Y PRECARGA EXPERIMENTAL VALIDADOS EN LAN. Producción en pausa; los ajustes quedan pendientes de PRE.
 - Gates: validate, Playwright móvil del chat de liga y selector de acento y comprobación de ambos ajustes en LAN 3000.
 
 ## MC170 — Navegación y actualización de las pantallas de liga

@@ -1,10 +1,13 @@
 const cache = new Map<string, { cachedAt: number; payload: unknown }>()
 const key = (matchId: string, account: string) => JSON.stringify([account, matchId])
 
+export function clearMatchChatMemory() {
+  cache.clear()
+}
+
 export function readMatchChatCache(matchId: string, account: string) {
   const entry = cache.get(key(matchId, account))
   if (entry && Date.now() - entry.cachedAt < 30_000) return entry.payload
-  clearMatchChatCache(matchId, account)
   return null
 }
 

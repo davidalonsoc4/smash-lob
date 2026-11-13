@@ -174,6 +174,53 @@ test("personal matches and profile keep the app visible with compact league acce
   }
 })
 
+test("global friendly detail and reopened chat stay usable while reads are pending", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  const id = "qa-warm-friendly"
+  const match = {
+    id, origin: "friendly", status: "scheduled", scheduledAt: "2026-10-19T10:00:00Z",
+    locationName: "Pista de prueba", sets: [], canManage: true,
+    participants: [{ team: 1, slot: 1, displayName: "QA amistoso", isCurrentUser: true }],
+  }
+  await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [], upcoming: [match], hasMore: false, nextOffset: null } }))
+  let releaseDetail!: () => void
+  const detailPending = new Promise<void>(resolve => { releaseDetail = resolve })
+  await page.route(`**/api/personal-matches/${id}`, async route => {
+    await detailPending
+    return route.fulfill({ json: { item: match } })
+  })
+  let releaseChat!: () => void
+  const chatPending = new Promise<void>(resolve => { releaseChat = resolve })
+  let chatReads = 0
+  await page.route(`**/api/personal-matches/${id}/chat`, async route => {
+    if (route.request().method() === "GET" && ++chatReads > 1) await chatPending
+    return route.fulfill({ json: { match, currentUserId: "qa-user", participants: [], readOnly: false,
+      messages: [{ id: "first", sender_user_id: "other", sender_display_name: "QA", body: "Mensaje guardado", created_at: "2026-10-15T10:00:00Z" }],
+    } })
+  })
+  try {
+    await page.goto("/leagues")
+    await page.getByRole("link", { name: "Abrir partido de Amistoso" }).click()
+    await expect(page.getByRole("heading", { name: "Partido", exact: true })).toBeVisible()
+    await expect(page.getByText("QA amistoso", { exact: true }).first()).toBeVisible()
+    await expect(page.getByText("Cargando partido...")).toHaveCount(0)
+    releaseDetail()
+    await page.getByRole("link", { name: "Abrir chat del partido" }).click()
+    await expect(page.getByText("Mensaje guardado")).toBeVisible()
+    await page.getByRole("link", { name: "Abrir detalle del partido" }).click()
+    await page.getByRole("link", { name: "Abrir chat del partido" }).click()
+    await expect.poll(() => chatReads).toBe(2)
+    await expect(page.getByText("Mensaje guardado")).toBeVisible()
+    await page.getByPlaceholder("Escribe un mensaje…").fill("Borrador de prueba")
+    await expect(page.getByRole("button", { name: "Enviar mensaje" })).toBeEnabled()
+    releaseChat()
+    await expect(page.getByPlaceholder("Escribe un mensaje…")).toHaveValue("Borrador de prueba")
+  } finally {
+    releaseDetail()
+    releaseChat()
+  }
+})
+
 test("shows the league match before personal history and updates when it arrives", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" })
   const { league, matches } = await setup(page, "dark", "classic")
@@ -279,6 +326,35 @@ test("notification starts the match chat request while league access is pending"
   expect(chatReads).toBe(1)
 })
 
+test("league chat keeps cached messages and composer on a round trip to the match", async ({ page }) => {
+  const { matches } = await setup(page, "dark", "competition")
+  const match = matches.find(item => item.teamA.includes("davo") || item.teamB.includes("davo"))!
+  let releaseChat!: () => void
+  const chatPending = new Promise<void>(resolve => { releaseChat = resolve })
+  let reads = 0
+  await page.route(`**/api/matches/${match.id}/chat`, async route => {
+    if (++reads > 1) await chatPending
+    return route.fulfill({ json: {
+      currentUserId: "qa-user", round: match.round, readOnly: false, participants: [],
+      messages: [{ id: "cached", kind: "text", sender_user_id: "qa-user", sender_display_name: "QA", body: "Mensaje de liga guardado", created_at: "2026-10-15T10:00:00Z", responses: [] }],
+    } })
+  })
+  try {
+    await page.goto(`/match/${match.id}/chat`)
+    await expect(page.getByText("Mensaje de liga guardado")).toBeVisible()
+    await page.getByRole("link", { name: "Abrir detalle del partido" }).click()
+    await page.getByRole("link", { name: "Abrir chat del partido" }).click()
+    await expect.poll(() => reads).toBe(2)
+    await expect(page.getByText("Mensaje de liga guardado")).toBeVisible()
+    await page.getByPlaceholder("Escribe un mensaje…").fill("Borrador de liga")
+    await expect(page.getByRole("button", { name: "Enviar mensaje" })).toBeEnabled()
+    releaseChat()
+    await expect(page.getByPlaceholder("Escribe un mensaje…")).toHaveValue("Borrador de liga")
+  } finally {
+    releaseChat()
+  }
+})
+
 test("season chat loads without waiting for the league snapshot", async ({ page }) => {
   await setup(page, "dark", "classic")
   let releaseAccess!: () => void
@@ -312,6 +388,132 @@ test("appearance migrates the league accent and keeps six fixed choices", async 
   await expect(page.locator("html")).toHaveCSS("--app-accent", "#477BD1")
 })
 
+for (const saveData of [false, true]) {
+  test(`league inbox warms only recent active threads without marking reads (saveData=${saveData})`, async ({ page }) => {
+    await setup(page, "dark", "classic")
+    await page.addInitScript(save => Object.defineProperty(navigator, "connection", { value: { saveData: save, effectiveType: "4g" } }), saveData)
+    await page.route("**/api/chats?**", route => route.fulfill({ json: { chats: ["active-a", "active-b"].map(id => ({
+      id, round: 2, status: "scheduling", readOnly: false, partner: "Ana", rivals: ["Bea"], unread: 1, lastMessage: null,
+    })) } }))
+    const previews: string[] = []
+    await page.route("**/api/matches/*/chat?**", route => {
+      const url = new URL(route.request().url())
+      expect(url.searchParams.get("markRead")).toBe("0")
+      previews.push(url.pathname)
+      return route.fulfill({ json: { messages: [] } })
+    })
+    let opened = 0
+    let release!: () => void
+    const pending = new Promise<void>(resolve => { release = resolve })
+    await page.route("**/api/league-season-chats/**", async route => {
+      const url = new URL(route.request().url())
+      const summary = url.searchParams.get("summary") === "1"
+      const preview = url.searchParams.get("preview") === "1"
+      if (preview) {
+        expect(url.searchParams.get("markRead")).toBe("0")
+        expect(route.request().headers()["x-smash-lob-chat-list-account"]).toBe("qa-experience%40example.test")
+        previews.push(url.pathname)
+      } else if (!summary) {
+        opened++
+        await pending
+      }
+      return route.fulfill({ json: {
+        season: { name: "Temporada 1" }, me: "qa-user", unread: 1, readOnly: false, realtimeTopic: null,
+        messages: summary ? [] : [{ id: "message", sender_user_id: "friend", sender_display_name: "Ana", body: preview ? "Historial precargado QA" : "Historial confirmado QA", created_at: "2026-10-16T11:00:00Z" }],
+      } })
+    })
+    await page.goto("/chats")
+    const thread = page.locator(`a[href="/league-chat/${seasonId}"]`)
+    await expect(thread).toBeVisible()
+    try {
+      if (saveData) {
+        await page.waitForTimeout(500)
+        expect(previews).toEqual([])
+      } else {
+        await expect.poll(() => previews).toEqual([`/api/league-season-chats/${seasonId}`, "/api/matches/active-a/chat"])
+      }
+      expect(opened).toBe(0)
+      await thread.click()
+      if (!saveData) await expect(page.getByText("Historial precargado QA", { exact: true })).toBeVisible()
+      await expect.poll(() => opened).toBe(1)
+    } finally {
+      release()
+    }
+    await expect(page.getByText("Historial confirmado QA", { exact: true })).toBeVisible()
+    await expect(page.getByText("Historial precargado QA", { exact: true })).toHaveCount(0)
+  })
+}
+
+test("league chat fits the visual viewport when the keyboard opens", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: {
+    season: { name: "Temporada 1", league_id: leagueId }, me: "qa-user", readOnly: false, realtimeTopic: null,
+    messages: [{ id: "incoming", sender_user_id: "friend", sender_display_name: "Ana", body: "Mensaje visible", created_at: "2026-10-16T11:00:00Z" }],
+  } }))
+  await page.goto(`/league-chat/${seasonId}`)
+  const composer = page.getByPlaceholder("Escribe un mensaje…")
+  await composer.focus()
+  await page.evaluate(() => {
+    const viewport = window.visualViewport!
+    Object.defineProperties(viewport, { height: { configurable: true, value: 416 }, offsetTop: { configurable: true, value: 72 } })
+    viewport.dispatchEvent(new Event("resize"))
+    viewport.dispatchEvent(new Event("scroll"))
+  })
+  const bounds = () => page.locator("[data-compact-chat-header]").evaluate(header => ({
+    top: Math.round(header.getBoundingClientRect().top),
+    bottom: Math.round(header.parentElement!.getBoundingClientRect().bottom),
+  }))
+  await expect.poll(bounds, { timeout: 2000 }).toEqual({ top: 72, bottom: 488 })
+  await expect(page.getByText("Mensaje visible", { exact: true })).toBeVisible()
+  await expect(composer).toBeFocused()
+  await composer.blur()
+  await page.evaluate(() => {
+    const viewport = window.visualViewport!
+    Reflect.deleteProperty(viewport, "height")
+    Reflect.deleteProperty(viewport, "offsetTop")
+    viewport.dispatchEvent(new Event("resize"))
+  })
+  await expect.poll(async () => (await bounds()).top).toBe(0)
+})
+
+test("league chat shows a pending send immediately and restores a failed draft", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  let release!: () => void
+  const firstResponse = new Promise<void>(resolve => { release = resolve })
+  let posts = 0, reads = 0
+  await page.route("**/api/league-season-chats/**", async route => {
+    if (route.request().method() === "POST") {
+      const body = route.request().postDataJSON().body
+      if (++posts === 1) {
+        await firstResponse
+        return route.fulfill({ status: 201, json: { message: { id: "sent", sender_user_id: "qa-user", sender_display_name: "QA", body, created_at: "2026-10-16T12:00:00Z" } } })
+      }
+      return route.fulfill({ status: 500, json: {} })
+    }
+    reads++
+    return route.fulfill({ json: { season: { name: "Temporada 1" }, messages: [], me: "qa-user", readOnly: false, realtimeTopic: null } })
+  })
+  await page.goto(`/league-chat/${seasonId}`)
+  const composer = page.getByPlaceholder("Escribe un mensaje…")
+  await composer.fill("Envío instantáneo QA")
+  const sent = page.locator(".league-season-chat-messages").getByText("Envío instantáneo QA", { exact: true })
+  try {
+    await composer.press("Enter")
+    await expect(sent).toBeVisible({ timeout: 2000 })
+    await expect(composer).toHaveValue("")
+  } finally {
+    release()
+  }
+  await expect(sent).toHaveCount(1)
+  await composer.fill("Borrador recuperado QA")
+  await expect(page.getByRole("button", { name: "Enviar mensaje" })).toBeEnabled()
+  await composer.press("Enter")
+  await expect(page.getByText(/No se ha podido cargar o enviar el mensaje/)).toBeVisible()
+  await expect(composer).toHaveValue("Borrador recuperado QA")
+  await expect(page.locator(".league-season-chat-messages").getByText("Borrador recuperado QA", { exact: true })).toHaveCount(0)
+  expect(reads).toBe(1)
+})
+
 test("league season chat opens from home and sends a message", async ({ page }, info) => {
   await setup(page, "dark", "classic")
   const messages: Array<{ id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }> = []
@@ -325,7 +527,8 @@ test("league season chat opens from home and sends a message", async ({ page }, 
   })
   await page.goto("/league/home")
   const chat = page.getByRole("link", { name: "Abrir chat de liga" })
-  await expect(chat).toHaveCSS("box-shadow", /rgb\(255, 255, 255\) 0px 0px 0px 2px inset/)
+  await expect(chat).toHaveCSS("box-shadow", "rgb(255, 255, 255) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0.4) 0px 5px 14px 0px")
+  await expect(chat).toHaveCSS("border-width", "0px")
   await expect(chat.getByLabel("Mensajes sin leer")).toBeVisible()
   await chat.click()
   await expect(page.getByRole("heading", { name: "Liga Azul QA" })).toBeVisible()
@@ -804,6 +1007,55 @@ test("tournaments reuses the hub list until tournament data changes", async ({ p
   expect(reads).toBe(2)
 })
 
+test("league notifications and activity keep their lists during refresh", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  let release!: () => void
+  const pending = new Promise<void>(resolve => { release = resolve })
+  const reads = { activity: 0, notifications: 0 }
+  let marked = false
+  const event = { id: "30000000-0000-4000-8000-000000000072", leagueId, seasonId, matchId: null, actorUserId: "other",
+    actorEmail: "other@example.test", actorDisplayName: "QA", actorAvatarUrl: null,
+    actorAvatarInitials: null, type: "league_announcement_published", title: "Comunicado sintético",
+    description: "Detalle sintético", metadata: {}, createdAt: "2026-10-15T10:00:00Z" }
+  await page.route("**/api/leagues/*/activity?**", async route => {
+    const limit = new URL(route.request().url()).searchParams.get("limit")
+    if (limit !== "160" && limit !== "180") return route.fallback()
+    const view = limit === "180" ? "notifications" : "activity"
+    const refreshing = ++reads[view] > 1
+    if (refreshing) await pending
+    return route.fulfill({ json: { items: [refreshing ? { ...event, title: "Comunicado actualizado" } : event] } })
+  })
+  await page.route("**/api/notifications/read-state", route => {
+    if (route.request().method() === "POST") marked = true
+    return route.fulfill({ json: { items: marked ? [{ event_id: event.id }] : [] } })
+  })
+  try {
+    await page.goto("/notifications")
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Marcar todas como leídas" }).click()
+    await expect.poll(() => marked).toBe(true)
+    await page.getByRole("link", { name: /Ajustes de notificaciones/ }).click()
+    await expect(page).toHaveURL(/\/settings\/notifications$/)
+    await page.goBack()
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Marcar todas como leídas" })).toHaveCount(0)
+    await page.getByRole("button", { name: "Actualizar", exact: true }).click()
+    await expect.poll(() => reads.notifications).toBeGreaterThan(1)
+    await expect(page.getByText("Cargando notificaciones...")).toHaveCount(0)
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await page.goto("/activity?scope=all")
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Actualizar", exact: true }).click()
+    await expect.poll(() => reads.activity).toBe(2)
+    await expect(page.getByText(event.title, { exact: true })).toBeVisible()
+    await expect(page.getByText(/Cargando actividad/)).toHaveCount(0)
+    release()
+    await expect(page.getByText("Comunicado actualizado", { exact: true })).toBeVisible()
+  } finally {
+    release()
+  }
+})
+
 test("settings and payments share the ledger and refresh it after a transfer changes", async ({ page }) => {
   await setup(page, "light", "classic")
   let paid = false
@@ -977,16 +1229,64 @@ for (const theme of ["light", "dark"]) {
   test(`pinned match reservation is compact and opens calendar (${theme})`, async ({ page }) => {
     const { matches } = await setup(page, theme, "competition")
     await page.setViewportSize({ width: 320, height: 740 })
-    await page.route("**/api/matches/*/chat*", route => route.fulfill({ json: { currentUserId: "qa-user", round: 1, readOnly: false, participants: [], messages: [], reservationSummary: { scheduledAt: "2026-10-18T18:00:00Z", locationText: "Barakaldo · Lasesarre · Pista 1" } } }))
-    await page.goto(`/match/${matches[0].id}/chat`)
+    const match = matches.find(item => item.teamA.includes("davo") || item.teamB.includes("davo"))!
+    const scheduledAt = "2026-10-18T18:00:00Z"
+    const location = "Barakaldo · Lasesarre · Pista 1"
+    const updatedLocation = "Barakaldo · Lasesarre · Pista 2"
+    Object.assign(match, { status: "scheduled", scheduledAt, location, resultRecordedAt: null })
+    let releaseHistory!: () => void
+    const history = new Promise<void>(resolve => { releaseHistory = resolve })
+    await page.route("**/api/matches/*/chat*", async route => {
+      await history
+      await route.fulfill({ json: {
+        currentUserId: "qa-user", round: match.round, readOnly: false, participants: [],
+        reservationSummary: { scheduledAt, locationText: updatedLocation },
+        messages: [location, updatedLocation].map((locationText, index) => ({
+          id: `reservation-${index}`, kind: "text", sender_user_id: "qa-user", sender_display_name: "QA", body: "", created_at: "2026-10-16T11:00:00Z",
+          payload: { systemType: "reservation_confirmed", scheduledAt: "2026-10-18T18:00:00.000+00:00", locationText },
+        })),
+      } })
+    })
+    await page.goto(`/match/${match.id}/chat`)
     const banner = page.getByRole("button", { name: /Reserva.*Guardar en calendario/ })
-    await expect(banner).toBeVisible()
-    await expect(banner).toContainText("Barakaldo · Lasesarre · Pista 1")
+    try {
+      await expect(banner).toContainText(location, { timeout: 5_000 })
+      await expect(banner).toBeVisible()
+    } finally {
+      releaseHistory()
+    }
+    await expect(banner).toContainText(updatedLocation)
+    await expect(page.getByRole("button", { name: "Añadir al calendario", exact: true })).toHaveCount(1)
     expect((await banner.boundingBox())!.height).toBeLessThanOrEqual(56)
     await banner.click()
     await expect(page.getByRole("button", { name: "Google Calendar" })).toBeVisible()
   })
 }
+
+test("an elapsed match reservation stays in history without a calendar action", async ({ page }) => {
+  const { matches } = await setup(page, "dark", "competition")
+  const match = matches.find(item => item.teamA.includes("davo") || item.teamB.includes("davo"))!
+  const scheduledAt = "2026-10-09T18:00:00Z"
+  const locationText = "Barakaldo · Lasesarre · Pista 1"
+  Object.assign(match, { status: "scheduled", scheduledAt, location: locationText, resultRecordedAt: null })
+  let resultRecorded = false
+  await page.route("**/api/matches/*/chat*", route => route.fulfill({ json: {
+    currentUserId: "qa-user", round: match.round, readOnly: false, participants: [],
+    reservationSummary: resultRecorded ? null : { scheduledAt, locationText },
+    messages: [{ id: "reservation", kind: "text", sender_user_id: "qa-user", sender_display_name: "QA", body: "", created_at: scheduledAt, payload: { systemType: "reservation_confirmed", scheduledAt, locationText } }],
+  } }))
+  await page.goto(`/match/${match.id}/chat`)
+  await expect(page.getByText("Partido programado", { exact: true })).toBeVisible()
+  await expect(page.getByPlaceholder("Escribe un mensaje…")).toBeEditable()
+  const reminder = page.getByRole("link", { name: "Resultado pendiente Ver partido" })
+  await expect(reminder).toHaveAttribute("href", `/match/${match.id}`)
+  await expect(page.getByRole("button", { name: /Reserva.*Guardar en calendario/ })).toHaveCount(0)
+  await expect(page.getByRole("button", { name: "Añadir al calendario" })).toHaveCount(0)
+  resultRecorded = true
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")))
+  await expect(reminder).toHaveCount(0)
+  await expect(page.getByText("Partido programado", { exact: true })).toBeVisible()
+})
 
 for (const theme of ["light", "dark"]) for (const style of ["classic", "competition"]) {
   test(`league chat header stays compact and aligned (${theme},${style})`, async ({ page }) => {

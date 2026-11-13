@@ -1,4 +1,15 @@
+import Link from "next/link"
 import { useI18n } from "@/i18n/I18nProvider"
+
+export function MatchChatResultPendingBanner({ href }: { href: string }) {
+  const { t, tx } = useI18n()
+  return (
+    <Link href={href} prefetch={false} className="app-match-reservation-banner flex min-h-12 w-full shrink-0 items-center justify-between gap-2 border-b border-blue-100 bg-blue-50 px-3 py-1.5 text-xs text-blue-900">
+      <span className="font-bold">{t.matchResult.pendingScheduleTitle}</span>
+      <span className="font-semibold underline underline-offset-2">{tx("Ver partido")}</span>
+    </Link>
+  )
+}
 
 export function MatchChatReservationSummary({ date, location }: { date: string; location?: string | null }) {
   const { tx } = useI18n()

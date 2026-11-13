@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AppCard } from "@/components/ui/AppCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
+import { useAccountProfile } from "@/context/AccountProfileProvider";
+import { useSessionResource } from "@/hooks/useSessionResource";
 import { useCurrentUser } from "@/context/CurrentUserProvider";
 import { useLeagueAccess } from "@/context/LeagueAccessProvider";
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
@@ -15,7 +17,6 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { getIntlLocale } from "@/i18n/localeFormatting";
 import type { Locale } from "@/i18n/translations";
 import {
-  fetchSupabaseActivityEvents,
   isTargetedCustodianActivityType,
   isTargetedCustodianActivityVisibleToPlayer,
   type ActivityEvent,
@@ -705,49 +706,17 @@ export default function NotificationsPage() {
   const { isLeagueAdmin } = useLeagueAccess();
   const { activeLeague, matches, players } = useCurrentLeagueData();
   const isAdmin = isLeagueAdmin(activeLeague.id);
-  const [events, setEvents] = useState<ActivityEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const { leagueScreenData } = useAccountProfile();
+  const activity = leagueScreenData.activity.get(JSON.stringify([currentUserId, isAdmin]), activeLeague.id, "notifications");
+  const { notificationReads } = leagueScreenData;
+  const feed = useSessionResource(activity);
+  const reads = useSessionResource(notificationReads);
+  const events = useMemo(() => feed.data ?? [], [feed.data]);
+  const isLoading = (!feed.data && !feed.failed) || (!reads.data && !reads.failed);
+  const error = feed.failed ? tx("No se han podido cargar las notificaciones.") : null;
+  const [pendingReads, setPendingReads] = useState<Set<string>>(new Set());
+  const readIds = new Set([...(reads.data ?? []), ...pendingReads]);
   const currentUserEmail = normalizeEmail(session?.user?.email);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadNotifications() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const [activityEvents, readState] = await Promise.all([
-          fetchSupabaseActivityEvents({ leagueId: activeLeague.id, limit: 180 }),
-          fetch("/api/notifications/read-state", { cache: "no-store" }).then((response) =>
-            response.ok ? response.json() as Promise<{ items?: { event_id: string }[] }> : { items: [] },
-          ),
-        ]);
-
-        if (isMounted) {
-          setEvents(activityEvents);
-          setReadIds(new Set((readState.items ?? []).map((item) => item.event_id)));
-        }
-      } catch {
-        if (isMounted) {
-          setError(tx("No se han podido cargar las notificaciones."));
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadNotifications();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activeLeague.id, refreshKey, tx]);
 
   const currentUserMatchIds = useMemo(
     () =>
@@ -777,24 +746,27 @@ export default function NotificationsPage() {
     [currentUserEmail, currentUserId, currentUserMatchIds, events, isAdmin],
   );
   const unreadNotifications = notifications.filter((event) => !readIds.has(event.id));
-  const markRead = (eventId: string) => {
-    setReadIds((current) => new Set(current).add(eventId));
-    void fetch("/api/notifications/read-state", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ eventId }),
-    });
-  };
-  const markAllRead = () => {
-    const ids = unreadNotifications.map((event) => event.id);
-    if (ids.length === 0) return;
-    setReadIds((current) => new Set([...current, ...ids]));
-    void fetch("/api/notifications/read-state", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ eventIds: ids }),
-    });
-  };
+  async function markReadIds(ids: string[]) {
+    if (!ids.length) return;
+    setPendingReads(current => new Set([...current, ...ids]));
+    try {
+      const response = await fetch("/api/notifications/read-state", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ eventIds: ids }),
+      });
+      if (response.ok) {
+        notificationReads.update(current => new Set([...(current ?? []), ...ids]));
+        void notificationReads.invalidate();
+      }
+    } catch {
+      // A failed write leaves the notifications unread.
+    } finally {
+      setPendingReads(current => new Set([...current].filter(id => !ids.includes(id))));
+    }
+  }
+  const markRead = (eventId: string) => void markReadIds([eventId]);
+  const markAllRead = () => void markReadIds(unreadNotifications.map(event => event.id));
 
   return (
     <div className="compact-page space-y-3">
@@ -807,7 +779,7 @@ export default function NotificationsPage() {
             {unreadNotifications.length > 0 ? <button type="button" onClick={markAllRead} className="inline-flex min-w-0 items-center justify-center whitespace-nowrap rounded-full bg-[var(--app-accent)] px-3 py-1.5 text-center text-xs font-black text-white">{tx("Marcar todas como leídas")}</button> : null}
             <button
               type="button"
-              onClick={() => setRefreshKey((current) => current + 1)}
+              onClick={() => { activity.invalidate(); notificationReads.invalidate(); }}
               className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-neutral-100 px-3 py-1.5 text-center text-xs font-black text-neutral-700"
             >
               {tx("Actualizar")}

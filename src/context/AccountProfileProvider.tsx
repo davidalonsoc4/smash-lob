@@ -9,6 +9,8 @@ import { createPaymentLedger } from "@/lib/paymentLedger"
 import { createChatListMemory } from "@/lib/chatListMemory"
 import { clearChatListCache } from "@/lib/chatListCache"
 import { createPersonalMatchesDashboard } from "@/lib/personalMatchesDashboard"
+import { clearChatEntryPreviews } from "@/lib/chatEntryRequest"
+import { clearMatchChatMemory } from "@/lib/matchChatCache"
 import { createLeagueScreenData } from "@/lib/leagueScreenData"
 import { ANNOUNCEMENTS_REFRESH_EVENT } from "@/lib/announcements"
 import { createTournamentList } from "@/lib/tournamentList"
@@ -184,11 +186,12 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
-    const { chats, preview, announcements } = leagueScreenData
+    const { chats, preview, announcements, activity, notificationReads } = leagueScreenData
     const chatChanged = () => { chatList.invalidate(); chats.invalidate(); preview.invalidate() }
     const matchChanged = () => {
       chats.invalidate()
       matchDashboard.invalidate()
+      activity.invalidate()
       chatList.invalidate()
     }
     const historyChanged = () => {
@@ -196,10 +199,14 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
       matchChanged()
     }
     const membershipChanged = () => {
+      clearChatEntryPreviews()
+      clearMatchChatMemory()
       chats.discard()
       leagueScreenData.stopPreview()
       preview.discard()
       announcements.discard()
+      activity.discard()
+      notificationReads.discard()
       chatList.discard()
       clearChatListCache()
       history.discard()
@@ -216,10 +223,14 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
     return () => {
       window.removeEventListener(CHAT_UNREAD_LOCAL_REFRESH_EVENT, chatChanged)
       window.removeEventListener(ANNOUNCEMENTS_REFRESH_EVENT, announcements.invalidate)
+      clearChatEntryPreviews()
+      clearMatchChatMemory()
       chats.cancel()
       leagueScreenData.stopPreview()
       preview.cancel()
       announcements.cancel()
+      activity.cancel()
+      notificationReads.cancel()
       window.removeEventListener(LEAGUE_MEMBERSHIP_CHANGED_EVENT, membershipChanged)
       window.removeEventListener(PERSONAL_PROFILE_HISTORY_REFRESH_EVENT, historyChanged)
       window.removeEventListener(MATCH_DASHBOARD_REFRESH_EVENT, matchChanged)

@@ -4,6 +4,8 @@ import { StatusDot } from "@/components/ui/StatusDot"
 import { LeagueSeasonChatAccess } from "@/components/league/LeagueSeasonChatAccess"
 
 import Link from "next/link"
+import { useEffect } from "react"
+import { scheduleChatEntryPreviews } from "@/lib/chatEntryRequest"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useLeagueScreenEntrance, useLeagueScreenScope } from "@/hooks/useLeagueScreenScope"
 import { useSessionResource } from "@/hooks/useSessionResource"
@@ -30,7 +32,7 @@ export default function ChatsPage() {
   const { seasons } = useSeasonSettings()
   const { tx } = useI18n()
   const { t } = useI18n(), { activeLeague, activeSeason, rounds } = useCurrentLeagueData()
-  const { leagueScreenData } = useAccountProfile()
+  const { account, leagueScreenData } = useAccountProfile()
   const scope = useLeagueScreenScope(activeLeague.id)
   const chatResource = leagueScreenData.chats.get(scope, activeLeague.id, activeSeason.id)
   const { data, failed: error } = useSessionResource(chatResource)
@@ -39,6 +41,12 @@ export default function ChatsPage() {
   const animate = useLeagueScreenEntrance("chats", activeLeague.id, chats.length > 0)
   const openChats = chats.filter((chat) => !chat.readOnly), finishedChats = chats.filter((chat) => chat.readOnly), roundNumbers = [...new Set(rounds.map((item) => item.round))].sort((a, b) => a - b), anchorRound = rounds.find((item) => item.status === "active")?.round ?? rounds.find((item) => item.status === "overdue")?.round ?? rounds.find((item) => item.status === "upcoming")?.round ?? openChats[0]?.round ?? null, nextRound = anchorRound === null ? null : roundNumbers.find((round) => round > anchorRound) ?? anchorRound
   const activeChats = openChats.filter((chat) => Boolean(chat.lastMessage) || nextRound === null || chat.round <= nextRound), upcomingChats = openChats.filter((chat) => !chat.lastMessage && nextRound !== null && chat.round > nextRound)
+  const firstActive = activeChats[0]?.id
+  const ready = Boolean(data)
+  useEffect(() => {
+    if (!ready) return
+    return scheduleChatEntryPreviews(account, `/api/league-season-chats/${encodeURIComponent(activeSeason.id)}`, firstActive && `/api/matches/${encodeURIComponent(firstActive)}/chat`)
+  }, [account, activeSeason.id, ready, firstActive])
   return <div className="compact-page space-y-3"><header className="app-page-header"><BackButton fallbackHref="/league/home" label={t.common.back} /><h1 className="type-page-title font-black tracking-tight">{tx("Chats")}</h1><SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} /></header>
     <LeagueSeasonChatAccess leagueId={activeLeague.id} seasonId={activeSeason.id} leagueName={activeLeague.name} seasonName={activeSeason.name} />
     {loading ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Cargando conversaciones…")}</p></AppCard> : null}{error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{tx("No se han podido cargar tus chats.")}</p> : null}{!loading && !error && chats.length === 0 ? <AppCard><p className="text-sm font-black">{tx("Todavía no tienes chats de partido.")}</p><p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Cuando participes en una jornada, su conversación aparecerá aquí.")}</p></AppCard> : null}

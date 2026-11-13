@@ -1,9 +1,11 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useSession } from "next-auth/react"
+import { openChatWithPreview } from "@/lib/chatEntryRequest"
 import { useParams } from "next/navigation"
 import { BackButton } from "@/components/ui/BackButton"
-import { MatchChatComposer, MatchChatReadOnlyBar, MatchChatTextMessage } from "@/components/match/chat/MatchChatShared"
+import { MatchChatComposer, MatchChatReadOnlyBar, MatchChatTextMessage, resizeMatchChatComposer, useMatchChatViewport } from "@/components/match/chat/MatchChatShared"
 import type { MatchChatParticipant } from "@/components/match/chat/MatchChatShared"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -15,36 +17,66 @@ type Chat = { unread?: number; messages: Message[]; participants?: MatchChatPart
 
 export default function LeagueSeasonChatPage() {
   const { seasonId } = useParams<{ seasonId: string }>()
+  return <LeagueSeasonChat key={seasonId} seasonId={seasonId} />
+}
+
+function mergeMessages(previous: Message[], incoming: Message[]) {
+  return [...new Map([...previous, ...incoming].map(message => [message.id, message])).values()]
+    .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id))
+}
+
+function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
+  const account = useSession().data?.user?.email
   const { tx } = useI18n()
   const { leagues } = useLeagueAccess()
   const [chat, setChat] = useState<Chat | null>(null)
   const league = leagues.find((item) => item.id === chat?.season.league_id)
   const [body, setBody] = useState("")
   const [error, setError] = useState(false)
-  const [sending, setSending] = useState(false)
+  const [pending, setPending] = useState<Message | null>(null)
   const [loadingOlder, setLoadingOlder] = useState(false)
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
-  const endRef = useRef<HTMLDivElement>(null)
-  const loadingOlderRef = useRef(false)
+  const messagesRef = useRef<HTMLDivElement>(null)
+  const olderScrollHeight = useRef<number | null>(null)
+  const sending = useRef(false)
+  const refreshAfterSend = useRef(false)
+  const messages = pending && chat ? [...chat.messages, pending] : chat?.messages ?? []
+  useMatchChatViewport({ viewportRef, composerRef, messagesRef })
   const load = useCallback(async () => {
+    if (sending.current) { refreshAfterSend.current = true; return }
     const response = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}`, { cache: "no-store" }).catch(() => null)
-    if (!response?.ok) { setError(true); return }
-    const next = await response.json() as Chat
+    const next = response?.ok ? await response.json().catch(() => null) as Chat | null : null
+    if (!next) {
+      if (response && [401, 403, 404].includes(response.status)) setChat(null)
+      setError(true)
+      return
+    }
+    if (sending.current) { refreshAfterSend.current = true; return }
     if (next.unread) window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
     setChat((current) => {
-      if (!current || current.messages.length <= next.messages.length) return next
-      const all = new Map([...current.messages, ...next.messages].map((message) => [message.id, message]))
-      return { ...next, hasMore: current.hasMore, messages: [...all.values()].sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)) }
+      if (!current || current.me !== next.me) return next
+      const hasOlder = current.messages.length > 0 && next.messages.length > 0 && current.messages[0].created_at < next.messages[0].created_at
+      return { ...next, hasMore: hasOlder ? current.hasMore : next.hasMore, messages: mergeMessages(current.messages, next.messages) }
     })
     setError(false)
   }, [seasonId])
-  useEffect(() => { void Promise.resolve().then(load) }, [load])
-  useEffect(() => subscribeChatRealtime(chat?.realtimeTopic ?? null, () => { void load() }), [chat?.realtimeTopic, load])
   useEffect(() => {
-    if (loadingOlderRef.current) { loadingOlderRef.current = false; return }
-    endRef.current?.scrollIntoView({ block: "end" })
-  }, [chat?.messages.length])
+    let active = true
+    const timer = window.setTimeout(() => void openChatWithPreview(account, `/api/league-season-chats/${encodeURIComponent(seasonId)}`, payload => {
+      if (active) setChat({ ...(payload as Chat), realtimeTopic: null })
+    }, load), 0)
+    return () => { active = false; window.clearTimeout(timer) }
+  }, [account, load, seasonId])
+  useEffect(() => subscribeChatRealtime(chat?.realtimeTopic ?? null, () => { void load() }), [chat?.realtimeTopic, load])
+  useLayoutEffect(() => {
+    const panel = messagesRef.current
+    if (!panel) return
+    if (olderScrollHeight.current !== null) {
+      panel.scrollTop += panel.scrollHeight - olderScrollHeight.current
+      olderScrollHeight.current = null
+    } else panel.scrollTop = panel.scrollHeight
+  }, [messages.length])
   async function loadOlder() {
     const first = chat?.messages[0]
     if (!first || loadingOlder) return
@@ -52,24 +84,39 @@ export default function LeagueSeasonChatPage() {
     const response = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}?before=${encodeURIComponent(first.id)}&markRead=0`, { cache: "no-store" }).catch(() => null)
     if (response?.ok) {
       const older = await response.json() as Chat
-      loadingOlderRef.current = older.messages.length > 0
-      setChat((current) => current ? { ...current, hasMore: older.hasMore, messages: [...older.messages, ...current.messages] } : current)
+      if (older.messages.some(message => !chat.messages.some(current => current.id === message.id))) olderScrollHeight.current = messagesRef.current?.scrollHeight ?? null
+      setChat((current) => current ? { ...current, hasMore: older.hasMore, messages: mergeMessages(current.messages, older.messages) } : current)
     } else setError(true)
     setLoadingOlder(false)
   }
   async function send(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!body.trim() || sending) return
-    setSending(true)
+    const text = body.trim()
+    if (!text || sending.current || !chat || chat.readOnly) return
+    sending.current = true
+    const sender = chat.participants?.find(participant => participant.userId === chat.me)
+    setPending({ id: "pending", sender_user_id: chat.me, sender_display_name: sender?.displayName ?? tx("Tú"), body: text, created_at: new Date().toISOString() })
+    setError(false)
+    setBody("")
+    if (composerRef.current) composerRef.current.style.height = "auto"
     const response = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text }),
     }).catch(() => null)
+    const confirmed = response?.ok ? (await response.json().catch(() => null))?.message as Message | undefined : undefined
     if (response?.ok) {
+      if (confirmed?.id) setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [confirmed]) } : current)
       window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
-      setBody("")
-      await load()
-    } else setError(true)
-    setSending(false)
+    } else {
+      setBody(current => current || text)
+      if (response && [401, 403, 404].includes(response.status)) setChat(null)
+      if (response?.status === 409) setChat(current => current ? { ...current, readOnly: true } : current)
+      setError(true)
+    }
+    setPending(null)
+    sending.current = false
+    const refresh = refreshAfterSend.current
+    refreshAfterSend.current = false
+    if (refresh || (response?.ok && !confirmed?.id)) void load()
   }
   return <div ref={viewportRef} className="fixed inset-x-0 top-0 z-[60] mx-auto flex h-[100dvh] w-full max-w-md min-h-0 flex-col overflow-hidden bg-stone-50">
     <header data-compact-chat-header className="app-page-header app-match-chat-header shrink-0 border-b border-neutral-200 bg-stone-50 px-3 pb-2">
@@ -92,11 +139,11 @@ export default function LeagueSeasonChatPage() {
       </div>
     </header>
     {error ? <p role="alert">{tx("No se ha podido cargar o enviar el mensaje. Inténtalo de nuevo.")}</p> : null}
-    <div className="league-season-chat-messages min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-4" aria-live="polite">
+    <div ref={messagesRef} className="league-season-chat-messages min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 py-4" aria-live="polite">
       {chat?.hasMore ? <button type="button" className="mx-auto flex items-center justify-center text-center type-small font-bold" onClick={() => void loadOlder()} disabled={loadingOlder}>{tx("Cargar mensajes anteriores")}</button> : null}
-      {chat?.messages.length === 0 ? <p className="text-center type-small">{tx("Todavía no hay mensajes. ¡Empieza la conversación!")}</p> : null}
-      {chat?.messages.map((message, index) => <MatchChatTextMessage key={message.id} message={message} me={chat.me} participants={chat.participants ?? []} previousSameSender={index > 0 && chat.messages[index - 1].sender_user_id === message.sender_user_id} />)}<div ref={endRef} />
+      {chat && messages.length === 0 ? <p className="text-center type-small">{tx("Todavía no hay mensajes. ¡Empieza la conversación!")}</p> : null}
+      {chat && messages.map((message, index) => <MatchChatTextMessage key={message.id} message={message} me={chat.me} participants={chat.participants ?? []} pending={message === pending} previousSameSender={index > 0 && messages[index - 1].sender_user_id === message.sender_user_id} />)}
     </div>
-    {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={setBody} sending={sending} /> : null}
+    {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} /> : null}
   </div>
 }

@@ -29,7 +29,7 @@ export function MatchChatActionLink({ href, label, unread = false, outlined = fa
       href={href}
       aria-label={label ?? tx("Abrir chat del partido")}
       title={label ?? tx("Chat del partido")}
-      className={`app-floating-primary-control relative grid h-10 w-10 place-items-center rounded-full border border-neutral-950 bg-neutral-950 text-white transition active:scale-95 ${outlined ? "app-floating-outline" : "shadow-lg"}`}
+      className={`app-floating-primary-control relative grid h-10 w-10 place-items-center rounded-full bg-neutral-950 text-white transition active:scale-95 ${outlined ? "app-floating-outline" : "border border-neutral-950 shadow-lg"}`}
     >
       <ChatIcon />
       {unread ? <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" aria-label={tx("Mensajes sin leer")} /> : null}
