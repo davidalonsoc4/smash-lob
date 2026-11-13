@@ -34,7 +34,7 @@ describe("friendly match permissions", () => {
     expect(route).toContain("loadManageablePersonalMatch(authResult.actor, matchId)")
     expect(route).toContain('action === "result"')
     expect(route).toContain('action === "schedule"')
-    expect(route).toContain('action === "participants"')
+    expect(route).toContain('action !== "participants"')
   })
 
   it("preserves other-league accounts when participants are updated", async () => {
