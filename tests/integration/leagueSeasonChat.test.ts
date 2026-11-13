@@ -8,7 +8,7 @@ import { GET, POST } from "@/app/api/league-season-chats/[seasonId]/route"
 const seasonId = "74000000-0000-4000-8000-000000000001"
 const userId = "71000000-0000-4000-8000-000000000001"
 const context = { params: Promise.resolve({ seasonId }) }
-function setup(options: { participant?: boolean; status?: string; rpcError?: string; messages?: unknown[]; lastReadAt?: string; members?: unknown[]; profiles?: unknown[] } = {}) {
+function setup(options: { participant?: boolean; registered?: boolean; status?: string; rpcError?: string; messages?: unknown[]; lastReadAt?: string; members?: unknown[]; profiles?: unknown[] } = {}) {
   const rpc = vi.fn().mockResolvedValue({ data: { id: "message" }, error: options.rpcError ? { message: options.rpcError } : null })
   const calls: string[] = []
   const from = vi.fn((table: string) => {
@@ -16,7 +16,7 @@ function setup(options: { participant?: boolean; status?: string; rpcError?: str
     const query = {
       select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), neq: vi.fn().mockReturnThis(), gt: vi.fn().mockReturnThis(), gte: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), update: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: table === "seasons" ? { id: seasonId, league_id: "league", name: "Temporada", status: options.status ?? "active" } : options.participant === false ? null : { player_id: "player", last_read_at: options.lastReadAt ?? null }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: table === "seasons" ? { id: seasonId, league_id: "league", name: "Temporada", status: options.status ?? "active" } : options.participant === false || (table === "season_players" && options.registered === false) ? null : { player_id: "player", last_read_at: options.lastReadAt ?? null }, error: null }),
       then(resolve: (value: unknown) => void) { const data = table === "league_season_chat_messages" ? options.messages ?? [] : table === "league_season_chat_participants" ? options.members ?? [] : table === "app_users" ? options.profiles ?? [] : []; return Promise.resolve({ data, error: null, count: 0 }).then(resolve) },
     }
     return query
@@ -37,6 +37,19 @@ describe("league season chat", () => {
   it("returns a finished season as read-only", async () => {
     setup({ status: "finished" })
     expect(await (await GET(get(), context)).json()).toMatchObject({ readOnly: true })
+  })
+  it("lets a linked preseason player read and send", async () => {
+    const { rpc } = setup({ status: "upcoming" })
+    expect(await (await GET(get(), context)).json()).toMatchObject({ readOnly: false })
+    expect((await POST(post(), context)).status).toBe(201)
+    expect(rpc).toHaveBeenCalledOnce()
+  })
+  it("rejects a removed preseason player even if a participant snapshot remains", async () => {
+    const { calls, rpc } = setup({ status: "upcoming", registered: false })
+    expect((await GET(get(), context)).status).toBe(404)
+    expect((await POST(post(), context)).status).toBe(404)
+    expect(calls).not.toContain("league_season_chat_messages")
+    expect(rpc).not.toHaveBeenCalled()
   })
   it("returns a summary without reading participant profiles or marking the chat read", async () => {
     const { calls } = setup({ messages: [{ sender_display_name: "Ana", body: "Hola", created_at: "2026-11-03T10:00:00Z" }] })

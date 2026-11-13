@@ -248,6 +248,7 @@ export function AppShell({ children }: AppShellProps) {
     isSettingsContextRoute ||
     isPersonalMatchesRoute ||
     isPublicAccessRoute ||
+    pathname.startsWith("/league-chat/") ||
     pathname === "/notifications"
   const canCreateLeague = canCreateLeagues
   const canSelfUnlink = Boolean(

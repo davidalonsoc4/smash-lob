@@ -113,21 +113,25 @@ function ChatList({ account }: { account: string }) {
     return userLeagues.flatMap((league) => seasons.filter((season) => season.leagueId === league.id && uuid.test(league.id) && uuid.test(season.id)).map((season) => ({ leagueId: league.id, leagueName: league.name, seasonId: season.id, seasonName: season.name, seasonStatus: season.status })))
   }, [seasons, userLeagues])
   const seasonScopes = useMemo(() => new Map(leagueSeasons.map(item => [item.seasonId, item])), [leagueSeasons])
-  const chats = useMemo(() => snapshot.chats.filter(chat => chat.origin === "friendly" || isAccessHydrated && chat.leagueId && seasonScopes.get(chat.seasonId ?? "")?.leagueId === chat.leagueId), [snapshot, seasonScopes, isAccessHydrated])
+  const chats = useMemo(() => snapshot.chats.filter(chat => {
+    if (chat.origin === "friendly") return true
+    const season = seasonScopes.get(chat.seasonId ?? "")
+    return isAccessHydrated && Boolean(chat.leagueId && season?.leagueId === chat.leagueId && season.seasonStatus !== "upcoming")
+  }), [snapshot, seasonScopes, isAccessHydrated])
   const generalChats = useMemo(() => {
     if (!isAccessHydrated) return []
     const summaries = new Map(snapshot.generalChats.map(chat => [chat.seasonId, chat]))
     return leagueSeasons.flatMap(({ seasonId, seasonStatus }) => {
       const summary = summaries.get(seasonId)
-      return seasonStatus === "active" && summary ? [summary] : []
+      return (seasonStatus === "active" || seasonStatus === "upcoming") && summary ? [summary] : []
     })
   }, [snapshot.generalChats, leagueSeasons, isAccessHydrated])
   const roundBySeason = useMemo(() => new Map(seasons.map(season => {
     const rounds = buildSeasonRounds({ season, settings: getSeasonRoundSettings(season.id), matches: matches.filter(match => match.seasonId === season.id) })
     return [season.id, { seasonStatus: season.status, currentRound: rounds.find(round => round.status === "active")?.round ?? rounds.find(round => round.status === "overdue")?.round ?? rounds.find(round => round.status === "upcoming")?.round ?? 1 }]
   })), [seasons, getSeasonRoundSettings, matches])
-  const cacheKey = leagueSeasons.filter(item => item.seasonStatus === "active")
-    .map(item => `${item.leagueId}:${item.seasonId}:${roundBySeason.get(item.seasonId)?.currentRound ?? 1}`).sort().join("|")
+  const cacheKey = leagueSeasons.filter(item => item.seasonStatus === "active" || item.seasonStatus === "upcoming")
+    .map(item => `${item.leagueId}:${item.seasonId}:${item.seasonStatus}:${roundBySeason.get(item.seasonId)?.currentRound ?? 1}`).sort().join("|")
   const accountHeader = encodeURIComponent(account.trim().toLowerCase())
   const load = useCallback(async () => {
     const version = chatList.version()
@@ -168,13 +172,12 @@ function ChatList({ account }: { account: string }) {
     })
     const loadScope = (url: string) => request(readChatScope(url, signal, accountHeader))
     const [friendlyError] = await Promise.all([friendly, ...leagueSeasons.flatMap(item => {
-      if (activeOnly && item.seasonStatus !== "active") return []
       const params = new URLSearchParams({ leagueId: item.leagueId, seasonId: item.seasonId })
       if (activeOnly) params.set("activeRound", String(roundBySeason.get(item.seasonId)?.currentRound ?? 1))
-      const matches = loadScope(`/api/chats?${params}`).then(({ ok, data, denied }) => {
+      const matches = item.seasonStatus === "upcoming" || (activeOnly && item.seasonStatus !== "active") ? null : loadScope(`/api/chats?${params}`).then(({ ok, data, denied }) => {
         if (ok || denied) updateChats(item.seasonId, ok && Array.isArray(data?.chats) ? data.chats.map((chat: PersonalChatOverviewItem) => ({ ...chat, ...item, origin: "league", locationName: null, expired: false, resultRecordedAt: null, realtimeTopic: typeof data.realtimeTopic === "string" ? data.realtimeTopic : null })) : [], denied)
       })
-      if (item.seasonStatus !== "active") return [matches]
+      if (item.seasonStatus !== "active" && item.seasonStatus !== "upcoming") return matches ? [matches] : []
       const general = loadScope(`/api/league-season-chats/${item.seasonId}?summary=1`).then(({ ok, data, denied }) => {
         if (!(ok || denied)) return
         if (denied && !signal.aborted) {
@@ -186,7 +189,7 @@ function ChatList({ account }: { account: string }) {
         if (chat) fresh.generalChats.push(chat)
         updatedGeneral.add(item.seasonId)
       })
-      return [matches, general]
+      return matches ? [matches, general] : [general]
     })])
     window.clearTimeout(timer)
     if (pending.current !== controller || version !== chatList.version() || signal.aborted && signal.reason !== "timeout") return

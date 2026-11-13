@@ -1,3 +1,7 @@
+## MC173 — Chat general de pretemporada y aviso de notificaciones
+- Estado: VALIDADO EN LAN. Pendientes el gate completo de base y PRE.
+- Gates: validate, pruebas de acceso y navegación móvil, pgTAP local y comprobación LAN 3000.
+
 ## MC172 — Posición y símbolo del botón de crear
 - Estado: COMPLETO LOCAL. Verificado en LAN 3000.
 - Gates: comparación de geometría y color en Chromium móvil, validación local y comprobación en LAN 3000.

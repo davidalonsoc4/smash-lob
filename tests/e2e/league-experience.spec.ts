@@ -550,6 +550,32 @@ test("league season chat opens from home and sends a message", async ({ page }, 
   await page.screenshot({ path: info.outputPath("league-season-chat.png") })
 })
 
+test("preseason general chat opens from both entrances without requesting match chats", async ({ page }) => {
+  const fixture = await setup(page, "dark", "classic")
+  fixture.setUpcoming()
+  let matchReads = 0
+  await page.route("**/api/chats?**", route => { matchReads++; return route.fulfill({ json: { chats: [] } }) })
+  const messages: Array<{ id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }> = []
+  await page.route("**/api/league-season-chats/**", route => {
+    if (route.request().method() === "POST") {
+      const message = { id: "qa-preseason", sender_user_id: "qa-user", sender_display_name: "QA", body: route.request().postDataJSON().body, created_at: "2026-10-16T12:00:00Z" }
+      messages.push(message)
+      return route.fulfill({ status: 201, json: { message } })
+    }
+    return route.fulfill({ json: { season: { name: "Temporada 1", league_id: leagueId, status: "upcoming" }, messages, participants: [], me: "qa-user", readOnly: false } })
+  })
+  await page.goto("/personal-matches/chats")
+  const general = page.getByRole("region", { name: "Chats de liga" })
+  await general.getByRole("link", { name: /Liga Azul QA/ }).click()
+  await page.getByPlaceholder("Escribe un mensaje…").fill("Hola desde pretemporada")
+  await page.getByRole("button", { name: "Enviar mensaje" }).click()
+  await expect(page.getByText("Hola desde pretemporada")).toBeVisible()
+  expect(matchReads).toBe(0)
+  await page.goto("/league/home")
+  await page.getByRole("link", { name: "Abrir chat de liga" }).click()
+  await expect(page.getByText("Hola desde pretemporada")).toBeVisible()
+})
+
 test("global chats include and filter active league conversations", async ({ page }) => {
   await setup(page, "dark", "competition")
   let permitted = true

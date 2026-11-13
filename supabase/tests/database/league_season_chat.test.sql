@@ -1,5 +1,5 @@
 begin;
-select plan(9);
+select plan(12);
 
 insert into public.app_users (id,email,display_name) values
   ('71000000-0000-4000-8000-000000000001','season-chat-a@example.invalid','Player A'),
@@ -17,13 +17,18 @@ insert into public.seasons (id,league_id,name,status,total_rounds) values
 insert into public.season_players (season_id,player_id) values
   ('74000000-0000-4000-8000-000000000001','73000000-0000-4000-8000-000000000001'),
   ('74000000-0000-4000-8000-000000000002','73000000-0000-4000-8000-000000000002');
-select is((select count(*) from public.league_season_chat_participants),0::bigint,'upcoming seasons are not captured');
+select is((select count(*) from public.league_season_chat_participants),1::bigint,'preseason captures linked roster players');
+select lives_ok($$select public.send_league_season_chat_message('74000000-0000-4000-8000-000000000001','71000000-0000-4000-8000-000000000001','Player A','Hola pretemporada')$$,'registered participant can write before activation');
+delete from public.season_players where season_id = '74000000-0000-4000-8000-000000000001' and player_id = '73000000-0000-4000-8000-000000000001';
+select throws_ok($$select public.send_league_season_chat_message('74000000-0000-4000-8000-000000000001','71000000-0000-4000-8000-000000000001','Player A','Hola')$$,'P0001','season_chat_forbidden','removed preseason player cannot write');
 update public.seasons set status = 'active' where id = '74000000-0000-4000-8000-000000000001';
-select is((select count(*) from public.league_season_chat_participants),1::bigint,'activation captures the current roster');
+select is((select count(*) from public.league_season_chat_participants),0::bigint,'activation removes stale preseason participants');
+insert into public.season_players (season_id,player_id) values ('74000000-0000-4000-8000-000000000001','73000000-0000-4000-8000-000000000001');
+select is((select count(*) from public.league_season_chat_participants),1::bigint,'active season captures newly registered players');
 update public.seasons set status = 'finished' where id = '74000000-0000-4000-8000-000000000001';
 insert into public.league_memberships (user_id,league_id,player_id) values
   ('71000000-0000-4000-8000-000000000002','72000000-0000-4000-8000-000000000001','73000000-0000-4000-8000-000000000002');
-select is((select count(*) from public.league_season_chat_participants where user_id = '71000000-0000-4000-8000-000000000002'),0::bigint,'later league membership grants no historical access');
+select is((select count(*) from public.league_season_chat_participants where season_id = '74000000-0000-4000-8000-000000000001' and user_id = '71000000-0000-4000-8000-000000000002'),0::bigint,'later league membership grants no historical access');
 update public.seasons set status = 'active' where id = '74000000-0000-4000-8000-000000000002';
 select is((select count(*) from public.league_season_chat_participants where season_id = '74000000-0000-4000-8000-000000000002'),1::bigint,'new season captures its own roster');
 select lives_ok($$select public.send_league_season_chat_message('74000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000002','Player B','Hola')$$,'participant may write in an active season');
