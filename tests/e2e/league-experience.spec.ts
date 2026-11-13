@@ -1208,6 +1208,23 @@ test("competition create button opens options for creators", async ({ page }) =>
   await expect(trigger).toBeFocused()
 })
 
+test("floating plus is white and aligned above the global navigation", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  await page.addInitScript(() => localStorage.setItem("smash-lob-competition-accent", "ice"))
+  const positions = []
+  for (const [path, label] of [["/leagues", "Crear"], ["/personal-matches", "Crear nuevo encuentro"]]) {
+    await page.goto(path)
+    const button = page.getByLabel(label, { exact: true })
+    const nav = page.getByRole("navigation", { name: "Navegación global" })
+    await expect(button.locator("svg")).toHaveCSS("stroke", "rgb(255, 255, 255)")
+    const buttonBox = await button.boundingBox()
+    const navBox = await nav.boundingBox()
+    expect(navBox!.y - buttonBox!.y - buttonBox!.height).toBeGreaterThanOrEqual(20)
+    positions.push(buttonBox!.y)
+  }
+  expect(positions[0]).toBe(positions[1])
+})
+
 test("competition create button opens friendly directly for players", async ({ page }) => {
   await setup(page, "light", "classic", false)
   await page.goto("/leagues")
