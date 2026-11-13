@@ -550,13 +550,39 @@ test("league season chat opens from home and sends a message", async ({ page }, 
   await page.screenshot({ path: info.outputPath("league-season-chat.png") })
 })
 
+test("preseason general chat opens from both entrances without requesting match chats", async ({ page }) => {
+  const fixture = await setup(page, "dark", "classic")
+  fixture.setUpcoming()
+  let matchReads = 0
+  await page.route("**/api/chats?**", route => { matchReads++; return route.fulfill({ json: { chats: [] } }) })
+  const messages: Array<{ id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }> = []
+  await page.route("**/api/league-season-chats/**", route => {
+    if (route.request().method() === "POST") {
+      const message = { id: "qa-preseason", sender_user_id: "qa-user", sender_display_name: "QA", body: route.request().postDataJSON().body, created_at: "2026-10-16T12:00:00Z" }
+      messages.push(message)
+      return route.fulfill({ status: 201, json: { message } })
+    }
+    return route.fulfill({ json: { season: { name: "Temporada 1", league_id: leagueId, status: "upcoming" }, messages, participants: [], me: "qa-user", readOnly: false } })
+  })
+  await page.goto("/personal-matches/chats")
+  const general = page.getByRole("region", { name: "Chats de liga" })
+  await general.getByRole("link", { name: /Liga Azul QA/ }).click()
+  await page.getByPlaceholder("Escribe un mensaje…").fill("Hola desde pretemporada")
+  await page.getByRole("button", { name: "Enviar mensaje" }).click()
+  await expect(page.getByText("Hola desde pretemporada")).toBeVisible()
+  expect(matchReads).toBe(0)
+  await page.goto("/league/home")
+  await page.getByRole("link", { name: "Abrir chat de liga" }).click()
+  await expect(page.getByText("Hola desde pretemporada")).toBeVisible()
+})
+
 test("global chats include and filter active league conversations", async ({ page }) => {
   await setup(page, "dark", "competition")
   let permitted = true
   let unread = 2
   await page.route("**/api/league-season-chats/**", route => permitted ? route.fulfill({ json: { season: { name: "Temporada 2", league_id: leagueId }, messages: [{ sender_display_name: "Ana", body: "Hola equipo", created_at: "2026-10-16T12:00:00Z" }], participants: [{ userId: "qa-user" }, { userId: "friend" }], unread, realtimeTopic: null } }) : route.fulfill({ status: 404, json: { error: "league_chat_not_found" } }))
   await page.goto("/personal-matches/chats")
-  const section = page.getByRole("region", { name: "Chats de liga" })
+  const section = page.getByRole("region", { name: "Sin leer", exact: true })
   await expect(section.getByRole("link", { name: /Liga Azul QA/ })).toHaveAttribute("href", `/league-chat/${seasonId}`)
   await expect(section.getByText("Temporada 2 · 2 participantes")).toBeVisible()
   await expect(section.getByText("Hola equipo", { exact: false })).toBeVisible()
@@ -573,11 +599,14 @@ test("global chats include and filter active league conversations", async ({ pag
   await expect(section).toBeVisible()
   unread = 0
   await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
-  await expect(section.getByLabel("Mensajes sin leer")).toHaveCount(0)
+  await expect(section).toHaveCount(0)
+  const general = page.getByRole("region", { name: "Chats de liga" })
+  await expect(general.getByRole("link", { name: /Liga Azul QA/ })).toBeVisible()
   permitted = false
   await page.reload()
   await expect(page.getByText("Todavía no tienes chats activos.")).toBeVisible()
   await expect(section).toHaveCount(0)
+  await expect(general).toHaveCount(0)
 })
 
 test("global chats enter together in a stagger without replay on refresh", async ({ page }) => {
@@ -1182,6 +1211,23 @@ test("competition create button opens options for creators", async ({ page }) =>
   await expect(trigger).toBeFocused()
 })
 
+test("floating plus is white and aligned above the global navigation", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  await page.addInitScript(() => localStorage.setItem("smash-lob-competition-accent", "ice"))
+  const positions = []
+  for (const [path, label] of [["/leagues", "Crear"], ["/personal-matches", "Crear nuevo encuentro"]]) {
+    await page.goto(path)
+    const button = page.getByLabel(label, { exact: true })
+    const nav = page.getByRole("navigation", { name: "Navegación global" })
+    await expect(button.locator("svg")).toHaveCSS("stroke", "rgb(255, 255, 255)")
+    const buttonBox = await button.boundingBox()
+    const navBox = await nav.boundingBox()
+    expect(navBox!.y - buttonBox!.y - buttonBox!.height).toBeGreaterThanOrEqual(20)
+    positions.push(buttonBox!.y)
+  }
+  expect(positions[0]).toBe(positions[1])
+})
+
 test("competition create button opens friendly directly for players", async ({ page }) => {
   await setup(page, "light", "classic", false)
   await page.goto("/leagues")
@@ -1447,13 +1493,20 @@ for (const theme of ["light", "dark"]) for (const style of ["classic", "competit
 
   test(`league chat preview presents participants, last message and unread (${theme},${style})`, async ({ page }) => {
     await setup(page, theme, style)
-    await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { season: { name: "Temporada 1" }, messages: [{ id: "msg-1", sender_user_id: "friend", sender_display_name: "Ana", body: "Nos vemos pronto", created_at: "2026-10-16T12:00:00Z" }], participants: [{ userId: "qa-user", displayName: "QA", avatarUrl: null, lastReadAt: null }, { userId: "friend", displayName: "Ana", avatarUrl: null, lastReadAt: null }], me: "qa-user", unread: 1, readOnly: false, realtimeTopic: null } }))
+    let unread = 1
+    await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: { season: { name: "Temporada 1" }, messages: [{ id: "msg-1", sender_user_id: "friend", sender_display_name: "Ana", body: "Nos vemos pronto", created_at: "2026-10-16T12:00:00Z" }], participants: [{ userId: "qa-user", displayName: "QA", avatarUrl: null, lastReadAt: null }, { userId: "friend", displayName: "Ana", avatarUrl: null, lastReadAt: null }], me: "qa-user", unread, readOnly: false, realtimeTopic: null } }))
     await page.goto("/chats")
-    const card = page.getByRole("link", { name: /Liga Azul QA/ })
+    const unreadSection = page.getByRole("region", { name: "Sin leer" })
+    const card = unreadSection.getByRole("link", { name: /Liga Azul QA/ })
     await expect(card.getByText("Temporada 2 · 2 participantes")).toBeVisible()
     await expect(card.getByText("Nos vemos pronto", { exact: false })).toBeVisible()
     await expect(card.getByLabel("Mensajes sin leer")).toBeVisible()
     expect(await card.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
+    unread = 0
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:chat-unread-refresh")))
+    await expect(unreadSection).toHaveCount(0)
+    await expect(page.getByRole("heading", { name: "Chat general" })).toBeVisible()
+    await expect(page.getByRole("link", { name: /Liga Azul QA/ }).getByText("Nos vemos pronto", { exact: false })).toBeVisible()
   })
 }
 for(const theme of ["light","dark"]){
@@ -1565,7 +1618,7 @@ test(`global chats filter by competition and messages while distant rounds remai
   await setup(page,theme,style)
   await page.route("**/api/chats?**",route=>route.fulfill({json:{chats:[2,3,10].map(round=>({id:`chat-${round}`,round,status:"scheduling",scheduledAt:null,resultRecordedAt:null,readOnly:false,expired:false,partner:round===10?"Jugador Lejano":"Ana",rivals:["Bea","Carlos"],unread:round===2?1:0,lastMessage:round===3?null:{sender:"Ana",body:"Mensaje de prueba",createdAt:"2026-10-16T10:00:00Z"}}))}}))
   await page.goto("/personal-matches/chats")
-  await expect(page.getByRole("region",{name:"Activos"}).getByText("Jornada 2",{exact:true})).toBeVisible()
+  await expect(page.getByRole("region",{name:"Sin leer",exact:true}).getByText("Jornada 2",{exact:true})).toBeVisible()
   await page.getByRole("button", { name: "Ver todos", exact: true }).click()
   await expect(page.getByRole("region",{name:"Próximos"}).getByText("Jornada 10",{exact:true})).toBeVisible()
   const activeHeading = page.getByRole("heading", { name: /^Activos/ })

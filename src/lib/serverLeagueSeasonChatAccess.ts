@@ -16,5 +16,13 @@ export async function getLeagueSeasonChatActor(seasonId: string) {
   if (season.error || participant.error) return { ok: false as const, status: 500, error: "league_chat_access_failed" }
   // Return the same response for absent seasons and nonparticipants.
   if (!season.data || !participant.data) return { ok: false as const, status: 404, error: "league_chat_not_found" }
+  if (season.data.status === "upcoming") {
+    const membership = await supabase.from("league_memberships").select("player_id").eq("league_id", season.data.league_id).eq("user_id", user.id).maybeSingle()
+    if (membership.error) return { ok: false as const, status: 500, error: "league_chat_access_failed" }
+    if (!membership.data?.player_id) return { ok: false as const, status: 404, error: "league_chat_not_found" }
+    const roster = await supabase.from("season_players").select("player_id").eq("season_id", seasonId).eq("player_id", membership.data.player_id).maybeSingle()
+    if (roster.error) return { ok: false as const, status: 500, error: "league_chat_access_failed" }
+    if (!roster.data) return { ok: false as const, status: 404, error: "league_chat_not_found" }
+  }
   return { ok: true as const, actor: auth.actor, season: season.data, participant: participant.data }
 }

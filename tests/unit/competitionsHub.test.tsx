@@ -14,6 +14,7 @@ const state = vi.hoisted(() => ({ enter: vi.fn(), refresh: vi.fn(), locale: "es"
   { id: "c", name: "Liga C", status: "upcoming" }, { id: "d", name: "Liga D", status: "finished" },
 ] }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: state.refresh }) }))
+vi.mock("@/context/ThemeProvider", () => ({ useTheme: () => ({ visualStyle: "classic", competitionAccent: "gold" }) }))
 let resources: { account: string; competitionEntrance: { hasShown: () => boolean; markShown: () => void }; matchDashboard: ReturnType<typeof createPersonalMatchesDashboard>; tournamentList: ReturnType<typeof createTournamentList> }
 vi.mock("@/context/AccountProfileProvider", () => ({ useAccountProfile: () => resources }))
 vi.mock("@/lib/tournamentAvailability", () => ({ areTournamentsEnabled: () => state.tournamentsEnabled }))

@@ -21,6 +21,10 @@ function isSnoozed() {
 
 export function PushPermissionReminder() {
   const pathname = usePathname()
+  return pathname === "/leagues" ? <HomePushPermissionReminder /> : null
+}
+
+function HomePushPermissionReminder() {
   const { tx } = useI18n()
   const router = useRouter()
   const { activeLeagueId } = useActiveLeague()
@@ -36,7 +40,7 @@ export function PushPermissionReminder() {
   )
 
   useEffect(() => {
-    if (pathname !== "/leagues" || !eligible) return
+    if (!eligible) return
     if (getPushSupportStatus() === "unsupported" || getPushSupportStatus() === "missing_public_key") return
     if (isPushAutoRegistrationDisabled() || isSnoozed()) return
     if (Notification.permission === "granted") return
@@ -44,12 +48,15 @@ export function PushPermissionReminder() {
     const timer = window.setTimeout(() => {
       const currentPermission = Notification.permission
       setPermission(currentPermission)
-      if (currentPermission !== "granted") setVisible(true)
+      if (currentPermission !== "granted" && !isSnoozed()) {
+        window.localStorage.setItem(reminderSnoozeStorageKey, String(Date.now() + reminderSnoozeMs))
+        setVisible(true)
+      }
     }, 4500)
     return () => window.clearTimeout(timer)
-  }, [eligible, pathname])
+  }, [eligible])
 
-  if (!visible || permission === "granted") return null
+  if (!eligible || !visible || permission === "granted") return null
 
   function snooze() {
     window.localStorage.setItem(

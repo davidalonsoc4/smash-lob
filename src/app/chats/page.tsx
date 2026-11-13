@@ -1,7 +1,7 @@
 "use client"
 
 import { StatusDot } from "@/components/ui/StatusDot"
-import { LeagueSeasonChatAccess } from "@/components/league/LeagueSeasonChatAccess"
+import { LeagueSeasonChatCard, useLeagueSeasonChatPreview } from "@/components/league/LeagueSeasonChatAccess"
 
 import Link from "next/link"
 import { useEffect } from "react"
@@ -37,19 +37,24 @@ export default function ChatsPage() {
   const chatResource = leagueScreenData.chats.get(scope, activeLeague.id, activeSeason.id)
   const { data, failed: error } = useSessionResource(chatResource)
   const chats = data?.chats ?? []
+  const general = useLeagueSeasonChatPreview(activeLeague.id, activeSeason.id)
+  const generalCard = general && <LeagueSeasonChatCard seasonId={activeSeason.id} leagueName={activeLeague.name} seasonName={activeSeason.name} preview={general} />
+  const unreadChats = chats.filter(chat => chat.unread > 0)
+  const readChats = chats.filter(chat => !chat.unread)
   const loading = !data && !error
   const animate = useLeagueScreenEntrance("chats", activeLeague.id, chats.length > 0)
-  const openChats = chats.filter((chat) => !chat.readOnly), finishedChats = chats.filter((chat) => chat.readOnly), roundNumbers = [...new Set(rounds.map((item) => item.round))].sort((a, b) => a - b), anchorRound = rounds.find((item) => item.status === "active")?.round ?? rounds.find((item) => item.status === "overdue")?.round ?? rounds.find((item) => item.status === "upcoming")?.round ?? openChats[0]?.round ?? null, nextRound = anchorRound === null ? null : roundNumbers.find((round) => round > anchorRound) ?? anchorRound
+  const openChats = readChats.filter((chat) => !chat.readOnly), finishedChats = readChats.filter((chat) => chat.readOnly), roundNumbers = [...new Set(rounds.map((item) => item.round))].sort((a, b) => a - b), anchorRound = rounds.find((item) => item.status === "active")?.round ?? rounds.find((item) => item.status === "overdue")?.round ?? rounds.find((item) => item.status === "upcoming")?.round ?? chats.find((chat) => !chat.readOnly)?.round ?? null, nextRound = anchorRound === null ? null : roundNumbers.find((round) => round > anchorRound) ?? anchorRound
   const activeChats = openChats.filter((chat) => Boolean(chat.lastMessage) || nextRound === null || chat.round <= nextRound), upcomingChats = openChats.filter((chat) => !chat.lastMessage && nextRound !== null && chat.round > nextRound)
-  const firstActive = activeChats[0]?.id
+  const firstActive = (unreadChats.find(chat => !chat.readOnly) ?? activeChats[0])?.id
   const ready = Boolean(data)
   useEffect(() => {
     if (!ready) return
     return scheduleChatEntryPreviews(account, `/api/league-season-chats/${encodeURIComponent(activeSeason.id)}`, firstActive && `/api/matches/${encodeURIComponent(firstActive)}/chat`)
   }, [account, activeSeason.id, ready, firstActive])
   return <div className="compact-page space-y-3"><header className="app-page-header"><BackButton fallbackHref="/league/home" label={t.common.back} /><h1 className="type-page-title font-black tracking-tight">{tx("Chats")}</h1><SeasonContextLineSelector leagueId={activeLeague.id} season={activeSeason} seasons={seasons} /></header>
-    <LeagueSeasonChatAccess leagueId={activeLeague.id} seasonId={activeSeason.id} leagueName={activeLeague.name} seasonName={activeSeason.name} />
+    {unreadChats.length || general?.unread ? <section aria-label={tx("Sin leer")} className="space-y-1.5"><h2 className="type-section-title font-black text-neutral-700">{tx("Sin leer")}</h2>{general?.unread ? generalCard : null}{unreadChats.length ? <ChatCards chats={unreadChats} animate={animate} /> : null}</section> : null}
+    {general && !general.unread ? <section className="space-y-1.5"><h2 className="type-section-title font-black text-neutral-700">{tx("Chat general")}</h2>{generalCard}</section> : null}
     {loading ? <AppCard><p className="text-sm font-semibold text-neutral-500">{tx("Cargando conversaciones…")}</p></AppCard> : null}{error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700">{tx("No se han podido cargar tus chats.")}</p> : null}{!loading && !error && chats.length === 0 ? <AppCard><p className="text-sm font-black">{tx("Todavía no tienes chats de partido.")}</p><p className="mt-1 text-xs font-semibold text-neutral-500">{tx("Cuando participes en una jornada, su conversación aparecerá aquí.")}</p></AppCard> : null}
-    {activeChats.length > 0 ? <section data-tour="chats-conversations" className="space-y-1.5"><h2 className="type-section-title font-black text-neutral-700">{tx("Activos")}</h2><ChatCards chats={activeChats} animate={animate} /></section> : null}{upcomingChats.length > 0 ? <section data-tour="chats-upcoming" className="space-y-1.5 pt-1"><h2 className="type-section-title font-black text-neutral-700">{tx("Próximos")}</h2><ChatCards chats={upcomingChats} animate={animate && !activeChats.length} /></section> : null}{finishedChats.length > 0 ? <section data-tour="chats-finished" className="space-y-2 pt-1"><h2 className="type-section-title font-black text-neutral-700">{tx("Chats finalizados")}</h2><ChatCards chats={finishedChats} animate={animate && !activeChats.length && !upcomingChats.length} /></section> : null}
+    {activeChats.length > 0 ? <section data-tour="chats-conversations" className="space-y-1.5"><h2 className="type-section-title font-black text-neutral-700">{tx("Activos")}</h2><ChatCards chats={activeChats} animate={animate && !unreadChats.length} /></section> : null}{upcomingChats.length > 0 ? <section data-tour="chats-upcoming" className="space-y-1.5 pt-1"><h2 className="type-section-title font-black text-neutral-700">{tx("Próximos")}</h2><ChatCards chats={upcomingChats} animate={animate && !unreadChats.length && !activeChats.length} /></section> : null}{finishedChats.length > 0 ? <section data-tour="chats-finished" className="space-y-2 pt-1"><h2 className="type-section-title font-black text-neutral-700">{tx("Chats finalizados")}</h2><ChatCards chats={finishedChats} animate={animate && !unreadChats.length && !activeChats.length && !upcomingChats.length} /></section> : null}
   </div>
 }

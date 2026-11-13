@@ -464,6 +464,8 @@ for (const theme of ["light", "dark"] as const) {
     await expect(page.getByText("Finalizadas", { exact: false })).toBeVisible()
     await page.locator("details > summary").click()
     await expect(page.getByRole("button", { name: "Entrar en Liga histórica", exact: true })).toBeVisible()
+    await page.waitForFunction(() => Array.from(document.querySelectorAll("[data-card-list-enter] > *"))
+      .every(card => card.getAnimations().every(animation => animation.playState === "finished")))
     const filledListAccessibility = await new AxeBuilder({ page }).analyze()
     expect(filledListAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: testInfo.outputPath("leagues-filled-custom-accent.png"), fullPage: true, scale: "css" })

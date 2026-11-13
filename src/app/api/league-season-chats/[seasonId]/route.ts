@@ -18,7 +18,7 @@ export async function GET(request: Request, context: Context) {
   if (account !== null && account !== encodeURIComponent(user.email)) return fail("session_changed", 403)
   const searchParams = new URL(request.url).searchParams
   const lastReadAt = access.participant.last_read_at
-  const summary = { season: access.season, readOnly: access.season.status !== "active", realtimeTopic: getLeagueSeasonChatRealtimeTopic(seasonId) }
+  const summary = { season: access.season, readOnly: access.season.status !== "active" && access.season.status !== "upcoming", realtimeTopic: getLeagueSeasonChatRealtimeTopic(seasonId) }
   if (searchParams.get("summary") === "1") {
     let unreadQuery = supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
       .eq("season_id", seasonId).neq("sender_user_id", user.id)

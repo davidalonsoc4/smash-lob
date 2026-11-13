@@ -1,5 +1,13 @@
+## MC173 — Chat general de pretemporada y aviso de notificaciones
+- Estado: VALIDADO EN LAN. Pendientes el gate completo de base y PRE.
+- Gates: validate, pruebas de acceso y navegación móvil, pgTAP local y comprobación LAN 3000.
+
+## MC172 — Posición y símbolo del botón de crear
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: comparación de geometría y color en Chromium móvil, validación local y comprobación en LAN 3000.
+
 ## MC171 — Contraste del chat flotante y acentos de apariencia
-- Estado: CHAT Y PRECARGA EXPERIMENTAL VALIDADOS EN LAN. Producción en pausa; los ajustes quedan pendientes de PRE.
+- Estado: COMPLETO. v1.15.46 publicada y verificada en PRE y Producción.
 - Gates: validate, Playwright móvil del chat de liga y selector de acento y comprobación de ambos ajustes en LAN 3000.
 
 ## MC170 — Navegación y actualización de las pantallas de liga
