@@ -113,6 +113,10 @@ export function getCompetitionAccentColor(choice: CompetitionAccent) {
   return COMPETITION_ACCENT_COLORS[choice]
 }
 
+export function getFloatingIconStroke(style: VisualStyle, accent: CompetitionAccent) {
+  return style === "competition" && (accent === "gold" || accent === "green" || accent === "coral") ? "#111" : "#fff"
+}
+
 export function getContrastColor(value: string) {
   const accent = normalizeAccentColor(value)
   const red = Number.parseInt(accent.slice(1, 3), 16)

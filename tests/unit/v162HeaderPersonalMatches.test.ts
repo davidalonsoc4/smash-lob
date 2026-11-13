@@ -27,8 +27,8 @@ describe("v1.6.2 homogeneous headers and personal match flow", () => {
     const button = read("src/components/ui/FloatingCreateButton.tsx")
     expect(page).toContain('label={tx("Crear nuevo encuentro")}')
     expect(page).toContain('href="/personal-matches/new"')
-    expect(button).toContain('bottom: "calc(78px + env(safe-area-inset-bottom, 0px))"')
-    expect(button).toContain(">+</span>")
+    expect(button).toContain('bottom: "calc(97px + env(safe-area-inset-bottom, 0px))"')
+    expect(button).toContain("M12 4v16M4 12h16")
   })
 
   it("replaces Programar / Ya jugado tabs with an optional result", () => {

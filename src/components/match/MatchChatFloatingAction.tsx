@@ -3,8 +3,7 @@
 import Link from "next/link"
 import { useTheme } from "@/context/ThemeProvider"
 import { useI18n } from "@/i18n/I18nProvider"
-
-const whiteChatAccents = new Set(["blue", "ice", "violet"])
+import { getFloatingIconStroke } from "@/lib/visualStyle"
 
 function ChatIcon({ stroke }: { stroke: string }) {
   return (
@@ -27,7 +26,6 @@ function ChatIcon({ stroke }: { stroke: string }) {
 export function MatchChatActionLink({ href, label, unread = false, outlined = false }: { href: string; label?: string; unread?: boolean; outlined?: boolean }) {
   const { tx } = useI18n()
   const { visualStyle, competitionAccent } = useTheme()
-  const useDarkStroke = visualStyle === "competition" && !whiteChatAccents.has(competitionAccent)
   return (
     <Link
       data-tour="match-chat-access"
@@ -36,7 +34,7 @@ export function MatchChatActionLink({ href, label, unread = false, outlined = fa
       title={label ?? tx("Chat del partido")}
       className={`app-floating-primary-control relative grid h-10 w-10 place-items-center rounded-full bg-neutral-950 text-white transition active:scale-95 ${outlined ? "app-floating-outline" : "border border-neutral-950 shadow-lg"}`}
     >
-      <ChatIcon stroke={outlined ? (useDarkStroke ? "#111" : "#fff") : "currentColor"} />
+      <ChatIcon stroke={outlined ? getFloatingIconStroke(visualStyle, competitionAccent) : "currentColor"} />
       {unread ? <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-600" aria-label={tx("Mensajes sin leer")} /> : null}
     </Link>
   )
