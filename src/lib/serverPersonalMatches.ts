@@ -22,6 +22,7 @@ import {
   sortPersonalMatchParticipants,
 } from "@/lib/personalMatches"
 import { deduplicatePersonalMatchPeople } from "@/lib/personalMatchPeople"
+import { canManagePersonalMatch } from "@/lib/personalMatchPermissions"
 import {
   normalizeDominantHand,
   normalizePreferredPlayerSide,
@@ -311,8 +312,33 @@ type ResolvedPersonalMatchParticipant = {
 export async function resolvePersonalMatchParticipantDrafts(
   actor: AuthenticatedAppUser,
   drafts: PersonalMatchParticipantDraft[],
+  existingParticipants: ReadonlyArray<
+    Pick<ParticipantRow, "user_id" | "source_player_id" | "display_name">
+  > = [],
 ): Promise<ResolvedPersonalMatchParticipant[]> {
   const people = await loadAccessiblePersonalMatchPeople(actor)
+
+  // Existing linked players may belong to a different league than the editor.
+  // Preserve their exact account/player identity instead of turning them into names.
+  for (const existing of existingParticipants) {
+    if (!existing.user_id && !existing.source_player_id) continue
+    const key = getParticipantPersonKey({
+      userId: existing.user_id,
+      sourcePlayerId: existing.source_player_id,
+      displayName: existing.display_name,
+    })
+    if (people.some((person) => person.key === key)) continue
+    people.push({
+      key,
+      displayName: existing.display_name,
+      avatarUrl: null,
+      sourceLeagueNames: [],
+      isSelf: existing.user_id === actor.user.id,
+      userId: existing.user_id,
+      sourcePlayerId: existing.source_player_id,
+    })
+  }
+
   const usedPersonKeys = new Set<string>()
   let includesCurrentUser = false
 
@@ -357,7 +383,6 @@ export async function replacePersonalMatchParticipants(
   matchId: string,
   drafts: PersonalMatchParticipantDraft[],
 ) {
-  const participants = await resolvePersonalMatchParticipantDrafts(actor, drafts)
   const originalResult = await actor.supabase
     .from("personal_match_participants")
     .select("team,slot,user_id,source_player_id,display_name")
@@ -368,6 +393,11 @@ export async function replacePersonalMatchParticipants(
   }
 
   const originalParticipants = originalResult.data ?? []
+  const participants = await resolvePersonalMatchParticipantDrafts(
+    actor,
+    drafts,
+    originalParticipants,
+  )
   const deleteResult = await actor.supabase
     .from("personal_match_participants")
     .delete()
@@ -498,7 +528,11 @@ function mapPersonalMatch(
     scheduleLocation,
     sets,
     participants,
-    canManage: row.created_by_user_id === currentUserId,
+    canManage: canManagePersonalMatch(
+      currentUserId,
+      row.created_by_user_id,
+      participants.some((participant) => participant.isCurrentUser),
+    ),
     canDelete: row.created_by_user_id === currentUserId,
     leagueId: null,
     leagueName: null,
@@ -1022,7 +1056,18 @@ export async function loadManageablePersonalMatch(
 
   if (error) throw new Error("personal_match_lookup_failed")
   if (!data) return null
-  if (data.created_by_user_id !== actor.user.id) return "forbidden" as const
+  if (data.created_by_user_id !== actor.user.id) {
+    const { data: participant, error: accessError } = await actor.supabase
+      .from("personal_match_participants")
+      .select("id")
+      .eq("match_id", matchId)
+      .eq("user_id", actor.user.id)
+      .maybeSingle()
+    if (accessError) throw new Error("personal_match_access_lookup_failed")
+    if (!canManagePersonalMatch(actor.user.id, data.created_by_user_id, Boolean(participant))) {
+      return "forbidden" as const
+    }
+  }
   return data as PersonalMatchRow
 }
 

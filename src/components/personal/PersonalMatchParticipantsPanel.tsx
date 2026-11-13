@@ -79,7 +79,23 @@ export function PersonalMatchParticipantsPanel({
       const response = await fetch("/api/personal-matches/people", { cache: "no-store" })
       const payload = (await response.json()) as { people?: PersonalMatchPerson[] }
       if (!response.ok) throw new Error("personal_match_people_lookup_failed")
-      setPeople(payload.people ?? [])
+      const available = payload.people ?? []
+      const knownKeys = new Set(available.map((person) => person.key))
+      // Other participants may be linked through leagues the editor cannot see.
+      // Keep them selectable in this match without exposing any unrelated accounts.
+      const existing = match.participants.flatMap((participant): PersonalMatchPerson[] => {
+        const key = participant.personKey
+        if (!key || key.startsWith("external:") || knownKeys.has(key)) return []
+        knownKeys.add(key)
+        return [{
+          key,
+          displayName: participant.displayName,
+          avatarUrl: participant.avatarUrl ?? null,
+          sourceLeagueNames: [],
+          isSelf: participant.isCurrentUser,
+        }]
+      })
+      setPeople([...available, ...existing])
     } catch {
       setError("No se han podido cargar los jugadores disponibles.")
     } finally {
