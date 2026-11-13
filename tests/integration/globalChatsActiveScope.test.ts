@@ -48,6 +48,7 @@ it("enriches only active participant chats for the compact league list", async (
       status: id === "finished" ? "finished" : "scheduling",
       team_a: id === "other-player" ? ["other"] : ["me"], team_b: ["rival"],
     })),
+    match_chat_messages: [{ id: "unread", match_id: "finished", sender_user_id: "other", body: "Hola", kind: "text", created_at: "2026-10-16T10:00:00Z" }],
   })
   const active = await getLeagueChats(new Request(leagueUrl + "&activeRound=2"))
   expect((await active.json()).chats.map((chat: { id: string }) => chat.id)).toEqual(["active"])
@@ -55,8 +56,11 @@ it("enriches only active participant chats for the compact league list", async (
   expect(reads.get("match_chat_reads")).toEqual(["active"])
 
   const all = await getLeagueChats(new Request(leagueUrl))
-  expect((await all.json()).chats.map((chat: { id: string }) => chat.id)).toEqual(matchIds)
+  expect((await all.json()).chats.map((chat: { id: string }) => chat.id).sort()).toEqual([...matchIds].sort())
   expect(reads.get("match_chat_messages")).toEqual(matchIds)
+  const inbox = await getLeagueChats(new Request(leagueUrl + "&activeRound=2&includeUnread=1"))
+  expect((await inbox.json()).chats.map((chat: { id: string }) => chat.id).sort()).toEqual(["active", "finished"])
+  expect(reads.get("match_chat_messages")).not.toContain("other-player")
 })
 
 it("skips past and distant friendly messages until the full list is requested", async () => {
@@ -66,6 +70,7 @@ it("skips past and distant friendly messages until the full list is requested", 
       id, status: id === "finished" ? "finished" : "scheduled",
       played_at: id === "future" ? "2099-01-01T00:00:00Z" : null, result_recorded_at: null,
     })),
+    personal_match_chat_messages: [{ match_id: "future", sender_user_id: "other", body: "Hola", created_at: "2026-10-16T10:00:00Z" }],
   })
   const active = await getFriendlyChats(new Request(friendlyUrl + "?active=1"))
   expect((await active.json()).chats.map((chat: { id: string }) => chat.id)).toEqual(["active"])
@@ -75,4 +80,6 @@ it("skips past and distant friendly messages until the full list is requested", 
   const all = await getFriendlyChats(new Request(friendlyUrl))
   expect((await all.json()).chats).toHaveLength(3)
   expect(reads.get("personal_match_chat_messages")).toEqual(matchIds)
+  const inbox = await getFriendlyChats(new Request(friendlyUrl + "?active=1&includeUnread=1"))
+  expect((await inbox.json()).chats.map((chat: { id: string }) => chat.id).sort()).toEqual(["active", "future"])
 })
