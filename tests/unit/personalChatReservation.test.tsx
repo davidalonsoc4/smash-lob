@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, expect, it, vi } from "vitest"
 import PersonalChat from "@/app/personal-matches/[id]/chat/page"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
+import { clearMatchChatCache } from "@/lib/matchChatCache"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 vi.mock("next-auth/react", () => ({ useSession: () => ({ data: { user: { email: "qa@example.test" } } }) }))
 vi.mock("next/navigation", () => ({ useParams: () => ({ id: "qa-friendly" }) }))
@@ -14,7 +15,11 @@ vi.mock("@/components/match/chat/MatchChatShared", () => ({
   resizeMatchChatComposer: () => {}, useMatchChatAutoScroll: () => {}, useMatchChatViewport: () => {},
 }))
 const match: PersonalMatchItem = { id: "qa-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2099-10-12T17:00:00Z", resultRecordedAt: null, locationName: "Pista QA", sets: [], participants: [{ team: 1, slot: 1, displayName: "Ana QA", isCurrentUser: true }], canManage: true, canDelete: true, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null, courtBooking: { isReserved: true, reservations: [], ballPurchases: [], transfers: [], updatedAt: null } }
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => {
+  cleanup()
+  clearMatchChatCache(`personal-chat:${match.id}`, "qa@example.test")
+  vi.unstubAllGlobals()
+})
 function respond(item: PersonalMatchItem) {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ match: item, messages: [], participants: [], currentUserId: "qa", readOnly: false }) }))
 }
