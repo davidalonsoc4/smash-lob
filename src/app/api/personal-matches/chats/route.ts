@@ -45,7 +45,9 @@ export async function GET(request: Request) {
   const account = request.headers.get(CHAT_LIST_ACCOUNT_HEADER)
   if (account !== null && account !== encodeURIComponent(auth.actor.user.email)) return fail("session_changed", 403)
 
-  const activeOnly = new URL(request.url).searchParams.get("active") === "1"
+  const params = new URL(request.url).searchParams
+  const activeOnly = params.get("active") === "1"
+  const includeUnread = activeOnly && params.get("includeUnread") === "1"
   const { supabase: db, user } = auth.actor
 
   try {
@@ -70,7 +72,7 @@ export async function GET(request: Request) {
   }
 
   const matchesQuery = db.from("personal_matches").select("id,status,played_at,result_recorded_at,location_name").in("id", matchIds)
-  const activeResult = activeOnly ? await matchesQuery : null
+  const activeResult = activeOnly && !includeUnread ? await matchesQuery : null
   if (activeResult?.error) return fail("personal_match_chats_lookup_failed", 500)
   const now = Date.now()
   const activeMatches = activeResult ? ((activeResult.data ?? []) as PersonalMatchRow[]).filter(match => match.status !== "finished" && getGlobalChatPhase({
@@ -203,8 +205,9 @@ export async function GET(request: Request) {
       return rightRecent - leftRecent
     })
 
+  const visibleChats = includeUnread ? chats.filter(chat => chat.unread || getGlobalChatPhase({ ...chat, origin: "friendly" }, now) === "active") : chats
   return NextResponse.json({
-    chats,
-    totalUnread: chats.reduce((total, chat) => total + chat.unread, 0),
+    chats: visibleChats,
+    totalUnread: visibleChats.reduce((total, chat) => total + chat.unread, 0),
   })
 }

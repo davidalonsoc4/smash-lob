@@ -47,6 +47,7 @@ export async function GET(request: Request) {
 
   const searchParams = new URL(request.url).searchParams
   const activeRound = searchParams.get("activeRound")
+  const includeUnread = activeRound !== null && searchParams.get("includeUnread") === "1"
   const currentRound = Number(activeRound)
   if (activeRound !== null && (!Number.isSafeInteger(currentRound) || currentRound < 1)) return fail("invalid_active_round", 400)
   const leagueId = searchParams.get("leagueId") ?? ""
@@ -147,7 +148,7 @@ export async function GET(request: Request) {
     const teamA = playerIds(match.team_a)
     const teamB = playerIds(match.team_b)
     if (!(teamA.includes(playerId) || teamB.includes(playerId))) return false
-    if (activeRound === null) return true
+    if (activeRound === null || includeUnread) return true
     if (seasonStatus !== "active" || match.status === "finished") return false
     return getGlobalChatPhase({
       origin: "league", seasonStatus, currentRound, round: Number(match.round), status: String(match.status),
@@ -303,9 +304,10 @@ export async function GET(request: Request) {
       return a.round - b.round
     })
 
+  const visibleChats = includeUnread ? chats.filter(chat => chat.unread || getGlobalChatPhase({ ...chat, origin: "league", seasonStatus, currentRound }, now) === "active") : chats
   return NextResponse.json({
-    chats,
-    totalUnread: chats.reduce((sum, chat) => sum + chat.unread, 0),
+    chats: visibleChats,
+    totalUnread: visibleChats.reduce((sum, chat) => sum + chat.unread, 0),
     realtimeTopic: getChatOverviewRealtimeTopic(leagueId, seasonId),
   })
 }
