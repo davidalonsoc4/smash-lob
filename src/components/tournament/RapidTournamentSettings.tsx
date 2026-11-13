@@ -7,6 +7,7 @@ import { BackButton } from "@/components/ui/BackButton"
 import { AppCard } from "@/components/ui/AppCard"
 import { TournamentShareButton } from "@/components/tournament/TournamentShareButton"
 import { useI18n } from "@/i18n/I18nProvider"
+import { requestTournamentListRefresh } from "@/lib/appRefreshEvents"
 import { disableRapidAudio } from "@/lib/rapidTournamentAudio"
 
 type TournamentSettingsData = {
@@ -48,6 +49,7 @@ export function RapidTournamentSettings({ tournamentId }: { tournamentId: string
         setError(tx("No se ha podido eliminar el torneo. Finalízalo antes de volver a intentarlo."))
         return
       }
+      requestTournamentListRefresh()
       disableRapidAudio()
       router.replace("/leagues")
     } catch {
@@ -68,6 +70,7 @@ export function RapidTournamentSettings({ tournamentId }: { tournamentId: string
         setError(tx("No se ha podido finalizar el torneo sin resultados."))
         return
       }
+      requestTournamentListRefresh()
       setData((current) => current ? { ...current, tournament: { ...current.tournament, status: "finished" } } : current)
     } catch {
       setError(tx("No se ha podido completar la acción. Comprueba tu conexión e inténtalo de nuevo."))

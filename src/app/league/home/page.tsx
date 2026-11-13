@@ -754,7 +754,7 @@ export default function Home() {
 
   return (
     <div data-countdown-home={showScheduledCountdownHero ? "true" : undefined} className="space-y-4">
-      <LeagueSeasonChatAccess seasonId={activeSeason.id} floating />
+      <LeagueSeasonChatAccess leagueId={activeLeague.id} seasonId={activeSeason.id} floating />
       <header data-tour="home-header" className="app-page-header">
         <Link href="/leagues" className="app-top-back-control w-full text-sm font-semibold text-neutral-500" style={{ maxWidth: "min(8rem, calc(100% - var(--app-top-controls-width, 202px) - 28px))" }}>
           <span aria-hidden="true" className="mr-1 inline-block shrink-0">←</span>

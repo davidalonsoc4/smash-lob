@@ -74,14 +74,15 @@ async function readAnnouncements(response: Response) {
 
 export async function fetchLeagueAnnouncements(
   leagueId: string,
-  options: { homeOnly?: boolean } = {},
+  options: { homeOnly?: boolean; headers?: HeadersInit; signal?: AbortSignal } = {},
 ) {
   const search = options.homeOnly ? "?homeOnly=1" : ""
   const response = await fetch(
     `/api/leagues/${encodeURIComponent(leagueId)}/announcements${search}`,
-    { cache: "no-store" },
+    { cache: "no-store", headers: options.headers, signal: options.signal },
   )
 
+  if (options.homeOnly && [401, 403, 404].includes(response.status)) return null
   return readAnnouncements(response)
 }
 

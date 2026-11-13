@@ -828,8 +828,6 @@ export const eu = {
     colorfulPaletteClassicDescription: "Kolore lauak eta aplikazioaren itxura klasikoa.",
     competitionAccentTitle: "Competition-en azentua",
     competitionAccentDescription: "Aukeratu liga honetako Competition moduaren kolore nagusia.",
-    competitionAccentLeague: "Ligaren kolorea",
-    competitionAccentLeagueDescription: "Erabili une honetan aktibo dagoen ligan ezarritako kolorea.",
     competitionAccentGold: "Urrea",
     competitionAccentGoldDescription: "Urre bero eta kirol-itxurakoa.",
     competitionAccentBlue: "Lehiaketako urdina",

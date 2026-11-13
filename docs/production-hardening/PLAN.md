@@ -1,5 +1,98 @@
+## MC171 — Contraste del chat flotante y acentos de apariencia
+- Estado: CHAT Y PRECARGA EXPERIMENTAL VALIDADOS EN LAN. Producción en pausa; los ajustes quedan pendientes de PRE.
+- Gates: validate, Playwright móvil del chat de liga y selector de acento y comprobación de ambos ajustes en LAN 3000.
+
+## MC170 — Navegación y actualización de las pantallas de liga
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: comparativa en build de producción y LAN 3000, validate, Playwright móvil con cambios de datos y navegación, permisos y PWA.
+
+## MC169 — Primera entrada a Mis Competiciones
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: comparativa LAN 3000, validate, Playwright móvil de ida y vuelta, movimiento reducido y PWA.
+
+## MC168 — Regreso estable a Chats Global
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: validate, Playwright móvil de vuelta a Chats y revalidación, controles de permisos y PWA, comparativa en LAN 3000.
+
+## MC167 — Navegación estable a Mis partidos y Mi perfil
+- Estado: COMPLETO LOCAL. Verificado en el puerto LAN 3000.
+- Gates: reproducir ambos esqueletos con movimiento reducido, acceso de liga y respuesta de ruta retenidos, npm run validate, Playwright móvil de navegación, permisos y PWA, LAN 3000.
+
+## MC166 — Actualización del contador de chats de liga
+- Estado: COMPLETO LOCAL. Navegación y actualización verificadas en LAN 3000.
+- Gates: validate, Playwright de navegación y avisos de no leídos, comparación LAN 3000.
+
+## MC165 — Reutilización de datos de partidos y torneos
+- Estado: COMPLETO LOCAL. Ambas rutas verificadas en LAN 3000.
+- Gates: validate, Playwright móvil de navegación e invalidaciones, comparativa sintética y LAN 3000.
+
+## MC164 — Reutilización de datos de Ajustes y Pagos
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000.
+- Gates: npm run validate, Playwright móvil de Ajustes/Pagos y Mi perfil, comparativa de reapertura y verificación LAN 3000.
+
+## MC163 — Reapertura de Mi perfil
+- Estado: COMPLETO LOCAL. Historial y fundido verificados en LAN 3000.
+- Gates: npm run validate, Playwright móvil para retorno, caducidad, fallos, cambios de resultados y aislamiento de sesión, comparativa sintética y LAN 3000.
+
+## MC162 — Entrada escalonada en listas
+- Estado: COMPLETO LOCAL. Cuatro rutas verificadas en LAN 3000 y diagnóstico de Mi perfil registrado.
+- Gates: npm run validate, Playwright móvil en las cuatro rutas con movimiento reducido y LAN 3000. Diagnóstico del recorrido Mi perfil → Ajustes → Mi perfil.
+
+## MC161 — Acciones de Chats y Mis Competiciones
+- Estado: COMPLETO LOCAL. Ambas acciones verificadas en LAN 3000.
+- Gates: npm run validate, Playwright móvil del historial y de creación, inspección visual y verificación de ambas rutas en LAN 3000.
+
+## MC160 — Recuperar la vista escalonada en LAN
+- Estado: COMPLETO LOCAL. El puerto 3000 sirve v1.15.44 desde codex/card-entry-preview.
+- Gates: reproducir el salto con la versión anterior, verificar health y el proceso de la candidata, repetir Playwright móvil con las mismas respuestas sintéticas y el resumen retenido.
+
+## MC159 — Entrada escalonada por lote de Chats Global
+- Estado: COMPLETO LOCAL. Secuencia verificada en la URL LAN.
+- Gates: npm run validate, Playwright móvil con respuestas retenidas, escalonado inicial, refresco sin repetición, permisos y archivo. Verificación LAN.
+
+## MC158 — Entrada estable de Chats Global
+- Estado: COMPLETO LOCAL. Corrección verificada en la URL LAN.
+- Gates: reproducción y comparación con resúmenes de liga retenidos, Playwright móvil, lint, build y presupuestos. Verificación en la URL LAN habitual.
+
+## MC157 — Vista de Chats en la dirección local habitual
+- Estado: COMPLETO LOCAL. URL LAN habitual verificada.
+- Gates: comprobar que la dirección LAN sirve la rama actual y verificar Activos, Ver todos y retorno con datos sintéticos.
+
+## MC156 — Chats activos primero
+- Estado: COMPLETO LOCAL. Vista de Chats en el puerto 3200.
+- Gates: pruebas de API y Playwright móvil para alcance, recuperación del historial, filtros y permisos. Build de producción, lint dirigido y presupuestos. Vista local con datos sintéticos.
+
+## MC155 — Entrada escalonada de arriba abajo
+- Estado: COMPLETO LOCAL. Vista actualizada en el puerto 3200.
+- Gates: build de producción, lint dirigido, presupuestos y Playwright móvil para orden, límite, pulsación, movimiento reducido y actualización progresiva. Vista local con varias tarjetas sintéticas.
+
+## MC154 — Fundido de entrada en Competiciones y Chats
+- Estado: COMPLETO LOCAL. Vista de prueba en el puerto 3200.
+- Gates: compilación de producción, lint dirigido, presupuestos y Playwright móvil con interacción, actualización progresiva y movimiento reducido. Vista local con datos sintéticos.
+
+## MC153 — Rendimiento móvil y PWA desde staging
+- Estado: COMPLETO EN PRE. v1.15.44 verificada en el alias y en Chromium.
+- Alcance: medir arranque, reapertura y navegación en compilación de producción con datos sintéticos. Mantener el acceso ligero y la precarga de liga, con publicación solo en PRE.
+- Gates: comparación repetida de cada cambio, validate, Playwright de ligas, torneos, partidos, chats, permisos, notificaciones y PWA, controles de PR y verificación del árbol, rutas y PWA de PRE.
+
+## MC150 — Publicación PRE v1.15.43
+- Estado: COMPLETO EN PRE. Pendiente autorización para promoción a producción.
+- Gates: validate local, pruebas dirigidas de inicio y chats, CI de la candidata, árbol idéntico al integrar en staging y comprobaciones de versión, rutas y PWA en PRE.
+
+## MC149 — Apertura progresiva de Chats Global
+- Estado: COMPLETO LOCAL. Carga progresiva y reapertura con metadatos por cuenta, validadas frente a la compilación anterior.
+- Gates: prueba de apertura en pestañas nuevas con datos sintéticos y respuestas retenidas, actualización y retirada de datos al perder permisos, aislamiento de cuentas, validate y regresiones de chats.
+
+## MC148 — Arranque ligero de Mis Competiciones
+- Estado: COMPLETO. v1.15.42 verificada en PRE y arranque ligero validado en una rama local independiente.
+- Gates: CI y smoke para PRE v1.15.42. En la nueva rama, comprobar tamaño, permisos, contenido inicial, hidratación completa bajo demanda, precarga sin duplicados, red lenta, tipos, lint y navegador.
+
+## MC147 — Comparativa de latencia de entrada
+- Estado: COMPLETO LOCAL. La candidata superó a v1.15.41 en las medianas de los tres recorridos simulados.
+- Gates: igualdad de respuestas y privacidad, medición repetida de la preparación de acceso y actividad, tipo, lint, compilación y regresiones de navegador.
+
 ## MC146 — Publicación v1.15.41 en PRE y PROD
-- Estado: EN CURSO. Publicar el inicio en Mis Competiciones y las mejoras de rendimiento.
+- Estado: COMPLETO EN PRE Y PROD. Publicados el inicio en Mis Competiciones y las mejoras de rendimiento.
 - Gates: validación local, CI, comprobación de PRE y promoción del mismo árbol a PROD con verificación de rutas, caché PWA y versión.
 
 ## MC145 — Mis Competiciones como inicio general

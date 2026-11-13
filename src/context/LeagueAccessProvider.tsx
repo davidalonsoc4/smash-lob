@@ -13,6 +13,8 @@ import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useMatchData } from "@/context/MatchDataProvider";
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider";
+import { useLeagueSnapshotPreload } from "@/hooks/useLeagueSnapshotPreload";
+import type { LeagueOverview } from "@/lib/competitionOverview";
 import { LEAGUE_ACCESS_REFRESH_EVENT } from "@/lib/appRefreshEvents";
 import {
   deleteSupabaseLeague,
@@ -89,6 +91,9 @@ type LeagueAccessContextValue = {
   userMemberships: UserLeagueMembership[];
   spectatorLeagueIds: string[];
   isAccessHydrated: boolean;
+  overview?: LeagueOverview;
+  preloadLeagueSnapshot: () => void | (() => void);
+  prepareLeagueNavigation: () => void;
   userLeagues: League[];
   refreshLeagueAccess: () => Promise<boolean>;
   createLeague: (settings: {
@@ -512,6 +517,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const { data: session, status: sessionStatus } = useSession();
   const pathname = usePathname();
   const adminSnapshotContext = pathname === "/admin" || pathname.startsWith("/admin/");
+  const overviewOnly = pathname === "/leagues";
+  const acceptsOverview = overviewOnly || pathname === "/personal-matches" || pathname === "/personal-matches/profile";
+  const requiredScope = acceptsOverview ? "overview" : adminSnapshotContext ? "admin" : "full";
   const { hydrateMatches } = useMatchData();
   const {
     hydrateSeasonSnapshot,
@@ -543,14 +551,16 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     Record<string, string[]>
   >({});
   const [spectatorLeagueIds, setSpectatorLeagueIds] = useState<string[]>([]);
-  const [hydratedAccessUserId, setHydratedAccessUserId] = useState<string | null>(
-    null,
-  );
-  // Cached access alone cannot guarantee that names, settings and matches are ready.
-  const isAccessHydrated =
-    sessionStatus === "unauthenticated" ||
-    (Boolean(userId) &&
-      hydratedAccessUserId === userId);
+  const [hydration, setHydration] = useState<{ userId: string; scope: "overview" | "full" | "admin"; overview?: LeagueOverview }>();
+  const currentHydration = hydration?.userId === userId ? hydration : undefined;
+  const overview = overviewOnly ? currentHydration?.overview : undefined;
+  const refreshCompactOverview = Boolean(overview);
+  const scopeReady = Boolean(currentHydration?.scope === requiredScope || (requiredScope === "overview" && currentHydration?.scope === "full"));
+  const isAccessHydrated = sessionStatus === "unauthenticated" || scopeReady;
+  const { schedule: preloadLeagueSnapshot, start: startLeagueSnapshot, take: takePreloadedAccess, clear: clearPreloadedAccess } = useLeagueSnapshotPreload(userId);
+  const prepareLeagueNavigation = useCallback(() => {
+    if (overview) startLeagueSnapshot("high");
+  }, [overview, startLeagueSnapshot]);
 
   function persistLeagues(nextLeaguesInput: League[]) {
     const nextLeagues = uniqueLeaguesById(nextLeaguesInput);
@@ -576,21 +586,26 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       return;
     }
 
-    if (!userId) {
+    if (!userId || (scopeReady && !refreshCompactOverview)) {
       return;
     }
 
     let isCancelled = false;
+    let isLoadingSnapshot = false;
     const cachedSpectatorLeagueIds = readCachedSpectatorLeagueIds(userId);
-    const cachedAccessTimer = window.setTimeout(() => {
+    const cachedAccessTimer = refreshCompactOverview ? undefined : window.setTimeout(() => {
       if (!isCancelled) {
         setSpectatorLeagueIds(cachedSpectatorLeagueIds);
       }
     }, 0);
 
     async function hydrateSupabaseAccess() {
+      if (isLoadingSnapshot) return;
+      isLoadingSnapshot = true;
       try {
-        const snapshot = await fetchSupabaseLeagueSnapshot({ adminContext: adminSnapshotContext });
+        const preloaded = requiredScope === "full" ? await takePreloadedAccess() : null;
+        if (isCancelled) return;
+        const snapshot = preloaded ?? await fetchSupabaseLeagueSnapshot({ adminContext: adminSnapshotContext, overview: requiredScope === "overview" });
 
         if (isCancelled) {
           return;
@@ -624,8 +639,11 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
 
           return nextMemberships;
         });
-        hydrateMatches(snapshot.matches);
-        hydrateSeasonSnapshot(snapshot.seasonSnapshot);
+        if (!snapshot.overview) {
+          hydrateMatches(snapshot.matches);
+          hydrateSeasonSnapshot(snapshot.seasonSnapshot);
+        }
+        setHydration({ userId: userId as string, scope: snapshot.overview ? "overview" : adminSnapshotContext ? "admin" : "full", overview: snapshot.overview });
       } catch (error) {
         const details =
           typeof error === "object" && error !== null
@@ -638,21 +656,28 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
             createdAt: new Date().toISOString(),
           }),
         );
+        if (!isCancelled && !refreshCompactOverview) setHydration({ userId: userId as string, scope: requiredScope });
       } finally {
-        if (!isCancelled) {
-          setHydratedAccessUserId(userId);
-        }
+        isLoadingSnapshot = false;
       }
     }
 
-    hydrateSupabaseAccess();
+    const refreshTimer = refreshCompactOverview ? window.setInterval(() => {
+      if (!document.hidden) void hydrateSupabaseAccess();
+    }, 60_000) : undefined;
+    if (!refreshCompactOverview) void hydrateSupabaseAccess();
 
     return () => {
       isCancelled = true;
       window.clearTimeout(cachedAccessTimer);
+      window.clearInterval(refreshTimer);
     };
   }, [
     adminSnapshotContext,
+    refreshCompactOverview,
+    requiredScope,
+    scopeReady,
+    takePreloadedAccess,
     hydrateMatches,
     hydrateSeasonSnapshot,
     sessionStatus,
@@ -665,7 +690,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     }
 
     try {
+      clearPreloadedAccess();
       const snapshot = await fetchSupabaseLeagueSnapshot({ adminContext: adminSnapshotContext });
+      if (snapshot.overview) return false;
       const fallbackLeagues = isDemoDataEnabled() ? defaultLeagues : [];
       const fallbackMemberships = isDemoDataEnabled()
         ? defaultUserLeagueMemberships
@@ -710,14 +737,14 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       });
       hydrateMatches(snapshot.matches);
       hydrateSeasonSnapshot(snapshot.seasonSnapshot);
-      setHydratedAccessUserId(userId);
+      setHydration({ userId, scope: adminSnapshotContext ? "admin" : "full" });
 
       return true;
     } catch (error) {
       recordSupabaseError("refresh-league-access", error);
       return false;
     }
-  }, [adminSnapshotContext, hydrateMatches, hydrateSeasonSnapshot, userId]);
+  }, [adminSnapshotContext, clearPreloadedAccess, hydrateMatches, hydrateSeasonSnapshot, userId]);
 
   useEffect(() => {
     const handleLeagueAccessRefresh = () => {
@@ -1870,6 +1897,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       userMemberships,
       spectatorLeagueIds,
       isAccessHydrated,
+      overview,
+      preloadLeagueSnapshot,
+      prepareLeagueNavigation,
       userLeagues,
       refreshLeagueAccess,
       createLeague,
@@ -1942,6 +1972,9 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       leagues,
       spectatorLeagueIds,
       isAccessHydrated,
+      overview,
+      preloadLeagueSnapshot,
+      prepareLeagueNavigation,
       userId,
       userLeagues,
       userMemberships,

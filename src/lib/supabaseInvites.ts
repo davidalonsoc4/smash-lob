@@ -1,3 +1,4 @@
+import { requestLeagueMembershipRefresh } from "@/lib/appRefreshEvents"
 import type { SeasonSnapshot } from "@/context/SeasonSettingsProvider"
 import type { MatchData } from "@/context/MatchDataProvider"
 import type { League, UserLeagueMembership } from "@/data/fakeData"
@@ -102,5 +103,7 @@ export async function claimSupabasePlayer({
     throw new Error(`claim-api-${response.status}`)
   }
 
-  return (await response.json()) as ClaimPlayerResult
+  const result = (await response.json()) as ClaimPlayerResult
+  if (result.ok) requestLeagueMembershipRefresh()
+  return result
 }

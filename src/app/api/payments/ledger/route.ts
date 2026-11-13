@@ -1,6 +1,6 @@
-﻿import { NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import type { CourtBookingTransfer } from "@/context/MatchDataProvider"
-import type { PaymentLedgerItem } from "@/lib/paymentLedger"
+import { PAYMENT_LEDGER_ACCOUNT_HEADER, type PaymentLedgerItem } from "@/lib/paymentLedger"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 
@@ -101,6 +101,10 @@ export async function GET(request: Request) {
   }
 
   const { actor } = authResult
+  const account = request.headers.get(PAYMENT_LEDGER_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(actor.user.email)) {
+    return NextResponse.json({ error: "session_changed" }, { status: 403 })
+  }
 
   try {
     const [membershipsResult, personalMembershipsResult] = await Promise.all([

@@ -12,7 +12,7 @@ import {
   getScheduleLocationDisplayText,
   normalizeScheduleLocationValue,
 } from "@/lib/leagueLocations"
-import type { PersonalMatchStatus } from "@/lib/personalMatches"
+import { PERSONAL_PROFILE_ACCOUNT_HEADER, type PersonalMatchStatus } from "@/lib/personalMatches"
 import {
   loadPersonalMatchesDashboard,
   resolvePersonalMatchParticipantDrafts,
@@ -46,6 +46,11 @@ export async function GET(request: Request) {
   const authResult = await requireAuthenticatedAppUser()
   if (!authResult.ok) {
     return NextResponse.json({ error: authResult.error }, { status: authResult.status })
+  }
+
+  const account = request.headers.get(PERSONAL_PROFILE_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(authResult.actor.user.email)) {
+    return NextResponse.json({ error: "session_changed" }, { status: 403 })
   }
 
   const url = new URL(request.url)

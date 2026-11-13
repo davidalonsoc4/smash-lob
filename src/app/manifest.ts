@@ -9,7 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: branding.applicationName,
     short_name: branding.shortName,
     description: "Ligas, torneos y rankings privados de pádel.",
-    start_url: "/launch?source=pwa",
+    start_url: "/leagues",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

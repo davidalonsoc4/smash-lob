@@ -4,6 +4,7 @@ import { type FormEvent, useMemo, useRef, useState } from "react"
 import { FitText } from "@/components/ui/FitText"
 import { AppCard } from "@/components/ui/AppCard"
 import { useMatchData } from "@/context/MatchDataProvider"
+import { requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import { useI18n } from "@/i18n/I18nProvider"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import { hasMatchResultWinner } from "@/lib/matchResultValidity"
@@ -237,6 +238,7 @@ export function MatchResultForm({
           ? t.matchResult.updatedFeedback
           : t.matchResult.savedFeedback,
     })
+    requestPersonalProfileHistoryRefresh()
     onSaved?.()
   }
 

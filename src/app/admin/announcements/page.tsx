@@ -17,7 +17,7 @@ import {
 } from "@/lib/announcements"
 import { showActionFeedback } from "@/lib/actionFeedback"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 
 function formatDate(value: string, locale: Locale) {
@@ -70,7 +70,7 @@ export default function AdminAnnouncementsPage() {
 
     fetchLeagueAnnouncements(activeLeague.id)
       .then((items) => {
-        if (!cancelled) setAnnouncements(items)
+        if (!cancelled) setAnnouncements(items ?? [])
       })
       .catch(() => {
         if (!cancelled) setError("No se han podido cargar los comunicados.")

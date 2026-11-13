@@ -16,8 +16,9 @@ import { getMatchResultConfirmationState } from "@/lib/resultConfirmations"
 import { readSelectedSeasonId, subscribeSeasonSelection } from "@/lib/seasonSelection"
 import { useSyncExternalStore } from "react"
 
-export function useCurrentLeagueData(selectedSeasonId?: string | null) {
-  const { activeLeagueId } = useActiveLeague()
+export function useCurrentLeagueData(selectedSeasonId?: string | null, selectedLeagueId?: string) {
+  const { activeLeagueId: defaultLeagueId } = useActiveLeague()
+  const activeLeagueId = selectedLeagueId ?? defaultLeagueId
   const sharedSeasonId = useSyncExternalStore(subscribeSeasonSelection, () => readSelectedSeasonId(activeLeagueId), () => null)
   const {
     getMembershipForLeague,

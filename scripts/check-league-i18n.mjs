@@ -73,17 +73,6 @@ function findVariableInitializer(relativePath, variableName) {
   return { source, initializer }
 }
 
-function getObjectProperty(objectNode, source, name) {
-  if (!ts.isObjectLiteralExpression(objectNode)) return null
-  for (const property of objectNode.properties) {
-    if (!ts.isPropertyAssignment(property)) continue
-    if (propertyName(property.name, source) === name) {
-      return unwrapExpression(property.initializer)
-    }
-  }
-  return null
-}
-
 function collectStringLeaves(objectNode, source, prefix = "", result = new Map()) {
   if (!ts.isObjectLiteralExpression(objectNode)) return result
 
@@ -152,9 +141,8 @@ for (const [key, spanishValue] of dictionaries.es.entries()) {
 }
 
 function collectOverrides(variableName, locale) {
-  const { source, initializer } = findVariableInitializer("src/i18n/leagueText.ts", variableName)
-  const localeObject = getObjectProperty(initializer, source, locale)
-  return collectObjectStringEntries(localeObject, source)
+  const { source, initializer } = findVariableInitializer(`src/i18n/locales/${locale}Text.ts`, variableName)
+  return collectObjectStringEntries(initializer, source)
 }
 
 const overrideMaps = {
@@ -172,8 +160,7 @@ function hasStaticTranslation(locale, sourceText) {
 }
 
 function collectDynamicTemplates(locale) {
-  const { source, initializer } = findVariableInitializer("src/i18n/leagueText.ts", "DYNAMIC_TEMPLATES")
-  const localeArray = getObjectProperty(initializer, source, locale)
+  const { initializer: localeArray } = findVariableInitializer(`src/i18n/locales/${locale}Text.ts`, "DYNAMIC_TEMPLATES")
   const values = new Set()
   if (!ts.isArrayLiteralExpression(localeArray)) return values
 
@@ -529,7 +516,7 @@ for (const pattern of dynamicTxPatterns) {
 if (missingDynamic.length) fail(missingDynamic)
 
 const provider = read("src/i18n/I18nProvider.tsx")
-if (!provider.includes("tx: (source: string) => string") || !provider.includes("translateLeagueText(locale, source)")) {
+if (!provider.includes("tx: (source: string) => string") || !provider.includes('import("./locales/enText")') || !provider.includes('import("./locales/euText")')) {
   fail("I18nProvider no expone tx mediante el sistema de locale existente")
 }
 

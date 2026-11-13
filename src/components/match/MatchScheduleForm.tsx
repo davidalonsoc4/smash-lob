@@ -10,7 +10,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { DirectionsPicker } from "@/components/ui/DirectionsPicker";
 import { matchPrimaryButton, matchSecondaryButton, matchDestructiveButton, matchToggleClass } from "./matchPanelStyles";
 import { useI18n } from "@/i18n/I18nProvider";
-import { getIntlLocale } from "@/i18n/leagueText";
+import { getIntlLocale } from "@/i18n/localeFormatting";
 import type { Locale } from "@/i18n/translations";
 import {
   createLeagueLocation,

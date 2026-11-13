@@ -13,7 +13,7 @@ import { TeamPlayers } from "@/components/player/TeamPlayers";
 import { AppCard } from "@/components/ui/AppCard";
 import { ClickableChevron } from "@/components/ui/ClickableChevron";
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText";
+import { getIntlLocale } from "@/i18n/localeFormatting";
 import {
   findLeagueLocationByScheduleLocation,
   getLeagueLocationCompactText,

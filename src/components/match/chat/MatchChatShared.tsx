@@ -16,7 +16,7 @@ import { MatchChatSendIcon } from "@/components/match/MatchChatSendIcon"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { BackButton } from "@/components/ui/BackButton"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import { MATCH_CHAT_TIME_ZONE } from "@/lib/matchChatWindow"
 import type { Locale } from "@/i18n/translations"
 
@@ -292,7 +292,7 @@ export function MatchChatComposer({
         onKeyDown={
           onKeyDown ??
           ((event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
+            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault()
               event.currentTarget.form?.requestSubmit()
             }
@@ -562,6 +562,8 @@ export function useMatchChatViewport({
       const keyboardLikelyOpen =
         composerFocused && restingViewportHeight - visibleHeight > 120
 
+      const panel = messagesRef.current
+      const nearLatest = Boolean(panel && panel.scrollHeight - panel.scrollTop - panel.clientHeight < 120)
       root.style.height = `${Math.round(visibleHeight)}px`
       root.style.top = `${Math.round(visibleTop)}px`
       root.style.setProperty(
@@ -569,7 +571,7 @@ export function useMatchChatViewport({
         keyboardLikelyOpen ? "0px" : "env(safe-area-inset-bottom, 0px)",
       )
 
-      if (keepLatestVisible) {
+      if (keepLatestVisible && nearLatest) {
         window.requestAnimationFrame(() => {
           const panel = messagesRef.current
           if (panel) panel.scrollTop = panel.scrollHeight
@@ -579,10 +581,12 @@ export function useMatchChatViewport({
 
     const handleViewportResize = () => syncViewport(true)
     const handleViewportScroll = () => syncViewport(false)
-    const composer = composerRef.current
     const focusTimers: number[] = []
+    const clearFocusTimers = () => focusTimers.splice(0).forEach(timer => window.clearTimeout(timer))
 
-    const handleComposerFocus = () => {
+    const handleComposerFocus = (event: FocusEvent) => {
+      if (event.target !== composerRef.current) return
+      clearFocusTimers()
       restingViewportHeight = Math.max(
         restingViewportHeight,
         window.innerHeight,
@@ -598,14 +602,16 @@ export function useMatchChatViewport({
     visualViewport?.addEventListener("resize", handleViewportResize)
     visualViewport?.addEventListener("scroll", handleViewportScroll)
     window.addEventListener("resize", handleViewportResize)
-    composer?.addEventListener("focus", handleComposerFocus)
+    root.addEventListener("focusin", handleComposerFocus)
+    root.addEventListener("focusout", clearFocusTimers)
 
     return () => {
       visualViewport?.removeEventListener("resize", handleViewportResize)
       visualViewport?.removeEventListener("scroll", handleViewportScroll)
       window.removeEventListener("resize", handleViewportResize)
-      composer?.removeEventListener("focus", handleComposerFocus)
-      focusTimers.forEach((timer) => window.clearTimeout(timer))
+      root.removeEventListener("focusin", handleComposerFocus)
+      root.removeEventListener("focusout", clearFocusTimers)
+      clearFocusTimers()
       html.style.overflow = previousHtmlOverflow
       pageBody.style.overflow = previousBodyOverflow
       pageBody.style.overscrollBehavior = previousBodyOverscroll

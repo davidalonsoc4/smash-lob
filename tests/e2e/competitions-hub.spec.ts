@@ -195,7 +195,7 @@ test("mobile cards snap between next/last and league/mine, with centered uncut l
   expect(a11y.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })
 
-test("personal matches shows recent activity while revalidating after navigation", async ({ page }) => {
+test("personal matches reuses the hub history until match data changes", async ({ page }) => {
   let releaseRefresh!: () => void
   const refreshPending = new Promise<void>(resolve => { releaseRefresh = resolve })
   let reads = 0
@@ -216,7 +216,10 @@ test("personal matches shows recent activity while revalidating after navigation
     await navbar.getByRole("link", { name: "Mis partidos" }).click()
     await expect(page.getByRole("heading", { name: "Mis partidos" })).toBeVisible()
     await expect(page.getByText("Dato en memoria")).toBeVisible()
+    expect(reads).toBe(1)
+    await page.evaluate(() => window.dispatchEvent(new Event("smash-lob:refresh-match-dashboard")))
     await expect.poll(() => reads).toBe(2)
+    await expect(page.getByText("Dato en memoria")).toBeVisible()
   } finally {
     releaseRefresh()
   }
@@ -398,7 +401,7 @@ for (const theme of ["light", "dark"] as const) {
     await navigation.getByRole("link", { name: "Mis partidos", exact: true }).click()
     await expect(navigation.getByRole("link", { name: "Mis partidos", exact: true })).toHaveAttribute("aria-current", "page")
     await expect(page.getByRole("link", { name: "Crear nuevo encuentro", exact: true })).toBeVisible()
-    await page.route("**/api/personal-matches/chats", route => route.fulfill({ json: { chats: [] } }))
+    await page.route(/\/api\/personal-matches\/chats(?:\?|$)/, route => route.fulfill({ json: { chats: [] } }))
     await navigation.getByRole("link", { name: "Chats", exact: true }).click()
     await expect(navigation.getByRole("link", { name: "Chats", exact: true })).toHaveAttribute("aria-current", "page")
     await navigation.getByRole("link", { name: "Mi perfil", exact: true }).click()
@@ -452,6 +455,8 @@ for (const theme of ["light", "dark"] as const) {
       await page.setViewportSize({ width, height: 852 })
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
     }
+    await page.waitForFunction(() => Array.from(document.querySelectorAll("[data-content-enter]"))
+      .every(card => card.getAnimations().every(animation => animation.playState === "finished")))
     const filledAccessibility = await new AxeBuilder({ page }).analyze()
     expect(filledAccessibility.violations.filter(item => item.impact === "serious" || item.impact === "critical")).toEqual([])
     await page.screenshot({ path: testInfo.outputPath("hub-filled-custom-accent.png"), fullPage: true, scale: "css" })
@@ -478,7 +483,7 @@ for (const theme of ["light", "dark"] as const) {
       ].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
     }, theme)
     await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [], upcoming: [], hasMore: false, nextOffset: null } }))
-    await page.route("**/api/personal-matches/chats", route => route.fulfill({ json: { chats: [] } }))
+    await page.route(/\/api\/personal-matches\/chats(?:\?|$)/, route => route.fulfill({ json: { chats: [] } }))
     await page.route("**/api/tournaments/sources", route => route.fulfill({ json: { sources: [] } }))
     await page.route("**/api/tournaments/people", route => route.fulfill({ json: { people: [] } }))
     await page.route("**/api/locations", route => route.fulfill({ json: { locations: [] } }))

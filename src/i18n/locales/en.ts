@@ -819,8 +819,6 @@ export const en = {
     colorfulPaletteClassicDescription: "Flat colours and the application's classic appearance.",
     competitionAccentTitle: "Competition accent",
     competitionAccentDescription: "Choose the primary colour for Competition mode in this league.",
-    competitionAccentLeague: "League colour",
-    competitionAccentLeagueDescription: "Use the colour configured for the active league.",
     competitionAccentGold: "Gold",
     competitionAccentGoldDescription: "A warm, sporty gold.",
     competitionAccentBlue: "Competition blue",

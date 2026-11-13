@@ -12,7 +12,7 @@ export type Palette =
   | "league"
 
 export type StoredVisualStyle = "classic" | "competition" | "plain" | "colorful"
-export type CompetitionAccent = "league" | "gold" | "blue" | "green" | "coral" | "violet" | "ice"
+export type CompetitionAccent = "gold" | "blue" | "green" | "coral" | "violet" | "ice"
 
 export const VISUAL_STYLE_STORAGE_KEY = "smash-lob-visual-style"
 export const COMPETITION_ACCENT_STORAGE_KEY = "smash-lob-competition-accent"
@@ -26,9 +26,9 @@ export const DEFAULT_BASE_THEME: BaseTheme = "light"
 export const DEFAULT_VISUAL_STYLE: VisualStyle = "classic"
 export const DEFAULT_PALETTE: Palette = "classic"
 export const DEFAULT_LEAGUE_ACCENT = "#D7A544"
-export const DEFAULT_COMPETITION_ACCENT: CompetitionAccent = "league"
+export const DEFAULT_COMPETITION_ACCENT: CompetitionAccent = "gold"
 
-export const COMPETITION_ACCENT_COLORS: Record<Exclude<CompetitionAccent, "league">, string> = {
+export const COMPETITION_ACCENT_COLORS: Record<CompetitionAccent, string> = {
   gold: "#D7A544",
   blue: "#477BD1",
   green: "#3D9D86",
@@ -102,15 +102,15 @@ export function normalizeAccentColor(value: unknown, fallback = DEFAULT_LEAGUE_A
 }
 
 export function isCompetitionAccent(value: string | null): value is CompetitionAccent {
-  return value === "league" || value === "gold" || value === "blue" || value === "green" || value === "coral" || value === "violet" || value === "ice"
+  return value !== null && Object.hasOwn(COMPETITION_ACCENT_COLORS, value)
 }
 
 export function normalizeCompetitionAccent(value: string | null): CompetitionAccent {
   return isCompetitionAccent(value) ? value : DEFAULT_COMPETITION_ACCENT
 }
 
-export function getCompetitionAccentColor(choice: CompetitionAccent, leagueAccent = DEFAULT_LEAGUE_ACCENT) {
-  return choice === "league" ? normalizeAccentColor(leagueAccent) : COMPETITION_ACCENT_COLORS[choice]
+export function getCompetitionAccentColor(choice: CompetitionAccent) {
+  return COMPETITION_ACCENT_COLORS[choice]
 }
 
 export function getContrastColor(value: string) {

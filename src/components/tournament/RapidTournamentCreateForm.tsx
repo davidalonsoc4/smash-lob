@@ -2,6 +2,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
+import { requestTournamentListRefresh } from "@/lib/appRefreshEvents"
 import { getLeagueLocationOptionLabel, sortLeagueLocationsByOptionLabel, type LeagueLocation } from "@/lib/leagueLocations"
 import { buildRapidRounds, getRapidActiveCourtCount, getRapidBreakOffsetMinutes, validateTournamentParticipants } from "@/lib/rapidTournament"
 import { getRecommendedRapidRounds, planRapidTournament } from "@/lib/tournamentConfiguration"
@@ -220,6 +221,7 @@ export function RapidTournamentCreateForm({ initialSource = null, duplicateOf }:
         const message = result?.error === "duplicate_player_names" ? "Hay nombres de jugadores duplicados." : result?.error === "invalid_player_count" ? "Elige entre cuatro y treinta y dos jugadores y completa todos los nombres." : result?.error === "tournament_account_access_not_ready" ? "La configuración de torneos necesita actualizarse. Contacta con el administrador." : "No se ha podido crear el torneo. Revisa los datos e inténtalo de nuevo."
         setError(tx(message)); return
       }
+      requestTournamentListRefresh()
       router.push(`/tournaments/${result.id}/calendar`)
     } catch {
       setError(tx("No se ha podido crear el torneo. Revisa los datos e inténtalo de nuevo."))

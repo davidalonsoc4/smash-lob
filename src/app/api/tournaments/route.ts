@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { TOURNAMENT_LIST_ACCOUNT_HEADER } from "@/lib/tournamentList"
 import { randomInt } from "node:crypto"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
@@ -25,6 +26,10 @@ export async function GET(request: Request) {
   if (rateLimited) return rateLimited
   const auth = await requireAuthenticatedAppUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status, headers: { "Cache-Control": "no-store" } })
+  const account = request.headers.get(TOURNAMENT_LIST_ACCOUNT_HEADER)
+  if (account !== null && account !== encodeURIComponent(auth.actor.user.email)) {
+    return NextResponse.json({ error: "session_changed" }, { status: 403, headers: { "Cache-Control": "no-store" } })
+  }
   const { data: participantRows, error: participantError } = await auth.actor.supabase.from("rapid_tournament_players")
     .select("tournament_id").eq("user_id", auth.actor.user.id)
   if (participantError && !isMissingAccountLinkSchema(participantError)) return NextResponse.json({ error: "tournaments_read_failed" }, { status: 500, headers: { "Cache-Control": "no-store" } })

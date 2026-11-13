@@ -2,7 +2,10 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useI18n } from "@/i18n/I18nProvider"
-import { useEffect, useMemo, useState } from "react"
+import { requestMatchDashboardRefresh, requestPaymentLedgerRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { clearMatchChatCache, readMatchChatCache, writeMatchChatCache } from "@/lib/matchChatCache"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { MatchChatFloatingAction } from "@/components/match/MatchChatFloatingAction"
 import { PersonalMatchParticipantsPanel } from "@/components/personal/PersonalMatchParticipantsPanel"
@@ -15,37 +18,62 @@ import { buildPersonalMatchDetailModel } from "@/lib/personalMatchDetailModel"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 
 export default function PersonalMatchDetailPage() {
+  const { account, matchDashboard, history } = useAccountProfile()
+  const { id } = useParams<{ id: string }>()
+  const dashboard = matchDashboard.getSnapshot().data
+  const initialItem = account
+    ? dashboard?.upcoming.find(match => match.id === id) ?? dashboard?.items.find(match => match.id === id) ?? history.getSnapshot().data?.find(match => match.id === id)
+    : undefined
+  return <PersonalMatchDetail key={JSON.stringify([account, id])} account={account} id={id} initialItem={initialItem} />
+}
+
+function PersonalMatchDetail({ account, id, initialItem }: { account: string; id: string; initialItem?: PersonalMatchItem }) {
   const { tx } = useI18n()
-  const params = useParams<{ id: string }>()
   const router = useRouter()
-  const [item, setItem] = useState<PersonalMatchItem | null>(null)
+  const cacheKey = `personal-detail:${id}`
+  const [item, setItem] = useState<PersonalMatchItem | null>(() =>
+    (account ? readMatchChatCache(cacheKey, account) as PersonalMatchItem | null : null) ?? initialItem ?? null,
+  )
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [editingResult, setEditingResult] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const revision = useRef(0)
 
   useEffect(() => {
-    let cancelled = false
-    fetch(`/api/personal-matches/${encodeURIComponent(params.id)}`, { cache: "no-store" })
+    const controller = new AbortController()
+    const requestRevision = revision.current
+    fetch(`/api/personal-matches/${encodeURIComponent(id)}`, { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
+        if (controller.signal.aborted) return
+        if ([401, 403, 404].includes(response.status)) {
+          clearMatchChatCache(cacheKey, account)
+          setItem(null)
+        }
         const payload = (await response.json()) as { item?: PersonalMatchItem }
         if (!response.ok || !payload.item) throw new Error("personal_match_lookup_failed")
         return payload.item
       })
       .then((nextItem) => {
-        if (!cancelled) setItem(nextItem)
+        if (controller.signal.aborted || !nextItem || revision.current !== requestRevision) return
+        if (account) writeMatchChatCache(cacheKey, account, nextItem)
+        setItem(nextItem)
       })
       .catch(() => {
-        if (!cancelled) setError("No se ha podido cargar este partido.")
+        if (!controller.signal.aborted) setError("No se ha podido cargar este partido.")
       })
       .finally(() => {
-        if (!cancelled) setLoading(false)
+        if (!controller.signal.aborted) setLoading(false)
       })
 
-    return () => {
-      cancelled = true
-    }
-  }, [params.id])
+    return () => controller.abort()
+  }, [account, cacheKey, id])
+
+  function updateItem(nextItem: PersonalMatchItem) {
+    revision.current++
+    if (account) writeMatchChatCache(cacheKey, account, nextItem)
+    setItem(nextItem)
+  }
 
   const scoreboard = useMemo(() => (item ? buildPersonalMatchDetailModel(item) : null), [item])
 
@@ -60,6 +88,11 @@ export default function PersonalMatchDetailPage() {
         method: "DELETE",
       })
       if (!response.ok) throw new Error("personal_match_delete_failed")
+      revision.current++
+      clearMatchChatCache(cacheKey, account)
+      requestPaymentLedgerRefresh()
+      if (item.status === "finished") requestPersonalProfileHistoryRefresh()
+      else requestMatchDashboardRefresh()
       router.replace("/personal-matches")
     } catch {
       setError("No se ha podido eliminar el partido.")
@@ -67,7 +100,7 @@ export default function PersonalMatchDetailPage() {
     }
   }
 
-  if (loading) {
+  if (loading && !item) {
     return (
       <div className="compact-page space-y-3">
         <BackButton fallbackHref="/personal-matches" label={tx("Mis partidos")} />
@@ -115,18 +148,18 @@ export default function PersonalMatchDetailPage() {
         showFinishedPlayerMetadata: false,
       }}
     >
-      <PersonalMatchParticipantsPanel match={item} onUpdated={setItem} />
+      <PersonalMatchParticipantsPanel match={item} onUpdated={updateItem} />
 
-      <PersonalMatchSchedulePanel match={item} onUpdated={setItem} />
+      <PersonalMatchSchedulePanel match={item} onUpdated={updateItem} />
 
-      <PersonalMatchCourtBookingPanel match={item} onUpdated={setItem} />
+      <PersonalMatchCourtBookingPanel match={item} onUpdated={updateItem} />
 
       {item.status === "scheduled" && item.canManage ? (
         <PersonalMatchResultForm
           match={item}
           mode="create"
           onSaved={(nextItem) => {
-            setItem(nextItem)
+            updateItem(nextItem)
             setEditingResult(false)
           }}
         />
@@ -150,7 +183,7 @@ export default function PersonalMatchDetailPage() {
           mode="edit"
           onCancel={() => setEditingResult(false)}
           onSaved={(nextItem) => {
-            setItem(nextItem)
+            updateItem(nextItem)
             setEditingResult(false)
           }}
         />

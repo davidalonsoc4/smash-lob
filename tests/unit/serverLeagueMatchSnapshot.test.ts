@@ -22,4 +22,13 @@ describe("complete league match snapshots",()=>{
     const error={message:"read failed"},{db}=client([{data:Array.from({length:1000},(_,i)=>({id:String(i)})),error:null},{data:null,error}])
     expect(await readLeagueMatchSnapshot(db,["league"])).toEqual({data:null,error})
   })
+  it("limits the summary projection to activity and round fields", async () => {
+    const { db, query } = client([{ data: [], error: null }])
+    await readLeagueMatchSnapshot(db, ["league"], true)
+    const selected = query.select.mock.calls[0][0].split(",")
+    expect(selected).toContain("resolution_type")
+    expect(selected).not.toContain("booking_reservations")
+    expect(selected).not.toContain("incident_notes")
+    expect(query.in).toHaveBeenCalledWith("league_id", ["league"])
+  })
 })

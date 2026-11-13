@@ -9,14 +9,15 @@ import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useSessionResource } from "@/hooks/useSessionResource"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 import type { Locale } from "@/i18n/translations"
 import {
-  fetchSupabaseActivityEvents,
   isTargetedCustodianActivityType,
   isTargetedCustodianActivityVisibleToPlayer,
   type ActivityEvent,
@@ -428,70 +429,27 @@ function ActivityPageContent() {
       : requestedScope === "admin" && canAccessAdmin
         ? "admin"
         : "all"
-  const [events, setEvents] = useState<ActivityEvent[]>([])
+  const { leagueScreenData } = useAccountProfile()
+  const activity = leagueScreenData.activity.get(currentUserId, activeLeague.id, canAccessAdmin ? "admin" : "player")
+  const { data, failed } = useSessionResource(activity)
+  const events = useMemo(() => data ?? [], [data])
+  const isLoading = !data && !failed
+  const error = failed ? t.activity.loadErrorDescription : null
   const [scope, setScope] = useState<ActivityScope>(initialScope)
   const [activitySettings, setActivitySettings] = useState<LeagueActivitySettings>({})
   const [draftSettings, setDraftSettings] = useState<LeagueActivitySettings>({})
-  const [isLoading, setIsLoading] = useState(true)
   const [isSettingsLoading, setIsSettingsLoading] = useState(true)
   const [isSettingsSaving, setIsSettingsSaving] = useState(false)
   const [areSettingsExpanded, setAreSettingsExpanded] = useState(false)
   const [settingsError, setSettingsError] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
   const [lastActivityError, setLastActivityError] = useState<string | null>(
     () => readLastActivityError()
   )
 
   function refreshActivity() {
     setLastActivityError(readLastActivityError())
-    setRefreshKey((current) => current + 1)
+    activity.invalidate()
   }
-
-  useEffect(() => {
-    let isMounted = true
-
-    async function loadActivity() {
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        const activityEvents = await fetchSupabaseActivityEvents({
-          leagueId: activeLeague.id,
-          limit: 160,
-          clampToViewerJoinDate: !canAccessAdmin,
-        })
-
-        if (!isMounted) {
-          return
-        }
-
-        setEvents(activityEvents)
-      } catch {
-        if (!isMounted) {
-          return
-        }
-
-        setError(t.activity.loadErrorDescription)
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    loadActivity()
-
-    return () => {
-      isMounted = false
-    }
-  }, [
-    activeLeague.id,
-    canAccessAdmin,
-    currentUserId,
-    refreshKey,
-    t.activity.loadErrorDescription,
-  ])
 
   useEffect(() => {
     let isMounted = true

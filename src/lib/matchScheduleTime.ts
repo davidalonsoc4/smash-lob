@@ -1,4 +1,4 @@
-import { getIntlLocale } from "@/i18n/leagueText";
+import { getIntlLocale } from "@/i18n/localeFormatting";
 import type { Locale } from "@/i18n/translations";
 
 export const MATCH_SCHEDULE_TIME_ZONE = "Europe/Madrid";

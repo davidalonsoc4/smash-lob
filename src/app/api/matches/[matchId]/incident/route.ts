@@ -405,7 +405,7 @@ export async function PUT(
     },
   }).catch(() => null)
 
-  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId })
+  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId, leagueDataChanged: true })
 
   return NextResponse.json({ match: updatedMatch })
 }
@@ -493,7 +493,7 @@ export async function DELETE(
     },
   }).catch(() => null)
 
-  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId })
+  await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId, leagueDataChanged: true })
 
   return NextResponse.json({ match: updatedMatch })
 }

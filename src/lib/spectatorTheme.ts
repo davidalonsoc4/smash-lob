@@ -1,14 +1,13 @@
 import {
   APPEARANCE_PREFERENCE_STORAGE_KEY,
   DEFAULT_BASE_THEME,
-  DEFAULT_COMPETITION_ACCENT,
   DEFAULT_LEAGUE_ACCENT,
   DEFAULT_PALETTE,
   DEFAULT_VISUAL_STYLE,
   getCompetitionAccentColor, getCompetitionContrastColor, getCompetitionTextAccent,
   getContrastColor,
   normalizeAccentColor,
-  normalizeCompetitionAccent,
+  isCompetitionAccent,
   normalizePalette,
   type BaseTheme,
   type CompetitionAccent,
@@ -20,7 +19,7 @@ export type SpectatorInviteAppearance = {
   visualStyle: VisualStyle
   baseTheme: BaseTheme
   palette: Palette
-  competitionAccent: CompetitionAccent
+  competitionAccent: CompetitionAccent | "league"
   accentColor: string
 }
 
@@ -53,7 +52,8 @@ export function normalizeSpectatorInviteAppearance(input: Partial<SpectatorInvit
   const visualStyle = input?.visualStyle === "competition" ? "competition" : DEFAULT_VISUAL_STYLE
   const baseTheme = input?.baseTheme === "dark" || input?.baseTheme === "system" ? input.baseTheme : DEFAULT_BASE_THEME
   const palette = normalizePalette(input?.palette ?? null) ?? DEFAULT_PALETTE
-  const competitionAccent = normalizeCompetitionAccent(input?.competitionAccent ?? DEFAULT_COMPETITION_ACCENT)
+  const choice = input?.competitionAccent ?? null
+  const competitionAccent = isCompetitionAccent(choice) ? choice : "league"
   const accentColor = normalizeAccentColor(input?.accentColor, DEFAULT_LEAGUE_ACCENT)
   return { visualStyle, baseTheme, palette, competitionAccent, accentColor }
 }
@@ -70,7 +70,7 @@ export function applySpectatorInviteAppearance(input: Partial<SpectatorInviteApp
   const appearance = normalizeSpectatorInviteAppearance(input)
   const dark = appearance.baseTheme === "dark" || (appearance.baseTheme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
   const effectiveAccent = appearance.visualStyle === "competition"
-    ? getCompetitionAccentColor(appearance.competitionAccent, appearance.accentColor)
+    ? (appearance.competitionAccent === "league" ? appearance.accentColor : getCompetitionAccentColor(appearance.competitionAccent))
     : resolveClassicAccent(appearance.palette, appearance.baseTheme)
   const root = document.documentElement
   const resolvedTheme = dark ? "dark" : "light"

@@ -453,7 +453,6 @@ export function AppShell({ children }: AppShellProps) {
 
         {shouldShowSettingsSearch ? (
           <GlobalSettingsSearch
-            locale={locale}
             entries={settingsSearchEntries}
             hasBottomNav={shouldShowBottomNav}
           />

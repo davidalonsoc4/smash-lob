@@ -33,7 +33,7 @@ describe("v1.7.0 match chat MVP", () => {
     expect(api).toContain("body.length > 2000")
     expect(api).toContain("Date.now() - 10_000")
     expect(api).toContain(">= 8")
-    expect(api).toContain(".limit(60)")
+    expect(api).toContain(".limit(preview ? 20 : 60)")
   })
 
   it("integrates chat as a participant-only floating action above match actions", async () => {

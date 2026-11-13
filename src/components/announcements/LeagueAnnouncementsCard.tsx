@@ -1,13 +1,11 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useState } from "react"
+import { useAccountProfile } from "@/context/AccountProfileProvider"
+import { useLeagueScreenScope } from "@/hooks/useLeagueScreenScope"
+import { useSessionResource } from "@/hooks/useSessionResource"
 import { useI18n } from "@/i18n/I18nProvider"
-import { getIntlLocale } from "@/i18n/leagueText"
-import {
-  ANNOUNCEMENTS_REFRESH_EVENT,
-  fetchLeagueAnnouncements,
-  type LeagueAnnouncement,
-} from "@/lib/announcements"
+import { getIntlLocale } from "@/i18n/localeFormatting"
 
 function formatAnnouncementDate(value: string, locale: string) {
   const date = new Date(value)
@@ -24,42 +22,11 @@ function formatAnnouncementDate(value: string, locale: string) {
 export function LeagueAnnouncementsCard({ leagueId }: { leagueId: string }) {
   const { locale, tx } = useI18n()
   const intlLocale = getIntlLocale(locale)
-  const [announcements, setAnnouncements] = useState<LeagueAnnouncement[]>([])
-
-  const refreshAnnouncements = useCallback(async () => {
-    try {
-      const items = await fetchLeagueAnnouncements(leagueId, { homeOnly: true })
-      setAnnouncements(items.slice(0, 3))
-    } catch {
-      setAnnouncements([])
-    }
-  }, [leagueId])
-
-  useEffect(() => {
-    let cancelled = false
-
-    fetchLeagueAnnouncements(leagueId, { homeOnly: true })
-      .then((items) => {
-        if (!cancelled) setAnnouncements(items.slice(0, 3))
-      })
-      .catch(() => {
-        if (!cancelled) setAnnouncements([])
-      })
-
-    const handleRefresh = () => void refreshAnnouncements()
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") void refreshAnnouncements()
-    }
-
-    window.addEventListener(ANNOUNCEMENTS_REFRESH_EVENT, handleRefresh)
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-
-    return () => {
-      cancelled = true
-      window.removeEventListener(ANNOUNCEMENTS_REFRESH_EVENT, handleRefresh)
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-    }
-  }, [leagueId, refreshAnnouncements])
+  const { leagueScreenData } = useAccountProfile()
+  const scope = useLeagueScreenScope(leagueId)
+  const { data } = useSessionResource(leagueScreenData.announcements.get(scope, leagueId))
+  const [enteredAt] = useState(() => Date.now())
+  const announcements = data?.filter(item => !item.expiresAt || Date.parse(item.expiresAt) > enteredAt).slice(0, 3) ?? []
 
   if (announcements.length === 0) return null
 
