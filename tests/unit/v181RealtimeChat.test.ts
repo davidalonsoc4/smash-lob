@@ -9,7 +9,7 @@ describe("v1.8.1 realtime chat", () => {
     expect(serverRealtime).toContain('createHmac("sha256", secret)')
     expect(serverRealtime).toContain('`sl_chat_match_${token}`')
     expect(serverRealtime).toContain('`sl_chat_overview_${token}`')
-    expect(serverRealtime).toContain('JSON.stringify({ refresh: true, ...(leagueDataChanged ? { leagueDataChanged } : {}) })')
+    expect(serverRealtime).toContain('JSON.stringify({ refresh: true, ...(leagueDataChanged ? { leagueDataChanged } : {}), ...(changedMessageId ? { changedMessageId } : {}) })')
     expect(serverRealtime).not.toContain("messagePreview")
     expect(serverRealtime).not.toContain("sender_display_name")
   })

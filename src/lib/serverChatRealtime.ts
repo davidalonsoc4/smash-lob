@@ -34,7 +34,7 @@ export function getChatOverviewRealtimeTopic(leagueId: string, seasonId: string)
   return token ? `sl_chat_overview_${token}` : null
 }
 
-async function broadcastTopic(topic: string | null, leagueDataChanged = false) {
+async function broadcastTopic(topic: string | null, leagueDataChanged = false, changedMessageId?: string) {
   if (!topic) return false
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -49,7 +49,7 @@ async function broadcastTopic(topic: string | null, leagueDataChanged = false) {
         Authorization: `Bearer ${serviceRoleKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ refresh: true, ...(leagueDataChanged ? { leagueDataChanged } : {}) }),
+      body: JSON.stringify({ refresh: true, ...(leagueDataChanged ? { leagueDataChanged } : {}), ...(changedMessageId ? { changedMessageId } : {}) }),
       cache: "no-store",
     },
   )
@@ -73,11 +73,11 @@ export async function broadcastMatchChatRefresh(input: {
 
 export const CHAT_REALTIME_EVENT = REALTIME_EVENT
 
-export async function broadcastLeagueSeasonChatRefresh(leagueId: string, seasonId: string) {
+export async function broadcastLeagueSeasonChatRefresh(leagueId: string, seasonId: string, changedMessageId?: string) {
   await Promise.all([
-    getLeagueSeasonChatRealtimeTopic(seasonId),
-    getChatOverviewRealtimeTopic(leagueId, seasonId),
-  ].map((topic) => broadcastTopic(topic).catch(() => false)))
+    broadcastTopic(getLeagueSeasonChatRealtimeTopic(seasonId), false, changedMessageId).catch(() => false),
+    broadcastTopic(getChatOverviewRealtimeTopic(leagueId, seasonId)).catch(() => false),
+  ])
 }
 
 

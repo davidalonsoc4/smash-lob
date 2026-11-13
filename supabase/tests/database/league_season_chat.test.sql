@@ -1,5 +1,5 @@
 begin;
-select plan(12);
+select plan(19);
 
 insert into public.app_users (id,email,display_name) values
   ('71000000-0000-4000-8000-000000000001','season-chat-a@example.invalid','Player A'),
@@ -36,5 +36,13 @@ select throws_ok($$select public.send_league_season_chat_message('74000000-0000-
 select throws_ok($$select public.send_league_season_chat_message('74000000-0000-4000-8000-000000000001','71000000-0000-4000-8000-000000000001','Player A','Hola')$$,'P0001','season_chat_read_only','finished season rejects writes');
 select ok(not has_table_privilege('authenticated','public.league_season_chat_messages','select'),'authenticated cannot read messages directly');
 select ok(not has_table_privilege('authenticated','public.league_season_chat_participants','insert'),'authenticated cannot modify participant snapshots directly');
+select lives_ok($sql$select public.change_league_season_chat_message('74000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000002',(select id from public.league_season_chat_messages where body = 'Hola'),'Texto nuevo')$sql$,'the author can edit their message');
+select is((select count(*) from public.league_season_chat_messages where body = 'Texto nuevo' and edited_at is not null),1::bigint,'the edit timestamp is stored');
+insert into public.league_season_chat_participants(season_id,user_id) values ('74000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000001');
+select throws_ok($sql$select public.change_league_season_chat_message('74000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000001',(select id from public.league_season_chat_messages where body = 'Texto nuevo'),null)$sql$,'P0001','season_chat_message_not_found','another participant cannot delete the message');
+select lives_ok($sql$select public.change_league_season_chat_message('74000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000002',(select id from public.league_season_chat_messages where body = 'Texto nuevo'),null)$sql$,'the author can delete the text');
+select is((select count(*) from public.league_season_chat_messages where body = '' and deleted_at is not null),1::bigint,'only the deletion marker remains');
+select is((select (public.change_league_season_chat_message('74000000-0000-4000-8000-000000000002','71000000-0000-4000-8000-000000000002',(select id from public.league_season_chat_messages where deleted_at is not null),'Resurrect')).body),''::text,'editing a deleted message cannot restore it');
+select ok(not has_function_privilege('authenticated','public.change_league_season_chat_message(uuid,uuid,uuid,text)','execute'),'clients cannot invoke the mutation directly');
 select * from finish();
 rollback;

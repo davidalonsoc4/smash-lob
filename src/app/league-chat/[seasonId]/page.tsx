@@ -7,26 +7,35 @@ import { useParams } from "next/navigation"
 import { BackButton } from "@/components/ui/BackButton"
 import { MatchChatComposer, MatchChatReadOnlyBar, MatchChatTextMessage, resizeMatchChatComposer, useMatchChatViewport } from "@/components/match/chat/MatchChatShared"
 import type { MatchChatParticipant } from "@/components/match/chat/MatchChatShared"
+import { FloatingDialog } from "@/components/ui/FloatingDialog"
+import { LeagueChatMessageActions } from "@/components/league/LeagueChatMessageActions"
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { CHAT_UNREAD_LOCAL_REFRESH_EVENT, subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 
-type Message = { id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }
+type Message = { id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string; edited_at?: string | null; deleted_at?: string | null }
 type Chat = { unread?: number; messages: Message[]; participants?: MatchChatParticipant[]; me: string; readOnly: boolean; hasMore: boolean; season: { name: string; league_id?: string }; realtimeTopic: string | null }
 
 export default function LeagueSeasonChatPage() {
   const { seasonId } = useParams<{ seasonId: string }>()
-  return <LeagueSeasonChat key={seasonId} seasonId={seasonId} />
+  const account = useSession().data?.user?.email
+  return <LeagueSeasonChat key={seasonId + ":" + (account ?? "")} seasonId={seasonId} account={account} />
 }
 
 function mergeMessages(previous: Message[], incoming: Message[]) {
-  return [...new Map([...previous, ...incoming].map(message => [message.id, message])).values()]
+  const byId = new Map(previous.map(message => [message.id, message]))
+  for (const message of incoming) {
+    const current = byId.get(message.id)
+    const version = (value?: Message) => value?.deleted_at ?? value?.edited_at ?? ""
+    if (version(message) >= version(current)) byId.set(message.id, message)
+  }
+  return [...byId.values()]
     .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id))
 }
 
-function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
-  const account = useSession().data?.user?.email
+function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: string | null }) {
   const { tx } = useI18n()
   const { leagues } = useLeagueAccess()
   const [chat, setChat] = useState<Chat | null>(null)
@@ -35,6 +44,13 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
   const [error, setError] = useState(false)
   const [pending, setPending] = useState<Message | null>(null)
   const [loadingOlder, setLoadingOlder] = useState(false)
+  const [action, setAction] = useState<{ id: string; mode: "menu" | "edit" | "delete" } | null>(null)
+  const [editBody, setEditBody] = useState("")
+  const [actionError, setActionError] = useState(false)
+  const [changing, setChanging] = useState(false)
+  const endpoint = `/api/league-season-chats/${encodeURIComponent(seasonId)}`
+  const accountHeader = account ? encodeURIComponent(account.trim().toLowerCase()) : null
+  const editorRef = useRef<HTMLTextAreaElement>(null)
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<HTMLDivElement>(null)
@@ -68,7 +84,22 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     }, load), 0)
     return () => { active = false; window.clearTimeout(timer) }
   }, [account, load, seasonId])
-  useEffect(() => subscribeChatRealtime(chat?.realtimeTopic ?? null, () => { void load() }), [chat?.realtimeTopic, load])
+  const realtimeTopic = chat?.realtimeTopic
+  useEffect(() => {
+    const controller = new AbortController()
+    const unsubscribe = subscribeChatRealtime(realtimeTopic, (_leagueDataChanged, changedMessageId) => {
+      if (!changedMessageId || !accountHeader) { void load(); return }
+      void fetch(endpoint + "?messageId=" + encodeURIComponent(changedMessageId), {
+        signal: controller.signal, cache: "no-store", headers: { [CHAT_LIST_ACCOUNT_HEADER]: accountHeader },
+      }).then(async response => {
+        if (!response.ok) return
+        const { message } = await response.json() as { message: Message }
+        if (!controller.signal.aborted) setChat(current => current?.messages.some(item => item.id === message.id)
+          ? { ...current, messages: mergeMessages(current.messages, [message]) } : current)
+      }).catch(() => undefined)
+    })
+    return () => { controller.abort(); unsubscribe() }
+  }, [accountHeader, endpoint, load, realtimeTopic])
   useLayoutEffect(() => {
     const panel = messagesRef.current
     if (!panel) return
@@ -118,6 +149,28 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     refreshAfterSend.current = false
     if (refresh || (response?.ok && !confirmed?.id)) void load()
   }
+  async function changeMessage() {
+    if (!action || action.mode === "menu" || !accountHeader || changing) return
+    setChanging(true)
+    setActionError(false)
+    const response = await fetch(endpoint, {
+      method: "PATCH", headers: { "Content-Type": "application/json", [CHAT_LIST_ACCOUNT_HEADER]: accountHeader },
+      body: JSON.stringify({ messageId: action.id, body: action.mode === "delete" ? null : editBody.trim() }),
+    }).catch(() => null)
+    const message = response?.ok ? (await response.json().catch(() => null))?.message as Message | undefined : undefined
+    if (message?.id) {
+      setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [message]) } : current)
+      setAction(null)
+      window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
+    } else setActionError(true)
+    setChanging(false)
+  }
+
+  useEffect(() => { if (action?.mode === "edit") editorRef.current?.focus({ preventScroll: true }) }, [action?.mode])
+
+  const optionsLabel = tx("Opciones del mensaje")
+  const editLabel = tx("Editar mensaje")
+  const deleteLabel = tx("Eliminar mensaje")
   return <div ref={viewportRef} className="fixed inset-x-0 top-0 z-[60] mx-auto flex h-[100dvh] w-full max-w-md min-h-0 flex-col overflow-hidden bg-stone-50">
     <header data-compact-chat-header className="app-page-header app-match-chat-header shrink-0 border-b border-neutral-200 bg-stone-50 px-3 pb-2">
       <div className="flex min-h-10 items-center gap-2 pr-11">
@@ -142,8 +195,43 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     <div ref={messagesRef} className="league-season-chat-messages min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 py-4" aria-live="polite">
       {chat?.hasMore ? <button type="button" className="mx-auto flex items-center justify-center text-center type-small font-bold" onClick={() => void loadOlder()} disabled={loadingOlder}>{tx("Cargar mensajes anteriores")}</button> : null}
       {chat && messages.length === 0 ? <p className="text-center type-small">{tx("Todavía no hay mensajes. ¡Empieza la conversación!")}</p> : null}
-      {chat && messages.map((message, index) => <MatchChatTextMessage key={message.id} message={message} me={chat.me} participants={chat.participants ?? []} pending={message === pending} previousSameSender={index > 0 && messages[index - 1].sender_user_id === message.sender_user_id} />)}
+      {chat && messages.map((message, index) => {
+        const bubble = <MatchChatTextMessage
+          message={message} me={chat.me} participants={chat.participants ?? []} pending={message === pending}
+          previousSameSender={index > 0 && messages[index - 1].sender_user_id === message.sender_user_id}
+          bodyContent={message.deleted_at ? <em>{tx("Mensaje eliminado")}</em> : undefined}
+          editedLabel={message.edited_at && !message.deleted_at ? tx("Editado") : undefined}
+        />
+        if (chat.readOnly || message === pending || message.deleted_at || message.sender_user_id !== chat.me) {
+          return <div key={message.id}>{bubble}</div>
+        }
+        return <LeagueChatMessageActions key={message.id} label={optionsLabel} onOpen={() => {
+          setEditBody(message.body)
+          setActionError(false)
+          setAction({ id: message.id, mode: "menu" })
+        }}>{bubble}</LeagueChatMessageActions>
+      })}
     </div>
     {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} /> : null}
+    <FloatingDialog open={Boolean(action)} onClose={() => setAction(null)} busy={changing}
+      title={action?.mode === "edit" ? editLabel : action?.mode === "delete" ? deleteLabel : optionsLabel}>
+      {action?.mode === "menu" ? <div className="flex flex-col gap-2">
+        <button type="button" className="app-dialog-option" onClick={() => setAction({ ...action, mode: "edit" })}>{editLabel}</button>
+        <button type="button" className="app-dialog-option" onClick={() => setAction({ ...action, mode: "delete" })}>{deleteLabel}</button>
+      </div> : action ? <form className="space-y-3" onSubmit={event => { event.preventDefault(); void changeMessage() }}>
+        <h2 className="font-bold">{action.mode === "edit" ? editLabel : deleteLabel}</h2>
+        {action.mode === "edit" ? <textarea aria-label={editLabel} ref={editorRef} value={editBody} maxLength={2000} rows={3}
+          className="w-full rounded-lg border border-neutral-400 p-2" disabled={changing} onChange={event => setEditBody(event.target.value)} />
+          : <p>{tx("El texto se eliminará para todos los participantes.")}</p>}
+        {actionError ? <p role="alert">{tx("No se ha podido modificar el mensaje.")}</p> : null}
+        <div className="flex justify-end gap-3">
+          <button type="button" disabled={changing} onClick={() => setAction(null)}>{tx("Cancelar")}</button>
+          <button type="submit" disabled={changing || (action.mode === "edit" && !editBody.trim())}
+            className="inline-flex items-center justify-center rounded-lg bg-neutral-950 px-3 py-2 text-center font-bold text-white disabled:opacity-50">
+            {action.mode === "edit" ? tx("Guardar cambios") : deleteLabel}
+          </button>
+        </div>
+      </form> : null}
+    </FloatingDialog>
   </div>
 }

@@ -550,6 +550,56 @@ test("league season chat opens from home and sends a message", async ({ page }, 
   await page.screenshot({ path: info.outputPath("league-season-chat.png") })
 })
 
+test("league general chat edits and removes your own messages", async ({ page }) => {
+  await setup(page, "dark", "competition")
+  const messages = [
+    { id: "own", sender_user_id: "qa-user", sender_display_name: "QA", body: "Mi mensaje original", created_at: "2026-10-16T12:00:00Z", edited_at: null as string | null, deleted_at: null as string | null },
+    { id: "other", sender_user_id: "friend", sender_display_name: "Ana", body: "Mensaje de Ana", created_at: "2026-10-16T12:01:00Z", edited_at: null, deleted_at: null },
+  ]
+  await page.route("**/api/league-season-chats/**", route => {
+    if (route.request().method() === "PATCH") {
+      const input = route.request().postDataJSON()
+      expect(input.messageId).toBe("own")
+      messages[0].body = input.body ?? ""
+      if (input.body === null) messages[0].deleted_at = "2026-10-16T12:04:00Z"
+      else messages[0].edited_at = "2026-10-16T12:03:00Z"
+      return route.fulfill({ json: { message: messages[0] } })
+    }
+    return route.fulfill({ json: { season: { name: "Temporada 2", league_id: leagueId }, messages, participants: [], me: "qa-user", readOnly: false } })
+  })
+  await page.goto("/league-chat/" + seasonId)
+  const options = page.getByRole("button", { name: "Opciones del mensaje" })
+  await expect(options).toHaveCount(1)
+  const ownMessage = page.getByText("Mi mensaje original")
+  await ownMessage.dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true })
+  await ownMessage.dispatchEvent("pointermove", { pointerType: "touch", isPrimary: true, clientY: 30 })
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await ownMessage.dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true })
+  await page.getByRole("button", { name: "Editar mensaje" }).click()
+  await page.getByRole("textbox", { name: "Editar mensaje" }).fill("Mi mensaje corregido")
+  await page.getByRole("button", { name: "Guardar cambios" }).click()
+  await expect(page.getByText("Mi mensaje corregido")).toBeVisible()
+  await expect(page.getByText("Editado", { exact: true })).toBeVisible()
+  await options.focus()
+  await options.press("Enter")
+  await page.getByRole("button", { name: "Eliminar mensaje" }).click()
+  await page.getByRole("button", { name: "Cancelar" }).click()
+  await expect(page.getByText("Mi mensaje corregido")).toBeVisible()
+  await options.click()
+  await page.getByRole("button", { name: "Eliminar mensaje" }).click()
+  await page.getByRole("button", { name: "Eliminar mensaje" }).click()
+  await expect(page.getByText("Mensaje eliminado", { exact: true })).toBeVisible()
+  await expect(options).toHaveCount(0)
+  await expect(page.getByText("Mensaje de Ana")).toBeVisible()
+  await page.reload()
+  await expect(page.getByText("Mensaje eliminado", { exact: true })).toBeVisible()
+  const composer = page.getByPlaceholder("Escribe un mensaje…")
+  await composer.fill("Línea de prueba\n".repeat(35))
+  const metrics = await composer.evaluate(field => ({ scrollbar: getComputedStyle(field).scrollbarWidth, scrollHeight: field.scrollHeight, clientHeight: field.clientHeight }))
+  expect(metrics.scrollbar).toBe("none")
+  expect(metrics.scrollHeight).toBeGreaterThan(metrics.clientHeight)
+})
+
 test("preseason general chat opens from both entrances without requesting match chats", async ({ page }) => {
   const fixture = await setup(page, "dark", "classic")
   fixture.setUpcoming()

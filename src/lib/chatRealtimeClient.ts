@@ -6,20 +6,20 @@ export { CHAT_UNREAD_LOCAL_REFRESH_EVENT } from "@/lib/appRefreshEvents"
 
 type SubscriptionEntry = {
   channel: RealtimeChannel
-  listeners: Set<(leagueDataChanged?: boolean) => void>
+  listeners: Set<(leagueDataChanged?: boolean, changedMessageId?: string) => void>
 }
 
 const subscriptions = new Map<string, SubscriptionEntry>()
 
-export function subscribeChatRealtime(topic: string | null | undefined, listener: (leagueDataChanged?: boolean) => void): () => void {
+export function subscribeChatRealtime(topic: string | null | undefined, listener: (leagueDataChanged?: boolean, changedMessageId?: string) => void): () => void {
   if (!topic) return () => undefined
   let entry = subscriptions.get(topic)
   if (!entry) {
-    const listeners = new Set<(leagueDataChanged?: boolean) => void>()
+    const listeners = new Set<(leagueDataChanged?: boolean, changedMessageId?: string) => void>()
     const channel = supabase
       .channel(topic, { config: { private: false } })
-      .on<{ leagueDataChanged?: boolean }>("broadcast", { event: CHAT_REALTIME_EVENT }, ({ payload }) => {
-        for (const current of listeners) current(payload?.leagueDataChanged === true)
+      .on<{ leagueDataChanged?: boolean; changedMessageId?: string }>("broadcast", { event: CHAT_REALTIME_EVENT }, ({ payload }) => {
+        for (const current of listeners) current(payload?.leagueDataChanged === true, payload?.changedMessageId)
       })
       .subscribe((status) => {
         if (status === "SUBSCRIBED") for (const current of listeners) current()
