@@ -34,7 +34,7 @@ export function PersonalMatchLocationPicker({
   allowManualLocation?: boolean
   label?: string
 }) {
-  const { tx } = useI18n()
+  const { t, tx } = useI18n()
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [isAddingLocation, setIsAddingLocation] = useState(false)
@@ -171,7 +171,7 @@ export function PersonalMatchLocationPicker({
             disabled={disabled || loading}
             className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
           >
-            <option value="">{tx("Sin especificar")}</option>
+            <option value="">{t.matchDetail.scheduleCourtPlaceholder}</option>
             {availableCourts.map((court) => (
               <option key={court} value={court}>{court}</option>
             ))}
