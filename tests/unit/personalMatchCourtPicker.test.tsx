@@ -81,6 +81,22 @@ describe("friendly creation court picker", () => {
     expect(normalizeScheduleLocationValue(screen.getByTestId("payload").textContent)?.selectedCourt).toBe("Pista 1")
   })
 
+  it("preserves existing location-only consumers that do not supply court callbacks", () => {
+    render(
+      <PersonalMatchLocationPicker
+        locations={locations}
+        loading={false}
+        selectedLocationId="club-three"
+        manualLocationName=""
+        onSelectedLocationIdChange={vi.fn()}
+        onManualLocationNameChange={vi.fn()}
+        allowManualLocation={false}
+      />,
+    )
+    expect(screen.queryByRole("combobox")).toBeNull()
+    expect(screen.getByRole("button", { name: /Club Tres/ })).toBeVisible()
+  })
+
   it("does not require a court and hides the control at venues without numbered courts", () => {
     render(<Harness />)
     selectVenue("Bilbao - Club Tres")
