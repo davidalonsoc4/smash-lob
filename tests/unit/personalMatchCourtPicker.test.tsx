@@ -84,7 +84,7 @@ describe("friendly creation court picker", () => {
   it("does not require a court and hides the control at venues without numbered courts", () => {
     render(<Harness />)
     selectVenue("Bilbao - Club Tres")
-    expect(screen.getByRole("option", { name: "Sin especificar" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: es.matchDetail.scheduleCourtPlaceholder })).toBeInTheDocument()
     selectVenue("Getxo - Club Libre")
     expect(screen.queryByRole("combobox")).toBeNull()
     expect(normalizeScheduleLocationValue(screen.getByTestId("payload").textContent)?.selectedCourt).toBeNull()
