@@ -61,7 +61,7 @@ function selectVenue(name: string) {
 describe("friendly creation court picker", () => {
   it("lists numbered courts and persists the selected one in the existing location payload", () => {
     render(<Harness />)
-    selectVenue("Bilbao · Club Tres")
+    selectVenue("Bilbao - Club Tres")
     const court = screen.getByRole("combobox", { name: /Pista/ })
     expect(court).toHaveValue("")
     expect(screen.getByRole("option", { name: "Pista 3" })).toBeInTheDocument()
@@ -74,18 +74,18 @@ describe("friendly creation court picker", () => {
 
   it("resets an old court when the club changes and preselects the only court", () => {
     render(<Harness />)
-    selectVenue("Bilbao · Club Tres")
+    selectVenue("Bilbao - Club Tres")
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "Pista 3" } })
-    selectVenue("Bilbao · Club Uno")
+    selectVenue("Bilbao - Club Uno")
     expect(screen.getByRole("combobox")).toHaveValue("Pista 1")
     expect(normalizeScheduleLocationValue(screen.getByTestId("payload").textContent)?.selectedCourt).toBe("Pista 1")
   })
 
   it("does not require a court and hides the control at venues without numbered courts", () => {
     render(<Harness />)
-    selectVenue("Bilbao · Club Tres")
+    selectVenue("Bilbao - Club Tres")
     expect(screen.getByRole("option", { name: "Sin especificar" })).toBeInTheDocument()
-    selectVenue("Getxo · Club Libre")
+    selectVenue("Getxo - Club Libre")
     expect(screen.queryByRole("combobox")).toBeNull()
     expect(normalizeScheduleLocationValue(screen.getByTestId("payload").textContent)?.selectedCourt).toBeNull()
   })
