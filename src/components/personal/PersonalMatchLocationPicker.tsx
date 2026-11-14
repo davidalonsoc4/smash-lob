@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
 import {
   getLeagueLocationTownNameLabel,
+  getLeagueLocationCourts,
   type LeagueLocation,
 } from "@/lib/leagueLocations"
 
@@ -13,7 +14,9 @@ export function PersonalMatchLocationPicker({
   loading,
   selectedLocationId,
   manualLocationName,
+  selectedCourt,
   onSelectedLocationIdChange,
+  onSelectedCourtChange,
   onManualLocationNameChange,
   disabled = false,
   allowManualLocation = true,
@@ -23,7 +26,9 @@ export function PersonalMatchLocationPicker({
   loading: boolean
   selectedLocationId: string
   manualLocationName: string
+  selectedCourt: string
   onSelectedLocationIdChange: (value: string) => void
+  onSelectedCourtChange: (value: string) => void
   onManualLocationNameChange: (value: string) => void
   disabled?: boolean
   allowManualLocation?: boolean
@@ -40,6 +45,7 @@ export function PersonalMatchLocationPicker({
   const selectedLabel = selectedLocation
     ? getLeagueLocationTownNameLabel(selectedLocation)
     : manualLocationName.trim() || "Seleccionar ubicación"
+  const availableCourts = selectedLocation ? getLeagueLocationCourts(selectedLocation) : []
   const filteredLocations = useMemo(() => {
     const cleanQuery = query.trim().toLocaleLowerCase("es-ES")
     if (!cleanQuery) return locations
@@ -114,6 +120,7 @@ export function PersonalMatchLocationPicker({
                         type="button"
                         onClick={() => {
                           onSelectedLocationIdChange("")
+                          onSelectedCourtChange("")
                           closePicker()
                         }}
                         disabled={!manualLocationName.trim()}
@@ -130,6 +137,7 @@ export function PersonalMatchLocationPicker({
                             type="button"
                             onClick={() => {
                               onSelectedLocationIdChange(location.id)
+                              onSelectedCourtChange(getLeagueLocationCourts(location).length === 1 ? "Pista 1" : "")
                               onManualLocationNameChange("")
                               closePicker()
                             }}
@@ -154,6 +162,22 @@ export function PersonalMatchLocationPicker({
                   </button>
                 </div> : null}
               </FloatingDialog>
+      {availableCourts.length > 0 ? (
+        <label className="mt-2 block">
+          <span className="text-xs font-black uppercase tracking-wide text-neutral-600">{tx("Pista")} · opcional</span>
+          <select
+            value={selectedCourt}
+            onChange={(event) => onSelectedCourtChange(event.target.value)}
+            disabled={disabled || loading}
+            className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
+          >
+            <option value="">Sin especificar</option>
+            {availableCourts.map((court) => (
+              <option key={court} value={court}>{court}</option>
+            ))}
+          </select>
+        </label>
+      ) : null}
     </div>
   )
 }
