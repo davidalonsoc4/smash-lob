@@ -26,9 +26,9 @@ export function PersonalMatchLocationPicker({
   loading: boolean
   selectedLocationId: string
   manualLocationName: string
-  selectedCourt: string
+  selectedCourt?: string
   onSelectedLocationIdChange: (value: string) => void
-  onSelectedCourtChange: (value: string) => void
+  onSelectedCourtChange?: (value: string) => void
   onManualLocationNameChange: (value: string) => void
   disabled?: boolean
   allowManualLocation?: boolean
@@ -120,7 +120,7 @@ export function PersonalMatchLocationPicker({
                         type="button"
                         onClick={() => {
                           onSelectedLocationIdChange("")
-                          onSelectedCourtChange("")
+                          onSelectedCourtChange?.("")
                           closePicker()
                         }}
                         disabled={!manualLocationName.trim()}
@@ -137,7 +137,7 @@ export function PersonalMatchLocationPicker({
                             type="button"
                             onClick={() => {
                               onSelectedLocationIdChange(location.id)
-                              onSelectedCourtChange(getLeagueLocationCourts(location).length === 1 ? getLeagueLocationCourts(location)[0] : "")
+                              onSelectedCourtChange?.(getLeagueLocationCourts(location).length === 1 ? getLeagueLocationCourts(location)[0] : "")
                               onManualLocationNameChange("")
                               closePicker()
                             }}
@@ -162,11 +162,11 @@ export function PersonalMatchLocationPicker({
                   </button>
                 </div> : null}
               </FloatingDialog>
-      {availableCourts.length > 0 ? (
+      {onSelectedCourtChange && availableCourts.length > 0 ? (
         <label className="mt-2 block">
           <span className="text-xs font-black uppercase tracking-wide text-neutral-600">{tx("Pista")}</span>
           <select
-            value={selectedCourt}
+            value={selectedCourt ?? ""}
             onChange={(event) => onSelectedCourtChange(event.target.value)}
             disabled={disabled || loading}
             className="mt-1 w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm font-semibold text-neutral-900 shadow-sm outline-none focus:border-neutral-400 disabled:bg-neutral-100"
