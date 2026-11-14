@@ -49,6 +49,7 @@ export default function NewPersonalMatchPage() {
   const [latestFinishedAt, setLatestFinishedAt] = useState("")
   const [globalLocations, setGlobalLocations] = useState<LeagueLocation[]>([])
   const [selectedLocationId, setSelectedLocationId] = useState("")
+  const [selectedCourt, setSelectedCourt] = useState("")
   const [manualLocationName, setManualLocationName] = useState("")
   const [loadingLocations, setLoadingLocations] = useState(true)
   const [sets, setSets] = useState<PersonalMatchSet[]>([
@@ -141,7 +142,7 @@ export default function NewPersonalMatchPage() {
     (location) => location.id === selectedLocationId,
   ) ?? null
   const resolvedLocationValue = selectedGlobalLocation
-    ? createScheduledLeagueLocationValue(selectedGlobalLocation, null)
+    ? createScheduledLeagueLocationValue(selectedGlobalLocation, selectedCourt)
     : manualLocationName.trim()
   const canSubmit =
     !loadingPeople &&
@@ -276,7 +277,9 @@ export default function NewPersonalMatchPage() {
             loading={loadingLocations}
             selectedLocationId={selectedLocationId}
             manualLocationName={manualLocationName}
+            selectedCourt={selectedCourt}
             onSelectedLocationIdChange={setSelectedLocationId}
+            onSelectedCourtChange={setSelectedCourt}
             onManualLocationNameChange={setManualLocationName}
           />
         </div>
