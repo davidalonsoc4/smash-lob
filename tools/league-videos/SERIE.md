@@ -6,7 +6,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 ## Calendario previsto
 | # | Cuándo | Vídeo | Estado |
 |---|---|---|---|
-| 1 | Vie 20-nov | Bienvenida y formato | Montado (`BienvenidaRapida`, velocidad natural), pendiente de aprobación final |
+| 1 | Vie 20-nov | Bienvenida y formato | **Aprobado** (`BienvenidaRapida`: voz natural, música A, transiciones variadas) |
 | 2 | Mar 24-nov | Jornada de apertura en Pando y welcome pack (hora por confirmar) | Pendiente |
 | 3 | Vie 27-nov | Para qué es la inscripción (versión sin cifras: `Inscripcion`) | Montado sin voz |
 | 4 | Mar 1-dic | El chat de la liga y los avisos | Pendiente |

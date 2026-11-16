@@ -34,3 +34,5 @@ python3 scripts/retime_voice.py assets/video01/david-full-1.mp3 assets/video01/w
 - Scribe adelanta ~0,4 s el inicio de la primera palabra de cada frase; la herramienta lo corrige con los silencios medidos.
 - Con esta voz la primera pausa tras una exclamación sale larga (~1,5 s); la herramienta la recorta a 0,9 s.
 - Requiere `ffmpeg` y Python 3.
+
+> La música de fondo y las transiciones están en [ESTANDAR.md](ESTANDAR.md).

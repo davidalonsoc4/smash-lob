@@ -29,6 +29,19 @@ export const ThemeProvider: React.FC<{ accent: string; children: React.ReactNode
 };
 export const useTheme = () => useContext(ThemeCtx);
 
+export type TransitionKind = "panel" | "mix" | "rise" | "slide" | "zoom" | "glow" | "bounce";
+export type Step = "rise" | "slideL" | "slideR" | "zoom" | "glow" | "bounce";
+// Rotación por defecto de la serie: base "subida" y, para dar vidilla, deslizamiento, zoom, destello y bote de pelota (nunca dos iguales seguidas).
+export const MIX_PLAN: Step[] = ["rise", "slideL", "bounce", "zoom", "slideR", "glow", "bounce"];
+export const planFor = (kind: TransitionKind, n: number): Step[] => {
+  if (kind === "panel") return [];
+  const pick = (i: number): Step => kind === "mix" ? MIX_PLAN[i % MIX_PLAN.length] : kind === "slide" ? (i % 2 ? "slideR" : "slideL") : kind === "rise" ? "rise" : kind;
+  return Array.from({ length: Math.max(0, n - 1) }, (_, i) => pick(i));
+};
+const TransitionCtx = createContext<TransitionKind>("panel");
+const SceneTransCtx = createContext<{ enter: Step | null; exit: Step | null }>({ enter: null, exit: null });
+export const useTransitionKind = () => useContext(TransitionCtx);
+
 export const pop = (frame: number, fps: number, delay = 0, damping = 9) =>
   spring({ frame: frame - delay, fps, config: { damping, stiffness: 160, mass: 0.7 } });
 
@@ -153,10 +166,28 @@ export const Tag: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 // Cámara: zoom lento + leve desplazamiento durante toda la escena. Respeta zonas seguras de Instagram.
 export const Frame: React.FC<{ children: React.ReactNode; tag?: string; caption?: string; captionStart?: number; example?: boolean; timedWords?: TimedWord[] }> = ({ children, tag, caption, captionStart, example, timedWords }) => {
   const t = useTheme();
-  const f = useCurrentFrame(); const { durationInFrames } = useVideoConfig();
+  const kind = useTransitionKind();
+  const { enter, exit } = useContext(SceneTransCtx);
+  const f = useCurrentFrame(); const { durationInFrames, fps } = useVideoConfig();
   const k = f / durationInFrames;
+  let wrap: React.CSSProperties = {};
+  if (kind !== "panel") { // el contenido sale y entra por sí mismo; el fondo permanece fijo
+    const inn = enter ? spring({ frame: f - 3, fps, config: { damping: 16, stiffness: 170, mass: 0.7 } }) : 1;
+    const out = exit ? interpolate(f, [durationInFrames - 9, durationInFrames - 1], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.in(Easing.cubic) }) : 0;
+    const e = 1 - inn;
+    let tx = 0, ty = 0, sc = 1, blur = 0;
+    if (enter === "rise" || enter === "glow" || enter === "bounce") { ty += e * 50; sc *= 0.94 + 0.06 * inn; }
+    if (enter === "slideL") { tx += e * 130; blur += e * 4; }
+    if (enter === "slideR") { tx -= e * 130; blur += e * 4; }
+    if (enter === "zoom") { sc *= 0.93 + 0.07 * inn; blur += e * 5; }
+    if (exit === "rise" || exit === "glow" || exit === "bounce") { ty -= out * 30; sc *= 1 - 0.04 * out; }
+    if (exit === "slideL") { tx -= out * 130; blur += out * 4; }
+    if (exit === "slideR") { tx += out * 130; blur += out * 4; }
+    if (exit === "zoom") { sc *= 1 + 0.07 * out; blur += out * 5; }
+    wrap = { opacity: (enter ? Math.min(1, inn * 1.4) : 1) * (1 - out), transform: `translate(${tx}px, ${ty}px) scale(${sc})`, filter: blur > 0.2 ? `blur(${blur}px)` : undefined };
+  }
   return (
-    <AbsoluteFill style={{ fontFamily: FONT, color: t.text }}>
+    <AbsoluteFill style={{ fontFamily: FONT, color: t.text, ...wrap }}>
       <AbsoluteFill style={{ padding: "250px 70px 340px", justifyContent: "center", alignItems: "center", transform: `scale(${1 + k * 0.04}) translateY(${-k * 20}px)` }}>{children}</AbsoluteFill>
       {tag && <Tag>{tag}</Tag>}
       {example && <div style={{ position: "absolute", top: 232, left: 0, right: 0, textAlign: "center", fontSize: 26, fontWeight: 800, letterSpacing: 5, color: t.textSubtle }}>EJEMPLO · DATOS FICTICIOS</div>}
@@ -200,24 +231,75 @@ const FadeOut: React.FC<{ total: number; children: React.ReactNode }> = ({ total
   return <AbsoluteFill style={{ opacity: o }}>{children}</AbsoluteFill>;
 };
 
+
+// Destello de luz tenue en el corte (muy sutil).
+const GlowPulse: React.FC<{ at: number }> = ({ at }) => {
+  const t = useTheme(); const f = useCurrentFrame();
+  const d = f - (at - 10);
+  if (d < 0 || d > 24) return null;
+  const a = Math.sin((Math.PI * d) / 24) ** 2 * 0.3;
+  return <AbsoluteFill style={{ zIndex: 90, pointerEvents: "none", opacity: a, background: `radial-gradient(circle at 50% 50%, ${t.accent}, transparent 62%)` }} />;
+};
+
+// Pelota que cae, bota dos veces (se aplasta al impactar, con sombra y giro) y sale por el lateral.
+export const BOUNCE_IMPACTS = [7, 17, 23]; // cuadros (desde el inicio) de cada impacto
+const BallBounce: React.FC<{ at: number }> = ({ at }) => {
+  const f = useCurrentFrame();
+  const T = 28, d = f - (at - 11);
+  if (d < 0 || d > T) return null;
+  const FLOOR = 1380, SIZE = 104;
+  const x = -120 + (W + 240) * (d / T);
+  let h: number;
+  if (d < 7) { const q = d / 7; h = (FLOOR - 700) * (1 - q * q); }
+  else if (d < 17) { const q = (d - 7) / 10; h = 380 * (1 - (2 * q - 1) ** 2); }
+  else if (d < 23) { const q = (d - 17) / 6; h = 130 * (1 - (2 * q - 1) ** 2); }
+  else { const q = (d - 23) / 5; h = 45 * (1 - (2 * q - 1) ** 2); }
+  const sq = Math.max(0, ...BOUNCE_IMPACTS.map((i) => 1 - Math.abs(d - i) / 1.7));
+  const sy = 1 - 0.3 * sq, sx = 1 + 0.22 * sq;
+  const cy = FLOOR - SIZE / 2 - h + (SIZE * 0.3 * sq) / 2;
+  const sh = Math.max(0, 1 - h / 620);
+  return (
+    <AbsoluteFill style={{ zIndex: 100, pointerEvents: "none", overflow: "hidden" }}>
+      <div style={{ position: "absolute", left: x - (SIZE * (0.5 + 0.6 * sh)) / 2, top: FLOOR + 4, width: SIZE * (0.5 + 0.6 * sh), height: 16, borderRadius: "50%", background: "#000", opacity: 0.4 * sh, filter: "blur(7px)" }} />
+      {BOUNCE_IMPACTS.slice(0, 2).map((i) => { // pequeño aro de impacto
+        const r = d - i; if (r < 0 || r > 7) return null;
+        const w = SIZE * (0.9 + r * 0.22);
+        return <div key={i} style={{ position: "absolute", left: -120 + (W + 240) * (i / T) - w / 2, top: FLOOR + 2, width: w, height: 14, borderRadius: "50%", border: "3px solid rgba(244,243,239,.5)", opacity: 1 - r / 7 }} />;
+      })}
+      <div style={{ position: "absolute", left: x - SIZE / 2, top: cy - SIZE / 2, width: SIZE, height: SIZE, transform: `scale(${sx}, ${sy})`, transformOrigin: "50% 100%" }}>
+        <div style={{ transform: `rotate(${d * 22}deg)` }}><Ball size={SIZE} /></div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 export type SceneDef = { key: string; dur: number; C: React.FC };
 export const totalFrames = (scenes: SceneDef[]) => scenes.reduce((a, s) => a + s.dur, 0);
 
-export const VideoSeries: React.FC<{ scenes: SceneDef[]; accent: string; voice?: string }> = ({ scenes, accent, voice }) => {
+export const VideoSeries: React.FC<{ scenes: SceneDef[]; accent: string; voice?: string; transition?: TransitionKind }> = ({ scenes, accent, voice, transition = "mix" }) => {
   let acc = 0;
   const bounds = scenes.map((s) => (acc += s.dur));
+  const plan = planFor(transition, scenes.length);
   return (
     <ThemeProvider accent={accent}>
+     <TransitionCtx.Provider value={transition}>
       <FadeOut total={acc}>
         <Background />
         <Series>
-          {scenes.map((s) => <Series.Sequence key={s.key} durationInFrames={s.dur}><s.C /></Series.Sequence>)}
+          {scenes.map((s, i) => (
+            <Series.Sequence key={s.key} durationInFrames={s.dur}>
+              <SceneTransCtx.Provider value={{ enter: plan[i - 1] ?? null, exit: plan[i] ?? null }}><s.C /></SceneTransCtx.Provider>
+            </Series.Sequence>
+          ))}
         </Series>
-        {bounds.slice(0, -1).map((at, i) => <Cover key={i} at={at} kind={i} />)}
-        {bounds.slice(0, -1).map((at, i) => sfx("whoosh", at - COVER - 4, 0.5))}
+        {transition === "panel" && bounds.slice(0, -1).map((at, i) => <Cover key={i} at={at} kind={i} />)}
+        {bounds.slice(0, -1).map((at, i) => plan[i] === "glow" ? <GlowPulse key={`g${i}`} at={at} /> : plan[i] === "bounce" ? <BallBounce key={`b${i}`} at={at} /> : null)}
+        {bounds.slice(0, -1).flatMap((at, i) => plan[i] === "bounce" ? BOUNCE_IMPACTS.slice(0, 2).map((k, j) => sfx("pop", at - 11 + k, j === 0 ? 0.35 : 0.25)) : [])}
+        {bounds.slice(0, -1).map((at) => sfx("whoosh", at - COVER - 4, transition === "panel" ? 0.5 : 0.28))}
         <StoryBar total={acc} />
         {voice && <Audio src={staticFile(voice)} volume={1} />}
       </FadeOut>
+     </TransitionCtx.Provider>
     </ThemeProvider>
   );
 };

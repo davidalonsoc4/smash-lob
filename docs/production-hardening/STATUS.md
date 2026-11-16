@@ -4006,6 +4006,6 @@ MC173 PR #74. Chromium sobre build local 19/19, incluidas 2 pruebas PWA. CI #453
 MC173 CI #454 detectó que los casos de reserva del chat amistoso compartían caché en memoria entre pruebas. El fixture limpia la entrada de su cuenta después de cada caso. Las siete pruebas pasan en tres ejecuciones consecutivas. El cambio solo afecta al aislamiento de pruebas. Nueva ejecución completa de CI pendiente.
 
 ## Herramientas de vídeo para la liga — alta (16/11/2026)
-- Añadido `tools/league-videos/`: proyecto Remotion independiente para los vídeos de comunicación de la PRO League (plantillas con acento de liga configurable, estándar de voz y script de ajuste de pausas). Ver su `README.md`, `SERIE.md` y `VOICE_STANDARD.md`.
+- Añadido `tools/league-videos/`: proyecto Remotion independiente para los vídeos de comunicación de la PRO League (plantillas con acento de liga configurable, estándar de voz y script de ajuste de pausas). Ver su `README.md`, `ESTANDAR.md` (línea guía: voz, música, transiciones y pipeline), `SERIE.md` y `VOICE_STANDARD.md`.
 - Excluido del `typecheck` (`tsconfig.json`, `tsconfig.build.json`) y del lint (`eslint.config.mjs`). Sin cambios en la app, la base de datos, las dependencias de la raíz ni operaciones remotas.
 

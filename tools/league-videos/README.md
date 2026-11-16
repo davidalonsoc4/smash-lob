@@ -12,6 +12,7 @@ npx remotion render BienvenidaRapida out/01-bienvenida.mp4 --crf=27
 En entornos sin acceso a la descarga de Chrome de Remotion, añadir
 `--browser-executable=<ruta a chromium> --chrome-mode=chrome-for-testing`.
 
+- **Línea guía completa (empieza aquí):** [ESTANDAR.md](ESTANDAR.md)
 - Estándar de voz y post-proceso del audio: [VOICE_STANDARD.md](VOICE_STANDARD.md)
 - Plan de la serie y reglas de contenido: [SERIE.md](SERIE.md)
 - Plantilla por liga: cambia `LeagueConfig` (nombre, acento, logo, jugadores, fechas); el resto se adapta solo.
