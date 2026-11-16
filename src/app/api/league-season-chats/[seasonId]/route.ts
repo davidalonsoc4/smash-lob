@@ -73,8 +73,12 @@ export async function GET(request: Request, context: Context) {
       if (read.error) return fail("league_chat_read_failed", 500)
       // Read receipts only exist inside the thread, so announce the read there (not on the overview topic,
       // which every member listens to and answers with a full chat-list request), and only every few
-      // readers: the last reader always announces, so the final receipts are always broadcast.
-      const pendingReaders = memberRows.filter((member) => member.user_id !== user.id && (!member.last_read_at || member.last_read_at < lastRead)).length
+      // readers. Members who did not read the previous message are offline, not "pending": counting them
+      // would stop the last active reader from announcing, so the final receipts would never be broadcast.
+      const previousCreatedAt = messages.at(-2)?.created_at
+      const pendingReaders = previousCreatedAt
+        ? memberRows.filter((member) => member.user_id !== user.id && member.last_read_at && member.last_read_at >= previousCreatedAt && member.last_read_at < lastRead).length
+        : 0
       if (shouldAnnounceRead(pendingReaders)) await broadcastLeagueSeasonReadReceipt(seasonId)
     }
   }
