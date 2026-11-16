@@ -19,29 +19,17 @@ const wf = (ws: TimedWord[], text: string, nth = 0) => {
 };
 
 /* ---------- Iconos ---------- */
-const Ico: React.FC<{ name: "court" | "ball" | "gift" | "eye"; color: string; size?: number }> = ({ name, color, size = 28 }) => {
+const Ico: React.FC<{ name: "court" | "ball" | "gift" | "eye" | "trophy" | "lock"; color: string; size?: number }> = ({ name, color, size = 28 }) => {
   const p = { fill: "none", stroke: color, strokeWidth: 2.2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...p}>
       {name === "court" && (<><rect x={2.5} y={5} width={19} height={14} rx={2} /><path d="M12 5v14M2.5 12h19" /></>)}
       {name === "ball" && (<><circle cx={12} cy={12} r={9} /><path d="M4.5 7.5c4 1.5 4 7.5 0 9M19.5 7.5c-4 1.5-4 7.5 0 9" /></>)}
       {name === "gift" && (<><rect x={3} y={8} width={18} height={5} rx={1} /><path d="M5 13v7h14v-7M12 8v12M12 8c-2.5 0-4-1-4-2.5S9.5 3 12 8zM12 8c2.5 0 4-1 4-2.5S14.5 3 12 8z" /></>)}
+      {name === "trophy" && (<><path d="M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 14v4M8.5 20h7" /></>)}
+      {name === "lock" && (<><rect x={5} y={11} width={14} height={9} rx={2} /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>)}
       {name === "eye" && (<><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx={12} cy={12} r={3} /></>)}
     </svg>
-  );
-};
-
-const CategoryCard: React.FC<{ icon: "court" | "ball" | "gift"; title: string; subtitle: string; badge?: string }> = ({ icon, title, subtitle, badge }) => {
-  const t = useTheme();
-  return (
-    <div style={{ width: NATIVE_W, boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, background: t.surface, border: `1px solid ${t.border}`, borderLeft: `5px solid ${t.accent}`, borderRadius: 18, padding: "14px 16px" }}>
-      <div style={{ width: 52, height: 52, borderRadius: 16, background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ico name={icon} color={t.accentContrast} size={28} /></div>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 21, fontWeight: 800, lineHeight: 1.1 }}>{title}</div>
-        <div style={{ fontSize: 14.5, color: t.textMuted, marginTop: 4, lineHeight: 1.3 }}>{subtitle}</div>
-      </div>
-      {badge && <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 1.5, color: t.accent, border: `1.5px solid ${t.accent}`, borderRadius: 999, padding: "5px 10px" }}>{badge}</div>}
-    </div>
   );
 };
 
@@ -99,27 +87,49 @@ const Pot = ({ league, ws, reverse, start, step, tag }: Props & { reverse: boole
   );
 };
 
-/* 3 · En qué se usa (sin importes) */
-const Uses = ({ ws }: Props) => {
-  const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const items: { at: number; icon: "court" | "ball" | "gift"; title: string; subtitle: string; badge?: string }[] = [
-    { at: Math.max(4, wf(ws, "pistas") - 8), icon: "court", title: "Pistas", subtitle: "Jornada de apertura y jornada de cierre" },
-    { at: Math.max(4, wf(ws, "bolas") - 8), icon: "ball", title: "Bolas", subtitle: "Para cada jornada" },
-    { at: Math.max(4, wf(ws, "detalle") - 8), icon: "gift", title: "Welcome pack", subtitle: "Un detalle de bienvenida", badge: "SORPRESA" },
-  ];
+/* 3 · Lista de cuentas de la liga (importes cifrados: no se publican cifras ni conceptos sensibles) */
+const Hidden: React.FC = () => {
+  const t = useTheme();
   return (
-    <Frame tag="EN QUÉ SE USA" timedWords={ws}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 34, alignItems: "center" }}>
-        {items.map((it) => {
-          const p = pop(f, fps, it.at, 12);
-          return (
-            <div key={it.title} style={{ opacity: Math.min(1, p * 2), transform: `translateX(${(1 - p) * 700}px) scale(${0.95 + 0.05 * p})` }}>
-              <Zoom z={2.2}><CategoryCard icon={it.icon} title={it.title} subtitle={it.subtitle} badge={it.badge} /></Zoom>
-            </div>
-          );
-        })}
+    <div style={{ display: "flex", alignItems: "center", gap: 7, background: t.mutedSurface, border: `1px solid ${t.borderStrong}`, borderRadius: 999, padding: "6px 12px 6px 10px" }}>
+      <Ico name="lock" color={t.textSubtle} size={15} />
+      <span style={{ fontSize: 17, fontWeight: 900, letterSpacing: 2, color: t.textMuted, whiteSpace: "nowrap" }}>•••• €</span>
+    </div>
+  );
+};
+
+const Ledger = ({ ws }: Props) => {
+  const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
+  type Row = { at: number; icon: "court" | "ball" | "gift" | "trophy"; title: string; badge?: string };
+  const rows: Row[] = ([
+    { at: wf(ws, "apertura") - 18, icon: "court", title: "Reserva jornada de apertura" },
+    { at: wf(ws, "cierre") - 18, icon: "court", title: "Reserva jornada de cierre" },
+    { at: wf(ws, "bolas") - 10, icon: "ball", title: "Bolas de cada partido" },
+    { at: wf(ws, "detalle") - 10, icon: "gift", title: "Welcome pack", badge: "SORPRESA" },
+    { at: wf(ws, "premio") - 10, icon: "trophy", title: "Premios" },
+  ] as Row[]).map((r) => ({ ...r, at: Math.max(14, r.at) }));
+  const head = pop(f, fps, 2, 13);
+  return (
+    <Frame tag="CUENTAS DE LA LIGA" timedWords={ws}>
+      <div style={{ opacity: Math.min(1, head * 2), transform: `scale(${0.92 + 0.08 * head})` }}>
+        <Zoom z={2.3}>
+          <div style={{ width: NATIVE_W, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderLeft: `5px solid ${t.accent}`, borderRadius: 18, padding: "14px 14px 6px" }}>
+            <div style={{ fontSize: 22, fontWeight: 800 }}>En qué se usa</div>
+            <div style={{ fontSize: 13.5, color: t.textMuted, marginTop: 2, marginBottom: 6 }}>Temporada 1 · Inscripción</div>
+            {rows.map((r, i) => {
+              const p = pop(f, fps, r.at, 12);
+              return (
+                <div key={r.title} style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 0", borderTop: `1px solid ${t.border}`, opacity: Math.min(1, p * 2), transform: `translateX(${(1 - p) * 70}px)` }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Ico name={r.icon} color={t.accentContrast} size={21} /></div>
+                  <div style={{ flex: 1, fontSize: 16.5, fontWeight: 800, lineHeight: 1.15 }}>{r.title}{r.badge && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 900, letterSpacing: 1.2, color: t.accent, border: `1.5px solid ${t.accent}`, borderRadius: 999, padding: "2px 7px", verticalAlign: "middle" }}>{r.badge}</span>}</div>
+                  <Hidden />
+                </div>
+              );
+            })}
+          </div>
+        </Zoom>
       </div>
-      {items.map((it) => sfx("pop", it.at, 0.4))}
+      {rows.map((r) => sfx("pop", r.at, 0.35))}
     </Frame>
   );
 };
@@ -129,6 +139,7 @@ const Clear = ({ ws }: Props) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, 4, 12);
   const q = pop(f, fps, Math.max(8, wf(ws, "duda") - 6), 12);
+  const r = pop(f, fps, Math.max(8, wf(ws, "transparencia") - 6), 12);
   return (
     <Frame timedWords={ws}>
       <div style={{ width: 260, height: 260, borderRadius: "50%", background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 70px ${t.accent}66`, transform: `scale(${p})` }}>
@@ -136,7 +147,11 @@ const Clear = ({ ws }: Props) => {
       </div>
       <div style={{ height: 40 }} />
       <Words text={"Cuentas\n*claras*"} size={130} delay={6} stagger={4} />
-      <div style={{ marginTop: 50, opacity: q, transform: `translateY(${(1 - q) * 40}px) scale(${0.9 + q * 0.1})`, border: `2px solid ${t.accent}`, background: t.surface, borderRadius: 999, padding: "20px 40px", fontSize: 42, fontWeight: 800 }}>¿Dudas? Pregúntanos</div>
+      <div style={{ marginTop: 50, display: "flex", flexDirection: "column", gap: 20, alignItems: "center" }}>
+        <div style={{ opacity: r, transform: `translateY(${(1 - r) * 40}px) scale(${0.9 + r * 0.1})`, background: t.accent, color: t.accentContrast, borderRadius: 999, padding: "18px 40px", fontSize: 40, fontWeight: 900 }}>Total transparencia</div>
+        <div style={{ opacity: q, transform: `translateY(${(1 - q) * 40}px) scale(${0.9 + q * 0.1})`, border: `2px solid ${t.accent}`, background: t.surface, borderRadius: 999, padding: "18px 40px", fontSize: 40, fontWeight: 800 }}>¿Dudas? Pregúntanos</div>
+      </div>
+      {sfx("pop", Math.max(8, wf(ws, "transparencia") - 6), 0.4)}
       {sfx("pop", Math.max(8, wf(ws, "duda") - 6), 0.4)}
     </Frame>
   );
@@ -159,12 +174,12 @@ const Outro = ({ league, ws }: Props) => {
 const COMPS: React.FC<Props>[] = [
   Hook,
   (p) => <Pot {...p} reverse={false} start={20} step={6} tag="LA INSCRIPCIÓN" />,
-  Uses,
+  Ledger,
   (p) => <Pot {...p} reverse start={30} step={4} tag="EL SOBRANTE" />,
   Clear,
   Outro,
 ];
-const KEYS = ["hook", "pot", "uses", "leftover", "clear", "outro"];
+const KEYS = ["hook", "pot", "ledger", "leftover", "clear", "outro"];
 const makeScenes = (league: LeagueConfig): SceneDef[] =>
   COMPS.map((C, i) => ({ key: KEYS[i], dur: Math.round((BOUNDS[i + 1] - BOUNDS[i]) * 30), C: () => <C league={league} ws={sceneWords(i)} /> }));
 export const INSCRIPCION_FRAMES_FN = (league: LeagueConfig) => totalFrames(makeScenes(league));
