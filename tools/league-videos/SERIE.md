@@ -12,7 +12,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 | 4 | Mar 1-dic | El chat de la liga y los avisos | Pendiente |
 | 6 | Vie 4-dic | Perfil y disponibilidad (`PerfilDisponibilidad`) | **Aprobado**. Montado con voz y música A. Requiere activar recomendaciones en la temporada (hecho) y, idealmente, mover la disponibilidad al perfil |
 | 7 | Lun 7-dic | Calendario y parejas secretas | Pendiente |
-| 8 | Vie 11-dic | Subir un resultado | Pendiente |
+| 8 | Vie 11-dic | Subir un resultado (`SubirResultado`) | Montado con voz y música A; pendiente de aprobación. Incluye aviso de notificaciones ("Falta el resultado" a las 2, 3, 4 y 24 h de la hora de inicio) |
 | 9 | — | (Descartado) Parejas de la jornada 1 reveladas | No se hace; la explicación del desbloqueo va en el 2+5 |
 | 10 | Mar 15-dic | Clasificación, desempates y MVP por votación | Pendiente |
 | 11 | Vie 18-dic | Suplentes, incidencias y cuenta atrás | Pendiente |
@@ -31,6 +31,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
   ni comida de cierre (aún sin decidir).
 - Se destina una parte fija a **premios** (sin decir cuáles). En el vídeo aparece como fila "Premios". La lista de cuentas muestra los
   importes cifrados (`•••• €`) y se titula "Cuentas de la liga" (sin cabecera/pestañas de la app).
+- Cierre de todos los vídeos: "Nos vemos en la pista" (decidido por el organizador; no cambiar).
 - Usar siempre "inscripción", nunca "fianza".
 
 ## Composiciones (Remotion)

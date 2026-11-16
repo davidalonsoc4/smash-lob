@@ -3,7 +3,7 @@
 
 Uso:
   python3 scripts/retime_voice.py AUDIO.mp3 WORDS.json SALIDA.mp3 SALIDA.ts \
-      --cuts "liga!,jornadas.,nuevo."
+      --cuts "liga!,jornadas.,nuevo."  (usa "|" como separador si alguna palabra lleva coma: --cuts "punto,|válido.")
   (valores por defecto = ESTÁNDAR DE LA SERIE: pausas frase 0.7-0.9 s, coma 0.3-0.5 s, cola 0.6 s,
    tempo 1.08 y presencia activada; ver tools/README.md)
 
@@ -98,7 +98,7 @@ def main():
         d = (disp[key] + re.sub(r"[^,.:!?;]", "", t)) if use else t
         out.append({"w": d, "s": round(shift(w["start"]) / a.tempo, 3), "e": round(shift(min(w["end"], words[min(words.index(w) + 1, len(words) - 1)]["start"] if w is not words[-1] else w["end"])) / a.tempo, 3)})
     # cortes de escena (en mitad de cada pausa ajustada)
-    wanted = [c.strip() for c in a.cuts.split(",") if c.strip()]
+    wanted = [c.strip() for c in a.cuts.split("|" if "|" in a.cuts else ",") if c.strip()]
     bounds = [0.0]; wi = 0
     for g in gaps:
         if wi < len(wanted) and words[g["i"]]["text"] == wanted[wi]:

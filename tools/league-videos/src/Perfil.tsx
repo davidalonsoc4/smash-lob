@@ -18,13 +18,14 @@ const wf = (ws: TimedWord[], text: string, nth = 0) => {
 };
 
 /* ---------- Réplicas de la app ---------- */
-const Ico: React.FC<{ name: "clock" | "user" | "cal" | "check"; color: string; size?: number }> = ({ name, color, size = 22 }) => {
+export const Ico: React.FC<{ name: "clock" | "user" | "cal" | "check" | "bell"; color: string; size?: number }> = ({ name, color, size = 22 }) => {
   const p = { fill: "none", stroke: color, strokeWidth: 2.2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...p}>
       {name === "clock" && (<><circle cx={12} cy={12} r={9} /><path d="M12 7v5l3 2" /></>)}
       {name === "user" && (<><circle cx={12} cy={8} r={4} /><path d="M4 21c1-4.5 4-6.5 8-6.5s7 2 8 6.5" /></>)}
       {name === "cal" && (<><rect x={3.5} y={5} width={17} height={15} rx={2.5} /><path d="M3.5 10h17M8 3v4M16 3v4" /></>)}
+      {name === "bell" && (<><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 21h4" /></>)}
       {name === "check" && <path d="M5 12.5l4.5 4.5L19 7.5" />}
     </svg>
   );
@@ -34,7 +35,7 @@ const Chevron: React.FC<{ color: string }> = ({ color }) => (
   <svg width={18} height={18} viewBox="0 0 20 20" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 4.5 12.5 10 7 15.5" /></svg>
 );
 
-const SettingsRow: React.FC<{ title: string; desc: string; icon: "clock" | "user"; hl: number }> = ({ title, desc, icon, hl }) => {
+export const SettingsRow: React.FC<{ title: string; desc: string; icon: "clock" | "user" | "bell"; hl: number }> = ({ title, desc, icon, hl }) => {
   const t = useTheme();
   return (
     <div style={{ width: NATIVE_W, boxSizing: "border-box", display: "flex", alignItems: "center", gap: 12, background: t.surface, border: `1.5px solid ${hl > 0.5 ? t.accent : t.border}`, borderRadius: 16, padding: "12px 14px", transform: `scale(${1 + 0.03 * hl})`, boxShadow: hl > 0.5 ? `0 0 0 3px ${t.accent}33` : "none" }}>
@@ -84,7 +85,7 @@ const TimeBox: React.FC<{ label: string; value: string; on: boolean }> = ({ labe
   );
 };
 
-const Panel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const Panel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const t = useTheme();
   return <div style={{ width: NATIVE_W, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderLeft: `5px solid ${t.accent}`, borderRadius: 18, padding: "14px 14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>{children}</div>;
 };
