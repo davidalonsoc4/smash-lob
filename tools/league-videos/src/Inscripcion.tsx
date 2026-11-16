@@ -2,11 +2,21 @@
 // Los importes concretos irán en una segunda versión, cuando las reservas estén confirmadas.
 import React from "react";
 import { Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import { Ball, Frame, SceneDef, VideoSeries, Words, pop, sfx, totalFrames, useTheme } from "./kit";
-import { EconomyScreen, NATIVE_W, Zoom } from "./appUi";
+import { Ball, Frame, SceneDef, TimedWord, VideoSeries, Words, pop, sfx, totalFrames, useTheme } from "./kit";
+import { NATIVE_W, Zoom } from "./appUi";
 import type { LeagueConfig } from "./Bienvenida";
+import { BOUNDS_01 as BOUNDS, VOICE_01 as VOICE } from "./voice03";
 
-type Props = { league: LeagueConfig };
+type Props = { league: LeagueConfig; ws: TimedWord[] };
+
+// Límites de escena (s) en mitad de las pausas de la voz; cada escena recibe sus palabras con tiempos relativos.
+const norm = (w: string) => w.replace(/[,.:!?¡¿]/g, "").toLowerCase();
+const sceneWords = (i: number): TimedWord[] =>
+  VOICE.filter((x) => x.s >= BOUNDS[i] - 0.05 && x.s < BOUNDS[i + 1]).map((x) => ({ w: x.w, f: Math.max(0, Math.round((x.s - BOUNDS[i]) * 30)), e: Math.round((x.e - BOUNDS[i]) * 30) }));
+const wf = (ws: TimedWord[], text: string, nth = 0) => {
+  const m = ws.filter((x) => norm(x.w) === norm(text));
+  return (m[nth] ?? m[0] ?? { f: 0 }).f;
+};
 
 /* ---------- Iconos ---------- */
 const Ico: React.FC<{ name: "court" | "ball" | "gift" | "eye"; color: string; size?: number }> = ({ name, color, size = 28 }) => {
@@ -36,13 +46,13 @@ const CategoryCard: React.FC<{ icon: "court" | "ball" | "gift"; title: string; s
 };
 
 /* 1 · Gancho */
-const Hook: React.FC = () => {
+const Hook: React.FC<Props> = () => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const bounce = Math.abs(Math.sin(f / 6)) * 120;
-  const p = pop(f, fps, 24, 10);
+  const p = pop(f, fps, 8, 10);
   return (
     <Frame>
-      <Words text={"¿Para qué es\nla *inscripción*?"} size={118} stagger={5} />
+      <Words text={"¿Para qué es\nla *inscripción*?"} size={118} stagger={4} />
       <div style={{ marginTop: 90, transform: `translateY(${-bounce}px) scale(${p})` }}>
         <div style={{ width: 170, height: 170, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, #fff3c9, ${t.accent} 60%, rgba(0,0,0,.35))`, boxShadow: `0 0 60px ${t.accent}80`, display: "flex", alignItems: "center", justifyContent: "center", color: t.accentContrast, fontSize: 110, fontWeight: 900 }}>€</div>
       </div>
@@ -50,21 +60,26 @@ const Hook: React.FC = () => {
   );
 };
 
-/* 2 · Es un compromiso: ocho monedas entran en el bote de la liga */
-const Commit = ({ league }: Props) => {
+/* 2 y 4 · Bote de la liga: las monedas entran (reverse=false) o vuelven a los jugadores (reverse=true) */
+const Pot = ({ league, ws, reverse, start, step, tag }: Props & { reverse: boolean; start: number; step: number; tag: string }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const n = league.playerNames.length;
-  const landAt = (i: number) => 34 + i * 9 + 16;
-  const landed = league.playerNames.filter((_, i) => f >= landAt(i)).length;
-  const cardP = pop(f, fps, 4, 13);
+  const dur = 14;
+  const moveAt = (i: number) => start + i * step;
+  const doneAt = (i: number) => moveAt(i) + dur;
+  const moved = league.playerNames.filter((_, i) => f >= doneAt(i)).length;
+  const inPot = reverse ? n - moved : moved;
+  const cardP = pop(f, fps, 2, 13);
   return (
-    <Frame tag="LA INSCRIPCIÓN" caption="El dinero de la inscripción de los ocho jugadores se usa solo para la liga." captionStart={12}>
+    <Frame tag={tag} timedWords={ws}>
       <div style={{ position: "relative", width: 840, height: 900 }}>
         {league.playerNames.map((_, i) => {
-          const x = 110 + (i % 4) * 190, startY = -80;
-          const prog = interpolate(f, [34 + i * 9, landAt(i)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-          const y = startY + prog * 560;
-          return <div key={i} style={{ position: "absolute", left: x, top: y + (i % 2) * 40, width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, #fff3c9, ${t.accent} 60%, rgba(0,0,0,.35))`, color: t.accentContrast, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 70, fontWeight: 900, opacity: prog <= 0 ? 0 : prog >= 1 ? 0 : 1, zIndex: 2 }}>€</div>;
+          const x = 110 + (i % 4) * 190;
+          const raw = interpolate(f, [moveAt(i), doneAt(i)], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+          const prog = reverse ? 1 - raw : raw;
+          const y = -80 + prog * 560;
+          const visible = raw > 0 && raw < 1;
+          return <div key={i} style={{ position: "absolute", left: x, top: y + (i % 2) * 40, width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, #fff3c9, ${t.accent} 60%, rgba(0,0,0,.35))`, color: t.accentContrast, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 70, fontWeight: 900, opacity: visible ? 1 : 0, zIndex: 2 }}>€</div>;
         })}
         <div style={{ position: "absolute", left: 0, right: 0, top: 420, transform: `scale(${0.9 + 0.1 * cardP})`, opacity: Math.min(1, cardP * 2) }}>
           <Zoom z={2.0}>
@@ -72,28 +87,28 @@ const Commit = ({ league }: Props) => {
               <div style={{ height: 6, background: t.accent }} />
               <div style={{ padding: "22px 20px 24px", textAlign: "center" }}>
                 <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 3, color: t.textSubtle }}>BOTE DE LA LIGA</div>
-                <div style={{ fontSize: 64, fontWeight: 900, color: t.accent, lineHeight: 1.1, marginTop: 8 }}>{landed}<span style={{ fontSize: 30, color: t.textMuted }}> / {n}</span></div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: t.textMuted, marginTop: 4 }}>jugadores inscritos</div>
+                <div style={{ fontSize: 64, fontWeight: 900, color: t.accent, lineHeight: 1.1, marginTop: 8 }}>{inPot}<span style={{ fontSize: 30, color: t.textMuted }}> / {n}</span></div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: t.textMuted, marginTop: 4 }}>{reverse ? "inscripciones sin gastar se devuelven" : "jugadores inscritos"}</div>
               </div>
             </div>
           </Zoom>
         </div>
       </div>
-      {league.playerNames.map((_, i) => sfx("pop", landAt(i), 0.3))}
+      {league.playerNames.map((_, i) => sfx("pop", doneAt(i), 0.3))}
     </Frame>
   );
 };
 
 /* 3 · En qué se usa (sin importes) */
-const Uses: React.FC = () => {
+const Uses = ({ ws }: Props) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const items: { at: number; icon: "court" | "ball" | "gift"; title: string; subtitle: string; badge?: string }[] = [
-    { at: 26, icon: "court", title: "Pistas", subtitle: "Jornada de apertura y jornada de cierre" },
-    { at: 168, icon: "ball", title: "Bolas", subtitle: "Para cada jornada" },
-    { at: 250, icon: "gift", title: "Welcome pack", subtitle: "Un detalle de bienvenida", badge: "SORPRESA" },
+    { at: Math.max(4, wf(ws, "pistas") - 8), icon: "court", title: "Pistas", subtitle: "Jornada de apertura y jornada de cierre" },
+    { at: Math.max(4, wf(ws, "bolas") - 8), icon: "ball", title: "Bolas", subtitle: "Para cada jornada" },
+    { at: Math.max(4, wf(ws, "detalle") - 8), icon: "gift", title: "Welcome pack", subtitle: "Un detalle de bienvenida", badge: "SORPRESA" },
   ];
   return (
-    <Frame tag="EN QUÉ SE USA" caption="Sirve para reservar las pistas de la jornada de apertura y de cierre, comprar las bolas de cada jornada y preparar un detalle de bienvenida." captionStart={12}>
+    <Frame tag="EN QUÉ SE USA" timedWords={ws}>
       <div style={{ display: "flex", flexDirection: "column", gap: 34, alignItems: "center" }}>
         {items.map((it) => {
           const p = pop(f, fps, it.at, 12);
@@ -109,47 +124,48 @@ const Uses: React.FC = () => {
   );
 };
 
-/* 4 · Transparencia: réplica de la pantalla "Economía de temporada" con los importes difuminados */
-const Transparency: React.FC = () => {
+/* 5 · Cuentas claras (las cuentas NO se publican en la app: se enseñan a quien las pida) */
+const Clear = ({ ws }: Props) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const p = pop(f, fps, 4, 13);
-  const tileProgress = [0, 1, 2, 3].map((i) => pop(f, fps, 14 + i * 6, 14));
-  const rows = ["Reserva jornada de apertura", "Reserva jornada de cierre", "Bolas de cada jornada", "Welcome pack"];
-  const rowProgress = rows.map((_, i) => pop(f, fps, 50 + i * 10, 14));
-  const pill = pop(f, fps, 110, 12);
+  const p = pop(f, fps, 4, 12);
+  const q = pop(f, fps, Math.max(8, wf(ws, "duda") - 6), 12);
   return (
-    <Frame tag="TRANSPARENCIA" caption="Cuando estén confirmadas las reservas, podrás ver todas las cuentas en la app." captionStart={12}>
-      <div style={{ position: "absolute", top: 290, opacity: Math.min(1, p * 2), transform: `scale(${0.92 + 0.08 * p})` }}>
-        <Zoom z={1.85}><EconomyScreen subtitle="Temporada 1 · Inscripción" rows={rows} rowProgress={rowProgress} tileProgress={tileProgress} hideAmounts /></Zoom>
+    <Frame timedWords={ws}>
+      <div style={{ width: 260, height: 260, borderRadius: "50%", background: t.accent, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 70px ${t.accent}66`, transform: `scale(${p})` }}>
+        <Ico name="eye" color={t.accentContrast} size={150} />
       </div>
-      <div style={{ position: "absolute", top: 1318, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: pill, transform: `scale(${0.9 + 0.1 * pill})` }}>
-        <div style={{ background: t.surface, border: `2px solid ${t.accent}`, color: t.accent, fontWeight: 900, fontSize: 32, letterSpacing: 3, padding: "14px 34px", borderRadius: 999 }}>IMPORTES TRAS CONFIRMAR RESERVAS</div>
-      </div>
-      {rows.map((_, i) => sfx("pop", 50 + i * 10, 0.3))}
+      <div style={{ height: 40 }} />
+      <Words text={"Cuentas\n*claras*"} size={130} delay={6} stagger={4} />
+      <div style={{ marginTop: 50, opacity: q, transform: `translateY(${(1 - q) * 40}px) scale(${0.9 + q * 0.1})`, border: `2px solid ${t.accent}`, background: t.surface, borderRadius: 999, padding: "20px 40px", fontSize: 42, fontWeight: 800 }}>¿Dudas? Pregúntanos</div>
+      {sfx("pop", Math.max(8, wf(ws, "duda") - 6), 0.4)}
     </Frame>
   );
 };
 
-/* 5 · Cierre */
-const Outro = ({ league }: Props) => {
+/* 6 · Cierre */
+const Outro = ({ league, ws }: Props) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, 0, 8);
   return (
-    <Frame caption="Nos vemos en la pista." captionStart={10}>
-      <Img src={staticFile(league.logo)} style={{ width: 340, height: 340, objectFit: "contain", filter: `drop-shadow(0 0 60px ${t.accent}66)`, transform: `scale(${p * (1 + Math.sin(f / 5) * 0.03)})` }} />
-      <div style={{ height: 40 }} />
-      <Words text={"Nos vemos\n*en la pista*"} size={130} delay={8} />
-      <div style={{ marginTop: 60 }}><Ball size={80} /></div>
+    <Frame timedWords={ws}>
+      <Img src={staticFile(league.logo)} style={{ width: 320, height: 320, objectFit: "contain", filter: `drop-shadow(0 0 60px ${t.accent}66)`, transform: `scale(${p * (1 + Math.sin(f / 5) * 0.03)})` }} />
+      <div style={{ height: 30 }} />
+      <Words text={"Nos vemos\n*en la pista*"} size={124} delay={4} stagger={3} />
+      <div style={{ marginTop: 50 }}><Ball size={76} /></div>
     </Frame>
   );
 };
 
-const makeScenes = (league: LeagueConfig): SceneDef[] => [
-  { key: "hook", dur: 100, C: Hook },
-  { key: "commit", dur: 215, C: () => <Commit league={league} /> },
-  { key: "uses", dur: 345, C: Uses },
-  { key: "transparency", dur: 190, C: Transparency },
-  { key: "outro", dur: 95, C: () => <Outro league={league} /> },
+const COMPS: React.FC<Props>[] = [
+  Hook,
+  (p) => <Pot {...p} reverse={false} start={20} step={6} tag="LA INSCRIPCIÓN" />,
+  Uses,
+  (p) => <Pot {...p} reverse start={30} step={4} tag="EL SOBRANTE" />,
+  Clear,
+  Outro,
 ];
+const KEYS = ["hook", "pot", "uses", "leftover", "clear", "outro"];
+const makeScenes = (league: LeagueConfig): SceneDef[] =>
+  COMPS.map((C, i) => ({ key: KEYS[i], dur: Math.round((BOUNDS[i + 1] - BOUNDS[i]) * 30), C: () => <C league={league} ws={sceneWords(i)} /> }));
 export const INSCRIPCION_FRAMES_FN = (league: LeagueConfig) => totalFrames(makeScenes(league));
-export const Inscripcion: React.FC<Props> = ({ league }) => <VideoSeries scenes={makeScenes(league)} accent={league.accent} />;
+export const Inscripcion: React.FC<{ league: LeagueConfig }> = ({ league }) => <VideoSeries scenes={makeScenes(league)} accent={league.accent} voice="voice-03-david.mp3" />;
