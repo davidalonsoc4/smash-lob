@@ -732,6 +732,8 @@ const EXACT_OVERRIDES = {
   "Cargando disponibilidad guardada...": "Gordetako erabilgarritasuna kargatzen...",
   "Cargando el catálogo global...": "Katalogo globala kargatzen...",
   "Cargando inicio": "Hasiera kargatzen",
+  "mensaje nuevo": "mezu berria",
+  "mensajes nuevos": "mezu berri",
   "Cargando liga...": "Liga kargatzen...",
   "Compartir partido": "Partida partekatu",
   "Cualquiera con el enlace puede ver resultado, jugadores, fecha y lugar. No puede editar nada.": "Esteka duen edonork emaitza, jokalariak, data eta lekua ikus ditzake. Ezin du ezer editatu.",

@@ -29,6 +29,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import { useMatchData } from "@/context/MatchDataProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { CHAT_UNREAD_LOCAL_REFRESH_EVENT, subscribeChatRealtime } from "@/lib/chatRealtimeClient"
+import { createCoalescedRunner } from "@/lib/coalescedRunner"
 import { clearMatchChatCache, readMatchChatCache, writeMatchChatCache } from "@/lib/matchChatCache"
 import { fetchChatEntry, openChatWithPreview } from "@/lib/chatEntryRequest"
 import { useSession } from "next-auth/react"
@@ -274,9 +275,13 @@ function MatchChat({ account, id }: { account?: string | null; id: string }) {
     return () => { cancelled = true; window.clearTimeout(initialTimer); document.removeEventListener("visibilitychange", handleVisibility) }
   }, [account, applySnapshot, id, initialSnapshot, loadFromServer])
 
-  useEffect(() => subscribeChatRealtime(realtimeTopic, () => {
-    if (!document.hidden) void loadFromServer(undefined, true)
-  }), [loadFromServer, realtimeTopic])
+  // Several people writing at once fire many "refresh" notices: reload one at a time.
+  useEffect(() => {
+    const runRealtimeLoad = createCoalescedRunner(() => loadFromServer(undefined, true))
+    return subscribeChatRealtime(realtimeTopic, () => {
+      if (!document.hidden) void runRealtimeLoad()
+    })
+  }, [loadFromServer, realtimeTopic])
 
   useEffect(() => {
     if (!writeUntil || effectiveReadOnly) return

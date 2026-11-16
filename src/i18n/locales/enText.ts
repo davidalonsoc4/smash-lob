@@ -735,6 +735,8 @@ const EXACT_OVERRIDES = {
   "Cargando disponibilidad guardada...": "Loading saved availability...",
   "Cargando el catálogo global...": "Loading global catalogue...",
   "Cargando inicio": "Loading home",
+  "mensaje nuevo": "new message",
+  "mensajes nuevos": "new messages",
   "Cargando liga...": "Loading league...",
   "Compartir partido": "Share match",
   "Cualquiera con el enlace puede ver resultado, jugadores, fecha y lugar. No puede editar nada.": "Anyone with the link can see the result, players, date and place. They cannot edit anything.",

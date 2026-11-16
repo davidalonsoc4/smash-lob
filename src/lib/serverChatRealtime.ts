@@ -80,6 +80,10 @@ export async function broadcastLeagueSeasonChatRefresh(leagueId: string, seasonI
   ].map((topic) => broadcastTopic(topic).catch(() => false)))
 }
 
+/** A member read the thread: only open threads need to redraw read receipts. */
+export async function broadcastLeagueSeasonReadReceipt(seasonId: string) {
+  await broadcastTopic(getLeagueSeasonChatRealtimeTopic(seasonId)).catch(() => false)
+}
 
 export async function broadcastPersonalMatchChatRefresh(matchId: string) {
   await broadcastTopic(getPersonalMatchChatRealtimeTopic(matchId)).catch(() => false)

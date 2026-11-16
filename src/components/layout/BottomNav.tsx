@@ -157,7 +157,7 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
   const chatUnread = spectatorMode ? 0 : Number(chatData?.totalUnread) || 0
   const realtimeTopic = chatData?.realtimeTopic
   useEffect(() => subscribeChatRealtime(realtimeTopic, leagueDataChanged => {
-    if (!document.hidden) chatResource.invalidate()
+    if (!document.hidden) chatResource.revalidate()
     if (leagueDataChanged) void refreshLeagueAccess()
   }), [chatResource, realtimeTopic, refreshLeagueAccess])
 
