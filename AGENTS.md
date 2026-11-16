@@ -2,9 +2,8 @@ Read `docs/production-hardening/PLAN.md` and `docs/production-hardening/STATUS.m
 
 Work only on the first incomplete milestone. `docs/production-hardening/PLAN.md`
 is ordered newest-first, so the current milestone is the topmost one not marked
-complete. Older `IN PROGRESS` entries in `STATUS.md` (MC32, MC33, MC13, C16) are
-stale duplicates of milestones already closed there; do not resume them without
-asking.
+complete. As of 2026-11-16 all milestones (including MC173) are closed; new work
+starts as a new milestone from an up-to-date `staging`.
 
 Update `docs/production-hardening/STATUS.md` after each significant change.
 

@@ -119,7 +119,7 @@ MC33: ampliado por petición a Población · Ubicación · Pista en programació
 MC33: cambios de presentación aplicados, ocho pruebas de formulario correctas. Cabecera de pagos permite título adaptativo para mantener Por cobrar antes del chevron; Resultado aumenta a 24 px con título traducido y columna dedicada; acciones de Programación comparten base flex de cero para igualar ancho. Validación de tipos, lint, traducciones y geometría móvil en curso.
 
 ## MC33 — Alineación y jerarquía de paneles de Partido
-- Status: IN PROGRESS (2026-10-23)
+- Status: DONE (cierre confirmado por el usuario 2026-11-16; duplicado de la sección COMPLETADA LOCALMENTE)
 - Objective: Por cobrar en cabecera antes del chevron, Resultado destacado y botones de programación iguales. Incluir Población · Ubicación y pista, también en estados finalizado y aplazado.
 - Validation: formularios, tipos, lint, i18n y navegador móvil claro/oscuro; sin operaciones remotas.
 
@@ -134,7 +134,7 @@ MC32: cuatro pruebas de navegador correctas tras identificar la instancia de pag
 Diagnóstico MC32: una prueba móvil detecta estado local de pagos inicializado antes de hidratar una reserva guardada. La instancia se identifica por partido/reserva para reiniciar los campos al cambiar entre sin reserva y reserva, manteniendo borradores durante edición normal. Se repite navegador; publicación detenida hasta pasar gates.
 
 ## MC32 — Claridad visual de Programación, Pagos y Resultado
-- Status: IN PROGRESS (2026-10-23); formulario con filas de parejas, ubicación destacada, acciones compactas con borde y pista antes que bolas. Ocho pruebas de flujo correctas. Gate tipográfico detectó dos tamaños fijos nuevos: sustituidos por type-caption existente antes de continuar; validación completa y navegador en curso.
+- Status: DONE (cierre confirmado por el usuario 2026-11-16; duplicado de la sección COMPLETADA LOCALMENTE); formulario con filas de parejas, ubicación destacada, acciones compactas con borde y pista antes que bolas. Ocho pruebas de flujo correctas. Gate tipográfico detectó dos tamaños fijos nuevos: sustituidos por type-caption existente antes de continuar; validación completa y navegador en curso.
 - Objective: corregir pulsación clara, destacar ubicación, compactar acciones y alinear parejas con inputs. Sin cambios de permisos ni operaciones remotas.
 - Validation: formularios, tipos, lint, build y navegador móvil claro/oscuro con fixtures.
 
@@ -1077,7 +1077,7 @@ Añadido acceso de participantes mediante invitaciones tokenizadas: persistencia
 
 Verificación parcial: 15 pruebas unitarias/de rutas pasan; `i18n:check`, API security inventory y ESLint focalizado pasan. `npm run typecheck` inició correctamente y terminó sin diagnósticos visibles. No hay Docker/Podman para iniciar Postgres local; la CLI está vinculada a `smash-lob-staging`, que se mantiene intacto. Pendientes revisión SQL estática, validación completa, UI E2E de acceso/invitación y actualizar el estado final del hito.
 
-## MC13 - Verificación y acceso a participantes de torneos (IN PROGRESS)
+## MC13 - Verificación y acceso a participantes de torneos (DONE; cierre confirmado por el usuario 2026-11-16, ver «MC13 — completado»)
 
 Solicitud: validar visualmente la plantilla con estadísticas por jugador (juego/descanso y racha máxima), mostrar opciones futuras de cuenta atrás/datos ocultos, seleccionar cuentas existentes de ligas compartidas con el organizador y permitir acceso al participante por invitación. En análisis de límites de datos y permisos. No aplicar DB remota ni publicar hasta probar auth, enlaces y aislamiento con fixtures.
 
@@ -2895,7 +2895,7 @@ This is human acceptance evidence reported by the project owner. It was not repl
 
 - A03 CERRADO: AUDITORIA_GENERAL.md, AUDITORIA_PROGRESO.md, índice de 40 fichas y matriz de 64 antecedentes finalizados. Balance P0 0/P1 10/P2 27/P3 3; 35 confirmados en alcance, cinco probables; 21 módulos examinados con límites. Antecedentes: 37 resueltos en alcance, tres persistentes,18 pendientes,seis obsoletos. Evidencia cierre-validacion.json. Bloqueos visuales/dispositivos/PostgreSQL/servicios reales explícitos; no aceptación de release. Último gate completo de dependencias falla y se conserva sin eludirlo. Integridad 924 archivos, cero diferencias, HEAD inicial 6fa8c72; solo documentación/evidencias, ningún commit/push, instalación, despliegue, escritura real o corrección. Detener auditoría y esperar decisión del usuario antes de corregir.
 
-### C16 — IN PROGRESS (2026-10-11)
+### C16 — DONE (2026-10-11; cierre confirmado por el usuario 2026-11-16)
 Retirada la superposición fija de 24px que producía una franja dentro de la app. Arranque y ThemeProvider sincronizan theme-color negro/blanco, color-scheme y el lienzo standalone sin altura artificial; retirado metadato Microsoft no aplicable a Android. v1.15.11 renueva caché PWA. Validaciones y publicación PRE pendientes; sin afirmar prueba física Android/iOS.
 C16: regresiones dirigidas detectan una expectativa antigua del color gris de Competition claro. Actualizada a blanco, conforme al requisito del usuario; se repetirá la validación antes de publicar. La retirada del overlay y los cambios de modo pasan sus siete pruebas iniciales.
 C16: npm run validate completo correcto en copia aislada: 238 archivos / 925 pruebas, TypeScript, lint sin errores (cuatro avisos previos), presupuestos 132249 líneas / 191 clientes / 50 páginas y build 1183268 bytes gzip / 102 chunks. Pruebas de navegador dirigidas en curso; no publicación hasta completarlas.
@@ -4004,3 +4004,5 @@ MC173 validate final aprobado, 1713 pruebas. Build v1.15.47 dentro del presupues
 MC173 PR #74. Chromium sobre build local 19/19, incluidas 2 pruebas PWA. CI #453 aprobó código, Lighthouse y migraciones/pgTAP/restauración. El navegador aprobó 413 recorridos, omitió uno previsto y falló cuatro auditorías de contraste de Mis ligas en claro durante la cascada. Se espera al final de las animaciones antes de medir, con las mismas reglas de Axe. Las ocho variantes móviles y de escritorio aprobaron con la configuración de Playwright de CI. Pendiente repetición completa antes de PRE.
 
 MC173 CI #454 detectó que los casos de reserva del chat amistoso compartían caché en memoria entre pruebas. El fixture limpia la entrada de su cuenta después de cada caso. Las siete pruebas pasan en tres ejecuciones consecutivas. El cambio solo afecta al aislamiento de pruebas. Nueva ejecución completa de CI pendiente.
+
+MC173 CERRADO 2026-11-16 por decisión del usuario: ya está en producción y la validación pendiente (CI completo tras el #454 y comprobaciones de PRE) se da por superada. Las incidencias que aparezcan se tratarán como hitos nuevos. Sin hitos IN PROGRESS abiertos; siguiente trabajo parte de `staging`.
