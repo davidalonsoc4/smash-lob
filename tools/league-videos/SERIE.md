@@ -8,7 +8,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 |---|---|---|---|
 | 1 | Vie 20-nov | Bienvenida y formato | **Aprobado** (`BienvenidaRapida`: voz natural, música A, transiciones variadas) |
 | 2 | Mar 24-nov | Jornada de apertura en Pando y welcome pack (hora por confirmar) | Pendiente |
-| 3 | Vie 27-nov | Para qué es la inscripción (versión sin cifras: `Inscripcion`) | Montado con voz (guion v5: incluye premio; lista de cuentas con importes cifrados) y música A; pendiente de aprobación |
+| 3 | Vie 27-nov | Para qué es la inscripción (versión sin cifras: `Inscripcion`) | Montado con voz (guion v5: incluye premio; lista de cuentas con importes cifrados) y música A; **Aprobado** |
 | 4 | Mar 1-dic | El chat de la liga y los avisos | Pendiente |
 | 5 | Mié 2-dic | Mini: hora de la jornada de apertura confirmada (tras reservar pista) | Condicionado a la reserva |
 | 6 | Vie 4-dic | Perfil y disponibilidad | Pendiente |
