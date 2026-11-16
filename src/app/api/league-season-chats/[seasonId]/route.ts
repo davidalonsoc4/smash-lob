@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
+import { shouldAnnounceRead } from "@/lib/chatReadReceipts"
 import { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
-import { broadcastLeagueSeasonChatRefresh, getLeagueSeasonChatRealtimeTopic } from "@/lib/serverChatRealtime"
+import { broadcastLeagueSeasonChatRefresh, broadcastLeagueSeasonReadReceipt, getLeagueSeasonChatRealtimeTopic } from "@/lib/serverChatRealtime"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -70,7 +71,11 @@ export async function GET(request: Request, context: Context) {
       const read = await supabase.from("league_season_chat_participants")
         .update({ last_read_at: lastRead }).eq("season_id", seasonId).eq("user_id", user.id)
       if (read.error) return fail("league_chat_read_failed", 500)
-      await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
+      // Read receipts only exist inside the thread, so announce the read there (not on the overview topic,
+      // which every member listens to and answers with a full chat-list request), and only every few
+      // readers: the last reader always announces, so the final receipts are always broadcast.
+      const pendingReaders = memberRows.filter((member) => member.user_id !== user.id && (!member.last_read_at || member.last_read_at < lastRead)).length
+      if (shouldAnnounceRead(pendingReaders)) await broadcastLeagueSeasonReadReceipt(seasonId)
     }
   }
   return NextResponse.json({ ...summary, messages, participants, me: user.id, unread, hasMore }, { headers: { "Cache-Control": "private, no-store" } })

@@ -1,6 +1,7 @@
 "use client"
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react"
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { createCoalescedRunner } from "@/lib/coalescedRunner"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useSession } from "next-auth/react"
 import { openChatWithPreview } from "@/lib/chatEntryRequest"
@@ -169,22 +170,25 @@ function PersonalMatchChat({ account, id }: { account?: string | null; id: strin
     return () => { controller.abort(); window.clearTimeout(timer) }
   }, [account, id, initialSnapshot, loadChat])
 
+  // Several people writing at once fire many "refresh" notices: reload one at a time.
+  const runSilentLoad = useMemo(() => createCoalescedRunner(() => loadChat({ silent: true })), [loadChat])
+
   useEffect(() => {
     if (!snapshot?.realtimeTopic) return
     return subscribeChatRealtime(snapshot.realtimeTopic, () => {
-      void loadChat({ silent: true })
+      void runSilentLoad()
     })
-  }, [loadChat, snapshot?.realtimeTopic])
+  }, [runSilentLoad, snapshot?.realtimeTopic])
 
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        void loadChat({ silent: true })
+        void runSilentLoad()
       }
     }
     document.addEventListener("visibilitychange", handleVisibility)
     return () => document.removeEventListener("visibilitychange", handleVisibility)
-  }, [loadChat])
+  }, [runSilentLoad])
 
   useEffect(() => {
     if (!snapshot?.writeUntil || snapshot.readOnly) return

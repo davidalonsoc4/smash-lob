@@ -729,6 +729,8 @@ const EXACT_OVERRIDES = {
   "Cargando disponibilidad guardada...": "Gordetako erabilgarritasuna kargatzen...",
   "Cargando el catálogo global...": "Katalogo globala kargatzen...",
   "Cargando inicio": "Hasiera kargatzen",
+  "mensaje nuevo": "mezu berria",
+  "mensajes nuevos": "mezu berri",
   "Cargando liga...": "Liga kargatzen...",
   "Cargando partidos": "Partidak kargatzen",
   "Cargar jornada": "Kargatu jardunaldia",

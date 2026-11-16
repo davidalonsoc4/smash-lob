@@ -732,6 +732,8 @@ const EXACT_OVERRIDES = {
   "Cargando disponibilidad guardada...": "Loading saved availability...",
   "Cargando el catálogo global...": "Loading global catalogue...",
   "Cargando inicio": "Loading home",
+  "mensaje nuevo": "new message",
+  "mensajes nuevos": "new messages",
   "Cargando liga...": "Loading league...",
   "Cargando partidos": "Loading matches",
   "Cargar jornada": "Load round",

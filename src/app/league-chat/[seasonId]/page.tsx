@@ -11,6 +11,10 @@ import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
 import { CHAT_UNREAD_LOCAL_REFRESH_EVENT, subscribeChatRealtime } from "@/lib/chatRealtimeClient"
+import { createCoalescedRunner } from "@/lib/coalescedRunner"
+
+/** Distance from the bottom (px) under which the reader counts as "following" the conversation. */
+const FOLLOW_THRESHOLD = 96
 
 type Message = { id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string }
 type Chat = { unread?: number; messages: Message[]; participants?: MatchChatParticipant[]; me: string; readOnly: boolean; hasMore: boolean; season: { name: string; league_id?: string }; realtimeTopic: string | null }
@@ -35,6 +39,9 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
   const [error, setError] = useState(false)
   const [pending, setPending] = useState<Message | null>(null)
   const [loadingOlder, setLoadingOlder] = useState(false)
+  const [unseenCount, setUnseenCount] = useState(0)
+  const followingBottom = useRef(true)
+  const renderedCount = useRef(0)
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<HTMLDivElement>(null)
@@ -68,15 +75,46 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     }, load), 0)
     return () => { active = false; window.clearTimeout(timer) }
   }, [account, load, seasonId])
-  useEffect(() => subscribeChatRealtime(chat?.realtimeTopic ?? null, () => { void load() }), [chat?.realtimeTopic, load])
+  // Several people writing at once fire many "refresh" notices: reload one at a time.
+  useEffect(() => {
+    const runLoad = createCoalescedRunner(load)
+    return subscribeChatRealtime(chat?.realtimeTopic ?? null, () => { void runLoad() })
+  }, [chat?.realtimeTopic, load])
+  const messageCount = messages.length
+  const lastSenderId = messages.at(-1)?.sender_user_id
   useLayoutEffect(() => {
     const panel = messagesRef.current
     if (!panel) return
+    const previousCount = renderedCount.current
+    renderedCount.current = messageCount
     if (olderScrollHeight.current !== null) {
       panel.scrollTop += panel.scrollHeight - olderScrollHeight.current
       olderScrollHeight.current = null
-    } else panel.scrollTop = panel.scrollHeight
-  }, [messages.length])
+      return
+    }
+    const added = messageCount - previousCount
+    const lastIsMine = lastSenderId === chat?.me
+    // Only follow new messages when already at the bottom (or when the user wrote); otherwise do not move
+    // the reader away from what they are reading and offer a shortcut instead.
+    if (previousCount === 0 || followingBottom.current || lastIsMine) {
+      panel.scrollTop = panel.scrollHeight
+      followingBottom.current = true
+      setUnseenCount(0)
+    } else if (added > 0) setUnseenCount(count => count + added)
+  }, [messageCount, lastSenderId, chat?.me])
+  function handleMessagesScroll() {
+    const panel = messagesRef.current
+    if (!panel) return
+    followingBottom.current = panel.scrollHeight - panel.scrollTop - panel.clientHeight < FOLLOW_THRESHOLD
+    if (followingBottom.current) setUnseenCount(count => count === 0 ? count : 0)
+  }
+  function scrollToLatest() {
+    const panel = messagesRef.current
+    if (!panel) return
+    followingBottom.current = true
+    setUnseenCount(0)
+    panel.scrollTo({ top: panel.scrollHeight, behavior: "smooth" })
+  }
   async function loadOlder() {
     const first = chat?.messages[0]
     if (!first || loadingOlder) return
@@ -139,11 +177,12 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
       </div>
     </header>
     {error ? <p role="alert">{tx("No se ha podido cargar o enviar el mensaje. Inténtalo de nuevo.")}</p> : null}
-    <div ref={messagesRef} className="league-season-chat-messages min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 py-4" aria-live="polite">
+    <div ref={messagesRef} onScroll={handleMessagesScroll} className="league-season-chat-messages min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 py-4" aria-live="polite">
       {chat?.hasMore ? <button type="button" className="mx-auto flex items-center justify-center text-center type-small font-bold" onClick={() => void loadOlder()} disabled={loadingOlder}>{tx("Cargar mensajes anteriores")}</button> : null}
       {chat && messages.length === 0 ? <p className="text-center type-small">{tx("Todavía no hay mensajes. ¡Empieza la conversación!")}</p> : null}
       {chat && messages.map((message, index) => <MatchChatTextMessage key={message.id} message={message} me={chat.me} participants={chat.participants ?? []} pending={message === pending} previousSameSender={index > 0 && messages[index - 1].sender_user_id === message.sender_user_id} />)}
     </div>
+    {unseenCount > 0 ? <div className="relative h-0 shrink-0"><button type="button" onClick={scrollToLatest} className="absolute bottom-2 left-1/2 z-10 inline-flex min-h-9 -translate-x-1/2 items-center justify-center rounded-full text-center bg-neutral-950 px-4 text-xs font-black text-white shadow-lg active:scale-[0.97]">↓ {unseenCount} {tx(unseenCount === 1 ? "mensaje nuevo" : "mensajes nuevos")}</button></div> : null}
     {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} /> : null}
   </div>
 }

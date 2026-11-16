@@ -5,6 +5,7 @@ export function createSessionResource<T>(load: (signal: AbortSignal) => Promise<
   let expiresAt = 0
   let controller: AbortController | null = null
   let pending: Promise<void> | undefined
+  let staleWhilePending = false
   const listeners = new Set<() => void>()
 
   function publish(next: Snapshot<T>) {
@@ -16,6 +17,7 @@ export function createSessionResource<T>(load: (signal: AbortSignal) => Promise<
     controller?.abort()
     controller = null
     pending = undefined
+    staleWhilePending = false
   }
 
   function refresh() {
@@ -32,6 +34,11 @@ export function createSessionResource<T>(load: (signal: AbortSignal) => Promise<
       if (controller === request) {
         controller = null
         pending = undefined
+        if (staleWhilePending) {
+          staleWhilePending = false
+          expiresAt = 0
+          if (listeners.size) void refresh()
+        }
       }
     })
     publish({ ...snapshot, refreshing: true })
@@ -44,6 +51,20 @@ export function createSessionResource<T>(load: (signal: AbortSignal) => Promise<
     if (listeners.size) return refresh()
   }
 
+  /**
+   * Like `invalidate`, but never aborts a request in flight: if one is running, a single
+   * follow-up refresh starts when it ends. Realtime notices use it so bursts of events
+   * produce at most one request at a time instead of one aborted-and-restarted request each.
+   */
+  function revalidate() {
+    expiresAt = 0
+    if (pending) {
+      staleWhilePending = true
+      return pending
+    }
+    if (listeners.size) return refresh()
+  }
+
   return {
     getSnapshot: () => snapshot,
     subscribe(listener: () => void) {
@@ -53,6 +74,7 @@ export function createSessionResource<T>(load: (signal: AbortSignal) => Promise<
     refresh,
     cancel,
     invalidate,
+    revalidate,
     update(updateData: (data: T | null) => T) {
       publish({ ...snapshot, data: updateData(snapshot.data), failed: false })
     },

@@ -81,7 +81,7 @@ export function createLeagueScreenData(account: string) {
     if (watchedPreview?.resource === resource && watchedPreview.topic === topic) return
     stopPreview()
     if (topic) watchedPreview = { resource, topic, unsubscribe: subscribeChatRealtime(topic, () => {
-      if (!document.hidden) resource.invalidate()
+      if (!document.hidden) resource.revalidate()
     }) }
   }
   const entrances = new Set<string>()

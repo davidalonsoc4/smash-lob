@@ -45,6 +45,7 @@ import {
   getOpeningRoundBallAllocation,
 } from "@/lib/ballCustodianAssignment"
 import { subscribeChatRealtime } from "@/lib/chatRealtimeClient"
+import { createCoalescedRunner } from "@/lib/coalescedRunner"
 import type { MatchChatCoordination } from "@/lib/matchChatCoordination"
 
 export default function MatchDetailPage() {
@@ -104,10 +105,11 @@ export default function MatchDetailPage() {
       unsubscribeRealtime()
       realtimeTopic = nextTopic
       unsubscribeRealtime = subscribeChatRealtime(realtimeTopic, () => {
-        if (!document.hidden) void refreshCoordination()
+        if (!document.hidden) void refreshCoordinationOnce()
       })
     }
 
+    const refreshCoordinationOnce = createCoalescedRunner(refreshCoordination)
     const timer = window.setTimeout(() => void refreshCoordination(), 0)
     return () => {
       active = false

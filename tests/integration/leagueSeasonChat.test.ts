@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({ auth: vi.fn() }))
 vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.auth }))
-vi.mock("@/lib/serverChatRealtime", () => ({ broadcastLeagueSeasonChatRefresh: vi.fn(), getLeagueSeasonChatRealtimeTopic: () => "topic" }))
+vi.mock("@/lib/serverChatRealtime", () => ({ broadcastLeagueSeasonChatRefresh: vi.fn(), broadcastLeagueSeasonReadReceipt: vi.fn(), getLeagueSeasonChatRealtimeTopic: () => "topic" }))
 import { GET, POST } from "@/app/api/league-season-chats/[seasonId]/route"
 
 const seasonId = "74000000-0000-4000-8000-000000000001"
