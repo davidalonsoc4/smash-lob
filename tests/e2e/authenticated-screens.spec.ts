@@ -354,7 +354,7 @@ test("league spectator share shows a downloadable QR and shares the league link"
   const downloadPromise = page.waitForEvent("download")
   await dialog.getByRole("button", { name: "Descargar" }).click()
   const download = await downloadPromise
-  expect(download.suggestedFilename()).toMatch(/smash-lob-qr-spectator\.svg$/)
+  expect(download.suggestedFilename()).toMatch(/smash-lob-qr-spectator\.png$/)
 
   await dialog.getByRole("button", { name: "Compartir" }).click()
   await expect(dialog.getByRole("status")).toContainText("Enlace compartido")

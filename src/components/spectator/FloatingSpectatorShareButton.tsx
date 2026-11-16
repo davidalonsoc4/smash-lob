@@ -136,6 +136,33 @@ function createDesignedQrSvg(qrCode: QrMatrix, logoDataUrl: string | null) {
   return `${qrMark}${brandMark}</svg>`
 }
 
+async function renderQrPng(svg: string): Promise<Blob | null> {
+  const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }))
+
+  try {
+    const image = new Image()
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve()
+      image.onerror = () => reject(new Error("qr_image_load_failed"))
+      image.src = svgUrl
+    })
+    const size = 1024
+    const canvas = document.createElement("canvas")
+    canvas.width = size
+    canvas.height = size
+    const context = canvas.getContext("2d")
+    if (!context) return null
+    context.fillStyle = "#fff"
+    context.fillRect(0, 0, size, size)
+    context.drawImage(image, 0, 0, size, size)
+    return await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"))
+  } catch {
+    return null
+  } finally {
+    URL.revokeObjectURL(svgUrl)
+  }
+}
+
 function ShareIcon() {
   return (
     <svg
@@ -180,20 +207,24 @@ function FloatingSpectatorShareButtonForLeague({
   const [error, setError] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [shareType, setShareType] = useState<ShareType | "">("")
+  const [matchTitle, setMatchTitle] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const copiedTimerRef = useRef<number | null>(null)
   const urls = useRef<Partial<Record<ShareType, string>>>({})
   const isTournament = Boolean(tournamentId)
   const entityName = isTournament ? (tournamentName ?? leagueName) : leagueName
   const heading = shareType === "match" ? "Sigue este partido" : shareType === "spectator" ? (isTournament ? "Seguir este torneo" : "Sigue nuestra liga") : shareType === "player" ? (isTournament ? "Participar en este torneo" : "Únete a nuestra liga") : "Descubre Smash & Lob"
   const description = shareType === "match" ? "Escanea el QR para ver este partido: resultado, jugadores, fecha y lugar." : shareType === "spectator" ? (isTournament ? "Disponible próximamente para seguir este torneo." : "Escanea el QR para seguir los partidos y la clasificación de esta liga.") : shareType === "player" ? (isTournament ? "Escanea el QR, entra con tu cuenta y elige tu perfil de jugador." : "Escanea el QR y entra con tu cuenta para unirte a esta liga como jugador.") : "Escanea el QR para descubrir Smash & Lob y crear tu cuenta."
   const options = ([
-    { type: "match", label: tx("Compartir partido"), description: tx("Enlace de solo lectura a este partido; quien juega en él lo abre con sus permisos."), available: Boolean(personalMatchId), disabled: false },
-    { type: "spectator", label: tx(isTournament ? "Invitar a seguir el torneo" : "Invitar a seguir la liga"), description: tx(isTournament ? "Disponible próximamente." : "Para seguir los partidos y la clasificación como espectador."), available: canShareLeague, disabled: isTournament },
-    { type: "player", label: tx(isTournament ? "Invitar a jugar en el torneo" : "Invitar a jugar en la liga"), description: tx(isTournament ? "Para entrar con una cuenta y elegir el perfil correspondiente." : "Para unirse a la liga como jugador."), available: canShareLeague && Boolean(onGeneratePlayerInvite), disabled: false },
-    { type: "app", label: tx("Compartir Smash & Lob"), description: tx("Para conocer la app y crear una cuenta."), available: true, disabled: false },
+    { type: "match", label: tx("Compartir partido"), description: tx("Cualquiera con el enlace puede ver resultado, jugadores, fecha y lugar. No puede editar nada."), available: Boolean(personalMatchId), disabled: false },
+    { type: "spectator", label: tx(isTournament ? "Invitar a seguir el torneo" : "Invitar a seguir la liga"), description: tx(isTournament ? "Disponible próximamente." : "Cualquiera con el enlace puede seguir los partidos y la clasificación. No puede editar nada."), available: canShareLeague, disabled: isTournament },
+    { type: "player", label: tx(isTournament ? "Invitar a jugar en el torneo" : "Invitar a jugar en la liga"), description: tx(isTournament ? "Quien lo abra entra con su cuenta y elige su perfil de jugador." : "Quien lo abra entra con su cuenta y se une a la liga como jugador."), available: canShareLeague && Boolean(onGeneratePlayerInvite), disabled: false },
+    { type: "app", label: tx("Compartir Smash & Lob"), description: tx("Quien lo abra puede conocer la app y crear su cuenta."), available: true, disabled: false },
   ] as const).filter(option => option.available || (isTournament && option.type === "spectator"))
 
   useEffect(() => () => {
     qrRequestIdRef.current += 1
+    if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current)
   }, [])
 
   async function selectShareType(type: ShareType | "") {
@@ -211,7 +242,11 @@ function FloatingSpectatorShareButtonForLeague({
       let url = urls.current[type]
       if (!url) {
         if (type === "app") url = getPublicAppBaseUrl()
-        else if (type === "match") url = (await createOrGetPersonalMatchShareLink(personalMatchId!)).url
+        else if (type === "match") {
+          const link = await createOrGetPersonalMatchShareLink(personalMatchId!)
+          url = link.url
+          if (qrRequestIdRef.current === requestId) setMatchTitle(link.title ?? null)
+        }
         else if (type === "spectator") url = (await createOrGetSpectatorInvite(leagueId, DEFAULT_SPECTATOR_INVITE_APPEARANCE)).url
         else {
           const code = await onGeneratePlayerInvite!()
@@ -236,20 +271,34 @@ function FloatingSpectatorShareButtonForLeague({
     }
   }
 
-  function downloadQr() {
+  async function downloadQr() {
     if (!qrSvg) return
 
-    const blobUrl = URL.createObjectURL(
-      new Blob([qrSvg], { type: "image/svg+xml;charset=utf-8" }),
-    )
+    // PNG opens and shares everywhere on a phone; SVG stays as the fallback if the canvas fails.
+    const png = await renderQrPng(qrSvg)
+    const blobUrl = URL.createObjectURL(png ?? new Blob([qrSvg], { type: "image/svg+xml;charset=utf-8" }))
     const link = document.createElement("a")
     const leagueSlug = leagueName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
     link.href = blobUrl
-    link.download = `smash-lob-${shareType === "app" ? "app" : shareType === "match" ? "partido" : leagueSlug || "liga"}-qr-${shareType}.svg`
+    link.download = `smash-lob-${shareType === "app" ? "app" : shareType === "match" ? "partido" : leagueSlug || "liga"}-qr-${shareType}.${png ? "png" : "svg"}`
     document.body.append(link)
     link.click()
     link.remove()
     window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1_000)
+  }
+
+  async function copyInviteLink() {
+    if (!inviteUrl) return
+
+    try {
+      await navigator.clipboard.writeText(inviteUrl)
+      setStatusMessage(tx("Enlace copiado"))
+      setCopied(true)
+      if (copiedTimerRef.current !== null) window.clearTimeout(copiedTimerRef.current)
+      copiedTimerRef.current = window.setTimeout(() => setCopied(false), 2_500)
+    } catch {
+      setStatusMessage(tx("No se ha podido compartir el enlace."))
+    }
   }
 
   async function shareInvite() {
@@ -262,7 +311,7 @@ function FloatingSpectatorShareButtonForLeague({
           text: tx(description),
           url: inviteUrl,
         })
-        setStatusMessage("Enlace compartido")
+        setStatusMessage(tx("Enlace compartido"))
         return
       } catch (shareError) {
         if (shareError instanceof DOMException && shareError.name === "AbortError") return
@@ -271,9 +320,9 @@ function FloatingSpectatorShareButtonForLeague({
 
     try {
       await navigator.clipboard.writeText(inviteUrl)
-      setStatusMessage("Enlace copiado")
+      setStatusMessage(tx("Enlace copiado"))
     } catch {
-      setStatusMessage("No se ha podido compartir el enlace.")
+      setStatusMessage(tx("No se ha podido compartir el enlace."))
     }
   }
 
@@ -295,11 +344,10 @@ function FloatingSpectatorShareButtonForLeague({
 
       <GeneratedImagePreviewModal
         open={isOpen}
-        title={shareType === "app" || (!canShareLeague && shareType !== "match") ? "Smash & Lob" : shareType === "match" ? tx("Partido amistoso") : entityName}
-        description={shareType ? tx(description) : tx("Elige cómo quieres invitar a alguien.")}
-        qrHeading={shareType ? tx(heading) : tx("Compartir invitación")}
+        title={shareType === "app" || (!canShareLeague && shareType !== "match") ? "Smash & Lob" : shareType === "match" ? (matchTitle ?? tx("Partido amistoso")) : entityName}
+        description={shareType ? tx(description) : tx("Elige qué quieres compartir.")}
+        qrHeading={shareType ? tx(heading) : tx("Compartir")}
         qrCaption={tx(shareType === "app" ? "Escanea para abrir Smash & Lob" : shareType === "match" ? "Escanea para abrir el partido" : isTournament ? "Escanea para abrir el torneo" : "Escanea para abrir la liga")}
-        qrFooter={tx(shareType === "app" ? "Crea tu cuenta en Smash & Lob" : shareType === "match" ? "Un enlace solo para este partido" : isTournament ? "Un enlace para todo el torneo" : "Un enlace para toda la liga")}
         showActions={Boolean(shareType)}
         beforePreview={!shareType ? <div className="space-y-3" role="group" aria-label={tx("Qué quieres compartir")}>
           {options.map((option) => (
@@ -327,8 +375,10 @@ function FloatingSpectatorShareButtonForLeague({
           setIsGenerating(false)
           setStatusMessage(null)
         }}
+        copied={copied}
         onDownload={downloadQr}
         onShare={shareInvite}
+        onCopy={copyInviteLink}
       />
     </div>
   )

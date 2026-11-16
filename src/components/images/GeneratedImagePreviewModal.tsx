@@ -48,12 +48,13 @@ export function GeneratedImagePreviewModal({
   beforePreview,
   qrHeading = "Invitación de espectadores",
   qrCaption = "Escanea para abrir la liga",
-  qrFooter = "Un enlace para toda la liga",
   showActions = true,
   busyAction,
+  copied = false,
   onClose,
   onDownload,
   onShare,
+  onCopy,
 }: {
   open: boolean
   title: string
@@ -69,12 +70,15 @@ export function GeneratedImagePreviewModal({
   beforePreview?: ReactNode
   qrHeading?: string
   qrCaption?: string
-  qrFooter?: string
   showActions?: boolean
   busyAction: GeneratedImagePreviewModalBusyAction
+  /** QR variant only: briefly true after the link was copied, to confirm it on the button. */
+  copied?: boolean
   onClose: () => void
   onDownload: () => void | Promise<void>
   onShare: () => void | Promise<void>
+  /** QR variant only: adds a "Copiar enlace" action next to sharing. */
+  onCopy?: () => void | Promise<void>
 }) {
   const { tx } = useI18n()
 
@@ -96,7 +100,7 @@ export function GeneratedImagePreviewModal({
                     {tx(qrHeading)}
                   </p>
                 </div>
-                <p data-dialog-title className="mt-3 truncate text-lg font-black tracking-tight text-neutral-950 sm:text-xl">{title}</p>
+                <p data-dialog-title className="mt-3 line-clamp-2 break-words text-lg font-black tracking-tight text-neutral-950 sm:text-xl">{title}</p>
                 {description ? <p className="mt-1 max-w-[38ch] text-xs font-medium leading-5 text-neutral-600">{description}</p> : null}
               </>
             ) : (
@@ -111,7 +115,7 @@ export function GeneratedImagePreviewModal({
           <DialogCloseButton onClick={onClose} disabled={busyAction !== null} />
         </div>
 
-        <div className={`min-h-0 flex-1 overflow-auto ${isSpectatorQr ? "bg-stone-50 px-4 py-5 sm:px-6 sm:py-6" : "bg-[radial-gradient(circle_at_50%_20%,#292929,#050505_72%)] p-2 sm:p-3"}`}>
+        <div className={`min-h-0 flex-1 overflow-auto ${isSpectatorQr ? "bg-stone-50 px-4 py-4 sm:px-6 sm:py-5" : "bg-[radial-gradient(circle_at_50%_20%,#292929,#050505_72%)] p-2 sm:p-3"}`}>
           {beforePreview}
           <div className={`relative flex items-center justify-center ${isSpectatorQr ? "min-h-0 flex-col gap-3" : "min-h-[54vh]"}`} aria-busy={loading}>
             {previewUrl ? (
@@ -119,7 +123,7 @@ export function GeneratedImagePreviewModal({
                 <div className="relative rounded-[1.7rem] bg-white p-3 shadow-[0_18px_55px_rgba(0,0,0,.34)] ring-1 ring-black/5 sm:p-4">
                   <span aria-hidden="true" className="pointer-events-none absolute inset-2 rounded-[1.25rem] border border-neutral-100" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={previewUrl} alt={previewAlt ?? `${tx("Vista previa")} · ${title}`} className="relative block h-auto max-h-[42dvh] w-[min(68vw,19rem)] object-contain" />
+                  <img src={previewUrl} alt={previewAlt ?? `${tx("Vista previa")} · ${title}`} className="relative block h-[min(60vw,17rem,34dvh)] w-[min(60vw,17rem,34dvh)] object-contain" />
                 </div>
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -146,35 +150,56 @@ export function GeneratedImagePreviewModal({
           </div>
         </div>
 
-        {isSpectatorQr && previewUrl && !error ? (
-          <p className="flex shrink-0 items-center justify-center gap-2 border-t border-neutral-200 bg-stone-50 px-4 py-2 text-center text-xs font-bold tracking-wide text-neutral-600">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
-            {tx(qrFooter)}
-          </p>
-        ) : null}
-
         {statusMessage ? (
-          <p role="status" className={`border-t px-4 py-2 text-center text-xs font-bold ${isSpectatorQr ? "border-neutral-200 text-neutral-700" : "border-white/10 text-emerald-700 dark:text-emerald-300"}`}>
+          <p role="status" className={`border-t px-4 text-center font-bold ${isSpectatorQr ? "border-neutral-200 bg-emerald-50 py-3 text-sm text-emerald-800" : "border-white/10 bg-emerald-950/40 py-3 text-sm text-emerald-300"}`}>
             {tx(statusMessage)}
           </p>
         ) : null}
 
-        {showActions ? <div className={`grid shrink-0 grid-cols-2 gap-2 ${isSpectatorQr ? "border-t border-neutral-200 bg-stone-50 p-4 sm:px-5" : "border-t border-white/10 bg-neutral-950 p-3"}`}>
-          <button
-            type="button"
-            disabled={actionsDisabled}
-            onClick={() => void onDownload()}
-            className="app-dialog-option justify-center">
-            {isSpectatorQr && busyAction !== "download" ? <DownloadMark /> : null}
-            {busyAction === "download" ? tx("Generando…") : tx("Descargar")}
-          </button>
+        {showActions && isSpectatorQr ? <div className="grid shrink-0 gap-2 border-t border-neutral-200 bg-stone-50 p-4 sm:px-5">
           <button
             type="button"
             disabled={actionsDisabled}
             onClick={() => void onShare()}
-            className="app-dialog-primary">
-            {isSpectatorQr && busyAction !== "share" ? <ShareMark /> : null}
+            className="app-dialog-primary w-full justify-center">
+            {busyAction !== "share" ? <ShareMark /> : null}
             {busyAction === "share" ? tx("Compartiendo...") : tx("Compartir")}
+          </button>
+          <div className="grid grid-cols-2 gap-2">
+            {onCopy ? <button
+              type="button"
+              disabled={actionsDisabled}
+              onClick={() => void onCopy()}
+              className="app-dialog-option justify-center">
+              {copied ? tx("¡Copiado!") : tx("Copiar enlace")}
+            </button> : null}
+            <button
+              type="button"
+              disabled={actionsDisabled}
+              onClick={() => void onDownload()}
+              className={`app-dialog-option justify-center ${onCopy ? "" : "col-span-2"}`}>
+              {busyAction !== "download" ? <DownloadMark /> : null}
+              {busyAction === "download" ? tx("Generando…") : tx("Descargar QR")}
+            </button>
+          </div>
+        </div> : null}
+
+        {showActions && !isSpectatorQr ? <div className="grid shrink-0 gap-2 border-t border-white/10 bg-neutral-950 p-3">
+          <button
+            type="button"
+            disabled={actionsDisabled}
+            onClick={() => void onShare()}
+            className="app-dialog-primary w-full justify-center">
+            {busyAction !== "share" ? <ShareMark /> : null}
+            {busyAction === "share" ? tx("Compartiendo...") : tx("Compartir")}
+          </button>
+          <button
+            type="button"
+            disabled={actionsDisabled}
+            onClick={() => void onDownload()}
+            className="app-dialog-option w-full justify-center">
+            {busyAction !== "download" ? <DownloadMark /> : null}
+            {busyAction === "download" ? tx("Generando…") : tx("Descargar")}
           </button>
         </div> : null}
       </div>

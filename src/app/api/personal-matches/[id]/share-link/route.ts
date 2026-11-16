@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto"
 import { NextResponse } from "next/server"
-import { getPublicPersonalMatchUrl } from "@/lib/personalMatchShare"
+import { formatPersonalMatchShareTitle, getPublicPersonalMatchUrl } from "@/lib/personalMatchShare"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { loadManageablePersonalMatch } from "@/lib/serverPersonalMatches"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
@@ -97,7 +97,24 @@ export async function POST(
       return NextResponse.json({ error: "personal_match_share_link_failed" }, { status: 500 })
     }
 
-    return NextResponse.json({ code, url: getPublicPersonalMatchUrl(code, request) })
+    // Only a label for the share dialog; the caller already manages this match.
+    let title: string | null = null
+    try {
+      const { data: participants } = await actor.supabase
+        .from("personal_match_participants")
+        .select("team,slot,display_name")
+        .eq("match_id", matchId)
+      const teamNames = (team: number) =>
+        (participants ?? [])
+          .filter((participant) => participant.team === team)
+          .sort((left, right) => left.slot - right.slot)
+          .map((participant) => participant.display_name?.trim().slice(0, 40) || "Jugador")
+      title = formatPersonalMatchShareTitle([teamNames(1), teamNames(2)])
+    } catch {
+      title = null
+    }
+
+    return NextResponse.json({ code, url: getPublicPersonalMatchUrl(code, request), title })
   } catch {
     return NextResponse.json({ error: "personal_match_share_link_failed" }, { status: 500 })
   }
