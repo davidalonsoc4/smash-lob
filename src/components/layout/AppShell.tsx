@@ -105,7 +105,7 @@ function getPreproductionBadgeLeft() {
   return "max(4px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 4px))"
 }
 
-function SpectatorFloatingControls({ inLeagueContext }: { inLeagueContext: boolean }) {
+function SpectatorFloatingControls({ inLeagueContext, personalMatchId }: { inLeagueContext: boolean; personalMatchId?: string }) {
   const { canShareSpectatorInvite, isLeagueAdmin, regenerateLeagueInviteCode, userLeagues } = useLeagueAccess()
   const { activeLeagueId } = useActiveLeague()
   const activeLeague = inLeagueContext ? userLeagues.find(league => league.id === activeLeagueId) : undefined
@@ -115,6 +115,7 @@ function SpectatorFloatingControls({ inLeagueContext }: { inLeagueContext: boole
       leagueId={activeLeague?.id ?? ""}
       leagueName={activeLeague?.name ?? "Smash & Lob"}
       canShareLeague={Boolean(activeLeague && canShareSpectatorInvite(activeLeague.id))}
+      personalMatchId={personalMatchId}
       onGeneratePlayerInvite={activeLeague && isLeagueAdmin(activeLeague.id) ? () => regenerateLeagueInviteCode(activeLeague.id) : undefined}
     />
   )
@@ -311,6 +312,8 @@ export function AppShell({ children }: AppShellProps) {
   const isTournamentSettingsRoute = Boolean(tournamentNavId) && pathname === `/tournaments/${tournamentNavId}/settings`
   const shouldShowTournamentNav = Boolean(tournamentNavId) && !isMatchChatRoute && !isTournamentSettingsRoute
   const shouldShowSpectatorShareButton = shouldShowActionBar
+  // Only the friendly's own detail screen offers the read-only "Compartir partido" link.
+  const sharePersonalMatchId = pathname.match(/^\/personal-matches\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i)?.[1]
   const shareTournamentId = areTournamentsEnabled() ? tournamentNavId ?? searchParams.get("returnTo")?.match(/^\/tournaments\/([^/]+)/)?.[1] : null
   const hasSpectatorShareControl = shouldShowSpectatorShareButton
   const hasFloatingTopControls = shouldShowActionBar
@@ -372,14 +375,14 @@ export function AppShell({ children }: AppShellProps) {
               <summary aria-label={tx("Más opciones")} title={tx("Más opciones")} className="app-floating-control flex h-[34px] w-[34px] cursor-pointer list-none items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm [&::-webkit-details-marker]:hidden"><span aria-hidden="true" className="text-xl leading-none">⋮</span></summary>
               <div className="absolute right-0 top-full mt-2 flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                 {shouldShowHelpButton ? <FloatingHelpButton /> : null}
-                {hasSpectatorShareControl ? (shareTournamentId ? <TournamentShareButton tournamentId={shareTournamentId} /> : <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} />) : null}
+                {hasSpectatorShareControl ? (shareTournamentId ? <TournamentShareButton tournamentId={shareTournamentId} /> : <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} personalMatchId={sharePersonalMatchId} />) : null}
                 {shouldShowNotificationsButton ? <Link href="/notifications" data-tour="floating-notifications" aria-label={tx("Notificaciones")} title={tx("Notificaciones")} className="app-floating-control flex h-[34px] w-[34px] items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm"><NotificationsIcon /></Link> : null}
                 {shouldShowSettingsButton ? <Link href={`/settings?returnTo=${encodeURIComponent(pathname)}`} data-tour="floating-settings" aria-label={t.appHeader.settingsLabel} title={t.appHeader.settingsLabel} className="app-floating-control flex h-[34px] w-[34px] items-center justify-center rounded-full border border-neutral-200 bg-white/90 text-neutral-600 shadow-sm"><SettingsIcon /></Link> : null}
               </div>
             </details> : <>
             {shouldShowHelpButton ? <FloatingHelpButton /> : null}
 
-            {hasSpectatorShareControl ? (shareTournamentId ? <TournamentShareButton tournamentId={shareTournamentId} /> : <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} />) : null}
+            {hasSpectatorShareControl ? (shareTournamentId ? <TournamentShareButton tournamentId={shareTournamentId} /> : <SpectatorFloatingControls inLeagueContext={shouldShowBottomNav} personalMatchId={sharePersonalMatchId} />) : null}
 
             {shouldShowNotificationsButton ? (
               <Link

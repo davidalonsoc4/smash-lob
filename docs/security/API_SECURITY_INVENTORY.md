@@ -129,8 +129,10 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/personal-matches/[id]/court-booking` | PUT | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/court-booking` | DELETE | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/court-booking/transfers/[transferId]` | PUT | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]/share-link` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/chats` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/people` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/public-personal-match/[code]` | GET | Público explícito | Allowlist revisada |
 | `/api/public-spectator/[code]` | GET | Público explícito | Allowlist revisada |
 | `/api/qa` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/qa` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |

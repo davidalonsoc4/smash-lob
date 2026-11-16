@@ -15,6 +15,7 @@ const publicMethods = new Map([
   ["/api/spectator-invites/[code]", new Set(["GET"])],
   ["/api/tournament-invites/[code]", new Set(["GET"])],
   ["/api/public-spectator/[code]", new Set(["GET"])],
+  ["/api/public-personal-match/[code]", new Set(["GET"])],
 ])
 
 const guardDetectors = [
