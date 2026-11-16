@@ -1576,7 +1576,7 @@ function AvailabilityRecommendationsSettingsPanel({
         <span>
           <span className="block text-sm font-black">{tx("Disponibilidad y recomendaciones")}</span>
           <span className="mt-0.5 block text-xs font-semibold leading-5 text-neutral-500">
-            {tx("Si está activado, los jugadores pueden guardar sus horarios y la app propone franjas comunes al programar partidos. Si está desactivado, la coordinación se hace desde el chat.")}{" "}</span>
+            {tx("Cada jugador guarda su disponibilidad en su perfil. Esta opción solo decide si la app la usa para proponer franjas comunes al programar partidos de esta temporada. Si está desactivada, la coordinación se hace desde el chat.")}{" "}</span>
         </span>
       </label>
       {error ? <p className="mt-2 text-xs font-bold text-red-600">{tx(error)}</p> : null}

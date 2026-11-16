@@ -354,7 +354,7 @@ export default function MatchesPage() {
                 : canManageSeason
                   ? { label: tx("Administrar temporada"), href: "/admin/season" }
                   : roundSettings.availabilityRecommendationsEnabled
-                    ? { label: tx("Revisar mi disponibilidad"), href: "/availability" }
+                    ? { label: tx("Revisar mi disponibilidad"), href: "/settings/profile#availability" }
                     : undefined
             }
           />

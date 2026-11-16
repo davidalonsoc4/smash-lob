@@ -6,23 +6,10 @@ import {
   weekdayIds,
   type AvailabilitySlot,
   type DateAvailabilityOverrides,
-  type PlayerAvailability,
   type WeeklyAvailability,
 } from "@/lib/playerAvailability"
-import { validateUuid } from "@/lib/serverRequest"
 
-type PlayerAvailabilityRow = {
-  league_id: string
-  season_id: string
-  player_id: string
-  timezone: string | null
-  weekly_slots: unknown
-  date_overrides: unknown
-  updated_at: string | null
-}
-
-type UpsertPlayerAvailabilityBody = {
-  seasonId?: unknown
+type UpsertProfileAvailabilityBody = {
   timezone?: unknown
   weeklySlots?: unknown
   dateOverrides?: unknown
@@ -99,43 +86,63 @@ function normalizeTimezone(value: unknown) {
   return timezone
 }
 
-export function mapPlayerAvailabilityRow(
-  row: PlayerAvailabilityRow
-): PlayerAvailability {
+/** A player availability source: the linked account first, otherwise the player profile. */
+export type AvailabilitySource = {
+  timezone: string | null | undefined
+  weeklySlots: unknown
+  dateOverrides: unknown
+  updatedAt?: string | null
+}
+
+export function hasAvailabilityContent(source: AvailabilitySource) {
+  const hasSlots = (value: unknown) =>
+    isRecord(value) && Object.values(value).some((slots) => Array.isArray(slots) && slots.length > 0)
+
+  return hasSlots(source.weeklySlots) || hasSlots(source.dateOverrides)
+}
+
+export function mapProfileAvailability({
+  leagueId,
+  seasonId,
+  playerId,
+  userId,
+  source,
+}: {
+  leagueId: string
+  seasonId: string
+  playerId: string
+  userId: string | null
+  source: AvailabilitySource
+}) {
   return {
-    leagueId: row.league_id,
-    seasonId: row.season_id,
-    playerId: row.player_id,
-    userId: null,
-    timezone: row.timezone ?? "Europe/Madrid",
-    weeklySlots: normalizeWeeklyAvailability(row.weekly_slots),
-    dateOverrides: normalizeDateAvailabilityOverrides(row.date_overrides),
-    updatedAt: row.updated_at,
+    leagueId,
+    seasonId,
+    playerId,
+    userId,
+    timezone: source.timezone || "Europe/Madrid",
+    weeklySlots: normalizeWeeklyAvailability(source.weeklySlots),
+    dateOverrides: normalizeDateAvailabilityOverrides(source.dateOverrides),
+    updatedAt: source.updatedAt ?? null,
   }
 }
 
-export function parsePlayerAvailabilityUpsert(
-  body: UpsertPlayerAvailabilityBody | null
+export function parseProfileAvailabilityUpsert(
+  body: UpsertProfileAvailabilityBody | null
 ):
   | {
       ok: true
-      seasonId: string
       timezone: string
       weeklySlots: WeeklyAvailability
-      dateOverrides: DateAvailabilityOverrides
+      dateOverrides: DateAvailabilityOverrides | null
     }
   | { ok: false; error: string } {
-  const seasonId = validateUuid(body?.seasonId)
-
-  if (!seasonId) {
-    return { ok: false, error: "invalid_season_id" }
-  }
-
   if (!isValidWeeklyAvailability(body?.weeklySlots)) {
     return { ok: false, error: "invalid_weekly_slots" }
   }
 
-  if (!isValidDateAvailabilityOverrides(body?.dateOverrides)) {
+  const hasOverrides = typeof body?.dateOverrides !== "undefined"
+
+  if (hasOverrides && !isValidDateAvailabilityOverrides(body?.dateOverrides)) {
     return { ok: false, error: "invalid_date_overrides" }
   }
 
@@ -147,9 +154,8 @@ export function parsePlayerAvailabilityUpsert(
 
   return {
     ok: true,
-    seasonId,
     timezone,
-    weeklySlots: normalizeWeeklyAvailability(body.weeklySlots),
-    dateOverrides: normalizeDateAvailabilityOverrides(body.dateOverrides),
+    weeklySlots: normalizeWeeklyAvailability(body?.weeklySlots),
+    dateOverrides: hasOverrides ? normalizeDateAvailabilityOverrides(body?.dateOverrides) : null,
   }
 }

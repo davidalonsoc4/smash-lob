@@ -31,7 +31,7 @@ describe("player profile shared layout", () => {
 
     expect(sharedProfile).toMatch(/const historyHref = isSelf\s*\?\s*"\/personal-matches"/)
     expect(sharedProfile).toMatch(/\{isSelf\s*&&\s*section\s*===\s*"summary"\s*&&\s*latestSeasonSettings\?\.availabilityRecommendationsEnabled\s*\?\s*\(/)
-    expect(sharedProfile).toContain('<Link href="/availability" className="block">')
+    expect(sharedProfile).toContain('<Link href="/settings/profile#availability" className="block">')
     expect(sharedProfile).not.toContain("getSeasonStatusBadgeClassName")
   })
 

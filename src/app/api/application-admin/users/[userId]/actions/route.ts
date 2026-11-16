@@ -161,6 +161,7 @@ export async function POST(
       .update({
         availability_completed_at: null,
         standard_availability_weekly_slots: {},
+        standard_availability_date_overrides: {},
       })
       .eq("id", userId)
 
