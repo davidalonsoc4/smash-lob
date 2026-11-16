@@ -20,6 +20,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Proyecto Remotion independiente (vídeos de la liga): no forma parte de la app.
+    "tools/league-videos/**",
   ]),
 ]);
 
