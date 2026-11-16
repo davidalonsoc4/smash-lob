@@ -5,7 +5,7 @@ Uso:
   python3 scripts/retime_voice.py AUDIO.mp3 WORDS.json SALIDA.mp3 SALIDA.ts \
       --cuts "liga!,jornadas.,nuevo."
   (valores por defecto = ESTÁNDAR DE LA SERIE: pausas frase 0.7-0.9 s, coma 0.3-0.5 s, cola 0.6 s,
-   tempo 1.08 y presencia activada; ver VOICE_STANDARD.md)
+   tempo 1.08 y presencia activada; ver tools/README.md)
 
 - Detecta los silencios reales del audio (ffmpeg silencedetect) y los empareja con cada pausa del guion.
 - Corrige el inicio de la primera palabra de cada frase (Scribe lo adelanta ~0,4 s).
@@ -32,9 +32,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("audio"); ap.add_argument("words"); ap.add_argument("out_audio"); ap.add_argument("out_ts")
     ap.add_argument("--sentence", type=float, nargs=2, default=[0.7, 0.9]); ap.add_argument("--minor", type=float, nargs=2, default=[0.3, 0.5])
-    ap.add_argument("--tail", type=float, default=0.6); ap.add_argument("--cuts", default="")
-    ap.add_argument("--tempo", type=float, default=1.08, help="acelera la locución sin cambiar el tono (estándar de la serie: 1.08)")
-    ap.add_argument("--no-presence", dest="presence", action="store_false", help="desactiva el realce de presencia + compresión suave (activo por defecto)")
+    ap.add_argument("--tail", type=float, default=1.8); ap.add_argument("--cuts", default="")
+    ap.add_argument("--tempo", type=float, default=1.0, help="velocidad de la locución sin cambiar el tono (estándar: 1.0 = natural)")
+    ap.add_argument("--presence", action="store_true", help="realce de presencia + compresión suave (desactivado por defecto)")
     a = ap.parse_args()
     raw = json.load(open(a.words)); words = raw if isinstance(raw, list) else raw.get("words", raw)
     words = [w for w in words if w.get("type", "word") == "word"]

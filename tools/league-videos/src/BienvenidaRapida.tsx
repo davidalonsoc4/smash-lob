@@ -193,4 +193,4 @@ const KEYS = ["hook", "league", "pairs", "points", "ranking", "opening", "tabs",
 const makeScenes = (league: LeagueConfig): SceneDef[] =>
   COMPS.map((C, i) => ({ key: KEYS[i], dur: Math.round((BOUNDS[i + 1] - BOUNDS[i]) * 30), C: () => <C league={league} ws={sceneWords(i)} /> }));
 export const RAPIDA_FRAMES = totalFrames(makeScenes(PRO_LEAGUE));
-export const BienvenidaRapida: React.FC<{ league: LeagueConfig }> = ({ league }) => <VideoSeries scenes={makeScenes(league)} accent={league.accent} voice="voice-01-david-108.mp3" />;
+export const BienvenidaRapida: React.FC<{ league: LeagueConfig }> = ({ league }) => <VideoSeries scenes={makeScenes(league)} accent={league.accent} voice="voice-01-david.mp3" />;

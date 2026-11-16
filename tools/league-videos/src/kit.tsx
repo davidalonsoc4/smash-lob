@@ -127,6 +127,8 @@ export const TimedCaptions: React.FC<{ words: TimedWord[]; maxChars?: number; ma
   let active = -1;
   words.forEach((x, i) => { if (f >= x.f) active = i; });
   if (active < 0) return null;
+  // Tras la última palabra, el subtítulo se retira a los ~0,6 s (silencio final).
+  if (active === words.length - 1 && f > words[active].e + 18) return null;
   const line = lines.find((l) => l.includes(active)) ?? lines[0];
   return (
     <div style={{ position: "absolute", left: 40, right: 40, bottom: 390, display: "flex", justifyContent: "center", flexWrap: "nowrap", gap: 20, fontSize: 68, fontWeight: 900, letterSpacing: -1, textShadow: "0 4px 24px rgba(0,0,0,.9)", zIndex: 20, whiteSpace: "nowrap" }}>
@@ -191,6 +193,13 @@ const Cover: React.FC<{ at: number; kind: number }> = ({ at, kind }) => {
   return <div style={style}><div style={{ position: "absolute", left: "50%", top: "55%", transform: "translate(-50%,-50%)", width: 110, height: 110, borderRadius: "50%", background: t.accentContrast }} /></div>;
 };
 
+// Fundido final suave a negro (el vídeo "respira" y no termina de golpe).
+const FadeOut: React.FC<{ total: number; children: React.ReactNode }> = ({ total, children }) => {
+  const f = useCurrentFrame();
+  const o = interpolate(f, [total - 12, total - 1], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  return <AbsoluteFill style={{ opacity: o }}>{children}</AbsoluteFill>;
+};
+
 export type SceneDef = { key: string; dur: number; C: React.FC };
 export const totalFrames = (scenes: SceneDef[]) => scenes.reduce((a, s) => a + s.dur, 0);
 
@@ -199,7 +208,7 @@ export const VideoSeries: React.FC<{ scenes: SceneDef[]; accent: string; voice?:
   const bounds = scenes.map((s) => (acc += s.dur));
   return (
     <ThemeProvider accent={accent}>
-      <AbsoluteFill>
+      <FadeOut total={acc}>
         <Background />
         <Series>
           {scenes.map((s) => <Series.Sequence key={s.key} durationInFrames={s.dur}><s.C /></Series.Sequence>)}
@@ -208,7 +217,7 @@ export const VideoSeries: React.FC<{ scenes: SceneDef[]; accent: string; voice?:
         {bounds.slice(0, -1).map((at, i) => sfx("whoosh", at - COVER - 4, 0.5))}
         <StoryBar total={acc} />
         {voice && <Audio src={staticFile(voice)} volume={1} />}
-      </AbsoluteFill>
+      </FadeOut>
     </ThemeProvider>
   );
 };
