@@ -11,7 +11,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 | 3 | Vie 27-nov | Para qué es la inscripción (versión sin cifras: `Inscripcion`) | Montado con voz (guion v5: incluye premio; lista de cuentas con importes cifrados) y música A; **Aprobado** |
 | 4 | Mar 1-dic | El chat de la liga y los avisos | Pendiente |
 | 5 | Mié 2-dic | Mini: hora de la jornada de apertura confirmada (tras reservar pista) | Condicionado a la reserva |
-| 6 | Vie 4-dic | Perfil y disponibilidad | Pendiente |
+| 6 | Vie 4-dic | Perfil y disponibilidad (`PerfilDisponibilidad`) | Montado con voz y música A; pendiente de aprobación. Requiere activar recomendaciones en la temporada (hecho) y, idealmente, mover la disponibilidad al perfil |
 | 7 | Lun 7-dic | Calendario y parejas secretas | Pendiente |
 | 8 | Vie 11-dic | Subir un resultado | Pendiente |
 | 9 | Dom 13-dic | (Opcional) Parejas de la jornada 1 reveladas | Pendiente |
