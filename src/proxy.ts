@@ -16,6 +16,10 @@ function isAccessInviteRequest(request: NextRequest) {
   )
 }
 
+function isPublicPersonalMatchRequest(request: NextRequest) {
+  return /^\/spectate\/match\/[^/]+$/.test(request.nextUrl.pathname)
+}
+
 function isPublicSpectatorViewRequest(request: NextRequest) {
   return /^\/spectate\/[^/]+\/view$/.test(request.nextUrl.pathname)
 }
@@ -33,6 +37,12 @@ export function proxy(request: NextRequest) {
       new URL(pendingDestination ?? "/leagues", request.url),
       { headers: { "Cache-Control": "private, no-store" } },
     )
+  }
+
+  // Read-only share link of a friendly match: no pending-access cookie, since
+  // nothing here requires signing in.
+  if (isPublicPersonalMatchRequest(request)) {
+    return NextResponse.next()
   }
 
   if (isAccessInviteRequest(request)) {

@@ -3,8 +3,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
 import { FloatingSpectatorShareButton } from "@/components/spectator/FloatingSpectatorShareButton"
 
-const state = vi.hoisted(() => ({ spectator: vi.fn(), addData: vi.fn(), clipboard: vi.fn() }))
+const state = vi.hoisted(() => ({ spectator: vi.fn(), match: vi.fn(), addData: vi.fn(), clipboard: vi.fn() }))
 vi.mock("@/lib/spectatorInvites", () => ({ createOrGetSpectatorInvite: state.spectator }))
+vi.mock("@/lib/personalMatchShare", () => ({ createOrGetPersonalMatchShareLink: state.match }))
 vi.mock("@/lib/inviteUrls", () => ({ getPublicAppBaseUrl: () => "https://example.test", getPublicInviteUrl: (code: string) => `https://example.test/invite/${code}` }))
 vi.mock("@/i18n/I18nProvider", () => ({ useI18n: () => ({ tx: (text: string) => text }) }))
 vi.mock("qrcode-generator", () => ({ default: () => ({ addData: state.addData, make: vi.fn(), getModuleCount: () => 21, isDark: (row: number) => row === 0 }) }))
@@ -21,7 +22,7 @@ function open(props = {}) {
   fireEvent.click(screen.getByRole("button", { name: "Compartir invitación" }))
 
 }
-const labels: Record<string, string> = { spectator: "Invitar a seguir la liga", player: "Invitar a jugar en la liga", app: "Compartir Smash & Lob" }
+const labels: Record<string, string> = { match: "Compartir partido", spectator: "Invitar a seguir la liga", player: "Invitar a jugar en la liga", app: "Compartir Smash & Lob" }
 function reopen() {
   fireEvent.click(screen.getByRole("button", { name: "Cerrar" }))
   fireEvent.click(screen.getByRole("button", { name: "Compartir invitación" }))
@@ -103,4 +104,23 @@ it("hides tournament player invitations without organizer permission", () => {
   expect(screen.queryByRole("button", { name: "Invitar a jugar en el torneo" })).toBeNull()
   expect(screen.getByRole("button", { name: "Invitar a seguir el torneo" })).toBeDisabled()
   expect(screen.getByRole("button", { name: "Compartir Smash & Lob" })).toBeEnabled()
+})
+
+it("offers a read-only match link inside a friendly, next to the app option, and no league invitations", async () => {
+  state.match.mockResolvedValue({ url: "https://example.test/spectate/match/PM-TEST" })
+  open({ leagueId: "", leagueName: "Smash & Lob", canShareLeague: false, personalMatchId: "match-1" })
+  expect(screen.getByRole("group", { name: "Qué quieres compartir" })).toBeTruthy()
+  expect(screen.queryByRole("button", { name: labels.spectator })).toBeNull()
+  expect(screen.queryByRole("button", { name: labels.player })).toBeNull()
+  expect(screen.getByRole("button", { name: labels.app })).toBeEnabled()
+  await choose("match")
+  expect(state.match).toHaveBeenCalledWith("match-1")
+  expect(state.addData).toHaveBeenLastCalledWith("https://example.test/spectate/match/PM-TEST", "Byte")
+  fireEvent.click(screen.getByRole("button", { name: /^Compartir$/ }))
+  await waitFor(() => expect(state.clipboard).toHaveBeenLastCalledWith("https://example.test/spectate/match/PM-TEST"))
+  expect(state.spectator).not.toHaveBeenCalled()
+})
+it("does not offer the match link outside a friendly", () => {
+  open()
+  expect(screen.queryByRole("button", { name: labels.match })).toBeNull()
 })

@@ -1,6 +1,6 @@
 begin;
 
-select plan(30);
+select plan(33);
 
 select ok(
   not exists (
@@ -190,6 +190,30 @@ select has_column(
   'personal_matches',
   'result_recorded_at',
   'personal matches preserve when a result was recorded'
+);
+
+select has_table(
+  'public',
+  'personal_match_share_links',
+  'friendly matches have read-only public share links'
+);
+
+select ok(
+  has_table_privilege('service_role', 'public.personal_match_share_links', 'SELECT')
+    and not has_table_privilege('authenticated', 'public.personal_match_share_links', 'SELECT')
+    and not has_table_privilege('anon', 'public.personal_match_share_links', 'SELECT'),
+  'share links are only reachable through the service role'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_indexes
+    where schemaname = 'public'
+      and tablename = 'personal_match_share_links'
+      and indexname = 'personal_match_share_links_one_active_per_match_idx'
+  ),
+  'a friendly match has at most one active share link'
 );
 
 select ok(
