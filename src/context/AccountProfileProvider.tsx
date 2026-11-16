@@ -40,6 +40,7 @@ type AccountProfileContextValue = {
     dominantHand?: DominantHand | null,
   ) => Promise<AccountProfile | null>
   saveAvatar: (avatarUrl: string | null) => Promise<AccountProfile | null>
+  saveAvailability: (availability: { timezone: string; weeklySlots: WeeklyAvailability }) => Promise<boolean>
 }
 
 const AccountProfileContext = createContext<AccountProfileContextValue | null>(null)
@@ -155,6 +156,34 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
     }
   }, [])
 
+  const saveAvailability = useCallback(async (availability: { timezone: string; weeklySlots: WeeklyAvailability }) => {
+    setError(null)
+
+    try {
+      const response = await fetch("/api/account/availability", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(availability),
+        cache: "no-store",
+      })
+      const payload = (await response.json().catch(() => null)) as {
+        availability?: Pick<AccountProfile, "availabilityCompletedAt" | "standardAvailabilityTimezone" | "standardAvailabilityWeeklySlots">
+        error?: string
+      } | null
+
+      if (!response.ok || !payload?.availability) {
+        throw new Error(payload?.error ?? `availability-api-${response.status}`)
+      }
+
+      const saved = payload.availability
+      setProfile((current) => (current ? { ...current, ...saved } : current))
+      return true
+    } catch (availabilityError) {
+      setError(availabilityError instanceof Error ? availabilityError.message : "availability_save_failed")
+      return false
+    }
+  }, [])
+
   useEffect(() => {
     let isActive = true
     const controller = new AbortController()
@@ -244,8 +273,8 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
   }, [chatList, history, leagueScreenData, ledger, matchDashboard, tournamentList])
 
   const value = useMemo(
-    () => ({ account, chatList, competitionEntrance, history, leagueScreenData, ledger, matchDashboard, tournamentList, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar }),
-    [account, chatList, competitionEntrance, error, history, isLoading, leagueScreenData, ledger, matchDashboard, profile, refreshProfile, saveAvatar, saveProfile, tournamentList],
+    () => ({ account, chatList, competitionEntrance, history, leagueScreenData, ledger, matchDashboard, tournamentList, profile, isLoading, error, refreshProfile, saveProfile, saveAvatar, saveAvailability }),
+    [account, chatList, competitionEntrance, error, history, isLoading, leagueScreenData, ledger, matchDashboard, profile, refreshProfile, saveAvailability, saveAvatar, saveProfile, tournamentList],
   )
 
   return (

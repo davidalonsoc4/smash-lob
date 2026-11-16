@@ -268,7 +268,7 @@ export function PlayerProfileScreen({ playerIdOrSlug, mode }: PlayerProfileScree
         </>
       )}
       {isSelf && section === "summary" && latestSeasonSettings?.availabilityRecommendationsEnabled ? (
-        <Link href="/availability" className="block">
+        <Link href="/settings/profile#availability" className="block">
           <AppCard className="p-2.5 transition active:scale-[0.99]">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">

@@ -504,7 +504,7 @@ function PlayerSettingsPage({ tournamentId }: { tournamentId?: string }) {
   const { tx } = useI18n()
   const { t } = useI18n()
   const { currentUser } = useCurrentUser()
-  const { activeLeague, roundSettings } = useCurrentLeagueData()
+  const { activeLeague } = useCurrentLeagueData()
   const {
     canAccessLeagueAdminTools,
     getLeagueExperienceMode,
@@ -610,15 +610,13 @@ function PlayerSettingsPage({ tournamentId }: { tournamentId?: string }) {
           description={tx("Activa push y elige qué avisos quieres recibir en este dispositivo.")}
           icon="notifications"
         />
-        {!isTournamentContext && roundSettings.availabilityRecommendationsEnabled ? (
-          <SettingsLinkRow
-            href="/availability"
-            id="availability"
-            title={tx("Mi disponibilidad")}
-            description={tx("Define cuándo puedes jugar para las recomendaciones de esta temporada.")}
-            icon="availability"
-          />
-        ) : null}
+        <SettingsLinkRow
+          href="/settings/profile#availability"
+          id="availability"
+          title={tx("Mi disponibilidad")}
+          description={tx("Define cuándo puedes jugar. Es tuya y vale para todas tus ligas.")}
+          icon="availability"
+        />
       </SettingsSection>
       {isTournamentContext ? <SettingsSection title={tx("Competiciones")} description={areTournamentsEnabled() ? tx("Vuelve a tus ligas y torneos.") : ""}>
         <SettingsLinkRow href="/leagues" id="leagues" title={tx("Mis Competiciones")} description={areTournamentsEnabled() ? tx("Consulta tus ligas y torneos desde un único lugar.") : ""} icon="leagues" />

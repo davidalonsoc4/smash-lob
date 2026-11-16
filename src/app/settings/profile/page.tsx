@@ -1,5 +1,6 @@
 "use client"
 
+import { AccountAvailabilitySettings } from "@/components/settings/AccountAvailabilitySettings"
 import { AccountProfileSettings } from "@/components/settings/AccountProfileSettings"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -23,6 +24,8 @@ export default function MyProfileSettingsPage() {
       <AppCard>
         <AccountProfileSettings />
       </AppCard>
+
+      <AccountAvailabilitySettings />
     </div>
   )
 }

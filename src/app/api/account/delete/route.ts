@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     profile_completed_at: null,
     availability_completed_at: null,
     standard_availability_weekly_slots: {},
+    standard_availability_date_overrides: {},
     can_create_leagues: false,
   }).eq("id", user.id)
   if (error) return NextResponse.json({ error: "account_delete_failed" }, { status: 500 })

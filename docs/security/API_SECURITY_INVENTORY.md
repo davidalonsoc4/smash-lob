@@ -7,6 +7,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/access` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/access-intent` | GET | Público explícito | Allowlist revisada |
 | `/api/access-intent` | DELETE | Público explícito | Allowlist revisada |
+| `/api/account/availability` | PUT | Protegido | requireAuthenticatedAppUser |
 | `/api/account/delete` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/account/export` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/account/profile` | GET | Protegido | requireAuthenticatedAppUser |
@@ -50,8 +51,6 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/leagues/[id]/members/[playerId]` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/player-directory` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/players/[playerId]` | PATCH | Protegido | getServerLeagueActor / getServerLeagueViewer |
-| `/api/leagues/[id]/players/[playerId]/availability` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
-| `/api/leagues/[id]/players/[playerId]/availability` | PUT | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/seasons` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]/seasons/[seasonId]` | DELETE | Protegido | getServerSeasonAdmin / requireSeasonAdmin |
 | `/api/leagues/[id]/seasons/[seasonId]/duplicate` | POST | Protegido | getServerLeagueActor / getServerLeagueViewer |

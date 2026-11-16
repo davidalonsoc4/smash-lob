@@ -224,7 +224,7 @@ describe("v1.10.26 preseason secret phase", () => {
     expect(matchAccess).toContain("experienceMode")
     expect(matchAccess).toContain('seasonRow.status === "upcoming" && !isAdmin')
     expect(availability).toContain("getServerMatchActor(matchId, { requireLeagueAccess: true })")
-    expect(availability).toContain("access.actor.match.participantIds")
+    expect(availability).toContain("match.participantIds")
   })
 
   it("shows the secret opening on HOME and creates a pairing-free calendar event", async () => {

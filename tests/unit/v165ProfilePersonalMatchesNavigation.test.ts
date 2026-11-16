@@ -43,7 +43,7 @@ describe("v1.6.5 profile and personal matches final navigation", () => {
   it("uses block links so the existing profile space-y-3 separates availability and matches", async () => {
     const source = await readFile("src/components/player/PlayerProfileScreen.tsx", "utf8")
     expect(source).toContain('<div className="space-y-3">')
-    expect(source).toContain('<Link href="/availability" className="block">')
+    expect(source).toContain('<Link href="/settings/profile#availability" className="block">')
     expect(source).toContain('<Link href={historyHref} className="block">')
     expectPanelTitle(openingContaining(source, "Mi disponibilidad"))
   })
