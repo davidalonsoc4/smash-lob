@@ -1,6 +1,10 @@
 Read `docs/production-hardening/PLAN.md` and `docs/production-hardening/STATUS.md` before starting any work.
 
-Work only on the first incomplete milestone.
+Work only on the first incomplete milestone. `docs/production-hardening/PLAN.md`
+is ordered newest-first, so the current milestone is the topmost one not marked
+complete. Older `IN PROGRESS` entries in `STATUS.md` (MC32, MC33, MC13, C16) are
+stale duplicates of milestones already closed there; do not resume them without
+asking.
 
 Update `docs/production-hardening/STATUS.md` after each significant change.
 
@@ -20,12 +24,21 @@ Prefer small commits grouped by domain.
 
 Keep the repository resumable at all times.
 
-For v1.1 work, also read `docs/V1_1_PLAN.md`,
-`docs/V1_1_MANUAL_ACTIONS.md`, and `docs/V1_1_ACCEPTANCE_CHECKLIST.md`.
+## Environments and branches (mandatory)
 
-Keep `main`, Production, and the `v1.0.0` tag untouched. v1.1 release candidates
-are prepared from `staging` and may be promoted only to PRE after all local gates
-pass and the remote action has been explicitly authorized.
+- `staging` = PREproduction (PRE, `https://pre.smashandlob.com`), with its own
+  test database. `main` = Production (PROD, `https://smashandlob.com`).
+- Every change goes through `staging`/PRE before it can reach `main`. Work
+  branches start from an up-to-date `staging` and their PRs target `staging`.
+- Promoting `staging` to `main` is a separate step: it needs its own explicit
+  authorization and an exact diff of what was approved. Production and the
+  `v1.0.0` tag stay untouched otherwise.
+- Never run tests, migrations or data changes against Production. Remote
+  actions on PRE also need explicit authorization and must be verified.
+- Project skills live in `.claude/skills/` (`smash-lob-context`,
+  `smash-lob-ui`, `smash-lob-pre`, `smash-lob-video`); see `CLAUDE.md`.
+- `docs/V1_1_*.md` are historical (v1.1); the current version is in
+  `package.json`.
 
 Never use personal accounts or Production data in automated tests. Browser tests
 use the placeholder environment declared in `playwright.config.ts`; real Google
