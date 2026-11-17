@@ -15,6 +15,10 @@ type Props = { league: LeagueConfig; ws: TimedWord[] };
 const norm = (w: string) => w.replace(/[,.:;!?¡¿]/g, "").toLowerCase();
 const sceneWords = (i: number): TimedWord[] =>
   VOICE.filter((x) => x.s >= BOUNDS[i] - 0.05 && x.s < BOUNDS[i + 1]).map((x) => ({ w: x.w, f: Math.max(0, Math.round((x.s - BOUNDS[i]) * 30)), e: Math.round((x.e - BOUNDS[i]) * 30) }));
+const wfLast = (ws: TimedWord[], text: string) => {
+  const m = ws.filter((x) => norm(x.w) === norm(text));
+  return (m[m.length - 1] ?? { f: 0 }).f;
+};
 const wf = (ws: TimedWord[], text: string, nth = 0) => {
   const m = ws.filter((x) => norm(x.w) === norm(text));
   return (m[nth] ?? m[0] ?? { f: 0 }).f;
@@ -189,19 +193,77 @@ const Progressive = ({ ws }: Props) => {
   );
 };
 
-/* 8 · Cierre con empaque: "Así que recuerda, activa las notificaciones. ¡Nos vemos en la pista!" */
+
+/* 8 · Mientras tanto: candado en el calendario y en los chats (diseño replicado de la app; datos ficticios) */
+const LockCard: React.FC<{ title: string }> = ({ title }) => {
+  const t = useTheme();
+  return (
+    <div style={{ boxSizing: "border-box", border: `1.5px dashed ${t.borderStrong}`, borderRadius: 14, padding: "14px 12px", textAlign: "center", background: t.mutedSurface }}>
+      <div style={{ display: "flex", justifyContent: "center" }}><Icon name="lock" color={t.textSubtle} size={26} /></div>
+      <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 2, color: t.textMuted, marginTop: 6 }}>{title}</div>
+      <div style={{ fontSize: 12.5, color: t.textSubtle, marginTop: 4, lineHeight: 1.35 }}>Se revelarán cuando finalice la jornada anterior.</div>
+    </div>
+  );
+};
+
+const LockedEverywhere = ({ league, ws }: Props) => {
+  const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
+  const q = league.exampleQuartet;
+  const lockF = wf(ws, "candado"), chatsF = wf(ws, "chats") - 14, calF = wf(ws, "calendario");
+  const inChats = f >= chatsF;
+  const a = pop(f, fps, 4, 12);
+  const l1 = pop(f, fps, lockF - 4, 11), l2 = pop(f, fps, lockF + 6, 11);
+  const b = pop(f, fps, chatsF, 12);
+  const c1 = pop(f, fps, chatsF + 6, 11), c2 = pop(f, fps, chatsF + 13, 11);
+  return (
+    <Frame tag={inChats ? "CHATS" : "CALENDARIO"} example timedWords={ws}>
+      {!inChats ? (
+        <div style={{ opacity: Math.min(1, a * 2) * (1 - Math.max(0, Math.min(1, (f - (chatsF - 8)) / 8))), transform: `scale(${0.92 + 0.08 * a})` }}>
+          <Zoom z={2.1}>
+            <Panel>
+              <div style={{ fontSize: 19, fontWeight: 800 }}>Calendario de liga</div>
+              <div style={{ background: t.mutedSurface, borderRadius: 12, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 16, fontWeight: 800 }}>Jornada 1<span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1, color: t.accent }}>EN CURSO</span></div>
+              <div style={{ opacity: l1, transform: `translateY(${(1 - l1) * 40}px)` }}><div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>Jornada 2</div><LockCard title="EMPAREJAMIENTOS SECRETOS" /></div>
+              <div style={{ opacity: l2, transform: `translateY(${(1 - l2) * 40}px)` }}><div style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>Jornada 3</div><LockCard title="EMPAREJAMIENTOS SECRETOS" /></div>
+            </Panel>
+          </Zoom>
+        </div>
+      ) : (
+        <div style={{ opacity: Math.min(1, b * 2), transform: `scale(${0.92 + 0.08 * b})` }}>
+          <Zoom z={2.1}>
+            <Panel>
+              <div style={{ fontSize: 19, fontWeight: 800 }}>Chats</div>
+              <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1.2, color: t.textMuted }}>CHAT GENERAL</div>
+              <div style={{ background: t.mutedSurface, borderRadius: 12, padding: "12px 14px" }}><div style={{ fontSize: 16, fontWeight: 800 }}>Chat de la liga</div><div style={{ fontSize: 12.5, color: t.textMuted, marginTop: 3 }}>Avisos y conversación</div></div>
+              <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1.2, color: t.textMuted }}>ACTIVOS</div>
+              <div style={{ background: t.mutedSurface, borderRadius: 12, padding: "12px 14px" }}><div style={{ fontSize: 16, fontWeight: 800 }}>Jornada 1</div><div style={{ fontSize: 12.5, color: t.textMuted, marginTop: 3 }}>con {q[0]} y {q[1]} vs {q[2]} y {q[3]}</div></div>
+              <div style={{ opacity: c1, transform: `translateY(${(1 - c1) * 40}px)` }}><div style={{ background: t.mutedSurface, border: `1.5px dashed ${t.borderStrong}`, borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}><Icon name="lock" color={t.textSubtle} size={22} /><div><div style={{ fontSize: 16, fontWeight: 800, color: t.textSubtle }}>Jornada 2</div><div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1.5, color: t.textSubtle, marginTop: 3 }}>EMPAREJAMIENTOS SECRETOS</div></div></div></div>
+              <div style={{ opacity: c2, transform: `translateY(${(1 - c2) * 40}px)` }}><div style={{ background: t.mutedSurface, border: `1.5px dashed ${t.borderStrong}`, borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}><Icon name="lock" color={t.textSubtle} size={22} /><div><div style={{ fontSize: 16, fontWeight: 800, color: t.textSubtle }}>Jornada 3</div><div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1.5, color: t.textSubtle, marginTop: 3 }}>EMPAREJAMIENTOS SECRETOS</div></div></div></div>
+            </Panel>
+          </Zoom>
+        </div>
+      )}
+      {sfx("pop", Math.max(2, lockF - 4), 0.35)}{sfx("pop", Math.max(2, lockF + 6), 0.35)}{sfx("pop", Math.max(2, calF), 0.2)}{sfx("pop", Math.max(2, chatsF + 6), 0.35)}{sfx("pop", Math.max(2, chatsF + 13), 0.35)}
+    </Frame>
+  );
+};
+
+/* 9 · Cierre con empaque: "Así que recuerda, activa las notificaciones. ¡Nos vemos en la pista!" */
 const Outro = ({ league, ws }: Props) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, 0, 8);
   const actF = wf(ws, "activa");
   const chip = pop(f, fps, Math.max(4, actF - 3), 11);
-  const marks = [wf(ws, "nos"), wf(ws, "vemos"), wf(ws, "en"), wf(ws, "pista")];
+  const entF = wf(ws, "enterarte");
+  const sub = pop(f, fps, Math.max(8, entF - 2), 11);
+  const marks = [wf(ws, "nos"), wf(ws, "vemos"), wfLast(ws, "en"), wf(ws, "pista")];
   const words = ["Nos", "vemos", "en la", "pista"];
   const burst = interpolate(f, [marks[3], marks[3] + 18], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <Frame timedWords={ws}>
       <div style={{ opacity: chip, transform: `scale(${0.85 + 0.15 * chip})`, display: "flex", alignItems: "center", gap: 16, border: `3px solid ${t.accent}`, background: t.surface, color: t.accent, borderRadius: 999, padding: "16px 40px", fontSize: 40, fontWeight: 900, letterSpacing: 2 }}><Icon name="bell" color={t.accent} size={44} />ACTIVA LAS NOTIFICACIONES</div>
-      <div style={{ height: 50 }} />
+      <div style={{ marginTop: 20, opacity: sub, transform: `translateY(${(1 - sub) * 20}px)`, fontSize: 32, fontWeight: 800, color: t.textMuted, textAlign: "center", width: 860 }}>Te avisamos en cuanto se desbloquee tu siguiente partido</div>
+      <div style={{ height: 34 }} />
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ position: "absolute", width: 300 + burst * 500, height: 300 + burst * 500, borderRadius: "50%", border: `6px solid ${t.accent}`, opacity: burst > 0 ? 0.8 * (1 - burst) : 0 }} />
         <Img src={staticFile(league.logo)} style={{ width: 280, height: 280, objectFit: "contain", filter: `drop-shadow(0 0 ${60 + 80 * Math.sin(Math.min(1, burst) * Math.PI)}px ${t.accent}aa)`, transform: `scale(${p * (1 + Math.sin(f / 5) * 0.03 + 0.12 * Math.sin(Math.min(1, burst) * Math.PI))})` }} />
@@ -219,8 +281,8 @@ const Outro = ({ league, ws }: Props) => {
   );
 };
 
-const COMPS: React.FC<Props>[] = [Hook, Countdown, OpeningNews, Surprise, Unlock, Round1, Progressive, Outro];
-const KEYS = ["hook", "countdown", "opening", "surprise", "unlock", "round1", "progressive", "outro"];
+const COMPS: React.FC<Props>[] = [Hook, Countdown, OpeningNews, Surprise, Unlock, Round1, Progressive, LockedEverywhere, Outro];
+const KEYS = ["hook", "countdown", "opening", "surprise", "unlock", "round1", "progressive", "locked", "outro"];
 const makeScenes = (league: LeagueConfig): SceneDef[] =>
   COMPS.map((C, i) => ({ key: KEYS[i], dur: Math.round((BOUNDS[i + 1] - BOUNDS[i]) * 30), C: () => <C league={league} ws={sceneWords(i)} /> }));
 export const DESBLOQUEO_FRAMES_FN = (league: LeagueConfig) => totalFrames(makeScenes(league));
