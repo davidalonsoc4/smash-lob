@@ -3586,3 +3586,7 @@ html .app-match-chat-metadata[data-overlay="true"] .type-caption { color: #fff !
 .league-chat-poll-option.is-selected .league-chat-poll-mark { background: currentColor; }
 .league-chat-poll-option.is-selected .league-chat-poll-mark svg { color: var(--poll-check, #fff); }
 @media (prefers-reduced-motion: reduce) { .league-chat-poll-option .league-chat-poll-bar { transition: none; } }
+
+/* Small texts of a poll follow the bubble colour (a generic caption colour made them vanish on the accent bubble). */
+.league-chat-poll-soft { color: inherit !important; opacity: 0.78; }
+.league-chat-poll-option .text-xs { color: inherit !important; }

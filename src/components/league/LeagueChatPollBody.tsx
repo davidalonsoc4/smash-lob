@@ -26,7 +26,7 @@ export function LeagueChatPollBody({ question, poll, names, mine, disabled, onVo
   return (
     <span className="block w-64 max-w-full" data-league-chat-poll role="radiogroup" aria-label={question}>
       <span className="block font-black leading-snug">{question}</span>
-      <span className="mt-0.5 block type-caption font-semibold opacity-80">{tx("Encuesta")} · {tx("Elige una opción")}</span>
+      <span className="league-chat-poll-soft mt-0.5 block text-xs font-semibold">{tx("Encuesta")} · {tx("Elige una opción")}</span>
       <span className="mt-2 block space-y-1.5">
         {poll.options.map((option) => {
           const selected = poll.myVote === option.id
@@ -48,11 +48,11 @@ export function LeagueChatPollBody({ question, poll, names, mine, disabled, onVo
                     {selected ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3"><path d="m5 12 5 5 9-10" /></svg> : null}
                   </span>
                   <span className="min-w-0 flex-1 break-words text-sm font-semibold leading-tight">{option.label}</span>
-                  <span className="shrink-0 type-caption font-black tabular-nums">{option.votes}</span>
+                  <span className="shrink-0 text-xs font-black tabular-nums">{option.votes}</span>
                 </span>
               </button>
               {voters.length ? (
-                <span className="mt-0.5 block truncate px-1 type-caption font-medium opacity-75">
+                <span className="league-chat-poll-soft mt-0.5 block truncate px-1 text-xs font-medium">
                   {voters.slice(0, MAX_NAMES).join(", ")}{voters.length > MAX_NAMES ? ` +${voters.length - MAX_NAMES}` : ""}
                 </span>
               ) : null}
@@ -60,7 +60,7 @@ export function LeagueChatPollBody({ question, poll, names, mine, disabled, onVo
           )
         })}
       </span>
-      <span className="mt-1.5 block type-caption font-semibold opacity-80">
+      <span className="league-chat-poll-soft mt-1.5 block text-xs font-semibold">
         {poll.total} {tx(poll.total === 1 ? "voto" : "votos")}
         <ChatTimeSpacer mine={mine} />
       </span>

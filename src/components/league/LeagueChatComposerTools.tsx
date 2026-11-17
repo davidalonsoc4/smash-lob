@@ -79,8 +79,12 @@ export function LeagueChatComposerTools({ canPublishMedia, canAnnounce, disabled
       <FloatingDialog open={pollOpen} onClose={closePoll} busy={busy} title={tx("Nueva encuesta")} className="league-chat-edit-dialog">
         {pollOpen ? (
           <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); void submitPoll() }}>
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="font-bold">{tx("Nueva encuesta")}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="min-w-0 flex-1 truncate font-bold">{tx("Nueva encuesta")}</h2>
+              <button type="submit" disabled={!valid || busy}
+                className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-neutral-950 px-4 text-center text-sm font-bold text-white disabled:opacity-40">
+                {tx("Publicar encuesta")}
+              </button>
               <DialogCloseButton onClick={closePoll} disabled={busy} />
             </div>
             <label className="block text-xs font-semibold text-neutral-600">
@@ -94,11 +98,11 @@ export function LeagueChatComposerTools({ canPublishMedia, canAnnounce, disabled
                 <div key={index} className="flex items-center gap-2">
                   <input value={option} maxLength={80} disabled={busy} aria-label={`${tx("Opción")} ${index + 1}`} placeholder={`${tx("Opción")} ${index + 1}`}
                     onChange={(event) => setOptions((current) => current.map((item, position) => position === index ? event.target.value : item))}
-                    className="min-w-0 flex-1 rounded-lg border border-neutral-400 p-2 text-base text-neutral-950" />
+                    className="min-w-0 flex-1 rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950" />
                   {options.length > LEAGUE_CHAT_POLL_MIN_OPTIONS ? (
                     <button type="button" disabled={busy} aria-label={`${tx("Quitar opción")} ${index + 1}`} onClick={() => setOptions((current) => current.filter((_, position) => position !== index))}
-                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-4 w-4"><path d="M6 6l12 12M18 6 6 18" /></svg>
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-3.5 w-3.5"><path d="M6 6l12 12M18 6 6 18" /></svg>
                     </button>
                   ) : null}
                 </div>
@@ -111,13 +115,6 @@ export function LeagueChatComposerTools({ canPublishMedia, canAnnounce, disabled
             </div>
             {!distinct ? <p role="alert" className="text-xs font-bold text-red-700">{tx("Las opciones no pueden repetirse.")}</p> : null}
             {failed ? <p role="alert" className="text-xs font-bold text-red-700">{tx("No se ha podido publicar la encuesta.")}</p> : null}
-            <div className="flex justify-end gap-3">
-              <button type="button" disabled={busy} onClick={closePoll}>{tx("Cancelar")}</button>
-              <button type="submit" disabled={!valid || busy}
-                className="inline-flex items-center justify-center rounded-lg bg-neutral-950 px-3 py-2 text-center font-bold text-white disabled:opacity-50">
-                {tx("Publicar encuesta")}
-              </button>
-            </div>
           </form>
         ) : null}
       </FloatingDialog>
