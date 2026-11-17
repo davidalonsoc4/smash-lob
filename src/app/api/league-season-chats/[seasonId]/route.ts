@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { shouldAnnounceRead } from "@/lib/chatReadReceipts"
+import { getLeagueChatMediaKindFromPath, isLeagueChatMediaPathForSeason } from "@/lib/leagueChatMedia"
+import { canPublishLeagueChatMedia, leagueChatMediaExists, signLeagueChatMediaUrls } from "@/lib/serverLeagueChatMedia"
 import { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { broadcastLeagueSeasonChatRefresh, broadcastLeagueSeasonReadReceipt, getLeagueSeasonChatRealtimeTopic } from "@/lib/serverChatRealtime"
@@ -51,7 +53,7 @@ export async function GET(request: Request, context: Context) {
   const before = searchParams.get("before")
   if (before && !validateUuid(before)) return fail("invalid_message_cursor", 400)
   let query = supabase.from("league_season_chat_messages")
-    .select("id,sender_user_id,sender_display_name,body,created_at")
+    .select("id,sender_user_id,sender_display_name,body,created_at,media_kind,media_path")
     .eq("season_id", seasonId)
   if (before) {
     const cursor = await supabase.from("league_season_chat_messages").select("created_at").eq("season_id", seasonId).eq("id", before).maybeSingle()
@@ -63,7 +65,13 @@ export async function GET(request: Request, context: Context) {
   if (result.error) return fail("league_chat_messages_failed", 500)
   const rows = result.data ?? []
   const hasMore = rows.length > pageSize
-  const messages = rows.slice(0, pageSize).reverse()
+  const pageRows = rows.slice(0, pageSize).reverse()
+  const mediaUrls = await signLeagueChatMediaUrls(access.actor, pageRows.flatMap((row) => (row.media_path ? [row.media_path] : [])))
+  if (!mediaUrls) return fail("league_chat_media_failed", 500)
+  // The storage path stays on the server; participants only receive short-lived signed URLs.
+  const messages = pageRows.map(({ media_path, ...row }) => ({ ...row, media_url: media_path ? mediaUrls.get(media_path) ?? null : null }))
+  const canPublishMedia = await canPublishLeagueChatMedia(access.actor, access.season.league_id)
+  if (canPublishMedia === null) return fail("league_chat_access_failed", 500)
   const unread = messages.filter((message) => message.sender_user_id !== user.id && (!lastReadAt || message.created_at > lastReadAt)).length
   if (pageSize === 200 && !before && searchParams.get("markRead") !== "0") {
     const lastRead = messages.at(-1)?.created_at
@@ -82,30 +90,47 @@ export async function GET(request: Request, context: Context) {
       if (shouldAnnounceRead(pendingReaders)) await broadcastLeagueSeasonReadReceipt(seasonId)
     }
   }
-  return NextResponse.json({ ...summary, messages, participants, me: user.id, unread, hasMore }, { headers: { "Cache-Control": "private, no-store" } })
+  return NextResponse.json({ ...summary, messages, participants, me: user.id, unread, hasMore, canPublishMedia }, { headers: { "Cache-Control": "private, no-store" } })
 }
 
 export async function POST(request: Request, context: Context) {
   const { seasonId } = await context.params
   const access = await getLeagueSeasonChatActor(seasonId)
   if (!access.ok) return fail(access.error, access.status)
-  const input = await parseJsonBody<{ body?: unknown }>(request)
+  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown }>(request)
   const body = typeof input?.body === "string" ? input.body.trim() : ""
   if (!body || body.length > 2000) return fail("invalid_message", 400)
   const { supabase, user } = access.actor
+  const mediaPath = input?.mediaPath
+  if (mediaPath !== undefined && mediaPath !== null) {
+    if (!isLeagueChatMediaPathForSeason(mediaPath, seasonId)) return fail("invalid_media", 400)
+    const allowed = await canPublishLeagueChatMedia(access.actor, access.season.league_id)
+    if (allowed === null) return fail("league_chat_access_failed", 500)
+    if (!allowed) return fail("league_chat_media_forbidden", 403)
+    if (!(await leagueChatMediaExists(access.actor, mediaPath as string))) return fail("invalid_media", 400)
+  }
   const recent = await supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
     .eq("sender_user_id", user.id).gte("created_at", new Date(Date.now() - 10_000).toISOString())
   if (recent.error) return fail("league_chat_write_failed", 500)
   if ((recent.count ?? 0) >= 8) return fail("league_chat_rate_limited", 429)
-  const result = await supabase.rpc("send_league_season_chat_message", {
-    p_season_id: seasonId, p_user_id: user.id,
-    p_sender_display_name: user.displayName || user.email.split("@")[0], p_body: body,
-  })
+  const sender = user.displayName || user.email.split("@")[0]
+  const result = typeof mediaPath === "string"
+    ? await supabase.rpc("send_league_season_chat_media_message", {
+        p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body,
+        p_media_kind: getLeagueChatMediaKindFromPath(mediaPath), p_media_path: mediaPath,
+      })
+    : await supabase.rpc("send_league_season_chat_message", {
+        p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body,
+      })
   if (result.error) {
     if (result.error.message.includes("season_chat_read_only")) return fail("league_chat_read_only", 409)
+    if (result.error.message.includes("season_chat_media_forbidden")) return fail("league_chat_media_forbidden", 403)
+    if (result.error.message.includes("season_chat_invalid")) return fail("invalid_media", 400)
     if (result.error.message.includes("season_chat_forbidden")) return fail("league_chat_not_found", 404)
     return fail("league_chat_write_failed", 500)
   }
   await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
-  return NextResponse.json({ message: result.data }, { status: 201 })
+  const { media_path: sentPath, ...sent } = result.data as typeof result.data & { media_path?: string | null }
+  const sentUrls = sentPath ? await signLeagueChatMediaUrls(access.actor, [sentPath]) : null
+  return NextResponse.json({ message: { ...sent, media_url: sentPath ? sentUrls?.get(sentPath) ?? null : null } }, { status: 201 })
 }
