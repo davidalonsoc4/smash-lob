@@ -30,6 +30,11 @@ const guardDetectors = [
     test: (source, route) => route.startsWith("/api/tournaments/") && source.includes('from "@/lib/serverRapidTournaments"') && source.includes("await requireRapidTournamentCreator("),
   },
   {
+    level: "tutorial-admin",
+    evidence: "requireTutorialAdmin (authenticated application superuser)",
+    test: (source, route) => route.startsWith("/api/application-admin/tutorials") && source.includes('from "@/lib/serverTutorialAdmin"') && source.includes("await requireTutorialAdmin("),
+  },
+  {
     level: "application-admin",
     evidence: "requireAuthenticatedAppUser + isSuperuser",
     test: (source, route) =>

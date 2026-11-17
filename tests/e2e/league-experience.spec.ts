@@ -1885,3 +1885,30 @@ for (const theme of ["light", "dark"]) for (const style of ["classic", "competit
     expect(await page.evaluate(()=>document.body.style.overflow)).not.toBe("hidden")
   })
 }
+
+test("help shows the video tutorials this person may see and plays one", async ({ page }) => {
+  await setup(page, "dark", "classic")
+  const tutorials = [
+    { id: "t1", title: "Cómo apuntarte a una liga", description: "Un recorrido de dos minutos.", position: 1, posterUrl: null, width: 1080, height: 1920, durationMs: 95_000, seen: false },
+    { id: "t2", title: "Subir un resultado", description: "", position: 2, posterUrl: null, width: null, height: null, durationMs: null, seen: true },
+  ]
+  const viewed: string[] = []
+  await page.route("**/api/tutorials**", route => {
+    const url = new URL(route.request().url())
+    if (url.pathname.endsWith("/view")) { viewed.push(url.pathname); return route.fulfill({ json: { ok: true } }) }
+    if (url.pathname === "/api/tutorials") return route.fulfill({ json: { tutorials } })
+    return route.fulfill({ json: { videoUrl: "http://localhost/none.mp4" } })
+  })
+  await page.goto("/help")
+  const section = page.locator("#videos-tutoriales")
+  await expect(section).toContainText("Cómo apuntarte a una liga")
+  await expect(section).toContainText("1:35")
+  await expect(section).toContainText("Nuevo")
+  await expect(section.getByText("Visto")).toHaveCount(1)
+  await section.getByRole("button", { name: /Cómo apuntarte a una liga/ }).click()
+  const player = page.getByRole("dialog", { name: "Cómo apuntarte a una liga" })
+  await expect(player.locator("video")).toHaveAttribute("src", "http://localhost/none.mp4")
+  await expect(player).toContainText("Un recorrido de dos minutos.")
+  const results = await new AxeBuilder({ page }).analyze()
+  expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})

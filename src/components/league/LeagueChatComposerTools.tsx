@@ -3,6 +3,7 @@
 import { useState, type ChangeEvent, type RefObject } from "react"
 import { DialogCloseButton, FloatingDialog } from "@/components/ui/FloatingDialog"
 import { LeagueChatMessageMenu } from "@/components/league/LeagueChatMessageMenu"
+import { LeagueChatTutorialPicker } from "@/components/league/LeagueChatTutorialPicker"
 import { LEAGUE_CHAT_MEDIA_ACCEPT } from "@/lib/leagueChatMedia"
 import { useI18n } from "@/i18n/I18nProvider"
 
@@ -13,7 +14,8 @@ export const LEAGUE_CHAT_POLL_MIN_OPTIONS = 2
  * The "+" next to the message bar: one button that opens what the person may send besides text
  * (photo or video, announcement, poll), instead of one button for each.
  */
-export function LeagueChatComposerTools({ canPublishMedia, canAnnounce, disabled, fileInputRef, onPickFile, onAnnounce, onCreatePoll }: {
+export function LeagueChatComposerTools({ seasonId, canPublishMedia, canAnnounce, disabled, fileInputRef, onPickFile, onAnnounce, onCreatePoll, onShareTutorial }: {
+  seasonId: string
   canPublishMedia: boolean
   canAnnounce: boolean
   disabled: boolean
@@ -22,10 +24,13 @@ export function LeagueChatComposerTools({ canPublishMedia, canAnnounce, disabled
   onAnnounce: () => void
   /** Resolves true when the poll was published. */
   onCreatePoll: (question: string, options: string[]) => Promise<boolean>
+  /** Posts an existing tutorial video instead of uploading a new one. Resolves true when it was posted. */
+  onShareTutorial: (tutorialId: string) => Promise<boolean>
 }) {
   const { tx } = useI18n()
   const [anchor, setAnchor] = useState<DOMRect | null>(null)
   const [pollOpen, setPollOpen] = useState(false)
+  const [tutorialOpen, setTutorialOpen] = useState(false)
   const [question, setQuestion] = useState("")
   const [options, setOptions] = useState(["", ""])
   const [busy, setBusy] = useState(false)
@@ -54,7 +59,10 @@ export function LeagueChatComposerTools({ canPublishMedia, canAnnounce, disabled
   }
 
   const items = [
-    ...(canPublishMedia ? [{ key: "media", icon: "image" as const, label: tx("Foto o vídeo"), onSelect: () => { setAnchor(null); fileInputRef.current?.click() } }] : []),
+    ...(canPublishMedia ? [
+      { key: "media", icon: "image" as const, label: tx("Foto o vídeo"), onSelect: () => { setAnchor(null); fileInputRef.current?.click() } },
+      { key: "tutorial", icon: "tutorial" as const, label: tx("Tutorial"), onSelect: () => { setAnchor(null); setTutorialOpen(true) } },
+    ] : []),
     ...(canAnnounce ? [
       { key: "announce", icon: "megaphone" as const, label: tx("Novedad"), onSelect: () => { setAnchor(null); onAnnounce() } },
       { key: "poll", icon: "poll" as const, label: tx("Encuesta"), onSelect: () => { setAnchor(null); setPollOpen(true) } },
@@ -76,6 +84,7 @@ export function LeagueChatComposerTools({ canPublishMedia, canAnnounce, disabled
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5"><path d="M12 5v14M5 12h14" /></svg>
       </button>
       {anchor ? <LeagueChatMessageMenu anchor={anchor} mine={false} items={items} label={tx("Añadir")} onClose={() => setAnchor(null)} /> : null}
+      <LeagueChatTutorialPicker open={tutorialOpen} seasonId={seasonId} onClose={() => setTutorialOpen(false)} onShare={onShareTutorial} />
       <FloatingDialog open={pollOpen} onClose={closePoll} busy={busy} title={tx("Nueva encuesta")} className="league-chat-edit-dialog">
         {pollOpen ? (
           <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); void submitPoll() }}>

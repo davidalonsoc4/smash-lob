@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState } from "react"
 import { GuidedTourLibrary } from "@/components/onboarding/GuidedTourLibrary"
+import { TutorialVideoLibrary } from "@/components/help/TutorialVideoLibrary"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
@@ -424,6 +425,7 @@ export default function HelpPage() {
       ) : null}
 
 
+      <TutorialVideoLibrary />
       <GuidedTourLibrary />
     </div></HelpSearchContext.Provider>
   )

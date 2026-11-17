@@ -1,0 +1,105 @@
+"use client"
+
+import { useCallback, useEffect, useState } from "react"
+import { TutorialForm } from "@/components/admin/TutorialForm"
+import { AppCard } from "@/components/ui/AppCard"
+import { BackButton } from "@/components/ui/BackButton"
+import { EmptyState } from "@/components/ui/EmptyState"
+import { FloatingDialog } from "@/components/ui/FloatingDialog"
+import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { deleteTutorial, fetchAdminTutorials, reorderTutorials, type TutorialLeagueOption } from "@/lib/tutorialVideosClient"
+import { formatTutorialDuration, type TutorialAdminItem } from "@/lib/tutorialVideos"
+import { useI18n } from "@/i18n/I18nProvider"
+
+const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, leagueIds: [] as string[] }
+
+export default function AdminTutorialsPage() {
+  const { tx } = useI18n()
+  const { isSuperuser } = useLeagueAccess()
+  const [items, setItems] = useState<TutorialAdminItem[] | null>(null)
+  const [leagues, setLeagues] = useState<TutorialLeagueOption[]>([])
+  const [error, setError] = useState(false)
+  const [form, setForm] = useState<{ editing: TutorialAdminItem | null } | null>(null)
+
+  const load = useCallback(async () => {
+    const data = await fetchAdminTutorials()
+    if (!data) { setError(true); return }
+    setError(false)
+    setItems(data.tutorials)
+    setLeagues(data.leagues)
+  }, [])
+  useEffect(() => {
+    if (!isSuperuser) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load()
+  }, [isSuperuser, load])
+
+  async function move(index: number, direction: -1 | 1) {
+    if (!items) return
+    const target = index + direction
+    if (target < 0 || target >= items.length) return
+    const next = [...items]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    setItems(next)
+    if (!(await reorderTutorials(next.map((item) => item.id)))) void load()
+  }
+  async function remove(item: TutorialAdminItem) {
+    if (!window.confirm(tx("¿Eliminar este tutorial y su vídeo? No se puede deshacer."))) return
+    if (await deleteTutorial(item.id)) void load()
+    else setError(true)
+  }
+  const audienceLabel = (item: TutorialAdminItem) =>
+    item.audience === "public" ? tx("Público") : item.audience === "leagues" ? `${tx("Ligas")}: ${item.leagueIds.map((id) => leagues.find((league) => league.id === id)?.name ?? "—").join(", ")}` : tx("Borrador")
+
+  return (
+    <div className="compact-page space-y-3">
+      <header className="app-page-header">
+        <BackButton fallbackHref="/admin" label={tx("Volver")} />
+        <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">{tx("Tutoriales")}</h1>
+      </header>
+      {!isSuperuser ? (
+        <EmptyState title={tx("Sin acceso")} description={tx("Solo el administrador de la aplicación gestiona los tutoriales.")} />
+      ) : (
+        <>
+          <button type="button" onClick={() => setForm({ editing: null })} className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white">
+            + {tx("Añadir vídeo")}
+          </button>
+          {error ? <p role="alert" className="text-sm font-bold text-red-700">{tx("No se ha podido completar la operación.")}</p> : null}
+          {items?.length === 0 ? <EmptyState title={tx("Aún no hay tutoriales")} description={tx("Sube el primer vídeo para empezar.")} /> : null}
+          {items?.map((item, index) => (
+            <AppCard key={item.id} className="space-y-2 !p-3">
+              <div className="flex items-start gap-3">
+                <span className="relative block h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-neutral-950">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {item.posterUrl ? <img src={item.posterUrl} alt="" className="h-full w-full object-cover" /> : null}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-black text-neutral-950">{item.title}</p>
+                  <p className="text-xs font-semibold text-neutral-600">{audienceLabel(item)}</p>
+                  <p className="text-xs font-semibold text-neutral-600">{[formatTutorialDuration(item.durationMs), `${item.viewCount} ${tx(item.viewCount === 1 ? "visto" : "vistos")}`].filter(Boolean).join(" · ")}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button type="button" disabled={index === 0} onClick={() => void move(index, -1)} aria-label={tx("Subir")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↑</button>
+                <button type="button" disabled={index === items.length - 1} onClick={() => void move(index, 1)} aria-label={tx("Bajar")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↓</button>
+                <button type="button" onClick={() => setForm({ editing: item })} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold">{tx("Editar")}</button>
+                <button type="button" onClick={() => void remove(item)} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold text-red-700">{tx("Eliminar")}</button>
+              </div>
+            </AppCard>
+          ))}
+          <FloatingDialog open={Boolean(form)} onClose={() => setForm(null)} title={form?.editing ? tx("Editar tutorial") : tx("Nuevo tutorial")} className="league-chat-edit-dialog">
+            {form ? (
+              <TutorialForm
+                editingId={form.editing?.id ?? null}
+                initial={form.editing ? { title: form.editing.title, description: form.editing.description, audience: form.editing.audience, leagueIds: form.editing.leagueIds } : EMPTY_DRAFT}
+                leagues={leagues}
+                onDone={() => { setForm(null); void load() }}
+                onCancel={() => setForm(null)}
+              />
+            ) : null}
+          </FloatingDialog>
+        </>
+      )}
+    </div>
+  )
+}

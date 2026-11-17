@@ -21,6 +21,12 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/application-admin/players/[playerId]/avatar` | PATCH | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/suggestions` | GET | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/suggestions` | PATCH | Protegido | requireAuthenticatedAppUser + isSuperuser |
+| `/api/application-admin/tutorials` | GET | Protegido | requireTutorialAdmin (authenticated application superuser) |
+| `/api/application-admin/tutorials` | POST | Protegido | requireTutorialAdmin (authenticated application superuser) |
+| `/api/application-admin/tutorials` | PUT | Protegido | requireTutorialAdmin (authenticated application superuser) |
+| `/api/application-admin/tutorials/[tutorialId]` | PATCH | Protegido | requireTutorialAdmin (authenticated application superuser) |
+| `/api/application-admin/tutorials/[tutorialId]` | DELETE | Protegido | requireTutorialAdmin (authenticated application superuser) |
+| `/api/application-admin/tutorials/upload` | POST | Protegido | requireTutorialAdmin (authenticated application superuser) |
 | `/api/application-admin/users` | GET | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/users/[userId]` | PATCH | Protegido | requireAuthenticatedAppUser + isSuperuser |
 | `/api/application-admin/users/[userId]` | DELETE | Protegido | requireAuthenticatedAppUser + isSuperuser |
@@ -38,6 +44,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/league-season-chats/[seasonId]` | PATCH | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/league-season-chats/[seasonId]/media` | POST | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/league-season-chats/[seasonId]/poll` | POST | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
+| `/api/league-season-chats/[seasonId]/tutorial` | GET | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
+| `/api/league-season-chats/[seasonId]/tutorial` | POST | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/leagues` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/leagues/[id]` | PATCH | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/leagues/[id]` | DELETE | Protegido | getServerLeagueActor / getServerLeagueViewer |
@@ -168,6 +176,9 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/tournaments/[id]/traditional` | PATCH | Protegido | requireRapidTournamentCreator (authenticated creator) |
 | `/api/tournaments/people` | GET | Protegido | getServerLeagueActor / getServerLeagueViewer |
 | `/api/tournaments/sources` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/tutorials` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/tutorials/[tutorialId]` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/tutorials/[tutorialId]/view` | POST | Protegido | requireAuthenticatedAppUser |
 
 ## Reglas
 

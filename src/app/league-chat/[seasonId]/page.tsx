@@ -322,6 +322,24 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     target.classList.add("league-chat-jump-highlight")
     window.setTimeout(() => target?.classList.remove("league-chat-jump-highlight"), 1400)
   }
+  /** Posts an existing tutorial: the server copies its files into this chat, then the normal message is sent. */
+  async function shareTutorial(tutorialId: string) {
+    if (!chat || chat.readOnly) return false
+    const prepared = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}/tutorial`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tutorialId }),
+    }).catch(() => null)
+    const media = prepared?.ok ? await prepared.json().catch(() => null) as { mediaPath?: string; posterPath?: string | null; width?: number | null; height?: number | null; durationMs?: number | null; title?: string } | null : null
+    if (!media?.mediaPath) return false
+    const response = await fetch(endpoint, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body: media.title ?? "", mediaPath: media.mediaPath, ...(media.posterPath ? { posterPath: media.posterPath } : {}), ...(media.width && media.height ? { mediaWidth: media.width, mediaHeight: media.height } : {}), ...(typeof media.durationMs === "number" ? { mediaDurationMs: media.durationMs } : {}) }),
+    }).catch(() => null)
+    const message = response?.ok ? (await response.json().catch(() => null))?.message as Message | undefined : undefined
+    if (!message?.id) return false
+    setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [message]) } : current)
+    window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
+    return true
+  }
   async function createPoll(question: string, options: string[]) {
     if (!chat || chat.readOnly) return false
     const response = await fetch(endpoint, {
@@ -440,7 +458,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
       <span className="min-w-0 flex-1 truncate text-xs font-bold text-neutral-700">{tx(attachment.kind === "video" ? "Vídeo" : "Foto")}: {attachment.file.name} · {(attachment.file.size / 1048576).toFixed(1)} MB</span>
       <button type="button" onClick={clearAttachment} aria-label={tx("Quitar archivo")} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-4 w-4"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
     </div> : null}
-    {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} hasTopAttachment={Boolean(attachment) || Boolean(replyTo)} allowEmpty={Boolean(attachment)} leadingAction={chat.canPublishMedia || chat.canAnnounce ? <LeagueChatComposerTools canPublishMedia={Boolean(chat.canPublishMedia)} canAnnounce={Boolean(chat.canAnnounce)} disabled={pending !== null} fileInputRef={fileInputRef} onPickFile={pickFile} onAnnounce={() => setAnnounce(true)} onCreatePoll={createPoll} /> : undefined} /> : null}
+    {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} hasTopAttachment={Boolean(attachment) || Boolean(replyTo)} allowEmpty={Boolean(attachment)} leadingAction={chat.canPublishMedia || chat.canAnnounce ? <LeagueChatComposerTools seasonId={seasonId} onShareTutorial={shareTutorial} canPublishMedia={Boolean(chat.canPublishMedia)} canAnnounce={Boolean(chat.canAnnounce)} disabled={pending !== null} fileInputRef={fileInputRef} onPickFile={pickFile} onAnnounce={() => setAnnounce(true)} onCreatePoll={createPoll} /> : undefined} /> : null}
     {action?.mode === "menu" && menuAnchor && actionMessage ? <LeagueChatMessageMenu anchor={menuAnchor} mine={actionIsMine} label={optionsLabel}
       onClose={() => { setAction(null); setMenuAnchor(null) }}
       items={[
