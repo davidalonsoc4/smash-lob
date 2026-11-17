@@ -350,7 +350,7 @@ export const eu = {
     outsideWindowDescription:
       "Aukeratutako data jardunaldi honetarako ezarritako leihotik kanpo dago. Gorde daiteke, baina berrikusteko markatuta geratuko da.",
     postponedWindowWarning:
-      "Atzeratua: jardunaldi honetarako aurreikusitako datak ez dira beteko.",
+      "Data kanpo atzeratua: jardunaldi honetarako aurreikusitako datak ez dira beteko.",
     postponedWindowTitle: "Jardunaldiaren datak ez dira bete",
     postponedWindowDescription:
       "Partida hau atzeratuta dago; beraz, jardunaldia aurreikusitako datetatik kanpo pendiente geratzen da berriro programatu arte.",
@@ -366,7 +366,7 @@ export const eu = {
     defeat: "Porrota",
     scheduled: "Programatuta",
     unscheduled: "Programatu gabe",
-    postponed: "Atzeratuta",
+    postponed: "Data kanpo atzeratuta",
     inProgress: "Jokoan",
     resultPending: "Emaitza pendiente",
     played: "Jokatuta",
@@ -394,9 +394,9 @@ export const eu = {
     scheduleDescription: "Partidarako adostutako data, ordua eta lekua.",
     addScheduleTitle: "Eskuzko programazioa",
     addScheduleDescription: "Aukeratu partidaren data, ordua eta lekua.",
-    postponedTitle: "Partida atzeratuta",
+    postponedTitle: "Data kanpo atzeratuta",
     postponedDescription:
-      "Partida hau pendiente dago eta data berri bat behar du.",
+      "Jokatzeke dago (ez du puntuatzen jokatu arte) eta data berri bat behar du. Geroago jokatu daiteke, liga amaitu aurretik.",
     noScheduleDescription: "Partida data eta leku berriaren zain dago.",
     pendingSchedule: "Data, ordua eta lekua pendiente",
     pendingScheduleDescription:
@@ -408,7 +408,9 @@ export const eu = {
     pointsB: "B puntuak",
     editSchedule: "Programazioa editatu",
     editScheduleButton: "Editatu",
-    postponeButton: "Partida atzeratu",
+    postponeButton: "Data kanpo atzeratu",
+    postponeConfirm:
+      "Partida jokatzeke geratzen da (ez du puntuatzen jokatu arte), baina ez du jada hurrengo jardunaldia guztientzat desblokeatzea eragozten. Data kanpo atzeratu?",
     clearScheduleButton: "Programazioa kendu",
     clearScheduleConfirm:
       "Ziur programazioa kendu nahi duzula? Partida data, ordua eta lekurik gabe geratuko da berriro.",
@@ -538,7 +540,7 @@ export const eu = {
     filterPending: "Pendiente",
     filterScheduled: "Programatuta",
     filterUnscheduled: "Programatu gabe",
-    filterPostponed: "Atzeratuta",
+    filterPostponed: "Data kanpo atzeratuak",
     placeholderTitle: "Profila konektatzeko pendiente",
     placeholderDescription:
       "Oraingoz uneko erabiltzaile gisa jokalari faltsu bat erabiliko dugu. Aurrerago benetako loginarekin konektatuko da.",
@@ -724,8 +726,8 @@ export const eu = {
       "Partida existitzen da, baina oraindik ez dago itxita noiz jokatuko den",
     matchesScheduledLabel: "Programatuta",
     matchesScheduledValue: "Data, ordua edo lekua esleituta dauka",
-    matchesPostponedLabel: "Atzeratuta",
-    matchesPostponedValue: "Berriro kokatzeko pendiente markatu da",
+    matchesPostponedLabel: "Data kanpo atzeratuta",
+    matchesPostponedValue: "Hurrengo jardunaldia desblokeatzeko bakarrik zenbatzen da itxitzat; jokatzeke dago eta ez du puntuatzen jokatu arte",
     matchesFinishedLabel: "Amaituta",
     matchesFinishedValue: "Emaitza erregistratuta dauka",
     padelEyebrow: "Padela",
@@ -1243,9 +1245,9 @@ export const eu = {
     calendarVisibilityFullTitle: "Egutegi osoa",
     calendarVisibilityFullDescription: "Jokalariek parekatze guztiak hasieratik ikus ditzakete.",
     calendarVisibilityProgressiveTitle: "Desblokeatze progresiboa",
-    calendarVisibilityProgressiveDescription: "Hurrengo jardunaldia aurrekoa amaitzean erakusten da eta, beranduenez, hasiera-data ofiziala iristean.",
+    calendarVisibilityProgressiveDescription: "Hurrengo jardunaldia guztientzat aldi berean erakusten da aurrekoa osatzean (data kanpo atzeratutako partida itxitzat zenbatzen da aurrera egiteko bakarrik). Denboraldiak data-leihoak baditu, jardunaldiaren hasiera-data iristean ere bai.",
     newCalendarVisibilityFullDescription: "Parekatze guztiak hasieratik daude ikusgai.",
-    newCalendarVisibilityProgressiveDescription: "Jardunaldi bakoitza aurrekoa amaitzean erakusten da eta, beranduenez, bere hasiera-data iristean.",
+    newCalendarVisibilityProgressiveDescription: "Jardunaldi bakoitza guztientzat aldi berean erakusten da aurrekoa osatzean. Data-leihoak ezartzen badituzu, hasiera-data iristean ere bai.",
     calendarVisibilitySave: "Ikusgaitasuna gorde",
     calendarVisibilitySaving: "Gordetzen...",
     calendarVisibilityProgressiveEnabled: "Desblokeatze progresiboa aktibatuta.",
@@ -1457,7 +1459,7 @@ export const eu = {
     notificationLabels: {
       match_scheduled: "Partida programatuta",
       match_schedule_updated: "Partidaren programazioa aldatuta",
-      match_postponed: "Partida atzeratuta",
+      match_postponed: "Data kanpo atzeratutako partida",
       match_incident_reported: "Partidaren gorabehera jakinarazita",
       match_incident_resolved: "Partidaren gorabehera ebatzita",
       match_incident_cleared: "Partidaren gorabehera ezabatuta",

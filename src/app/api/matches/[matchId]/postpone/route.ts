@@ -3,6 +3,7 @@ import { getServerMatchActor } from "@/lib/serverMatchAccess"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { validateUuid } from "@/lib/serverRequest"
+import { revealNextProgressiveRoundIfClosed } from "@/lib/serverProgressiveReveal"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -84,13 +85,23 @@ export async function POST(
     seasonId: updatedMatch.seasonId,
     matchId: updatedMatch.id,
     type: "match_postponed",
-    title: "Partido aplazado",
+    title: "Partido aplazado fuera de fecha",
     description: `Jornada ${updatedMatch.round}`,
     metadata: {
       participantIds: [...updatedMatch.teamA, ...updatedMatch.teamB],
       round: updatedMatch.round,
     },
   }).catch(() => null)
+
+  // Out-of-date postponement closes the match for advancing: the next round may unlock now.
+  await revealNextProgressiveRoundIfClosed({
+    supabase: access.actor.supabase,
+    user: access.actor.user,
+    membership: access.actor.membership,
+    leagueId: updatedMatch.leagueId,
+    seasonId: updatedMatch.seasonId,
+    round: updatedMatch.round,
+  }).catch(() => false)
 
   return NextResponse.json({
     match: updatedMatch,

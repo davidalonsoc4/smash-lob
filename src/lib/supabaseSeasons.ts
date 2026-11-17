@@ -104,21 +104,42 @@ export async function updateSupabaseSeasonRegistrationPayment({
   return normalizeSeasonRegistrationFee(payload.registrationFee);
 }
 
+/** The season still has matches postponed out of date; finishing needs the administrator's confirmation. */
+export class SeasonHasPostponedMatchesError extends Error {
+  postponedCount: number;
+  constructor(postponedCount: number) {
+    super("season_has_postponed_matches");
+    this.name = "SeasonHasPostponedMatchesError";
+    this.postponedCount = postponedCount;
+  }
+}
+
 export async function finishSupabaseActiveSeason({
   leagueId,
   seasonId,
+  confirmPostponed = false,
 }: {
   leagueId: string;
   seasonId: string;
+  confirmPostponed?: boolean;
 }): Promise<SeasonSnapshot> {
+  const response = await fetch(
+    `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/finish`,
+    {
+      method: "POST",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirmPostponed }),
+    },
+  );
+  if (response.status === 409) {
+    const conflict = (await response.clone().json().catch(() => null)) as { error?: string; postponedCount?: number } | null;
+    if (conflict?.error === "season_has_postponed_matches") {
+      throw new SeasonHasPostponedMatchesError(Number(conflict.postponedCount) || 0);
+    }
+  }
   const payload = await readSeasonApiPayload<{ snapshot?: SeasonSnapshot }>(
-    await fetch(
-      `/api/leagues/${encodeURIComponent(leagueId)}/seasons/${encodeURIComponent(seasonId)}/finish`,
-      {
-        method: "POST",
-        cache: "no-store",
-      },
-    ),
+    response,
     "season-finish-api",
   );
 

@@ -351,10 +351,10 @@ export const es = {
     outsideWindowDescription:
       "La fecha elegida está fuera del margen configurado para esta jornada. Se permite guardar, pero queda marcado como caso a revisar.",
     postponedWindowWarning:
-      "Aplazado: las fechas previstas de esta jornada no se van a cumplir.",
+      "Aplazado fuera de fecha: las fechas previstas de esta jornada no se van a cumplir.",
     postponedWindowTitle: "Fechas de jornada no cumplidas",
     postponedWindowDescription:
-      "Este partido está aplazado, así que la jornada queda pendiente fuera de sus fechas previstas hasta que se reprograme.",
+      "Este partido está aplazado fuera de fecha: no bloquea la jornada siguiente, pero sigue pendiente de jugarse hasta que se reprograme.",
   },
 
   matches: {
@@ -367,7 +367,7 @@ export const es = {
     defeat: "Derrota",
     scheduled: "Programado",
     unscheduled: "Sin programar",
-    postponed: "Aplazado",
+    postponed: "Aplazado fuera de fecha",
     inProgress: "En juego",
     resultPending: "Pendiente resultado",
     played: "Jugado",
@@ -396,9 +396,9 @@ export const es = {
     addScheduleTitle: "Programación manual",
     addScheduleDescription:
       "Selecciona la fecha, la hora y el lugar del partido.",
-    postponedTitle: "Partido aplazado",
+    postponedTitle: "Aplazado fuera de fecha",
     postponedDescription:
-      "Este partido sigue pendiente y necesita una nueva fecha.",
+      "Sigue pendiente de jugarse (no puntúa hasta entonces) y necesita una nueva fecha. Se puede jugar más adelante, antes de terminar la liga.",
     noScheduleDescription:
       "El partido está pendiente de programar una nueva fecha y lugar.",
     pendingSchedule: "Pendiente de fecha, hora y lugar",
@@ -411,7 +411,9 @@ export const es = {
     pointsB: "Puntos B",
     editSchedule: "Editar programación",
     editScheduleButton: "Editar",
-    postponeButton: "Aplazar partido",
+    postponeButton: "Aplazar fuera de fecha",
+    postponeConfirm:
+      "El partido sigue pendiente de jugarse (no puntúa hasta que se juegue), pero deja de bloquear que se desbloquee la jornada siguiente para todos. ¿Aplazar fuera de fecha?",
     clearScheduleButton: "Quitar programación",
     clearScheduleConfirm:
       "¿Seguro que quieres quitar la programación? El partido volverá a quedar sin fecha, hora ni lugar.",
@@ -540,7 +542,7 @@ export const es = {
     filterPending: "Pendientes",
     filterScheduled: "Programados",
     filterUnscheduled: "Sin programar",
-    filterPostponed: "Aplazados",
+    filterPostponed: "Aplazados fuera de fecha",
     placeholderTitle: "Perfil pendiente de conectar",
     placeholderDescription:
       "De momento usaremos un jugador falso como usuario actual. Más adelante se conectará con el login real.",
@@ -728,8 +730,8 @@ export const es = {
       "El partido existe, pero todavía no está cerrado cuándo se juega",
     matchesScheduledLabel: "Programado",
     matchesScheduledValue: "Tiene fecha, hora o lugar asignado",
-    matchesPostponedLabel: "Aplazado",
-    matchesPostponedValue: "Se ha marcado como pendiente de recolocar",
+    matchesPostponedLabel: "Aplazado fuera de fecha",
+    matchesPostponedValue: "Cuenta como cerrado solo para desbloquear la jornada siguiente; sigue pendiente de jugarse y no puntúa hasta entonces",
     matchesFinishedLabel: "Finalizado",
     matchesFinishedValue: "Ya tiene resultado registrado",
     padelEyebrow: "Pádel",
@@ -1250,9 +1252,9 @@ export const es = {
     calendarVisibilityFullTitle: "Calendario completo",
     calendarVisibilityFullDescription: "Los jugadores pueden consultar todos los emparejamientos desde el principio.",
     calendarVisibilityProgressiveTitle: "Desbloqueo progresivo",
-    calendarVisibilityProgressiveDescription: "La siguiente jornada se revela al finalizar la anterior y, como máximo, al llegar su fecha oficial de inicio.",
+    calendarVisibilityProgressiveDescription: "La siguiente jornada se revela para todos a la vez al completarse la anterior (un partido aplazado fuera de fecha cuenta como cerrado solo para avanzar). Si la temporada tiene ventanas por fecha, también al llegar la fecha de inicio de la jornada.",
     newCalendarVisibilityFullDescription: "Todos los emparejamientos son visibles desde el inicio.",
-    newCalendarVisibilityProgressiveDescription: "Cada jornada se revela al terminar la anterior y, como máximo, al llegar su fecha de inicio.",
+    newCalendarVisibilityProgressiveDescription: "Cada jornada se revela para todos a la vez al completarse la anterior. Si configuras ventanas por fecha, también al llegar su fecha de inicio.",
     calendarVisibilitySave: "Guardar visibilidad",
     calendarVisibilitySaving: "Guardando...",
     calendarVisibilityProgressiveEnabled: "Desbloqueo progresivo activado.",
@@ -1509,7 +1511,7 @@ export const es = {
     notificationLabels: {
       match_scheduled: "Partido programado",
       match_schedule_updated: "Programación de partido modificada",
-      match_postponed: "Partido aplazado",
+      match_postponed: "Partido aplazado fuera de fecha",
       match_incident_reported: "Incidencia de partido comunicada",
       match_incident_resolved: "Incidencia de partido resuelta",
       match_incident_cleared: "Incidencia de partido eliminada",

@@ -11,7 +11,7 @@ import {
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { broadcastMatchChatRefresh } from "@/lib/serverChatRealtime"
-import { isMatchCompetitionComplete } from "@/lib/matchLifecycle"
+import { revealNextProgressiveRoundIfClosed } from "@/lib/serverProgressiveReveal"
 import { hasMatchResultWinner } from "@/lib/matchResultValidity"
 
 export const runtime = "nodejs"
@@ -305,61 +305,14 @@ export async function PUT(
     },
   }).catch(() => null)
 
-  if (settingsRow?.calendar_visibility_mode === "progressive") {
-    const { data: currentRoundRows, error: currentRoundError } = await access.actor.supabase
-      .from("matches")
-      .select(matchSelect)
-      .eq("season_id", updatedMatch.seasonId)
-      .eq("round", updatedMatch.round)
-
-    if (!currentRoundError) {
-      const currentRoundMatches = (currentRoundRows ?? []).map((row) =>
-        mapSupabaseMatch(row as Record<string, unknown>),
-      )
-      const roundCompleted =
-        currentRoundMatches.length > 0 && currentRoundMatches.every(isMatchCompetitionComplete)
-      const nextRound = updatedMatch.round + 1
-
-      if (roundCompleted) {
-        const { data: nextRoundMatch } = await access.actor.supabase
-          .from("matches")
-          .select("id")
-          .eq("season_id", updatedMatch.seasonId)
-          .eq("round", nextRound)
-          .limit(1)
-          .maybeSingle()
-
-        const storedReveal =
-          typeof settingsRow.revealed_through_round === "number"
-            ? settingsRow.revealed_through_round
-            : 0
-
-        if (nextRoundMatch && storedReveal < nextRound) {
-          const { data: revealedSetting, error: revealError } = await access.actor.supabase
-            .from("season_settings")
-            .update({ revealed_through_round: nextRound })
-            .eq("season_id", updatedMatch.seasonId)
-            .lt("revealed_through_round", nextRound)
-            .select("season_id")
-            .maybeSingle()
-
-          if (!revealError && revealedSetting) {
-            await recordServerActorActivity({
-              supabase: access.actor.supabase,
-              user: access.actor.user,
-              membership: access.actor.membership,
-              leagueId: updatedMatch.leagueId,
-              seasonId: updatedMatch.seasonId,
-              type: "round_pairings_revealed",
-              title: `Jornada ${nextRound} desbloqueada`,
-              description: `La Jornada ${updatedMatch.round} ha terminado. Ya puedes consultar los emparejamientos de la Jornada ${nextRound} y empezar a organizar el partido.`,
-              metadata: { round: nextRound, previousRound: updatedMatch.round, reason: "previous_round_completed" },
-            }).catch(() => null)
-          }
-        }
-      }
-    }
-  }
+  await revealNextProgressiveRoundIfClosed({
+    supabase: access.actor.supabase,
+    user: access.actor.user,
+    membership: access.actor.membership,
+    leagueId: updatedMatch.leagueId,
+    seasonId: updatedMatch.seasonId,
+    round: updatedMatch.round,
+  }).catch(() => false)
 
   if (settingsRow?.mvp_system === "automatic" || settingsRow?.mvp_system === "automatic_advanced") {
     const seasonMatches = await fetchServerSeasonActivityMatches({

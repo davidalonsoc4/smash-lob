@@ -116,7 +116,7 @@ function getResolutionLabel(match: MatchData) {
     case "administrative":
       return "Resultado administrativo"
     case "postponed":
-      return "Aplazado"
+      return "Aplazado fuera de fecha"
     case "played":
       return "Jugado"
     default:
@@ -125,7 +125,7 @@ function getResolutionLabel(match: MatchData) {
         : match.status === "scheduled"
           ? "Programado"
           : match.status === "postponed"
-            ? "Aplazado"
+            ? "Aplazado fuera de fecha"
             : "Sin programar"
   }
 }

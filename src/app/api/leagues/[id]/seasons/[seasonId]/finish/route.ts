@@ -5,14 +5,14 @@ import {
   finishServerActiveSeason,
   isSeasonMutationError,
 } from "@/lib/serverSeasonMutations"
-import { validateUuid } from "@/lib/serverRequest"
+import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { getServerSeasonAwards } from "@/lib/serverSeasonAwards"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string; seasonId: string }> }
 ) {
   const { id: leagueId, seasonId } = await params
@@ -25,6 +25,24 @@ export async function POST(
 
   if (!access.ok) {
     return NextResponse.json({ error: access.error }, { status: access.status })
+  }
+
+  // Matches postponed out of date are still pending: they would never be played or scored, so the
+  // administrator has to confirm explicitly before the season is finished with them.
+  const input = await parseJsonBody<{ confirmPostponed?: unknown }>(request)
+  const postponed = await access.actor.supabase
+    .from("matches")
+    .select("id", { count: "exact", head: true })
+    .eq("season_id", seasonId)
+    .eq("status", "postponed")
+  if (postponed.error) {
+    return NextResponse.json({ error: "season_finish_failed" }, { status: 500 })
+  }
+  if ((postponed.count ?? 0) > 0 && input?.confirmPostponed !== true) {
+    return NextResponse.json(
+      { error: "season_has_postponed_matches", postponedCount: postponed.count },
+      { status: 409 },
+    )
   }
 
   try {

@@ -534,6 +534,10 @@ export function MatchScheduleForm({
       return;
     }
 
+    if (!window.confirm(t.matchDetail.postponeConfirm)) {
+      return;
+    }
+
     setIsSaving(true);
     setActionError(null);
 

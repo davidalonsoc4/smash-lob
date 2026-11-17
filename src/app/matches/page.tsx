@@ -28,6 +28,7 @@ import {
   calculateBallCustodianAssignment,
   getOpeningRoundBallAllocation,
 } from "@/lib/ballCustodianAssignment"
+import { roundHasOfficialStartDate } from "@/lib/progressiveCalendar"
 
 export default function MatchesPage() {
   const { seasons } = useSeasonSettings()
@@ -273,7 +274,9 @@ export default function MatchesPage() {
                     {tx("Emparejamientos secretos")}
                   </p>
                   <p className="mx-auto mt-1 max-w-sm text-sm font-semibold text-neutral-600">
-                    {tx("Se revelarán cuando finalice la jornada anterior o, como máximo, al comenzar esta jornada.")}
+                    {tx(roundHasOfficialStartDate({ round: round.round, settings: roundSettings })
+                      ? "Se revelarán cuando finalice la jornada anterior o, como máximo, al comenzar esta jornada."
+                      : "Se revelarán cuando finalice la jornada anterior.")}
                   </p>
                 </AppCard>
               ) : currentUserRestsThisRound ? (

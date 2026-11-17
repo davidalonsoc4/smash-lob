@@ -31,6 +31,7 @@ import { getScheduleLocationDisplayText } from "@/lib/leagueLocations"
 import { formatShortDate } from "@/lib/rounds"
 import type { RoundSummaryImageData } from "@/lib/roundSummaryImage"
 import { getRoundStatusBadgeClassName } from "@/lib/statusStyles"
+import { roundHasOfficialStartDate } from "@/lib/progressiveCalendar"
 
 function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`
@@ -220,7 +221,9 @@ export default function RoundSummaryPage() {
             {tx("Emparejamientos secretos")}
           </p>
           <p className="mx-auto mt-1 max-w-sm text-sm font-semibold text-neutral-600">
-            {tx("Esta jornada todavía no ha sido revelada. Se desbloqueará al finalizar la anterior o, como máximo, al llegar su fecha de inicio.")}
+            {tx(roundHasOfficialStartDate({ round, settings: roundSettings })
+              ? "Esta jornada todavía no ha sido revelada. Se desbloqueará al finalizar la anterior o, como máximo, al llegar su fecha de inicio."
+              : "Esta jornada todavía no ha sido revelada. Se desbloqueará al finalizar la anterior.")}
           </p>
           {roundData.startsAt && roundData.endsAt ? (
             <p className="mt-3 text-xs font-black text-neutral-500">

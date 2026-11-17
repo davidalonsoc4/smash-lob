@@ -75,6 +75,19 @@ export function getOfficialRoundStart({
   )
 }
 
+/**
+ * A match that is postponed out of its date ("Aplazar fuera de fecha") counts as closed ONLY to let the next round
+ * unlock. It stays pending: it does not score until it is played, and it can be played later in the season.
+ */
+export function isMatchClosedForAdvance(match: { status: string; resultCounts?: boolean; resolutionType?: string | null }) {
+  return isMatchCompetitionComplete(match) || match.status === "postponed"
+}
+
+/** True when this round has an official start date, so it can also unlock by date. */
+export function roundHasOfficialStartDate({ round, settings }: { round: number; settings: RoundTimingSettings }) {
+  return getOfficialRoundStart({ round, settings }) !== null
+}
+
 export function getHighestContiguousCompletedRound({
   matches,
   totalRounds,
@@ -85,7 +98,7 @@ export function getHighestContiguousCompletedRound({
   let completedThrough = 0
   for (let round = 1; round <= totalRounds; round += 1) {
     const roundMatches = matches.filter((match) => match.round === round)
-    if (!roundMatches.length || !roundMatches.every(isMatchCompetitionComplete)) break
+    if (!roundMatches.length || !roundMatches.every(isMatchClosedForAdvance)) break
     completedThrough = round
   }
   return completedThrough
@@ -193,4 +206,26 @@ export function redactProgressiveMatch(match: MatchData): MatchData {
       updatedAt: null,
     },
   }
+}
+
+/**
+ * Rounds that are still locked for this viewer: the server hides their pairings (no players in any match),
+ * so the lists of chats can show a locked entry without names, messages or unread counters.
+ */
+export function getLockedProgressiveRounds({
+  seasonStatus,
+  calendarVisibilityMode,
+  matches,
+}: {
+  seasonStatus: "upcoming" | "active" | "finished"
+  calendarVisibilityMode: CalendarVisibilityMode | undefined
+  matches: Pick<MatchData, "round" | "teamA" | "teamB">[]
+}) {
+  if (calendarVisibilityMode !== "progressive" || seasonStatus !== "active") return []
+  const hidden = new Map<number, boolean>()
+  for (const match of matches) {
+    const isHidden = match.teamA.length === 0 && match.teamB.length === 0
+    hidden.set(match.round, (hidden.get(match.round) ?? true) && isHidden)
+  }
+  return [...hidden.entries()].filter(([, isHidden]) => isHidden).map(([round]) => round).sort((a, b) => a - b)
 }

@@ -347,10 +347,10 @@ export const en = {
     outsideWindowDescription:
       "The selected date is outside the configured window for this round. It can be saved, but it will be marked for review.",
     postponedWindowWarning:
-      "Postponed: the expected dates for this round will not be met.",
+      "Postponed out of date: the expected dates for this round will not be met.",
     postponedWindowTitle: "Round dates not met",
     postponedWindowDescription:
-      "This match is postponed, so the round remains pending outside its expected dates until it is rescheduled.",
+      "This match is postponed out of date: it does not block the next round, but it is still pending until it is rescheduled.",
   },
 
   matches: {
@@ -363,7 +363,7 @@ export const en = {
     defeat: "Defeat",
     scheduled: "Scheduled",
     unscheduled: "Unscheduled",
-    postponed: "Postponed",
+    postponed: "Postponed out of date",
     inProgress: "In play",
     resultPending: "Result pending",
     played: "Played",
@@ -391,8 +391,8 @@ export const en = {
     scheduleDescription: "Agreed date, time and place for this match.",
     addScheduleTitle: "Manual scheduling",
     addScheduleDescription: "Select the match date, time and place.",
-    postponedTitle: "Match postponed",
-    postponedDescription: "This match is still pending and needs a new date.",
+    postponedTitle: "Postponed out of date",
+    postponedDescription: "It is still pending (it does not score until it is played) and needs a new date. It can be played later, before the league ends.",
     noScheduleDescription: "The match is waiting for a new date and place.",
     pendingSchedule: "Date, time and place pending",
     pendingScheduleDescription:
@@ -404,7 +404,9 @@ export const en = {
     pointsB: "Points B",
     editSchedule: "Edit schedule",
     editScheduleButton: "Edit",
-    postponeButton: "Postpone match",
+    postponeButton: "Postpone out of date",
+    postponeConfirm:
+      "The match stays pending (it does not score until it is played), but it no longer blocks the next round from unlocking for everyone. Postpone out of date?",
     clearScheduleButton: "Clear schedule",
     clearScheduleConfirm:
       "Are you sure you want to clear the schedule? The match will go back to having no date, time or place.",
@@ -532,7 +534,7 @@ export const en = {
     filterPending: "Pending",
     filterScheduled: "Scheduled",
     filterUnscheduled: "Unscheduled",
-    filterPostponed: "Postponed",
+    filterPostponed: "Postponed out of date",
     placeholderTitle: "Profile pending connection",
     placeholderDescription:
       "For now we will use a fake player as the current user. Later it will be connected to the real login.",
@@ -716,8 +718,8 @@ export const en = {
       "The match exists, but when it will be played is not closed yet",
     matchesScheduledLabel: "Scheduled",
     matchesScheduledValue: "It has a date, time or place assigned",
-    matchesPostponedLabel: "Postponed",
-    matchesPostponedValue: "It has been marked as pending reschedule",
+    matchesPostponedLabel: "Postponed out of date",
+    matchesPostponedValue: "It counts as closed only to unlock the next round; it is still pending and does not score until it is played",
     matchesFinishedLabel: "Finished",
     matchesFinishedValue: "It already has a recorded result",
     padelEyebrow: "Padel",
@@ -1234,9 +1236,9 @@ export const en = {
     calendarVisibilityFullTitle: "Full calendar",
     calendarVisibilityFullDescription: "Players can view every pairing from the start.",
     calendarVisibilityProgressiveTitle: "Progressive unlock",
-    calendarVisibilityProgressiveDescription: "The next round is revealed when the previous one finishes and, at the latest, when its official start date arrives.",
+    calendarVisibilityProgressiveDescription: "The next round is revealed for everyone at once when the previous one is completed (a match postponed out of date counts as closed only to advance). If the season has date windows, it is also revealed when the round start date arrives.",
     newCalendarVisibilityFullDescription: "All pairings are visible from the start.",
-    newCalendarVisibilityProgressiveDescription: "Each round is revealed when the previous one ends and, at the latest, when its start date arrives.",
+    newCalendarVisibilityProgressiveDescription: "Each round is revealed for everyone at once when the previous one is completed. If you set date windows, it is also revealed when its start date arrives.",
     calendarVisibilitySave: "Save visibility",
     calendarVisibilitySaving: "Saving...",
     calendarVisibilityProgressiveEnabled: "Progressive unlock enabled.",
@@ -1448,7 +1450,7 @@ export const en = {
     notificationLabels: {
       match_scheduled: "Match scheduled",
       match_schedule_updated: "Match schedule changed",
-      match_postponed: "Match postponed",
+      match_postponed: "Match postponed out of date",
       match_incident_reported: "Match incident reported",
       match_incident_resolved: "Match incident resolved",
       match_incident_cleared: "Match incident removed",

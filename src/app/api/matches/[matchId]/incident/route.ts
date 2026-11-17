@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { revealNextProgressiveRoundIfClosed } from "@/lib/serverProgressiveReveal"
 import { getServerMatchActor } from "@/lib/serverMatchAccess"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
@@ -404,6 +405,16 @@ export async function PUT(
       sets: updatedMatch.sets,
     },
   }).catch(() => null)
+
+  // A resolved incident can close the round (cancelled, postponed out of date...): unlock the next one if so.
+  await revealNextProgressiveRoundIfClosed({
+    supabase: access.actor.supabase,
+    user: access.actor.user,
+    membership: access.actor.membership,
+    leagueId: updatedMatch.leagueId,
+    seasonId: updatedMatch.seasonId,
+    round: updatedMatch.round,
+  }).catch(() => false)
 
   await broadcastMatchChatRefresh({ matchId: updatedMatch.id, leagueId: updatedMatch.leagueId, seasonId: updatedMatch.seasonId, leagueDataChanged: true })
 

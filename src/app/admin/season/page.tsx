@@ -28,6 +28,7 @@ import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
   finishSupabaseActiveSeason,
+  SeasonHasPostponedMatchesError,
   startSupabaseExistingSeason,
   duplicateSupabaseSeason,
   updateSupabaseSeasonRoundOrder,
@@ -1224,10 +1225,28 @@ function FinishSeasonPanel({
 
     if (isSupabaseBackedId(activeSeasonId)) {
       try {
-        const seasonSnapshot = await finishSupabaseActiveSeason({
-          leagueId: activeLeagueId,
-          seasonId: activeSeasonId,
-        });
+        let seasonSnapshot;
+        try {
+          seasonSnapshot = await finishSupabaseActiveSeason({
+            leagueId: activeLeagueId,
+            seasonId: activeSeasonId,
+          });
+        } catch (finishError) {
+          // Matches postponed out of date are never played or scored if the season ends: ask again, explicitly.
+          if (!(finishError instanceof SeasonHasPostponedMatchesError)) throw finishError;
+          const confirmedPostponed = window.confirm(
+            tx("Hay partidos aplazados fuera de fecha sin jugar. Si finalizas la temporada no se jugarán ni puntuarán. ¿Finalizar de todos modos?"),
+          );
+          if (!confirmedPostponed) {
+            setIsSaving(false);
+            return;
+          }
+          seasonSnapshot = await finishSupabaseActiveSeason({
+            leagueId: activeLeagueId,
+            seasonId: activeSeasonId,
+            confirmPostponed: true,
+          });
+        }
 
         hydrateSeasonSnapshot(seasonSnapshot);
       } catch (supabaseError) {

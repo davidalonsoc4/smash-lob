@@ -40,7 +40,7 @@ export const matchResolutionTypeLabels: Record<MatchResolutionType, string> = {
   substitute: "Resolver mediante suplente",
   reset_result: "Eliminar resultado y volver a introducirlo",
   played: "Confirmar resultado actual",
-  postponed: "Aplazado",
+  postponed: "Aplazado fuera de fecha",
   cancelled: "Cancelado sin resultado",
   no_show: "No presentado / resultado administrativo",
   abandoned: "Abandono durante el partido",

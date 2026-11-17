@@ -9,6 +9,8 @@ import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { LEAGUE_MEMBERSHIP_CHANGED_EVENT } from "@/lib/appRefreshEvents"
 import { CHAT_LIST_ACCOUNT_HEADER, emptyChatList, type ChatListSnapshot, type GeneralLeagueChat, type PersonalChatOverviewItem } from "@/lib/chatListMemory"
 import { buildSeasonRounds } from "@/lib/rounds"
+import { LockedRoundChatCard } from "@/components/chats/LockedRoundChatCard"
+import { getLockedProgressiveRounds, roundHasOfficialStartDate } from "@/lib/progressiveCalendar"
 import { getGlobalChatPhase, groupGlobalChats } from "@/lib/globalChatOverview"
 import { getPersonalMatchOriginBadgeStyle } from "@/lib/personalMatches"
 import { normalizeAccentColor } from "@/lib/visualStyle"
@@ -130,6 +132,16 @@ function ChatList({ account }: { account: string }) {
     const rounds = buildSeasonRounds({ season, settings: getSeasonRoundSettings(season.id), matches: matches.filter(match => match.seasonId === season.id) })
     return [season.id, { seasonStatus: season.status, currentRound: rounds.find(round => round.status === "active")?.round ?? rounds.find(round => round.status === "overdue")?.round ?? rounds.find(round => round.status === "upcoming")?.round ?? 1 }]
   })), [seasons, getSeasonRoundSettings, matches])
+  // Locked rounds come from the same hidden data as the calendar: no names, messages or counters are involved.
+  const lockedRoundCards = useMemo(() => leagueSeasons.flatMap(item => {
+    const settings = getSeasonRoundSettings(item.seasonId)
+    const rounds = getLockedProgressiveRounds({
+      seasonStatus: item.seasonStatus === "active" ? "active" : item.seasonStatus === "finished" ? "finished" : "upcoming",
+      calendarVisibilityMode: settings.calendarVisibilityMode,
+      matches: matches.filter(match => match.seasonId === item.seasonId),
+    })
+    return rounds.map(round => ({ key: `${item.seasonId}:${round}`, leagueId: item.leagueId, leagueName: item.leagueName, round, withDate: roundHasOfficialStartDate({ round, settings }) }))
+  }), [leagueSeasons, getSeasonRoundSettings, matches])
   const cacheKey = leagueSeasons.filter(item => item.seasonStatus === "active" || item.seasonStatus === "upcoming")
     .map(item => `${item.leagueId}:${item.seasonId}:${item.seasonStatus}:${roundBySeason.get(item.seasonId)?.currentRound ?? 1}`).sort().join("|")
   const accountHeader = encodeURIComponent(account.trim().toLowerCase())
@@ -300,7 +312,11 @@ function ChatList({ account }: { account: string }) {
     return scheduleChatEntryPreviews(account, activeEndpoint || generalEndpoint, generalEndpoint)
   }, [account, activeEndpoint, generalEndpoint, hasFilters, isAccessHydrated, loadedScope, phase])
   const unreadCount = groupedChats.unread.length + unreadGeneralChats.length
-  const resultCount = isAccessHydrated && loadedScope !== null ? visibleGeneralChats.length + Object.values(groupedChats).reduce((total, group) => total + group.length, 0) : 0
+  const lockedQuery = query.trim().toLocaleLowerCase()
+  const visibleLockedRounds = isAccessHydrated && conversation === "all" && (phase === "all" || phase === "active" || phase === "upcoming")
+    ? lockedRoundCards.filter(card => (scope === "all" || scope === card.leagueId) && (!lockedQuery || [card.leagueName, `${tx("Jornada")} ${card.round}`, tx("Emparejamientos secretos")].some(value => value?.toLocaleLowerCase().includes(lockedQuery))))
+    : []
+  const resultCount = isAccessHydrated && loadedScope !== null ? visibleGeneralChats.length + visibleLockedRounds.length + Object.values(groupedChats).reduce((total, group) => total + group.length, 0) : 0
   const staggerStep = Math.min(55, 165 / Math.max(1, resultCount - 1))
   const staggerStyle = (index: number): CSSProperties | undefined => stagger ? { animationDelay: `${index * staggerStep}ms` } : undefined
   function renderGeneralChats(items: GeneralLeagueChat[], offset: number) {
@@ -341,7 +357,8 @@ function ChatList({ account }: { account: string }) {
 
       {resultCount > 0 ? (
         <div className="space-y-3" data-personal-match-chats-list data-chat-batch-enter={stagger ? "" : undefined}>
-          {([ ["unread", tx("Sin leer")], ["active", tx("Activos")], ["general", tx("Chats de liga")], ["upcoming", tx("Próximos")], ["finished", tx("Chats finalizados")] ] as const).map(([groupKey, groupLabel]) => {
+          {([ ["unread", tx("Sin leer")], ["active", tx("Activos")], ["general", tx("Chats de liga")], ["upcoming", tx("Próximos")], ["locked", tx("Jornadas bloqueadas")], ["finished", tx("Chats finalizados")] ] as const).map(([groupKey, groupLabel]) => {
+            if (groupKey === "locked") return visibleLockedRounds.length ? <section key={groupKey} className="space-y-1.5" aria-label={groupLabel} data-tour="chats-locked"><h2 className="type-section-title font-black text-neutral-700">{groupLabel}<span className="ml-1.5 text-neutral-400">{visibleLockedRounds.length}</span></h2><div className="overflow-hidden rounded-xl">{visibleLockedRounds.map((card, index) => <LockedRoundChatCard key={card.key} round={card.round} leagueName={card.leagueName} withDate={card.withDate} badgeStyle={getPersonalMatchOriginBadgeStyle({ origin: "league", leagueId: card.leagueId, leagueName: card.leagueName }, normalizeAccentColor(userLeagues.find(league => league.id === card.leagueId)?.accentColor))} className={`${index ? "-mt-px" : ""} ${visibleLockedRounds.length === 1 ? "!rounded-xl" : index === 0 ? "!rounded-t-xl !rounded-b-none" : index === visibleLockedRounds.length - 1 ? "!rounded-b-xl !rounded-t-none" : "!rounded-none"}`} />)}</div></section> : null
             if (groupKey === "general") return readGeneralChats.length ? <section key={groupKey} className="space-y-1.5" aria-label={groupLabel}><h2 className="type-section-title font-black text-neutral-700">{groupLabel}</h2>{renderGeneralChats(readGeneralChats, unreadCount + groupedChats.active.length)}</section> : null
             const precedingCards = groupKey === "unread" ? unreadGeneralChats.length : unreadCount + (groupKey === "active" ? 0 : groupedChats.active.length + readGeneralChats.length + (groupKey === "finished" ? groupedChats.upcoming.length : 0))
             const sectionChats = groupedChats[groupKey]

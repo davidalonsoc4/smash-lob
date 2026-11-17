@@ -42,7 +42,7 @@ function MatchCard({ match, tx }: { match: PublicSpectatorMatch; tx: (value: str
     : match.status === "scheduled"
       ? tx("Programado")
       : match.status === "postponed"
-        ? tx("Aplazado")
+        ? tx("Aplazado fuera de fecha")
         : match.status === "scheduling"
           ? tx("Pendiente de programar")
           : tx("Detalles aún no disponibles")

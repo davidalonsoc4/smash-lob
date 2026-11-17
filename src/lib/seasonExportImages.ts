@@ -608,7 +608,7 @@ function getMatchStatusLabel(match: MatchData, locale: Locale) {
   }
 
   if (match.status === "postponed") {
-    return translateLeagueText(locale, "Aplazado")
+    return translateLeagueText(locale, "Aplazado fuera de fecha")
   }
 
   if (match.status === "scheduled") {
