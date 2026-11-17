@@ -33,13 +33,16 @@ export const Icon: React.FC<{ name: string; color: string; size?: number }> = ({
       {name === "bell" && (<><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 21h4" /></>)}
       {name === "gear" && (<><circle cx={12} cy={12} r={3} /><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1" /></>)}
       {name === "help" && (<><circle cx={12} cy={12} r={9} /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01" /></>)}
+      {name === "pin" && (<><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" /><circle cx={12} cy={9.5} r={2.5} /></>)}
+      {name === "clock" && (<><circle cx={12} cy={12} r={9} /><path d="M12 7v5l3 2" /></>)}
+      {name === "check" && <path d="M5 12.5l4.5 4.5L19 7.5" />}
       {name === "lock" && (<><rect x={5} y={11} width={14} height={9} rx={2} /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>)}
     </svg>
   );
 };
 
 type NavDef = [string, string];
-const NavBar: React.FC<{ items: NavDef[]; active: number; dim?: boolean[]; lock?: boolean[]; pulse?: number }> = ({ items, active, dim = [], lock = [], pulse = 1 }) => {
+export const NavBar: React.FC<{ items: NavDef[]; active: number; dim?: boolean[]; lock?: boolean[]; pulse?: number }> = ({ items, active, dim = [], lock = [], pulse = 1 }) => {
   const t = useTheme();
   return (
     <div style={{ width: NATIVE_W, boxSizing: "border-box", background: t.bg, border: `1px solid ${t.border}`, borderRadius: 22, padding: 8, display: "flex", gap: 4 }}>
@@ -57,7 +60,7 @@ const NavBar: React.FC<{ items: NavDef[]; active: number; dim?: boolean[]; lock?
 };
 
 const OUTSIDE: NavDef[] = [["trophy", "Competiciones"], ["ball", "Mis partidos"], ["chat", "Chats"], ["user", "Mi perfil"]];
-const INSIDE: NavDef[] = [["home", "Inicio"], ["rank", "Ranking"], ["cal", "Calendario"], ["chat", "Chats"], ["user", "Perfil"]];
+export const INSIDE: NavDef[] = [["home", "Inicio"], ["rank", "Ranking"], ["cal", "Calendario"], ["chat", "Chats"], ["user", "Perfil"]];
 
 const Row: React.FC<{ title: string; sub?: string; right?: string; icon?: string }> = ({ title, sub, right, icon }) => {
   const t = useTheme();

@@ -15,7 +15,8 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 | 8 | Vie 11-dic | Subir un resultado (`SubirResultado`) | Montado con voz y música A (v2: corregido recuadro de pareja en "Tu partido"). Incluye aviso de notificaciones ("Falta el resultado" a las 2, 3, 4 y 24 h de la hora de inicio) |
 | 9 | — | (Descartado) Parejas de la jornada 1 reveladas | No se hace; la explicación del desbloqueo va en el 2+5 |
 | 10 | Mar 15-dic | Clasificación, desempate y MVP automático avanzado (`ClasificacionMvp`; la liga usa `automatic_advanced`, no votación) | **Aprobado** (v3: voz "Em-Bi-Pí" con subtítulos "MVP", música enlazada y fundido largo) |
-| 11 | Vie 18-dic | Suplentes, incidencias y cuenta atrás | Pendiente |
+| 11 | Vie 18-dic | Suplentes e incidencias | APARCADO hasta que el organizador decida si mantiene el sistema de suplentes (vídeo corto aparte: son algo puntual) |
+| 11b | Antes del 13-dic | Cuenta atrás y desbloqueo del 20-dic (`CuentaAtrasDesbloqueo`): cuenta atrás, aviso de jornada de apertura 7 días antes, desbloqueo automático y jornadas que se van desvelando | Montado con voz y música A; pendiente de aprobación |
 | 12 | Dom 20-dic | ¡Hoy empieza! | Pendiente |
 | + | Antes del 20-dic (por decidir) | Presentación de la app (`PresentacionApp`): navegación fuera/dentro de la liga, botones de arriba y liga bloqueada hasta el 20-dic | **Aprobado** (montado con voz y música A) |
 | + | — | Aviso de liga bloqueada | Incluido dentro de la presentación (escenas 5 y 6; reutilizables como vídeo corto) |
@@ -39,3 +40,5 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 ## Composiciones (Remotion)
 `BienvenidaRapida` (vídeo 1, con voz), `Bienvenida` (versión lenta sin voz), `InscripcionSinCifras`, `LigaFormato` (explicativo genérico).
 Colores y datos de liga: objeto `LeagueConfig` (`src/Bienvenida.tsx`); el acento y el contraste se derivan en `src/kit.tsx`.
+
+- Nunca consultar ni mostrar emparejamientos reales: ni el organizador ni yo los vemos. Solo nombres de pila de la liga con emparejamientos ficticios y etiqueta de ejemplo (o signos de interrogación).
