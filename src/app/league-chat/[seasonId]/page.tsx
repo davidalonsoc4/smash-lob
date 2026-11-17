@@ -13,6 +13,7 @@ import { LeagueChatMessageMenu } from "@/components/league/LeagueChatMessageMenu
 import { LeagueChatAnnouncementCard } from "@/components/league/LeagueChatAnnouncementCard"
 import { getIntlLocale } from "@/i18n/localeFormatting"
 import { getChatDayKey, getChatDayLabel } from "@/lib/chatDayLabel"
+import { canDeleteLeagueChatMessage, canEditLeagueChatMessage } from "@/lib/leagueChatChangeWindow"
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -65,7 +66,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
   const renderedCount = useRef(0)
   const [action, setAction] = useState<{ id: string; mode: "menu" | "edit" | "delete" } | null>(null)
   const [editBody, setEditBody] = useState("")
-  const [actionError, setActionError] = useState(false)
+  const [actionError, setActionError] = useState<"failed" | "expired" | false>(false)
   const [changing, setChanging] = useState(false)
   const [replyTo, setReplyTo] = useState<Message | null>(null)
   const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null)
@@ -266,7 +267,10 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
       setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [message]) } : current)
       setAction(null)
       window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
-    } else setActionError(true)
+    } else {
+      const expired = response?.status === 409 && (await response.json().catch(() => null))?.error === "league_chat_change_expired"
+      setActionError(expired ? "expired" : "failed")
+    }
     setChanging(false)
   }
 
@@ -354,7 +358,8 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
           message={message} me={chat.me} participants={chat.participants ?? []} pending={message === pending}
           rowClassName={message === pending ? "opacity-70" : ""}
           previousSameSender={sameGroup}
-          bodyContent={message.deleted_at ? <em>{tx("Mensaje eliminado")}</em> : message.media_url ? <LeagueChatMediaBody message={message} /> : undefined}
+          bodyContent={message.deleted_at ? <em>{tx("Mensaje eliminado")}</em> : message.media_url ? <LeagueChatMediaBody message={message} mine={message.sender_user_id === chat.me || message === pending} /> : undefined}
+          ownTimeSpacer={Boolean(message.media_url)}
           editedLabel={message.edited_at && !message.deleted_at ? tx("Editado") : undefined}
           overlayMeta={Boolean(message.media_url && !message.body.trim() && !message.deleted_at && !message.edited_at)}
           quotedReply={message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, body: replyPreviewText(message.reply) } : null}
@@ -396,8 +401,11 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
       onClose={() => { setAction(null); setMenuAnchor(null) }}
       items={[
         { key: "reply", icon: "reply", label: tx("Responder"), onSelect: () => startReply(actionMessage) },
-        ...(actionIsMine ? [
+        // Own messages can only be edited for a short time and deleted for a little longer.
+        ...(actionIsMine && canEditLeagueChatMessage(actionMessage.created_at) ? [
           { key: "edit", icon: "edit" as const, label: editLabel, onSelect: () => { setMenuAnchor(null); setAction({ id: actionMessage.id, mode: "edit" }) } },
+        ] : []),
+        ...(actionIsMine && canDeleteLeagueChatMessage(actionMessage.created_at) ? [
           { key: "delete", icon: "delete" as const, danger: true, label: deleteLabel, onSelect: () => { setMenuAnchor(null); setAction({ id: actionMessage.id, mode: "delete" }) } },
         ] : []),
       ]} /> : null}
@@ -408,7 +416,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
         {action.mode === "edit" ? <textarea aria-label={editLabel} ref={editorRef} value={editBody} maxLength={2000} rows={3}
           className="w-full rounded-lg border border-neutral-400 p-2" disabled={changing} onChange={event => setEditBody(event.target.value)} />
           : <p>{tx("El texto se eliminará para todos los participantes.")}</p>}
-        {actionError ? <p role="alert">{tx("No se ha podido modificar el mensaje.")}</p> : null}
+        {actionError ? <p role="alert">{tx(actionError === "expired" ? "Ya ha pasado el tiempo para modificar este mensaje." : "No se ha podido modificar el mensaje.")}</p> : null}
         <div className="flex justify-end gap-3">
           <button type="button" disabled={changing} onClick={() => setAction(null)}>{tx("Cancelar")}</button>
           <button type="submit" disabled={changing || (action.mode === "edit" && !editBody.trim() && !actionMessage?.media_url)}

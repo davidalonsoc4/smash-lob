@@ -817,6 +817,7 @@ const EXACT_OVERRIDES = {
   "No se ha podido subir el archivo. Revisa la conexión y vuelve a intentarlo.": "Ezin izan da fitxategia igo. Egiaztatu konexioa eta saiatu berriro.",
   "Reproducir vídeo": "Erreproduzitu bideoa",
   "Ayer": "Atzo",
+  "Ya ha pasado el tiempo para modificar este mensaje.": "Mezu hau aldatzeko denbora pasa da.",
   "Se desbloquean cuando finalice la jornada anterior.": "Aurreko jardunaldia amaitzen denean desblokeatzen dira.",
   "Se desbloquean cuando finalice la jornada anterior o, como máximo, al comenzar esta jornada.": "Aurreko jardunaldia amaitzen denean edo, beranduenez, jardunaldi hau hasten denean desblokeatzen dira.",
   "Jornadas bloqueadas": "Blokeatutako jardunaldiak",

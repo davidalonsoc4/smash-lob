@@ -28,7 +28,7 @@ export function LeagueChatAnnouncementCard({ author, createdAt, body, editedLabe
       </header>
       <p className="league-chat-announcement-meta mt-0.5 truncate type-caption font-bold">{author}</p>
       {quote}
-      {children ? <div className="mt-2">{children}</div> : null}
+      {children ? <div className="mt-2 flex justify-center" data-league-chat-announcement-media>{children}</div> : null}
       {body ? <p className="mt-1.5 whitespace-pre-wrap break-words text-base font-semibold leading-snug">{body}</p> : null}
       {editedLabel ? <p className="league-chat-announcement-meta mt-1 italic type-caption">{editedLabel}</p> : null}
     </article>

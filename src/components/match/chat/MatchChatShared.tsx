@@ -106,6 +106,15 @@ export function MatchChatMessageReceipt({
   )
 }
 
+/** Room for the time at the end of the last line (the time itself is positioned in the corner). */
+export function ChatTimeSpacer({ mine }: { mine: boolean }) {
+  return (
+    <span aria-hidden="true" data-chat-time-spacer="" className={`inline-block align-bottom ${mine ? "w-[4.25rem]" : "w-[2.75rem]"}`}>
+      {"\u00a0"}
+    </span>
+  )
+}
+
 export function MatchChatTextMessage({
   message,
   me,
@@ -117,6 +126,7 @@ export function MatchChatTextMessage({
   bodyContent,
   editedLabel,
   overlayMeta = false,
+  ownTimeSpacer = false,
   pending = false,
   rowClassName = "",
   gestureProps,
@@ -133,6 +143,8 @@ export function MatchChatTextMessage({
   editedLabel?: string
   /** Photo/video without text: the time floats over the picture instead of taking a line. */
   overlayMeta?: boolean
+  /** The body already places the time spacer itself (a picture with a caption keeps both in one block). */
+  ownTimeSpacer?: boolean
   pending?: boolean
   rowClassName?: string
   gestureProps?: HTMLAttributes<HTMLDivElement>
@@ -220,12 +232,7 @@ export function MatchChatTextMessage({
             } text-sm leading-5`}
           >
             {bodyContent ?? message.body}
-            {editedLabel || overlayMeta ? null : (
-              // The time sits at the end of the last line: this inline spacer only takes room where it fits.
-              <span aria-hidden="true" data-chat-time-spacer="" className={`inline-block align-bottom ${mine ? "w-[4.25rem]" : "w-[2.75rem]"}`}>
-                {" "}
-              </span>
-            )}
+            {editedLabel || overlayMeta || ownTimeSpacer ? null : <ChatTimeSpacer mine={mine} />}
           </p>
           <span
             className={`app-match-chat-metadata absolute inline-flex whitespace-nowrap leading-none ${

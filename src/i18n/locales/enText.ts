@@ -820,6 +820,7 @@ const EXACT_OVERRIDES = {
   "No se ha podido subir el archivo. Revisa la conexión y vuelve a intentarlo.": "The file could not be uploaded. Check your connection and try again.",
   "Reproducir vídeo": "Play video",
   "Ayer": "Yesterday",
+  "Ya ha pasado el tiempo para modificar este mensaje.": "The time to change this message has passed.",
   "Se desbloquean cuando finalice la jornada anterior.": "They unlock when the previous round ends.",
   "Se desbloquean cuando finalice la jornada anterior o, como máximo, al comenzar esta jornada.": "They unlock when the previous round ends or, at the latest, when this round starts.",
   "Jornadas bloqueadas": "Locked rounds",

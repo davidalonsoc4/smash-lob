@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
+import { ChatTimeSpacer } from "@/components/match/chat/MatchChatShared"
 
 export type LeagueChatMediaMessage = {
   body: string
@@ -18,7 +19,7 @@ export type LeagueChatMediaMessage = {
 /** Keeps extreme shapes (very tall or very wide) from taking over the chat. */
 const clampRatio = (ratio: number) => Math.min(1.8, Math.max(0.5, ratio))
 /** Portrait stays narrow, landscape gets more width: the bubble follows the shape of the file. */
-const widthForRatio = (ratio: number | null) => ratio === null || ratio < 0.9 ? "11rem" : ratio < 1.05 ? "13rem" : "16rem"
+const widthForRatio = (ratio: number | null) => ratio === null || ratio < 0.9 ? "14rem" : ratio < 1.05 ? "15rem" : "18rem"
 
 function formatDuration(seconds: number) {
   const whole = Math.max(0, Math.round(seconds))
@@ -26,7 +27,7 @@ function formatDuration(seconds: number) {
 }
 
 /** Body of a chat bubble with a photo or video: tappable preview plus the caption (the time follows the caption). */
-export function LeagueChatMediaBody({ message }: { message: LeagueChatMediaMessage }) {
+export function LeagueChatMediaBody({ message, mine = false }: { message: LeagueChatMediaMessage; mine?: boolean }) {
   const { tx } = useI18n()
   const [open, setOpen] = useState(false)
   const [duration, setDuration] = useState<number | null>(null)
@@ -37,7 +38,7 @@ export function LeagueChatMediaBody({ message }: { message: LeagueChatMediaMessa
   const progress = Math.round((message.upload_progress ?? 0) * 100)
   const label = tx(kind === "video" ? "Reproducir vídeo" : "Ampliar foto")
   return (
-    <>
+    <span className="block max-w-full" data-league-chat-media-block style={{ width: widthForRatio(ratio) }}>
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -45,8 +46,7 @@ export function LeagueChatMediaBody({ message }: { message: LeagueChatMediaMessa
         aria-label={uploading ? `${tx("Subiendo")} ${progress}%` : label}
         title={label}
         data-league-chat-media={kind}
-        style={{ width: widthForRatio(ratio) }}
-        className="relative mb-1 block max-w-full overflow-hidden rounded-xl bg-neutral-900 active:scale-[0.98]"
+        className="relative mb-1 block w-full overflow-hidden rounded-xl bg-neutral-900 active:scale-[0.98]"
       >
         {kind === "video" ? (
           // #t=0.1 makes mobile browsers paint a still frame as the thumbnail.
@@ -72,23 +72,24 @@ export function LeagueChatMediaBody({ message }: { message: LeagueChatMediaMessa
                 <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgb(255 255 255 / 0.3)" strokeWidth="3" />
                 <circle cx="18" cy="18" r="15.5" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${(progress / 100) * 97.4} 97.4`} />
               </svg>
-              <span className="text-xs font-black text-white">{progress}%</span>
+              <span className="chat-media-ink text-xs font-black">{progress}%</span>
             </span>
           </span>
         ) : kind === "video" ? (
           <>
             <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/60 text-white">
-                <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6 fill-current"><path d="M8 5v14l11-7z" /></svg>
+              <span className="chat-media-overlay flex h-12 w-12 items-center justify-center rounded-full">
+                <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6"><path d="M8 5v14l11-7z" /></svg>
               </span>
             </span>
-            {duration !== null ? <span aria-hidden="true" className="absolute bottom-1.5 left-1.5 rounded-md bg-black/60 px-1.5 py-0.5 type-micro font-bold leading-none text-white">{formatDuration(duration)}</span> : null}
+            {duration !== null ? <span aria-hidden="true" className="chat-media-overlay absolute bottom-1.5 left-1.5 rounded-md px-1.5 py-0.5 type-micro font-bold leading-none">{formatDuration(duration)}</span> : null}
           </>
         ) : null}
       </button>
       {message.body}
+      {message.body ? <ChatTimeSpacer mine={mine} /> : null}
       {open ? <LeagueChatMediaViewer kind={kind} url={url} caption={message.body} author={message.sender_display_name} createdAt={message.created_at} onClose={() => setOpen(false)} /> : null}
-    </>
+    </span>
   )
 }
 

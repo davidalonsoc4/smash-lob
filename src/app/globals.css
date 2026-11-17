@@ -3573,3 +3573,10 @@ html.dark .chat-notice { background: rgb(120 53 15 / 0.45); color: #fde68a; }
 html.dark .league-chat-announcement { background: rgb(120 53 15 / 0.4); border-color: #f59e0b; color: #fef3c7; }
 html.dark .league-chat-announcement .league-chat-announcement-label { color: #fcd34d; }
 html.dark .league-chat-announcement .league-chat-announcement-meta { color: #fde68a; }
+
+/* Play icon, duration and upload progress over a picture: always white, in every theme. */
+.chat-media-overlay { background: rgb(0 0 0 / 0.62) !important; color: #fff !important; }
+.chat-media-overlay svg, .chat-media-overlay svg path { fill: #fff !important; color: #fff !important; }
+.chat-media-ink { color: #fff !important; }
+html .app-match-chat-metadata[data-overlay="true"],
+html .app-match-chat-metadata[data-overlay="true"] .type-caption { color: #fff !important; opacity: 1; }

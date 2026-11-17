@@ -235,6 +235,7 @@ export async function PATCH(request: Request, context: Context) {
     if (result.error.message.includes("season_chat_read_only")) return fail("league_chat_read_only", 409)
     if (result.error.message.includes("season_chat_forbidden")) return fail("league_chat_not_found", 404)
     if (result.error.message.includes("season_chat_message_not_found")) return fail("league_chat_message_not_found", 404)
+    if (result.error.message.includes("season_chat_change_expired")) return fail("league_chat_change_expired", 409)
     if (result.error.code === "23514") return fail("invalid_message", 400)
     return fail("league_chat_write_failed", 500)
   }

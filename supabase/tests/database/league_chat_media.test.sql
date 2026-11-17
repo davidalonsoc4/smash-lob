@@ -1,5 +1,5 @@
 begin;
-select plan(19);
+select plan(23);
 
 insert into public.app_users (id,email,display_name) values
   ('75000000-0000-4000-8000-000000000001','chat-media-creator@example.invalid','Creator'),
@@ -39,6 +39,15 @@ select lives_ok($$delete from public.league_season_chat_messages where body = 'T
 select lives_ok($$select public.send_league_season_chat_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','Novedad importante',null,true)$$,'the creator can post an announcement');
 select is((select is_announcement from public.league_season_chat_messages where body = 'Novedad importante'),true,'the announcement is flagged');
 select throws_ok($$select public.send_league_season_chat_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000002','Player','Intento',null,true)$$,'P0001','season_chat_announcement_forbidden','a normal participant cannot post an announcement');
+
+insert into public.league_season_chat_messages (id,season_id,sender_user_id,sender_display_name,body) values
+  ('7a000000-0000-4000-8000-000000000001','78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','Para editar');
+select lives_ok($$select public.change_league_season_chat_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','7a000000-0000-4000-8000-000000000001','Editado a tiempo')$$,'a message can be edited right after it is sent');
+update public.league_season_chat_messages set created_at = now() - interval '16 minutes' where id = '7a000000-0000-4000-8000-000000000001';
+select throws_ok($$select public.change_league_season_chat_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','7a000000-0000-4000-8000-000000000001','Editado tarde')$$,'P0001','season_chat_change_expired','an edit after 15 minutes is rejected');
+select lives_ok($$select public.change_league_season_chat_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','7a000000-0000-4000-8000-000000000001',null)$$,'the same message can still be deleted after 16 minutes');
+update public.league_season_chat_messages set created_at = now() - interval '61 minutes', deleted_at = null, body = 'Otra vez' where id = '7a000000-0000-4000-8000-000000000001';
+select throws_ok($$select public.change_league_season_chat_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','7a000000-0000-4000-8000-000000000001',null)$$,'P0001','season_chat_change_expired','a deletion after 1 hour is rejected');
 
 select * from finish();
 rollback;

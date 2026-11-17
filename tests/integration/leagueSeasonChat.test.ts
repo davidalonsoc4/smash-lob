@@ -89,6 +89,11 @@ describe("league season chat", () => {
     expect((await PATCH(patch(null), context)).status).toBe(200)
     expect(rpc).toHaveBeenLastCalledWith("change_league_season_chat_message", expect.objectContaining({ p_body: null }))
   })
+  it("rejects an edit or deletion after the time limit", async () => {
+    setup({ rpcError: "season_chat_change_expired" })
+    expect((await PATCH(patch("Tarde"), context)).status).toBe(409)
+    expect((await PATCH(patch(null), context)).status).toBe(409)
+  })
   it("only the creator or an administrator can post an announcement", async () => {
     const { rpc } = setup()
     const request = new Request(`http://localhost/api/league-season-chats/${seasonId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: "Importante", announcement: true }) })
