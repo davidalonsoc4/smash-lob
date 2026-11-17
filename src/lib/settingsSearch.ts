@@ -125,6 +125,8 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     availability: { title: "Mi disponibilidad", description: "Define cuándo puedes jugar.", section: "preferences", keywords: ["horarios", "días", "jugar", "franjas"] },
     avatarLab: { title: "Laboratorio de avatares", description: "Prueba Big Smile y Notion Avatar sin cambiar tu perfil.", section: "testing", keywords: ["avatar", "avatares", "dicebear", "big smile", "notion", "experimental", "laboratorio"] },
     help: { title: "Ayuda", description: "Consulta reglas y conceptos de la aplicación.", section: "help", keywords: ["reglas", "star point", "tie break", "tutorial"] },
+    tutorialVideos: { title: "Vídeos tutoriales", description: "Mira vídeos cortos para aprender a usar la aplicación.", section: "help", keywords: ["vídeos", "videos", "tutorial", "tutoriales", "aprender", "cómo se usa", "guía", "ayuda"] },
+    tutorialAdmin: { title: "Gestionar tutoriales", description: "Sube vídeos tutoriales y elige quién los ve.", section: "admin", keywords: ["vídeos", "videos", "tutorial", "tutoriales", "subir vídeo", "audiencia", "público", "ligas"] },
     changelog: { title: "Registro de cambios", description: "Consulta novedades y correcciones por versión.", section: "help", keywords: ["versiones", "novedades", "cambios", "actualizaciones", "changelog", "log"] },
     aboutApp: { title: "Sobre Smash & Lob", description: "Consulta la descripción pública y las funciones principales de la aplicación.", section: "help", keywords: ["sobre", "información pública", "funciones", "qué es", "aplicación"] },
     privacy: { title: "Política de privacidad", description: "Consulta qué datos se utilizan y cómo ejercer tus derechos.", section: "help", keywords: ["privacidad", "datos", "rgpd", "protección de datos", "google", "derechos"] },
@@ -196,6 +198,8 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     availability: { title: "My availability", description: "Define when you can play.", section: "preferences", keywords: ["schedule", "days", "time slots"] },
     avatarLab: { title: "Avatar lab", description: "Try Big Smile and Notion Avatar without changing your profile.", section: "testing", keywords: ["avatar", "avatars", "dicebear", "big smile", "notion", "experimental", "lab"] },
     help: { title: "Help", description: "Review rules and application concepts.", section: "help", keywords: ["rules", "star point", "tie break", "tutorial"] },
+    tutorialVideos: { title: "Tutorial videos", description: "Watch short videos to learn how to use the app.", section: "help", keywords: ["videos", "tutorial", "tutorials", "learn", "how to use", "guide", "help"] },
+    tutorialAdmin: { title: "Manage tutorials", description: "Upload tutorial videos and choose who sees them.", section: "admin", keywords: ["videos", "tutorial", "tutorials", "upload video", "audience", "public", "leagues"] },
     changelog: { title: "Change log", description: "Review updates and fixes by version.", section: "help", keywords: ["versions", "updates", "changes", "releases", "changelog", "log"] },
     aboutApp: { title: "About Smash & Lob", description: "View the public description and the application's main features.", section: "help", keywords: ["about", "public information", "features", "what is", "application"] },
     privacy: { title: "Privacy policy", description: "Review what data is used and how to exercise your rights.", section: "help", keywords: ["privacy", "data", "gdpr", "data protection", "google", "rights"] },
@@ -267,6 +271,8 @@ const entryCopyByLocale: Record<Locale, Record<string, EntryCopy>> = {
     availability: { title: "Nire erabilgarritasuna", description: "Adierazi noiz joka dezakezun.", section: "preferences", keywords: ["ordutegiak", "egunak", "tarteak"] },
     avatarLab: { title: "Avatar laborategia", description: "Probatu Big Smile eta Notion Avatar zure profila aldatu gabe.", section: "testing", keywords: ["avatar", "avatarrak", "dicebear", "big smile", "notion", "esperimentala", "laborategia"] },
     help: { title: "Laguntza", description: "Ikusi arauak eta aplikazioaren kontzeptuak.", section: "help", keywords: ["arauak", "star point", "tie break", "tutoriala"] },
+    tutorialVideos: { title: "Tutorial bideoak", description: "Ikusi bideo laburrak aplikazioa erabiltzen ikasteko.", section: "help", keywords: ["bideoak", "tutoriala", "tutorialak", "ikasi", "nola erabili", "gida", "laguntza"] },
+    tutorialAdmin: { title: "Tutorialak kudeatu", description: "Igo tutorial bideoak eta aukeratu nork ikusten dituen.", section: "admin", keywords: ["bideoak", "tutoriala", "tutorialak", "bideoa igo", "hartzaileak", "publikoa", "ligak"] },
     changelog: { title: "Aldaketen erregistroa", description: "Ikusi bertsio bakoitzeko berritasunak eta zuzenketak.", section: "help", keywords: ["bertsioak", "berritasunak", "aldaketak", "eguneraketak", "changelog", "log"] },
     aboutApp: { title: "Smash & Lob-i buruz", description: "Ikusi aplikazioaren deskribapen publikoa eta funtzio nagusiak.", section: "help", keywords: ["buruz", "informazio publikoa", "funtzioak", "zer da", "aplikazioa"] },
     privacy: { title: "Pribatutasun politika", description: "Ikusi zer datu erabiltzen diren eta nola erabili zure eskubideak.", section: "help", keywords: ["pribatutasuna", "datuak", "rgpd", "datu babesa", "google", "eskubideak"] },
@@ -340,6 +346,8 @@ const routeById: Record<string, string> = {
   availability: "/settings/profile#availability",
   avatarLab: "/experimental/avatar-lab",
   help: "/help",
+  tutorialVideos: "/help#videos-tutoriales",
+  tutorialAdmin: "/admin/tutorials",
   changelog: "/changelog",
   aboutApp: "/about",
   privacy: "/privacy",
@@ -703,6 +711,7 @@ export function buildSettingsSearchEntries(
         "account",
         ...avatarLabIds,
         "help",
+        "tutorialVideos",
         "aboutApp",
         "privacy",
         "terms",
@@ -723,6 +732,7 @@ export function buildSettingsSearchEntries(
         "availability",
         ...avatarLabIds,
         "help",
+        "tutorialVideos",
         "aboutApp",
         "privacy",
         "terms",
@@ -781,7 +791,7 @@ export function buildSettingsSearchEntries(
             ]
           : []),
         ...(capabilities.isSuperuser
-          ? ["applicationAdmin", "competitivePlayerImages", "applicationSuggestions"]
+          ? ["applicationAdmin", "competitivePlayerImages", "applicationSuggestions", "tutorialAdmin"]
           : []),
       ]
 
