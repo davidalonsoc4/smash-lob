@@ -72,17 +72,25 @@ def main():
         return t + d
     # audio
     tmp = tempfile.mkdtemp(); parts = []; prev = 0.0
-    def piece(name, a_, b_):
+    def piece(name, a_, b_, fade_in=False, fade_out=False):
+        # fundidos cortos en los empalmes (20 ms entrada / 40 ms salida) para evitar chasquidos al cortar la voz
         f = os.path.join(tmp, name + ".wav")
-        run("ffmpeg", "-y", "-i", a.audio, "-ss", f"{a_:.3f}", "-to", f"{b_:.3f}", "-ar", "44100", "-ac", "1", "-c:a", "pcm_s16le", f); parts.append(f)
+        af = []
+        if fade_in: af.append("afade=t=in:st=0:d=0.02")
+        if fade_out: af.append(f"afade=t=out:st={max(0.0, (b_ - a_) - 0.04):.3f}:d=0.04")
+        cmd = ["ffmpeg", "-y", "-i", a.audio, "-ss", f"{a_:.3f}", "-to", f"{b_:.3f}"] + (["-af", ",".join(af)] if af else []) + ["-ar", "44100", "-ac", "1", "-c:a", "pcm_s16le", f]
+        run(*cmd); parts.append(f)
     def silence(name, d_):
         f = os.path.join(tmp, name + ".wav")
         run("ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", f"{d_:.3f}", "-c:a", "pcm_s16le", f); parts.append(f)
     for k, g in enumerate(gaps):
         if abs(g["new"] - (g["e"] - g["s"])) < 0.015 and g["cur"] > 0: continue  # ya está bien
-        if g["s"] > prev: piece(f"p{k}", prev, g["s"])
-        silence(f"g{k}", g["new"]); prev = max(prev, g["e"])
-    piece("last", prev, dur_total); silence("tail", a.tail)
+        # se conserva hasta 120 ms de la cola natural de la palabra y 50 ms antes de la siguiente (el silencio se acorta lo mismo)
+        pad = min(0.12, max(0.0, g["e"] - g["s"] - 0.02)) if g["cur"] > 0 else 0.0
+        pre = 0.05 if g["cur"] > 0.1 else 0.0
+        if g["s"] > prev: piece(f"p{k}", max(0.0, prev - (pre if k > 0 else 0.0)), g["s"] + pad, fade_in=prev > 0, fade_out=True)
+        silence(f"g{k}", max(0.05, g["new"] - pad - pre)); prev = max(prev, g["e"])
+    piece("last", max(0.0, prev - 0.05), dur_total, fade_in=True); silence("tail", a.tail)
     lst = os.path.join(tmp, "l.txt"); open(lst, "w").write("".join(f"file '{p}'\n" for p in parts))
     cat = os.path.join(tmp, "cat.wav"); run("ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c:a", "pcm_s16le", cat)
     chain = []
