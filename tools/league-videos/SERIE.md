@@ -17,8 +17,8 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 | 10 | Mar 15-dic | Clasificación, desempates y MVP por votación | Pendiente |
 | 11 | Vie 18-dic | Suplentes, incidencias y cuenta atrás | Pendiente |
 | 12 | Dom 20-dic | ¡Hoy empieza! | Pendiente |
-| + | Antes del 20-dic (por decidir) | Presentación de la app: moverse entre pantallas, ligas y amistosos, qué muestra cada pantalla | Idea nueva, sin guion |
-| + | Antes del 20-dic (por decidir) | Aviso: la liga está bloqueada hasta el 20-dic, no es un error (puede ir dentro del vídeo de presentación o aparte) | Idea nueva, sin guion |
+| + | Antes del 20-dic (por decidir) | Presentación de la app (`PresentacionApp`): navegación fuera/dentro de la liga, botones de arriba y liga bloqueada hasta el 20-dic | Montado con voz y música A; pendiente de aprobación |
+| + | — | Aviso de liga bloqueada | Incluido dentro de la presentación (escenas 5 y 6; reutilizables como vídeo corto) |
 
 ## Reglas de contenido
 - Escenas con datos de ejemplo llevan la etiqueta **"EJEMPLO · DATOS FICTICIOS"**.
@@ -33,7 +33,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
   ni comida de cierre (aún sin decidir).
 - Se destina una parte fija a **premios** (sin decir cuáles). En el vídeo aparece como fila "Premios". La lista de cuentas muestra los
   importes cifrados (`•••• €`) y se titula "Cuentas de la liga" (sin cabecera/pestañas de la app).
-- Cierre de todos los vídeos: "Nos vemos en la pista" (decidido por el organizador; no cambiar).
+- Cierre de todos los vídeos: "Nos vemos en la pista" (decidido por el organizador; no cambiar). Desde el vídeo de presentación se antepone "Así que recuerda," (con 0,7 s de pausa) salvo que choque con el contenido; el cierre entra palabra a palabra con golpe de sonido y destello del logo.
 - Usar siempre "inscripción", nunca "fianza".
 
 ## Composiciones (Remotion)

@@ -34,6 +34,7 @@ def main():
     ap.add_argument("--sentence", type=float, nargs=2, default=[0.7, 0.9]); ap.add_argument("--minor", type=float, nargs=2, default=[0.3, 0.5])
     ap.add_argument("--tail", type=float, default=1.8); ap.add_argument("--cuts", default="")
     ap.add_argument("--tempo", type=float, default=1.0, help="velocidad de la locución sin cambiar el tono (estándar: 1.0 = natural)")
+    ap.add_argument("--pauses", default="", help='pausas concretas tras una palabra, p. ej. "recuerda,=0.7|app?=1.0" (segundos)')
     ap.add_argument("--presence", action="store_true", help="realce de presencia + compresión suave (desactivado por defecto)")
     a = ap.parse_args()
     raw = json.load(open(a.words)); words = raw if isinstance(raw, list) else raw.get("words", raw)
@@ -41,6 +42,7 @@ def main():
     sil = [x for x in silences(a.audio) if x[1] - x[0] >= 0.1]
     dur_total = float(run("ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", a.audio).stdout)
     # empareja pausas del guion con silencios reales
+    pauses = {k.strip(): float(v) for k, v in (p.split("=") for p in a.pauses.split("|") if "=" in p)}
     gaps = []
     for i, w in enumerate(words[:-1]):
         t = w["text"]
@@ -49,6 +51,7 @@ def main():
         w0, n0 = w["start"], words[i + 1]["start"]
         cand = [(s, e) for s, e in sil if s < n0 + 0.05 and e > w0 + 0.1 and s > w0 + 0.05]
         lo, hi = a.sentence if kind == "S" else a.minor
+        if t in pauses: lo = hi = pauses[t]
         if cand:
             s, e = max(cand, key=lambda x: x[1] - x[0]); cur = e - s
             new = min(max(cur, lo), hi)
