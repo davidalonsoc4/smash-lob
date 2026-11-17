@@ -70,7 +70,7 @@ export default function AdminTutorialsPage() {
           {items?.map((item, index) => (
             <AppCard key={item.id} className="space-y-2 !p-3">
               <div className="flex items-start gap-3">
-                <span className="relative block h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-neutral-950">
+                <span className="relative block h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-black">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {item.posterUrl ? <img src={item.posterUrl} alt="" className="h-full w-full object-cover" /> : null}
                 </span>
