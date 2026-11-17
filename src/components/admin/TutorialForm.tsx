@@ -20,6 +20,7 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
   const { tx } = useI18n()
   const [draft, setDraft] = useState<TutorialDraft>(initial)
   const [picked, setPicked] = useState<Picked | null>(null)
+  const [customPoster, setCustomPoster] = useState<File | null>(null)
   const [progress, setProgress] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -47,6 +48,19 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
     if (!draft.title.trim()) setDraft((current) => ({ ...current, title: file.name.replace(/\.mp4$/i, "").replace(/[_-]+/g, " ").trim() }))
   }
 
+  function pickPoster(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+    const rule = getTutorialFileRule(file.type)
+    if (!rule || rule.kind !== "poster" || file.size > rule.maxBytes) {
+      setError(tx("La miniatura debe ser una imagen JPG, PNG o WebP de hasta 5 MB."))
+      return
+    }
+    setError(null)
+    setCustomPoster(file)
+  }
+
   async function submit(event: React.FormEvent) {
     event.preventDefault()
     if (!valid || busy) return
@@ -54,7 +68,9 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
     setError(null)
     const fields = { ...draft, title: draft.title.trim(), description: draft.description.trim() }
     if (editingId) {
-      const saved = await updateTutorial(editingId, fields)
+      const newPosterPath = customPoster ? await uploadTutorialFile(customPoster, customPoster.type) : null
+      if (customPoster && !newPosterPath) { setBusy(false); setError(tx("No se ha podido subir la miniatura.")); return }
+      const saved = await updateTutorial(editingId, { ...fields, ...(newPosterPath ? { posterPath: newPosterPath } : {}) })
       setBusy(false)
       if (saved) onDone()
       else setError(tx("No se ha podido guardar."))
@@ -63,7 +79,10 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
     if (!picked) return
     const videoPath = await uploadTutorialFile(picked.file, "video/mp4", setProgress)
     if (!videoPath) { setBusy(false); setProgress(null); setError(tx("No se ha podido subir el vídeo. Revisa la conexión.")); return }
-    const posterPath = picked.poster ? await uploadTutorialFile(picked.poster, "image/jpeg") : null
+    // A thumbnail chosen by hand wins over the frame taken automatically from the video.
+    const posterPath = customPoster
+      ? await uploadTutorialFile(customPoster, customPoster.type)
+      : picked.poster ? await uploadTutorialFile(picked.poster, "image/jpeg") : null
     const created = await createTutorial({ ...fields, videoPath, posterPath, width: picked.width, height: picked.height, durationMs: picked.durationMs })
     setBusy(false)
     setProgress(null)
@@ -94,6 +113,13 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
           {picked ? <span className="mt-1 block text-xs font-bold text-neutral-700">{picked.file.name} · {(picked.file.size / 1048576).toFixed(1)} MB</span> : null}
         </label>
       ) : null}
+      <label className="block text-xs font-semibold text-neutral-600">
+        {tx("Miniatura (opcional)")}
+        <input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={pickPoster} className="mt-1 block w-full text-sm" />
+        <span className="mt-1 block text-xs font-semibold text-neutral-600">
+          {customPoster ? `${customPoster.name} · ${(customPoster.size / 1048576).toFixed(1)} MB` : editingId ? tx("Si no eliges una, se mantiene la actual.") : tx("Si no eliges una, se usa un fotograma del vídeo.")}
+        </span>
+      </label>
       <label className="block text-xs font-semibold text-neutral-600">
         {tx("Título")}
         <input value={draft.title} maxLength={120} disabled={busy} onChange={(event) => setDraft({ ...draft, title: event.target.value })} className="mt-1 w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950" />

@@ -78,7 +78,7 @@ export async function createTutorial(input: TutorialDraft & {
   return Boolean(response?.ok)
 }
 
-export async function updateTutorial(id: string, input: TutorialDraft) {
+export async function updateTutorial(id: string, input: TutorialDraft & { posterPath?: string | null }) {
   const response = await fetch(`/api/application-admin/tutorials/${encodeURIComponent(id)}`, {
     method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input),
   }).catch(() => null)

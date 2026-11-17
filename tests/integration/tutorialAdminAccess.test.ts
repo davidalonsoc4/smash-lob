@@ -53,6 +53,8 @@ describe("tutorial management is for the superuser and the app admin only", () =
     expect((await POST(json({ title: "ok", audience: "leagues", leagueIds: [], videoPath: `${id}.mp4` }))).status).toBe(400)
     expect((await POST(json({ title: "ok", audience: "public", videoPath: "../etc/passwd" }))).status).toBe(400)
     expect((await PUT(json({ order: ["nope"] }))).status).toBe(400)
+    expect((await PATCH(json({ title: "ok", audience: "public", posterPath: "../etc/passwd" }), context)).status).toBe(400)
+    expect((await PATCH(json({ title: "ok", audience: "public", posterPath: `${id}.mp4` }), context)).status).toBe(400)
     expect((await UPLOAD(json({ contentType: "video/webm", size: 10 }))).status).toBe(400)
     expect((await UPLOAD(json({ contentType: "video/mp4", size: 60 * 1024 * 1024 }))).status).toBe(400)
     expect(from).not.toHaveBeenCalled()
