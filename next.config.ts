@@ -13,6 +13,8 @@ const contentSecurityPolicy = [
   "font-src 'self' data: https://fonts.gstatic.com",
   // PRE's manifest uses these public copies because native downloads omit PRE cookies.
   "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.gstatic.com https://*.googleapis.com https://smashandlob.com/icon-pre-192.png https://smashandlob.com/icon-pre-512.png https://smashandlob.com/icon-maskable-pre-192.png https://smashandlob.com/icon-maskable-pre-512.png",
+  // League chat videos are served from private Supabase Storage with signed URLs; blob: is the local preview before sending.
+  "media-src 'self' blob: https://*.supabase.co",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://*.googleapis.com",
   "frame-src https://accounts.google.com",
 ].join("; ");
