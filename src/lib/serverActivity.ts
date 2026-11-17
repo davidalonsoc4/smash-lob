@@ -74,6 +74,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "league_locations_updated" ||
     type === "league_invite_regenerated" ||
     type === "league_announcement_published" ||
+    type === "league_chat_announcement" ||
     type === "league_announcement_deleted" ||
     type === "season_finished" ||
     type === "season_created" ||

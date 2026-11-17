@@ -334,6 +334,11 @@ function getNotificationUrl(event: ActivityEventRow) {
     targetPath = "/league/home";
   }
 
+  if (event.type === "league_chat_announcement") {
+    const chatSeasonId = toRecord(event.metadata).seasonId;
+    if (typeof chatSeasonId === "string" && chatSeasonId) targetPath = `/league-chat/${chatSeasonId}`;
+  }
+
   return buildLeagueNavigationUrl({
     leagueId: event.league_id,
     targetPath,
@@ -459,6 +464,10 @@ function getNotificationTitle(
 
   if (event.type === "match_incident_cleared") {
     return "Incidencia eliminada";
+  }
+
+  if (event.type === "league_chat_announcement") {
+    return event.title || "Novedad en el chat de liga";
   }
 
   if (event.type === "league_announcement_published") {
@@ -635,6 +644,10 @@ function getNotificationBody(
 
   if (event.type === "match_incident_cleared") {
     return event.description?.trim() || "La organización ha eliminado la incidencia del partido.";
+  }
+
+  if (event.type === "league_chat_announcement") {
+    return event.description?.trim() || "Hay una novedad importante en el chat de la liga.";
   }
 
   if (event.type === "league_announcement_published") {

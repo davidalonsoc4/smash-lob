@@ -6,7 +6,7 @@ import type { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAcces
 type ChatActor = Extract<Awaited<ReturnType<typeof getLeagueSeasonChatActor>>, { ok: true }>["actor"]
 
 export const LEAGUE_CHAT_MESSAGE_FIELDS =
-  "id,sender_user_id,sender_display_name,body,created_at,edited_at,deleted_at,media_kind,media_path,reply_to_id"
+  "id,sender_user_id,sender_display_name,body,created_at,edited_at,deleted_at,media_kind,media_path,reply_to_id,is_announcement"
 
 export type LeagueChatMessageRow = {
   id: string
@@ -19,6 +19,7 @@ export type LeagueChatMessageRow = {
   media_kind: string | null
   media_path: string | null
   reply_to_id: string | null
+  is_announcement: boolean
 }
 
 const REPLY_SNIPPET_LENGTH = 140

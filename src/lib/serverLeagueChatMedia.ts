@@ -5,16 +5,26 @@ import type { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAcces
 
 type ChatActor = Extract<Awaited<ReturnType<typeof getLeagueSeasonChatActor>>, { ok: true }>["actor"]
 
-/** Only the league creator can publish photos and videos. Checked on the server, not only in the UI. */
-export async function canPublishLeagueChatMedia(actor: ChatActor, leagueId: string) {
+async function getLeagueChatRole(actor: ChatActor, leagueId: string) {
   const membership = await actor.supabase
     .from("league_memberships")
     .select("role")
     .eq("league_id", leagueId)
     .eq("user_id", actor.user.id)
     .maybeSingle()
-  if (membership.error) return null
-  return membership.data?.role === "creator"
+  return membership.error ? null : ((membership.data?.role as string | undefined) ?? "")
+}
+
+/** Only the league creator can publish photos and videos. Checked on the server, not only in the UI. */
+export async function canPublishLeagueChatMedia(actor: ChatActor, leagueId: string) {
+  const role = await getLeagueChatRole(actor, leagueId)
+  return role === null ? null : role === "creator"
+}
+
+/** The creator and the administrators can post a "Novedad" that notifies every participant. */
+export async function canAnnounceInLeagueChat(actor: ChatActor, leagueId: string) {
+  const role = await getLeagueChatRole(actor, leagueId)
+  return role === null ? null : role === "creator" || role === "admin"
 }
 
 /** Short-lived signed URLs, issued only after the caller was verified as a chat participant. */

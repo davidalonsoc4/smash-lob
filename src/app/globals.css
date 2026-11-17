@@ -3565,3 +3565,11 @@ html.dark .app-match-chat-metadata[data-mine="false"] .type-caption { color: #a1
 /* Non-blocking notice above the composer (amber, readable in light and dark). */
 .chat-notice { background: #fef3c7; color: #78350f; }
 html.dark .chat-notice { background: rgb(120 53 15 / 0.45); color: #fde68a; }
+
+/* "Novedad" card in the league chat: unmistakable in light and dark. */
+.league-chat-announcement { background: #fffbeb; border-color: #f59e0b; color: #451a03; }
+.league-chat-announcement .league-chat-announcement-label { color: #b45309; }
+.league-chat-announcement .league-chat-announcement-meta { color: #78350f; }
+html.dark .league-chat-announcement { background: rgb(120 53 15 / 0.4); border-color: #f59e0b; color: #fef3c7; }
+html.dark .league-chat-announcement .league-chat-announcement-label { color: #fcd34d; }
+html.dark .league-chat-announcement .league-chat-announcement-meta { color: #fde68a; }

@@ -550,6 +550,38 @@ test("league season chat opens from home and sends a message", async ({ page }, 
   await page.screenshot({ path: info.outputPath("league-season-chat.png") })
 })
 
+test("league chat shows announcements prominently and lets the creator send one", async ({ page }) => {
+  await setup(page, "dark", "classic")
+  const messages: Array<Record<string, unknown>> = [
+    { id: "news", sender_user_id: "qa-user", sender_display_name: "QA", body: "La jornada 3 se publica el lunes", created_at: "2026-10-16T09:00:00Z", edited_at: null, deleted_at: null, is_announcement: true },
+    { id: "plain", sender_user_id: "friend", sender_display_name: "Ana", body: "Perfecto, gracias", created_at: "2026-10-16T09:05:00Z", edited_at: null, deleted_at: null },
+  ]
+  let sent: { body?: string; announcement?: boolean } | null = null
+  await page.route("**/api/league-season-chats/**", route => {
+    if (route.request().method() === "POST") {
+      sent = route.request().postDataJSON()
+      const message = { id: "news-2", sender_user_id: "qa-user", sender_display_name: "QA", body: sent?.body, created_at: "2026-10-16T12:00:00Z", edited_at: null, deleted_at: null, is_announcement: true }
+      messages.push(message)
+      return route.fulfill({ status: 201, json: { message } })
+    }
+    return route.fulfill({ json: { season: { name: "Temporada 2", league_id: leagueId }, messages, participants: [{ userId: "qa-user", displayName: "QA", avatarUrl: null, lastReadAt: null }, { userId: "friend", displayName: "Ana", avatarUrl: null, lastReadAt: null }], me: "qa-user", readOnly: false, canAnnounce: true } })
+  })
+  await page.goto("/league-chat/" + seasonId)
+  const card = page.locator("[data-league-chat-announcement]")
+  await expect(card).toHaveCount(1)
+  await expect(card).toContainText("Novedad")
+  await expect(card).toContainText("La jornada 3 se publica el lunes")
+  await page.getByRole("button", { name: "Enviar como novedad" }).click()
+  await expect(page.locator("[data-league-chat-announce-bar]")).toContainText("aunque la tengan silenciada")
+  await page.getByPlaceholder("Escribe un mensaje…").fill("Mañana no hay pistas")
+  await page.getByRole("button", { name: "Enviar mensaje" }).click()
+  await expect(card).toHaveCount(2)
+  await expect(page.locator("[data-league-chat-announce-bar]")).toHaveCount(0)
+  expect(sent).toEqual({ body: "Mañana no hay pistas", announcement: true })
+  const results = await new AxeBuilder({ page }).analyze()
+  expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})
+
 test("league chat replies to a message with a quote", async ({ page }) => {
   await setup(page, "dark", "classic")
   const messages: Array<Record<string, unknown>> = [

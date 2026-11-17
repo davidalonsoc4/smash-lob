@@ -3,7 +3,8 @@ import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { shouldAnnounceRead } from "@/lib/chatReadReceipts"
 import { getLeagueChatMediaKindFromPath, isLeagueChatMediaPathForSeason } from "@/lib/leagueChatMedia"
 import { LEAGUE_CHAT_MEDIA_BUCKET } from "@/lib/leagueChatMedia"
-import { canPublishLeagueChatMedia, leagueChatMediaExists } from "@/lib/serverLeagueChatMedia"
+import { canAnnounceInLeagueChat, canPublishLeagueChatMedia, leagueChatMediaExists } from "@/lib/serverLeagueChatMedia"
+import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { LEAGUE_CHAT_MESSAGE_FIELDS, shapeLeagueChatMessages, type LeagueChatMessageRow } from "@/lib/serverLeagueChatMessages"
 import { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
@@ -41,14 +42,17 @@ export async function GET(request: Request, context: Context) {
       .eq("season_id", seasonId).neq("sender_user_id", user.id).is("deleted_at", null)
     if (lastReadAt) unreadQuery = unreadQuery.gt("created_at", lastReadAt)
     const [latest, participants, unread] = await Promise.all([
-      supabase.from("league_season_chat_messages").select("sender_display_name,body,created_at,media_kind")
+      supabase.from("league_season_chat_messages").select("sender_display_name,body,created_at,media_kind,is_announcement")
         .eq("season_id", seasonId).is("deleted_at", null).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1),
       supabase.from("league_season_chat_participants").select("user_id", { count: "exact", head: true }).eq("season_id", seasonId),
       unreadQuery,
     ])
     if (latest.error || participants.error || unread.error) return fail("league_chat_messages_failed", 500)
     // A photo or video without text shows its kind in the chat list.
-    const preview = (latest.data ?? []).map(({ media_kind, ...row }) => ({ ...row, body: row.body || (media_kind === "video" ? "Vídeo" : media_kind === "image" ? "Foto" : "") }))
+    const preview = (latest.data ?? []).map(({ media_kind, is_announcement, ...row }) => {
+      const text = row.body || (media_kind === "video" ? "Vídeo" : media_kind === "image" ? "Foto" : "")
+      return { ...row, body: is_announcement ? `Novedad: ${text}` : text }
+    })
     return NextResponse.json({ ...summary, messages: preview, participantCount: participants.count ?? 0, unread: unread.count ?? 0 }, { headers: { "Cache-Control": "private, no-store" } })
   }
   const members = await supabase.from("league_season_chat_participants")
@@ -85,6 +89,8 @@ export async function GET(request: Request, context: Context) {
   if (!messages) return fail("league_chat_media_failed", 500)
   const canPublishMedia = await canPublishLeagueChatMedia(access.actor, access.season.league_id)
   if (canPublishMedia === null) return fail("league_chat_access_failed", 500)
+  const canAnnounce = await canAnnounceInLeagueChat(access.actor, access.season.league_id)
+  if (canAnnounce === null) return fail("league_chat_access_failed", 500)
   const unread = messages.filter((message) => !message.deleted_at && message.sender_user_id !== user.id && (!lastReadAt || message.created_at > lastReadAt)).length
   if (pageSize === 200 && !before && searchParams.get("markRead") !== "0") {
     const lastRead = messages.at(-1)?.created_at
@@ -103,14 +109,14 @@ export async function GET(request: Request, context: Context) {
       if (shouldAnnounceRead(pendingReaders)) await broadcastLeagueSeasonReadReceipt(seasonId)
     }
   }
-  return NextResponse.json({ ...summary, messages, participants, me: user.id, unread, hasMore, canPublishMedia }, { headers: { "Cache-Control": "private, no-store" } })
+  return NextResponse.json({ ...summary, messages, participants, me: user.id, unread, hasMore, canPublishMedia, canAnnounce }, { headers: { "Cache-Control": "private, no-store" } })
 }
 
 export async function POST(request: Request, context: Context) {
   const { seasonId } = await context.params
   const access = await getLeagueSeasonChatActor(seasonId)
   if (!access.ok) return fail(access.error, access.status)
-  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown; replyToId?: unknown }>(request)
+  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown; replyToId?: unknown; announcement?: unknown }>(request)
   const body = typeof input?.body === "string" ? input.body.trim() : ""
   const hasMedia = input?.mediaPath !== undefined && input.mediaPath !== null
   // A photo or video may go without text; a text message may not.
@@ -118,6 +124,18 @@ export async function POST(request: Request, context: Context) {
   const replyToId = input?.replyToId === undefined || input.replyToId === null ? null : validateUuid(input.replyToId)
   if (input?.replyToId !== undefined && input.replyToId !== null && !replyToId) return fail("invalid_reply", 400)
   const { supabase, user } = access.actor
+  const isAnnouncement = input?.announcement === true
+  if (isAnnouncement) {
+    const allowed = await canAnnounceInLeagueChat(access.actor, access.season.league_id)
+    if (allowed === null) return fail("league_chat_access_failed", 500)
+    if (!allowed) return fail("league_chat_announcement_forbidden", 403)
+    // Every Novedad pushes a notification to the whole chat, so cap how many can go out per hour.
+    const recentAnnouncements = await supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
+      .eq("season_id", seasonId).eq("sender_user_id", user.id).eq("is_announcement", true)
+      .gte("created_at", new Date(Date.now() - 3_600_000).toISOString())
+    if (recentAnnouncements.error) return fail("league_chat_write_failed", 500)
+    if ((recentAnnouncements.count ?? 0) >= 5) return fail("league_chat_rate_limited", 429)
+  }
   const mediaPath = input?.mediaPath
   if (mediaPath !== undefined && mediaPath !== null) {
     if (!isLeagueChatMediaPathForSeason(mediaPath, seasonId)) return fail("invalid_media", 400)
@@ -135,12 +153,15 @@ export async function POST(request: Request, context: Context) {
     ? await supabase.rpc("send_league_season_chat_media_message", {
         p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body,
         p_media_kind: getLeagueChatMediaKindFromPath(mediaPath), p_media_path: mediaPath, p_reply_to_id: replyToId,
+        p_is_announcement: isAnnouncement,
       })
     : await supabase.rpc("send_league_season_chat_message", {
         p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body, p_reply_to_id: replyToId,
+        p_is_announcement: isAnnouncement,
       })
   if (result.error) {
     if (result.error.message.includes("season_chat_read_only")) return fail("league_chat_read_only", 409)
+    if (result.error.message.includes("season_chat_announcement_forbidden")) return fail("league_chat_announcement_forbidden", 403)
     if (result.error.message.includes("season_chat_media_forbidden")) return fail("league_chat_media_forbidden", 403)
     if (result.error.message.includes("season_chat_invalid_reply")) return fail("invalid_reply", 400)
     if (result.error.message.includes("season_chat_invalid")) return fail("invalid_media", 400)
@@ -148,8 +169,45 @@ export async function POST(request: Request, context: Context) {
     return fail("league_chat_write_failed", 500)
   }
   await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
+  if (isAnnouncement) await notifyAnnouncement({ access, seasonId, messageId: (result.data as LeagueChatMessageRow).id, body })
   const [message] = (await shapeLeagueChatMessages(access.actor, seasonId, [result.data as LeagueChatMessageRow])) ?? []
   return NextResponse.json({ message: message ?? null }, { status: 201 })
+}
+
+/**
+ * A "Novedad" always notifies every participant of the chat. The event type is in the always-enabled list,
+ * so personal and league notification settings do not silence it. The message is already saved if this fails.
+ */
+async function notifyAnnouncement({ access, seasonId, messageId, body }: {
+  access: Extract<Awaited<ReturnType<typeof getLeagueSeasonChatActor>>, { ok: true }>
+  seasonId: string
+  messageId: string
+  body: string
+}) {
+  const { supabase, user } = access.actor
+  try {
+    const [participants, league] = await Promise.all([
+      supabase.from("league_season_chat_participants").select("user_id,player_id").eq("season_id", seasonId),
+      supabase.from("leagues").select("name").eq("id", access.season.league_id).maybeSingle(),
+    ])
+    const rows = participants.data ?? []
+    await recordServerActorActivity({
+      supabase, user, membership: null,
+      leagueId: access.season.league_id,
+      seasonId,
+      type: "league_chat_announcement",
+      title: `Novedad · ${league.data?.name ?? "Liga"}`,
+      description: body.slice(0, 200) || "Hay una novedad en el chat de la liga.",
+      metadata: {
+        messageId,
+        forcePush: true,
+        targetUserIds: rows.map((row) => row.user_id),
+        targetPlayerIds: rows.flatMap((row) => (row.player_id ? [row.player_id] : [])),
+      },
+    })
+  } catch {
+    // Delivery problems must not lose the message itself.
+  }
 }
 
 export async function PATCH(request: Request, context: Context) {

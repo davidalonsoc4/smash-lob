@@ -118,6 +118,10 @@ function getNotificationUrl(event: ActivityEvent) {
     targetPath = "/league/home";
   }
 
+  if (event.type === "league_chat_announcement" && typeof event.metadata.seasonId === "string") {
+    targetPath = `/league-chat/${event.metadata.seasonId}`;
+  }
+
   return buildLeagueNavigationUrl({
     leagueId: event.leagueId,
     targetPath,
@@ -193,6 +197,10 @@ function isNotificationForCurrentUser({
 
   if (event.type === "league_announcement_published") {
     return targetPlayerIds.length === 0 || targetPlayerIds.includes(currentUserId);
+  }
+
+  if (event.type === "league_chat_announcement") {
+    return targetPlayerIds.includes(currentUserId);
   }
 
   if (isLeagueWideNotification(event)) {

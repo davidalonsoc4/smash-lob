@@ -31,6 +31,7 @@ export type ActivityEventType =
   | "league_locations_updated"
   | "league_invite_regenerated"
   | "league_announcement_published"
+  | "league_chat_announcement"
   | "league_announcement_deleted"
   | "season_finished"
   | "season_created"
@@ -102,6 +103,7 @@ const serverHandledActivityTypes = new Set<ActivityEventType>([
   "court_booking_payment_reminder",
   "league_invite_regenerated",
   "league_announcement_published",
+  "league_chat_announcement",
   "league_announcement_deleted",
   "league_updated",
   "league_logo_updated",

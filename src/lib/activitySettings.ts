@@ -217,6 +217,12 @@ export const activityEventDefinitions: Record<
     personalScope: "league_wide",
     pushReady: true,
   },
+  league_chat_announcement: {
+    category: "league",
+    defaultMode: "notify",
+    personalScope: "target_player",
+    pushReady: true,
+  },
   league_announcement_deleted: {
     category: "league",
     defaultMode: "activity_only",

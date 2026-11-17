@@ -25,7 +25,8 @@ export type NotificationPreferenceDefinition = {
   eventTypes: ActivityEventType[]
 }
 
-export const alwaysEnabledNotificationEventTypes: ActivityEventType[] = []
+/** A "Novedad" in the league chat reaches every participant, whatever their notification preferences. */
+export const alwaysEnabledNotificationEventTypes: ActivityEventType[] = ["league_chat_announcement"]
 
 export const notificationPreferenceDefinitions: NotificationPreferenceDefinition[] = [
   {
