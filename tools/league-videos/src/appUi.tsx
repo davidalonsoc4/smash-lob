@@ -39,7 +39,7 @@ export const Avatar: React.FC<{ size?: number; initials?: string }> = ({ size = 
 };
 
 // "Mi próximo partido": dos píldoras de acento con VS en medio.
-export const PairPills: React.FC<{ a: [string, string]; b: [string, string] }> = ({ a, b }) => {
+export const PairPills: React.FC<{ a: [string, string]; b: [string, string]; width?: number }> = ({ a, b, width = NATIVE_W }) => {
   const t = useTheme();
   const pill = (n: [string, string]) => (
     <div style={{ flex: 1, background: t.accent, color: t.accentContrast, borderRadius: 14, padding: "10px 6px", textAlign: "center", fontWeight: 800, fontSize: 17, lineHeight: 1.3 }}>
@@ -47,7 +47,7 @@ export const PairPills: React.FC<{ a: [string, string]; b: [string, string] }> =
     </div>
   );
   return (
-    <div style={{ width: NATIVE_W, display: "flex", alignItems: "center", gap: 8 }}>
+    <div style={{ width, display: "flex", alignItems: "center", gap: 8 }}>
       {pill(a)}
       <div style={{ width: 34, height: 34, borderRadius: "50%", background: t.mutedSurface, color: t.textMuted, fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>VS</div>
       {pill(b)}

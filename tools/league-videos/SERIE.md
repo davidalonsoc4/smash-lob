@@ -12,11 +12,13 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 | 4 | Mar 1-dic | El chat de la liga y los avisos | Pendiente |
 | 6 | Vie 4-dic | Perfil y disponibilidad (`PerfilDisponibilidad`) | **Aprobado**. Montado con voz y música A. Requiere activar recomendaciones en la temporada (hecho) y, idealmente, mover la disponibilidad al perfil |
 | 7 | Lun 7-dic | Calendario y parejas secretas | Pendiente |
-| 8 | Vie 11-dic | Subir un resultado (`SubirResultado`) | Montado con voz y música A; pendiente de aprobación. Incluye aviso de notificaciones ("Falta el resultado" a las 2, 3, 4 y 24 h de la hora de inicio) |
+| 8 | Vie 11-dic | Subir un resultado (`SubirResultado`) | Montado con voz y música A (v2: corregido recuadro de pareja en "Tu partido"). Incluye aviso de notificaciones ("Falta el resultado" a las 2, 3, 4 y 24 h de la hora de inicio) |
 | 9 | — | (Descartado) Parejas de la jornada 1 reveladas | No se hace; la explicación del desbloqueo va en el 2+5 |
 | 10 | Mar 15-dic | Clasificación, desempates y MVP por votación | Pendiente |
 | 11 | Vie 18-dic | Suplentes, incidencias y cuenta atrás | Pendiente |
 | 12 | Dom 20-dic | ¡Hoy empieza! | Pendiente |
+| + | Antes del 20-dic (por decidir) | Presentación de la app: moverse entre pantallas, ligas y amistosos, qué muestra cada pantalla | Idea nueva, sin guion |
+| + | Antes del 20-dic (por decidir) | Aviso: la liga está bloqueada hasta el 20-dic, no es un error (puede ir dentro del vídeo de presentación o aparte) | Idea nueva, sin guion |
 
 ## Reglas de contenido
 - Escenas con datos de ejemplo llevan la etiqueta **"EJEMPLO · DATOS FICTICIOS"**.

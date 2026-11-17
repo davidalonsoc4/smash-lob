@@ -82,7 +82,7 @@ const OpenMatch = ({ league, ws }: Props) => {
                 <div style={{ fontSize: 19, fontWeight: 800 }}>Jornada 1</div>
                 <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1, color: t.accent, border: `1.5px solid ${t.accent}`, borderRadius: 999, padding: "4px 10px" }}>PROGRAMADO</div>
               </div>
-              <PairPills a={[q[0], q[1]]} b={[q[2], q[3]]} />
+              <PairPills a={[q[0], q[1]]} b={[q[2], q[3]]} width={376} />
             </Panel>
             <div style={{ width: NATIVE_W, boxSizing: "border-box", display: "flex", justifyContent: "space-between", alignItems: "center", background: t.surface, border: `1.5px solid ${hl > 0.5 ? t.accent : t.border}`, borderRadius: 16, padding: "14px 16px", transform: `scale(${1 + 0.03 * hl})`, boxShadow: hl > 0.5 ? `0 0 0 3px ${t.accent}33` : "none" }}>
               <div style={{ fontSize: 18, fontWeight: 800 }}>Registrar resultado</div>
