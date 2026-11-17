@@ -24,7 +24,7 @@ const wfLast = (ws: TimedWord[], text: string) => {
 };
 
 /* ---------- Réplicas del chat ---------- */
-const Glyph: React.FC<{ name: "back" | "dots" | "speaker" | "send" | "person" | "refresh" | "group" | "check"; color: string; size?: number }> = ({ name, color, size = 22 }) => {
+export const Glyph: React.FC<{ name: "back" | "dots" | "speaker" | "send" | "person" | "refresh" | "group" | "check"; color: string; size?: number }> = ({ name, color, size = 22 }) => {
   const p = { fill: "none", stroke: color, strokeWidth: 2.2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...p}>
@@ -40,7 +40,7 @@ const Glyph: React.FC<{ name: "back" | "dots" | "speaker" | "send" | "person" | 
   );
 };
 
-const ChatHeader: React.FC<{ title: string; sub?: string; logo?: string }> = ({ title, sub, logo }) => {
+export const ChatHeader: React.FC<{ title: string; sub?: string; logo?: string }> = ({ title, sub, logo }) => {
   const t = useTheme();
   return (
     <div style={{ width: NATIVE_W, boxSizing: "border-box", display: "flex", alignItems: "center", gap: 10, background: t.surface, borderBottom: `1px solid ${t.border}`, padding: "12px 12px" }}>
@@ -62,8 +62,8 @@ const Reveal: React.FC<{ at: number; maxH: number; children: React.ReactNode }> 
   return <div style={{ maxHeight: g * maxH, overflow: "hidden", flexShrink: 0, opacity: Math.min(1, p * 2), transform: `translateY(${(1 - p) * 24}px)` }}>{children}</div>;
 };
 
-const NAME_COLORS = ["#a78bfa", "#fbbf24", "#60a5fa", "#34d399", "#f472b6"];
-const Bubble: React.FC<{ name?: string; color?: string; text: string; time: string; own?: boolean; at: number }> = ({ name, color, text, time, own, at }) => {
+export const NAME_COLORS = ["#a78bfa", "#fbbf24", "#60a5fa", "#34d399", "#f472b6"];
+export const Bubble: React.FC<{ name?: string; color?: string; text: string; time: string; own?: boolean; at: number }> = ({ name, color, text, time, own, at }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   void f; void fps;
   return (
@@ -108,7 +108,7 @@ const Novedad: React.FC<{ text: string; time: string; at: number; video?: { thum
 };
 
 /* barra de escribir de JUGADOR: campo de texto + enviar (sin adjuntos, sin fotos ni vídeos) */
-const InputBar: React.FC<{ typed?: string; ready?: boolean }> = ({ typed = "", ready = false }) => {
+export const InputBar: React.FC<{ typed?: string; ready?: boolean }> = ({ typed = "", ready = false }) => {
   const t = useTheme();
   return (
     <div style={{ width: NATIVE_W, boxSizing: "border-box", display: "flex", alignItems: "center", gap: 8, background: t.surface, borderTop: `1px solid ${t.border}`, padding: "10px 12px" }}>
@@ -124,12 +124,12 @@ const ChatWindow: React.FC<{ h: number; children: React.ReactNode }> = ({ h, chi
   return <div style={{ width: NATIVE_W, height: h, boxSizing: "border-box", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 10, padding: "10px 12px", background: t.bg, WebkitMaskImage: "linear-gradient(to bottom, transparent 0, #000 16%)", maskImage: "linear-gradient(to bottom, transparent 0, #000 16%)" }}>{children}</div>;
 };
 
-const Phone: React.FC<{ header: React.ReactNode; bar: React.ReactNode; h: number; children: React.ReactNode }> = ({ header, bar, h, children }) => {
+export const Phone: React.FC<{ header: React.ReactNode; bar: React.ReactNode; h: number; children: React.ReactNode }> = ({ header, bar, h, children }) => {
   const t = useTheme();
   return <div style={{ width: NATIVE_W, borderRadius: 18, overflow: "hidden", border: `1px solid ${t.border}`, background: t.bg }}>{header}<ChatWindow h={h}>{children}</ChatWindow>{bar}</div>;
 };
 
-const Shell: React.FC<{ at?: number; z?: number; children: React.ReactNode }> = ({ at = 2, z = 2.1, children }) => {
+export const Shell: React.FC<{ at?: number; z?: number; children: React.ReactNode }> = ({ at = 2, z = 2.1, children }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, at, 13);
   return <div style={{ opacity: Math.min(1, p * 2), transform: `scale(${0.94 + 0.06 * p})` }}><Zoom z={z}>{children}</Zoom></div>;
