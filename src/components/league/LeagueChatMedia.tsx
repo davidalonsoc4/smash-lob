@@ -12,6 +12,11 @@ export type LeagueChatMediaMessage = {
   created_at?: string
   media_kind?: "image" | "video" | null
   media_url?: string | null
+  /** Thumbnail picked when the video was uploaded, and the measures of the file: the bubble needs no video download. */
+  media_poster_url?: string | null
+  media_width?: number | null
+  media_height?: number | null
+  media_duration_ms?: number | null
   /** 0..1 while the sender's own file is still uploading. */
   upload_progress?: number | null
 }
@@ -30,8 +35,12 @@ function formatDuration(seconds: number) {
 export function LeagueChatMediaBody({ message, mine = false }: { message: LeagueChatMediaMessage; mine?: boolean }) {
   const { tx } = useI18n()
   const [open, setOpen] = useState(false)
-  const [duration, setDuration] = useState<number | null>(null)
-  const [ratio, setRatio] = useState<number | null>(null)
+  const [measuredDuration, setDuration] = useState<number | null>(null)
+  const [measuredRatio, setRatio] = useState<number | null>(null)
+  const knownRatio = message.media_width && message.media_height ? message.media_width / message.media_height : null
+  const ratio = measuredRatio ?? knownRatio
+  const duration = measuredDuration ?? (typeof message.media_duration_ms === "number" ? message.media_duration_ms / 1000 : null)
+  const poster = message.media_poster_url ?? null
   const { media_kind: kind, media_url: url } = message
   if (!kind || !url) return <>{message.body}</>
   const uploading = typeof message.upload_progress === "number"
@@ -48,9 +57,12 @@ export function LeagueChatMediaBody({ message, mine = false }: { message: League
         data-league-chat-media={kind}
         className="relative mb-1 block w-full overflow-hidden rounded-xl bg-neutral-900 active:scale-[0.98]"
       >
-        {kind === "video" ? (
-          // #t=0.1 makes mobile browsers paint a still frame as the thumbnail.
-          <video src={`${url}#t=0.1`} preload="metadata" muted playsInline tabIndex={-1}
+        {kind === "video" && poster ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={poster} alt="" loading="lazy" style={{ aspectRatio: clampRatio(ratio ?? 9 / 16) }} className="pointer-events-none w-full object-cover" />
+        ) : kind === "video" ? (
+          // Older videos have no thumbnail file: ask the browser for a frame at 2.5 s (it clamps on short videos).
+          <video src={`${url}#t=2.5`} preload="metadata" muted playsInline tabIndex={-1}
             onLoadedMetadata={(event) => {
               const { duration: length, videoWidth, videoHeight } = event.currentTarget
               if (Number.isFinite(length)) setDuration(length)
@@ -88,7 +100,7 @@ export function LeagueChatMediaBody({ message, mine = false }: { message: League
       </button>
       {message.body}
       {message.body ? <ChatTimeSpacer mine={mine} /> : null}
-      {open ? <LeagueChatMediaViewer kind={kind} url={url} caption={message.body} author={message.sender_display_name} createdAt={message.created_at} onClose={() => setOpen(false)} /> : null}
+      {open ? <LeagueChatMediaViewer kind={kind} url={url} poster={poster} caption={message.body} author={message.sender_display_name} createdAt={message.created_at} onClose={() => setOpen(false)} /> : null}
     </span>
   )
 }
@@ -96,9 +108,10 @@ export function LeagueChatMediaBody({ message, mine = false }: { message: League
 const CLOSE_DRAG = 110
 
 /** Full-screen viewer inside the app: no redirect; closes with the button, Escape or by dragging it down. */
-function LeagueChatMediaViewer({ kind, url, caption, author, createdAt, onClose }: {
+function LeagueChatMediaViewer({ kind, url, poster, caption, author, createdAt, onClose }: {
   kind: "image" | "video"
   url: string
+  poster?: string | null
   caption: string
   author?: string
   createdAt?: string
@@ -142,7 +155,7 @@ function LeagueChatMediaViewer({ kind, url, caption, author, createdAt, onClose 
       >
         <div className="flex h-full w-full max-w-md items-center justify-center" onClick={(event) => event.stopPropagation()}>
           {kind === "video"
-            ? <video src={url} controls autoPlay playsInline controlsList="nodownload" className="max-h-full max-w-full" />
+            ? <video src={url} poster={poster ?? undefined} controls autoPlay playsInline controlsList="nodownload" className="max-h-full max-w-full" />
             // eslint-disable-next-line @next/next/no-img-element
             : <img src={url} alt={caption} draggable={false} className="max-h-full max-w-full object-contain" />}
         </div>

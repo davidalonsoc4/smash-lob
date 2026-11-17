@@ -94,6 +94,14 @@ describe("league season chat", () => {
     expect((await PATCH(patch("Tarde"), context)).status).toBe(409)
     expect((await PATCH(patch(null), context)).status).toBe(409)
   })
+  it("only the creator or an administrator can create a poll, and a poll cannot carry media", async () => {
+    const { rpc } = setup()
+    const poll = (extra: Record<string, unknown> = {}) => new Request(`http://localhost/api/league-season-chats/${seasonId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: "¿Qué día?", poll: { options: ["Martes", "Jueves"] }, ...extra }) })
+    expect((await POST(poll(), context)).status).toBe(403)
+    expect((await POST(poll({ mediaPath: "x" }), context)).status).toBe(400)
+    expect((await POST(poll({ body: "" }), context)).status).toBe(400)
+    expect(rpc).not.toHaveBeenCalled()
+  })
   it("only the creator or an administrator can post an announcement", async () => {
     const { rpc } = setup()
     const request = new Request(`http://localhost/api/league-season-chats/${seasonId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: "Importante", announcement: true }) })

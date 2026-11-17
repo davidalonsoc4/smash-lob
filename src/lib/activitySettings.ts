@@ -217,6 +217,13 @@ export const activityEventDefinitions: Record<
     personalScope: "league_wide",
     pushReady: true,
   },
+  // Same behaviour as the chat of a match: it notifies by default and follows the "Chat" preference.
+  league_chat_message: {
+    category: "league",
+    defaultMode: "notify",
+    personalScope: "target_player",
+    pushReady: true,
+  },
   league_chat_announcement: {
     category: "league",
     defaultMode: "notify",

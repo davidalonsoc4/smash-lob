@@ -334,8 +334,8 @@ function getNotificationUrl(event: ActivityEventRow) {
     targetPath = "/league/home";
   }
 
-  if (event.type === "league_chat_announcement") {
-    const chatSeasonId = toRecord(event.metadata).seasonId;
+  if (event.type === "league_chat_announcement" || event.type === "league_chat_message") {
+    const chatSeasonId = event.season_id ?? toRecord(event.metadata).seasonId;
     if (typeof chatSeasonId === "string" && chatSeasonId) targetPath = `/league-chat/${chatSeasonId}`;
   }
 
@@ -468,6 +468,10 @@ function getNotificationTitle(
 
   if (event.type === "league_chat_announcement") {
     return event.title || "Novedad en el chat de liga";
+  }
+
+  if (event.type === "league_chat_message") {
+    return event.title || "Nuevo mensaje en el chat de liga";
   }
 
   if (event.type === "league_announcement_published") {
@@ -648,6 +652,13 @@ function getNotificationBody(
 
   if (event.type === "league_chat_announcement") {
     return event.description?.trim() || "Hay una novedad importante en el chat de la liga.";
+  }
+
+  if (event.type === "league_chat_message") {
+    const preview = String(toRecord(event.metadata).messagePreview ?? "").trim();
+    const actor = event.actor_display_name || event.actor_email || "Un jugador";
+    const cleanPreview = preview.length > 120 ? `${preview.slice(0, 117)}...` : preview;
+    return cleanPreview ? `${actor}: ${cleanPreview}` : `${actor} ha escrito en el chat de la liga.`;
   }
 
   if (event.type === "league_announcement_published") {
@@ -1295,7 +1306,8 @@ export async function dispatchPushForActivityEvent(
       const eventMetadata = toRecord(event.metadata);
       const reservationConfirmedFromChat =
         event.type === "match_scheduled" && eventMetadata.reservationConfirmedFromChat === true;
-      const chatThreadEvent = event.type === "match_chat_message" || reservationConfirmedFromChat;
+      const leagueChatEvent = event.type === "league_chat_message" && Boolean(event.season_id);
+      const chatThreadEvent = event.type === "match_chat_message" || reservationConfirmedFromChat || leagueChatEvent;
       const chatStateTransition =
         reservationConfirmedFromChat ||
         (event.type === "match_chat_message" &&
@@ -1304,7 +1316,8 @@ export async function dispatchPushForActivityEvent(
         title: getNotificationTitle(event, recipient),
         body: getNotificationBody(event, recipient, playerNamesById),
         url: getNotificationUrl(event),
-        tag: chatThreadEvent && event.match_id ? `smash-lob-chat-${event.match_id}` : `smash-lob-${event.id}`,
+        tag: leagueChatEvent ? `smash-lob-chat-league-${event.season_id}` : chatThreadEvent && event.match_id ? `smash-lob-chat-${event.match_id}` : `smash-lob-${event.id}`,
+        visiblePath: leagueChatEvent ? `/league-chat/${event.season_id}` : null,
         chatMatchId: chatThreadEvent && event.match_id ? event.match_id : null,
         chatStateTransition,
       });

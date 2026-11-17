@@ -116,15 +116,29 @@ export async function POST(request: Request, context: Context) {
   const { seasonId } = await context.params
   const access = await getLeagueSeasonChatActor(seasonId)
   if (!access.ok) return fail(access.error, access.status)
-  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown; replyToId?: unknown; announcement?: unknown }>(request)
+  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown; replyToId?: unknown; announcement?: unknown; posterPath?: unknown; mediaWidth?: unknown; mediaHeight?: unknown; mediaDurationMs?: unknown; poll?: unknown }>(request)
   const body = typeof input?.body === "string" ? input.body.trim() : ""
+  const pollInput = input?.poll && typeof input.poll === "object" ? (input.poll as { options?: unknown }) : null
+  const pollOptions = pollInput && Array.isArray(pollInput.options) ? pollInput.options.filter((option): option is string => typeof option === "string") : null
   const hasMedia = input?.mediaPath !== undefined && input.mediaPath !== null
   // A photo or video may go without text; a text message may not.
+  if (pollInput && (!pollOptions || pollOptions.length !== (pollInput.options as unknown[]).length || !body || body.length > 300 || hasMedia)) return fail("invalid_poll", 400)
   if ((!body && !hasMedia) || body.length > 2000) return fail("invalid_message", 400)
   const replyToId = input?.replyToId === undefined || input.replyToId === null ? null : validateUuid(input.replyToId)
   if (input?.replyToId !== undefined && input.replyToId !== null && !replyToId) return fail("invalid_reply", 400)
   const { supabase, user } = access.actor
   const isAnnouncement = input?.announcement === true
+  if (pollOptions) {
+    // Polls are created by the same people who can post announcements; cap them so a slip cannot flood the chat.
+    const allowedToPoll = await canAnnounceInLeagueChat(access.actor, access.season.league_id)
+    if (allowedToPoll === null) return fail("league_chat_access_failed", 500)
+    if (!allowedToPoll) return fail("league_chat_poll_forbidden", 403)
+    const recentPolls = await supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
+      .eq("season_id", seasonId).eq("sender_user_id", user.id).eq("has_poll", true)
+      .gte("created_at", new Date(Date.now() - 3_600_000).toISOString())
+    if (recentPolls.error) return fail("league_chat_write_failed", 500)
+    if ((recentPolls.count ?? 0) >= 10) return fail("league_chat_rate_limited", 429)
+  }
   if (isAnnouncement) {
     const allowed = await canAnnounceInLeagueChat(access.actor, access.season.league_id)
     if (allowed === null) return fail("league_chat_access_failed", 500)
@@ -144,16 +158,31 @@ export async function POST(request: Request, context: Context) {
     if (!allowed) return fail("league_chat_media_forbidden", 403)
     if (!(await leagueChatMediaExists(access.actor, mediaPath as string))) return fail("invalid_media", 400)
   }
+  // Thumbnail and measures are optional and only describe the media: reject anything out of range.
+  const posterPath = input?.posterPath === undefined || input.posterPath === null ? null : input.posterPath
+  if (posterPath !== null) {
+    if (typeof mediaPath !== "string" || !isLeagueChatMediaPathForSeason(posterPath, seasonId)) return fail("invalid_media", 400)
+    if (!(await leagueChatMediaExists(access.actor, posterPath as string))) return fail("invalid_media", 400)
+  }
+  const measure = (value: unknown, max: number, min = 1) => (typeof value === "number" && Number.isInteger(value) && value >= min && value <= max ? value : null)
+  const mediaWidth = measure(input?.mediaWidth, 20000)
+  const mediaHeight = measure(input?.mediaHeight, 20000)
+  const mediaDurationMs = measure(input?.mediaDurationMs, 3_600_000, 0)
   const recent = await supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
     .eq("sender_user_id", user.id).gte("created_at", new Date(Date.now() - 10_000).toISOString())
   if (recent.error) return fail("league_chat_write_failed", 500)
   if ((recent.count ?? 0) >= 8) return fail("league_chat_rate_limited", 429)
   const sender = user.displayName || user.email.split("@")[0]
-  const result = typeof mediaPath === "string"
+  const result = pollOptions
+    ? await supabase.rpc("send_league_season_chat_poll", {
+        p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_question: body, p_options: pollOptions,
+      })
+    : typeof mediaPath === "string"
     ? await supabase.rpc("send_league_season_chat_media_message", {
         p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body,
         p_media_kind: getLeagueChatMediaKindFromPath(mediaPath), p_media_path: mediaPath, p_reply_to_id: replyToId,
         p_is_announcement: isAnnouncement,
+        p_poster_path: posterPath, p_width: mediaWidth, p_height: mediaHeight, p_duration_ms: mediaDurationMs,
       })
     : await supabase.rpc("send_league_season_chat_message", {
         p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body, p_reply_to_id: replyToId,
@@ -161,6 +190,8 @@ export async function POST(request: Request, context: Context) {
       })
   if (result.error) {
     if (result.error.message.includes("season_chat_read_only")) return fail("league_chat_read_only", 409)
+    if (result.error.message.includes("season_chat_poll_forbidden")) return fail("league_chat_poll_forbidden", 403)
+    if (result.error.message.includes("season_chat_invalid_poll")) return fail("invalid_poll", 400)
     if (result.error.message.includes("season_chat_announcement_forbidden")) return fail("league_chat_announcement_forbidden", 403)
     if (result.error.message.includes("season_chat_media_forbidden")) return fail("league_chat_media_forbidden", 403)
     if (result.error.message.includes("season_chat_invalid_reply")) return fail("invalid_reply", 400)
@@ -169,7 +200,9 @@ export async function POST(request: Request, context: Context) {
     return fail("league_chat_write_failed", 500)
   }
   await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
-  if (isAnnouncement) await notifyAnnouncement({ access, seasonId, messageId: (result.data as LeagueChatMessageRow).id, body })
+  const sentRow = result.data as LeagueChatMessageRow
+  if (isAnnouncement) await notifyAnnouncement({ access, seasonId, messageId: sentRow.id, body })
+  else await notifyChatMessage({ access, seasonId, messageId: sentRow.id, preview: sentRow.has_poll ? `Encuesta: ${body}` : body || (sentRow.media_kind === "video" ? "Vídeo" : sentRow.media_kind === "image" ? "Foto" : "") })
   const [message] = (await shapeLeagueChatMessages(access.actor, seasonId, [result.data as LeagueChatMessageRow])) ?? []
   return NextResponse.json({ message: message ?? null }, { status: 201 })
 }
@@ -210,6 +243,43 @@ async function notifyAnnouncement({ access, seasonId, messageId, body }: {
   }
 }
 
+/**
+ * A normal message notifies the other participants exactly like the chat of a match: one "chat" notification per
+ * conversation, it follows each person's "Chat" preference and the league's settings, and it stays silent when the
+ * conversation is open on screen. The message is already saved if this fails.
+ */
+async function notifyChatMessage({ access, seasonId, messageId, preview }: {
+  access: Extract<Awaited<ReturnType<typeof getLeagueSeasonChatActor>>, { ok: true }>
+  seasonId: string
+  messageId: string
+  preview: string
+}) {
+  const { supabase, user } = access.actor
+  try {
+    const [participants, league] = await Promise.all([
+      supabase.from("league_season_chat_participants").select("user_id,player_id").eq("season_id", seasonId),
+      supabase.from("leagues").select("name").eq("id", access.season.league_id).maybeSingle(),
+    ])
+    const rows = participants.data ?? []
+    await recordServerActorActivity({
+      supabase, user, membership: null,
+      leagueId: access.season.league_id,
+      seasonId,
+      type: "league_chat_message",
+      title: `Chat · ${league.data?.name ?? "Liga"}`,
+      description: null,
+      metadata: {
+        messageId,
+        messagePreview: preview.slice(0, 200),
+        targetUserIds: rows.map((row) => row.user_id),
+        targetPlayerIds: rows.flatMap((row) => (row.player_id ? [row.player_id] : [])),
+      },
+    })
+  } catch {
+    // Delivery problems must not lose the message itself.
+  }
+}
+
 export async function PATCH(request: Request, context: Context) {
   const { seasonId } = await context.params
   const access = await getLeagueSeasonChatActor(seasonId)
@@ -236,13 +306,14 @@ export async function PATCH(request: Request, context: Context) {
     if (result.error.message.includes("season_chat_forbidden")) return fail("league_chat_not_found", 404)
     if (result.error.message.includes("season_chat_message_not_found")) return fail("league_chat_message_not_found", 404)
     if (result.error.message.includes("season_chat_change_expired")) return fail("league_chat_change_expired", 409)
+    if (result.error.message.includes("season_chat_poll_not_editable")) return fail("league_chat_poll_not_editable", 409)
     if (result.error.code === "23514") return fail("invalid_message", 400)
     return fail("league_chat_write_failed", 500)
   }
   const changed = result.data as LeagueChatMessageRow
   // A deleted message must not keep its photo or video in storage.
   if (changed.deleted_at && changed.media_path) {
-    await supabase.storage.from(LEAGUE_CHAT_MEDIA_BUCKET).remove([changed.media_path]).catch(() => null)
+    await supabase.storage.from(LEAGUE_CHAT_MEDIA_BUCKET).remove([changed.media_path, ...(changed.media_poster_path ? [changed.media_poster_path] : [])]).catch(() => null)
   }
   await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId, input.messageId)
   const [message] = (await shapeLeagueChatMessages(access.actor, seasonId, [changed])) ?? []

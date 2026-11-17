@@ -3562,9 +3562,6 @@ html.dark .app-match-chat-metadata[data-mine="false"] .type-caption { color: #a1
 /* Edit/delete dialog near the top, so the on-screen keyboard never covers its buttons. */
 .app-dialog.league-chat-edit-dialog { margin: max(4.5rem, calc(var(--app-safe-top, 0px) + 3.5rem)) auto auto; }
 
-/* Non-blocking notice above the composer (amber, readable in light and dark). */
-.chat-notice { background: #fef3c7; color: #78350f; }
-html.dark .chat-notice { background: rgb(120 53 15 / 0.45); color: #fde68a; }
 
 /* "Novedad" card in the league chat: unmistakable in light and dark. */
 .league-chat-announcement { background: #fffbeb; border-color: #f59e0b; color: #451a03; }
@@ -3580,3 +3577,12 @@ html.dark .league-chat-announcement .league-chat-announcement-meta { color: #fde
 .chat-media-ink { color: #fff !important; }
 html .app-match-chat-metadata[data-overlay="true"],
 html .app-match-chat-metadata[data-overlay="true"] .type-caption { color: #fff !important; opacity: 1; }
+
+/* Poll options: colours follow the bubble (currentColor), so they read on any theme and bubble colour. */
+.league-chat-poll-option { border: 1px solid color-mix(in srgb, currentColor 35%, transparent); background: transparent; color: inherit; }
+.league-chat-poll-option .league-chat-poll-bar { background: color-mix(in srgb, currentColor 18%, transparent); transition: width 200ms ease-out; }
+.league-chat-poll-option .league-chat-poll-mark { border: 1.5px solid color-mix(in srgb, currentColor 55%, transparent); }
+.league-chat-poll-option.is-selected { border-color: currentColor; border-width: 1.5px; }
+.league-chat-poll-option.is-selected .league-chat-poll-mark { background: currentColor; }
+.league-chat-poll-option.is-selected .league-chat-poll-mark svg { color: var(--poll-check, #fff); }
+@media (prefers-reduced-motion: reduce) { .league-chat-poll-option .league-chat-poll-bar { transition: none; } }

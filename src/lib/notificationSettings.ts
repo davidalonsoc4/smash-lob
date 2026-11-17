@@ -50,7 +50,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     key: "match_upcoming",
     eventTypes: ["match_upcoming_reminder", "match_ball_custodian_reminder"],
   },
-  { key: "match_chat", eventTypes: ["match_chat_message"] },
+  { key: "match_chat", eventTypes: ["match_chat_message", "league_chat_message"] },
   {
     key: "match_results",
     eventTypes: [

@@ -571,13 +571,57 @@ test("league chat shows announcements prominently and lets the creator send one"
   await expect(card).toHaveCount(1)
   await expect(card).toContainText("Novedad")
   await expect(card).toContainText("La jornada 3 se publica el lunes")
-  await page.getByRole("button", { name: "Enviar como novedad" }).click()
+  await page.getByRole("button", { name: "Añadir", exact: true }).click()
+  await page.getByRole("menuitem", { name: "Novedad" }).click()
   await expect(page.locator("[data-league-chat-announce-bar]")).toContainText("aunque la tengan silenciada")
   await page.getByPlaceholder("Escribe un mensaje…").fill("Mañana no hay pistas")
   await page.getByRole("button", { name: "Enviar mensaje" }).click()
   await expect(card).toHaveCount(2)
   await expect(page.locator("[data-league-chat-announce-bar]")).toHaveCount(0)
   expect(sent).toEqual({ body: "Mañana no hay pistas", announcement: true })
+  const results = await new AxeBuilder({ page }).analyze()
+  expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})
+
+test("league chat creates a poll from the plus menu and shows the vote", async ({ page }) => {
+  await setup(page, "dark", "classic")
+  const poll = { options: [{ id: "o1", label: "Martes", votes: 0, voterIds: [] as string[] }, { id: "o2", label: "Jueves", votes: 0, voterIds: [] as string[] }], total: 0, myVote: null as string | null }
+  const messages: Array<Record<string, unknown>> = []
+  let created: { body?: string; poll?: { options: string[] } } | null = null
+  let voted: { messageId?: string; optionId?: string | null } | null = null
+  await page.route("**/api/league-season-chats/**", route => {
+    const url = route.request().url()
+    if (route.request().method() === "POST" && url.endsWith("/poll")) {
+      voted = route.request().postDataJSON()
+      poll.myVote = voted?.optionId ?? null
+      poll.options[0].votes = 1; poll.options[0].voterIds = ["qa-user"]; poll.total = 1
+      return route.fulfill({ json: { message: messages[0] } })
+    }
+    if (route.request().method() === "POST") {
+      created = route.request().postDataJSON()
+      messages.push({ id: "poll-1", sender_user_id: "qa-user", sender_display_name: "QA", body: created?.body, created_at: "2026-10-16T12:00:00Z", edited_at: null, deleted_at: null, poll })
+      return route.fulfill({ status: 201, json: { message: messages[0] } })
+    }
+    return route.fulfill({ json: { season: { name: "Temporada 2", league_id: leagueId }, messages, participants: [{ userId: "qa-user", displayName: "QA", avatarUrl: null, lastReadAt: null }], me: "qa-user", readOnly: false, canAnnounce: true } })
+  })
+  await page.goto("/league-chat/" + seasonId)
+  await page.getByRole("button", { name: "Añadir", exact: true }).click()
+  await expect(page.getByRole("menuitem", { name: "Foto o vídeo" })).toHaveCount(0)
+  await page.getByRole("menuitem", { name: "Encuesta" }).click()
+  const publish = page.getByRole("button", { name: "Publicar encuesta" })
+  await expect(publish).toBeDisabled()
+  await page.getByLabel("Pregunta").fill("¿Qué día jugamos?")
+  await page.getByLabel("Opción 1").fill("Martes")
+  await page.getByLabel("Opción 2").fill("Jueves")
+  await expect(publish).toBeEnabled()
+  await publish.click()
+  const card = page.locator("[data-league-chat-poll]")
+  await expect(card).toContainText("¿Qué día jugamos?")
+  expect(created).toEqual({ body: "¿Qué día jugamos?", poll: { options: ["Martes", "Jueves"] } })
+  await card.getByRole("radio", { name: /Martes/ }).click()
+  await expect(card.getByRole("radio", { name: /Martes/ })).toHaveAttribute("aria-checked", "true")
+  expect(voted).toEqual({ messageId: "poll-1", optionId: "o1" })
+  await expect(card).toContainText("1 voto")
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })
