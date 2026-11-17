@@ -21,6 +21,7 @@ import { createCoalescedRunner } from "@/lib/coalescedRunner"
 import { LeagueChatMediaBody } from "@/components/league/LeagueChatMedia"
 import { LEAGUE_CHAT_MEDIA_ACCEPT, getLeagueChatMediaRule } from "@/lib/leagueChatMedia"
 import { uploadLeagueChatMedia } from "@/lib/leagueChatMediaClient"
+import { inspectMp4, moveMoovToFront } from "@/lib/mp4"
 
 /** Distance from the bottom (px) under which the reader counts as "following" the conversation. */
 const FOLLOW_THRESHOLD = 96
@@ -76,6 +77,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
   const olderScrollHeight = useRef<number | null>(null)
   const [attachment, setAttachment] = useState<Attachment | null>(null)
   const [mediaError, setMediaError] = useState<string | null>(null)
+  const [mediaNotice, setMediaNotice] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const sending = useRef(false)
   const refreshAfterSend = useRef(false)
@@ -175,7 +177,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     setAttachment(current => { if (current) URL.revokeObjectURL(current.previewUrl); return null })
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
-  function pickFile(event: React.ChangeEvent<HTMLInputElement>) {
+  async function pickFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     event.target.value = ""
     if (!file) return
@@ -185,13 +187,25 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
       return
     }
     setMediaError(null)
+    setMediaNotice(null)
     clearAttachment()
-    setAttachment({ file, kind: rule.kind, previewUrl: URL.createObjectURL(file) })
+    let prepared = file
+    if (rule.kind === "video") {
+      // Lossless: put the index at the start so the video begins playing before it is fully downloaded.
+      const info = await inspectMp4(file).catch(() => null)
+      if (info && !info.faststart && !info.fragmented) {
+        const moved = await moveMoovToFront(file).catch(() => null)
+        if (moved) prepared = new File([moved], file.name, { type: "video/mp4" })
+      }
+      // The browser cannot re-encode audio: warn so the video can be exported again at 48 kHz.
+      if (info?.audioSampleRate && info.audioSampleRate !== 48000) setMediaNotice(tx("El audio del vídeo no está a 48 kHz y en algunos móviles puede no oírse. Conviene exportarlo con audio a 48 kHz."))
+    }
+    setAttachment({ file: prepared, kind: rule.kind, previewUrl: URL.createObjectURL(prepared) })
   }
   async function send(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const text = body.trim()
-    if (!text || sending.current || !chat || chat.readOnly) return
+    if ((!text && !attachment) || sending.current || !chat || chat.readOnly) return
     sending.current = true
     const sender = chat.participants?.find(participant => participant.userId === chat.me)
     const sentAttachment = attachment
@@ -333,6 +347,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
           previousSameSender={sameGroup}
           bodyContent={message.deleted_at ? <em>{tx("Mensaje eliminado")}</em> : message.media_url ? <LeagueChatMediaBody message={message} /> : undefined}
           editedLabel={message.edited_at && !message.deleted_at ? tx("Editado") : undefined}
+          overlayMeta={Boolean(message.media_url && !message.body.trim() && !message.deleted_at && !message.edited_at)}
           quotedReply={message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, body: replyPreviewText(message.reply) } : null}
           onQuotedReplyClick={message.reply ? () => void jumpToMessage(message.reply!.id) : undefined}
         />
@@ -350,19 +365,20 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     </div>
     {unseenCount > 0 ? <div className="relative h-0 shrink-0"><button type="button" onClick={scrollToLatest} className="absolute bottom-2 left-1/2 z-10 inline-flex min-h-9 -translate-x-1/2 items-center justify-center rounded-full text-center bg-neutral-950 px-4 text-xs font-black text-white shadow-lg active:scale-[0.97]">↓ {unseenCount} {tx(unseenCount === 1 ? "mensaje nuevo" : "mensajes nuevos")}</button></div> : null}
     {mediaError ? <p role="alert" className="shrink-0 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700">{mediaError}</p> : null}
+    {mediaNotice && attachment ? <p role="status" data-league-chat-notice className="chat-notice shrink-0 px-3 py-1.5 text-xs font-bold">{mediaNotice}</p> : null}
     {replyTo && !chat?.readOnly ? <div data-league-chat-reply className="flex shrink-0 items-center gap-2 border-t border-neutral-200 bg-white px-3 pt-2">
       <span aria-hidden="true" className="h-9 w-1 shrink-0 rounded-full bg-neutral-400" />
       <span className="min-w-0 flex-1">
         <span className="block truncate text-xs font-black text-neutral-800">{tx("Respondiendo a")} {replyTo.sender_display_name}</span>
-        <span className="block truncate text-xs text-neutral-600">{replyTo.media_kind ? tx(replyTo.media_kind === "video" ? "Vídeo" : "Foto") + " · " : ""}{replyTo.body}</span>
+        <span className="block truncate text-xs text-neutral-600">{replyTo.media_kind ? tx(replyTo.media_kind === "video" ? "Vídeo" : "Foto") + (replyTo.body ? " · " : "") : ""}{replyTo.body}</span>
       </span>
       <button type="button" onClick={() => setReplyTo(null)} aria-label={tx("Cancelar respuesta")} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-4 w-4"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
     </div> : null}
     {attachment && !chat?.readOnly ? <div data-league-chat-attachment className="flex shrink-0 items-center gap-2 border-t border-neutral-200 bg-white px-3 pt-2">
-      <span className="min-w-0 flex-1 truncate text-xs font-bold text-neutral-700">{tx(attachment.kind === "video" ? "Vídeo" : "Foto")}: {attachment.file.name} · {(attachment.file.size / 1048576).toFixed(1)} MB{body.trim() ? "" : " · " + tx("Escribe un texto para publicarlo")}</span>
+      <span className="min-w-0 flex-1 truncate text-xs font-bold text-neutral-700">{tx(attachment.kind === "video" ? "Vídeo" : "Foto")}: {attachment.file.name} · {(attachment.file.size / 1048576).toFixed(1)} MB</span>
       <button type="button" onClick={clearAttachment} aria-label={tx("Quitar archivo")} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-4 w-4"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
     </div> : null}
-    {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} hasTopAttachment={Boolean(attachment) || Boolean(replyTo)} leadingAction={chat.canPublishMedia ? <><input ref={fileInputRef} type="file" accept={LEAGUE_CHAT_MEDIA_ACCEPT} onChange={pickFile} className="sr-only" tabIndex={-1} aria-hidden="true" /><button type="button" onClick={() => fileInputRef.current?.click()} disabled={pending !== null} aria-label={tx("Adjuntar foto o vídeo")} title={tx("Adjuntar foto o vídeo")} className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-95 disabled:opacity-40"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M21 11.5 12.5 20a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L10 17.7a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6" /></svg></button></> : undefined} /> : null}
+    {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} hasTopAttachment={Boolean(attachment) || Boolean(replyTo)} allowEmpty={Boolean(attachment)} leadingAction={chat.canPublishMedia ? <><input ref={fileInputRef} type="file" accept={LEAGUE_CHAT_MEDIA_ACCEPT} onChange={pickFile} className="sr-only" tabIndex={-1} aria-hidden="true" /><button type="button" onClick={() => fileInputRef.current?.click()} disabled={pending !== null} aria-label={tx("Adjuntar foto o vídeo")} title={tx("Adjuntar foto o vídeo")} className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-95 disabled:opacity-40"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M21 11.5 12.5 20a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L10 17.7a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6" /></svg></button></> : undefined} /> : null}
     {action?.mode === "menu" && menuAnchor && actionMessage ? <LeagueChatMessageMenu anchor={menuAnchor} mine={actionIsMine} label={optionsLabel}
       onClose={() => { setAction(null); setMenuAnchor(null) }}
       items={[
@@ -372,7 +388,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
           { key: "delete", icon: "delete" as const, danger: true, label: deleteLabel, onSelect: () => { setMenuAnchor(null); setAction({ id: actionMessage.id, mode: "delete" }) } },
         ] : []),
       ]} /> : null}
-    <FloatingDialog open={Boolean(action) && action?.mode !== "menu"} onClose={() => setAction(null)} busy={changing}
+    <FloatingDialog open={Boolean(action) && action?.mode !== "menu"} onClose={() => setAction(null)} busy={changing} className="league-chat-edit-dialog"
       title={action?.mode === "edit" ? editLabel : deleteLabel}>
       {action && action.mode !== "menu" ? <form className="space-y-3" onSubmit={event => { event.preventDefault(); void changeMessage() }}>
         <h2 className="font-bold">{action.mode === "edit" ? editLabel : deleteLabel}</h2>
@@ -382,7 +398,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
         {actionError ? <p role="alert">{tx("No se ha podido modificar el mensaje.")}</p> : null}
         <div className="flex justify-end gap-3">
           <button type="button" disabled={changing} onClick={() => setAction(null)}>{tx("Cancelar")}</button>
-          <button type="submit" disabled={changing || (action.mode === "edit" && !editBody.trim())}
+          <button type="submit" disabled={changing || (action.mode === "edit" && !editBody.trim() && !actionMessage?.media_url)}
             className="inline-flex items-center justify-center rounded-lg bg-neutral-950 px-3 py-2 text-center font-bold text-white disabled:opacity-50">
             {action.mode === "edit" ? tx("Guardar cambios") : deleteLabel}
           </button>

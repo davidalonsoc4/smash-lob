@@ -817,6 +817,7 @@ const EXACT_OVERRIDES = {
   "No se ha podido subir el archivo. Revisa la conexión y vuelve a intentarlo.": "Ezin izan da fitxategia igo. Egiaztatu konexioa eta saiatu berriro.",
   "Reproducir vídeo": "Erreproduzitu bideoa",
   "Ayer": "Atzo",
+  "El audio del vídeo no está a 48 kHz y en algunos móviles puede no oírse. Conviene exportarlo con audio a 48 kHz.": "Bideoaren audioa ez dago 48 kHz-tan eta mugikor batzuetan agian ez da entzungo. Esportatu berriro 48 kHz-ko audioarekin.",
   "Subiendo": "Igotzen",
   "Responder": "Erantzun",
   "Respondiendo a": "Honi erantzuten:",

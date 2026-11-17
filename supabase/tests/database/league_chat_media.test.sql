@@ -1,5 +1,5 @@
 begin;
-select plan(14);
+select plan(16);
 
 insert into public.app_users (id,email,display_name) values
   ('75000000-0000-4000-8000-000000000001','chat-media-creator@example.invalid','Creator'),
@@ -23,7 +23,9 @@ select is((select media_kind || ':' || body from public.league_season_chat_messa
 select throws_ok($$select public.send_league_season_chat_media_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000002','Player','Hola','video','78000000-0000-4000-8000-000000000001/79000000-0000-4000-8000-000000000002.mp4')$$,'P0001','season_chat_media_forbidden','a normal participant cannot publish media');
 select throws_ok($$select public.send_league_season_chat_media_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','Hola','video','78000000-0000-4000-8000-0000000000ff/79000000-0000-4000-8000-000000000003.mp4')$$,'P0001','season_chat_invalid_media','a path from another season is rejected');
 select throws_ok($$select public.send_league_season_chat_media_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','Hola','audio','78000000-0000-4000-8000-000000000001/79000000-0000-4000-8000-000000000004.mp4')$$,'P0001','season_chat_invalid_media','an unknown media kind is rejected');
-select throws_ok($$select public.send_league_season_chat_media_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','   ','video','78000000-0000-4000-8000-000000000001/79000000-0000-4000-8000-000000000005.mp4')$$,'P0001','season_chat_invalid_body','a media message needs a caption');
+select lives_ok($$select public.send_league_season_chat_media_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','   ','video','78000000-0000-4000-8000-000000000001/79000000-0000-4000-8000-000000000005.mp4')$$,'a media message may go without text');
+select is((select count(*) from public.league_season_chat_messages where media_path like '%79000000-0000-4000-8000-000000000005.mp4' and body = ''),1::bigint,'the empty caption is stored as an empty body');
+select throws_ok($$insert into public.league_season_chat_messages (season_id,sender_user_id,sender_display_name,body) values ('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','   ')$$,'23514',null,'a text-only message still needs text');
 select ok(not has_function_privilege('authenticated','public.send_league_season_chat_media_message(uuid,uuid,text,text,text,text,uuid)','execute'),'authenticated cannot execute the media function');
 select ok(has_function_privilege('service_role','public.send_league_season_chat_media_message(uuid,uuid,text,text,text,text,uuid)','execute'),'service_role can execute the media function');
 select is((select public from storage.buckets where id = 'league-chat-media'),false,'the media bucket is private');

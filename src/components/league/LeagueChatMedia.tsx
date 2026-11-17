@@ -15,6 +15,11 @@ export type LeagueChatMediaMessage = {
   upload_progress?: number | null
 }
 
+/** Keeps extreme shapes (very tall or very wide) from taking over the chat. */
+const clampRatio = (ratio: number) => Math.min(1.8, Math.max(0.5, ratio))
+/** Portrait stays narrow, landscape gets more width: the bubble follows the shape of the file. */
+const widthForRatio = (ratio: number | null) => ratio === null || ratio < 0.9 ? "11rem" : ratio < 1.05 ? "13rem" : "16rem"
+
 function formatDuration(seconds: number) {
   const whole = Math.max(0, Math.round(seconds))
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`
@@ -25,6 +30,7 @@ export function LeagueChatMediaBody({ message }: { message: LeagueChatMediaMessa
   const { tx } = useI18n()
   const [open, setOpen] = useState(false)
   const [duration, setDuration] = useState<number | null>(null)
+  const [ratio, setRatio] = useState<number | null>(null)
   const { media_kind: kind, media_url: url } = message
   if (!kind || !url) return <>{message.body}</>
   const uploading = typeof message.upload_progress === "number"
@@ -39,16 +45,25 @@ export function LeagueChatMediaBody({ message }: { message: LeagueChatMediaMessa
         aria-label={uploading ? `${tx("Subiendo")} ${progress}%` : label}
         title={label}
         data-league-chat-media={kind}
-        className="relative mb-1 block w-44 max-w-full overflow-hidden rounded-xl bg-neutral-900 active:scale-[0.98]"
+        style={{ width: widthForRatio(ratio) }}
+        className="relative mb-1 block max-w-full overflow-hidden rounded-xl bg-neutral-900 active:scale-[0.98]"
       >
         {kind === "video" ? (
           // #t=0.1 makes mobile browsers paint a still frame as the thumbnail.
           <video src={`${url}#t=0.1`} preload="metadata" muted playsInline tabIndex={-1}
-            onLoadedMetadata={(event) => { const value = event.currentTarget.duration; if (Number.isFinite(value)) setDuration(value) }}
-            className="pointer-events-none aspect-[9/16] w-full object-cover" />
+            onLoadedMetadata={(event) => {
+              const { duration: length, videoWidth, videoHeight } = event.currentTarget
+              if (Number.isFinite(length)) setDuration(length)
+              if (videoWidth && videoHeight) setRatio(videoWidth / videoHeight)
+            }}
+            style={{ aspectRatio: clampRatio(ratio ?? 9 / 16) }}
+            className="pointer-events-none w-full object-cover" />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt="" loading="lazy" className="max-h-72 w-full object-cover" />
+          <img src={url} alt="" loading="lazy"
+            onLoad={(event) => { const { naturalWidth, naturalHeight } = event.currentTarget; if (naturalWidth && naturalHeight) setRatio(naturalWidth / naturalHeight) }}
+            style={ratio ? { aspectRatio: clampRatio(ratio) } : undefined}
+            className="w-full object-cover" />
         )}
         {uploading ? (
           <span className="absolute inset-0 flex items-center justify-center bg-black/45" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>

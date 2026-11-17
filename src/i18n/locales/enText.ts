@@ -820,6 +820,7 @@ const EXACT_OVERRIDES = {
   "No se ha podido subir el archivo. Revisa la conexión y vuelve a intentarlo.": "The file could not be uploaded. Check your connection and try again.",
   "Reproducir vídeo": "Play video",
   "Ayer": "Yesterday",
+  "El audio del vídeo no está a 48 kHz y en algunos móviles puede no oírse. Conviene exportarlo con audio a 48 kHz.": "The video audio is not at 48 kHz and may not be heard on some phones. Export it again with 48 kHz audio.",
   "Subiendo": "Uploading",
   "Responder": "Reply",
   "Respondiendo a": "Replying to",

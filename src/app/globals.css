@@ -3558,3 +3558,10 @@ html.dark [data-chat-sender].text-amber-700 { color: #fcd34d; }
 html.dark [data-chat-sender].text-teal-700 { color: #5eead4; }
 html.dark .app-match-chat-metadata[data-mine="false"],
 html.dark .app-match-chat-metadata[data-mine="false"] .type-caption { color: #a1a1aa; }
+
+/* Edit/delete dialog near the top, so the on-screen keyboard never covers its buttons. */
+.app-dialog.league-chat-edit-dialog { margin: max(4.5rem, calc(var(--app-safe-top, 0px) + 3.5rem)) auto auto; }
+
+/* Non-blocking notice above the composer (amber, readable in light and dark). */
+.chat-notice { background: #fef3c7; color: #78350f; }
+html.dark .chat-notice { background: rgb(120 53 15 / 0.45); color: #fde68a; }

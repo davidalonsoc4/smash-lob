@@ -116,6 +116,7 @@ export function MatchChatTextMessage({
   onQuotedReplyClick,
   bodyContent,
   editedLabel,
+  overlayMeta = false,
   pending = false,
   rowClassName = "",
   gestureProps,
@@ -130,6 +131,8 @@ export function MatchChatTextMessage({
   onQuotedReplyClick?: () => void
   bodyContent?: ReactNode
   editedLabel?: string
+  /** Photo/video without text: the time floats over the picture instead of taking a line. */
+  overlayMeta?: boolean
   pending?: boolean
   rowClassName?: string
   gestureProps?: HTMLAttributes<HTMLDivElement>
@@ -217,7 +220,7 @@ export function MatchChatTextMessage({
             } text-sm leading-5`}
           >
             {bodyContent ?? message.body}
-            {editedLabel ? null : (
+            {editedLabel || overlayMeta ? null : (
               // The time sits at the end of the last line: this inline spacer only takes room where it fits.
               <span aria-hidden="true" data-chat-time-spacer="" className={`inline-block align-bottom ${mine ? "w-[4.25rem]" : "w-[2.75rem]"}`}>
                 {" "}
@@ -225,9 +228,10 @@ export function MatchChatTextMessage({
             )}
           </p>
           <span
-            className={`app-match-chat-metadata absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none ${
-              mine ? "text-neutral-300" : "text-neutral-400"
-            }`}
+            className={`app-match-chat-metadata absolute inline-flex whitespace-nowrap leading-none ${
+              overlayMeta ? "bottom-1.5 right-1.5 rounded-full bg-black/55 px-1.5 py-1 text-white" : "bottom-0 right-0"
+            } ${mine ? "text-neutral-300" : "text-neutral-400"}`}
+            data-overlay={overlayMeta ? "true" : undefined}
             data-mine={mine ? "true" : "false"}
           >
             <span className="origin-right scale-90 type-caption">
@@ -263,6 +267,7 @@ export function MatchChatComposer({
   disabled = false,
   sending = false,
   hasTopAttachment = false,
+  allowEmpty = false,
 }: {
   body: string
   composerRef: RefObject<HTMLTextAreaElement | null>
@@ -274,6 +279,8 @@ export function MatchChatComposer({
   disabled?: boolean
   sending?: boolean
   hasTopAttachment?: boolean
+  /** Sending is allowed without text (a photo or video is attached). */
+  allowEmpty?: boolean
 }) {
   const { tx } = useI18n()
   return (
@@ -312,7 +319,7 @@ export function MatchChatComposer({
       />
       <button
         type="submit"
-        disabled={disabled || sending || !body.trim()}
+        disabled={disabled || sending || (!allowEmpty && !body.trim())}
         onPointerDown={(event) => event.preventDefault()}
         aria-label={tx("Enviar mensaje")}
         title={tx("Enviar mensaje")}

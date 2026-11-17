@@ -19,7 +19,8 @@ describe("v1.8.18 chat history and proposal vote details", () => {
     const shared = await readFile("src/components/match/chat/MatchChatShared.tsx", "utf8")
     expect(shared).toContain('className="relative"')
     expect(shared).toContain("data-chat-time-spacer")
-    expect(shared).toContain('absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none')
+    expect(shared).toContain('app-match-chat-metadata absolute inline-flex whitespace-nowrap leading-none')
+    expect(shared).toContain('"bottom-0 right-0"')
     expect(shared).not.toContain('inline-flex whitespace-nowrap align-baseline leading-none')
   })
 
