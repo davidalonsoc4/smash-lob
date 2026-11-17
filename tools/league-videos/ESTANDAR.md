@@ -84,6 +84,6 @@ Cada vídeo se entrega en una carpeta (`out/listos-para-subir/`, no versionada) 
 - MP4 H.264 (avc1) + AAC LC estéreo a 48 kHz, 1080x1920, 30 fps, ~1 Mbps (4-6 MB), menos de 1 min, con audio.
 - `moov` al principio (faststart): `add_music.py` ya lo hace (`-movflags +faststart`) y el audio sale a 48 kHz. Para un vídeo ya mezclado:
   `ffmpeg -i entrada.mp4 -c:v copy -c:a aac -b:a 160k -ar 48000 -movflags +faststart salida.mp4` (el vídeo no se recodifica).
-- Nombres en minúsculas, sin tildes ni espacios y con el orden de publicación delante (01-bienvenida, 02-presentacion-app, 03-inscripcion, 06-perfil-disponibilidad, 08-subir-resultado, 09-cuenta-atras-desbloqueo, 10-clasificacion-mvp).
+- Nombres en minúsculas, sin tildes ni espacios y con el orden de publicación delante (01-bienvenida, 02-presentacion-app, 03-inscripcion, 04-chat-liga, 06-perfil-disponibilidad, 08-subir-resultado, 09-cuenta-atras-desbloqueo, 10-clasificacion-mvp).
 - Miniatura JPG 1080x1920 (<300 KB, ~80 KB) con un fotograma del gancho ya formado (no el primero): `npx remotion still <Comp> x.jpg --frame=<fin del gancho - 14> --image-format=jpeg --jpeg-quality=88`.
 - Aviso: los vídeos salen en `yuvj420p` (rango completo) porque Remotion codifica desde fotogramas JPEG (`Config.setVideoImageFormat("jpeg")`). Es válido y se reproduce bien; si se quisiera `yuv420p` hay que renderizar de nuevo con `--image-format=png` (más pesado) o `--pixel-format=yuv420p`.
