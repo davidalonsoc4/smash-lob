@@ -30,10 +30,10 @@ def main():
         f"[m][vs]sidechaincompress=threshold=0.015:ratio={a.duck}:attack=20:release=450:makeup=1[md];"
         f"[0:a]aformat=sample_rates=44100:channel_layouts=stereo[b];"
         f"[b][md]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[mix];"
-        f"[mix]loudnorm=I=-16:TP=-1.5:LRA=11[a]"
+        f"[mix]loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000[a]"
     )
     cmd = ["ffmpeg", "-y", "-i", a.base, "-i", a.voice, "-i", a.music, "-filter_complex", fc]
-    if is_video: cmd += ["-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest"]
+    if is_video: cmd += ["-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-movflags", "+faststart", "-shortest"]
     else: cmd += ["-map", "[a]", "-b:a", "160k", "-t", f"{d:.2f}"]
     cmd.append(a.out)
     r = subprocess.run(cmd, capture_output=True, text=True)
