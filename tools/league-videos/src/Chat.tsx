@@ -55,12 +55,20 @@ const ChatHeader: React.FC<{ title: string; sub?: string; logo?: string }> = ({ 
   );
 };
 
+const Reveal: React.FC<{ at: number; maxH: number; children: React.ReactNode }> = ({ at, maxH, children }) => {
+  const f = useCurrentFrame(); const { fps } = useVideoConfig();
+  const p = pop(f, fps, at, 12);
+  const g = interpolate(f, [at, at + 9], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  return <div style={{ maxHeight: g * maxH, overflow: "hidden", flexShrink: 0, opacity: Math.min(1, p * 2), transform: `translateY(${(1 - p) * 24}px)` }}>{children}</div>;
+};
+
 const NAME_COLORS = ["#a78bfa", "#fbbf24", "#60a5fa", "#34d399", "#f472b6"];
 const Bubble: React.FC<{ name?: string; color?: string; text: string; time: string; own?: boolean; at: number }> = ({ name, color, text, time, own, at }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const p = pop(f, fps, at, 11);
+  void f; void fps;
   return (
-    <div style={{ display: "flex", justifyContent: own ? "flex-end" : "flex-start", gap: 8, alignItems: "flex-end", opacity: Math.min(1, p * 2), transform: `translateY(${(1 - p) * 30}px) scale(${0.96 + 0.04 * p})` }}>
+    <Reveal at={at} maxH={140}>
+    <div style={{ display: "flex", justifyContent: own ? "flex-end" : "flex-start", gap: 8, alignItems: "flex-end", paddingBottom: 1 }}>
       {!own && <div style={{ width: 30, height: 30, borderRadius: "50%", background: t.mutedSurface, border: `1px solid ${t.borderStrong}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Glyph name="person" color={t.textMuted} size={17} /></div>}
       <div style={{ maxWidth: 290, boxSizing: "border-box", borderRadius: 16, padding: "8px 12px 6px", background: own ? t.accent : t.raised, border: own ? "none" : `1px solid ${t.border}`, color: own ? t.accentContrast : t.text }}>
         {!own && name && <div style={{ fontSize: 12.5, fontWeight: 900, color: color ?? NAME_COLORS[0] }}>{name}</div>}
@@ -68,6 +76,7 @@ const Bubble: React.FC<{ name?: string; color?: string; text: string; time: stri
         <div style={{ fontSize: 10.5, fontWeight: 700, textAlign: "right", marginTop: 2, opacity: 0.75 }}>{time}{own ? "  ✓" : ""}</div>
       </div>
     </div>
+    </Reveal>
   );
 };
 
@@ -77,10 +86,9 @@ const DateChip: React.FC<{ label: string }> = ({ label }) => {
 };
 
 const Novedad: React.FC<{ text: string; time: string; at: number; video?: { thumb: string; dur: string } }> = ({ text, time, at, video }) => {
-  const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const p = pop(f, fps, at, 12);
   return (
-    <div style={{ boxSizing: "border-box", borderRadius: 16, border: "2px solid #f59e0b", background: "#3a1f10", padding: "10px 12px 12px", opacity: Math.min(1, p * 2), transform: `translateY(${(1 - p) * 40}px) scale(${0.96 + 0.04 * p})` }}>
+    <Reveal at={at} maxH={video ? 380 : 120}>
+    <div style={{ boxSizing: "border-box", borderRadius: 16, border: "2px solid #f59e0b", background: "#3a1f10", padding: "10px 12px 12px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#fbbf24", fontSize: 12.5, fontWeight: 900, letterSpacing: 2 }}><Glyph name="speaker" color="#fbbf24" size={18} />NOVEDAD</div>
         <div style={{ fontSize: 11.5, fontWeight: 700, color: "#d6c3a5" }}>{time}</div>
@@ -95,6 +103,7 @@ const Novedad: React.FC<{ text: string; time: string; at: number; video?: { thum
       )}
       <div style={{ fontSize: 17, fontWeight: 600, color: "#fef3c7" }}>{text}</div>
     </div>
+    </Reveal>
   );
 };
 
@@ -140,18 +149,26 @@ const Hook: React.FC<Props> = ({ league }) => {
 
 /* 2 · Va a ser el chat principal: comunicaciones, avisos, novedades y vídeos */
 const Main = ({ league, ws }: Props) => {
-  const prinF = wf(ws, "principal"), avF = wf(ws, "avisos"), vidF = wf(ws, "vídeos");
+  const avF = wf(ws, "avisos"), vidF = wf(ws, "vídeos");
+  const msgs: { n: string; c: string; t: string; time: string; at: number }[] = [
+    { n: "Alain", c: NAME_COLORS[0], t: "Buenas a todos, ya estoy en el chat", time: "10:47", at: 12 },
+    { n: "Álvaro", c: NAME_COLORS[1], t: "Yo también, a ver si esto va fino en el móvil", time: "10:47", at: 38 },
+    { n: "Andoni", c: NAME_COLORS[2], t: "Hola, ¿alguien sabe cuándo sale la jornada 2?", time: "10:48", at: 64 },
+    { n: "Nicolás", c: NAME_COLORS[3], t: "Yo tengo libres martes y jueves por la tarde", time: "10:48", at: 92 },
+    { n: "Unai", c: NAME_COLORS[4], t: "¡Qué ganas de jugar!", time: "10:49", at: 120 },
+    { n: "Alain", c: NAME_COLORS[0], t: "Ahora a estar pendientes de los avisos", time: "10:49", at: 146 },
+  ];
   return (
     <Frame tag="CHAT DE LA LIGA" example timedWords={ws}>
-      <Shell z={1.9}>
-        <Phone header={<ChatHeader title={league.name} sub={`${league.season} · 8 participantes`} logo={league.logo} />} bar={<InputBar />} h={400}>
+      <Shell z={1.78}>
+        <Phone header={<ChatHeader title={league.name} sub={`${league.season} · 8 participantes`} logo={league.logo} />} bar={<InputBar />} h={490}>
           <DateChip label="HOY" />
-          <Bubble name="Alain" color={NAME_COLORS[0]} text="Buenas a todos, ya estoy en el chat" time="10:47" at={prinF - 6} />
+          {msgs.map((m, i) => <Bubble key={i} name={m.n} color={m.c} text={m.t} time={m.time} at={m.at} />)}
           <Novedad text="Aviso importante de la liga" time="13:26" at={avF - 4} />
           <Novedad text="Nuevo vídeo de la serie" time="13:54" at={vidF - 4} video={{ thumb: "thumb-presentacion.jpg", dur: "0:46" }} />
         </Phone>
       </Shell>
-      {sfx("pop", prinF - 6, 0.35)}{sfx("ding", avF - 4, 0.4)}{sfx("ding", vidF - 4, 0.4)}
+      {msgs.map((m, i) => sfx("pop", m.at, 0.25))}{sfx("ding", avF - 4, 0.4)}{sfx("ding", vidF - 4, 0.4)}
     </Frame>
   );
 };
