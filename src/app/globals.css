@@ -3521,3 +3521,40 @@ html[data-theme][data-visual-style] .app-match-result-total {
 @media (prefers-reduced-motion: reduce) {
   .league-chat-jump-highlight { animation: none; background-color: rgb(251 191 36 / 0.28); }
 }
+
+/* Quoted reply: a self-contained card, readable on any bubble colour or theme, tinted with the quoted author. */
+.chat-quote {
+  --quote-accent: #525252;
+  background: rgb(255 255 255 / 0.92);
+  color: #262626;
+  border-left: 3px solid var(--quote-accent);
+}
+.chat-quote .chat-quote-name { color: var(--quote-accent); }
+.chat-quote .chat-quote-text { color: #525252; }
+.chat-quote[data-tone="0"] { --quote-accent: #0369a1; }
+.chat-quote[data-tone="1"] { --quote-accent: #6d28d9; }
+.chat-quote[data-tone="2"] { --quote-accent: #b45309; }
+.chat-quote[data-tone="3"] { --quote-accent: #0f766e; }
+html.dark .chat-quote { --quote-accent: #a3a3a3; background: rgb(12 13 16 / 0.8); color: #f5f5f5; }
+html.dark .chat-quote .chat-quote-text { color: #d4d4d8; }
+html.dark .chat-quote[data-tone="0"] { --quote-accent: #7dd3fc; }
+html.dark .chat-quote[data-tone="1"] { --quote-accent: #c4b5fd; }
+html.dark .chat-quote[data-tone="2"] { --quote-accent: #fcd34d; }
+html.dark .chat-quote[data-tone="3"] { --quote-accent: #5eead4; }
+
+html.dark .league-chat-menu { background: #1c1d21; border-color: rgb(255 255 255 / 0.12); }
+html.dark .league-chat-menu button { color: #fafafa; }
+html.dark .league-chat-menu button.text-red-600 { color: #f87171; }
+html.dark .league-chat-menu button:active { background: rgb(255 255 255 / 0.08); }
+
+/* Day separator in chats: own colours so contrast holds in every theme. */
+.chat-day-pill { background: rgb(0 0 0 / 0.07); color: #404040; }
+html.dark .chat-day-pill { background: rgb(255 255 255 / 0.14); color: #f0f0f2; }
+
+/* Sender names and times of other people's messages on dark bubbles: the light-mode tones are too dim there. */
+html.dark [data-chat-sender].text-sky-700 { color: #7dd3fc; }
+html.dark [data-chat-sender].text-violet-700 { color: #c4b5fd; }
+html.dark [data-chat-sender].text-amber-700 { color: #fcd34d; }
+html.dark [data-chat-sender].text-teal-700 { color: #5eead4; }
+html.dark .app-match-chat-metadata[data-mine="false"],
+html.dark .app-match-chat-metadata[data-mine="false"] .type-caption { color: #a1a1aa; }

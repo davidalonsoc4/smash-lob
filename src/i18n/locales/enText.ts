@@ -819,6 +819,8 @@ const EXACT_OVERRIDES = {
   "Solo el creador de la liga puede publicar fotos y vídeos.": "Only the league creator can post photos and videos.",
   "No se ha podido subir el archivo. Revisa la conexión y vuelve a intentarlo.": "The file could not be uploaded. Check your connection and try again.",
   "Reproducir vídeo": "Play video",
+  "Ayer": "Yesterday",
+  "Subiendo": "Uploading",
   "Responder": "Reply",
   "Respondiendo a": "Replying to",
   "Ampliar foto": "Enlarge photo",

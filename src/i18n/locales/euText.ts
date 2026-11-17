@@ -816,6 +816,8 @@ const EXACT_OVERRIDES = {
   "Solo el creador de la liga puede publicar fotos y vídeos.": "Ligaren sortzaileak bakarrik argitaratu ditzake argazkiak eta bideoak.",
   "No se ha podido subir el archivo. Revisa la conexión y vuelve a intentarlo.": "Ezin izan da fitxategia igo. Egiaztatu konexioa eta saiatu berriro.",
   "Reproducir vídeo": "Erreproduzitu bideoa",
+  "Ayer": "Atzo",
+  "Subiendo": "Igotzen",
   "Responder": "Erantzun",
   "Respondiendo a": "Honi erantzuten:",
   "Ampliar foto": "Handitu argazkia",

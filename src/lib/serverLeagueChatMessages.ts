@@ -35,11 +35,11 @@ export async function shapeLeagueChatMessages(actor: ChatActor, seasonId: string
   if (!urls) return null
 
   const replyIds = [...new Set(rows.flatMap((row) => (row.reply_to_id ? [row.reply_to_id] : [])))]
-  const originals = new Map<string, { sender_display_name: string; body: string; deleted_at: string | null; media_kind: string | null }>()
+  const originals = new Map<string, { sender_user_id: string; sender_display_name: string; body: string; deleted_at: string | null; media_kind: string | null }>()
   if (replyIds.length) {
     const found = await actor.supabase
       .from("league_season_chat_messages")
-      .select("id,sender_display_name,body,deleted_at,media_kind")
+      .select("id,sender_user_id,sender_display_name,body,deleted_at,media_kind")
       .eq("season_id", seasonId)
       .in("id", replyIds)
     if (found.error) return null
@@ -55,6 +55,7 @@ export async function shapeLeagueChatMessages(actor: ChatActor, seasonId: string
       reply: original
         ? {
             id: row.reply_to_id as string,
+            sender_user_id: original.sender_user_id,
             sender_display_name: original.sender_display_name,
             body: original.deleted_at ? "" : original.body.slice(0, REPLY_SNIPPET_LENGTH),
             deleted: Boolean(original.deleted_at),

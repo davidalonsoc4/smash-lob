@@ -26,7 +26,7 @@ describe("v1.8.19 proposal option detail and message timestamp alignment", () =>
       readFile("src/app/match/[id]/chat/page.tsx", "utf8"),
       readFile("src/components/match/chat/MatchChatShared.tsx", "utf8"),
     ])
-    expect(shared).toContain('mine ? "pr-16" : "pr-11"')
+    expect(shared).toContain("data-chat-time-spacer")
     expect(shared).toContain('absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none')
     expect(shared).toContain("<MatchChatMessageReceipt")
     expect(page).toContain("<MatchChatMessageReceipt")

@@ -49,7 +49,7 @@ export async function POST(request: Request, context: Context) {
   const signed = await access.actor.supabase.storage.from(LEAGUE_CHAT_MEDIA_BUCKET).createSignedUploadUrl(path)
   if (signed.error || !signed.data?.token) return fail("league_chat_media_failed", 500)
   return NextResponse.json(
-    { path, token: signed.data.token, kind: rule.kind },
+    { path, token: signed.data.token, uploadUrl: signed.data.signedUrl, kind: rule.kind },
     { status: 201, headers: { "Cache-Control": "private, no-store" } },
   )
 }

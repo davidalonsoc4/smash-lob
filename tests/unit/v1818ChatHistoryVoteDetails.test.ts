@@ -18,7 +18,7 @@ describe("v1.8.18 chat history and proposal vote details", () => {
   it("keeps timestamp and receipts reserved at the right edge of each shared text message", async () => {
     const shared = await readFile("src/components/match/chat/MatchChatShared.tsx", "utf8")
     expect(shared).toContain('className="relative"')
-    expect(shared).toContain('mine ? "pr-16" : "pr-11"')
+    expect(shared).toContain("data-chat-time-spacer")
     expect(shared).toContain('absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none')
     expect(shared).not.toContain('inline-flex whitespace-nowrap align-baseline leading-none')
   })

@@ -37,6 +37,8 @@ export type MatchChatTextMessageData = {
 
 export type MatchChatQuotedReply = {
   senderDisplayName: string
+  /** Author of the quoted message, so the quote can use that person's chat colour. */
+  authorUserId?: string | null
   body: string
   href?: string | null
 }
@@ -47,6 +49,12 @@ const CHAT_PERSON_COLORS = [
   "text-amber-700",
   "text-teal-700",
 ] as const
+
+/** Same palette index as the sender colour, exposed so quotes can match the quoted author. */
+export function getMatchChatParticipantTone(userId: string, participants: MatchChatParticipant[]) {
+  const index = participants.findIndex((item) => item.userId === userId)
+  return (index < 0 ? 0 : index) % CHAT_PERSON_COLORS.length
+}
 
 export function getMatchChatParticipantColorClass(
   userId: string,
@@ -165,12 +173,12 @@ export function MatchChatTextMessage({
             <Link
               href={senderHref}
               onClick={(event) => event.stopPropagation()}
-              className={`block w-fit max-w-full truncate whitespace-nowrap type-caption font-black underline-offset-2 active:underline ${senderColor}`}
+              data-chat-sender="" className={`block w-fit max-w-full truncate whitespace-nowrap type-caption font-black underline-offset-2 active:underline ${senderColor}`}
             >
               {message.sender_display_name}
             </Link>
           ) : (
-            <p className={`max-w-full truncate whitespace-nowrap type-caption font-black ${senderColor}`}>
+            <p data-chat-sender="" className={`max-w-full truncate whitespace-nowrap type-caption font-black ${senderColor}`}>
               {message.sender_display_name}
             </p>
           )
@@ -179,36 +187,24 @@ export function MatchChatTextMessage({
         {quotedReply ? (
           <div
             {...(onQuotedReplyClick ? { role: "button", tabIndex: 0, onClick: onQuotedReplyClick, onKeyDown: (event: React.KeyboardEvent) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onQuotedReplyClick() } } } : {})}
-            className={`mb-1 rounded-lg border-l-2 px-2 py-1 ${onQuotedReplyClick ? "cursor-pointer" : ""} ${
-              mine
-                ? "border-white/50 bg-white/10"
-                : "border-neutral-300 bg-neutral-100"
-            }`}
+            data-chat-quote=""
+            data-tone={quotedReply.authorUserId ? getMatchChatParticipantTone(quotedReply.authorUserId, participants) : undefined}
+            className={`chat-quote mb-1 rounded-lg px-2 py-1 ${onQuotedReplyClick ? "cursor-pointer" : ""}`}
           >
             {quotedReply.href ? (
               <Link
                 href={quotedReply.href}
                 onClick={(event) => event.stopPropagation()}
-                className={`block truncate type-caption font-black underline-offset-2 active:underline ${
-                  mine ? "text-neutral-100" : "text-neutral-600"
-                }`}
+                className="chat-quote-name block truncate type-caption font-black underline-offset-2 active:underline"
               >
                 {quotedReply.senderDisplayName}
               </Link>
             ) : (
-              <p
-                className={`truncate type-caption font-black ${
-                  mine ? "text-neutral-100" : "text-neutral-600"
-                }`}
-              >
+              <p className="chat-quote-name truncate type-caption font-black">
                 {quotedReply.senderDisplayName}
               </p>
             )}
-            <p
-              className={`truncate type-caption font-semibold ${
-                mine ? "text-neutral-300" : "text-neutral-500"
-              }`}
-            >
+            <p className="chat-quote-text truncate type-caption font-semibold">
               {quotedReply.body}
             </p>
           </div>
@@ -217,10 +213,16 @@ export function MatchChatTextMessage({
         <div className="relative">
           <p
             className={`whitespace-pre-wrap break-words ${
-              editedLabel ? "pb-4" : mine ? "pr-16" : "pr-11"
+              editedLabel ? "pb-4" : ""
             } text-sm leading-5`}
           >
             {bodyContent ?? message.body}
+            {editedLabel ? null : (
+              // The time sits at the end of the last line: this inline spacer only takes room where it fits.
+              <span aria-hidden="true" data-chat-time-spacer="" className={`inline-block align-bottom ${mine ? "w-[4.25rem]" : "w-[2.75rem]"}`}>
+                {" "}
+              </span>
+            )}
           </p>
           <span
             className={`app-match-chat-metadata absolute bottom-0 right-0 inline-flex whitespace-nowrap leading-none ${
