@@ -9,6 +9,7 @@ const items = [
   { href: "/application-admin/users", title: "Usuarios", description: "Gestiona cuentas globales, permisos, suspensiones, dispositivos y propiedad de ligas." },
   { href: "/application-admin/locations", title: "Ubicaciones", description: "Consulta usos, corrige partidos futuros y elimina lugares del catálogo global sin perder el histórico." },
   { href: "/application-admin/suggestions", title: "Sugerencias recibidas", description: "Revisa, clasifica y anota las propuestas enviadas por los usuarios." },
+  { href: "/admin/tutorials", title: "Tutoriales", description: "Sube vídeos de ayuda y elige quién puede verlos: toda la app o ligas concretas." },
 ]
 export default async function ApplicationManagementPage() {
   const authResult = await requireAuthenticatedAppUser()
