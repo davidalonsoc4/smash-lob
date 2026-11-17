@@ -459,7 +459,7 @@ export default function SettingsPage() {
 function CompetitionSettingsPage({ allowCreation }: { allowCreation: boolean }) {
   const { tx, t } = useI18n()
   const { currentUser } = useCurrentUser()
-  const { canCreateLeagues } = useLeagueAccess()
+  const { canCreateLeagues, isSuperuser } = useLeagueAccess()
 
   return (
     <div className="compact-page space-y-4">
@@ -488,6 +488,18 @@ function CompetitionSettingsPage({ allowCreation }: { allowCreation: boolean }) 
         <SettingsLinkRow href="/changelog" id="changelog" title={tx("Registro de cambios")} description={tx("Consulta las novedades publicadas en cada versión.")} icon="changelog" />
         <SettingsLinkRow href="/about" id="about-app" title={tx("Sobre Smash & Lob")} description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")} icon="about" />
       </SettingsSection>
+      {isSuperuser ? (
+        <SettingsSection title={tx("Administración")} description={tx("Herramientas globales de la aplicación.")}>
+          <SettingsLinkRow
+            href="/application-admin"
+            id="application-admin"
+            title={tx("Gestión de la app")}
+            description={tx("Administra usuarios, ubicaciones y otras herramientas globales de Smash & Lob.")}
+            tone="danger"
+            icon="applicationAdmin"
+          />
+        </SettingsSection>
+      ) : null}
       <AccountDataSection />
     </div>
   )
@@ -788,7 +800,7 @@ function PlayerSettingsPage({ tournamentId }: { tournamentId?: string }) {
               icon="admin"
             />
           ) : null}
-          {isSuperuser && canAccessAdmin ? (
+          {isSuperuser ? (
             <SettingsLinkRow
               href="/application-admin"
               id="application-admin"

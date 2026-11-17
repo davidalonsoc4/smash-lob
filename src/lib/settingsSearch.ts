@@ -11,6 +11,8 @@ export type SettingsSearchCapabilities = {
   isSuperuser: boolean
   avatarLabEnabled: boolean
   availabilityRecommendationsEnabled?: boolean
+  /** Settings opened from Mis Competiciones: no league is selected, so only personal and global tools apply. */
+  competitionContext?: boolean
 }
 
 export type SettingsSearchEntry = {
@@ -702,7 +704,36 @@ export function buildSettingsSearchEntries(
 ): SettingsSearchEntry[] {
   const source = entryCopyByLocale[locale]
   const avatarLabIds = capabilities.avatarLabEnabled ? ["avatarLab"] : []
-  const ids = capabilities.isSpectator
+  const superuserIds = capabilities.isSuperuser
+    ? ["applicationAdmin", "competitivePlayerImages", "applicationSuggestions", "tutorialAdmin"]
+    : []
+  const ids = capabilities.competitionContext
+    ? [
+        "language",
+        "appearance",
+        "sounds",
+        "notifications",
+        "notificationDevice",
+        "notificationMatches",
+        "notificationCompetition",
+        "notificationLeague",
+        "notificationPayments",
+        "payments",
+        ...avatarLabIds,
+        "help",
+        "tutorialVideos",
+        "aboutApp",
+        "privacy",
+        "terms",
+        "suggestions",
+        "changelog",
+        "leagues",
+        "account",
+        "joinLeague",
+        ...(capabilities.canCreateLeague ? ["createLeague"] : []),
+        ...superuserIds,
+      ]
+    : capabilities.isSpectator
     ? [
         "language",
         "appearance",
@@ -790,9 +821,7 @@ export function buildSettingsSearchEntries(
               ...(capabilities.qaEnabled ? ["qa"] : []),
             ]
           : []),
-        ...(capabilities.isSuperuser
-          ? ["applicationAdmin", "competitivePlayerImages", "applicationSuggestions", "tutorialAdmin"]
-          : []),
+        ...superuserIds,
       ]
 
   return Array.from(new Set(ids)).filter(id => areTournamentsEnabled() || !["sounds", "organizeTournament"].includes(id)).map((id) => {

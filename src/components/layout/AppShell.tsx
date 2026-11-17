@@ -262,23 +262,28 @@ export function AppShell({ children }: AppShellProps) {
       pathname.startsWith("/admin/") ||
       pathname === "/application-admin" ||
       pathname.startsWith("/application-admin/")
-    if (isAdminOnlyRoute && !canAccessAdmin) {
+    // Global app tools belong to the superuser and do not depend on the selected league.
+    const isGlobalAdminRoute =
+      pathname === "/application-admin" ||
+      pathname.startsWith("/application-admin/") ||
+      pathname === "/admin/tutorials"
+    if (isAdminOnlyRoute && !canAccessAdmin && !(isSuperuser && isGlobalAdminRoute)) {
       router.replace("/settings")
       return
     }
     if (scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute) {
       router.replace("/league/home")
     }
-  }, [canAccessAdmin, isScheduledSeasonUtilityRoute, pathname, router, scheduledSeasonHomeOnly])
+  }, [canAccessAdmin, isScheduledSeasonUtilityRoute, isSuperuser, pathname, router, scheduledSeasonHomeOnly])
 
   const settingsOpenedFromCompetition =
     pathname === "/settings" &&
     ["/leagues", "/leagues/all", "/tournaments"].includes(searchParams.get("returnTo") ?? "")
   const shouldShowSettingsSearch =
     settingsSearchHubRoutes.has(pathname) &&
-    !settingsOpenedFromCompetition &&
     !isPublicAccessRoute &&
     !isPersonalMatchesRoute
+  const competitionReturnTo = searchParams.get("returnTo") ?? ""
   const shouldShowLeagueSearch =
     (pathname === "/leagues" || pathname === "/leagues/all") && !isPublicAccessRoute
   const settingsSearchEntries = shouldShowSettingsSearch
@@ -289,11 +294,17 @@ export function AppShell({ children }: AppShellProps) {
         canCreateLeague,
         canSelfUnlink,
         qaEnabled: qaModeEnabled,
-        isSuperuser: isSuperuser && canAccessAdmin,
-        avatarLabEnabled: isAvatarLabEnabled() && canAccessAdmin,
+        isSuperuser,
+        avatarLabEnabled: isAvatarLabEnabled() && (canAccessAdmin || settingsOpenedFromCompetition),
         availabilityRecommendationsEnabled:
           activeRoundSettings?.availabilityRecommendationsEnabled === true,
-      })
+        competitionContext: settingsOpenedFromCompetition,
+      }).map((entry) =>
+        // Keep the competition context when jumping to an anchor inside Settings itself.
+        settingsOpenedFromCompetition && entry.href.startsWith("/settings#")
+          ? { ...entry, href: `/settings?returnTo=${encodeURIComponent(competitionReturnTo)}${entry.href.slice("/settings".length)}` }
+          : entry,
+      )
     : []
   const shouldShowActionBar = !isPublicAccessRoute
   const shouldShowSettingsButton = shouldShowActionBar

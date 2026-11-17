@@ -828,6 +828,7 @@ const EXACT_OVERRIDES = {
   "Quitar opción": "Remove option",
   "Añadir opción": "Add option",
   "Las opciones no pueden repetirse.": "Options cannot repeat.",
+  "Herramientas globales de la aplicación.": "Global app tools.",
   "Tutoriales": "Tutorials",
   "Sube vídeos de ayuda y elige quién puede verlos: toda la app o ligas concretas.": "Upload help videos and choose who can watch them: the whole app or specific leagues.",
   "¿Eliminar este tutorial y su vídeo? No se puede deshacer.": "Delete this tutorial and its video? This cannot be undone.",
