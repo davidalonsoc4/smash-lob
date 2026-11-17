@@ -73,13 +73,18 @@ def main():
     # audio
     tmp = tempfile.mkdtemp(); parts = []; prev = 0.0
     def piece(name, a_, b_, fade_in=False, fade_out=False):
-        # fundidos cortos en los empalmes (20 ms entrada / 40 ms salida) para evitar chasquidos al cortar la voz
+        # 1) corte limpio; 2) fundidos cortos en los empalmes (20 ms entrada / 40 ms salida) para evitar chasquidos.
+        # Los dos pasos son necesarios: aplicar afade en el mismo comando que -ss/-to deja la pieza muda.
         f = os.path.join(tmp, name + ".wav")
-        af = []
-        if fade_in: af.append("afade=t=in:st=0:d=0.02")
-        if fade_out: af.append(f"afade=t=out:st={max(0.0, (b_ - a_) - 0.04):.3f}:d=0.04")
-        cmd = ["ffmpeg", "-y", "-i", a.audio, "-ss", f"{a_:.3f}", "-to", f"{b_:.3f}"] + (["-af", ",".join(af)] if af else []) + ["-ar", "44100", "-ac", "1", "-c:a", "pcm_s16le", f]
-        run(*cmd); parts.append(f)
+        run("ffmpeg", "-y", "-i", a.audio, "-ss", f"{a_:.3f}", "-to", f"{b_:.3f}", "-ar", "44100", "-ac", "1", "-c:a", "pcm_s16le", f)
+        if fade_in or fade_out:
+            af = []
+            if fade_in: af.append("afade=t=in:st=0:d=0.02")
+            if fade_out: af.append(f"afade=t=out:st={max(0.0, (b_ - a_) - 0.04):.3f}:d=0.04")
+            g_ = f + ".f.wav"
+            run("ffmpeg", "-y", "-i", f, "-af", ",".join(af), "-c:a", "pcm_s16le", g_)
+            os.replace(g_, f)
+        parts.append(f)
     def silence(name, d_):
         f = os.path.join(tmp, name + ".wav")
         run("ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", f"{d_:.3f}", "-c:a", "pcm_s16le", f); parts.append(f)
