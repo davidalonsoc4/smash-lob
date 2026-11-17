@@ -828,6 +828,7 @@ const EXACT_OVERRIDES = {
   "Quitar opción": "Remove option",
   "Añadir opción": "Add option",
   "Las opciones no pueden repetirse.": "Options cannot repeat.",
+  "Marcar como novedad. Se avisará a todos los participantes con una notificación.": "Mark as news. Everyone in the chat will get a notification.",
   "Herramientas globales de la aplicación.": "Global app tools.",
   "Tutoriales": "Tutorials",
   "Sube vídeos de ayuda y elige quién puede verlos: toda la app o ligas concretas.": "Upload help videos and choose who can watch them: the whole app or specific leagues.",

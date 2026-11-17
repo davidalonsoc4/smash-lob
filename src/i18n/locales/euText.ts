@@ -825,6 +825,7 @@ const EXACT_OVERRIDES = {
   "Quitar opción": "Kendu aukera",
   "Añadir opción": "Gehitu aukera",
   "Las opciones no pueden repetirse.": "Aukerak ezin dira errepikatu.",
+  "Marcar como novedad. Se avisará a todos los participantes con una notificación.": "Markatu berri gisa. Txateko guztiek jakinarazpena jasoko dute.",
   "Herramientas globales de la aplicación.": "Aplikazioaren tresna globalak.",
   "Tutoriales": "Tutorialak",
   "Sube vídeos de ayuda y elige quién puede verlos: toda la app o ligas concretas.": "Igo laguntza-bideoak eta aukeratu nork ikus ditzakeen: aplikazio osoak edo liga jakinek.",

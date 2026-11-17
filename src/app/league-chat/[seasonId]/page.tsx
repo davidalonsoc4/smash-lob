@@ -323,7 +323,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     window.setTimeout(() => target?.classList.remove("league-chat-jump-highlight"), 1400)
   }
   /** Posts an existing tutorial: the server copies its files into this chat, then the normal message is sent. */
-  async function shareTutorial(tutorialId: string) {
+  async function shareTutorial(tutorialId: string, announcement = false) {
     if (!chat || chat.readOnly) return false
     const prepared = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}/tutorial`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tutorialId }),
@@ -332,7 +332,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     if (!media?.mediaPath) return false
     const response = await fetch(endpoint, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body: media.title ?? "", mediaPath: media.mediaPath, ...(media.posterPath ? { posterPath: media.posterPath } : {}), ...(media.width && media.height ? { mediaWidth: media.width, mediaHeight: media.height } : {}), ...(typeof media.durationMs === "number" ? { mediaDurationMs: media.durationMs } : {}) }),
+      body: JSON.stringify({ body: media.title ?? "", mediaPath: media.mediaPath, ...(media.posterPath ? { posterPath: media.posterPath } : {}), ...(media.width && media.height ? { mediaWidth: media.width, mediaHeight: media.height } : {}), ...(typeof media.durationMs === "number" ? { mediaDurationMs: media.durationMs } : {}), ...(announcement ? { announcement: true } : {}) }),
     }).catch(() => null)
     const message = response?.ok ? (await response.json().catch(() => null))?.message as Message | undefined : undefined
     if (!message?.id) return false

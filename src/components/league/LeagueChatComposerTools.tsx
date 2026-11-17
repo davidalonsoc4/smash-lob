@@ -25,7 +25,7 @@ export function LeagueChatComposerTools({ seasonId, canPublishMedia, canAnnounce
   /** Resolves true when the poll was published. */
   onCreatePoll: (question: string, options: string[]) => Promise<boolean>
   /** Posts an existing tutorial video instead of uploading a new one. Resolves true when it was posted. */
-  onShareTutorial: (tutorialId: string) => Promise<boolean>
+  onShareTutorial: (tutorialId: string, announcement: boolean) => Promise<boolean>
 }) {
   const { tx } = useI18n()
   const [anchor, setAnchor] = useState<DOMRect | null>(null)
@@ -84,7 +84,7 @@ export function LeagueChatComposerTools({ seasonId, canPublishMedia, canAnnounce
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5"><path d="M12 5v14M5 12h14" /></svg>
       </button>
       {anchor ? <LeagueChatMessageMenu anchor={anchor} mine={false} items={items} label={tx("Añadir")} onClose={() => setAnchor(null)} /> : null}
-      <LeagueChatTutorialPicker open={tutorialOpen} seasonId={seasonId} onClose={() => setTutorialOpen(false)} onShare={onShareTutorial} />
+      <LeagueChatTutorialPicker open={tutorialOpen} seasonId={seasonId} canAnnounce={canAnnounce} onClose={() => setTutorialOpen(false)} onShare={onShareTutorial} />
       <FloatingDialog open={pollOpen} onClose={closePoll} busy={busy} title={tx("Nueva encuesta")} className="league-chat-edit-dialog">
         {pollOpen ? (
           <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); void submitPoll() }}>
