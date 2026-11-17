@@ -1761,7 +1761,7 @@ for(const theme of ["light","dark"])for(const style of ["classic","competition"]
   test(`activity windows, hidden pairings and countdown fit the mobile home (${theme},${style})`,async({page},info)=>{
     const fixture=await setup(page,theme,style)
     await page.goto("/leagues")
-    await expect(page.getByText("Te toca jugar esta jornada. Acuerda fecha con los demás.",{exact:true})).toBeVisible()
+    await expect(page.locator("[data-match-round-window] [data-match-schedule-hint]")).toContainText("Añadir fecha, hora y lugar")
     fixture.setUpcoming();await page.reload()
     await expect(page.getByText("Emparejamientos por revelar",{exact:true})).toBeVisible()
     await page.goto("/league/home")

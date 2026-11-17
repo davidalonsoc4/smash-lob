@@ -8,6 +8,7 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { useRouter } from "next/navigation"
 import { MatchPreviewTeams } from "@/components/matches/MatchPreviewTeams"
 import { MatchEventMeta } from "@/components/matches/MatchEventMeta"
+import { MatchScheduleHint } from "@/components/matches/MatchScheduleHint"
 import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { AppCard } from "@/components/ui/AppCard"
 import { formatShortDate } from "@/lib/rounds"
@@ -113,7 +114,7 @@ function MatchCardContent({ match, hideEventMeta = false, compactBadges = false,
         {showPersonalMatchChevron ? <ClickableChevron className="shrink-0" /> : null}
       </div>
 
-      {!hideEventMeta && match.preview && !match.scheduledAt ? <div data-match-round-window className="mt-3 flex min-h-10 items-center text-xs font-semibold text-neutral-500"><p>{match.preview.currentRound && !match.preview.hidden ? tx("Te toca jugar esta jornada. Acuerda fecha con los demás.") : tx("Próxima jornada")}{match.preview.startsAt ? <span className="mt-1 block">{match.preview.startsAt.includes("T") ? new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale === "eu" ? "eu-ES" : "es-ES",{dateStyle:"medium",timeStyle:"short"}).format(new Date(match.preview.startsAt)) : `${formatShortDate(match.preview.startsAt,locale)}${match.preview.endsAt ? ` · ${formatShortDate(match.preview.endsAt,locale)}` : ""}`}</span> : null}</p></div> : null}
+      {!hideEventMeta && match.preview && !match.scheduledAt ? <div data-match-round-window className="mt-3 flex min-h-10 items-center text-xs font-semibold text-neutral-500">{match.preview.currentRound && !match.preview.hidden ? <MatchScheduleHint compact className="w-full" /> : <p>{tx("Próxima jornada")}{match.preview.startsAt ? <span className="mt-1 block">{match.preview.startsAt.includes("T") ? new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale === "eu" ? "eu-ES" : "es-ES",{dateStyle:"medium",timeStyle:"short"}).format(new Date(match.preview.startsAt)) : `${formatShortDate(match.preview.startsAt,locale)}${match.preview.endsAt ? ` · ${formatShortDate(match.preview.endsAt,locale)}` : ""}`}</span> : null}</p>}</div> : null}
       {!hideEventMeta ? <MatchEventMeta
         eventAt={match.scheduledAt}
         locationText={match.scheduleLocation ?? match.locationName}
