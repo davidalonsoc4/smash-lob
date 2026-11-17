@@ -62,7 +62,7 @@ export function LeagueChatTutorialPicker({ open, seasonId, canAnnounce, onClose,
           ) : null}
           {tutorials === null && !failed ? <p className="text-sm font-semibold text-neutral-600">{tx("Cargando…")}</p> : null}
           {tutorials?.length === 0 ? <p className="text-sm font-semibold text-neutral-600">{tx("No hay tutoriales disponibles para esta liga.")}</p> : null}
-          <div className="grid gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
             {tutorials?.map((tutorial) => <TutorialVideoCard key={tutorial.id} tutorial={{ ...tutorial, seen: false }} onOpen={() => void choose(tutorial)} />)}
           </div>
           {busy ? <p role="status" className="text-xs font-bold text-neutral-700">{tx("Publicando en el chat…")}</p> : null}

@@ -13,7 +13,7 @@ export function TutorialVideoCard({ tutorial, onOpen, badge }: {
   const { tx } = useI18n()
   const duration = formatTutorialDuration(tutorial.durationMs)
   return (
-    <button type="button" onClick={onOpen} className="flex w-full items-stretch gap-3 rounded-2xl bg-neutral-100 p-2 text-left transition active:scale-[0.99]">
+    <button type="button" onClick={onOpen} className="flex w-full min-w-0 max-w-full items-stretch gap-3 overflow-hidden rounded-2xl bg-neutral-100 p-2 text-left transition active:scale-[0.99]">
       <span className="relative block h-20 w-32 shrink-0 overflow-hidden rounded-xl bg-black">
         {tutorial.posterUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

@@ -1891,6 +1891,7 @@ test("help shows the video tutorials this person may see and plays one", async (
   const tutorials = [
     { id: "t1", title: "Cómo apuntarte a una liga", description: "Un recorrido de dos minutos.", position: 1, posterUrl: null, width: 1080, height: 1920, durationMs: 95_000, seen: false },
     { id: "t2", title: "Subir un resultado", description: "", position: 2, posterUrl: null, width: null, height: null, durationMs: null, seen: true },
+    { id: "t3", title: "Presentación de la app y cuenta atrás de desbloqueo", description: "¿Cómo se decide la clasificación y el MVP de cada jornada en la liga?", position: 3, posterUrl: null, width: 1080, height: 1920, durationMs: 44_000, seen: false },
   ]
   const viewed: string[] = []
   await page.route("**/api/tutorials**", route => {
@@ -1905,6 +1906,8 @@ test("help shows the video tutorials this person may see and plays one", async (
   await expect(section).toContainText("1:35")
   await expect(section).toContainText("Nuevo")
   await expect(section.getByText("Visto")).toHaveCount(1)
+  // Long titles with the "Nuevo" badge must not widen the page.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
   await section.getByRole("button", { name: /Cómo apuntarte a una liga/ }).click()
   const player = page.getByRole("dialog", { name: "Cómo apuntarte a una liga" })
   await expect(player.locator("video")).toHaveAttribute("src", "http://localhost/none.mp4")

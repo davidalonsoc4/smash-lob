@@ -52,7 +52,7 @@ export function TutorialVideoLibrary() {
       <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
         {pending ? tx("Aprende a usar la app en pocos minutos. Te faltan por ver:") + ` ${pending}` : tx("Los has visto todos. Puedes repetir el que quieras.")}
       </p>
-      <div className="mt-3 grid gap-2">
+      <div className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-2">
         {tutorials.map((tutorial) => (
           <TutorialVideoCard key={tutorial.id} tutorial={tutorial} onOpen={() => void open(tutorial)} badge={tutorial.seen ? undefined : tx("Nuevo")} />
         ))}
