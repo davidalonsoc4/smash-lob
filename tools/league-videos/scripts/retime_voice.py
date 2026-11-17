@@ -99,6 +99,7 @@ def main():
         # "and"→"&" siempre; "veinte"/"uno"→cifra solo si van seguidos de "de" (fechas)
         use = key == "and" or (key in ("veinte", "uno") and nxt == "de")
         d = (disp[key] + re.sub(r"[^,.:!?;]", "", t)) if use else t
+        d = re.sub(r"(?i)em-?bi-?p[ií]", "MVP", d)  # la voz dice "Em-Bi-Pí"; en pantalla se muestra MVP
         out.append({"w": d, "s": round(shift(w["start"]) / a.tempo, 3), "e": round(shift(min(w["end"], words[min(words.index(w) + 1, len(words) - 1)]["start"] if w is not words[-1] else w["end"])) / a.tempo, 3)})
     # cortes de escena (en mitad de cada pausa ajustada)
     wanted = [c.strip() for c in a.cuts.split("|" if "|" in a.cuts else ",") if c.strip()]

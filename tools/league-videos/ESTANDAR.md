@@ -71,3 +71,9 @@ Voz: ~490 créditos por toma de 35 s · Música: 600 créditos por pista de 40 s
 Voz: Roger/Martin Osborne/Enzo/Theo/Mateo/Lucas/Daniel probadas; elegida **David Martin** (la exclamación de apertura aporta
 la energía). Ritmo: ×1,05 y ×1,08 con realce resultaron apresurados → **velocidad natural**. `[excited]` no aportó y cuesta
 créditos. Transiciones: ver sección 5.
+
+## Siglas y coste de voz (añadido 17-nov)
+- Las siglas se escriben para la voz como suenan mejor: MVP → "Em-Bi-Pí" (con guiones y acento). `retime_voice.py` las convierte de nuevo a "MVP" en los subtítulos.
+- Evitar repetir una misma sigla más de 3 veces en un guion.
+- La música (`assets/music/musica-A.mp3`) se genera una sola vez y se reutiliza: mezclarla no gasta créditos. La transcripción tampoco.
+- Generar UNA toma de voz (`generations_count: 1`, ~300-600 créditos); solo pedir segunda toma si no convence.

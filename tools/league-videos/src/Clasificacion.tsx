@@ -231,7 +231,7 @@ const Shared = ({ league, ws }: Props) => {
 const Season = ({ league, ws }: Props) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const q = league.exampleQuartet;
-  const tempF = wf(ws, "temporada"), vecesF = wf(ws, "veces");
+  const tempF = wf(ws, "temporada"), vecesF = wf(ws, "jornadas");
   const rows = [{ n: q[0], c: 3 }, { n: q[1], c: 2 }, { n: q[3], c: 1 }];
   const hot = f >= vecesF + 4;
   return (
