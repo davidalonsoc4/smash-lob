@@ -1176,6 +1176,7 @@ export default function Home() {
             headerMode="match-date"
             headerLeftLabel={tx(`Jornada ${selectedLastMatch.round}`)}
             homePersonalResult={scope === "mine"}
+            hideFinishedMeta
             statusPosition="right"
             stackTeamPlayers
             currentUserId={currentUserId}

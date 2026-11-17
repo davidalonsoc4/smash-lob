@@ -14,10 +14,10 @@ export function MatchPreviewTeams({ teamA, teamB, sets, scores, accented = false
 }) {
   const { tx } = useI18n()
   const names = (players: PreviewPlayer[]) => players.map(player => {
-    const name = <FitText noWrap minFontSize={10} className={player.highlightedLabel ? "min-w-0 flex-1" : ""}>{player.name}</FitText>
+    const name = <FitText noWrap minFontSize={10} className={player.highlightedLabel ? "min-w-0" : ""}>{player.name}</FitText>
     return (
     <p key={player.id} className="w-full text-sm font-black leading-tight text-neutral-950">
-      {player.highlightedLabel ? <span className="flex min-w-0 items-center gap-1">{name}<span className="shrink-0 text-yellow-500" aria-label={player.highlightedLabel} title={player.highlightedLabel}>★</span></span> : name}
+      {player.highlightedLabel ? <span className="flex min-w-0 items-center gap-1">{name}<svg role="img" aria-label={player.highlightedLabel} data-preview-mvp viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 shrink-0 text-yellow-500"><title>{player.highlightedLabel}</title><path d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.8L12 16.9l-5.25 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5z" /></svg></span> : name}
       {player.substituteLabel ? <span className="block type-micro font-semibold text-red-700">{tx("Suplente · por")} {player.substituteLabel}</span> : null}
     </p>
     )
