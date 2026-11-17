@@ -55,7 +55,10 @@ def main():
         if cand:
             s, e = max(cand, key=lambda x: x[1] - x[0]); cur = e - s
             new = min(max(cur, lo), hi)
-        else:  # sin silencio detectable: inserta entre palabras
+        else:  # sin silencio detectable
+            # tras una coma sin pausa real la voz sigue fluyendo: NO se corta (los límites de palabra de Scribe no son fiables y se parte una palabra)
+            if kind == "M" and t not in pauses: continue
+            # (si se fuerza una pausa con --pauses, o tras un punto, se inserta entre palabras)
             s = e = (w["end"] + n0) / 2 if n0 > w["end"] else w["end"]; cur = 0.0; new = lo
         gaps.append(dict(i=i, kind=kind, s=s, e=e, cur=cur, new=new, mid_old=(s + e) / 2))
     gaps.sort(key=lambda g: g["s"])
