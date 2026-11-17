@@ -20,7 +20,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 | 12 | Dom 20-dic | ¡Hoy empieza! | Pendiente |
 | + | Antes del 20-dic (por decidir) | Presentación de la app (`PresentacionApp`): navegación fuera/dentro de la liga, botones de arriba y liga bloqueada hasta el 20-dic | **Aprobado** (montado con voz y música A) |
 | + | PENDIENTE (recordar al organizador) | "¿Sabías que también puedes registrar tus partidos normales en la app?": crear un encuentro (amistoso) con jugadores de la liga o escritos a mano, guardar el resultado, historial y estadísticas de MI PERFIL (compañeros, rivales, mejor pareja, némesis, diferencia de juegos y sets...) | Idea del organizador, sin guion |
-| + | Sustituye al vídeo 7 de calendario | "Ha llegado el día, ¿cómo organizas tu próximo encuentro?" (`OrganizaTuPartido`): horarios recomendados, propuestas en el chat, programar el partido, calendario y recordatorios, pagos de la pista (sin bolas: van con la inscripción), resultado | Montado con voz y música A; pendiente de aprobación |
+| + | Sustituye al vídeo 7 de calendario | "Ha llegado el día, ¿cómo organizas tu próximo encuentro?" (`OrganizaTuPartido`): horarios recomendados, propuestas en el chat, programar el partido, calendario y recordatorios, pagos de la pista (sin bolas: van con la inscripción), resultado | **Aprobado** (`05-organiza-partido`) |
 | + | — | Aviso de liga bloqueada | Incluido dentro de la presentación (escenas 5 y 6; reutilizables como vídeo corto) |
 
 ## Reglas de contenido
