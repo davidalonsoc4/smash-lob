@@ -17,7 +17,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 | 10 | Mar 15-dic | Clasificación, desempates y MVP por votación | Pendiente |
 | 11 | Vie 18-dic | Suplentes, incidencias y cuenta atrás | Pendiente |
 | 12 | Dom 20-dic | ¡Hoy empieza! | Pendiente |
-| + | Antes del 20-dic (por decidir) | Presentación de la app (`PresentacionApp`): navegación fuera/dentro de la liga, botones de arriba y liga bloqueada hasta el 20-dic | Montado con voz y música A; pendiente de aprobación |
+| + | Antes del 20-dic (por decidir) | Presentación de la app (`PresentacionApp`): navegación fuera/dentro de la liga, botones de arriba y liga bloqueada hasta el 20-dic | **Aprobado** (montado con voz y música A) |
 | + | — | Aviso de liga bloqueada | Incluido dentro de la presentación (escenas 5 y 6; reutilizables como vídeo corto) |
 
 ## Reglas de contenido
