@@ -6,7 +6,7 @@ import { TUTORIAL_AUDIENCES, TUTORIAL_BUCKET, isTutorialPath, type TutorialAudie
 import { requireTutorialManager } from "@/lib/serverTutorials"
 import { normalizeBoundedText, validateUuid } from "@/lib/serverRequest"
 
-/** Only the application superuser manages tutorials. */
+/** The superuser and the app admin manage tutorials. */
 export async function requireTutorialAdmin() {
   const auth = await requireAuthenticatedAppUser()
   if (!auth.ok) return auth

@@ -54,6 +54,7 @@ export async function createSupabaseLeague({
 
 type LeagueSnapshotAccess = {
   isSuperuser: boolean
+  isAppAdmin?: boolean
   leagues: League[]
   canCreateLeagues: boolean
   memberships: UserLeagueMembership[]

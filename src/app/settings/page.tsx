@@ -459,7 +459,7 @@ export default function SettingsPage() {
 function CompetitionSettingsPage({ allowCreation }: { allowCreation: boolean }) {
   const { tx, t } = useI18n()
   const { currentUser } = useCurrentUser()
-  const { canCreateLeagues, isSuperuser } = useLeagueAccess()
+  const { canCreateLeagues, isSuperuser, isAppAdmin } = useLeagueAccess()
 
   return (
     <div className="compact-page space-y-4">
@@ -488,16 +488,9 @@ function CompetitionSettingsPage({ allowCreation }: { allowCreation: boolean }) 
         <SettingsLinkRow href="/changelog" id="changelog" title={tx("Registro de cambios")} description={tx("Consulta las novedades publicadas en cada versión.")} icon="changelog" />
         <SettingsLinkRow href="/about" id="about-app" title={tx("Sobre Smash & Lob")} description={tx("Consulta la descripción pública y las funciones principales de la aplicación.")} icon="about" />
       </SettingsSection>
-      {isSuperuser ? (
+      {isSuperuser || isAppAdmin ? (
         <SettingsSection title={tx("Administración")} description={tx("Herramientas globales de la aplicación.")}>
-          <SettingsLinkRow
-            href="/application-admin"
-            id="application-admin"
-            title={tx("Gestión de la app")}
-            description={tx("Administra usuarios, ubicaciones y otras herramientas globales de Smash & Lob.")}
-            tone="danger"
-            icon="applicationAdmin"
-          />
+          {isSuperuser ? <SettingsLinkRow href="/application-admin" id="application-admin" title={tx("Gestión de la app")} description={tx("Administra usuarios, ubicaciones y otras herramientas globales de Smash & Lob.")} tone="danger" icon="applicationAdmin" /> : <SettingsLinkRow href="/admin/tutorials" id="tutorial-admin" title={tx("Tutoriales")} description={tx("Sube vídeos de ayuda y elige quién puede verlos: toda la app o ligas concretas.")} icon="help" />}
         </SettingsSection>
       ) : null}
       <AccountDataSection />
@@ -523,6 +516,7 @@ function PlayerSettingsPage({ tournamentId }: { tournamentId?: string }) {
     getMembershipForLeague,
     hasLeagueAdminRole,
     isSuperuser,
+    isAppAdmin,
     setLeagueExperienceMode,
     unlinkLeaguePlayerAccount,
     userLeagues,
@@ -711,7 +705,7 @@ function PlayerSettingsPage({ tournamentId }: { tournamentId?: string }) {
         />
       </SettingsSection> : null}
       {isTournamentContext && tournamentId ? <SettingsSection title={tx("Invitaciones")}><div className="p-3"><TournamentShareButton tournamentId={tournamentId} inline /></div></SettingsSection> : null}
-      {isTournamentContext && tournamentId ? <TournamentManagementSettingsSection tournamentId={tournamentId} /> : hasAdminRole || isSuperuser ? (
+      {isTournamentContext && tournamentId ? <TournamentManagementSettingsSection tournamentId={tournamentId} /> : hasAdminRole || isSuperuser || isAppAdmin ? (
         <SettingsSection
           title={tx("Administración")}
           description={tx("Herramientas que dependen de tus permisos actuales.")}
@@ -810,6 +804,7 @@ function PlayerSettingsPage({ tournamentId }: { tournamentId?: string }) {
               icon="applicationAdmin"
             />
           ) : null}
+          {isAppAdmin && !isSuperuser ? <SettingsLinkRow href="/admin/tutorials" id="tutorial-admin" title={tx("Tutoriales")} description={tx("Sube vídeos de ayuda y elige quién puede verlos: toda la app o ligas concretas.")} icon="help" /> : null}
         </SettingsSection>
       ) : null}
       {isAvatarLabEnabled() ? (

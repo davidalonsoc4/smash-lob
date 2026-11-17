@@ -14,13 +14,13 @@ const id = "11111111-2222-4333-8444-555555555555"
 const context = { params: Promise.resolve({ tutorialId: id }) }
 const json = (body: unknown) => new Request("http://localhost/x", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
 
-function actor(isSuperuser: boolean) {
+function actor(isSuperuser: boolean, isAppAdmin = false) {
   const from = vi.fn()
-  mocks.auth.mockResolvedValue({ ok: true, actor: { user: { id: "u", email: "u@example.com", isSuperuser }, supabase: { from, storage: { from: vi.fn() } } } })
+  mocks.auth.mockResolvedValue({ ok: true, actor: { user: { id: "u", email: "u@example.com", isSuperuser, isAppAdmin }, supabase: { from, storage: { from: vi.fn() } } } })
   return from
 }
 
-describe("tutorial management is for the application superuser only", () => {
+describe("tutorial management is for the superuser and the app admin only", () => {
   beforeEach(() => vi.clearAllMocks())
 
   it("rejects people who are not signed in", async () => {
@@ -37,6 +37,13 @@ describe("tutorial management is for the application superuser only", () => {
     expect((await PATCH(json({ title: "x", audience: "public" }), context)).status).toBe(403)
     expect((await DELETE(new Request("http://localhost/x", { method: "DELETE" }), context)).status).toBe(403)
     expect((await UPLOAD(json({ contentType: "video/mp4", size: 10 }))).status).toBe(403)
+    expect(from).not.toHaveBeenCalled()
+  })
+
+  it("lets an app admin in without superuser rights, and still validates input first", async () => {
+    const from = actor(false, true)
+    expect((await POST(json({ title: "", audience: "public", videoPath: `${id}.mp4` }))).status).toBe(400)
+    expect((await UPLOAD(json({ contentType: "video/webm", size: 10 }))).status).toBe(400)
     expect(from).not.toHaveBeenCalled()
   })
 

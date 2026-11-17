@@ -102,7 +102,7 @@ export async function GET(request: Request) {
 
   const {
     supabase,
-    user: { id: userId, email, isSuperuser, canCreateLeagues },
+    user: { id: userId, email, isSuperuser, isAppAdmin, canCreateLeagues },
   } = authResult.actor
   const requestedAdminContext = new URL(request.url).searchParams.get("context") === "admin"
   const overviewOnly = !requestedAdminContext && request.headers.get(LEAGUE_ACCESS_SCOPE_HEADER) === "overview"
@@ -166,6 +166,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       isSuperuser,
+      isAppAdmin,
       canCreateLeagues,
       leagues: [],
       memberships: ownMemberships,
@@ -204,6 +205,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       isSuperuser,
+      isAppAdmin,
       canCreateLeagues,
       leagues,
       memberships: isSuperuser ? [] : ownMemberships,
@@ -628,6 +630,7 @@ export async function GET(request: Request) {
   }
   const payload = {
     isSuperuser,
+    isAppAdmin,
     canCreateLeagues,
     leagues,
     memberships,

@@ -21,6 +21,7 @@ export type AuthenticatedAppUser = {
     preferredSide: ReturnType<typeof normalizePreferredPlayerSide>
     dominantHand: ReturnType<typeof normalizeDominantHand>
     isSuperuser: boolean
+    isAppAdmin: boolean
     canCreateLeagues: boolean
   }
 }
@@ -46,7 +47,7 @@ export async function requireAuthenticatedAppUser(): Promise<
     return { ok: false, status: 501, error: "missing_service_role" }
   }
 
-  const userSelect = "id,email,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,preferred_side,dominant_hand,is_superuser,can_create_leagues,suspended_at,suspension_reason"
+  const userSelect = "id,email,display_name,first_name,last_name,profile_completed_at,availability_completed_at,standard_availability_timezone,standard_availability_weekly_slots,avatar_url,preferred_side,dominant_hand,is_superuser,is_app_admin,can_create_leagues,suspended_at,suspension_reason"
   const { data: existingUser, error: existingUserError } = await supabase
     .from("app_users")
     .select(userSelect)
@@ -101,6 +102,7 @@ export async function requireAuthenticatedAppUser(): Promise<
         preferredSide: normalizePreferredPlayerSide(user.preferred_side),
         dominantHand: normalizeDominantHand(user.dominant_hand),
         isSuperuser: Boolean(user.is_superuser),
+        isAppAdmin: Boolean(user.is_app_admin),
         canCreateLeagues: Boolean(user.can_create_leagues),
       },
     },

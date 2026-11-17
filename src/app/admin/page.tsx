@@ -198,7 +198,7 @@ function AdminInviteCard({ leagueId }: { leagueId: string }) {
 export default function AdminPage() {
   const { tx } = useI18n()
   const { t } = useI18n()
-  const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled, isSuperuser } =
+  const { hasLeagueAdminRole, updateLeagueStatusColorsEnabled, isSuperuser, isAppAdmin } =
     useLeagueAccess()
   const { activeLeague, activeSeason, matches, roundSettings } = useCurrentLeagueData(); const { seasons } = useSeasonSettings()
   const [selectedTournamentSeasonId, setSelectedTournamentSeasonId] = useState(activeSeason.id)
@@ -367,7 +367,7 @@ export default function AdminPage() {
           title={tx("Centro de difusión")}
           description={tx("Genera imágenes de reglas, inscripciones, calendario, inicio y cuenta atrás listas para compartir.")}
         />
-        {isSuperuser ? (
+        {isSuperuser || isAppAdmin ? (
           <AdminLinkRow
             href="/admin/tutorials"
             title={tx("Tutoriales")}

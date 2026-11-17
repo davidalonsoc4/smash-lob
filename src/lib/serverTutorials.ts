@@ -69,7 +69,7 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
       audience: row.audience,
       leagueIds: leaguesByTutorial.get(row.id) ?? [],
       memberLeagueIds,
-      isSuperuser: actor.user.isSuperuser,
+      isSuperuser: requireTutorialManager(actor),
     }),
   )
   const posters = await signPaths(actor, visible.flatMap((row) => (row.poster_path ? [row.poster_path] : [])))
@@ -102,5 +102,5 @@ export async function getVisibleTutorial(actor: Actor, tutorialId: string) {
 }
 
 export function requireTutorialManager(actor: Actor) {
-  return actor.user.isSuperuser
+  return actor.user.isSuperuser || actor.user.isAppAdmin
 }

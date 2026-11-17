@@ -146,6 +146,7 @@ export function AppShell({ children }: AppShellProps) {
     isLeagueAdmin,
     isLeagueSpectator,
     isSuperuser,
+    isAppAdmin,
     leagues,
   } = useLeagueAccess()
   const { seasons, seasonSettings } = useSeasonSettings()
@@ -262,19 +263,18 @@ export function AppShell({ children }: AppShellProps) {
       pathname.startsWith("/admin/") ||
       pathname === "/application-admin" ||
       pathname.startsWith("/application-admin/")
-    // Global app tools belong to the superuser and do not depend on the selected league.
+    // Global app tools do not depend on the selected league.
     const isGlobalAdminRoute =
-      pathname === "/application-admin" ||
-      pathname.startsWith("/application-admin/") ||
-      pathname === "/admin/tutorials"
-    if (isAdminOnlyRoute && !canAccessAdmin && !(isSuperuser && isGlobalAdminRoute)) {
+      (isSuperuser && (pathname === "/application-admin" || pathname.startsWith("/application-admin/"))) ||
+      ((isSuperuser || isAppAdmin) && pathname === "/admin/tutorials")
+    if (isAdminOnlyRoute && !canAccessAdmin && !isGlobalAdminRoute) {
       router.replace("/settings")
       return
     }
     if (scheduledSeasonHomeOnly && !isScheduledSeasonUtilityRoute) {
       router.replace("/league/home")
     }
-  }, [canAccessAdmin, isScheduledSeasonUtilityRoute, isSuperuser, pathname, router, scheduledSeasonHomeOnly])
+  }, [canAccessAdmin, isAppAdmin, isScheduledSeasonUtilityRoute, isSuperuser, pathname, router, scheduledSeasonHomeOnly])
 
   const settingsOpenedFromCompetition =
     pathname === "/settings" &&
@@ -295,6 +295,7 @@ export function AppShell({ children }: AppShellProps) {
         canSelfUnlink,
         qaEnabled: qaModeEnabled,
         isSuperuser,
+        isAppAdmin,
         avatarLabEnabled: isAvatarLabEnabled() && (canAccessAdmin || settingsOpenedFromCompetition),
         availabilityRecommendationsEnabled:
           activeRoundSettings?.availabilityRecommendationsEnabled === true,

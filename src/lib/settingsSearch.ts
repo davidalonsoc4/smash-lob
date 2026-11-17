@@ -9,6 +9,7 @@ export type SettingsSearchCapabilities = {
   canSelfUnlink: boolean
   qaEnabled: boolean
   isSuperuser: boolean
+  isAppAdmin?: boolean
   avatarLabEnabled: boolean
   availabilityRecommendationsEnabled?: boolean
   /** Settings opened from Mis Competiciones: no league is selected, so only personal and global tools apply. */
@@ -704,8 +705,9 @@ export function buildSettingsSearchEntries(
 ): SettingsSearchEntry[] {
   const source = entryCopyByLocale[locale]
   const avatarLabIds = capabilities.avatarLabEnabled ? ["avatarLab"] : []
+  const appAdminIds = capabilities.isSuperuser || capabilities.isAppAdmin ? ["tutorialAdmin"] : []
   const superuserIds = capabilities.isSuperuser
-    ? ["applicationAdmin", "competitivePlayerImages", "applicationSuggestions", "tutorialAdmin"]
+    ? ["applicationAdmin", "competitivePlayerImages", "applicationSuggestions"]
     : []
   const ids = capabilities.competitionContext
     ? [
@@ -731,6 +733,7 @@ export function buildSettingsSearchEntries(
         "account",
         "joinLeague",
         ...(capabilities.canCreateLeague ? ["createLeague"] : []),
+        ...appAdminIds,
         ...superuserIds,
       ]
     : capabilities.isSpectator
@@ -821,6 +824,7 @@ export function buildSettingsSearchEntries(
               ...(capabilities.qaEnabled ? ["qa"] : []),
             ]
           : []),
+        ...appAdminIds,
         ...superuserIds,
       ]
 

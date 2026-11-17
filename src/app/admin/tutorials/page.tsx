@@ -15,7 +15,8 @@ const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, le
 
 export default function AdminTutorialsPage() {
   const { tx } = useI18n()
-  const { isSuperuser } = useLeagueAccess()
+  const { isSuperuser, isAppAdmin } = useLeagueAccess()
+  const canManage = isSuperuser || isAppAdmin
   const [items, setItems] = useState<TutorialAdminItem[] | null>(null)
   const [leagues, setLeagues] = useState<TutorialLeagueOption[]>([])
   const [error, setError] = useState(false)
@@ -29,10 +30,10 @@ export default function AdminTutorialsPage() {
     setLeagues(data.leagues)
   }, [])
   useEffect(() => {
-    if (!isSuperuser) return
+    if (!canManage) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load()
-  }, [isSuperuser, load])
+  }, [canManage, load])
 
   async function move(index: number, direction: -1 | 1) {
     if (!items) return
@@ -57,7 +58,7 @@ export default function AdminTutorialsPage() {
         <BackButton fallbackHref="/admin" label={tx("Volver")} />
         <h1 className="type-page-title mt-0.5 text-xl font-black tracking-tight">{tx("Tutoriales")}</h1>
       </header>
-      {!isSuperuser ? (
+      {!canManage ? (
         <EmptyState title={tx("Sin acceso")} description={tx("Solo el administrador de la aplicación gestiona los tutoriales.")} />
       ) : (
         <>

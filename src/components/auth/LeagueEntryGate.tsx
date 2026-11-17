@@ -31,6 +31,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     isAccessHydrated,
     isLeagueSpectator,
     isSuperuser,
+    isAppAdmin,
     userLeagues,
   } = useLeagueAccess()
   const [inviteCode, setInviteCode] = useState("")
@@ -111,6 +112,7 @@ export function LeagueEntryGate({ children }: LeagueEntryGateProps) {
     pathname === "/help" ||
     pathname === "/changelog" ||
     (isSuperuser && pathname.startsWith("/application-admin")) ||
+    ((isSuperuser || isAppAdmin) && pathname === "/admin/tutorials") ||
     isAccessInviteRoute ||
     isLeagueNavigationRoute
   useEffect(() => {

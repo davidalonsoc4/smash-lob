@@ -80,6 +80,7 @@ type ClaimResult =
 type LeagueAccessContextValue = {
   userId: string | null;
   isSuperuser: boolean;
+  isAppAdmin: boolean;
   canCreateLeagues: boolean;
   isAdminViewEnabled: boolean;
   setAdminViewEnabled: (enabled: boolean) => void;
@@ -531,8 +532,10 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
   const userId = normalizeUserId(session?.user?.email);
   const userDisplayName = session?.user?.name;
   const [isSuperuserFromDb, setIsSuperuserFromDb] = useState(false);
+  const [isAppAdminFromDb, setIsAppAdminFromDb] = useState(false);
   const [canCreateLeaguesFromDb, setCanCreateLeaguesFromDb] = useState(false);
   const isSuperuser = Boolean(userId) && isSuperuserFromDb;
+  const isAppAdmin = Boolean(userId) && isAppAdminFromDb;
   const canCreateLeagues = Boolean(userId) && canCreateLeaguesFromDb;
   const [isAdminViewEnabled, setIsAdminViewEnabledState] = useState(
     readStoredAdminViewEnabled,
@@ -612,6 +615,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         }
 
         setIsSuperuserFromDb(snapshot.isSuperuser);
+        setIsAppAdminFromDb(Boolean(snapshot.isAppAdmin));
         setCanCreateLeaguesFromDb(snapshot.canCreateLeagues);
         setSpectatorLeagueIds(snapshot.spectatorLeagueIds);
         writeCachedSpectatorLeagueIds(
@@ -699,6 +703,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
         : [];
 
       setIsSuperuserFromDb(snapshot.isSuperuser);
+      setIsAppAdminFromDb(Boolean(snapshot.isAppAdmin));
       setCanCreateLeaguesFromDb(snapshot.canCreateLeagues);
       setSpectatorLeagueIds(snapshot.spectatorLeagueIds);
       writeCachedSpectatorLeagueIds(userId, snapshot.spectatorLeagueIds);
@@ -1886,6 +1891,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
     () => ({
       userId,
       isSuperuser,
+      isAppAdmin,
       canCreateLeagues,
       isAdminViewEnabled,
       setAdminViewEnabled,
@@ -1966,6 +1972,7 @@ export function LeagueAccessProvider({ children }: LeagueAccessProviderProps) {
       hasLeagueAdminRole,
       isLeagueCreator,
       isSuperuser,
+      isAppAdmin,
       canCreateLeagues,
       isAdminViewEnabled,
       setAdminViewEnabled,
