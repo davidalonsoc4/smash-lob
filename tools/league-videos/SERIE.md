@@ -14,7 +14,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 | 7 | Lun 7-dic | Calendario y parejas secretas | Pendiente |
 | 8 | Vie 11-dic | Subir un resultado (`SubirResultado`) | Montado con voz y música A (v2: corregido recuadro de pareja en "Tu partido"). Incluye aviso de notificaciones ("Falta el resultado" a las 2, 3, 4 y 24 h de la hora de inicio) |
 | 9 | — | (Descartado) Parejas de la jornada 1 reveladas | No se hace; la explicación del desbloqueo va en el 2+5 |
-| 10 | Mar 15-dic | Clasificación, desempate y MVP automático avanzado (`ClasificacionMvp`; la liga usa `automatic_advanced`, no votación) | Montado con voz (v2: "Em-Bi-Pí" para la sigla, subtítulos "MVP") y música A; pendiente de aprobación |
+| 10 | Mar 15-dic | Clasificación, desempate y MVP automático avanzado (`ClasificacionMvp`; la liga usa `automatic_advanced`, no votación) | **Aprobado** (v3: voz "Em-Bi-Pí" con subtítulos "MVP", música enlazada y fundido largo) |
 | 11 | Vie 18-dic | Suplentes, incidencias y cuenta atrás | Pendiente |
 | 12 | Dom 20-dic | ¡Hoy empieza! | Pendiente |
 | + | Antes del 20-dic (por decidir) | Presentación de la app (`PresentacionApp`): navegación fuera/dentro de la liga, botones de arriba y liga bloqueada hasta el 20-dic | **Aprobado** (montado con voz y música A) |
