@@ -105,7 +105,9 @@ export function MatchChatTextMessage({
   previousSameSender,
   senderHref,
   quotedReply,
+  onQuotedReplyClick,
   bodyContent,
+  editedLabel,
   pending = false,
   rowClassName = "",
   gestureProps,
@@ -116,7 +118,10 @@ export function MatchChatTextMessage({
   previousSameSender: boolean
   senderHref?: string | null
   quotedReply?: MatchChatQuotedReply | null
+  /** Jump to the quoted message when the quote is tapped. */
+  onQuotedReplyClick?: () => void
   bodyContent?: ReactNode
+  editedLabel?: string
   pending?: boolean
   rowClassName?: string
   gestureProps?: HTMLAttributes<HTMLDivElement>
@@ -173,7 +178,8 @@ export function MatchChatTextMessage({
 
         {quotedReply ? (
           <div
-            className={`mb-1 rounded-lg border-l-2 px-2 py-1 ${
+            {...(onQuotedReplyClick ? { role: "button", tabIndex: 0, onClick: onQuotedReplyClick, onKeyDown: (event: React.KeyboardEvent) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onQuotedReplyClick() } } } : {})}
+            className={`mb-1 rounded-lg border-l-2 px-2 py-1 ${onQuotedReplyClick ? "cursor-pointer" : ""} ${
               mine
                 ? "border-white/50 bg-white/10"
                 : "border-neutral-300 bg-neutral-100"
@@ -211,7 +217,7 @@ export function MatchChatTextMessage({
         <div className="relative">
           <p
             className={`whitespace-pre-wrap break-words ${
-              mine ? "pr-16" : "pr-11"
+              editedLabel ? "pb-4" : mine ? "pr-16" : "pr-11"
             } text-sm leading-5`}
           >
             {bodyContent ?? message.body}
@@ -223,6 +229,7 @@ export function MatchChatTextMessage({
             data-mine={mine ? "true" : "false"}
           >
             <span className="origin-right scale-90 type-caption">
+              {editedLabel ? <span className="mr-1 italic">{editedLabel}</span> : null}
               {new Date(message.created_at).toLocaleTimeString(getIntlLocale(locale), {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -299,7 +306,7 @@ export function MatchChatComposer({
           })
         }
         disabled={disabled}
-        className="max-h-32 min-h-10 flex-1 resize-none overflow-y-auto rounded-xl bg-neutral-100 px-3 py-2 text-base leading-5 outline-none disabled:opacity-60"
+        className="max-h-32 min-h-10 min-w-0 flex-1 resize-none overflow-y-auto [scrollbar-width:none] rounded-xl bg-neutral-100 px-3 py-2 text-base leading-5 outline-none disabled:opacity-60"
       />
       <button
         type="submit"

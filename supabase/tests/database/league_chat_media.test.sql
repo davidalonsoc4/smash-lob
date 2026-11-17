@@ -1,5 +1,5 @@
 begin;
-select plan(9);
+select plan(14);
 
 insert into public.app_users (id,email,display_name) values
   ('75000000-0000-4000-8000-000000000001','chat-media-creator@example.invalid','Creator'),
@@ -24,9 +24,15 @@ select throws_ok($$select public.send_league_season_chat_media_message('78000000
 select throws_ok($$select public.send_league_season_chat_media_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','Hola','video','78000000-0000-4000-8000-0000000000ff/79000000-0000-4000-8000-000000000003.mp4')$$,'P0001','season_chat_invalid_media','a path from another season is rejected');
 select throws_ok($$select public.send_league_season_chat_media_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','Hola','audio','78000000-0000-4000-8000-000000000001/79000000-0000-4000-8000-000000000004.mp4')$$,'P0001','season_chat_invalid_media','an unknown media kind is rejected');
 select throws_ok($$select public.send_league_season_chat_media_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000001','Creator','   ','video','78000000-0000-4000-8000-000000000001/79000000-0000-4000-8000-000000000005.mp4')$$,'P0001','season_chat_invalid_body','a media message needs a caption');
-select ok(not has_function_privilege('authenticated','public.send_league_season_chat_media_message(uuid,uuid,text,text,text,text)','execute'),'authenticated cannot execute the media function');
-select ok(has_function_privilege('service_role','public.send_league_season_chat_media_message(uuid,uuid,text,text,text,text)','execute'),'service_role can execute the media function');
+select ok(not has_function_privilege('authenticated','public.send_league_season_chat_media_message(uuid,uuid,text,text,text,text,uuid)','execute'),'authenticated cannot execute the media function');
+select ok(has_function_privilege('service_role','public.send_league_season_chat_media_message(uuid,uuid,text,text,text,text,uuid)','execute'),'service_role can execute the media function');
 select is((select public from storage.buckets where id = 'league-chat-media'),false,'the media bucket is private');
+
+select lives_ok($$select public.send_league_season_chat_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000002','Player','Respuesta',(select id from public.league_season_chat_messages where body = 'Tutorial 1'))$$,'a participant can reply to a message of the same season');
+select is((select count(*) from public.league_season_chat_messages where body = 'Respuesta' and reply_to_id is not null),1::bigint,'the reply keeps its quoted message');
+select throws_ok($$select public.send_league_season_chat_message('78000000-0000-4000-8000-000000000001','75000000-0000-4000-8000-000000000002','Player','Hola','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,'P0001','season_chat_invalid_reply','a reply to an unknown message is rejected');
+select ok(not has_function_privilege('authenticated','public.send_league_season_chat_message(uuid,uuid,text,text,uuid)','execute'),'authenticated cannot execute the reply-aware send function');
+select lives_ok($$delete from public.league_season_chat_messages where body = 'Tutorial 1'$$,'deleting the quoted message keeps the reply');
 
 select * from finish();
 rollback;

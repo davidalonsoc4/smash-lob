@@ -1,3 +1,7 @@
+## MC174 — Edición y borrado de mensajes en el chat general de liga
+- Estado: COMPLETO LOCAL. Verificado en LAN 3000 con base sintética.
+- Gates: validate, pruebas de propiedad y borrado en PostgreSQL, Playwright móvil y escritorio, y comprobación LAN 3000.
+
 ## MC173 — Chat general de pretemporada y aviso de notificaciones
 - Estado: CERRADO (2026-11-16, ya en producción; las incidencias se abrirán como hitos nuevos).
 - Gates: validate, pruebas de acceso y navegación móvil, pgTAP local y comprobación LAN 3000.

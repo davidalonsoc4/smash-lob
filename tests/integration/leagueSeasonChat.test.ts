@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
+
 const mocks = vi.hoisted(() => ({ auth: vi.fn() }))
 vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.auth }))
 vi.mock("@/lib/serverChatRealtime", () => ({ broadcastLeagueSeasonChatRefresh: vi.fn(), broadcastLeagueSeasonReadReceipt: vi.fn(), getLeagueSeasonChatRealtimeTopic: () => "topic" }))
-import { GET, POST } from "@/app/api/league-season-chats/[seasonId]/route"
+import { GET, PATCH, POST } from "@/app/api/league-season-chats/[seasonId]/route"
 
 const seasonId = "74000000-0000-4000-8000-000000000001"
 const userId = "71000000-0000-4000-8000-000000000001"
@@ -14,7 +16,7 @@ function setup(options: { participant?: boolean; registered?: boolean; status?: 
   const from = vi.fn((table: string) => {
     calls.push(table)
     const query = {
-      select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), neq: vi.fn().mockReturnThis(), gt: vi.fn().mockReturnThis(), gte: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(), is: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), neq: vi.fn().mockReturnThis(), gt: vi.fn().mockReturnThis(), gte: vi.fn().mockReturnThis(), in: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), update: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: table === "seasons" ? { id: seasonId, league_id: "league", name: "Temporada", status: options.status ?? "active" } : options.participant === false || (table === "season_players" && options.registered === false) ? null : { player_id: "player", last_read_at: options.lastReadAt ?? null }, error: null }),
       then(resolve: (value: unknown) => void) { const data = table === "league_season_chat_messages" ? options.messages ?? [] : table === "league_season_chat_participants" ? options.members ?? [] : table === "app_users" ? options.profiles ?? [] : []; return Promise.resolve({ data, error: null, count: 0 }).then(resolve) },
@@ -25,6 +27,11 @@ function setup(options: { participant?: boolean; registered?: boolean; status?: 
   return { rpc, calls }
 }
 const get = () => new Request(`http://localhost/api/league-season-chats/${seasonId}?markRead=0`)
+const messageId = "74000000-0000-4000-8000-000000000003"
+const patch = (body: string | null, account = "a@example.invalid") => new Request(get().url, {
+  method: "PATCH", headers: { "content-type": "application/json", [CHAT_LIST_ACCOUNT_HEADER]: encodeURIComponent(account) },
+  body: JSON.stringify({ messageId, body }),
+})
 const post = () => new Request(`http://localhost/api/league-season-chats/${seasonId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: "Hola" }) })
 
 describe("league season chat", () => {
@@ -71,6 +78,23 @@ describe("league season chat", () => {
   it("supplies participant avatars and read timestamps for chat receipts", async () => {
     setup({ members: [{ user_id: "other", player_id: "p2", last_read_at: "2026-11-03T10:00:00Z" }], profiles: [{ id: "other", display_name: "Ana", avatar_url: "https://example.test/ana.png" }] })
     expect(await (await GET(get(), context)).json()).toMatchObject({ participants: [{ userId: "other", displayName: "Ana", avatarUrl: "https://example.test/ana.png", lastReadAt: "2026-11-03T10:00:00Z" }] })
+  })
+  it("validates edit and deletion requests and scopes the change to the authenticated author", async () => {
+    const { rpc } = setup()
+    expect((await PATCH(patch("  "), context)).status).toBe(400)
+    expect((await PATCH(patch("Hola", "other@example.invalid"), context)).status).toBe(403)
+    expect(rpc).not.toHaveBeenCalled()
+    expect((await PATCH(patch(" Nuevo texto "), context)).status).toBe(200)
+    expect(rpc).toHaveBeenLastCalledWith("change_league_season_chat_message", { p_season_id: seasonId, p_user_id: userId, p_message_id: messageId, p_body: "Nuevo texto" })
+    expect((await PATCH(patch(null), context)).status).toBe(200)
+    expect(rpc).toHaveBeenLastCalledWith("change_league_season_chat_message", expect.objectContaining({ p_body: null }))
+  })
+  it("rejects changes to other users' messages and changes in finished seasons", async () => {
+    setup({ rpcError: "season_chat_message_not_found" })
+    expect((await PATCH(patch(null), context)).status).toBe(404)
+    const { rpc } = setup({ status: "finished" })
+    expect((await PATCH(patch(null), context)).status).toBe(409)
+    expect(rpc).not.toHaveBeenCalled()
   })
   it("uses the database guard for writes and handles a season closing", async () => {
     const { rpc } = setup({ rpcError: "season_chat_read_only" })

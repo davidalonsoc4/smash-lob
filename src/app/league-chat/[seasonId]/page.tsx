@@ -7,6 +7,9 @@ import { useParams } from "next/navigation"
 import { BackButton } from "@/components/ui/BackButton"
 import { MatchChatComposer, MatchChatReadOnlyBar, MatchChatTextMessage, resizeMatchChatComposer, useMatchChatViewport } from "@/components/match/chat/MatchChatShared"
 import type { MatchChatParticipant } from "@/components/match/chat/MatchChatShared"
+import { FloatingDialog } from "@/components/ui/FloatingDialog"
+import { LeagueChatMessageActions } from "@/components/league/LeagueChatMessageActions"
+import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -19,28 +22,31 @@ import { uploadLeagueChatMedia } from "@/lib/leagueChatMediaClient"
 /** Distance from the bottom (px) under which the reader counts as "following" the conversation. */
 const FOLLOW_THRESHOLD = 96
 
-type Message = { id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string; media_kind?: "image" | "video" | null; media_url?: string | null }
+type ReplyPreview = { id: string; sender_display_name: string; body: string; deleted?: boolean; media_kind?: "image" | "video" | null }
+type Message = { id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string; edited_at?: string | null; deleted_at?: string | null; media_kind?: "image" | "video" | null; media_url?: string | null; reply_to_id?: string | null; reply?: ReplyPreview | null }
 type Attachment = { file: File; previewUrl: string; kind: "image" | "video" }
 type Chat = { unread?: number; messages: Message[]; participants?: MatchChatParticipant[]; me: string; readOnly: boolean; hasMore: boolean; canPublishMedia?: boolean; season: { name: string; league_id?: string }; realtimeTopic: string | null }
 
 export default function LeagueSeasonChatPage() {
   const { seasonId } = useParams<{ seasonId: string }>()
-  return <LeagueSeasonChat key={seasonId} seasonId={seasonId} />
+  const account = useSession().data?.user?.email
+  return <LeagueSeasonChat key={seasonId + ":" + (account ?? "")} seasonId={seasonId} account={account} />
 }
 
 function mergeMessages(previous: Message[], incoming: Message[]) {
-  // A refresh signs media again with a new URL; keep the one already loaded so players do not reload.
-  const loaded = new Map(previous.map(message => [message.id, message]))
-  const stable = incoming.map(message => {
-    const known = loaded.get(message.id)
-    return known?.media_url && message.media_url ? { ...message, media_url: known.media_url } : message
-  })
-  return [...new Map([...previous, ...stable].map(message => [message.id, message])).values()]
+  const byId = new Map(previous.map(message => [message.id, message]))
+  for (const message of incoming) {
+    const current = byId.get(message.id)
+    const version = (value?: Message) => value?.deleted_at ?? value?.edited_at ?? ""
+    if (version(message) < version(current)) continue
+    // A refresh signs media again with a new URL; keep the one already loaded so players do not reload.
+    byId.set(message.id, current?.media_url && message.media_url ? { ...message, media_url: current.media_url } : message)
+  }
+  return [...byId.values()]
     .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id))
 }
 
-function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
-  const account = useSession().data?.user?.email
+function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: string | null }) {
   const { tx } = useI18n()
   const { leagues } = useLeagueAccess()
   const [chat, setChat] = useState<Chat | null>(null)
@@ -52,6 +58,14 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
   const [unseenCount, setUnseenCount] = useState(0)
   const followingBottom = useRef(true)
   const renderedCount = useRef(0)
+  const [action, setAction] = useState<{ id: string; mode: "menu" | "edit" | "delete" } | null>(null)
+  const [editBody, setEditBody] = useState("")
+  const [actionError, setActionError] = useState(false)
+  const [changing, setChanging] = useState(false)
+  const [replyTo, setReplyTo] = useState<Message | null>(null)
+  const endpoint = `/api/league-season-chats/${encodeURIComponent(seasonId)}`
+  const accountHeader = account ? encodeURIComponent(account.trim().toLowerCase()) : null
+  const editorRef = useRef<HTMLTextAreaElement>(null)
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<HTMLDivElement>(null)
@@ -88,11 +102,24 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     }, load), 0)
     return () => { active = false; window.clearTimeout(timer) }
   }, [account, load, seasonId])
-  // Several people writing at once fire many "refresh" notices: reload one at a time.
+  const realtimeTopic = chat?.realtimeTopic
   useEffect(() => {
+    const controller = new AbortController()
+    // Several people writing at once fire many "refresh" notices: reload one at a time.
     const runLoad = createCoalescedRunner(load)
-    return subscribeChatRealtime(chat?.realtimeTopic ?? null, () => { void runLoad() })
-  }, [chat?.realtimeTopic, load])
+    const unsubscribe = subscribeChatRealtime(realtimeTopic, (_leagueDataChanged, changedMessageId) => {
+      if (!changedMessageId || !accountHeader) { void runLoad(); return }
+      void fetch(endpoint + "?messageId=" + encodeURIComponent(changedMessageId), {
+        signal: controller.signal, cache: "no-store", headers: { [CHAT_LIST_ACCOUNT_HEADER]: accountHeader },
+      }).then(async response => {
+        if (!response.ok) return
+        const { message } = await response.json() as { message: Message }
+        if (!controller.signal.aborted) setChat(current => current?.messages.some(item => item.id === message.id)
+          ? { ...current, messages: mergeMessages(current.messages, [message]) } : current)
+      }).catch(() => undefined)
+    })
+    return () => { controller.abort(); unsubscribe() }
+  }, [accountHeader, endpoint, load, realtimeTopic])
   const messageCount = messages.length
   const lastSenderId = messages.at(-1)?.sender_user_id
   useLayoutEffect(() => {
@@ -164,7 +191,8 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     sending.current = true
     const sender = chat.participants?.find(participant => participant.userId === chat.me)
     const sentAttachment = attachment
-    setPending({ id: "pending", sender_user_id: chat.me, sender_display_name: sender?.displayName ?? tx("Tú"), body: text, created_at: new Date().toISOString(), ...(sentAttachment ? { media_kind: sentAttachment.kind, media_url: sentAttachment.previewUrl } : {}) })
+    const sentReplyId = replyTo?.id
+    setPending({ id: "pending", sender_user_id: chat.me, sender_display_name: sender?.displayName ?? tx("Tú"), body: text, created_at: new Date().toISOString(), ...(replyTo ? { reply_to_id: replyTo.id, reply: { id: replyTo.id, sender_display_name: replyTo.sender_display_name, body: replyTo.body.slice(0, 140), media_kind: replyTo.media_kind ?? null } } : {}), ...(sentAttachment ? { media_kind: sentAttachment.kind, media_url: sentAttachment.previewUrl } : {}) })
     setError(false)
     setMediaError(null)
     setBody("")
@@ -182,11 +210,12 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
       mediaPath = upload.path
     }
     const response = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(mediaPath ? { body: text, mediaPath } : { body: text }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text, ...(mediaPath ? { mediaPath } : {}), ...(sentReplyId ? { replyToId: sentReplyId } : {}) }),
     }).catch(() => null)
     const confirmed = response?.ok ? (await response.json().catch(() => null))?.message as Message | undefined : undefined
     if (response?.ok) {
       if (sentAttachment) clearAttachment()
+      setReplyTo(null)
       if (confirmed?.id) setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [confirmed]) } : current)
       window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
     } else {
@@ -201,6 +230,47 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     refreshAfterSend.current = false
     if (refresh || (response?.ok && !confirmed?.id)) void load()
   }
+  async function changeMessage() {
+    if (!action || action.mode === "menu" || !accountHeader || changing) return
+    setChanging(true)
+    setActionError(false)
+    const response = await fetch(endpoint, {
+      method: "PATCH", headers: { "Content-Type": "application/json", [CHAT_LIST_ACCOUNT_HEADER]: accountHeader },
+      body: JSON.stringify({ messageId: action.id, body: action.mode === "delete" ? null : editBody.trim() }),
+    }).catch(() => null)
+    const message = response?.ok ? (await response.json().catch(() => null))?.message as Message | undefined : undefined
+    if (message?.id) {
+      setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [message]) } : current)
+      setAction(null)
+      window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
+    } else setActionError(true)
+    setChanging(false)
+  }
+
+  useEffect(() => { if (action?.mode === "edit") editorRef.current?.focus({ preventScroll: true }) }, [action?.mode])
+
+  function replyPreviewText(reply: ReplyPreview) {
+    if (reply.deleted) return tx("Mensaje eliminado")
+    const kind = reply.media_kind ? tx(reply.media_kind === "video" ? "Vídeo" : "Foto") : ""
+    return kind && reply.body ? `${kind} · ${reply.body}` : kind || reply.body
+  }
+  function startReply(message: Message) {
+    setReplyTo(message)
+    setAction(null)
+    composerRef.current?.focus({ preventScroll: true })
+  }
+  function jumpToMessage(id: string) {
+    const target = messagesRef.current?.querySelector<HTMLElement>(`[data-message-id="${id}"]`)
+    if (!target) return
+    target.scrollIntoView({ block: "center", behavior: "smooth" })
+    target.classList.add("league-chat-jump-highlight")
+    window.setTimeout(() => target.classList.remove("league-chat-jump-highlight"), 1400)
+  }
+  const actionMessage = action ? chat?.messages.find(item => item.id === action.id) : undefined
+  const actionIsMine = Boolean(actionMessage && chat && actionMessage.sender_user_id === chat.me)
+  const optionsLabel = tx("Opciones del mensaje")
+  const editLabel = tx("Editar mensaje")
+  const deleteLabel = tx("Eliminar mensaje")
   return <div ref={viewportRef} className="fixed inset-x-0 top-0 z-[60] mx-auto flex h-[100dvh] w-full max-w-md min-h-0 flex-col overflow-hidden bg-stone-50">
     <header data-compact-chat-header className="app-page-header app-match-chat-header shrink-0 border-b border-neutral-200 bg-stone-50 px-3 pb-2">
       <div className="flex min-h-10 items-center gap-2 pr-11">
@@ -225,14 +295,60 @@ function LeagueSeasonChat({ seasonId }: { seasonId: string }) {
     <div ref={messagesRef} onScroll={handleMessagesScroll} className="league-season-chat-messages min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 py-4" aria-live="polite">
       {chat?.hasMore ? <button type="button" className="mx-auto flex items-center justify-center text-center type-small font-bold" onClick={() => void loadOlder()} disabled={loadingOlder}>{tx("Cargar mensajes anteriores")}</button> : null}
       {chat && messages.length === 0 ? <p className="text-center type-small">{tx("Todavía no hay mensajes. ¡Empieza la conversación!")}</p> : null}
-      {chat && messages.map((message, index) => <MatchChatTextMessage key={message.id} message={message} bodyContent={message.media_url ? <LeagueChatMediaBody message={message} /> : undefined} me={chat.me} participants={chat.participants ?? []} pending={message === pending} previousSameSender={index > 0 && messages[index - 1].sender_user_id === message.sender_user_id} />)}
+      {chat && messages.map((message, index) => {
+        const bubble = <MatchChatTextMessage
+          message={message} me={chat.me} participants={chat.participants ?? []} pending={message === pending}
+          previousSameSender={index > 0 && messages[index - 1].sender_user_id === message.sender_user_id}
+          bodyContent={message.deleted_at ? <em>{tx("Mensaje eliminado")}</em> : message.media_url ? <LeagueChatMediaBody message={message} /> : undefined}
+          editedLabel={message.edited_at && !message.deleted_at ? tx("Editado") : undefined}
+          quotedReply={message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, body: replyPreviewText(message.reply) } : null}
+          onQuotedReplyClick={message.reply ? () => jumpToMessage(message.reply!.id) : undefined}
+        />
+        if (chat.readOnly || message === pending || message.deleted_at) {
+          return <div key={message.id} data-message-id={message.id}>{bubble}</div>
+        }
+        return <div key={message.id} data-message-id={message.id}><LeagueChatMessageActions label={optionsLabel} align={message.sender_user_id === chat.me ? "end" : "start"} onOpen={() => {
+          setEditBody(message.body)
+          setActionError(false)
+          setAction({ id: message.id, mode: "menu" })
+        }}>{bubble}</LeagueChatMessageActions></div>
+      })}
     </div>
     {unseenCount > 0 ? <div className="relative h-0 shrink-0"><button type="button" onClick={scrollToLatest} className="absolute bottom-2 left-1/2 z-10 inline-flex min-h-9 -translate-x-1/2 items-center justify-center rounded-full text-center bg-neutral-950 px-4 text-xs font-black text-white shadow-lg active:scale-[0.97]">↓ {unseenCount} {tx(unseenCount === 1 ? "mensaje nuevo" : "mensajes nuevos")}</button></div> : null}
     {mediaError ? <p role="alert" className="shrink-0 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700">{mediaError}</p> : null}
+    {replyTo && !chat?.readOnly ? <div data-league-chat-reply className="flex shrink-0 items-center gap-2 border-t border-neutral-200 bg-white px-3 pt-2">
+      <span aria-hidden="true" className="h-9 w-1 shrink-0 rounded-full bg-neutral-400" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-black text-neutral-800">{tx("Respondiendo a")} {replyTo.sender_display_name}</span>
+        <span className="block truncate text-xs text-neutral-500">{replyTo.media_kind ? tx(replyTo.media_kind === "video" ? "Vídeo" : "Foto") + " · " : ""}{replyTo.body}</span>
+      </span>
+      <button type="button" onClick={() => setReplyTo(null)} aria-label={tx("Cancelar respuesta")} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-4 w-4"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+    </div> : null}
     {attachment && !chat?.readOnly ? <div data-league-chat-attachment className="flex shrink-0 items-center gap-2 border-t border-neutral-200 bg-white px-3 pt-2">
       <span className="min-w-0 flex-1 truncate text-xs font-bold text-neutral-700">{tx(attachment.kind === "video" ? "Vídeo" : "Foto")}: {attachment.file.name} · {(attachment.file.size / 1048576).toFixed(1)} MB{body.trim() ? "" : " · " + tx("Escribe un texto para publicarlo")}</span>
       <button type="button" onClick={clearAttachment} aria-label={tx("Quitar archivo")} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-4 w-4"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
     </div> : null}
-    {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} hasTopAttachment={Boolean(attachment)} leadingAction={chat.canPublishMedia ? <><input ref={fileInputRef} type="file" accept={LEAGUE_CHAT_MEDIA_ACCEPT} onChange={pickFile} className="sr-only" tabIndex={-1} aria-hidden="true" /><button type="button" onClick={() => fileInputRef.current?.click()} disabled={pending !== null} aria-label={tx("Adjuntar foto o vídeo")} title={tx("Adjuntar foto o vídeo")} className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-95 disabled:opacity-40"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M21 11.5 12.5 20a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L10 17.7a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6" /></svg></button></> : undefined} /> : null}
+    {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} hasTopAttachment={Boolean(attachment) || Boolean(replyTo)} leadingAction={chat.canPublishMedia ? <><input ref={fileInputRef} type="file" accept={LEAGUE_CHAT_MEDIA_ACCEPT} onChange={pickFile} className="sr-only" tabIndex={-1} aria-hidden="true" /><button type="button" onClick={() => fileInputRef.current?.click()} disabled={pending !== null} aria-label={tx("Adjuntar foto o vídeo")} title={tx("Adjuntar foto o vídeo")} className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-95 disabled:opacity-40"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M21 11.5 12.5 20a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L10 17.7a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6" /></svg></button></> : undefined} /> : null}
+    <FloatingDialog open={Boolean(action)} onClose={() => setAction(null)} busy={changing}
+      title={action?.mode === "edit" ? editLabel : action?.mode === "delete" ? deleteLabel : optionsLabel}>
+      {action?.mode === "menu" ? <div className="flex flex-col gap-2">
+        {actionMessage ? <button type="button" className="app-dialog-option" onClick={() => startReply(actionMessage)}>{tx("Responder")}</button> : null}
+        {actionIsMine ? <button type="button" className="app-dialog-option" onClick={() => setAction({ ...action, mode: "edit" })}>{editLabel}</button> : null}
+        {actionIsMine ? <button type="button" className="app-dialog-option" onClick={() => setAction({ ...action, mode: "delete" })}>{deleteLabel}</button> : null}
+      </div> : action ? <form className="space-y-3" onSubmit={event => { event.preventDefault(); void changeMessage() }}>
+        <h2 className="font-bold">{action.mode === "edit" ? editLabel : deleteLabel}</h2>
+        {action.mode === "edit" ? <textarea aria-label={editLabel} ref={editorRef} value={editBody} maxLength={2000} rows={3}
+          className="w-full rounded-lg border border-neutral-400 p-2" disabled={changing} onChange={event => setEditBody(event.target.value)} />
+          : <p>{tx("El texto se eliminará para todos los participantes.")}</p>}
+        {actionError ? <p role="alert">{tx("No se ha podido modificar el mensaje.")}</p> : null}
+        <div className="flex justify-end gap-3">
+          <button type="button" disabled={changing} onClick={() => setAction(null)}>{tx("Cancelar")}</button>
+          <button type="submit" disabled={changing || (action.mode === "edit" && !editBody.trim())}
+            className="inline-flex items-center justify-center rounded-lg bg-neutral-950 px-3 py-2 text-center font-bold text-white disabled:opacity-50">
+            {action.mode === "edit" ? tx("Guardar cambios") : deleteLabel}
+          </button>
+        </div>
+      </form> : null}
+    </FloatingDialog>
   </div>
 }

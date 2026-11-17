@@ -2825,7 +2825,6 @@ html[data-visual-style="competition"] [data-tour="chat-composer"] textarea {
   background: var(--competition-surface-raised) !important;
   border: 1px solid var(--competition-border) !important;
   color: var(--competition-text) !important;
-  scrollbar-color: var(--competition-border) transparent;
 }
 html[data-visual-style="competition"] [data-tour="chat-composer"] .app-match-chat-send {
   background: var(--competition-accent) !important;
@@ -3512,3 +3511,13 @@ html[data-theme][data-visual-style] .app-match-result-total {
 }
 
 .app-match-result-head { padding-top: 4px; }
+
+/* Brief highlight on the original message when a quoted reply is tapped in the league chat. */
+@keyframes league-chat-jump {
+  0%, 60% { background-color: rgb(251 191 36 / 0.28); }
+  100% { background-color: transparent; }
+}
+.league-chat-jump-highlight { animation: league-chat-jump 1.4s ease-out; border-radius: 1rem; }
+@media (prefers-reduced-motion: reduce) {
+  .league-chat-jump-highlight { animation: none; background-color: rgb(251 191 36 / 0.28); }
+}

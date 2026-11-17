@@ -2,7 +2,9 @@ import { NextResponse } from "next/server"
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { shouldAnnounceRead } from "@/lib/chatReadReceipts"
 import { getLeagueChatMediaKindFromPath, isLeagueChatMediaPathForSeason } from "@/lib/leagueChatMedia"
-import { canPublishLeagueChatMedia, leagueChatMediaExists, signLeagueChatMediaUrls } from "@/lib/serverLeagueChatMedia"
+import { LEAGUE_CHAT_MEDIA_BUCKET } from "@/lib/leagueChatMedia"
+import { canPublishLeagueChatMedia, leagueChatMediaExists } from "@/lib/serverLeagueChatMedia"
+import { LEAGUE_CHAT_MESSAGE_FIELDS, shapeLeagueChatMessages, type LeagueChatMessageRow } from "@/lib/serverLeagueChatMessages"
 import { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { broadcastLeagueSeasonChatRefresh, broadcastLeagueSeasonReadReceipt, getLeagueSeasonChatRealtimeTopic } from "@/lib/serverChatRealtime"
@@ -10,6 +12,7 @@ import { broadcastLeagueSeasonChatRefresh, broadcastLeagueSeasonReadReceipt, get
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 type Context = { params: Promise<{ seasonId: string }> }
+const messageFields = LEAGUE_CHAT_MESSAGE_FIELDS
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status })
 
 export async function GET(request: Request, context: Context) {
@@ -22,13 +25,24 @@ export async function GET(request: Request, context: Context) {
   const searchParams = new URL(request.url).searchParams
   const lastReadAt = access.participant.last_read_at
   const summary = { season: access.season, readOnly: access.season.status !== "active" && access.season.status !== "upcoming", realtimeTopic: getLeagueSeasonChatRealtimeTopic(seasonId) }
+  const messageId = searchParams.get("messageId")
+  if (messageId !== null) {
+    if (!validateUuid(messageId)) return fail("invalid_message_id", 400)
+    const result = await supabase.from("league_season_chat_messages").select(messageFields)
+      .eq("season_id", seasonId).eq("id", messageId).maybeSingle()
+    if (result.error) return fail("league_chat_messages_failed", 500)
+    if (!result.data) return fail("league_chat_message_not_found", 404)
+    const [shaped] = (await shapeLeagueChatMessages(access.actor, seasonId, [result.data as LeagueChatMessageRow])) ?? []
+    if (!shaped) return fail("league_chat_messages_failed", 500)
+    return NextResponse.json({ message: shaped }, { headers: { "Cache-Control": "private, no-store" } })
+  }
   if (searchParams.get("summary") === "1") {
     let unreadQuery = supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
-      .eq("season_id", seasonId).neq("sender_user_id", user.id)
+      .eq("season_id", seasonId).neq("sender_user_id", user.id).is("deleted_at", null)
     if (lastReadAt) unreadQuery = unreadQuery.gt("created_at", lastReadAt)
     const [latest, participants, unread] = await Promise.all([
       supabase.from("league_season_chat_messages").select("sender_display_name,body,created_at")
-        .eq("season_id", seasonId).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1),
+        .eq("season_id", seasonId).is("deleted_at", null).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1),
       supabase.from("league_season_chat_participants").select("user_id", { count: "exact", head: true }).eq("season_id", seasonId),
       unreadQuery,
     ])
@@ -53,7 +67,7 @@ export async function GET(request: Request, context: Context) {
   const before = searchParams.get("before")
   if (before && !validateUuid(before)) return fail("invalid_message_cursor", 400)
   let query = supabase.from("league_season_chat_messages")
-    .select("id,sender_user_id,sender_display_name,body,created_at,media_kind,media_path")
+    .select(messageFields)
     .eq("season_id", seasonId)
   if (before) {
     const cursor = await supabase.from("league_season_chat_messages").select("created_at").eq("season_id", seasonId).eq("id", before).maybeSingle()
@@ -65,14 +79,11 @@ export async function GET(request: Request, context: Context) {
   if (result.error) return fail("league_chat_messages_failed", 500)
   const rows = result.data ?? []
   const hasMore = rows.length > pageSize
-  const pageRows = rows.slice(0, pageSize).reverse()
-  const mediaUrls = await signLeagueChatMediaUrls(access.actor, pageRows.flatMap((row) => (row.media_path ? [row.media_path] : [])))
-  if (!mediaUrls) return fail("league_chat_media_failed", 500)
-  // The storage path stays on the server; participants only receive short-lived signed URLs.
-  const messages = pageRows.map(({ media_path, ...row }) => ({ ...row, media_url: media_path ? mediaUrls.get(media_path) ?? null : null }))
+  const messages = await shapeLeagueChatMessages(access.actor, seasonId, rows.slice(0, pageSize).reverse() as LeagueChatMessageRow[])
+  if (!messages) return fail("league_chat_media_failed", 500)
   const canPublishMedia = await canPublishLeagueChatMedia(access.actor, access.season.league_id)
   if (canPublishMedia === null) return fail("league_chat_access_failed", 500)
-  const unread = messages.filter((message) => message.sender_user_id !== user.id && (!lastReadAt || message.created_at > lastReadAt)).length
+  const unread = messages.filter((message) => !message.deleted_at && message.sender_user_id !== user.id && (!lastReadAt || message.created_at > lastReadAt)).length
   if (pageSize === 200 && !before && searchParams.get("markRead") !== "0") {
     const lastRead = messages.at(-1)?.created_at
     if (lastRead && (!lastReadAt || lastRead > lastReadAt)) {
@@ -97,9 +108,11 @@ export async function POST(request: Request, context: Context) {
   const { seasonId } = await context.params
   const access = await getLeagueSeasonChatActor(seasonId)
   if (!access.ok) return fail(access.error, access.status)
-  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown }>(request)
+  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown; replyToId?: unknown }>(request)
   const body = typeof input?.body === "string" ? input.body.trim() : ""
   if (!body || body.length > 2000) return fail("invalid_message", 400)
+  const replyToId = input?.replyToId === undefined || input.replyToId === null ? null : validateUuid(input.replyToId)
+  if (input?.replyToId !== undefined && input.replyToId !== null && !replyToId) return fail("invalid_reply", 400)
   const { supabase, user } = access.actor
   const mediaPath = input?.mediaPath
   if (mediaPath !== undefined && mediaPath !== null) {
@@ -117,20 +130,50 @@ export async function POST(request: Request, context: Context) {
   const result = typeof mediaPath === "string"
     ? await supabase.rpc("send_league_season_chat_media_message", {
         p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body,
-        p_media_kind: getLeagueChatMediaKindFromPath(mediaPath), p_media_path: mediaPath,
+        p_media_kind: getLeagueChatMediaKindFromPath(mediaPath), p_media_path: mediaPath, p_reply_to_id: replyToId,
       })
     : await supabase.rpc("send_league_season_chat_message", {
-        p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body,
+        p_season_id: seasonId, p_user_id: user.id, p_sender_display_name: sender, p_body: body, p_reply_to_id: replyToId,
       })
   if (result.error) {
     if (result.error.message.includes("season_chat_read_only")) return fail("league_chat_read_only", 409)
     if (result.error.message.includes("season_chat_media_forbidden")) return fail("league_chat_media_forbidden", 403)
+    if (result.error.message.includes("season_chat_invalid_reply")) return fail("invalid_reply", 400)
     if (result.error.message.includes("season_chat_invalid")) return fail("invalid_media", 400)
     if (result.error.message.includes("season_chat_forbidden")) return fail("league_chat_not_found", 404)
     return fail("league_chat_write_failed", 500)
   }
   await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
-  const { media_path: sentPath, ...sent } = result.data as typeof result.data & { media_path?: string | null }
-  const sentUrls = sentPath ? await signLeagueChatMediaUrls(access.actor, [sentPath]) : null
-  return NextResponse.json({ message: { ...sent, media_url: sentPath ? sentUrls?.get(sentPath) ?? null : null } }, { status: 201 })
+  const [message] = (await shapeLeagueChatMessages(access.actor, seasonId, [result.data as LeagueChatMessageRow])) ?? []
+  return NextResponse.json({ message: message ?? null }, { status: 201 })
+}
+
+export async function PATCH(request: Request, context: Context) {
+  const { seasonId } = await context.params
+  const access = await getLeagueSeasonChatActor(seasonId)
+  if (!access.ok) return fail(access.error, access.status)
+  const { supabase, user } = access.actor
+  if (request.headers.get(CHAT_LIST_ACCOUNT_HEADER) !== encodeURIComponent(user.email)) return fail("session_changed", 403)
+  if (access.season.status !== "active" && access.season.status !== "upcoming") return fail("league_chat_read_only", 409)
+  const input = await parseJsonBody<{ messageId?: unknown; body?: unknown }>(request)
+  if (typeof input?.messageId !== "string" || !validateUuid(input.messageId)) return fail("invalid_message_id", 400)
+  const body = typeof input.body === "string" ? input.body.trim() : input.body
+  if (body !== null && (typeof body !== "string" || !body || body.length > 2000)) return fail("invalid_message", 400)
+  const result = await supabase.rpc("change_league_season_chat_message", {
+    p_season_id: seasonId, p_user_id: user.id, p_message_id: input.messageId, p_body: body,
+  })
+  if (result.error) {
+    if (result.error.message.includes("season_chat_read_only")) return fail("league_chat_read_only", 409)
+    if (result.error.message.includes("season_chat_forbidden")) return fail("league_chat_not_found", 404)
+    if (result.error.message.includes("season_chat_message_not_found")) return fail("league_chat_message_not_found", 404)
+    return fail("league_chat_write_failed", 500)
+  }
+  const changed = result.data as LeagueChatMessageRow
+  // A deleted message must not keep its photo or video in storage.
+  if (changed.deleted_at && changed.media_path) {
+    await supabase.storage.from(LEAGUE_CHAT_MEDIA_BUCKET).remove([changed.media_path]).catch(() => null)
+  }
+  await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId, input.messageId)
+  const [message] = (await shapeLeagueChatMessages(access.actor, seasonId, [changed])) ?? []
+  return NextResponse.json({ message: message ?? null }, { headers: { "Cache-Control": "private, no-store" } })
 }
