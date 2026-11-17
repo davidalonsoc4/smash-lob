@@ -77,3 +77,4 @@ créditos. Transiciones: ver sección 5.
 - Evitar repetir una misma sigla más de 3 veces en un guion.
 - La música (`assets/music/musica-A.mp3`) se genera una sola vez y se reutiliza: mezclarla no gasta créditos. La transcripción tampoco.
 - Generar UNA toma de voz (`generations_count: 1`, ~300-600 créditos); solo pedir segunda toma si no convence.
+- Música: `add_music.py` repite la música A con un cruce de 3 s si el vídeo dura más de 40 s y termina con un fundido de 3,2 s (antes se cortaba a los 40 s en los vídeos largos).

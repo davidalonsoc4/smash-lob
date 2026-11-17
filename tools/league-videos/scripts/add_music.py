@@ -23,7 +23,9 @@ def main():
     d = dur(a.base)
     is_video = a.base.lower().endswith((".mp4", ".mov", ".mkv"))
     fc = (
-        f"[2:a]loudnorm=I={a.level}:TP=-3:LRA=7,afade=t=in:st=0:d=1.2,afade=t=out:st={max(0, d - 2.4):.2f}:d=2.4,atrim=0:{d:.2f},aformat=sample_rates=44100:channel_layouts=stereo[m];"
+        # la música se repite enlazada (cruce de 3 s) si el vídeo es más largo que ella; fundido final largo y suave
+        f"[2:a]loudnorm=I={a.level}:TP=-3:LRA=7,aformat=sample_rates=44100:channel_layouts=stereo,asplit=2[ma][mb];"
+        f"[ma][mb]acrossfade=d=3:c1=tri:c2=tri,afade=t=in:st=0:d=1.2,afade=t=out:st={max(0, d - 3.2):.2f}:d=3.2:curve=qsin,atrim=0:{d:.2f}[m];"
         f"[1:a]aformat=sample_rates=44100:channel_layouts=stereo,asplit=1[vs];"
         f"[m][vs]sidechaincompress=threshold=0.015:ratio={a.duck}:attack=20:release=450:makeup=1[md];"
         f"[0:a]aformat=sample_rates=44100:channel_layouts=stereo[b];"
