@@ -94,7 +94,7 @@ export default function AdminTutorialsPage() {
             </AppCard>
           ))}
           <TutorialPreviewDialog tutorial={preview} onClose={() => setPreview(null)} />
-          <FloatingDialog open={Boolean(form)} onClose={() => setForm(null)} title={form?.editing ? tx("Editar tutorial") : tx("Nuevo tutorial")} className="league-chat-edit-dialog">
+          <FloatingDialog open={Boolean(form)} onClose={() => setForm(null)} title={form?.editing ? tx("Editar tutorial") : tx("Nuevo tutorial")} className="league-chat-edit-dialog tutorial-form-dialog">
             {form ? (
               <TutorialForm
                 editingId={form.editing?.id ?? null}

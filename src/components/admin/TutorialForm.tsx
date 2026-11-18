@@ -113,7 +113,7 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
 
   return (
     <form className="space-y-3" onSubmit={submit}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" data-dialog-sticky-header>
         <h2 className="min-w-0 flex-1 truncate font-bold">{editingId ? tx("Editar tutorial") : tx("Nuevo tutorial")}</h2>
         <button type="submit" disabled={!valid || busy} className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-neutral-950 px-4 text-center text-sm font-bold text-white disabled:opacity-40">
           {busy ? tx("Guardando…") : tx("Guardar")}

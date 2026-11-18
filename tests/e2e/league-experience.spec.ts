@@ -1997,3 +1997,30 @@ test("tutorial management schedules a publication and shows what is scheduled", 
   await page.getByLabel("Borrador").check()
   await expect(page.locator("[data-tutorial-publish-at]")).toHaveCount(0)
 })
+
+test("notifications is a global screen without the league navigation", async ({ page }) => {
+  await setup(page, "dark", "classic", true, false, true)
+  await page.goto("/league/home")
+  await expect(page.locator('[data-tour="bottom-navigation"]')).toBeVisible()
+  await page.goto("/notifications")
+  await expect(page.getByRole("heading", { name: /Notificaciones/ }).first()).toBeVisible()
+  await expect(page.locator('[data-tour="bottom-navigation"]')).toHaveCount(0)
+})
+
+test("the tutorial form dialog fits the screen and keeps Save in view while scrolling", async ({ page }) => {
+  await setup(page, "dark", "competition", true, false, true)
+  const leagues = Array.from({ length: 12 }, (_, index) => ({ id: `l${index}`, name: `Liga ${index}` }))
+  const tutorial = { id: "t1", title: "Bienvenida", description: "", position: 1, audience: "leagues", leagueIds: ["l1"], announcedLeagueIds: [], announceOnPublish: false, publishAt: "2031-05-06T10:15:00.000Z", viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false }
+  await page.route("**/api/application-admin/tutorials", route => route.fulfill({ json: { tutorials: [tutorial], leagues } }))
+  await page.goto("/admin/tutorials")
+  await page.getByRole("button", { name: "Editar" }).first().click()
+  const dialog = page.getByRole("dialog", { name: "Editar tutorial" })
+  await expect(dialog).toBeVisible()
+  const viewport = page.viewportSize()!
+  const box = (await dialog.boundingBox())!
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+  // Scrolled to the very end, the header with Save is still on screen.
+  await dialog.evaluate(node => { node.scrollTop = node.scrollHeight })
+  const save = dialog.getByRole("button", { name: "Guardar" })
+  await expect(save).toBeInViewport()
+})

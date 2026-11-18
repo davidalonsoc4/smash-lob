@@ -169,6 +169,7 @@ export function AppShell({ children }: AppShellProps) {
     pathname === "/payments" ||
     pathname === "/activity" ||
     pathname === "/help" ||
+    pathname === "/notifications" ||
     pathname === "/changelog" ||
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||

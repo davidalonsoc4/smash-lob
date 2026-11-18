@@ -3570,6 +3570,11 @@ html.dark .app-match-chat-metadata[data-mine="false"] .type-caption { color: #a1
 
 /* Edit/delete dialog near the top, so the on-screen keyboard never covers its buttons. */
 .app-dialog.league-chat-edit-dialog { margin: max(4.5rem, calc(var(--app-safe-top, 0px) + 3.5rem)) auto auto; }
+/* Long forms in a dialog: the box ends inside the screen (its top margin is discounted) and the header with Save stays in view. */
+.app-dialog.tutorial-form-dialog { max-height: calc(100dvh - max(4.5rem, calc(var(--app-safe-top, 0px) + 3.5rem)) - max(14px, env(safe-area-inset-bottom, 0px))); }
+.app-dialog [data-dialog-sticky-header] { position: sticky; top: 0; z-index: 2; margin: -1rem -1rem .75rem; padding: 1rem 1rem .5rem; background: #fff; }
+html.dark .app-dialog [data-dialog-sticky-header] { background: #18181b; }
+html[data-visual-style="competition"] .app-dialog [data-dialog-sticky-header] { background: var(--competition-surface); }
 
 
 /* "Novedad" card in the league chat: unmistakable in light and dark. */
