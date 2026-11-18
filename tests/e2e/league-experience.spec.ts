@@ -4,7 +4,7 @@ import { leagues, seasons, seasonPlayers, seasonRoundSettings, playerProfiles, a
 
 const leagueId="10000000-0000-4000-8000-000000000072", seasonId="20000000-0000-4000-8000-000000000072"
 const archivedSeasonId="20000000-0000-4000-8000-000000000073"
-async function setup(page:Page,theme:string,style:string,canCreate=true,archive=false,appAdmin=false) {
+async function setup(page:Page,theme:string,style:string,canCreate=true,archive=false,appAdmin=false,extraLeague=false) {
   let upcoming=false,windowed=false,advanced=false
   let role: "player" | "admin" = "admin"
   const league={...leagues[0],id:leagueId,name:"Liga Azul QA",accentColor:"#26b6ce",activeSeasonId:seasonId}
@@ -17,7 +17,7 @@ async function setup(page:Page,theme:string,style:string,canCreate=true,archive=
   await page.route("**/api/**",route=>route.fulfill({json:{ok:true,items:[],chats:[],locations:[]}}))
   await page.route("**/api/auth/session",route=>route.fulfill({json:{user:{name:"QA",email:"qa-experience@example.test",image:null},expires:"2099-01-01T00:00:00Z"}}))
   await page.route("**/api/account/profile",route=>route.fulfill({json:{profile:{firstName:"QA",lastName:"Experience",displayName:"QA",isComplete:true,profileCompletedAt:"2026-08-03",availabilityCompletedAt:"2026-08-03",standardAvailabilityTimezone:"Europe/Madrid",standardAvailabilityWeeklySlots:{},isSuperuser:false}}}))
-  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,isAppAdmin:appAdmin,canCreateLeagues:canCreate,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}, ...(archive ? [{...season,id:archivedSeasonId,status:"finished"}] : [])],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
+  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,isAppAdmin:appAdmin,canCreateLeagues:canCreate,leagues:[league,...(extraLeague?[{...league,id:"league-b",name:"Liga B QA",activeSeasonId:null}]:[])],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role},...(extraLeague?[{userId:"qa-experience@example.test",leagueId:"league-b",playerId:"davo-b",role:"player"}]:[])],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}, ...(archive ? [{...season,id:archivedSeasonId,status:"finished"}] : [])],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
   await page.route("**/api/personal-matches?**",route=>route.fulfill({json:{items:[],upcoming:[],hasMore:false,nextOffset:null}}))
   await page.route("**/api/tournaments",route=>route.fulfill({json:{tournaments:[]}}))
   await page.addInitScript(({theme,style})=>{
@@ -1951,8 +1951,8 @@ test("help shows the video tutorials this person may see and plays one", async (
 test("tutorial management lets the app admin watch each tutorial, drafts included", async ({ page }) => {
   await setup(page, "dark", "classic", true, false, true)
   const tutorials = [
-    { id: "t1", title: "Bienvenida", description: "Primer vídeo.", position: 1, audience: "draft", leagueIds: [], announcedLeagueIds: [], viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false },
-    { id: "t2", title: "Chat de la liga", description: "", position: 2, audience: "public", leagueIds: [], announcedLeagueIds: [], viewCount: 3, posterUrl: null, width: 1080, height: 1920, durationMs: 38_667, seen: false },
+    { id: "t1", title: "Bienvenida", description: "Primer vídeo.", position: 1, audience: "draft", leagueIds: [], announcedLeagueIds: [], announceFailures: [], viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false },
+    { id: "t2", title: "Chat de la liga", description: "", position: 2, audience: "public", leagueIds: [], announcedLeagueIds: [], announceFailures: [], viewCount: 3, posterUrl: null, width: 1080, height: 1920, durationMs: 38_667, seen: false },
   ]
   const requested: string[] = []
   await page.route("**/api/application-admin/tutorials", route => route.fulfill({ json: { tutorials, leagues: [] } }))
@@ -1976,7 +1976,7 @@ test("tutorial management lets the app admin watch each tutorial, drafts include
 
 test("tutorial management schedules a publication and shows what is scheduled", async ({ page }) => {
   await setup(page, "dark", "classic", true, false, true)
-  const base = { description: "", position: 1, leagueIds: [], announcedLeagueIds: [], announceOnPublish: false, viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false }
+  const base = { description: "", position: 1, leagueIds: [], announcedLeagueIds: [], announceFailures: [], announceOnPublish: false, viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false }
   const tutorials = [
     { ...base, id: "t1", title: "Bienvenida", audience: "public", publishAt: null },
     { ...base, id: "t2", title: "Inscripción", position: 2, audience: "public", publishAt: "2031-03-04T09:30:00.000Z" },
@@ -2010,7 +2010,7 @@ test("notifications is a global screen without the league navigation", async ({ 
 test("the tutorial form dialog fits the screen and keeps Save in view while scrolling", async ({ page }) => {
   await setup(page, "dark", "competition", true, false, true)
   const leagues = Array.from({ length: 12 }, (_, index) => ({ id: `l${index}`, name: `Liga ${index}` }))
-  const tutorial = { id: "t1", title: "Bienvenida", description: "", position: 1, audience: "leagues", leagueIds: ["l1"], announcedLeagueIds: [], announceOnPublish: false, publishAt: "2031-05-06T10:15:00.000Z", viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false }
+  const tutorial = { id: "t1", title: "Bienvenida", description: "", position: 1, audience: "leagues", leagueIds: ["l1"], announcedLeagueIds: [], announceFailures: [], announceOnPublish: false, publishAt: "2031-05-06T10:15:00.000Z", viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false }
   await page.route("**/api/application-admin/tutorials", route => route.fulfill({ json: { tutorials: [tutorial], leagues } }))
   await page.goto("/admin/tutorials")
   await page.getByRole("button", { name: "Editar" }).first().click()
@@ -2044,4 +2044,38 @@ test("while the season is scheduled, chat profiles are not links and the list ex
   await expect(page.locator("[data-league-chat-profiles-locked]")).toContainText("Los perfiles estarán disponibles cuando empiece la temporada.")
   await expect(page.locator("[data-league-chat-participants] li")).toHaveCount(2)
   await expect(page.locator("[data-league-chat-participants]").getByRole("link")).toHaveCount(0)
+})
+
+test("opening a profile from the chat of another league makes that league the active one", async ({ page }) => {
+  // The account also belongs to a second league; the chat shown is that league's, while the active one is the first.
+  await setup(page, "dark", "classic", true, false, false, true)
+  const createdAt = new Date().toISOString()
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: {
+    season: { name: "Temporada 1", league_id: "league-b" }, readOnly: false, realtimeTopic: null, me: "qa-user",
+    participants: [{ userId: "zoe", displayName: "Zoe", playerId: "player-zoe", role: null }],
+    messages: [{ id: "m1", sender_user_id: "zoe", sender_display_name: "Zoe", body: "Hola", created_at: createdAt }],
+  } }))
+  await page.goto("/league-chat/" + seasonId)
+  await expect(page.locator("[data-chat-sender]").first()).toBeVisible()
+  const active = () => page.evaluate(() => window.localStorage.getItem("smash-lob-active-league"))
+  expect(await active()).not.toBe("league-b")
+  await page.locator("[data-chat-sender]").first().click()
+  await expect.poll(active).toBe("league-b")
+})
+
+test("tutorial management shows which leagues still have the notice pending", async ({ page }) => {
+  await setup(page, "dark", "classic", true, false, true)
+  const base = { description: "", position: 1, announcedLeagueIds: [], announceFailures: [], announceOnPublish: false, publishAt: null, viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false }
+  const tutorials = [
+    { ...base, id: "t1", title: "Bienvenida", audience: "leagues", leagueIds: ["l1"], announceFailures: [{ leagueId: "l1", reason: "no_season" }] },
+    { ...base, id: "t2", title: "Inscripción", position: 2, audience: "leagues", leagueIds: ["l1"], announceFailures: [] },
+  ]
+  await page.route("**/api/application-admin/tutorials", route => route.fulfill({ json: { tutorials, leagues: [{ id: "l1", name: "Liga Uno" }] } }))
+  await page.goto("/admin/tutorials")
+  const pending = page.locator("[data-tutorial-announce-pending]")
+  await expect(pending).toHaveCount(1)
+  await expect(pending).toContainText("Liga Uno")
+  await expect(pending).toContainText("Edita y guarda para reintentarlo")
+  const results = await new AxeBuilder({ page }).analyze()
+  expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })

@@ -3604,3 +3604,6 @@ html .app-match-chat-metadata[data-overlay="true"] .type-caption { color: #fff !
 /* Small texts of a poll follow the bubble colour (a generic caption colour made them vanish on the accent bubble). */
 .league-chat-poll-soft { color: inherit !important; opacity: 0.78; }
 .league-chat-poll-option .text-xs { color: inherit !important; }
+
+/* Destructive text action on a neutral button: readable in the dark classic theme (competition styles have their own red). */
+html.dark:not(.colorful):not([data-visual-style="competition"]) .app-danger-action { color: #fca5a5; }

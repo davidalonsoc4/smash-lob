@@ -84,7 +84,12 @@ export async function announceTutorialInLeagues({ supabase, user, tutorial, leag
     if (alreadyAnnounced.has(leagueId)) continue
     const leagueName = names.get(leagueId) ?? "Liga"
     const seasonId = await latestOpenSeasonId(supabase, leagueId)
-    if (!seasonId) { result.skipped.push({ leagueId, leagueName, reason: "no_season" }); continue }
+    // The reason is stored, so the management screen can show what is still pending (a scheduled run has nobody watching).
+    const skip = async (reason: "no_season" | "failed") => {
+      result.skipped.push({ leagueId, leagueName, reason })
+      await supabase.from("tutorial_video_leagues").update({ announce_failed_reason: reason }).eq("tutorial_id", tutorial.id).eq("league_id", leagueId)
+    }
+    if (!seasonId) { await skip("no_season"); continue }
     const media = await copyTutorialToChat(supabase, tutorial, seasonId)
     const sent = media
       ? await supabase.rpc("send_league_system_announcement", {
@@ -93,8 +98,8 @@ export async function announceTutorialInLeagues({ supabase, user, tutorial, leag
         })
       : null
     const message = sent && !sent.error ? (sent.data as { id: string } | null) : null
-    if (!message?.id) { result.skipped.push({ leagueId, leagueName, reason: "failed" }); continue }
-    await supabase.from("tutorial_video_leagues").update({ announced_at: new Date().toISOString() }).eq("tutorial_id", tutorial.id).eq("league_id", leagueId)
+    if (!message?.id) { await skip("failed"); continue }
+    await supabase.from("tutorial_video_leagues").update({ announced_at: new Date().toISOString(), announce_failed_reason: null }).eq("tutorial_id", tutorial.id).eq("league_id", leagueId)
     try { await broadcastLeagueSeasonChatRefresh(leagueId, seasonId) } catch { /* the message is saved; clients refresh on their own */ }
     await notifyLeagueChatAnnouncement({ supabase, user, leagueId, seasonId, messageId: message.id, body: media!.title })
     result.posted += 1

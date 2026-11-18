@@ -20,6 +20,7 @@ import { canDeleteLeagueChatMessage, canEditLeagueChatMessage } from "@/lib/leag
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
 import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -69,6 +70,12 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
   const profilesLocked = Boolean(chatSeason && !isLeagueAdmin(chatSeason.leagueId)
     && isScheduledSeasonHomeLocked(chatSeason.status, seasonSettings.find((item) => item.seasonId === seasonId)?.scheduledStartAt, false))
   const profileHref = (participant: Parameters<typeof leagueChatProfileHref>[0]) => (profilesLocked ? null : leagueChatProfileHref(participant))
+  // The profile screen looks the player up in the active league: make the chat's league the active one before opening it.
+  const { activeLeagueId, activateLeague } = useActiveLeague()
+  function openProfileInChatLeague(event: React.MouseEvent) {
+    const leagueId = chat?.season.league_id
+    if (leagueId && leagueId !== activeLeagueId && (event.target as HTMLElement).closest("a[href^='/player/']")) activateLeague(leagueId)
+  }
   const [body, setBody] = useState("")
   const [error, setError] = useState(false)
   const [pending, setPending] = useState<Message | null>(null)
@@ -394,7 +401,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
   const optionsLabel = tx("Opciones del mensaje")
   const editLabel = tx("Editar mensaje")
   const deleteLabel = tx("Eliminar mensaje")
-  return <div ref={viewportRef} className="fixed inset-x-0 top-0 z-[60] mx-auto flex h-[100dvh] w-full max-w-md min-h-0 flex-col overflow-hidden bg-stone-50">
+  return <div ref={viewportRef} onClickCapture={openProfileInChatLeague} className="fixed inset-x-0 top-0 z-[60] mx-auto flex h-[100dvh] w-full max-w-md min-h-0 flex-col overflow-hidden bg-stone-50">
     <header data-compact-chat-header className="app-page-header app-match-chat-header shrink-0 border-b border-neutral-200 bg-stone-50 px-3 pb-2">
       <div className="flex min-h-10 items-center gap-2 pr-11">
         <BackButton fallbackHref="/chats" label={tx("Volver")} iconOnly />

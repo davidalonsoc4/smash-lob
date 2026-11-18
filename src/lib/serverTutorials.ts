@@ -54,7 +54,7 @@ export async function signTutorialPaths(actor: Actor, paths: string[]) {
 export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminItem[] | null> {
   const [rows, links, views, memberLeagueIds] = await Promise.all([
     actor.supabase.from("tutorial_videos").select(TUTORIAL_FIELDS).order("position", { ascending: true }).order("created_at", { ascending: true }),
-    actor.supabase.from("tutorial_video_leagues").select("tutorial_id,league_id,announced_at"),
+    actor.supabase.from("tutorial_video_leagues").select("tutorial_id,league_id,announced_at,announce_failed_reason"),
     actor.supabase.from("tutorial_video_views").select("tutorial_id").eq("user_id", actor.user.id),
     getMemberLeagueIds(actor),
   ])
@@ -72,6 +72,13 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
     const list = announcedByTutorial.get(String(link.tutorial_id)) ?? []
     list.push(String(link.league_id))
     announcedByTutorial.set(String(link.tutorial_id), list)
+  }
+  const failuresByTutorial = new Map<string, { leagueId: string; reason: string }[]>()
+  for (const link of links.data ?? []) {
+    if (link.announced_at || !link.announce_failed_reason) continue
+    const list = failuresByTutorial.get(String(link.tutorial_id)) ?? []
+    list.push({ leagueId: String(link.league_id), reason: String(link.announce_failed_reason) })
+    failuresByTutorial.set(String(link.tutorial_id), list)
   }
   const seen = new Set((views.data ?? []).map((row) => String(row.tutorial_id)))
   const visible = ((rows.data ?? []) as unknown as TutorialRow[]).filter((row) =>
@@ -93,6 +100,7 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
     audience: row.audience,
     leagueIds: leaguesByTutorial.get(row.id) ?? [],
     announcedLeagueIds: announcedByTutorial.get(row.id) ?? [],
+    announceFailures: failuresByTutorial.get(row.id) ?? [],
     publishAt: isTutorialScheduled(row.publish_at) ? (row.publish_at ?? null) : null,
     announceOnPublish: Boolean(row.announce_on_publish),
     viewCount: 0,

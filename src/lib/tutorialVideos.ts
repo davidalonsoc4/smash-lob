@@ -79,6 +79,8 @@ export type TutorialAdminItem = TutorialSummary & {
   leagueIds: string[]
   /** Leagues that already received the automatic notice in their chat. */
   announcedLeagueIds: string[]
+  /** Leagues whose automatic notice could not be sent (kept until it is sent). */
+  announceFailures: { leagueId: string; reason: string }[]
   /** When it goes live (ISO), while that moment has not come yet. */
   publishAt: string | null
   /** The league-chat notice is waiting for publishAt. */

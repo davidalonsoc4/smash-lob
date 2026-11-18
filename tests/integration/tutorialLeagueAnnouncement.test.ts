@@ -83,14 +83,15 @@ describe("tutorial announcement in league chats", () => {
     const fake = fakeSupabase({ openSeasons: { L1: null, L2: "S2" }, names: { L1: "Liga Azul", L2: "Liga Roja" } })
     const result = await announceTutorialInLeagues({ supabase: fake.supabase, user, tutorial, leagueIds: ["L1", "L2"] })
     expect(result).toEqual({ posted: 1, skipped: [{ leagueId: "L1", leagueName: "Liga Azul", reason: "no_season" }] })
-    expect(fake.updates.map((update) => update.filters.league_id)).toEqual(["L2"])
+    // The league that could not be announced keeps the reason (shown in management); the other is marked as announced.
+    expect(fake.updates.map((update) => [update.filters.league_id, (update.values as Record<string, unknown>).announce_failed_reason])).toEqual([["L1", "no_season"], ["L2", null]])
   })
 
   it("does not mark the league as announced when the message could not be saved", async () => {
     const fake = fakeSupabase({ openSeasons: { L1: "S1" }, names: { L1: "Liga Azul" }, rpcFails: true })
     const result = await announceTutorialInLeagues({ supabase: fake.supabase, user, tutorial, leagueIds: ["L1"] })
     expect(result).toEqual({ posted: 0, skipped: [{ leagueId: "L1", leagueName: "Liga Azul", reason: "failed" }] })
-    expect(fake.updates).toEqual([])
+    expect(fake.updates).toEqual([expect.objectContaining({ values: { announce_failed_reason: "failed" } })])
     expect(mocks.notify).not.toHaveBeenCalled()
   })
 

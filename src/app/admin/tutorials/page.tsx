@@ -81,6 +81,7 @@ export default function AdminTutorialsPage() {
                   <p className="truncate text-sm font-black text-neutral-950">{item.title}</p>
                   <p className="text-xs font-semibold text-neutral-600">{audienceLabel(item)}</p>
                   {item.publishAt ? <p data-tutorial-scheduled className="text-xs font-black text-neutral-950">{tx("Programado para")} {new Date(item.publishAt).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}</p> : null}
+                  {item.announceFailures.length ? <p data-tutorial-announce-pending className="mt-1 rounded-lg bg-amber-100 px-2 py-1 text-xs font-bold text-amber-950">{tx("Aviso sin enviar en el chat de:")} {item.announceFailures.map((failure) => leagues.find((league) => league.id === failure.leagueId)?.name ?? "—").join(", ")}. {tx("Sin temporada en curso o sin comenzar. Edita y guarda para reintentarlo.")}</p> : null}
                   <p className="text-xs font-semibold text-neutral-600">{[formatTutorialDuration(item.durationMs), `${item.viewCount} ${tx(item.viewCount === 1 ? "visto" : "vistos")}`].filter(Boolean).join(" · ")}</p>
                 </div>
               </div>
@@ -89,7 +90,7 @@ export default function AdminTutorialsPage() {
                 <button type="button" disabled={index === 0} onClick={() => void move(index, -1)} aria-label={tx("Subir")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↑</button>
                 <button type="button" disabled={index === items.length - 1} onClick={() => void move(index, 1)} aria-label={tx("Bajar")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↓</button>
                 <button type="button" onClick={() => setForm({ editing: item })} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold">{tx("Editar")}</button>
-                <button type="button" onClick={() => void remove(item)} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold text-red-700">{tx("Eliminar")}</button>
+                <button type="button" onClick={() => void remove(item)} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold text-red-700 app-danger-action">{tx("Eliminar")}</button>
               </div>
             </AppCard>
           ))}
