@@ -140,6 +140,18 @@
   box-shadow: none !important;
 }
 
+/* Scheduling call to action stays a secondary outlined button, not a filled tile. */
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global([data-match-schedule-hint]) {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 55%, transparent) !important;
+}
+:global(html[data-visual-style]) .activityHero :global(.app-card) :global([data-match-schedule-hint]) :global(.match-schedule-action) {
+  color: var(--app-accent) !important;
+}
+:global(html:not(.dark)[data-visual-style]) .activityHero :global(.app-card) :global([data-match-schedule-hint]) :global(.match-schedule-action) {
+  color: var(--foreground) !important;
+}
+
 :global(html[data-visual-style]) .activityHero :global(.app-card) :global(.bg-neutral-50) :global(.text-neutral-950) {
   color: var(--activity-accent-contrast) !important;
   text-align: center;
