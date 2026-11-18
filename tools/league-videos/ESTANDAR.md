@@ -92,5 +92,5 @@ Cada vídeo se entrega en una carpeta (`out/listos-para-subir/`, no versionada) 
 - **Corporativo de la app: dorado `#D7A544`** (ya es `DEFAULT_COMPETITION_ACCENT` y `DEFAULT_LEAGUE_ACCENT` en la app). Se mantiene para todos los vídeos.
 - **Vídeos genéricos de la app** (no de una liga): dorado + **logo de la app** (`public/logo.png`, pala negra sobre cuadrado claro) en lugar del escudo de la liga.
 - **Vídeos de una liga:** escudo y acento de esa liga (`LeagueConfig.accent` y `logo`); el sistema acepta cualquier acento (azul `#477BD1`, verde `#3D9D86`, coral `#D4643C`, violeta `#8B5FC0`, hielo `#53B4D1`).
-- **Granito `#9DA1A6`:** solo como color de apoyo (bordes, paneles, detalles); como acento único pierde jerarquía y se confunde con el gris de las palabras pendientes de los subtítulos.
-- Prueba comparativa guardada en `out/colores/` (dorado, granito, hielo, azul, verde) y vídeo de ejemplo en hielo; no se adopta.
+- **Granito `#9DA1A6`:** probado y **descartado** por decisión del organizador ("me gusta más solo dorado"). Como acento único pierde jerarquía y se confunde con el gris de las palabras pendientes de los subtítulos; los grises neutros del tema ya hacen de apoyo.
+- Prueba comparativa en `out/colores/` (dorado, granito, hielo, azul, verde) y vídeo de ejemplo en hielo: no se adoptan. Decisión final: **solo dorado**.
