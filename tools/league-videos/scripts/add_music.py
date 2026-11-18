@@ -26,15 +26,16 @@ def main():
     is_video = a.base.lower().endswith((".mp4", ".mov", ".mkv"))
     fc = (
         # la música se repite enlazada (cruce de 3 s) si el vídeo es más largo que ella; fundido final largo y suave
-        f"[2:a]loudnorm=I={a.level}:TP=-3:LRA=7,aformat=sample_rates=44100:channel_layouts=stereo,asplit=2[ma][mb];"
-        f"[ma][mb]acrossfade=d=3:c1=tri:c2=tri,afade=t=in:st=0:d=1.2,afade=t=out:st={max(0, d - 3.2):.2f}:d=3.2:curve=qsin,atrim=0:{d:.2f}[m];"
+        f"[2:a]loudnorm=I={a.level}:TP=-3:LRA=7,aformat=sample_rates=44100:channel_layouts=stereo[ma];"
+        f"[3:a]loudnorm=I={a.level}:TP=-3:LRA=7,aformat=sample_rates=44100:channel_layouts=stereo[mb];"
+        f"[ma][mb]acrossfade=d=3:c1=tri:c2=tri,afade=t=in:st=0:d=1.2,afade=t=out:st={max(0, d - 2.6):.2f}:d=2.6:curve=qsin,atrim=0:{d:.2f}[m];"
         f"[1:a]aformat=sample_rates=44100:channel_layouts=stereo,asplit=1[vs];"
         f"[m][vs]sidechaincompress=threshold=0.015:ratio={a.duck}:attack=20:release=450:makeup=1[md];"
         f"[0:a]aformat=sample_rates=44100:channel_layouts=stereo[b];"
         f"[b][md]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[mix];"
         f"[mix]loudnorm=I=-16:TP=-1.5:LRA=11{PUB_AR}[a]"
     )
-    cmd = ["ffmpeg", "-y", "-i", a.base, "-i", a.voice, "-i", a.music, "-filter_complex", fc]
+    cmd = ["ffmpeg", "-y", "-i", a.base, "-i", a.voice, "-i", a.music, "-i", a.music, "-filter_complex", fc]
     if is_video: cmd += ["-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k"] + (["-ar", "48000", "-movflags", "+faststart"] if a.publicar else []) + ["-shortest"]
     else: cmd += ["-map", "[a]", "-b:a", "160k", "-t", f"{d:.2f}"]
     cmd.append(a.out)

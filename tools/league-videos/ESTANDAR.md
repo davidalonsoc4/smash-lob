@@ -94,3 +94,5 @@ Cada vídeo se entrega en una carpeta (`out/listos-para-subir/`, no versionada) 
 - **Vídeos de una liga:** escudo y acento de esa liga (`LeagueConfig.accent` y `logo`); el sistema acepta cualquier acento (azul `#477BD1`, verde `#3D9D86`, coral `#D4643C`, violeta `#8B5FC0`, hielo `#53B4D1`).
 - **Granito `#9DA1A6`:** probado y **descartado** por decisión del organizador ("me gusta más solo dorado"). Como acento único pierde jerarquía y se confunde con el gris de las palabras pendientes de los subtítulos; los grises neutros del tema ya hacen de apoyo.
 - Prueba comparativa en `out/colores/` (dorado, granito, hielo, azul, verde) y vídeo de ejemplo en hielo: no se adoptan. Decisión final: **solo dorado**.
+
+- Corrección (reel 1): el bucle de música de `add_music.py` (acrossfade de una copia `asplit` de sí misma) solo producía 37 s y cortaba en seco hacia el 38. Ahora la música se lee como dos entradas separadas y el fundido final dura 2,6 s. Los vídeos de más de ~37 s anteriores (p. ej. 01, 02, 04, 08, 10, 11) tienen ese corte y habría que remezclarlos si se quieren corregir.
