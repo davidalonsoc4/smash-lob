@@ -828,6 +828,8 @@ const EXACT_OVERRIDES = {
   "Quitar opción": "Remove option",
   "Añadir opción": "Add option",
   "Las opciones no pueden repetirse.": "Options cannot repeat.",
+  "Creador": "Creator",
+  "Administrador": "Administrator",
   "La miniatura debe ser una imagen JPG, PNG o WebP de hasta 5 MB.": "The thumbnail must be a JPG, PNG or WebP image of up to 5 MB.",
   "No se ha podido subir la miniatura.": "The thumbnail could not be uploaded.",
   "Miniatura (opcional)": "Thumbnail (optional)",

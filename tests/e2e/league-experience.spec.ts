@@ -543,7 +543,7 @@ test("league season chat opens from home and sends a message", async ({ page }, 
   await expect(page.getByText("¡Hola, liga!")).toBeVisible()
   await expect(page.getByLabel("Leído por todos")).toBeVisible()
   await page.getByText("2 participantes", { exact: false }).click()
-  await expect(page.getByText("QA · Ana")).toBeVisible()
+  await expect(page.locator("[data-league-chat-participants]")).toContainText("Ana")
   await expect(page.locator("[data-match-chat-route='true']").first()).toBeVisible()
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
@@ -1514,9 +1514,38 @@ for (const theme of ["light", "dark"]) for (const style of ["classic", "competit
     const participants = (await header.getByText("2 participantes", { exact: true }).boundingBox())!
     expect(participants.x - (season.x + season.width)).toBeGreaterThanOrEqual(8)
     await header.getByText("2 participantes", { exact: false }).click()
-    await expect(page.getByText("QA · Ana")).toBeVisible()
+    await expect(page.locator("[data-league-chat-participants]")).toContainText("Ana")
   })
 }
+
+test("league chat participants open as a list with roles and profile links", async ({ page }) => {
+  await setup(page, "dark", "classic")
+  const createdAt = new Date().toISOString()
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: {
+    season: { name: "Temporada 1", league_id: leagueId }, readOnly: false, realtimeTopic: null, me: "qa-user",
+    participants: [
+      { userId: "zoe", displayName: "Zoe", playerId: "player-zoe", role: null },
+      { userId: "qa-user", displayName: "QA", playerId: "player-qa", role: "creator" },
+      { userId: "ana", displayName: "Ana", playerId: "player-ana", role: "admin" },
+      { userId: "ext", displayName: "Sin cuenta", playerId: null, role: null },
+    ],
+    messages: [{ id: "m1", sender_user_id: "zoe", sender_display_name: "Zoe", body: "Hola", created_at: createdAt }],
+  } }))
+  await page.goto(`/league-chat/${seasonId}`)
+  await expect(page.locator("[data-chat-sender]").first()).toHaveAttribute("href", "/player/player-zoe")
+  await expect(page.locator("[data-chat-sender-avatar]").first()).toHaveAttribute("href", "/player/player-zoe")
+  await page.locator("[data-league-chat-participants-trigger]").click()
+  const rows = page.locator("[data-league-chat-participants] li")
+  await expect(rows).toHaveCount(4)
+  await expect(rows.nth(0)).toContainText("QA")
+  await expect(rows.nth(0)).toContainText("Creador")
+  await expect(rows.nth(1)).toContainText("Ana")
+  await expect(rows.nth(1)).toContainText("Administrador")
+  await expect(rows.nth(2)).toContainText("Sin cuenta")
+  await expect(rows.nth(3)).toContainText("Zoe")
+  await expect(rows.nth(0).getByRole("link")).toHaveAttribute("href", "/player/player-qa")
+  await expect(rows.nth(2).getByRole("link")).toHaveCount(0)
+})
 
 test("future match result entry is not highlighted", async ({ page }) => {
   const { matches } = await setup(page, "dark", "classic")

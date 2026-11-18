@@ -25,6 +25,10 @@ export type MatchChatParticipant = {
   displayName: string
   avatarUrl: string | null
   lastReadAt: string | null
+  /** League chats know the linked player, so names and photos can open the profile. */
+  playerId?: string | null
+  /** League chats mark the people who run the league. */
+  role?: "creator" | "admin" | null
 }
 
 export type MatchChatTextMessageData = {
@@ -165,13 +169,19 @@ export function MatchChatTextMessage({
       {!mine ? (
         <span className="flex h-7 w-7 shrink-0 items-start">
           {!previousSameSender ? (
-            <PlayerAvatar
-              player={{
-                displayName: sender?.displayName ?? message.sender_display_name,
-                avatarUrl: sender?.avatarUrl ?? null,
-              }}
-              size="sm"
-            />
+            senderHref ? (
+              <Link href={senderHref} aria-label={message.sender_display_name} onClick={(event) => event.stopPropagation()} data-chat-sender-avatar="" className="block rounded-full">
+                <PlayerAvatar player={{ displayName: sender?.displayName ?? message.sender_display_name, avatarUrl: sender?.avatarUrl ?? null }} size="sm" />
+              </Link>
+            ) : (
+              <PlayerAvatar
+                player={{
+                  displayName: sender?.displayName ?? message.sender_display_name,
+                  avatarUrl: sender?.avatarUrl ?? null,
+                }}
+                size="sm"
+              />
+            )
           ) : null}
         </span>
       ) : null}

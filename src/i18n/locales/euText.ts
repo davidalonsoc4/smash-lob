@@ -825,6 +825,8 @@ const EXACT_OVERRIDES = {
   "Quitar opción": "Kendu aukera",
   "Añadir opción": "Gehitu aukera",
   "Las opciones no pueden repetirse.": "Aukerak ezin dira errepikatu.",
+  "Creador": "Sortzailea",
+  "Administrador": "Administratzailea",
   "La miniatura debe ser una imagen JPG, PNG o WebP de hasta 5 MB.": "Miniaturak JPG, PNG edo WebP irudia izan behar du, gehienez 5 MB.",
   "No se ha podido subir la miniatura.": "Ezin izan da miniatura igo.",
   "Miniatura (opcional)": "Miniatura (aukerakoa)",

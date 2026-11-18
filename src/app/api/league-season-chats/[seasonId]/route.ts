@@ -65,9 +65,15 @@ export async function GET(request: Request, context: Context) {
     : { data: [], error: null }
   if (profiles.error) return fail("league_chat_participants_failed", 500)
   const profileById = new Map((profiles.data ?? []).map((profile) => [profile.id, profile]))
+  // Roles only decorate the participant list; a failure here must not break the chat.
+  const roles = memberIds.length
+    ? await supabase.from("league_memberships").select("user_id,role").eq("league_id", access.season.league_id).in("user_id", memberIds)
+    : { data: [], error: null }
+  const roleByUser = new Map((roles.error ? [] : roles.data ?? []).map((item) => [item.user_id as string, item.role as string]))
   const participants = memberRows.map((member) => {
     const profile = profileById.get(member.user_id)
-    return { userId: member.user_id, displayName: profile?.display_name || "Jugador", avatarUrl: profile?.avatar_url ?? null, lastReadAt: member.last_read_at }
+    const role = roleByUser.get(member.user_id)
+    return { userId: member.user_id, playerId: member.player_id ?? null, role: role === "creator" || role === "admin" ? role : null, displayName: profile?.display_name || "Jugador", avatarUrl: profile?.avatar_url ?? null, lastReadAt: member.last_read_at }
   })
   const pageSize = searchParams.get("preview") === "1" ? 20 : 200
   const before = searchParams.get("before")
