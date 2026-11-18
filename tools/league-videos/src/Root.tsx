@@ -1,3 +1,4 @@
+import { Reel2, REEL2_FRAMES } from "./Reel2";
 import { Miniatura } from "./Miniatura";
 import { Reel1, REEL1_FRAMES } from "./Reel1";
 import { Composition } from "remotion";
@@ -29,6 +30,7 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="PartidosNormales" component={Amistosos} durationInFrames={AMISTOSOS_FRAMES_FN(PRO_LEAGUE)} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="InstagramReel1" component={Reel1} durationInFrames={REEL1_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Miniatura" component={Miniatura} durationInFrames={1} fps={30} width={1920} height={1080} defaultProps={{ kicker: "BIENVENIDA", title: "Así será\n*la liga*", logo: "pro-logo.png", num: "VÍDEO 01", badge: "PRO LEAGUE · TEMPORADA 1" }} />
+    <Composition id="InstagramReel2" component={Reel2} durationInFrames={REEL2_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="LigaFormato" component={LigaFormato} durationInFrames={TOTAL_FRAMES} fps={30} width={1080} height={1920} />
   </>
 );

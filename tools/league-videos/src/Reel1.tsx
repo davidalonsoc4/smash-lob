@@ -16,16 +16,16 @@ const wf = (ws: TimedWord[], text: string, nth = 0) => {
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 /* ---------- Avatares ficticios (círculo + carita) ---------- */
-const COLORS = ["#477BD1", "#3D9D86", "#D4643C", "#8B5FC0", "#53B4D1", "#d7a544", "#C4567A", "#7FA650"];
-const NAMES = ["Ana", "Beto", "Carla", "Dani", "Eli", "Fer", "Gus", "Hugo"];
-const Av: React.FC<{ i: number; size?: number; ring?: string }> = ({ i, size = 120, ring }) => (
+export const COLORS = ["#477BD1", "#3D9D86", "#D4643C", "#8B5FC0", "#53B4D1", "#d7a544", "#C4567A", "#7FA650"];
+export const NAMES = ["Ana", "Beto", "Carla", "Dani", "Eli", "Fer", "Gus", "Hugo"];
+export const Av: React.FC<{ i: number; size?: number; ring?: string }> = ({ i, size = 120, ring }) => (
   <div style={{ width: size, height: size, borderRadius: "50%", background: COLORS[i % 8], position: "relative", boxShadow: ring ? `0 0 0 ${Math.max(4, size / 18)}px ${ring}` : "none", flex: "none" }}>
     <div style={{ position: "absolute", left: size * 0.29, top: size * 0.38, width: size * 0.1, height: size * 0.13, borderRadius: "50%", background: "#111" }} />
     <div style={{ position: "absolute", right: size * 0.29, top: size * 0.38, width: size * 0.1, height: size * 0.13, borderRadius: "50%", background: "#111" }} />
     <div style={{ position: "absolute", left: size * 0.32, top: size * 0.52, width: size * 0.36, height: size * 0.2, borderRadius: `0 0 ${size}px ${size}px`, border: `${Math.max(3, size / 28)}px solid #111`, borderTop: "none" }} />
   </div>
 );
-const Chip: React.FC<{ children: React.ReactNode; gold?: boolean; size?: number }> = ({ children, gold, size = 40 }) => {
+export const Chip: React.FC<{ children: React.ReactNode; gold?: boolean; size?: number }> = ({ children, gold, size = 40 }) => {
   const t = useTheme();
   return <div style={{ display: "inline-block", border: `3px solid ${t.accent}`, background: gold ? t.accent : t.surface, color: gold ? t.accentContrast : t.accent, borderRadius: 999, padding: "14px 36px", fontSize: size, fontWeight: 900, letterSpacing: 4 }}>{children}</div>;
 };
@@ -254,7 +254,7 @@ const Format: React.FC<P> = ({ ws }) => {
 };
 
 /* 10 · Próximamente + Instagram */
-const Soon: React.FC<P> = ({ ws }) => {
+export const Soon: React.FC<P> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, 0, 8);
   const igF = wf(ws, "síguenos");
@@ -276,7 +276,7 @@ const Soon: React.FC<P> = ({ ws }) => {
 };
 
 /* 11 · Cierre: eslogan con pelota */
-const Outro: React.FC<P> = ({ ws }) => {
+export const Outro: React.FC<P> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const logo = pop(f, fps, 0, 9);
   const pa = wf(ws, "para"), nu = wf(ws, "nunca"), su = wf(ws, "suficiente"), pd = wf(ws, "pádel");
