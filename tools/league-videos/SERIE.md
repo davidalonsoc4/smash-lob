@@ -44,3 +44,7 @@ para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la lig
 Colores y datos de liga: objeto `LeagueConfig` (`src/Bienvenida.tsx`); el acento y el contraste se derivan en `src/kit.tsx`.
 
 - Nunca consultar ni mostrar emparejamientos reales: ni el organizador ni yo los vemos. Solo nombres de pila de la liga con emparejamientos ficticios y etiqueta de ejemplo (o signos de interrogación).
+
+## Instagram @smashandlob · Reel 1 (genérico, sin PRO League)
+- `InstagramReel1` (`src/Reel1.tsx`, voz `voiceApp1.ts`, toma `assets/app-reel1b/`): guión 8 aprobado. Avatares ficticios, réplicas simplificadas, logo de la app al final, eslogan «Para los que nunca tienen suficiente pádel», sin «Nos vemos en la pista». Salida: `out/listos-para-subir/12-reel1-liguilla.mp4` (pendiente de aprobación del usuario).
+- Pendiente: guiones de los reels 2 y 3 (aprobar antes de generar voz).
