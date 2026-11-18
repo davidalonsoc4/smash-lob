@@ -87,3 +87,10 @@ Cada vídeo se entrega en una carpeta (`out/listos-para-subir/`, no versionada) 
 - Nombres en minúsculas, sin tildes ni espacios y con el orden de publicación delante (01-bienvenida, 02-presentacion-app, 03-inscripcion, 04-chat-liga, 05-organiza-partido, 06-perfil-disponibilidad, 08-subir-resultado, 09-cuenta-atras-desbloqueo, 10-clasificacion-mvp, 11-partidos-normales).
 - Miniatura JPG 1080x1920 (<300 KB, ~80 KB) con un fotograma del gancho ya formado (no el primero): `npx remotion still <Comp> x.jpg --frame=<fin del gancho - 14> --image-format=jpeg --jpeg-quality=88`.
 - Aviso: los vídeos salen en `yuvj420p` (rango completo) porque Remotion codifica desde fotogramas JPEG (`Config.setVideoImageFormat("jpeg")`). Es válido y se reproduce bien; si se quisiera `yuv420p` hay que renderizar de nuevo con `--image-format=png` (más pesado) o `--pixel-format=yuv420p`.
+
+## Color corporativo (decidido 18-nov)
+- **Corporativo de la app: dorado `#D7A544`** (ya es `DEFAULT_COMPETITION_ACCENT` y `DEFAULT_LEAGUE_ACCENT` en la app). Se mantiene para todos los vídeos.
+- **Vídeos genéricos de la app** (no de una liga): dorado + **logo de la app** (`public/logo.png`, pala negra sobre cuadrado claro) en lugar del escudo de la liga.
+- **Vídeos de una liga:** escudo y acento de esa liga (`LeagueConfig.accent` y `logo`); el sistema acepta cualquier acento (azul `#477BD1`, verde `#3D9D86`, coral `#D4643C`, violeta `#8B5FC0`, hielo `#53B4D1`).
+- **Granito `#9DA1A6`:** solo como color de apoyo (bordes, paneles, detalles); como acento único pierde jerarquía y se confunde con el gris de las palabras pendientes de los subtítulos.
+- Prueba comparativa guardada en `out/colores/` (dorado, granito, hielo, azul, verde) y vídeo de ejemplo en hielo; no se adopta.
