@@ -58,6 +58,9 @@ export async function uploadTutorialFile(file: Blob, contentType: string, onProg
   return (await putWithProgress(data.uploadUrl, file, onProgress)) ? data.path : null
 }
 
+/** What happened with the automatic notice in the league chats (only when it was requested). */
+export type TutorialSaveResult = { ok: boolean; announcement?: { posted: number; skipped: { leagueId: string; leagueName: string; reason: "no_season" | "failed" }[] } }
+
 export type TutorialDraft = {
   title: string
   description: string
@@ -71,18 +74,21 @@ export async function createTutorial(input: TutorialDraft & {
   width: number | null
   height: number | null
   durationMs: number | null
-}) {
+  announce?: boolean
+}): Promise<TutorialSaveResult> {
   const response = await fetch("/api/application-admin/tutorials", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input),
   }).catch(() => null)
-  return Boolean(response?.ok)
+  const data = await readJson<{ announcement?: TutorialSaveResult["announcement"] }>(response)
+  return { ok: Boolean(response?.ok), announcement: data?.announcement }
 }
 
-export async function updateTutorial(id: string, input: TutorialDraft & { posterPath?: string | null }) {
+export async function updateTutorial(id: string, input: TutorialDraft & { posterPath?: string | null; announce?: boolean }): Promise<TutorialSaveResult> {
   const response = await fetch(`/api/application-admin/tutorials/${encodeURIComponent(id)}`, {
     method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input),
   }).catch(() => null)
-  return Boolean(response?.ok)
+  const data = await readJson<{ announcement?: TutorialSaveResult["announcement"] }>(response)
+  return { ok: Boolean(response?.ok), announcement: data?.announcement }
 }
 
 export async function deleteTutorial(id: string) {

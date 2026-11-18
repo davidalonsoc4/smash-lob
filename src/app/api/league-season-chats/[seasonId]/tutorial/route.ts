@@ -1,10 +1,9 @@
-import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
-import { LEAGUE_CHAT_MEDIA_BUCKET } from "@/lib/leagueChatMedia"
 import { canPublishLeagueChatMedia } from "@/lib/serverLeagueChatMedia"
 import { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
+import { copyTutorialToChat } from "@/lib/serverTutorialChatShare"
 import { TUTORIAL_FIELDS, type TutorialRow } from "@/lib/serverTutorials"
 import { TUTORIAL_BUCKET, type TutorialSummary } from "@/lib/tutorialVideos"
 
@@ -70,19 +69,7 @@ export async function POST(request: Request, context: Context) {
   const tutorial = rows.find((row) => row.id === tutorialId)
   if (!tutorial) return fail("tutorial_not_found", 404)
 
-  const storage = checked.access.actor.supabase.storage.from(TUTORIAL_BUCKET)
-  const mediaPath = `${seasonId}/${randomUUID()}.mp4`
-  const copiedVideo = await storage.copy(tutorial.video_path, mediaPath, { destinationBucket: LEAGUE_CHAT_MEDIA_BUCKET })
-  if (copiedVideo.error) return fail("tutorial_copy_failed", 500)
-  let posterPath: string | null = null
-  if (tutorial.poster_path) {
-    const extension = tutorial.poster_path.split(".").pop() ?? "jpg"
-    const candidate = `${seasonId}/${randomUUID()}.${extension}`
-    const copiedPoster = await storage.copy(tutorial.poster_path, candidate, { destinationBucket: LEAGUE_CHAT_MEDIA_BUCKET })
-    if (!copiedPoster.error) posterPath = candidate
-  }
-  return NextResponse.json(
-    { mediaPath, posterPath, width: tutorial.width, height: tutorial.height, durationMs: tutorial.duration_ms, title: tutorial.title },
-    { status: 201, headers: { "Cache-Control": "private, no-store" } },
-  )
+  const media = await copyTutorialToChat(checked.access.actor.supabase, tutorial, seasonId)
+  if (!media) return fail("tutorial_copy_failed", 500)
+  return NextResponse.json(media, { status: 201, headers: { "Cache-Control": "private, no-store" } })
 }

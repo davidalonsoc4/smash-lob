@@ -3,7 +3,8 @@ import "server-only"
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { TUTORIAL_AUDIENCES, TUTORIAL_BUCKET, isTutorialPath, type TutorialAudience } from "@/lib/tutorialVideos"
-import { requireTutorialManager } from "@/lib/serverTutorials"
+import { announceTutorialInLeagues } from "@/lib/serverTutorialChatShare"
+import { TUTORIAL_FIELDS, requireTutorialManager, type TutorialRow } from "@/lib/serverTutorials"
 import { normalizeBoundedText, validateUuid } from "@/lib/serverRequest"
 
 /** The superuser and the app admin manage tutorials. */
@@ -45,13 +46,24 @@ export function validTutorialPaths(videoPath: unknown, posterPath: unknown) {
   return posterPath === null || posterPath === undefined || isTutorialPath(posterPath, "poster")
 }
 
+/**
+ * Makes the tutorial's leagues exactly `leagueIds`. Leagues that stay keep their row, so the mark that says the
+ * league was already announced (announced_at) is not lost when the tutorial is edited.
+ */
 export async function replaceTutorialLeagues(actor: Actor, tutorialId: string, leagueIds: string[]) {
-  const removed = await actor.supabase.from("tutorial_video_leagues").delete().eq("tutorial_id", tutorialId)
-  if (removed.error) return false
-  if (!leagueIds.length) return true
+  const current = await actor.supabase.from("tutorial_video_leagues").select("league_id").eq("tutorial_id", tutorialId)
+  if (current.error) return false
+  const existing = new Set((current.data ?? []).map((row) => String(row.league_id)))
+  const removable = [...existing].filter((id) => !leagueIds.includes(id))
+  if (removable.length) {
+    const removed = await actor.supabase.from("tutorial_video_leagues").delete().eq("tutorial_id", tutorialId).in("league_id", removable)
+    if (removed.error) return false
+  }
+  const missing = leagueIds.filter((id) => !existing.has(id))
+  if (!missing.length) return true
   const added = await actor.supabase
     .from("tutorial_video_leagues")
-    .insert(leagueIds.map((leagueId) => ({ tutorial_id: tutorialId, league_id: leagueId })))
+    .insert(missing.map((leagueId) => ({ tutorial_id: tutorialId, league_id: leagueId })))
   return !added.error
 }
 
@@ -59,4 +71,12 @@ export async function allLeaguesExist(actor: Actor, leagueIds: string[]) {
   if (!leagueIds.length) return true
   const found = await actor.supabase.from("leagues").select("id").in("id", leagueIds)
   return !found.error && (found.data ?? []).length === leagueIds.length
+}
+
+/** Posts the "Novedad" in the chats of the leagues that were not announced yet, when the admin asked for it. */
+export async function announceTutorialIfRequested(actor: Actor, tutorialId: string, wanted: boolean, audience: TutorialAudience, leagueIds: string[]) {
+  if (!wanted || audience !== "leagues" || !leagueIds.length) return null
+  const row = await actor.supabase.from("tutorial_videos").select(TUTORIAL_FIELDS).eq("id", tutorialId).maybeSingle()
+  if (row.error || !row.data) return null
+  return announceTutorialInLeagues({ supabase: actor.supabase, user: actor.user, tutorial: row.data as unknown as TutorialRow, leagueIds })
 }

@@ -5,6 +5,7 @@ import { getLeagueChatMediaKindFromPath, isLeagueChatMediaPathForSeason } from "
 import { LEAGUE_CHAT_MEDIA_BUCKET } from "@/lib/leagueChatMedia"
 import { canAnnounceInLeagueChat, canPublishLeagueChatMedia, leagueChatMediaExists } from "@/lib/serverLeagueChatMedia"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
+import { notifyLeagueChatAnnouncement } from "@/lib/serverLeagueChatAnnouncement"
 import { LEAGUE_CHAT_MESSAGE_FIELDS, shapeLeagueChatMessages, type LeagueChatMessageRow } from "@/lib/serverLeagueChatMessages"
 import { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
@@ -207,46 +208,10 @@ export async function POST(request: Request, context: Context) {
   }
   await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
   const sentRow = result.data as LeagueChatMessageRow
-  if (isAnnouncement) await notifyAnnouncement({ access, seasonId, messageId: sentRow.id, body })
+  if (isAnnouncement) await notifyLeagueChatAnnouncement({ supabase, user, leagueId: access.season.league_id, seasonId, messageId: sentRow.id, body })
   else await notifyChatMessage({ access, seasonId, messageId: sentRow.id, preview: sentRow.has_poll ? `Encuesta: ${body}` : body || (sentRow.media_kind === "video" ? "Vídeo" : sentRow.media_kind === "image" ? "Foto" : "") })
   const [message] = (await shapeLeagueChatMessages(access.actor, seasonId, [result.data as LeagueChatMessageRow])) ?? []
   return NextResponse.json({ message: message ?? null }, { status: 201 })
-}
-
-/**
- * A "Novedad" always notifies every participant of the chat. The event type is in the always-enabled list,
- * so personal and league notification settings do not silence it. The message is already saved if this fails.
- */
-async function notifyAnnouncement({ access, seasonId, messageId, body }: {
-  access: Extract<Awaited<ReturnType<typeof getLeagueSeasonChatActor>>, { ok: true }>
-  seasonId: string
-  messageId: string
-  body: string
-}) {
-  const { supabase, user } = access.actor
-  try {
-    const [participants, league] = await Promise.all([
-      supabase.from("league_season_chat_participants").select("user_id,player_id").eq("season_id", seasonId),
-      supabase.from("leagues").select("name").eq("id", access.season.league_id).maybeSingle(),
-    ])
-    const rows = participants.data ?? []
-    await recordServerActorActivity({
-      supabase, user, membership: null,
-      leagueId: access.season.league_id,
-      seasonId,
-      type: "league_chat_announcement",
-      title: `Novedad · ${league.data?.name ?? "Liga"}`,
-      description: body.slice(0, 200) || "Hay una novedad en el chat de la liga.",
-      metadata: {
-        messageId,
-        forcePush: true,
-        targetUserIds: rows.map((row) => row.user_id),
-        targetPlayerIds: rows.flatMap((row) => (row.player_id ? [row.player_id] : [])),
-      },
-    })
-  } catch {
-    // Delivery problems must not lose the message itself.
-  }
 }
 
 /**

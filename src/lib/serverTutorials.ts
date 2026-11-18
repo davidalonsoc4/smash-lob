@@ -51,7 +51,7 @@ export async function signTutorialPaths(actor: Actor, paths: string[]) {
 export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminItem[] | null> {
   const [rows, links, views, memberLeagueIds] = await Promise.all([
     actor.supabase.from("tutorial_videos").select(TUTORIAL_FIELDS).order("position", { ascending: true }).order("created_at", { ascending: true }),
-    actor.supabase.from("tutorial_video_leagues").select("tutorial_id,league_id"),
+    actor.supabase.from("tutorial_video_leagues").select("tutorial_id,league_id,announced_at"),
     actor.supabase.from("tutorial_video_views").select("tutorial_id").eq("user_id", actor.user.id),
     getMemberLeagueIds(actor),
   ])
@@ -62,6 +62,13 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
     const list = leaguesByTutorial.get(String(link.tutorial_id)) ?? []
     list.push(String(link.league_id))
     leaguesByTutorial.set(String(link.tutorial_id), list)
+  }
+  const announcedByTutorial = new Map<string, string[]>()
+  for (const link of links.data ?? []) {
+    if (!link.announced_at) continue
+    const list = announcedByTutorial.get(String(link.tutorial_id)) ?? []
+    list.push(String(link.league_id))
+    announcedByTutorial.set(String(link.tutorial_id), list)
   }
   const seen = new Set((views.data ?? []).map((row) => String(row.tutorial_id)))
   const visible = ((rows.data ?? []) as unknown as TutorialRow[]).filter((row) =>
@@ -81,6 +88,7 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
     position: row.position,
     audience: row.audience,
     leagueIds: leaguesByTutorial.get(row.id) ?? [],
+    announcedLeagueIds: announcedByTutorial.get(row.id) ?? [],
     viewCount: 0,
     posterUrl: row.poster_path ? (posters.get(row.poster_path) ?? null) : null,
     width: row.width,

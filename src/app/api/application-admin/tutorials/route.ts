@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { recordApplicationAdminAudit } from "@/lib/serverApplicationAdminAudit"
 import { listVisibleTutorials } from "@/lib/serverTutorials"
 import {
-  adminFail, allLeaguesExist, parseTutorialFields, replaceTutorialLeagues, requireTutorialAdmin,
+  adminFail, allLeaguesExist, announceTutorialIfRequested, parseTutorialFields, replaceTutorialLeagues, requireTutorialAdmin,
   tutorialFileExists, validTutorialPaths,
 } from "@/lib/serverTutorialAdmin"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
@@ -64,7 +64,8 @@ export async function POST(request: Request) {
   const id = String(created.data.id)
   if (!(await replaceTutorialLeagues(auth.actor, id, fields.leagueIds))) return adminFail("tutorial_create_failed", 500)
   await recordApplicationAdminAudit({ supabase: auth.actor.supabase, actor: auth.actor.user, action: "tutorial_created", metadata: { tutorialId: id, audience: fields.audience } })
-  return NextResponse.json({ id }, { status: 201 })
+  const announcement = await announceTutorialIfRequested(auth.actor, id, input.announce === true, fields.audience, fields.leagueIds)
+  return NextResponse.json({ id, ...(announcement ? { announcement } : {}) }, { status: 201 })
 }
 
 /** New display order: the ids in the order they must appear. */

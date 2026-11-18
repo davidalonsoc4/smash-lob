@@ -4,16 +4,18 @@ import { useState, type ChangeEvent } from "react"
 import { inspectMp4, moveMoovToFront } from "@/lib/mp4"
 import { extractVideoPoster } from "@/lib/videoPoster"
 import { TUTORIAL_FILE_ACCEPT, getTutorialFileRule, type TutorialAudience } from "@/lib/tutorialVideos"
-import { createTutorial, updateTutorial, uploadTutorialFile, type TutorialDraft, type TutorialLeagueOption } from "@/lib/tutorialVideosClient"
+import { createTutorial, updateTutorial, uploadTutorialFile, type TutorialDraft, type TutorialLeagueOption, type TutorialSaveResult } from "@/lib/tutorialVideosClient"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type Picked = { file: File; poster: Blob | null; width: number | null; height: number | null; durationMs: number | null }
 
 /** Create (with a video) or edit (text, audience and leagues) a tutorial. */
-export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: {
+export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds = [], onDone, onCancel }: {
   editingId: string | null
   initial: TutorialDraft
   leagues: TutorialLeagueOption[]
+  /** Leagues that already got the notice in their chat: they are never announced twice. */
+  announcedLeagueIds?: string[]
   onDone: () => void
   onCancel: () => void
 }) {
@@ -24,6 +26,18 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
   const [progress, setProgress] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [announce, setAnnounce] = useState(true)
+  const [notice, setNotice] = useState<string | null>(null)
+  const pendingLeagues = draft.audience === "leagues" ? draft.leagueIds.filter((id) => !announcedLeagueIds.includes(id)) : []
+  const wantsAnnouncement = announce && pendingLeagues.length > 0
+
+  /** Closes the form, unless some league could not be notified: then the admin must see which one. */
+  function finish(result: TutorialSaveResult) {
+    const skipped = result.announcement?.skipped ?? []
+    if (!skipped.length) { onDone(); return }
+    const names = skipped.map((item) => item.leagueName).join(", ")
+    setNotice(`${tx("Guardado, pero no se ha publicado el aviso en el chat de:")} ${names}. ${tx("Comprueba que la liga tenga una temporada en curso o sin comenzar.")}`)
+  }
 
   const valid = draft.title.trim().length > 0 && (editingId !== null || picked !== null) && (draft.audience !== "leagues" || draft.leagueIds.length > 0)
 
@@ -70,9 +84,9 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
     if (editingId) {
       const newPosterPath = customPoster ? await uploadTutorialFile(customPoster, customPoster.type) : null
       if (customPoster && !newPosterPath) { setBusy(false); setError(tx("No se ha podido subir la miniatura.")); return }
-      const saved = await updateTutorial(editingId, { ...fields, ...(newPosterPath ? { posterPath: newPosterPath } : {}) })
+      const saved = await updateTutorial(editingId, { ...fields, ...(newPosterPath ? { posterPath: newPosterPath } : {}), announce: wantsAnnouncement })
       setBusy(false)
-      if (saved) onDone()
+      if (saved.ok) finish(saved)
       else setError(tx("No se ha podido guardar."))
       return
     }
@@ -83,10 +97,10 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
     const posterPath = customPoster
       ? await uploadTutorialFile(customPoster, customPoster.type)
       : picked.poster ? await uploadTutorialFile(picked.poster, "image/jpeg") : null
-    const created = await createTutorial({ ...fields, videoPath, posterPath, width: picked.width, height: picked.height, durationMs: picked.durationMs })
+    const created = await createTutorial({ ...fields, videoPath, posterPath, width: picked.width, height: picked.height, durationMs: picked.durationMs, announce: wantsAnnouncement })
     setBusy(false)
     setProgress(null)
-    if (created) onDone()
+    if (created.ok) finish(created)
     else setError(tx("No se ha podido guardar el tutorial."))
   }
 
@@ -148,8 +162,20 @@ export function TutorialForm({ editingId, initial, leagues, onDone, onCancel }: 
           ))}
         </fieldset>
       ) : null}
+      {pendingLeagues.length > 0 ? (
+        <label className="flex items-start gap-2 rounded-xl bg-neutral-100 p-2">
+          <input type="checkbox" checked={announce} disabled={busy} onChange={(event) => setAnnounce(event.target.checked)} className="mt-1" />
+          <span className="min-w-0 text-xs font-bold leading-snug text-neutral-950"><span className="block text-sm font-black">{tx("Avisar en el chat de la liga")}</span><span className="block font-semibold text-neutral-600">{tx("Publica una Novedad firmada por la liga y avisa a todos sus participantes. Solo se avisa una vez a cada liga.")}</span></span>
+        </label>
+      ) : null}
       {progress !== null ? <div role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100} className="h-2 overflow-hidden rounded-full bg-neutral-200"><div className="h-full bg-neutral-950" style={{ width: `${Math.round(progress * 100)}%` }} /></div> : null}
       {error ? <p role="alert" className="text-xs font-bold text-red-700">{error}</p> : null}
+      {notice ? (
+        <div role="status" className="space-y-2 rounded-xl bg-amber-100 p-2 text-xs font-bold text-amber-950">
+          <p>{notice}</p>
+          <button type="button" onClick={onDone} className="inline-flex min-h-9 items-center justify-center rounded-full bg-neutral-950 px-4 text-center text-sm font-bold text-white">{tx("Entendido")}</button>
+        </div>
+      ) : null}
     </form>
   )
 }

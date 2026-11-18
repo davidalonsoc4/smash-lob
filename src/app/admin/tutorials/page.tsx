@@ -94,6 +94,7 @@ export default function AdminTutorialsPage() {
                 editingId={form.editing?.id ?? null}
                 initial={form.editing ? { title: form.editing.title, description: form.editing.description, audience: form.editing.audience, leagueIds: form.editing.leagueIds } : EMPTY_DRAFT}
                 leagues={leagues}
+                announcedLeagueIds={form.editing?.announcedLeagueIds ?? []}
                 onDone={() => { setForm(null); void load() }}
                 onCancel={() => setForm(null)}
               />

@@ -66,6 +66,8 @@ export type TutorialSummary = {
 export type TutorialAdminItem = TutorialSummary & {
   audience: TutorialAudience
   leagueIds: string[]
+  /** Leagues that already received the automatic notice in their chat. */
+  announcedLeagueIds: string[]
   viewCount: number
 }
 

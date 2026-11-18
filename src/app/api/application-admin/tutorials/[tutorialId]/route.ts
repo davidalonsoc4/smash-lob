@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { recordApplicationAdminAudit } from "@/lib/serverApplicationAdminAudit"
-import { adminFail, allLeaguesExist, parseTutorialFields, replaceTutorialLeagues, requireTutorialAdmin, tutorialFileExists } from "@/lib/serverTutorialAdmin"
+import { adminFail, allLeaguesExist, announceTutorialIfRequested, parseTutorialFields, replaceTutorialLeagues, requireTutorialAdmin, tutorialFileExists } from "@/lib/serverTutorialAdmin"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { isTutorialPath, TUTORIAL_BUCKET } from "@/lib/tutorialVideos"
 
@@ -34,7 +34,8 @@ export async function PATCH(request: Request, context: Context) {
   const oldPoster = before?.data?.poster_path
   if (typeof oldPoster === "string" && oldPoster !== newPoster) await auth.actor.supabase.storage.from(TUTORIAL_BUCKET).remove([oldPoster])
   await recordApplicationAdminAudit({ supabase: auth.actor.supabase, actor: auth.actor.user, action: "tutorial_updated", metadata: { tutorialId: id, audience: fields.audience } })
-  return NextResponse.json({ ok: true })
+  const announcement = await announceTutorialIfRequested(auth.actor, id, raw?.announce === true, fields.audience, fields.leagueIds)
+  return NextResponse.json({ ok: true, ...(announcement ? { announcement } : {}) })
 }
 
 /** Deletes the tutorial and its files. Copies already shared in a chat are independent and stay. */
