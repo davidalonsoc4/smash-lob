@@ -1,5 +1,6 @@
 import "server-only"
 
+import { logServerEvent } from "@/lib/serverLog"
 import { dispatchPushForActivityEvent } from "@/lib/serverPushDispatch"
 import type { ActivityEventType } from "@/lib/activity"
 import type { ServerLeagueActor } from "@/lib/serverLeagueAccess"
@@ -122,7 +123,16 @@ export async function insertServerActivityEvent({
 
   const eventId = String(data.id)
 
-  await dispatchPushForActivityEvent(eventId).catch(() => null)
+  // A failed push never blocks the activity, but it must leave a trace: otherwise a missing VAPID key is invisible.
+  const push = await dispatchPushForActivityEvent(eventId).catch(() => null)
+  if (!push?.ok) {
+    logServerEvent("warn", "activity_push_not_sent", {
+      operation: `activity_push:${type}`,
+      outcome: "push_not_sent",
+      errorCode: push?.reason ?? (push?.error ? "dispatch_error" : "dispatch_exception"),
+      leagueId,
+    })
+  }
 
   return eventId
 }
