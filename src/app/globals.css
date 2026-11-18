@@ -3495,6 +3495,19 @@ html:not(.dark)[data-visual-style] .match-preview-featured [data-match-schedule-
 html[data-visual-style] .app-card.match-preview-featured [data-match-schedule-hint] .match-schedule-action {
   color: var(--foreground) !important;
 }
+/* The same secondary look outside the featured fixture (personal activity card). */
+html[data-visual-style] [data-match-schedule-hint] {
+  background: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 55%, transparent) !important;
+}
+html[data-visual-style] [data-match-schedule-hint] p,
+html[data-visual-style] [data-match-schedule-hint] .match-schedule-action {
+  color: var(--app-accent) !important;
+}
+html:not(.dark)[data-visual-style] [data-match-schedule-hint] p,
+html:not(.dark)[data-visual-style] [data-match-schedule-hint] .match-schedule-action {
+  color: var(--foreground) !important;
+}
 /* Match detail totals echo the compact preview's accent score tile. */
 html[data-theme][data-visual-style] .app-match-result-total {
   font-size: 26px !important;
