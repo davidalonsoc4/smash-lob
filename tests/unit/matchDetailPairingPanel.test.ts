@@ -61,7 +61,9 @@ describe("match detail pairing panel", () => {
     expect(panel).toContain('alignment="left"')
     expect(panel).toContain('alignment="right"')
     expect(panel).toContain('className="min-w-0 text-left"')
-    expect(panel).toContain('alignment === "right" ? "text-right" : "text-left"')
+    // Pending pairings: names and metadata are centered over the divider line (same inset as the line).
+    expect(panel).toContain('alignment === "right" ? "ml-4" : "mr-4"')
+    expect(panel).toContain("text-center")
     expect(panel).not.toContain('type-caption font-bold uppercase leading-none tracking-wide')
     expect(panel).not.toContain('mr-auto flex h-7 min-w-7')
     expect(panel).not.toContain('ml-auto flex h-7 min-w-7')

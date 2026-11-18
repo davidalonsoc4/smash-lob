@@ -73,9 +73,7 @@ function DetailPlayer({
   const sideLabel = getPreferredPlayerSideLabel(recommendedSide ?? player?.preferredSide)
   const handLabel = getDominantHandLabel(player?.dominantHand)
   const playerPositionLabel = [sideLabel, handLabel].filter((label): label is string => Boolean(label)).map(label => tx(label)).join(" · ")
-  const metadataClass = `min-h-4 type-micro font-medium leading-4 tracking-normal text-neutral-500 ${
-    alignment === "right" ? "text-right" : "text-left"
-  }`
+  const metadataClass = "min-h-4 type-micro font-medium leading-4 tracking-normal text-neutral-500 text-center"
   const metadataText = [showRankingPosition && position ? `#${position}` : null, playerPositionLabel].filter(Boolean).join(" · ")
   const metadataLine = <p className={`${metadataClass} truncate`} title={metadataText}>
     {showRankingPosition && position ? <>#{position}{sideLabel || handLabel ? " · " : ""}</> : null}
@@ -93,9 +91,7 @@ function DetailPlayer({
       {linkPlayers && player ? (
         <Link
           href={`/player/${player.slug}`}
-          className={`block min-w-0 underline-offset-4 active:underline ${
-            alignment === "right" ? "text-right" : "text-left"
-          }`}
+          className="block min-w-0 text-center underline-offset-4 active:underline"
         >
           {name}
         </Link>
@@ -107,7 +103,7 @@ function DetailPlayer({
   )
 
   return (
-    <div className={`min-w-0 ${alignment === "right" ? "text-right" : "text-left"}`}>
+    <div className={`min-w-0 text-center ${alignment === "right" ? "ml-4" : "mr-4"}`}>
       {showMetadata ? (
         <div className="space-y-0.5">
           {metadataPlacement === "before-name" ? (
@@ -128,9 +124,7 @@ function DetailPlayer({
 
       {substituteLabel ? (
         <p
-          className={`mt-1 type-caption font-bold leading-3 text-red-700 ${
-            alignment === "right" ? "text-right" : "text-left"
-          }`}
+          className="mt-1 type-caption font-bold leading-3 text-red-700 text-center"
         >
           {tx("Suplente · por")}{" "}{substituteLabel}
         </p>
@@ -172,9 +166,7 @@ function PairDetails({
   }
   return (
     <div
-      className={`app-match-pair-surface rounded-xl border border-neutral-200 bg-white px-3 py-4 ${
-        alignment === "right" ? "text-right" : "text-left"
-      }`}
+      className="app-match-pair-surface rounded-xl border border-neutral-200 bg-white px-3 py-4 text-center"
     >
       {displayPlayers.map(({ playerId, recommendedSide }, index) => (
         <div key={playerId} className={index === 0 ? "pb-1.5" : "pt-1"}>
