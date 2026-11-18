@@ -3,7 +3,7 @@ import { recordApplicationAdminAudit } from "@/lib/serverApplicationAdminAudit"
 import { listVisibleTutorials } from "@/lib/serverTutorials"
 import {
   adminFail, allLeaguesExist, announceTutorialIfRequested, parseTutorialFields, replaceTutorialLeagues, requireTutorialAdmin,
-  tutorialFileExists, validTutorialPaths,
+  tutorialFileExists, tutorialScheduleColumns, validTutorialPaths,
 } from "@/lib/serverTutorialAdmin"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 
@@ -52,6 +52,7 @@ export async function POST(request: Request) {
     .from("tutorial_videos")
     .insert({
       title: fields.title, description: fields.description, audience: fields.audience,
+      ...tutorialScheduleColumns(fields, input.announce === true),
       position: ((last.data?.position as number | undefined) ?? 0) + 1,
       video_path: videoPath, poster_path: posterPath,
       width: dimension(input.width, 20000), height: dimension(input.height, 20000),
@@ -64,7 +65,7 @@ export async function POST(request: Request) {
   const id = String(created.data.id)
   if (!(await replaceTutorialLeagues(auth.actor, id, fields.leagueIds))) return adminFail("tutorial_create_failed", 500)
   await recordApplicationAdminAudit({ supabase: auth.actor.supabase, actor: auth.actor.user, action: "tutorial_created", metadata: { tutorialId: id, audience: fields.audience } })
-  const announcement = await announceTutorialIfRequested(auth.actor, id, input.announce === true, fields.audience, fields.leagueIds)
+  const announcement = await announceTutorialIfRequested(auth.actor, id, input.announce === true, fields)
   return NextResponse.json({ id, ...(announcement ? { announcement } : {}) }, { status: 201 })
 }
 

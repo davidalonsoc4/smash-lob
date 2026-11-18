@@ -15,6 +15,7 @@ import {
 import { getScheduleLocationFallbackText } from "@/lib/leagueLocations";
 import { getPreseasonAccessPhase } from "@/lib/preseasonSecrets";
 import { runScheduledSeasonStartAutomation } from "@/lib/serverScheduledSeasonAutomation";
+import { runScheduledTutorialAnnouncements } from "@/lib/serverTutorialScheduledAnnouncements";
 import { runPersonalMatchNotificationAutomation } from "@/lib/serverPersonalMatchAutomation";
 import { runProgressiveCalendarRevealAutomation } from "@/lib/serverProgressiveCalendarAutomation";
 import { getUpcomingReminderTargets, safelyRunBallCustodianNotificationAutomation, type OrganizationBallsSetting } from "@/lib/serverBallCustodianNotifications";
@@ -372,11 +373,10 @@ export async function GET(request: Request) {
 
   // Retención automática del chat de amistosos: el job programado purga
   // mensajes y recibos cuando han pasado dos meses desde el resultado.
-  try {
-    await supabase.rpc("cleanup_expired_personal_match_chat");
-  } catch {
-    // Best-effort: una limpieza fallida no debe bloquear recordatorios.
-  }
+  await Promise.resolve(supabase.rpc("cleanup_expired_personal_match_chat")).catch(() => undefined); // best-effort
+
+  // Tutoriales programados: avisa en los chats de liga los que ya han llegado a su hora.
+  await runScheduledTutorialAnnouncements({ supabase, now }).catch(() => undefined); // best-effort
 
   let personalMatchAutomation: Awaited<ReturnType<typeof runPersonalMatchNotificationAutomation>>;
   try {

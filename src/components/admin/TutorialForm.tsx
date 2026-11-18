@@ -4,7 +4,7 @@ import { useState, type ChangeEvent } from "react"
 import { inspectMp4, moveMoovToFront } from "@/lib/mp4"
 import { extractVideoPoster } from "@/lib/videoPoster"
 import { TUTORIAL_FILE_ACCEPT, getTutorialFileRule, type TutorialAudience } from "@/lib/tutorialVideos"
-import { createTutorial, updateTutorial, uploadTutorialFile, type TutorialDraft, type TutorialLeagueOption, type TutorialSaveResult } from "@/lib/tutorialVideosClient"
+import { createTutorial, fromLocalInputValue, toLocalInputValue, updateTutorial, uploadTutorialFile, type TutorialDraft, type TutorialLeagueOption, type TutorialSaveResult } from "@/lib/tutorialVideosClient"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type Picked = { file: File; poster: Blob | null; width: number | null; height: number | null; durationMs: number | null }
@@ -80,7 +80,7 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
     if (!valid || busy) return
     setBusy(true)
     setError(null)
-    const fields = { ...draft, title: draft.title.trim(), description: draft.description.trim() }
+    const fields = { ...draft, title: draft.title.trim(), description: draft.description.trim(), publishAt: draft.audience === "draft" ? null : draft.publishAt }
     if (editingId) {
       const newPosterPath = customPoster ? await uploadTutorialFile(customPoster, customPoster.type) : null
       if (customPoster && !newPosterPath) { setBusy(false); setError(tx("No se ha podido subir la miniatura.")); return }
@@ -161,6 +161,18 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
             </label>
           ))}
         </fieldset>
+      ) : null}
+      {draft.audience !== "draft" ? (
+        <label className="block text-xs font-semibold text-neutral-600">
+          {tx("Programar publicación (opcional)")}
+          <div className="mt-1 flex items-center gap-2">
+            <input type="datetime-local" data-tutorial-publish-at value={toLocalInputValue(draft.publishAt)} disabled={busy}
+              onChange={(event) => setDraft({ ...draft, publishAt: fromLocalInputValue(event.target.value) })}
+              className="min-w-0 flex-1 rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950" />
+            {draft.publishAt ? <button type="button" disabled={busy} onClick={() => setDraft({ ...draft, publishAt: null })} className="shrink-0 rounded-full px-3 py-1.5 text-sm font-bold">{tx("Quitar")}</button> : null}
+          </div>
+          <span className="mt-1 block text-xs font-semibold text-neutral-600">{tx("Hasta esa fecha nadie más lo verá. Se publica poco después de la hora indicada, no al minuto exacto.")}</span>
+        </label>
       ) : null}
       {pendingLeagues.length > 0 ? (
         <label className="flex items-start gap-2 rounded-xl bg-neutral-100 p-2">

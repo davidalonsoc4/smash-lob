@@ -66,6 +66,23 @@ export type TutorialDraft = {
   description: string
   audience: "draft" | "public" | "leagues"
   leagueIds: string[]
+  /** Moment it goes live (ISO); null publishes right away. */
+  publishAt: string | null
+}
+
+/** ISO moment -> value of a datetime-local input (the viewer's own time zone). */
+export function toLocalInputValue(iso: string | null) {
+  if (!iso) return ""
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ""
+  const pad = (value: number) => String(value).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+/** Value of a datetime-local input -> ISO moment (or null when empty/invalid). */
+export function fromLocalInputValue(value: string) {
+  const date = value ? new Date(value) : null
+  return date && !Number.isNaN(date.getTime()) ? date.toISOString() : null
 }
 
 export async function createTutorial(input: TutorialDraft & {

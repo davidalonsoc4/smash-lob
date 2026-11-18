@@ -19,7 +19,18 @@ export const adminFail = (error: string, status: number) => NextResponse.json({ 
 
 type Actor = Extract<Awaited<ReturnType<typeof requireTutorialAdmin>>, { ok: true }>["actor"]
 
-export type TutorialFields = { title: string; description: string; audience: TutorialAudience; leagueIds: string[] }
+export type TutorialFields = { title: string; description: string; audience: TutorialAudience; leagueIds: string[]; publishAt: string | null }
+
+const MAX_SCHEDULE_AHEAD_MS = 2 * 365 * 24 * 3_600_000
+
+/** A moment in the future (ISO) or null when it is empty, already past (publish now) or the tutorial is a draft; undefined if invalid. */
+function parsePublishAt(value: unknown, audience: TutorialAudience, now = Date.now()) {
+  if (value === undefined || value === null || value === "") return null
+  if (typeof value !== "string") return undefined
+  const time = Date.parse(value)
+  if (!Number.isFinite(time) || time - now > MAX_SCHEDULE_AHEAD_MS) return undefined
+  return audience === "draft" || time <= now ? null : new Date(time).toISOString()
+}
 
 /** Validates the editable fields; null means the input is invalid. */
 export function parseTutorialFields(input: Record<string, unknown> | null): TutorialFields | null {
@@ -33,7 +44,9 @@ export function parseTutorialFields(input: Record<string, unknown> | null): Tuto
   if (leagueIds.some((id) => id === null)) return null
   const ids = leagueIds as string[]
   if (audience === "leagues" && ids.length === 0) return null
-  return { title, description, audience, leagueIds: audience === "leagues" ? ids : [] }
+  const publishAt = parsePublishAt(input.publishAt, audience)
+  if (publishAt === undefined) return null
+  return { title, description, audience, leagueIds: audience === "leagues" ? ids : [], publishAt }
 }
 
 export async function tutorialFileExists(actor: Actor, path: string) {
@@ -73,9 +86,15 @@ export async function allLeaguesExist(actor: Actor, leagueIds: string[]) {
   return !found.error && (found.data ?? []).length === leagueIds.length
 }
 
-/** Posts the "Novedad" in the chats of the leagues that were not announced yet, when the admin asked for it. */
-export async function announceTutorialIfRequested(actor: Actor, tutorialId: string, wanted: boolean, audience: TutorialAudience, leagueIds: string[]) {
-  if (!wanted || audience !== "leagues" || !leagueIds.length) return null
+/** Scheduling columns for a save: the notice waits for publish_at when there is one, otherwise it goes out right away. */
+export function tutorialScheduleColumns(fields: TutorialFields, announce: boolean) {
+  return { publish_at: fields.publishAt, announce_on_publish: Boolean(fields.publishAt) && announce && fields.audience === "leagues" }
+}
+
+/** Posts the "Novedad" in the chats of the leagues that were not announced yet, when the admin asked for it. Scheduled tutorials wait. */
+export async function announceTutorialIfRequested(actor: Actor, tutorialId: string, wanted: boolean, fields: Pick<TutorialFields, "audience" | "leagueIds" | "publishAt">) {
+  const { audience, leagueIds } = fields
+  if (!wanted || fields.publishAt || audience !== "leagues" || !leagueIds.length) return null
   const row = await actor.supabase.from("tutorial_videos").select(TUTORIAL_FIELDS).eq("id", tutorialId).maybeSingle()
   if (row.error || !row.data) return null
   return announceTutorialInLeagues({ supabase: actor.supabase, user: actor.user, tutorial: row.data as unknown as TutorialRow, leagueIds })

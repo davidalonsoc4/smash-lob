@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { recordApplicationAdminAudit } from "@/lib/serverApplicationAdminAudit"
-import { adminFail, allLeaguesExist, announceTutorialIfRequested, parseTutorialFields, replaceTutorialLeagues, requireTutorialAdmin, tutorialFileExists } from "@/lib/serverTutorialAdmin"
+import { adminFail, allLeaguesExist, announceTutorialIfRequested, parseTutorialFields, replaceTutorialLeagues, requireTutorialAdmin, tutorialFileExists, tutorialScheduleColumns } from "@/lib/serverTutorialAdmin"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
 import { isTutorialPath, TUTORIAL_BUCKET } from "@/lib/tutorialVideos"
 
@@ -24,7 +24,7 @@ export async function PATCH(request: Request, context: Context) {
   if (before?.error) return adminFail("tutorial_update_failed", 500)
   const updated = await auth.actor.supabase
     .from("tutorial_videos")
-    .update({ title: fields.title, description: fields.description, audience: fields.audience, ...(newPoster ? { poster_path: newPoster } : {}), updated_at: new Date().toISOString() })
+    .update({ title: fields.title, description: fields.description, audience: fields.audience, ...tutorialScheduleColumns(fields, raw?.announce === true), ...(newPoster ? { poster_path: newPoster } : {}), updated_at: new Date().toISOString() })
     .eq("id", id)
     .select("id")
     .maybeSingle()
@@ -34,7 +34,7 @@ export async function PATCH(request: Request, context: Context) {
   const oldPoster = before?.data?.poster_path
   if (typeof oldPoster === "string" && oldPoster !== newPoster) await auth.actor.supabase.storage.from(TUTORIAL_BUCKET).remove([oldPoster])
   await recordApplicationAdminAudit({ supabase: auth.actor.supabase, actor: auth.actor.user, action: "tutorial_updated", metadata: { tutorialId: id, audience: fields.audience } })
-  const announcement = await announceTutorialIfRequested(auth.actor, id, raw?.announce === true, fields.audience, fields.leagueIds)
+  const announcement = await announceTutorialIfRequested(auth.actor, id, raw?.announce === true, fields)
   return NextResponse.json({ ok: true, ...(announcement ? { announcement } : {}) })
 }
 

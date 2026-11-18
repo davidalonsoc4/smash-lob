@@ -4,6 +4,7 @@ import {
   TUTORIAL_BUCKET,
   TUTORIAL_URL_TTL_SECONDS,
   canViewTutorial,
+  isTutorialScheduled,
   type TutorialAdminItem,
   type TutorialAudience,
 } from "@/lib/tutorialVideos"
@@ -12,7 +13,7 @@ import type { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 type Actor = Extract<Awaited<ReturnType<typeof requireAuthenticatedAppUser>>, { ok: true }>["actor"]
 
 export const TUTORIAL_FIELDS =
-  "id,title,description,position,audience,video_path,poster_path,width,height,duration_ms,created_at"
+  "id,title,description,position,audience,video_path,poster_path,width,height,duration_ms,created_at,publish_at,announce_on_publish"
 
 export type TutorialRow = {
   id: string
@@ -25,6 +26,8 @@ export type TutorialRow = {
   width: number | null
   height: number | null
   duration_ms: number | null
+  publish_at?: string | null
+  announce_on_publish?: boolean
 }
 
 export async function getMemberLeagueIds(actor: Actor) {
@@ -77,6 +80,7 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
       leagueIds: leaguesByTutorial.get(row.id) ?? [],
       memberLeagueIds,
       isSuperuser: requireTutorialManager(actor),
+      publishAt: row.publish_at,
     }),
   )
   const posters = await signPaths(actor, visible.flatMap((row) => (row.poster_path ? [row.poster_path] : [])))
@@ -89,6 +93,8 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
     audience: row.audience,
     leagueIds: leaguesByTutorial.get(row.id) ?? [],
     announcedLeagueIds: announcedByTutorial.get(row.id) ?? [],
+    publishAt: isTutorialScheduled(row.publish_at) ? (row.publish_at ?? null) : null,
+    announceOnPublish: Boolean(row.announce_on_publish),
     viewCount: 0,
     posterUrl: row.poster_path ? (posters.get(row.poster_path) ?? null) : null,
     width: row.width,

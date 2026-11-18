@@ -41,11 +41,22 @@ export type TutorialAccess = {
   /** Leagues the viewer belongs to. */
   memberLeagueIds: string[]
   isSuperuser: boolean
+  /** Scheduled publication (ISO). Until then only managers see it. */
+  publishAt?: string | null
+  now?: number
+}
+
+/** True while a tutorial is scheduled for a moment that has not come yet. */
+export function isTutorialScheduled(publishAt: string | null | undefined, now = Date.now()) {
+  if (!publishAt) return false
+  const time = Date.parse(publishAt)
+  return Number.isFinite(time) && time > now
 }
 
 /** Who sees a tutorial: the manager sees all; everyone with a session sees 'public'; members see their leagues'. */
-export function canViewTutorial({ audience, leagueIds, memberLeagueIds, isSuperuser }: TutorialAccess) {
+export function canViewTutorial({ audience, leagueIds, memberLeagueIds, isSuperuser, publishAt, now }: TutorialAccess) {
   if (isSuperuser) return true
+  if (isTutorialScheduled(publishAt, now)) return false
   if (audience === "public") return true
   if (audience === "leagues") return leagueIds.some((id) => memberLeagueIds.includes(id))
   return false
@@ -68,6 +79,10 @@ export type TutorialAdminItem = TutorialSummary & {
   leagueIds: string[]
   /** Leagues that already received the automatic notice in their chat. */
   announcedLeagueIds: string[]
+  /** When it goes live (ISO), while that moment has not come yet. */
+  publishAt: string | null
+  /** The league-chat notice is waiting for publishAt. */
+  announceOnPublish: boolean
   viewCount: number
 }
 

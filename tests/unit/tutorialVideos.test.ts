@@ -18,6 +18,16 @@ describe("who sees a tutorial", () => {
     expect(canViewTutorial({ ...base, audience: "leagues", leagueIds: [], memberLeagueIds: ["a"] })).toBe(false)
     expect(canViewTutorial({ ...base, audience: "leagues", leagueIds: ["a"], isSuperuser: true })).toBe(true)
   })
+  it("hides a scheduled tutorial from everyone but the manager until its moment arrives", () => {
+    const now = Date.parse("2026-11-20T10:00:00Z")
+    const later = "2026-11-20T10:05:00Z"
+    const earlier = "2026-11-20T09:55:00Z"
+    expect(canViewTutorial({ ...base, audience: "public", publishAt: later, now })).toBe(false)
+    expect(canViewTutorial({ ...base, audience: "leagues", leagueIds: ["a"], memberLeagueIds: ["a"], publishAt: later, now })).toBe(false)
+    expect(canViewTutorial({ ...base, audience: "public", publishAt: later, now, isSuperuser: true })).toBe(true)
+    expect(canViewTutorial({ ...base, audience: "public", publishAt: earlier, now })).toBe(true)
+    expect(canViewTutorial({ ...base, audience: "public", publishAt: null, now })).toBe(true)
+  })
 })
 
 describe("tutorial files", () => {

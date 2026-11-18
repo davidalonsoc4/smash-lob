@@ -1973,3 +1973,27 @@ test("tutorial management lets the app admin watch each tutorial, drafts include
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })
+
+test("tutorial management schedules a publication and shows what is scheduled", async ({ page }) => {
+  await setup(page, "dark", "classic", true, false, true)
+  const base = { description: "", position: 1, leagueIds: [], announcedLeagueIds: [], announceOnPublish: false, viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false }
+  const tutorials = [
+    { ...base, id: "t1", title: "Bienvenida", audience: "public", publishAt: null },
+    { ...base, id: "t2", title: "Inscripción", position: 2, audience: "public", publishAt: "2031-03-04T09:30:00.000Z" },
+  ]
+  let saved: Record<string, unknown> | null = null
+  await page.route("**/api/application-admin/tutorials", route => route.fulfill({ json: { tutorials, leagues: [] } }))
+  await page.route("**/api/application-admin/tutorials/t1", route => { saved = route.request().postDataJSON(); return route.fulfill({ json: { ok: true } }) })
+  await page.goto("/admin/tutorials")
+  // A scheduled tutorial says when it goes live; an immediate one says nothing.
+  await expect(page.locator("[data-tutorial-scheduled]")).toHaveCount(1)
+  await expect(page.locator("[data-tutorial-scheduled]")).toContainText(/2031/)
+  await page.getByRole("button", { name: "Editar" }).first().click()
+  await page.locator("[data-tutorial-publish-at]").fill("2031-05-06T10:15")
+  await page.getByRole("button", { name: "Guardar" }).click()
+  await expect.poll(() => saved?.publishAt).toBe(new Date("2031-05-06T10:15").toISOString())
+  // A draft cannot be scheduled: the field is not offered.
+  await page.getByRole("button", { name: "Editar" }).first().click()
+  await page.getByLabel("Borrador").check()
+  await expect(page.locator("[data-tutorial-publish-at]")).toHaveCount(0)
+})

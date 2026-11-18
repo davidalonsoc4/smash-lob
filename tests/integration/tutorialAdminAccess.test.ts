@@ -60,3 +60,16 @@ describe("tutorial management is for the superuser and the app admin only", () =
     expect(from).not.toHaveBeenCalled()
   })
 })
+
+describe("scheduled publication input", () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it("rejects a publication moment that is not a valid date or is too far away", async () => {
+    actor(true)
+    const base = { title: "Bienvenida", description: "", audience: "public", leagueIds: [] }
+    const patch = (publishAt: unknown) => PATCH(new Request("http://localhost/x", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...base, publishAt }) }), context)
+    expect((await patch("not a date")).status).toBe(400)
+    expect((await patch(12345)).status).toBe(400)
+    expect((await patch(new Date(Date.now() + 5 * 365 * 24 * 3_600_000).toISOString())).status).toBe(400)
+  })
+})

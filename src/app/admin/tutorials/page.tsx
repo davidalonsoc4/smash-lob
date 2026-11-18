@@ -12,10 +12,10 @@ import { deleteTutorial, fetchAdminTutorials, reorderTutorials, type TutorialLea
 import { formatTutorialDuration, type TutorialAdminItem } from "@/lib/tutorialVideos"
 import { useI18n } from "@/i18n/I18nProvider"
 
-const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, leagueIds: [] as string[] }
+const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, leagueIds: [] as string[], publishAt: null as string | null }
 
 export default function AdminTutorialsPage() {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const { isSuperuser, isAppAdmin } = useLeagueAccess()
   const canManage = isSuperuser || isAppAdmin
   const [items, setItems] = useState<TutorialAdminItem[] | null>(null)
@@ -80,6 +80,7 @@ export default function AdminTutorialsPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black text-neutral-950">{item.title}</p>
                   <p className="text-xs font-semibold text-neutral-600">{audienceLabel(item)}</p>
+                  {item.publishAt ? <p data-tutorial-scheduled className="text-xs font-black text-neutral-950">{tx("Programado para")} {new Date(item.publishAt).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}</p> : null}
                   <p className="text-xs font-semibold text-neutral-600">{[formatTutorialDuration(item.durationMs), `${item.viewCount} ${tx(item.viewCount === 1 ? "visto" : "vistos")}`].filter(Boolean).join(" · ")}</p>
                 </div>
               </div>
@@ -97,7 +98,7 @@ export default function AdminTutorialsPage() {
             {form ? (
               <TutorialForm
                 editingId={form.editing?.id ?? null}
-                initial={form.editing ? { title: form.editing.title, description: form.editing.description, audience: form.editing.audience, leagueIds: form.editing.leagueIds } : EMPTY_DRAFT}
+                initial={form.editing ? { title: form.editing.title, description: form.editing.description, audience: form.editing.audience, leagueIds: form.editing.leagueIds, publishAt: form.editing.publishAt } : EMPTY_DRAFT}
                 leagues={leagues}
                 announcedLeagueIds={form.editing?.announcedLeagueIds ?? []}
                 onDone={() => { setForm(null); void load() }}
