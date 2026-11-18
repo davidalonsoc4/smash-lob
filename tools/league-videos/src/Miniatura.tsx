@@ -34,6 +34,6 @@ export const Miniatura: React.FC<MiniProps> = ({ kicker, title, logo, num, badge
       <div style={{ position: "absolute", width: 600, height: 600, borderRadius: "50%", border: `5px solid ${t.accent}`, opacity: 0.35 }} />
       <Img src={staticFile(logo)} style={{ width: 440, height: 440, objectFit: "contain", borderRadius: logo === "logo.png" ? 100 : 0, filter: `drop-shadow(0 0 70px ${t.accent}aa)` }} />
     </div>
-    {num && <div style={{ position: "absolute", right: 110, bottom: 70, fontSize: 40, fontWeight: 900, letterSpacing: 6, color: t.textSubtle }}>VÍDEO {num}</div>}
+    {num && <div style={{ position: "absolute", right: 110, bottom: 70, fontSize: 40, fontWeight: 900, letterSpacing: 6, color: t.textSubtle }}>{num}</div>}
   </AbsoluteFill>
 );

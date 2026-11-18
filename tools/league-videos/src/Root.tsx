@@ -28,7 +28,7 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="OrganizaTuPartido" component={Organiza} durationInFrames={ORGANIZA_FRAMES_FN(PRO_LEAGUE)} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="PartidosNormales" component={Amistosos} durationInFrames={AMISTOSOS_FRAMES_FN(PRO_LEAGUE)} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="InstagramReel1" component={Reel1} durationInFrames={REEL1_FRAMES} fps={30} width={1080} height={1920} />
-    <Composition id="Miniatura" component={Miniatura} durationInFrames={1} fps={30} width={1920} height={1080} defaultProps={{ kicker: "BIENVENIDA", title: "Así será\n*la liga*", logo: "pro-logo.png", num: "01", badge: "PRO LEAGUE · TEMPORADA 1" }} />
+    <Composition id="Miniatura" component={Miniatura} durationInFrames={1} fps={30} width={1920} height={1080} defaultProps={{ kicker: "BIENVENIDA", title: "Así será\n*la liga*", logo: "pro-logo.png", num: "VÍDEO 01", badge: "PRO LEAGUE · TEMPORADA 1" }} />
     <Composition id="LigaFormato" component={LigaFormato} durationInFrames={TOTAL_FRAMES} fps={30} width={1080} height={1920} />
   </>
 );

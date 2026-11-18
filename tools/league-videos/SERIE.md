@@ -3,25 +3,34 @@
 Objetivo: informar a los 8 participantes antes del inicio (domingo 20-dic-2026) con vídeos cortos (30–45 s, 9:16)
 para Instagram/WhatsApp. Estilo: tema "Competition" de la app + acento de la liga (`#d7a544`).
 
-## Calendario previsto
-| # | Cuándo | Vídeo | Estado |
+## Orden de envío a los jugadores (definitivo; el nº es el del archivo en `out/listos-para-subir/`)
+Criterio: primero la visión general y la app; el **chat (03) es el punto de inflexión**: desde ahí los vídeos se publican en el chat de la app como "NOVEDAD" (hasta entonces el chat estará en desuso). Fechas orientativas.
+
+| Nº | Fecha | Vídeo (composición) | Estado |
 |---|---|---|---|
-| 1 | Vie 20-nov | Bienvenida y formato | **Aprobado** (`BienvenidaRapida`: voz natural, música A, transiciones variadas) |
-| 2+5 | Tras confirmar hora (reserva 1-dic) | Jornada de apertura fusionada con el mini 5: plan del día, hora de quedada, comida u otros planes y cómo se desbloquean los enfrentamientos al empezar la liga (sorpresa para todos) | **STAND BY** hasta tener la hora confirmada |
-| 3 | Vie 27-nov | Para qué es la inscripción (versión sin cifras: `Inscripcion`) | Montado con voz (guion v5: incluye premio; lista de cuentas con importes cifrados) y música A; **Aprobado** |
-| 4 | Mar 1-dic | Anuncio del chat de la liga dentro de la app: recordar activar las notificaciones y cómo; los avisos de la liga se harán por el chat de la app; abrir la app para que se actualice automáticamente | **Aprobado** (v2, `ChatDeLaLiga`: chat alto con mensajes subiendo y NOVEDAD al final). Réplicas del chat de jugador (sin adjuntos ni fotos/vídeos); de aquí en adelante los vídeos se publican en el chat como "NOVEDAD" con vídeo |
-| 6 | Vie 4-dic | Perfil y disponibilidad (`PerfilDisponibilidad`) | **Aprobado**. Montado con voz y música A. Requiere activar recomendaciones en la temporada (hecho) y, idealmente, mover la disponibilidad al perfil |
-| 7 | Lun 7-dic | Calendario y parejas secretas | Pendiente |
-| 8 | Vie 11-dic | Subir un resultado (`SubirResultado`) | Montado con voz y música A (v2: corregido recuadro de pareja en "Tu partido"). Incluye aviso de notificaciones ("Falta el resultado" a las 2, 3, 4 y 24 h de la hora de inicio) |
-| 9 | — | (Descartado) Parejas de la jornada 1 reveladas | No se hace; la explicación del desbloqueo va en el 2+5 |
-| 10 | Mar 15-dic | Clasificación, desempate y MVP automático avanzado (`ClasificacionMvp`; la liga usa `automatic_advanced`, no votación) | **Aprobado** (v3: voz "Em-Bi-Pí" con subtítulos "MVP", música enlazada y fundido largo) |
-| 11 | Vie 18-dic | Suplentes e incidencias | APARCADO hasta que el organizador decida si mantiene el sistema de suplentes (vídeo corto aparte: son algo puntual) |
-| 11b | Antes del 13-dic | Cuenta atrás y desbloqueo del 20-dic (`CuentaAtrasDesbloqueo`): cuenta atrás, aviso de jornada de apertura 7 días antes, desbloqueo automático y jornadas que se van desvelando | **Aprobado** (versión final v5: con jornadas y chats bloqueados con candado y "te avisamos cuando se desbloquee tu siguiente partido"). La v4 queda en el repo (`assets/video12`) |
-| 12 | Dom 20-dic | ¡Hoy empieza! | Pendiente |
-| + | Antes del 20-dic (por decidir) | Presentación de la app (`PresentacionApp`): navegación fuera/dentro de la liga, botones de arriba y liga bloqueada hasta el 20-dic | **Aprobado** (montado con voz y música A) |
-| + | PENDIENTE (recordar al organizador) | "¿Sabías que también puedes registrar tus partidos normales en la app?": crear un encuentro (amistoso) con jugadores de la liga o escritos a mano, guardar el resultado, historial y estadísticas de MI PERFIL (compañeros, rivales, mejor pareja, némesis, diferencia de juegos y sets...) | **Aprobado** (`11-partidos-normales`) |
-| + | Sustituye al vídeo 7 de calendario | "Ha llegado el día, ¿cómo organizas tu próximo encuentro?" (`OrganizaTuPartido`): horarios recomendados, propuestas en el chat, programar el partido, calendario y recordatorios, pagos de la pista (sin bolas: van con la inscripción), resultado | **Aprobado** (`05-organiza-partido`) |
-| + | — | Aviso de liga bloqueada | Incluido dentro de la presentación (escenas 5 y 6; reutilizables como vídeo corto) |
+| 01 | Vie 20-nov | Bienvenida y formato (`BienvenidaRapida`) | Hecho y aprobado |
+| 02 | ~23-nov | Presentación de la app (`PresentacionApp`) | Hecho y aprobado |
+| 03 | ~26-nov | **Chat de la liga**: activar notificaciones; avisos por el chat de la app (`ChatDeLaLiga`) | Hecho y aprobado |
+| 04 | ~30-nov | Para qué es la inscripción, sin cifras (`InscripcionSinCifras`) | Hecho y aprobado |
+| 05 | ~4-dic | Perfil y disponibilidad (`PerfilDisponibilidad`) | Hecho y aprobado (requiere mover la disponibilidad al perfil: cambio pedido a la app) |
+| 06 | ~7-dic | Organiza tu próximo partido (`OrganizaTuPartido`) | Hecho y aprobado |
+| 07 | ~10-dic | Subir un resultado (`SubirResultado`) | Hecho y aprobado |
+| 09 | ~13-dic | Cuenta atrás y desbloqueo del 20-dic (`CuentaAtrasDesbloqueo`): aviso 7 días antes | Hecho y aprobado |
+| 08 | ~16-dic | Clasificación, desempate y MVP (`ClasificacionMvp`) | Hecho y aprobado |
+| 10 | ~18-dic | Partidos normales / amistosos (`PartidosNormales`) | Hecho y aprobado |
+
+Previstos y NO hechos todavía:
+| Cuándo | Vídeo | Estado |
+|---|---|---|
+| Tras confirmar pista/hora (reserva 1-dic) | Jornada de apertura + plan del día (fusión de los antiguos 2 y 5: hora, quedada, comida/planes, cómo se desbloquean los enfrentamientos) | STAND BY hasta tener la reserva confirmada |
+| Por decidir | Suplentes e incidencias (vídeo corto) | APARCADO hasta decidir el sistema de suplentes |
+| Dom 20-dic | ¡Hoy empieza! | Pendiente (guion) |
+| Opcional | Aviso de liga bloqueada (reutiliza escenas de la presentación) | Idea |
+| Opcional | Vídeos de la serie "dentro de la liga" (jornada nueva desbloqueada, MVP de jornada, etc.) | Ideas, sin guion |
+
+Instagram @smashandlob (genérico): `ig1-reel-liguilla` hecho (pendiente de aprobación final); reels 2 y 3 pendientes de guion; ideas de vídeos genéricos de la app (instalar y notificaciones, crear una liga, unirse con invitación, torneos rápidos, espectadores, estadísticas).
+
+Nota: los números 01-10 reflejan el orden de envío; al hacer el vídeo de apertura habrá que renumerar (iría entre 09 y 10). Las miniaturas son 16:9 (`Miniatura`); las 9:16 están en `miniaturas-9x16/`.
 
 ## Reglas de contenido
 - Escenas con datos de ejemplo llevan la etiqueta **"EJEMPLO · DATOS FICTICIOS"**.
@@ -46,5 +55,5 @@ Colores y datos de liga: objeto `LeagueConfig` (`src/Bienvenida.tsx`); el acento
 - Nunca consultar ni mostrar emparejamientos reales: ni el organizador ni yo los vemos. Solo nombres de pila de la liga con emparejamientos ficticios y etiqueta de ejemplo (o signos de interrogación).
 
 ## Instagram @smashandlob · Reel 1 (genérico, sin PRO League)
-- `InstagramReel1` (`src/Reel1.tsx`, voz `voiceApp1.ts`, toma `assets/app-reel1b/`): guión 8 aprobado. Avatares ficticios, réplicas simplificadas, logo de la app al final, eslogan «Para los que nunca tienen suficiente pádel», sin «Nos vemos en la pista». Salida: `out/listos-para-subir/12-reel1-liguilla.mp4` (pendiente de aprobación del usuario).
+- `InstagramReel1` (`src/Reel1.tsx`, voz `voiceApp1.ts`, toma `assets/app-reel1b/`): guión 8 aprobado. Avatares ficticios, réplicas simplificadas, logo de la app al final, eslogan «Para los que nunca tienen suficiente pádel», sin «Nos vemos en la pista». Salida: `out/listos-para-subir/ig1-reel-liguilla.mp4` (pendiente de aprobación del usuario).
 - Pendiente: guiones de los reels 2 y 3 (aprobar antes de generar voz).
