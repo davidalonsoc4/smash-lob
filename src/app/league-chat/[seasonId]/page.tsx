@@ -20,6 +20,8 @@ import { canDeleteLeagueChatMessage, canEditLeagueChatMessage } from "@/lib/leag
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
+import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
 import { useI18n } from "@/i18n/I18nProvider"
 import { CHAT_UNREAD_LOCAL_REFRESH_EVENT, subscribeChatRealtime } from "@/lib/chatRealtimeClient"
 import { createCoalescedRunner } from "@/lib/coalescedRunner"
@@ -58,9 +60,15 @@ function mergeMessages(previous: Message[], incoming: Message[]) {
 
 function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: string | null }) {
   const { tx, locale } = useI18n()
-  const { leagues } = useLeagueAccess()
+  const { leagues, isLeagueAdmin } = useLeagueAccess()
+  const { seasons, seasonSettings } = useSeasonSettings()
   const [chat, setChat] = useState<Chat | null>(null)
   const league = leagues.find((item) => item.id === chat?.season.league_id)
+  // Same rule as the app shell: while the season is scheduled, profiles (like the rest of the league) are closed to non-admins.
+  const chatSeason = seasons.find((item) => item.id === seasonId)
+  const profilesLocked = Boolean(chatSeason && !isLeagueAdmin(chatSeason.leagueId)
+    && isScheduledSeasonHomeLocked(chatSeason.status, seasonSettings.find((item) => item.seasonId === seasonId)?.scheduledStartAt, false))
+  const profileHref = (participant: Parameters<typeof leagueChatProfileHref>[0]) => (profilesLocked ? null : leagueChatProfileHref(participant))
   const [body, setBody] = useState("")
   const [error, setError] = useState(false)
   const [pending, setPending] = useState<Message | null>(null)
@@ -398,7 +406,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
             {chat?.participants?.length ? <>
               {chat.season.name ? <span aria-hidden="true">·</span> : null}
               <button type="button" data-league-chat-participants-trigger onClick={() => setParticipantsOpen(true)} className="shrink-0 underline-offset-2 active:underline">{chat.participants.length} {tx(chat.participants.length === 1 ? "participante" : "participantes")}</button>
-              <LeagueChatParticipantsDialog open={participantsOpen} onClose={() => setParticipantsOpen(false)} participants={chat.participants} me={chat.me} />
+              <LeagueChatParticipantsDialog open={participantsOpen} onClose={() => setParticipantsOpen(false)} participants={chat.participants} me={chat.me} profilesLocked={profilesLocked} />
             </> : null}
           </div>
         </div>
@@ -412,7 +420,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
         const previous = index > 0 ? messages[index - 1] : null
         const newDay = !previous || getChatDayKey(previous.created_at) !== getChatDayKey(message.created_at)
         const sameGroup = Boolean(previous) && !newDay && previous!.sender_user_id === message.sender_user_id && !message.is_announcement && !previous!.is_announcement
-        const quoted = message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, href: leagueChatProfileHref(chat.participants?.find(item => item.userId === message.reply!.sender_user_id)), body: replyPreviewText(message.reply) } : null
+        const quoted = message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, href: profileHref(chat.participants?.find(item => item.userId === message.reply!.sender_user_id)), body: replyPreviewText(message.reply) } : null
         const bubble = message.is_announcement && !message.deleted_at ? <LeagueChatAnnouncementCard
           author={message.sender_display_name} createdAt={message.created_at} body={message.body} pending={message === pending}
           editedLabel={message.edited_at ? tx("Editado") : undefined}
@@ -421,12 +429,12 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
           message={message} me={chat.me} participants={chat.participants ?? []} pending={message === pending}
           rowClassName={message === pending ? "opacity-70" : ""}
           previousSameSender={sameGroup}
-          senderHref={leagueChatProfileHref(chat.participants?.find(item => item.userId === message.sender_user_id))}
+          senderHref={profileHref(chat.participants?.find(item => item.userId === message.sender_user_id))}
           bodyContent={message.deleted_at ? <em>{tx("Mensaje eliminado")}</em> : message.poll ? <LeagueChatPollBody question={message.body} poll={message.poll} names={participantNames} mine={message.sender_user_id === chat.me} disabled={message === pending || chat.readOnly} onVote={optionId => void vote(message, optionId)} /> : message.media_url ? <LeagueChatMediaBody message={message} mine={message.sender_user_id === chat.me || message === pending} /> : undefined}
           ownTimeSpacer={Boolean(message.media_url) || Boolean(message.poll)}
           editedLabel={message.edited_at && !message.deleted_at ? tx("Editado") : undefined}
           overlayMeta={Boolean(message.media_url && !message.body.trim() && !message.deleted_at && !message.edited_at)}
-          quotedReply={message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, href: leagueChatProfileHref(chat.participants?.find(item => item.userId === message.reply!.sender_user_id)), body: replyPreviewText(message.reply) } : null}
+          quotedReply={message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, href: profileHref(chat.participants?.find(item => item.userId === message.reply!.sender_user_id)), body: replyPreviewText(message.reply) } : null}
           onQuotedReplyClick={message.reply ? () => void jumpToMessage(message.reply!.id) : undefined}
         />
         const spacing = index === 0 ? "" : sameGroup ? "mt-0.5" : "mt-3"

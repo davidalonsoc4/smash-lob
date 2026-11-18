@@ -833,6 +833,7 @@ const EXACT_OVERRIDES = {
   "Guardado, pero no se ha publicado el aviso en el chat de:": "Gordeta, baina abisua ez da argitaratu honako txatean:",
   "Comprueba que la liga tenga una temporada en curso o sin comenzar.": "Egiaztatu ligak denboraldi bat martxan edo hasi gabe duela.",
   "Entendido": "Ulertuta",
+  "Los perfiles estarán disponibles cuando empiece la temporada.": "Profilak denboraldia hasten denean egongo dira eskuragarri.",
   "Programar publicación (opcional)": "Argitalpena programatu (aukerakoa)",
   "Quitar": "Kendu",
   "Hasta esa fecha nadie más lo verá. Se publica poco después de la hora indicada, no al minuto exacto.": "Ordura arte inork ez du ikusiko. Adierazitako ordutik gutxira argitaratzen da, ez minutu zehatzean.",

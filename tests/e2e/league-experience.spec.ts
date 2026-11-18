@@ -2024,3 +2024,24 @@ test("the tutorial form dialog fits the screen and keeps Save in view while scro
   const save = dialog.getByRole("button", { name: "Guardar" })
   await expect(save).toBeInViewport()
 })
+
+test("while the season is scheduled, chat profiles are not links and the list explains why", async ({ page }) => {
+  const control = await setup(page, "dark", "classic")
+  control.setUpcoming()
+  const createdAt = new Date().toISOString()
+  await page.route("**/api/league-season-chats/**", route => route.fulfill({ json: {
+    season: { name: "Temporada 1", league_id: leagueId }, readOnly: false, realtimeTopic: null, me: "qa-user",
+    participants: [
+      { userId: "zoe", displayName: "Zoe", playerId: "player-zoe", role: null },
+      { userId: "qa-user", displayName: "QA", playerId: "player-qa", role: "creator" },
+    ],
+    messages: [{ id: "m1", sender_user_id: "zoe", sender_display_name: "Zoe", body: "Hola", created_at: createdAt }],
+  } }))
+  await page.goto(`/league-chat/${seasonId}`)
+  // Names and photos in the messages do not lead to the locked league either.
+  await expect(page.locator("[data-chat-sender]").first()).not.toHaveAttribute("href", /.+/)
+  await page.locator("[data-league-chat-participants-trigger]").click()
+  await expect(page.locator("[data-league-chat-profiles-locked]")).toContainText("Los perfiles estarán disponibles cuando empiece la temporada.")
+  await expect(page.locator("[data-league-chat-participants] li")).toHaveCount(2)
+  await expect(page.locator("[data-league-chat-participants]").getByRole("link")).toHaveCount(0)
+})

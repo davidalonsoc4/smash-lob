@@ -20,13 +20,14 @@ export function leagueChatProfileHref(participant: Pick<MatchChatParticipant, "p
 }
 
 /** Everyone in the chat, one per row, each opening the player's profile when the account is linked to a player. */
-export function LeagueChatParticipantsDialog({ open, onClose, participants, me }: { open: boolean; onClose: () => void; participants: MatchChatParticipant[]; me: string }) {
+export function LeagueChatParticipantsDialog({ open, onClose, participants, me, profilesLocked = false }: { open: boolean; onClose: () => void; participants: MatchChatParticipant[]; me: string; profilesLocked?: boolean }) {
   const { tx } = useI18n()
   return (
     <FloatingDialog open={open} onClose={onClose} title={tx("Participantes")} variant="content">
+      {profilesLocked ? <p data-league-chat-profiles-locked className="px-3 pb-1 pt-3 text-xs font-semibold leading-snug opacity-80">{tx("Los perfiles estarán disponibles cuando empiece la temporada.")}</p> : null}
       <ul data-league-chat-participants className="max-h-[60dvh] space-y-1 overflow-y-auto">
         {sortLeagueChatParticipants(participants).map((participant) => {
-          const href = leagueChatProfileHref(participant)
+          const href = profilesLocked ? null : leagueChatProfileHref(participant)
           const content = (
             <>
               <PlayerAvatar player={{ displayName: participant.displayName, avatarUrl: participant.avatarUrl }} size="sm" />

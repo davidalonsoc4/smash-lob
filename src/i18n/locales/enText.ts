@@ -836,6 +836,7 @@ const EXACT_OVERRIDES = {
   "Guardado, pero no se ha publicado el aviso en el chat de:": "Saved, but the notice was not posted in the chat of:",
   "Comprueba que la liga tenga una temporada en curso o sin comenzar.": "Check that the league has a season in progress or not started yet.",
   "Entendido": "Got it",
+  "Los perfiles estarán disponibles cuando empiece la temporada.": "Profiles will be available once the season starts.",
   "Programar publicación (opcional)": "Schedule publication (optional)",
   "Quitar": "Remove",
   "Hasta esa fecha nadie más lo verá. Se publica poco después de la hora indicada, no al minuto exacto.": "Nobody else will see it until then. It goes live shortly after the chosen time, not at the exact minute.",
