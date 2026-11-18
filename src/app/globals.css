@@ -3502,10 +3502,6 @@ html[data-visual-style] [data-match-schedule-hint] {
 }
 html[data-visual-style] [data-match-schedule-hint] p,
 html[data-visual-style] [data-match-schedule-hint] .match-schedule-action {
-  color: var(--app-accent) !important;
-}
-html:not(.dark)[data-visual-style] [data-match-schedule-hint] p,
-html:not(.dark)[data-visual-style] [data-match-schedule-hint] .match-schedule-action {
   color: var(--foreground) !important;
 }
 /* Match detail totals echo the compact preview's accent score tile. */

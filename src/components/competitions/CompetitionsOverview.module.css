@@ -146,9 +146,6 @@
   border: 1px solid color-mix(in srgb, var(--app-accent) 55%, transparent) !important;
 }
 :global(html[data-visual-style]) .activityHero :global(.app-card) :global([data-match-schedule-hint]) :global(.match-schedule-action) {
-  color: var(--app-accent) !important;
-}
-:global(html:not(.dark)[data-visual-style]) .activityHero :global(.app-card) :global([data-match-schedule-hint]) :global(.match-schedule-action) {
   color: var(--foreground) !important;
 }
 
