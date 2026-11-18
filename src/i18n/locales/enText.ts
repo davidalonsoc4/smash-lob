@@ -830,6 +830,7 @@ const EXACT_OVERRIDES = {
   "Las opciones no pueden repetirse.": "Options cannot repeat.",
   "Creador": "Creator",
   "Administrador": "Administrator",
+  "Ver": "View",
   "Avisar en el chat de la liga": "Notify in the league chat",
   "Publica una Novedad firmada por la liga y avisa a todos sus participantes. Solo se avisa una vez a cada liga.": "Posts a News item signed by the league and notifies all its participants. Each league is only notified once.",
   "Guardado, pero no se ha publicado el aviso en el chat de:": "Saved, but the notice was not posted in the chat of:",

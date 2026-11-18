@@ -827,6 +827,7 @@ const EXACT_OVERRIDES = {
   "Las opciones no pueden repetirse.": "Aukerak ezin dira errepikatu.",
   "Creador": "Sortzailea",
   "Administrador": "Administratzailea",
+  "Ver": "Ikusi",
   "Avisar en el chat de la liga": "Abisatu ligako txatean",
   "Publica una Novedad firmada por la liga y avisa a todos sus participantes. Solo se avisa una vez a cada liga.": "Ligak sinatutako berri bat argitaratzen du eta partaide guztiei abisatzen die. Liga bakoitzari behin bakarrik abisatzen zaio.",
   "Guardado, pero no se ha publicado el aviso en el chat de:": "Gordeta, baina abisua ez da argitaratu honako txatean:",

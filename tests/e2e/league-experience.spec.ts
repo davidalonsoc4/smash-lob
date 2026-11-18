@@ -4,7 +4,7 @@ import { leagues, seasons, seasonPlayers, seasonRoundSettings, playerProfiles, a
 
 const leagueId="10000000-0000-4000-8000-000000000072", seasonId="20000000-0000-4000-8000-000000000072"
 const archivedSeasonId="20000000-0000-4000-8000-000000000073"
-async function setup(page:Page,theme:string,style:string,canCreate=true,archive=false) {
+async function setup(page:Page,theme:string,style:string,canCreate=true,archive=false,appAdmin=false) {
   let upcoming=false,windowed=false,advanced=false
   let role: "player" | "admin" = "admin"
   const league={...leagues[0],id:leagueId,name:"Liga Azul QA",accentColor:"#26b6ce",activeSeasonId:seasonId}
@@ -17,7 +17,7 @@ async function setup(page:Page,theme:string,style:string,canCreate=true,archive=
   await page.route("**/api/**",route=>route.fulfill({json:{ok:true,items:[],chats:[],locations:[]}}))
   await page.route("**/api/auth/session",route=>route.fulfill({json:{user:{name:"QA",email:"qa-experience@example.test",image:null},expires:"2099-01-01T00:00:00Z"}}))
   await page.route("**/api/account/profile",route=>route.fulfill({json:{profile:{firstName:"QA",lastName:"Experience",displayName:"QA",isComplete:true,profileCompletedAt:"2026-08-03",availabilityCompletedAt:"2026-08-03",standardAvailabilityTimezone:"Europe/Madrid",standardAvailabilityWeeklySlots:{},isSuperuser:false}}}))
-  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,canCreateLeagues:canCreate,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}, ...(archive ? [{...season,id:archivedSeasonId,status:"finished"}] : [])],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
+  await page.route("**/api/access**",route=>route.fulfill({json:{isSuperuser:false,isAppAdmin:appAdmin,canCreateLeagues:canCreate,leagues:[league],memberships:[{userId:"qa-experience@example.test",leagueId,playerId:"davo",role:upcoming?"player":role}],spectatorLeagueIds:[],matches,seasonSnapshot:{seasons:[{...season,status:upcoming?"upcoming":"active"}, ...(archive ? [{...season,id:archivedSeasonId,status:"finished"}] : [])],playerProfiles:profiles,seasonPlayers:roster,seasonSettings:[settings()],activeSeasonIds:{[leagueId]:seasonId}}}}))
   await page.route("**/api/personal-matches?**",route=>route.fulfill({json:{items:[],upcoming:[],hasMore:false,nextOffset:null}}))
   await page.route("**/api/tournaments",route=>route.fulfill({json:{tournaments:[]}}))
   await page.addInitScript(({theme,style})=>{
@@ -1944,6 +1944,32 @@ test("help shows the video tutorials this person may see and plays one", async (
   const player = page.getByRole("dialog", { name: "Cómo apuntarte a una liga" })
   await expect(player.locator("video")).toHaveAttribute("src", "http://localhost/none.mp4")
   await expect(player).toContainText("Un recorrido de dos minutos.")
+  const results = await new AxeBuilder({ page }).analyze()
+  expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})
+
+test("tutorial management lets the app admin watch each tutorial, drafts included", async ({ page }) => {
+  await setup(page, "dark", "classic", true, false, true)
+  const tutorials = [
+    { id: "t1", title: "Bienvenida", description: "Primer vídeo.", position: 1, audience: "draft", leagueIds: [], announcedLeagueIds: [], viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false },
+    { id: "t2", title: "Chat de la liga", description: "", position: 2, audience: "public", leagueIds: [], announcedLeagueIds: [], viewCount: 3, posterUrl: null, width: 1080, height: 1920, durationMs: 38_667, seen: false },
+  ]
+  const requested: string[] = []
+  await page.route("**/api/application-admin/tutorials", route => route.fulfill({ json: { tutorials, leagues: [] } }))
+  await page.route("**/api/tutorials/*", route => { requested.push(new URL(route.request().url()).pathname); return route.fulfill({ json: { videoUrl: "http://localhost/none.mp4" } }) })
+  await page.goto("/admin/tutorials")
+  await expect(page.getByText("Chat de la liga").first()).toBeVisible()
+  await page.locator("[data-tutorial-view]").nth(1).click()
+  const player = page.getByRole("dialog", { name: "Chat de la liga" })
+  await expect(player.locator("video")).toHaveAttribute("src", "http://localhost/none.mp4")
+  expect(requested).toEqual(["/api/tutorials/t2"])
+  // Watching from management is not a view: nothing is reported as seen.
+  expect(requested.some((path) => path.endsWith("/view"))).toBe(false)
+  await page.keyboard.press("Escape")
+  await expect(player).toHaveCount(0)
+  // The thumbnail opens the same preview.
+  await page.getByRole("button", { name: "Ver: Bienvenida" }).click()
+  await expect(page.getByRole("dialog", { name: "Bienvenida" })).toContainText("Primer vídeo.")
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { TutorialForm } from "@/components/admin/TutorialForm"
+import { TutorialPreviewDialog } from "@/components/admin/TutorialPreviewDialog"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { EmptyState } from "@/components/ui/EmptyState"
@@ -21,6 +22,7 @@ export default function AdminTutorialsPage() {
   const [leagues, setLeagues] = useState<TutorialLeagueOption[]>([])
   const [error, setError] = useState(false)
   const [form, setForm] = useState<{ editing: TutorialAdminItem | null } | null>(null)
+  const [preview, setPreview] = useState<TutorialAdminItem | null>(null)
 
   const load = useCallback(async () => {
     const data = await fetchAdminTutorials()
@@ -70,10 +72,11 @@ export default function AdminTutorialsPage() {
           {items?.map((item, index) => (
             <AppCard key={item.id} className="space-y-2 !p-3">
               <div className="flex items-start gap-3">
-                <span className="relative block h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-black">
+                <button type="button" onClick={() => setPreview(item)} aria-label={`${tx("Ver")}: ${item.title}`} className="relative block h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-black">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {item.posterUrl ? <img src={item.posterUrl} alt="" className="h-full w-full object-cover" /> : null}
-                </span>
+                  <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center"><span className="chat-media-overlay flex h-8 w-8 items-center justify-center rounded-full"><svg viewBox="0 0 24 24" className="ml-0.5 h-4 w-4"><path d="M8 5v14l11-7z" /></svg></span></span>
+                </button>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-black text-neutral-950">{item.title}</p>
                   <p className="text-xs font-semibold text-neutral-600">{audienceLabel(item)}</p>
@@ -81,6 +84,7 @@ export default function AdminTutorialsPage() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <button type="button" onClick={() => setPreview(item)} data-tutorial-view className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-950 px-4 text-sm font-bold text-white">{tx("Ver")}</button>
                 <button type="button" disabled={index === 0} onClick={() => void move(index, -1)} aria-label={tx("Subir")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↑</button>
                 <button type="button" disabled={index === items.length - 1} onClick={() => void move(index, 1)} aria-label={tx("Bajar")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↓</button>
                 <button type="button" onClick={() => setForm({ editing: item })} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold">{tx("Editar")}</button>
@@ -88,6 +92,7 @@ export default function AdminTutorialsPage() {
               </div>
             </AppCard>
           ))}
+          <TutorialPreviewDialog tutorial={preview} onClose={() => setPreview(null)} />
           <FloatingDialog open={Boolean(form)} onClose={() => setForm(null)} title={form?.editing ? tx("Editar tutorial") : tx("Nuevo tutorial")} className="league-chat-edit-dialog">
             {form ? (
               <TutorialForm
