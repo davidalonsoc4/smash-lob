@@ -157,6 +157,12 @@ export async function POST(request: Request, context: Context) {
     if (recentAnnouncements.error) return fail("league_chat_write_failed", 500)
     if ((recentAnnouncements.count ?? 0) >= 5) return fail("league_chat_rate_limited", 429)
   }
+  // Per user (not per IP: a whole club may share one Wi-Fi). Far above normal chatting; it only stops loops and abuse.
+  const recentMessages = await supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
+    .eq("season_id", seasonId).eq("sender_user_id", user.id)
+    .gte("created_at", new Date(Date.now() - 60_000).toISOString())
+  if (recentMessages.error) return fail("league_chat_write_failed", 500)
+  if ((recentMessages.count ?? 0) >= 30) return fail("league_chat_rate_limited", 429)
   const mediaPath = input?.mediaPath
   if (mediaPath !== undefined && mediaPath !== null) {
     if (!isLeagueChatMediaPathForSeason(mediaPath, seasonId)) return fail("invalid_media", 400)
