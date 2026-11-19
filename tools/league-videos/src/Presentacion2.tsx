@@ -73,8 +73,11 @@ const Stage = ({ league, ws }: P) => {
   const lockOn = f >= lockF - 2 && !unlocked;
   const dim = lockOn ? [false, true, true, true, true] : [];
   const lock = lockOn ? [false, true, true, true, true] : [];
-  const headerP = ease((f - (S.tr - 6)) / 22);
-  const barTop = 330 + 170 * headerP, panelTop = 640 + 170 * headerP;
+  // La barra entra con «fuera de la liga», se transforma al pasar «dentro de la liga», se retira para los botones de arriba y vuelve para «bloqueada».
+  const barOn = (a: number, b: number) => ease((f - a) / 12) * (1 - ease((f - b) / 12));
+  const barVis = Math.max(barOn(S.out - 4, S.tr - 14), barOn(S.lock - 4, S.end + 400));
+  const headerP = barOn(S.tr - 4, S.lock - 14);
+  const barTop = 330, panelTop = 640;
 
   // contenido bajo la barra (se encadena con fundidos, es el mismo contenedor)
   const q = league.exampleQuartet, NAMES = league.playerNames, to = rankAt(NAMES, 2);
@@ -139,22 +142,22 @@ const Stage = ({ league, ws }: P) => {
       </div>
       {example && <div style={{ position: "absolute", top: 232, left: 0, right: 0, textAlign: "center", fontSize: 26, fontWeight: 800, letterSpacing: 5, color: t.textSubtle }}>EJEMPLO · DATOS FICTICIOS</div>}
       {/* cabecera con los botones de arriba a la derecha */}
-      <div style={{ position: "absolute", top: 330, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: headerP, transform: `translateY(${(1 - headerP) * -40}px)` }}>
+      <div style={{ position: "absolute", top: 330, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: headerP, transform: `translateY(${(1 - headerP) * -40}px) scale(${0.94 + 0.06 * headerP})` }}>
         <Zoom z={2.15}>
           <div style={{ width: NATIVE_W, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderRadius: 20, padding: "14px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ fontSize: 18, fontWeight: 800 }}>Inicio</div>
             <div style={{ display: "flex", gap: 10 }}>
-              {icons.map((ic, i) => { const on = f >= trM[i] - 4 && f < S.lock - 6; const k = pop(f, fps, trM[i] - 4, 10); return <div key={ic} style={{ width: 40, height: 40, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: on ? t.accent : t.mutedSurface, border: `1px solid ${on ? t.accent : t.border}`, transform: `scale(${1 + 0.18 * Math.sin(Math.min(1, k) * Math.PI)})` }}><Icon name={ic} color={on ? t.accentContrast : t.textMuted} size={22} /></div>; })}
+              {icons.map((ic, i) => { const on = f >= trM[i] - 4; const k = pop(f, fps, trM[i] - 4, 10); return <div key={ic} style={{ width: 40, height: 40, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: on ? t.accent : t.mutedSurface, border: `1px solid ${on ? t.accent : t.border}`, transform: `scale(${1 + 0.18 * Math.sin(Math.min(1, k) * Math.PI)})` }}><Icon name={ic} color={on ? t.accentContrast : t.textMuted} size={22} /></div>; })}
             </div>
           </div>
         </Zoom>
       </div>
       {/* barra de navegación única */}
-      <div style={{ position: "absolute", top: barTop, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: ease((f - 4) / 14), transform: `scale(${0.94 + 0.06 * ease((f - 4) / 14)})` }}>
+      <div style={{ position: "absolute", top: barTop, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: barVis, transform: `scale(${0.94 + 0.06 * barVis})` }}>
         <Zoom z={2.15}><MorphBar m={morph} activeOut={activeOut} activeIn={activeIn} dim={dim} lock={lock} /></Zoom>
       </div>
       {/* gancho */}
-      <div style={{ position: "absolute", top: 640, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: hookOut * Math.min(1, hookP * 2) }}><Words text={"¿Dónde está\ncada *cosa*\nen la app?"} size={104} stagger={4} /></div>
+      <div style={{ position: "absolute", top: 520, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: hookOut * Math.min(1, hookP * 2) }}><Words text={"¿Dónde está\ncada *cosa*\nen la app?"} size={104} stagger={4} /></div>
       {/* contenido que cambia con fundidos */}
       <div style={{ position: "absolute", top: panelTop, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
         {slides.map((s, i) => {
