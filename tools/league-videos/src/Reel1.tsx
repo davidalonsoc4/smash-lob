@@ -3,6 +3,7 @@
 import React from "react";
 import { Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { Ball, Frame, SceneDef, TimedWord, VideoSeries, Words, pop, sfx, totalFrames, useTheme } from "./kit";
+import { COLORS, LOOKS, PlayerA, shade } from "./Avatars";
 import { BOUNDS_01 as BOUNDS, VOICE_01 as VOICE } from "./voiceApp1";
 
 type P = { ws: TimedWord[] };
@@ -16,15 +17,9 @@ const wf = (ws: TimedWord[], text: string, nth = 0) => {
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 /* ---------- Avatares ficticios (círculo + carita) ---------- */
-export const COLORS = ["#477BD1", "#3D9D86", "#D4643C", "#8B5FC0", "#53B4D1", "#d7a544", "#C4567A", "#7FA650"];
+export { COLORS };
 export const NAMES = ["Ana", "Beto", "Carla", "Dani", "Eli", "Fer", "Gus", "Hugo"];
-export const Av: React.FC<{ i: number; size?: number; ring?: string }> = ({ i, size = 120, ring }) => (
-  <div style={{ width: size, height: size, borderRadius: "50%", background: COLORS[i % 8], position: "relative", boxShadow: ring ? `0 0 0 ${Math.max(4, size / 18)}px ${ring}` : "none", flex: "none" }}>
-    <div style={{ position: "absolute", left: size * 0.29, top: size * 0.38, width: size * 0.1, height: size * 0.13, borderRadius: "50%", background: "#111" }} />
-    <div style={{ position: "absolute", right: size * 0.29, top: size * 0.38, width: size * 0.1, height: size * 0.13, borderRadius: "50%", background: "#111" }} />
-    <div style={{ position: "absolute", left: size * 0.32, top: size * 0.52, width: size * 0.36, height: size * 0.2, borderRadius: `0 0 ${size}px ${size}px`, border: `${Math.max(3, size / 28)}px solid #111`, borderTop: "none" }} />
-  </div>
-);
+export const Av: React.FC<{ i: number; size?: number; ring?: string }> = ({ i, size = 120, ring }) => <PlayerA look={LOOKS[i % 8]} size={size} bg={shade(COLORS[i % 8], 0.55)} ring={ring} />;
 export const Chip: React.FC<{ children: React.ReactNode; gold?: boolean; size?: number }> = ({ children, gold, size = 40 }) => {
   const t = useTheme();
   return <div style={{ display: "inline-block", border: `3px solid ${t.accent}`, background: gold ? t.accent : t.surface, color: gold ? t.accentContrast : t.accent, borderRadius: 999, padding: "14px 36px", fontSize: size, fontWeight: 900, letterSpacing: 4 }}>{children}</div>;

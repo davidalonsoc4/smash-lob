@@ -1,7 +1,7 @@
 // Instagram · Reel 3 (genérico): «¿Quieres jugar más al pádel? Solo necesitas gente y ganas» → Smash & Lob pone el resto.
 // Avatares básicos ficticios y réplicas simplificadas. Voz: David Martin · Eleven v3.
 import React from "react";
-import { Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { Ball, Frame, SceneDef, TimedWord, VideoSeries, Words, pop, sfx, totalFrames, useTheme } from "./kit";
 import { Av, Chip, COLORS, NAMES, Outro, Soon } from "./Reel1";
 import { Card } from "./Reel2";
@@ -196,26 +196,39 @@ const Balance: React.FC<P> = ({ ws }) => {
   );
 };
 
-/* 5 · Sé el más constante y demuestra quién es el mejor */
+/* 5 · Sé el más constante y demuestra quién es el mejor: línea continua con tu avatar en la punta */
+const partial = (pts: [number, number][], t: number): { str: string; head: [number, number] } => {
+  const tt = Math.min(pts.length - 1, Math.max(0, t));
+  const i = Math.min(pts.length - 2, Math.floor(tt)), r = tt - i;
+  const head: [number, number] = [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * r, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * r];
+  return { str: [...pts.slice(0, i + 1), head].map((p) => p.join(",")).join(" "), head };
+};
 const Best: React.FC<P> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const cF = wf(ws, "constante"), mF = wf(ws, "mejor");
-  const W = 880, H = 520;
-  const gold = [0, 0.18, 0.34, 0.5, 0.66, 0.8, 1], g1 = [0.1, 0.5, 0.2, 0.62, 0.25, 0.55, 0.45], g2 = [0.05, 0.3, 0.55, 0.3, 0.6, 0.2, 0.5];
-  const pts = (arr: number[], k: number) => arr.slice(0, Math.max(2, Math.ceil(k * arr.length))).map((v, i) => `${(i / (arr.length - 1)) * W},${H - v * H * 0.9 - 20}`).join(" ");
-  const k = interpolate(f, [4, mF + 4], [0, 1], clamp);
-  const trophy = pop(f, fps, mF, 9);
+  const W = 880, H = 560, PADX = 50;
+  const xy = (vals: number[]): [number, number][] => vals.map((v, i) => [PADX + (i / (vals.length - 1)) * (W - 2 * PADX), H - 60 - (v / 100) * (H - 170)]);
+  const gold = xy([8, 22, 36, 50, 63, 78, 93]), g1 = xy([20, 55, 25, 62, 30, 58, 48]), g2 = xy([12, 38, 60, 34, 66, 28, 55]);
+  const end = Math.max(30, mF + 6);
+  const prog = interpolate(f, [4, end], [0, 6], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.quad) });
+  const pg = partial(gold, prog), p1 = partial(g1, prog), p2 = partial(g2, prog);
+  const done = prog >= 5.98;
+  const trophy = pop(f, fps, end, 9);
   return (
     <Frame timedWords={ws}>
-      <div style={{ opacity: pop(f, fps, cF - 6, 10), marginBottom: 40 }}><Chip>CONSTANCIA</Chip></div>
-      <div style={{ position: "relative", width: W, height: H + 80, background: t.surface, border: `2px solid ${t.border}`, borderRadius: 36, padding: 20, boxSizing: "content-box" }}>
-        <svg width={W} height={H}>
-          <polyline points={pts(g1, k)} fill="none" stroke="#5f6670" strokeWidth={7} strokeLinejoin="round" />
-          <polyline points={pts(g2, k)} fill="none" stroke="#53B4D1" strokeWidth={7} strokeLinejoin="round" opacity={0.7} />
-          <polyline points={pts(gold, k)} fill="none" stroke={t.accent} strokeWidth={12} strokeLinejoin="round" strokeLinecap="round" />
+      <div style={{ opacity: pop(f, fps, Math.max(0, cF - 6), 10), marginBottom: 36 }}><Chip>CONSTANCIA</Chip></div>
+      <div style={{ position: "relative", width: W + 40, height: H + 40, background: t.surface, border: `2px solid ${t.border}`, borderRadius: 36, padding: 20 }}>
+        <svg width={W} height={H} style={{ overflow: "visible" }}>
+          {gold.map(([x], k) => <g key={k}><line x1={x} x2={x} y1={20} y2={H - 50} stroke={t.border} strokeWidth={2} strokeDasharray="4 10" /><text x={x} y={H - 10} textAnchor="middle" fontSize={30} fontWeight={800} fill={prog >= k ? t.text : t.textSubtle}>{`J${k + 1}`}</text></g>)}
+          <polyline points={p1.str} fill="none" stroke="#5f6670" strokeWidth={7} strokeLinejoin="round" strokeLinecap="round" opacity={0.85} />
+          <polyline points={p2.str} fill="none" stroke={ICE} strokeWidth={7} strokeLinejoin="round" strokeLinecap="round" opacity={0.7} />
+          <polyline points={pg.str} fill="none" stroke={t.accent} strokeWidth={13} strokeLinejoin="round" strokeLinecap="round" />
+          {gold.map(([x, y], k) => prog >= k && <circle key={k} cx={x} cy={y} r={10} fill={t.bg} stroke={t.accent} strokeWidth={6} />)}
         </svg>
-        <div style={{ position: "absolute", right: 30, top: 14, transform: `scale(${trophy})`, fontSize: 100 }}>🏆</div>
+        <div style={{ position: "absolute", left: 20 + pg.head[0] - 48, top: 20 + pg.head[1] - 48 - (done ? 6 : 0), filter: `drop-shadow(0 0 18px ${t.accent}aa)` }}><Av i={0} size={96} ring={t.accent} /></div>
+        <div style={{ position: "absolute", right: 28, top: 8, transform: `scale(${trophy})`, fontSize: 110, opacity: trophy }}>🏆</div>
       </div>
+      {sfx("ding", end, 0.45)}
     </Frame>
   );
 };
