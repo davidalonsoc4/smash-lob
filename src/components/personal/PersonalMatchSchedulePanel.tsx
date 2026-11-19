@@ -1,10 +1,13 @@
 "use client"
 
+import { CalendarAddIcon } from "@/components/calendar/CalendarAddIcon"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
+import { matchPrimaryButton } from "@/components/match/matchPanelStyles"
 import { PersonalAddToCalendarButton } from "@/components/personal/PersonalAddToCalendarButton"
 import { buildPersonalMatchDetailModel } from "@/lib/personalMatchDetailModel"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 import { requestMatchDashboardRefresh } from "@/lib/appRefreshEvents"
+import { useI18n } from "@/i18n/I18nProvider"
 
 export function PersonalMatchSchedulePanel({
   match,
@@ -13,6 +16,7 @@ export function PersonalMatchSchedulePanel({
   match: PersonalMatchItem
   onUpdated: (match: PersonalMatchItem) => void
 }) {
+  const { tx } = useI18n()
   const detail = buildPersonalMatchDetailModel(match)
   const scheduleStatus =
     match.status === "scheduled" && (!match.scheduledAt || !match.locationName)
@@ -72,7 +76,11 @@ export function PersonalMatchSchedulePanel({
           <PersonalAddToCalendarButton
             match={match}
             className="min-w-0 flex-1"
-          />
+            triggerClassName={`${matchPrimaryButton} w-full`}
+          >
+            <CalendarAddIcon />
+            {tx("Añadir al calendario")}
+          </PersonalAddToCalendarButton>
         ) : null
       }
     />

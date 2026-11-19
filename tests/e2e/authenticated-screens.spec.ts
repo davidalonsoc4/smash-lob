@@ -990,3 +990,32 @@ for (const theme of ["light", "dark"]) {
     expect(stored.scheduleMode).toBe("double")
   })
 }
+
+test("friendly match detail: directions and calendar buttons share weight, size and style, and the calendar one has its icon", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-20T12:00:00Z"))
+  const item = {
+    id: "qa-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2026-11-26T16:00:00Z", resultRecordedAt: null,
+    locationName: "Portugalete · Pando · Pista 1", sets: [], canManage: true, canDelete: true, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null,
+    participants: [
+      { team: 1, slot: 1, displayName: "David Alonso", isCurrentUser: true, personKey: "a" },
+      { team: 1, slot: 2, displayName: "Álvaro Ruiz", isCurrentUser: false, personKey: "b" },
+      { team: 2, slot: 1, displayName: "Alain Alexei", isCurrentUser: false, personKey: "c" },
+      { team: 2, slot: 2, displayName: "Unai García", isCurrentUser: false, personKey: "d" },
+    ],
+  }
+  await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
+  await page.goto("/personal-matches/qa-friendly")
+  const card = page.locator(".app-schedule-card")
+  const directions = card.getByRole("button", { name: "Cómo llegar", exact: true })
+  const calendar = card.getByRole("button", { name: "Añadir al calendario", exact: true })
+  await expect(directions).toBeVisible()
+  await expect(calendar).toBeVisible()
+  const look = (button: typeof directions) => button.evaluate(element => { const style = getComputedStyle(element); return { size: style.fontSize, weight: style.fontWeight, height: element.getBoundingClientRect().height, width: Math.round(element.getBoundingClientRect().width) } })
+  const [a, b] = [await look(directions), await look(calendar)]
+  expect(b.size).toBe(a.size)
+  expect(b.weight).toBe(a.weight)
+  expect(Math.abs(a.height - b.height)).toBeLessThanOrEqual(1)
+  expect(Math.abs(a.width - b.width)).toBeLessThanOrEqual(1)
+  await expect(calendar).toHaveClass(/app-action-primary/)
+  await expect(calendar.locator("svg")).toHaveCount(1)
+})
