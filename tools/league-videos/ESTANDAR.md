@@ -96,3 +96,5 @@ Cada vídeo se entrega en una carpeta (`out/listos-para-subir/`, no versionada) 
 - Prueba comparativa en `out/colores/` (dorado, granito, hielo, azul, verde) y vídeo de ejemplo en hielo: no se adoptan. Decisión final: **solo dorado**.
 
 - Corrección (reel 1): el bucle de música de `add_music.py` (acrossfade de una copia `asplit` de sí misma) solo producía 37 s y cortaba en seco hacia el 38. Ahora la música se lee como dos entradas separadas y el fundido final dura 2,6 s. Los vídeos de más de 37 s (02, 04, 05, 09, 10) se han vuelto a renderizar y mezclar y ya están corregidos en `out/listos-para-subir/`; 01 (36,6 s) y los más cortos no estaban afectados.
+
+- Pelota de pádel de la serie: **D (dorada)** (`src/Balls.tsx`, usada por `Ball` de `kit.tsx`); alternativa clara: **B (plana)**. Avatares: estilo A sin pala (`src/Avatars.tsx`), con aspecto masculino/femenino según el nombre (Ana, Carla, Eli = femenino; Beto, Dani, Fer, Gus, Hugo = masculino).

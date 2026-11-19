@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo } from "react";
+import { BallDorada } from "./Balls";
 import {
   AbsoluteFill, Audio, Easing, Sequence, Series, interpolate, spring, staticFile,
   useCurrentFrame, useVideoConfig,
@@ -196,14 +197,7 @@ export const Frame: React.FC<{ children: React.ReactNode; tag?: string; caption?
   );
 };
 
-export const Ball: React.FC<{ size?: number }> = ({ size = 70 }) => {
-  const t = useTheme();
-  return (
-    <div style={{ width: size, height: size, borderRadius: "50%", background: `radial-gradient(circle at 35% 30%, #fff3c9, ${t.accent} 58%, rgba(0,0,0,.35))`, boxShadow: `0 0 50px ${t.accent}80`, position: "relative" }}>
-      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "3px solid rgba(255,255,255,.5)", clipPath: "inset(0 40% 0 0)" }} />
-    </div>
-  );
-};
+export const Ball: React.FC<{ size?: number }> = ({ size = 70 }) => <BallDorada size={size} />;
 
 /* ---------- Transiciones y montaje ---------- */
 const Cover: React.FC<{ at: number; kind: number }> = ({ at, kind }) => {

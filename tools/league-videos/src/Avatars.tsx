@@ -2,16 +2,17 @@
 import React, { useId } from "react";
 
 export const COLORS = ["#477BD1", "#3D9D86", "#D4643C", "#8B5FC0", "#53B4D1", "#d7a544", "#C4567A", "#7FA650"];
-export type Look = { skin: string; hair: string; style: "short" | "cap" | "band" | "pony" | "long" | "bald" | "wavy" | "bun"; shirt: string; beard?: boolean; glasses?: boolean; racket: string };
+export type Look = { skin: string; hair: string; style: "short" | "cap" | "band" | "pony" | "long" | "bald" | "wavy" | "bun"; shirt: string; beard?: boolean; glasses?: boolean; racket: string; female?: boolean };
 export const LOOKS: Look[] = [
-  { skin: "#f1c9a5", hair: "#2a1b12", style: "short", shirt: COLORS[0], racket: "#d7a544" },
-  { skin: "#c98e6a", hair: "#111111", style: "cap", shirt: COLORS[1], beard: true, racket: "#477BD1" },
-  { skin: "#8d5a3b", hair: "#1c1c1c", style: "band", shirt: COLORS[2], racket: "#f4f3ef" },
-  { skin: "#e8b78f", hair: "#a05a2c", style: "pony", shirt: COLORS[3], racket: "#53B4D1" },
-  { skin: "#a86f4a", hair: "#3b2a20", style: "short", shirt: COLORS[4], glasses: true, racket: "#D4643C" },
-  { skin: "#f5d3b8", hair: "#c9a15a", style: "long", shirt: COLORS[5], racket: "#3D9D86" },
-  { skin: "#6b4430", hair: "#111111", style: "wavy", shirt: COLORS[6], beard: true, racket: "#d7a544" },
-  { skin: "#d9a577", hair: "#7a4b2a", style: "bun", shirt: COLORS[7], racket: "#8B5FC0" },
+  // Orden = NAMES de Reel1: Ana, Beto, Carla, Dani, Eli, Fer, Gus, Hugo
+  { skin: "#f1c9a5", hair: "#2a1b12", style: "long", shirt: COLORS[0], racket: "#d7a544", female: true }, // Ana
+  { skin: "#c98e6a", hair: "#111111", style: "cap", shirt: COLORS[1], beard: true, racket: "#477BD1" }, // Beto
+  { skin: "#8d5a3b", hair: "#1c1c1c", style: "pony", shirt: COLORS[2], racket: "#f4f3ef", female: true }, // Carla
+  { skin: "#e8b78f", hair: "#a05a2c", style: "short", shirt: COLORS[3], racket: "#53B4D1" }, // Dani
+  { skin: "#a86f4a", hair: "#3b2a20", style: "bun", shirt: COLORS[4], glasses: true, racket: "#D4643C", female: true }, // Eli
+  { skin: "#f5d3b8", hair: "#c9a15a", style: "band", shirt: COLORS[5], racket: "#3D9D86" }, // Fer
+  { skin: "#6b4430", hair: "#111111", style: "wavy", shirt: COLORS[6], beard: true, racket: "#d7a544" }, // Gus
+  { skin: "#d9a577", hair: "#7a4b2a", style: "short", shirt: COLORS[7], racket: "#8B5FC0" }, // Hugo
 ];
 export const shade = (hex: string, k: number) => { const c = hex.replace("#", ""); const n = [0, 2, 4].map((i) => Math.max(0, Math.min(255, Math.round(parseInt(c.slice(i, i + 2), 16) * k)))); return `#${n.map((v) => v.toString(16).padStart(2, "0")).join("")}`; };
 
@@ -47,7 +48,8 @@ export const PlayerA: React.FC<{ look: Look; size: number; bg: string; swing?: n
         {style === "band" && <rect x={56} y={64} width={88} height={13} rx={5} fill={racket} />}
         {style === "cap" && <><path d="M54 84 Q56 36 100 36 Q144 36 146 84 Z" fill={shade(shirt, 0.9)} /><path d="M92 80 Q132 70 168 84 Q146 94 92 90 Z" fill={shade(shirt, 0.75)} /></>}
         <circle cx={84} cy={94} r={5.2} fill="#1a1a1a" /><circle cx={116} cy={94} r={5.2} fill="#1a1a1a" />
-        <path d="M84 114 Q100 128 116 114" fill="none" stroke="#1a1a1a" strokeWidth={4.5} strokeLinecap="round" />
+        <path d="M84 114 Q100 128 116 114" fill="none" stroke={look.female ? "#b4414b" : "#1a1a1a"} strokeWidth={4.5} strokeLinecap="round" />
+        {look.female && <g stroke="#1a1a1a" strokeWidth={3.5} strokeLinecap="round"><path d="M76 88 L71 83" /><path d="M82 85 L80 79" /><path d="M124 88 L129 83" /><path d="M118 85 L120 79" /></g>}
         {glasses && <g fill="none" stroke="#1a1a1a" strokeWidth={4}><circle cx={84} cy={94} r={13} /><circle cx={116} cy={94} r={13} /><path d="M97 94 H103" /></g>}
       </g>
       {showRacket && <g transform={`rotate(${swing} 152 152)`}><Racket color={racket} /></g>}

@@ -2,6 +2,7 @@
 import React, { useId } from "react";
 import { AbsoluteFill } from "remotion";
 import { FONT, makeTheme } from "./kit";
+import { BallDorada, BallPlana } from "./Balls";
 
 const t = makeTheme("#d7a544");
 const SEAM_L = "M 34 40 C 84 66, 84 134, 34 160";
@@ -32,22 +33,6 @@ export const BallRealista: React.FC<BallProps> = ({ size }) => {
   );
 };
 
-export const BallPlana: React.FC<BallProps> = ({ size }) => {
-  const { clip } = useIds();
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" style={{ overflow: "visible" }}>
-      <defs><clipPath id={clip}><circle cx={100} cy={100} r={92} /></clipPath></defs>
-      <circle cx={100} cy={100} r={92} fill="#d8e31f" />
-      <g clipPath={`url(#${clip})`}>
-        <circle cx={128} cy={128} r={92} fill="#bcc715" />
-        <circle cx={100} cy={100} r={92} fill="#d8e31f" clipPath="none" opacity={0} />
-        {[SEAM_L, SEAM_R].map((d, i) => <path key={i} d={d} fill="none" stroke="#fff" strokeWidth={9} strokeLinecap="round" />)}
-      </g>
-      <circle cx={100} cy={100} r={92} fill="none" stroke="#d8e31f" strokeWidth={0} />
-    </svg>
-  );
-};
-
 export const BallCartoon: React.FC<BallProps> = ({ size }) => (
   <svg width={size} height={size} viewBox="0 0 200 200" style={{ overflow: "visible" }}>
     <defs><clipPath id="cc"><circle cx={100} cy={100} r={90} /></clipPath></defs>
@@ -61,24 +46,6 @@ export const BallCartoon: React.FC<BallProps> = ({ size }) => (
   </svg>
 );
 
-export const BallDorada: React.FC<BallProps> = ({ size }) => {
-  const { clip, g, b } = useIds();
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" style={{ overflow: "visible" }}>
-      <defs>
-        <clipPath id={clip}><circle cx={100} cy={100} r={92} /></clipPath>
-        <radialGradient id={g} cx="0.35" cy="0.3" r="0.9"><stop offset="0" stopColor="#fbe7a6" /><stop offset="0.5" stopColor="#d7a544" /><stop offset="1" stopColor="#7d5a1a" /></radialGradient>
-        <filter id={b}><feGaussianBlur stdDeviation="14" /></filter>
-      </defs>
-      <circle cx={100} cy={100} r={104} fill="#d7a544" opacity={0.45} filter={`url(#${b})`} />
-      <circle cx={100} cy={100} r={92} fill={`url(#${g})`} />
-      <g clipPath={`url(#${clip})`}>
-        {[SEAM_L, SEAM_R].map((d, i) => <g key={i}><path d={d} fill="none" stroke="#6b4a10" strokeWidth={12} opacity={0.4} transform="translate(2 3)" /><path d={d} fill="none" stroke="#fff3c9" strokeWidth={8} strokeLinecap="round" /></g>)}
-        <ellipse cx={70} cy={56} rx={26} ry={13} fill="#fff" opacity={0.4} transform="rotate(-32 70 56)" />
-      </g>
-    </svg>
-  );
-};
 
 export const BallLinea: React.FC<BallProps> = ({ size }) => {
   const { clip } = useIds();
