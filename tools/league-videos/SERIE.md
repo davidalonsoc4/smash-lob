@@ -10,7 +10,7 @@ Criterio: primero la visión general y la app; el **chat (03) es el punto de inf
 |---|---|---|---|
 | 01 | Vie 20-nov | Bienvenida y formato (`BienvenidaV2`, `src/Bienvenida2.tsx`; voz `voice01b`, toma `assets/video1b/`): «Ya solo queda un mes… ¿sabes cómo funciona Smash and Lob?», con transición por elementos compartidos | **Aprobado (v2)**. La versión anterior queda en `01-bienvenida-anterior.mp4` y en `BienvenidaRapida` |
 | 02 | ~23-nov | Presentación de la app (`PresentacionV3`, `src/Presentacion3.tsx`; voz `voice13c`, toma `assets/video13c/`): móvil con réplicas de las pantallas reales (datos ficticios), pelota dorada como guía, bolitas sueltas arriba a la derecha | **Aprobado (v3)**. Original en `02-presentacion-app-original.mp4` y en `PresentacionApp` |
-| 03 | ~26-nov | **Chat de la liga**: activar notificaciones; avisos por el chat de la app (`ChatDeLaLiga`) | Hecho y aprobado |
+| 03 | ~26-nov | **Chat de la liga**: activar notificaciones; avisos por el chat de la app (`ChatV2`, `src/Chat2.tsx`; voz `voice04c`, toma `assets/video04c/`): móvil con pantallas replicadas, tarjeta NOVEDAD con miniatura 16:9, bolitas de notificaciones/ajustes, grupos tachados con logo de WhatsApp | **Aprobado (v2)**. Original en `03-chat-liga-original.mp4` y en `ChatDeLaLiga` |
 | 04 | ~30-nov | Para qué es la inscripción, sin cifras (`InscripcionSinCifras`) | Hecho y aprobado |
 | 05 | ~4-dic | Perfil y disponibilidad (`PerfilDisponibilidad`) | Hecho y aprobado (requiere mover la disponibilidad al perfil: cambio pedido a la app) |
 | 06 | ~7-dic | Organiza tu próximo partido (`OrganizaTuPartido`) | Hecho y aprobado |
