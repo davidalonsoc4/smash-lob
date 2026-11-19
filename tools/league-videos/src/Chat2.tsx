@@ -102,8 +102,8 @@ const Stage = ({ league, ws }: P) => {
     { id: "list1", from: S.main + 12, to: S.main + 62 },
     { id: "gen1", from: S.main + 56, to: S.round - 4 },
     { id: "list2", from: S.round - 4, to: propF + 22 },
-    { id: "match", from: propF + 16, to: S.prob - 4 },
-    { id: "gen2", from: S.prob - 4, to: S.end + 40 },
+    { id: "match", from: propF + 16, to: S.prob + 8 },
+    { id: "gen2", from: S.prob + 4, to: S.end + 40 },
   ];
   const lvl = (s: Sc) => { const inn = ease((f - s.from) / 14), out = 1 - ease((f - (s.to - 6)) / 8); return { inn, o: Math.min(inn, out) }; };
   const barO = Math.max(lvl(scs[0]).o, lvl(scs[2]).o);
@@ -160,7 +160,7 @@ const Stage = ({ league, ws }: P) => {
   const fadeNotify = 1 - ease((f - (S.round - 22)) / 12);
   const Row: React.FC<{ q: number; children: React.ReactNode; out: number }> = ({ q, children, out }) => <div style={{ display: "flex", alignItems: "center", gap: 36, opacity: (q > 0 ? 1 : 0) * out, transform: `translateY(${dropY(q)}px)` }}>{children}</div>;
   const Circle: React.FC<{ ic: string }> = ({ ic }) => <div style={{ width: 160, height: 160, borderRadius: "50%", background: t.surface, border: `5px solid ${t.accent}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 50px ${t.accent}55`, flexShrink: 0 }}><Icon name={ic} color={t.accent} size={84} /></div>;
-  const fadeGroups = 1 - ease((f - (S.prob - 2)) / 12);
+  const fadeGroups = 1 - ease((f - (S.prob - 18)) / 12);
 
   return (
     <Frame timedWords={ws}>
@@ -192,8 +192,8 @@ const Stage = ({ league, ws }: P) => {
               <div style={{ position: "absolute", inset: 0, opacity: l.o, transform: `translateX(${(1 - l.inn) * 46}px)` }}>
                 <TopBar title={league.name} sub={`${league.season} · 8 participantes`} />
                 <div style={{ position: "absolute", left: 0, right: 0, top: 50, bottom: 62, overflow: "hidden" }}>
-                  <div style={{ position: "absolute", left: 12, right: 12, bottom: 8, display: "flex", flexDirection: "column", gap: 8, transform: `translateY(${(1 - sentK) * 56}px)` }}>
-                    <div style={{ transform: `translateY(${-0}px)` }}><NovedadCard league={league} k={1} playPulse={0} /></div>
+                  <div style={{ position: "absolute", left: 12, right: 12, bottom: 8, display: "flex", flexDirection: "column", gap: 8, transform: `translateY(${(1 - (f >= aquiF - 2 ? sentK : 1)) * 56}px)` }}>
+                    <div><NovedadCard league={league} k={1} playPulse={0} /></div>
                     {f >= aquiF - 2 && <Bubble own text={typed} k={sentK} />}
                   </div>
                 </div>
