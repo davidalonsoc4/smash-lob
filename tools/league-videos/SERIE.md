@@ -28,7 +28,7 @@ Previstos y NO hechos todavía:
 | Opcional | Aviso de liga bloqueada (reutiliza escenas de la presentación) | Idea |
 | Opcional | Vídeos de la serie "dentro de la liga" (jornada nueva desbloqueada, MVP de jornada, etc.) | Ideas, sin guion |
 
-Instagram @smashandlob (genérico): `ig1-reel-liguilla` hecho (pendiente de aprobación final); `ig2-reel-pareja-nueva` hecho (guion v3: «¿Y si tu compañero no puede jugar?», voz `voiceApp2.ts`, toma `assets/app-reel2/`; pendiente de aprobación); reel 3 pendiente de guion; ideas de vídeos genéricos de la app (instalar y notificaciones, crear una liga, unirse con invitación, torneos rápidos, espectadores, estadísticas).
+Instagram @smashandlob (genérico): `ig1-reel-liguilla` hecho (pendiente de aprobación final); `ig2-reel-pareja-nueva` hecho (guion v3: «¿Y si tu compañero no puede jugar?», voz `voiceApp2.ts`, toma `assets/app-reel2/`; pendiente de aprobación); `ig3-reel-gente-y-ganas` hecho (guion v6: «¿Quieres jugar más al pádel? Solo necesitas gente y ganas…», voz `voiceApp3.ts`, toma `assets/app-reel3/`; pendiente de aprobación; sustituye en la práctica a ig2 como Reel 2, que queda guardado como alternativa); ideas de vídeos genéricos de la app (instalar y notificaciones, crear una liga, unirse con invitación, torneos rápidos, espectadores, estadísticas).
 
 Nota: los números 01-10 reflejan el orden de envío; al hacer el vídeo de apertura habrá que renumerar (iría entre 09 y 10). Las miniaturas son 16:9 (`Miniatura`); las 9:16 están en `miniaturas-9x16/`.
 

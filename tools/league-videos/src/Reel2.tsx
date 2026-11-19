@@ -148,7 +148,7 @@ const App: React.FC<P> = ({ ws }) => {
 };
 
 /* 7 · Monta, organiza, recoge, calcula… tú solo tienes que jugar */
-const Card: React.FC<{ at: number; title: string; gone: number; children: React.ReactNode }> = ({ at, title, gone, children }) => {
+export const Card: React.FC<{ at: number; title: string; gone: number; children: React.ReactNode }> = ({ at, title, gone, children }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, at, 12);
   return (
