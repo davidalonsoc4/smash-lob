@@ -8,7 +8,7 @@ Criterio: primero la visión general y la app; el **chat (03) es el punto de inf
 
 | Nº | Fecha | Vídeo (composición) | Estado |
 |---|---|---|---|
-| 01 | Vie 20-nov | Bienvenida y formato (`BienvenidaRapida`) | Hecho y aprobado |
+| 01 | Vie 20-nov | Bienvenida y formato (`BienvenidaV2`, `src/Bienvenida2.tsx`; voz `voice01b`, toma `assets/video1b/`): «Ya solo queda un mes… ¿sabes cómo funciona Smash and Lob?», con transición por elementos compartidos | **Aprobado (v2)**. La versión anterior queda en `01-bienvenida-anterior.mp4` y en `BienvenidaRapida` |
 | 02 | ~23-nov | Presentación de la app (`PresentacionApp`) | Hecho y aprobado |
 | 03 | ~26-nov | **Chat de la liga**: activar notificaciones; avisos por el chat de la app (`ChatDeLaLiga`) | Hecho y aprobado |
 | 04 | ~30-nov | Para qué es la inscripción, sin cifras (`InscripcionSinCifras`) | Hecho y aprobado |
@@ -57,3 +57,7 @@ Colores y datos de liga: objeto `LeagueConfig` (`src/Bienvenida.tsx`); el acento
 ## Instagram @smashandlob · Reel 1 (genérico, sin PRO League)
 - `InstagramReel1` (`src/Reel1.tsx`, voz `voiceApp1.ts`, toma `assets/app-reel1b/`): guión 8 aprobado. Avatares ficticios, réplicas simplificadas, logo de la app al final, eslogan «Para los que nunca tienen suficiente pádel», sin «Nos vemos en la pista». Salida: `out/listos-para-subir/ig1-reel-liguilla.mp4` (pendiente de aprobación del usuario).
 - Pendiente: guiones de los reels 2 y 3 (aprobar antes de generar voz).
+
+
+## Instagram: numeración actual
+- `ig1-reel-liguilla` (Reel 1), `ig2-reel-gente-y-ganas` (Reel 2, antes `ig3`), `ig-alt-pareja-nueva` (alternativa guardada: «¿Y si tu compañero no puede jugar?»).
