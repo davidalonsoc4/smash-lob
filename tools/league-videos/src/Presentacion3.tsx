@@ -25,9 +25,9 @@ const at = (i: number, text: string, nth = 0) => B30(i) + wf(sceneWords(i), text
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 /* ---------- geometría (px nativos de la app); el móvil se ve entero, ampliado ---------- */
-const Z = 2.13, WIN_W = 880, WIN_H = 1010;
-const SCR_H = Math.round(WIN_H / Z); // 474
-const BAR_H = 75, BAR_TOP = SCR_H - BAR_H;
+export const Z = 2.13; export const WIN_W = 880; export const WIN_H = 1010;
+export const SCR_H = Math.round(WIN_H / Z); // 474
+export const BAR_H = 75; export const BAR_TOP = SCR_H - BAR_H;
 const CONTENT_TOP = 12;
 
 const tabCenter = (mode: "out" | "in", idx: number, m: number): number => {
@@ -37,7 +37,7 @@ const tabCenter = (mode: "out" | "in", idx: number, m: number): number => {
   return 9 + gI.x + gI.w / 2;
 };
 
-const Ripple: React.FC<{ x: number; y: number; at: number; size?: number }> = ({ x, y, at: a, size = 60 }) => {
+export const Ripple: React.FC<{ x: number; y: number; at: number; size?: number }> = ({ x, y, at: a, size = 60 }) => {
   const t = useTheme(); const f = useCurrentFrame();
   const q = (f - a) / 16;
   if (q < 0 || q > 1) return null;
@@ -45,8 +45,8 @@ const Ripple: React.FC<{ x: number; y: number; at: number; size?: number }> = ({
 };
 
 /* ---------- piezas de pantalla (réplicas de la app) ---------- */
-const W = NATIVE_W - 24; // ancho útil de las tarjetas
-const HeaderCard: React.FC<{ title: string; sub?: string; eyebrow?: string; logo?: string; avatar?: boolean; right?: React.ReactNode }> = ({ title, sub, eyebrow, logo, avatar, right }) => {
+export const W = NATIVE_W - 24; // ancho útil de las tarjetas
+export const HeaderCard: React.FC<{ title: string; sub?: string; eyebrow?: string; logo?: string; avatar?: boolean; right?: React.ReactNode }> = ({ title, sub, eyebrow, logo, avatar, right }) => {
   const t = useTheme();
   return (
     <div style={{ width: W, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderLeft: `5px solid ${t.accent}`, borderRadius: 18, padding: "11px 14px", display: "flex", alignItems: "center", gap: 12 }}>
@@ -61,11 +61,11 @@ const HeaderCard: React.FC<{ title: string; sub?: string; eyebrow?: string; logo
     </div>
   );
 };
-const Sec: React.FC<{ title: string; right?: string }> = ({ title, right }) => {
+export const Sec: React.FC<{ title: string; right?: string }> = ({ title, right }) => {
   const t = useTheme();
   return <div style={{ width: W, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 4, height: 17, borderRadius: 2, background: t.accent }} /><div style={{ fontSize: 18, fontWeight: 800 }}>{title}</div></div>{right && <div style={{ fontSize: 12, color: t.textMuted, fontWeight: 600 }}>{right}</div>}</div>;
 };
-const Card: React.FC<{ children: React.ReactNode; accent?: boolean; pad?: string; style?: React.CSSProperties }> = ({ children, accent, pad = "12px 14px", style }) => {
+export const Card: React.FC<{ children: React.ReactNode; accent?: boolean; pad?: string; style?: React.CSSProperties }> = ({ children, accent, pad = "12px 14px", style }) => {
   const t = useTheme();
   return <div style={{ width: W, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderTop: accent ? `2px solid ${t.accent}` : `1px solid ${t.border}`, borderRadius: 18, padding: pad, ...style }}>{children}</div>;
 };
@@ -95,7 +95,7 @@ const LeagueRow: React.FC<{ title: string; sub: string; logo?: string; initials?
     </Card>
   );
 };
-const ChatItem: React.FC<{ title: string; sub: string; last: string; dot?: boolean }> = ({ title, sub, last, dot }) => {
+export const ChatItem: React.FC<{ title: string; sub: string; last: string; dot?: boolean }> = ({ title, sub, last, dot }) => {
   const t = useTheme();
   return (
     <Card pad="10px 14px">
@@ -148,7 +148,7 @@ const RankTable: React.FC<{ rows: RankRow[] }> = ({ rows }) => {
 };
 
 /* bolitas sueltas: caen y rebotan */
-const dropY = (q: number) => { if (q <= 0) return -900; if (q >= 1) return 0; if (q < 0.55) { const u = q / 0.55; return -900 * (1 - u * u); } if (q < 0.8) { const u = (q - 0.55) / 0.25; return -70 * (1 - (2 * u - 1) ** 2); } const u = (q - 0.8) / 0.2; return -22 * (1 - (2 * u - 1) ** 2); };
+export const dropY = (q: number) => { if (q <= 0) return -900; if (q >= 1) return 0; if (q < 0.55) { const u = q / 0.55; return -900 * (1 - u * u); } if (q < 0.8) { const u = (q - 0.55) / 0.25; return -70 * (1 - (2 * u - 1) ** 2); } const u = (q - 0.8) / 0.2; return -22 * (1 - (2 * u - 1) ** 2); };
 
 const Stage = ({ league, ws }: P) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
