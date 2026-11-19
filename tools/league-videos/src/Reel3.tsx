@@ -150,7 +150,7 @@ const Court: React.FC<{ f: number; stepAt: number[]; ws: TimedWord[] }> = ({ f, 
 
 const Balance: React.FC<P> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const jgF = wf(ws, "jugarás"), eqF = wf(ws, "equilibrio"), conF = wf(ws, "con"), ctF = wf(ws, "contra");
+  const jgF = wf(ws, "jugarás"), eqF = wf(ws, "equilibrio");
   const split = jgF - 4;
   if (f < split) {
     return (
@@ -161,40 +161,37 @@ const Balance: React.FC<P> = ({ ws }) => {
       </Frame>
     );
   }
-  const R = 340, cx = 450, cy = 420;
-  const others = [1, 2, 3, 4, 5, 6, 7];
-  const pt = (k: number): [number, number] => [cx + R * Math.cos((k / 7) * Math.PI * 2 - Math.PI / 2), cy + R * Math.sin((k / 7) * Math.PI * 2 - Math.PI / 2)];
-  const gold0 = Math.max(split + 6, conF - 4), blue0 = Math.max(gold0 + 30, ctF - 4);
+  const R = 330, cx = 450, cy = 400;
+  const pt = (i: number): [number, number] => [cx + R * Math.cos((i / 8) * Math.PI * 2 - Math.PI / 2), cy + R * Math.sin((i / 8) * Math.PI * 2 - Math.PI / 2)];
+  const lines: [number, number][] = [];
+  for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++) lines.push([a, b]);
+  const g0 = f - jgF;
   const chip = pop(f, fps, eqF, 10);
+  const glow = interpolate(f, [eqF, eqF + 20], [0, 1], clamp);
   return (
     <Frame timedWords={ws}>
-      <div style={{ position: "relative", width: 900, height: 840 }}>
-        <svg width={900} height={840} style={{ position: "absolute", inset: 0 }}>
-          {others.map((av, k) => {
-            const [x, y] = pt(k);
-            const g = interpolate(f, [gold0 + k * 3, gold0 + k * 3 + 14], [0, 1], clamp);
-            const b = interpolate(f, [blue0 + k * 3, blue0 + k * 3 + 14], [0, 1], clamp);
-            const mx = (cx + x) / 2 + (y - cy) * 0.18, my = (cy + y) / 2 - (x - cx) * 0.18; // curva para la línea azul
-            const bx = (1 - b) * (1 - b) * cx + 2 * (1 - b) * b * mx + b * b * x, by = (1 - b) * (1 - b) * cy + 2 * (1 - b) * b * my + b * b * y;
+      <div style={{ position: "relative", width: 900, height: 800 }}>
+        <svg width={900} height={800} style={{ position: "absolute", inset: 0 }}>
+          {lines.map(([a, b], k) => {
+            const [x1, y1] = pt(a), [x2, y2] = pt(b);
+            const p = interpolate(g0, [k * 1.4, k * 1.4 + 9], [0, 1], clamp);
+            const col = (a + b) % 2 ? t.accent : ICE;
             return (
-              <g key={av}>
-                {g > 0 && <line x1={cx} y1={cy} x2={cx + (x - cx) * g} y2={cy + (y - cy) * g} stroke={t.accent} strokeWidth={6} strokeLinecap="round" opacity={0.85} />}
-                {g > 0 && g < 1 && <circle cx={cx + (x - cx) * g} cy={cy + (y - cy) * g} r={12} fill="#fff3c9" />}
-                {b > 0 && <path d={`M ${cx} ${cy} Q ${mx} ${my} ${x} ${y}`} fill="none" stroke={ICE} strokeWidth={5} strokeDasharray="1 14" strokeLinecap="round" strokeDashoffset={-b * 200} opacity={b} />}
-                {b > 0 && b < 1 && <circle cx={bx} cy={by} r={11} fill="#c8f1ff" />}
+              <g key={k}>
+                <line x1={x1} y1={y1} x2={x1 + (x2 - x1) * p} y2={y1 + (y2 - y1) * p} stroke={col} strokeWidth={3.5 + glow * 1.5} opacity={0.6 + glow * 0.3} />
+                {p > 0 && p < 1 && <circle cx={x1 + (x2 - x1) * p} cy={y1 + (y2 - y1) * p} r={9} fill={col === ICE ? "#c8f1ff" : "#fff3c9"} />}
               </g>
             );
           })}
         </svg>
-        {others.map((av, k) => { const [x, y] = pt(k); const p = pop(f, fps, split + k * 2, 10); const done = f > blue0 + k * 3 + 14; return <div key={av} style={{ position: "absolute", left: x - 58, top: y - 58, transform: `scale(${p})` }}><Av i={av} size={116} ring={done ? t.accent : undefined} /></div>; })}
-        <div style={{ position: "absolute", left: cx - 80, top: cy - 80 }}><Av i={0} size={160} ring="#f4f3ef" /><div style={{ position: "absolute", left: 0, right: 0, bottom: -46, textAlign: "center", fontSize: 32, fontWeight: 900, letterSpacing: 3 }}>TÚ</div></div>
+        {COLORS.map((_, i) => { const [x, y] = pt(i); const p = pop(f, fps, jgF - 4 + i, 10); return <div key={i} style={{ position: "absolute", left: x - 55, top: y - 55, transform: `scale(${p})` }}><Av i={i} size={110} ring={glow > 0.5 ? t.accent : undefined} /></div>; })}
       </div>
       <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
-        <div style={{ opacity: f > gold0 ? 1 : 0.3 }}><Chip gold size={38}>CON TODOS</Chip></div>
-        <div style={{ opacity: f > blue0 ? 1 : 0.3, color: ICE }}><div style={{ border: `3px solid ${ICE}`, color: ICE, borderRadius: 999, padding: "14px 36px", fontSize: 38, fontWeight: 900, letterSpacing: 4, background: "#141518" }}>CONTRA TODOS</div></div>
+        <div style={{ opacity: g0 > 0 ? 1 : 0.3 }}><Chip gold size={38}>CON TODOS</Chip></div>
+        <div style={{ opacity: g0 > 14 ? 1 : 0.3, border: `3px solid ${ICE}`, color: ICE, borderRadius: 999, padding: "14px 36px", fontSize: 38, fontWeight: 900, letterSpacing: 4, background: "#141518" }}>CONTRA TODOS</div>
       </div>
       <div style={{ marginTop: 30, opacity: chip, transform: `scale(${0.8 + 0.2 * chip})` }}><Chip gold size={46}>✓ EQUILIBRIO PERFECTO</Chip></div>
-      {sfx("ding", eqF, 0.45)}{sfx("pop", gold0, 0.3)}{sfx("pop", blue0, 0.3)}
+      {sfx("ding", eqF, 0.45)}{sfx("pop", jgF, 0.3)}
     </Frame>
   );
 };
