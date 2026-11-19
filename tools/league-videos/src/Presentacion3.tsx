@@ -156,17 +156,18 @@ const Stage = ({ league, ws }: P) => {
   const inM = [at(2, "inicio"), at(2, "ranking"), at(2, "calendario"), at(2, "chats"), at(2, "perfil")];
   const trM = [at(3, "ayuda"), at(3, "notificaciones"), at(3, "ajustes")];
   const cambF = at(1, "cambiar"), crearF = at(1, "crear"), indivF = at(2, "individual");
+  const arrF = at(3, "arriba");
   const dayF = at(4, "20"), lockF = at(4, "bloqueada"), errF = at(5, "error"), openF = at(5, "empieza");
   const S = { out: B30(1), inn: B30(2), tr: B30(3), lock: B30(4), err: B30(5), end: B30(6) };
   const NAMES = league.playerNames, q4 = league.exampleQuartet;
   const winIn = ease((f - (S.out - 12)) / 20);
-  const dimWin = Math.min(ease((f - (S.tr - 6)) / 14), 1 - ease((f - (S.lock - 18)) / 14)); // la pantalla se atenúa mientras caen las bolitas
+  const dimWin = Math.min(ease((f - (trM[0] - 36)) / 14), 1 - ease((f - (S.lock - 18)) / 14)); // la pantalla se atenúa mientras caen las bolitas
 
   /* barra y candados */
   const mark = (arr: number[]) => arr.reduce((a, m, i) => (f >= m - 4 ? i : a), -1);
   const outPhase = f < S.inn;
   const activeOut = outPhase ? mark(outM) : -1;
-  const activeIn = !outPhase ? (f < S.tr ? mark(inM) : 0) : -1;
+  const activeIn = !outPhase ? (f < arrF ? mark(inM) : 0) : -1;
   const morph = ease((f - (S.inn - 6)) / 28);
   const unlocked = f >= openF;
   const lockOn = f >= lockF - 2;
@@ -238,18 +239,18 @@ const Stage = ({ league, ws }: P) => {
       <div style={{ opacity: pop(f, fps, inM[2] + 14, 10) }}><Sec title="Jornada 2" /></div></div>) },
     { from: inM[3] - 4, to: inM[4] - 4, node: (<div style={gap}><HeaderCard title="Chats" sub={`${league.season} · En curso`} /><Sec title="Activos" />
       <ChatItem title="Jornada 1" sub={`con ${q4[0]} vs ${q4[2]} y ${q4[3]}`} last="Sin mensajes todavía" /><ChatItem title="Jornada 2" sub={`con ${q4[1]} vs ${q4[3]} y ${q4[0]}`} last="Sin mensajes todavía" /></div>) },
-    { from: inM[4] - 4, to: S.tr - 8, node: (<div style={gap}><HeaderCard title={q4[0]} eyebrow={league.name.toUpperCase()} avatar sub={`${league.season} · En curso`} /><Seg items={["Resumen", "Parejas / rivales", "Cara a cara"]} active={0} small />
+    { from: inM[4] - 4, to: arrF - 2, node: (<div style={gap}><HeaderCard title={q4[0]} eyebrow={league.name.toUpperCase()} avatar sub={`${league.season} · En curso`} /><Seg items={["Resumen", "Parejas / rivales", "Cara a cara"]} active={0} small />
       <div style={{ display: "flex", gap: 8, width: W }}><Stat label="PUNTOS" value="5" /><Stat label="DIF. JUEGOS" value="+16" /></div>
       <Card><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><div><div style={{ fontSize: 12.5, color: t.textMuted }}>Estadísticas avanzadas</div><div style={{ fontSize: 17, fontWeight: 800 }}>Rendimiento de temporada</div></div><div style={{ background: t.accent, color: t.accentContrast, borderRadius: 12, padding: "6px 12px", textAlign: "center" }}><div style={{ fontSize: 9.5, fontWeight: 900, letterSpacing: 1.6 }}>VICTORIAS</div><div style={{ fontSize: 20, fontWeight: 900 }}>100%</div></div></div></Card></div>) },
     { from: S.lock - 8, to: S.end + 30, node: (<div style={gap}><HeaderCard title={league.name} logo={league.logo} sub={`${league.season} · ${unlocked ? "En curso" : "Próxima"}`} />{countdown}</div>), fab: "chat" },
   ];
   const showFab = (fab?: string) => fab;
 
-  const TAGS: [number, string][] = [[S.out, "FUERA DE LA LIGA"], [S.inn, "DENTRO DE LA LIGA"], [S.tr, "ARRIBA A LA DERECHA"], [S.lock, "LIGA BLOQUEADA"], [S.err, "TEMPORADA PROGRAMADA"]];
+  const TAGS: [number, string][] = [[S.out, "FUERA DE LA LIGA"], [S.inn, "DENTRO DE LA LIGA"], [arrF + 4, "ARRIBA A LA DERECHA"], [S.lock, "LIGA BLOQUEADA"], [S.err, "TEMPORADA PROGRAMADA"]];
   const tagI = TAGS.reduce((a, [s0], i) => (f >= s0 - 4 ? i : a), -1);
   const tagK = tagI < 0 ? 0 : pop(f, fps, TAGS[tagI][0] - 4, 12);
   const prev = tagI > 0 ? TAGS[tagI - 1][1] : "";
-  const example = f >= S.inn - 4 && f < S.tr - 6;
+  const example = f >= S.inn - 4 && f < arrF - 6;
   const hookP = pop(f, fps, 8, 10), hookOut = 1 - ease((f - (S.out - 6)) / 14);
   const pill = { background: t.surface, border: `2px solid ${t.accent}`, color: t.accent, fontWeight: 900, fontSize: 32, letterSpacing: 5, padding: "14px 34px", borderRadius: 999, whiteSpace: "nowrap" as const };
   const rippleTabs = [...outM.map((m, i) => ({ a: m - 4, x: tabCenter("out", i, 0) })), ...inM.map((m, i) => ({ a: m - 4, x: tabCenter("in", i, 1) }))];
