@@ -105,3 +105,6 @@ Cada vídeo se entrega en una carpeta (`out/listos-para-subir/`, no versionada) 
 - **Tiempos**: nada apresurado. Si hay varios pasos iguales (p. ej. J1, J2, J3) se reparte **el mismo tiempo** a cada uno, con su movimiento y un respiro; el paso a otra disposición empieza un poco antes de la palabra para que el elemento llegue cuando se dice. Sin pasos intermedios innecesarios (p. ej. no se muestra una fase de «parejas» entre el octágono y el ranking).
 - Sin líneas que unan a los compañeros en la pista (los anillos dorado/azul indican el equipo). Avatares del ranking al tamaño de la app (~64 px en el vídeo).
 - Pelota: la dorada (D). Avatares: genéricos de la app y un color por jugador en los vídeos de la liga; ilustrados (estilo A, por género del nombre) solo en Instagram.
+
+- Cierre de los vídeos: el de la Bienvenida v2 (`Outro` en `src/Bienvenida2.tsx`): logo con destello, «Nos vemos en la pista» palabra a palabra y **pelota dorada que bota** al decir «pista» + ding. No reutilizar cierres antiguos sin ese rebote.
+- Opciones de transición/animación válidas (no borrar): fundido/deslizamiento con pelota botando entre escenas (`VideoSeries`/`kit.tsx`), elementos compartidos que se mueven (Stage), y en la Presentación v3 un móvil con cámara y la pelota dorada como guía que salta de pestaña en pestaña.

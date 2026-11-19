@@ -259,7 +259,7 @@ const Tabs = ({ ws }: P) => {
 };
 
 /* 9 · Cierre (sin exclamaciones; la voz lo dice sobrio) */
-const Outro = ({ league, ws }: P) => {
+export const Outro = ({ league, ws }: P) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, 0, 8);
   const nF = wf(ws, "pista");

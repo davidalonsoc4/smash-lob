@@ -16,18 +16,18 @@ const wordsBetween = (i0: number, i1: number): TimedWord[] =>
   VOICE.filter((x) => x.s >= BOUNDS[i0] - 0.05 && x.s < BOUNDS[i1]).map((x) => ({ w: x.w, f: Math.max(0, Math.round((x.s - BOUNDS[i0]) * 30)), e: Math.round((x.e - BOUNDS[i0]) * 30) }));
 const sceneWords = (i: number) => wordsBetween(i, i + 1);
 const wf = (ws: TimedWord[], text: string, nth = 0) => { const m = ws.filter((x) => norm(x.w) === norm(text)); return (m[nth] ?? m[0] ?? { f: 0 }).f; };
-const ease = (q: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, q)), 3);
+export const ease = (q: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, q)), 3);
 const B30 = (i: number) => Math.round(BOUNDS[i] * 30);
 const at = (i: number, text: string, nth = 0) => B30(i) + wf(sceneWords(i), text, nth); // cuadro absoluto del vídeo
 
 /* ---------- Barra de navegación única que se transforma ---------- */
-const OUT = [["trophy", "Competiciones"], ["ball", "Mis partidos"], ["chat", "Chats"], ["user", "Mi perfil"]];
-const IN = [["home", "Inicio"], ["rank", "Ranking"], ["cal", "Calendario"], ["chat", "Chats"], ["user", "Perfil"]];
-const BAR_W = NATIVE_W - 18, GAP = 4, ITEM_H = 58;
-const geo = (n: number, i: number) => { const w = (BAR_W - GAP * (n - 1)) / n; return { x: i * (w + GAP), w }; };
-const SHARED: Record<number, number> = { 2: 3, 3: 4 }; // fuera → dentro (Chats, Perfil)
+export const OUT = [["trophy", "Competiciones"], ["ball", "Mis partidos"], ["chat", "Chats"], ["user", "Mi perfil"]];
+export const IN = [["home", "Inicio"], ["rank", "Ranking"], ["cal", "Calendario"], ["chat", "Chats"], ["user", "Perfil"]];
+export const BAR_W = NATIVE_W - 18, GAP = 4, ITEM_H = 58;
+export const geo = (n: number, i: number) => { const w = (BAR_W - GAP * (n - 1)) / n; return { x: i * (w + GAP), w }; };
+export const SHARED: Record<number, number> = { 2: 3, 3: 4 }; // fuera → dentro (Chats, Perfil)
 
-const MorphBar: React.FC<{ m: number; activeOut: number; activeIn: number; dim: boolean[]; lock: boolean[] }> = ({ m, activeOut, activeIn, dim, lock }) => {
+export const MorphBar: React.FC<{ m: number; activeOut: number; activeIn: number; dim: boolean[]; lock: boolean[] }> = ({ m, activeOut, activeIn, dim, lock }) => {
   const t = useTheme();
   const item = (key: string, icon: string, label: string, x: number, w: number, on: boolean, o: number, sc: number, dimmed: boolean, locked: boolean) => (
     <div key={key} style={{ position: "absolute", left: x, top: 0, width: w, height: ITEM_H, borderRadius: 16, textAlign: "center", background: on ? t.accent : "transparent", color: on ? t.accentContrast : t.textMuted, opacity: o * (dimmed ? 0.35 : 1), transform: `scale(${sc})`, boxSizing: "border-box", paddingTop: 9 }}>
