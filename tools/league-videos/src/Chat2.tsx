@@ -77,6 +77,13 @@ const NovedadCard: React.FC<{ league: LeagueConfig; k: number; playPulse: number
   );
 };
 
+const WA_PATH = "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z";
+const WaLogo: React.FC<{ size: number }> = ({ size }) => (
+  <div style={{ width: size, height: size, borderRadius: size * 0.24, background: "#25D366", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <svg width={size * 0.68} height={size * 0.68} viewBox="0 0 24 24"><path d={WA_PATH} fill="#fff" /></svg>
+  </div>
+);
+
 const Stage = ({ league, ws }: P) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const q4 = league.exampleQuartet;
@@ -84,16 +91,16 @@ const Stage = ({ league, ws }: P) => {
   const m1 = at(1, "comunicaciones"), m2 = at(1, "avisos"), m3 = at(1, "novedades"), esteF = at(1, "este");
   const notiF = at(2, "notificaciones"), ajF = at(2, "Ajustes"), actF = at(2, "actualizada");
   const propF = at(3, "propio"), fechF = at(3, "fechas"), lugF = at(3, "lugares"), cuaF = at(3, "cuadrar");
-  const grupoF = at(4, "grupo"), semF = at(4, "semana");
+  const grupoF = at(4, "grupo"), crearF4 = at(4, "crear") - 6;
   const probF = at(5, "problema"), aquiF = at(5, "aquí");
-  const winIn = ease((f - (S.main - 20)) / 20);
-  const hookO = (1 - ease((f - (S.main - 22)) / 12)) * Math.min(1, pop(f, fps, 6, 10) * 2);
+  const winIn = ease((f - (S.main + 8)) / 20);
+  const hookO = (1 - ease((f - (S.main + 2)) / 12)) * Math.min(1, pop(f, fps, 6, 10) * 2);
 
   /* pantallas */
   type Sc = { from: number; to: number; id: string };
   const scs: Sc[] = [
-    { id: "list1", from: S.main - 12, to: S.main + 40 },
-    { id: "gen1", from: S.main + 34, to: S.round - 4 },
+    { id: "list1", from: S.main + 12, to: S.main + 62 },
+    { id: "gen1", from: S.main + 56, to: S.round - 4 },
     { id: "list2", from: S.round - 4, to: propF + 22 },
     { id: "match", from: propF + 16, to: S.prob - 4 },
     { id: "gen2", from: S.prob - 4, to: S.end + 40 },
@@ -140,7 +147,7 @@ const Stage = ({ league, ws }: P) => {
   /* chat de la jornada */
   const mk = (a: number) => pop(f, fps, a - 4, 11);
 
-  const TAGS: [number, string][] = [[S.main, "CHAT DE LA LIGA"], [S.notify, "NOTIFICACIONES"], [S.round, "CHAT DE TU PARTIDO"], [S.nog, "SIN GRUPOS NUEVOS"], [S.prob, "¿ALGÚN PROBLEMA?"]];
+  const TAGS: [number, string][] = [[S.main + 16, "CHAT DE LA LIGA"], [S.notify, "NOTIFICACIONES"], [S.round, "CHAT DE TU PARTIDO"], [S.nog, "SIN GRUPOS NUEVOS"], [S.prob, "¿ALGÚN PROBLEMA?"]];
   const tagI = TAGS.reduce((a, [s0], i) => (f >= s0 - 4 ? i : a), -1);
   const tagK = tagI < 0 ? 0 : pop(f, fps, TAGS[tagI][0] - 4, 12);
   const prev = tagI > 0 ? TAGS[tagI - 1][1] : "";
@@ -153,7 +160,7 @@ const Stage = ({ league, ws }: P) => {
   const fadeNotify = 1 - ease((f - (S.round - 22)) / 12);
   const Row: React.FC<{ q: number; children: React.ReactNode; out: number }> = ({ q, children, out }) => <div style={{ display: "flex", alignItems: "center", gap: 36, opacity: (q > 0 ? 1 : 0) * out, transform: `translateY(${dropY(q)}px)` }}>{children}</div>;
   const Circle: React.FC<{ ic: string }> = ({ ic }) => <div style={{ width: 160, height: 160, borderRadius: "50%", background: t.surface, border: `5px solid ${t.accent}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 50px ${t.accent}55`, flexShrink: 0 }}><Icon name={ic} color={t.accent} size={84} /></div>;
-  const fadeGroups = 1 - ease((f - (S.prob - 24)) / 12);
+  const fadeGroups = 1 - ease((f - (S.prob - 2)) / 12);
 
   return (
     <Frame timedWords={ws}>
@@ -168,7 +175,7 @@ const Stage = ({ league, ws }: P) => {
       <div style={{ position: "absolute", top: 300, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: winIn, transform: `translateY(${(1 - winIn) * 120}px) scale(${0.94 + 0.06 * winIn})` }}>
         <div style={{ position: "relative", width: WIN_W, height: WIN_H, borderRadius: 56, border: `4px solid ${t.borderStrong}`, overflow: "hidden", background: t.bg, boxShadow: `0 30px 80px rgba(0,0,0,.55), 0 0 0 1px ${t.border}`, boxSizing: "content-box" }}>
           <div style={{ position: "absolute", left: 0, top: 0, width: NATIVE_W, height: SCR_H, transformOrigin: "0 0", transform: `scale(${Z})`, opacity: 1 - 0.78 * dimO }}>
-            {(() => { const l = lvl(scs[0]); return l.o > 0.01 && <div style={{ opacity: l.o, transform: `translateX(${(1 - l.inn) * 40}px)` }}>{listScreen(S.main + 16)}</div>; })()}
+            {(() => { const l = lvl(scs[0]); return l.o > 0.01 && <div style={{ opacity: l.o, transform: `translateX(${(1 - l.inn) * 40}px)` }}>{listScreen(S.main + 42)}</div>; })()}
             {(() => { const l = lvl(scs[1]); return l.o > 0.01 && <div style={{ position: "absolute", inset: 0, opacity: l.o, transform: `translateX(${(1 - l.inn) * 46}px)` }}><TopBar title={league.name} sub={`${league.season} · 8 participantes`} />{genMsgs(false)}<InputBar /></div>; })()}
             {(() => { const l = lvl(scs[2]); return l.o > 0.01 && <div style={{ opacity: l.o, transform: `translateX(${(1 - l.inn) * 40}px)` }}>{listScreen()}</div>; })()}
             {(() => { const l = lvl(scs[3]); return l.o > 0.01 && (
@@ -193,7 +200,7 @@ const Stage = ({ league, ws }: P) => {
                 <InputBar text={typedText} caret={!!typedText && f % 20 < 12} sendPulse={sendPulse} />
               </div>); })()}
             {barO > 0.01 && <div style={{ position: "absolute", left: 0, top: BAR_TOP, width: NATIVE_W, opacity: barO }}><MorphBar m={1} activeOut={-1} activeIn={3} dim={[]} lock={[]} /></div>}
-            <Ripple x={NATIVE_W / 2} y={148} at={S.main + 16} size={46} />
+            <Ripple x={NATIVE_W / 2} y={148} at={S.main + 42} size={46} />
             <Ripple x={NATIVE_W / 2} y={278} at={propF} size={46} />
           </div>
           {/* notificaciones y ajustes: bolitas sueltas */}
@@ -205,13 +212,17 @@ const Stage = ({ league, ws }: P) => {
           </div>
           {/* sin grupos nuevos cada semana */}
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 34, opacity: fadeGroups }}>
-            {[1, 2, 3].map((n, i) => { const k = pop(f, fps, grupoF + i * 8, 11); const cross = ease((f - (semF + i * 6)) / 10); return (
-              <div key={n} style={{ position: "relative", opacity: k, transform: `scale(${0.8 + 0.2 * k})`, display: "flex", alignItems: "center", gap: 24, background: t.surface, border: `3px solid ${t.borderStrong}`, borderRadius: 40, padding: "26px 44px", width: 620 }}>
-                <div style={{ width: 76, height: 76, borderRadius: "50%", background: "#2fb067", display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name="chat" color="#0b0c0e" size={42} /></div>
-                <div style={{ fontSize: 46, fontWeight: 800, color: cross > 0.3 ? t.textSubtle : t.text }}>Grupo nuevo · semana {n}</div>
-                <div style={{ position: "absolute", left: 36, top: "50%", height: 8, width: `${cross * 548}px`, background: "#e5584f", borderRadius: 4 }} />
-              </div>); })}
-            <div style={{ opacity: ease((f - (semF + 24)) / 10), transform: `scale(${0.85 + 0.15 * ease((f - (semF + 24)) / 10)})`, marginTop: 10, background: t.accent, color: t.accentContrast, borderRadius: 999, padding: "20px 54px", fontSize: 50, fontWeight: 900, letterSpacing: 3 }}>UN SOLO CHAT</div>
+            {[1, 2, 3].map((n, i) => {
+              const a0 = crearF4 + i * 14;                // aparece
+              const k = pop(f, fps, a0, 11);
+              const cross = ease((f - (a0 + 10)) / 24);   // se va tachando poco a poco, cada uno a su ritmo
+              return (
+                <div key={n} style={{ position: "relative", opacity: k, transform: `scale(${0.8 + 0.2 * k})`, display: "flex", alignItems: "center", gap: 24, background: t.surface, border: `3px solid ${cross > 0.95 ? "#6b3a37" : t.borderStrong}`, borderRadius: 40, padding: "26px 44px", width: 640 }}>
+                  <WaLogo size={84} />
+                  <div style={{ fontSize: 46, fontWeight: 800, color: cross > 0.3 ? t.textSubtle : t.text }}>Grupo · semana {n}</div>
+                  <div style={{ position: "absolute", left: 30, top: "50%", marginTop: -4, height: 8, width: `${cross * 580}px`, background: "#e5584f", borderRadius: 4 }} />
+                </div>); })}
+            <div style={{ opacity: ease((f - (crearF4 + 14 * 2 + 28)) / 10), transform: `scale(${0.85 + 0.15 * ease((f - (crearF4 + 14 * 2 + 28)) / 10)})`, marginTop: 10, background: t.accent, color: t.accentContrast, borderRadius: 999, padding: "20px 54px", fontSize: 50, fontWeight: 900, letterSpacing: 3 }}>UN SOLO CHAT</div>
           </div>
         </div>
       </div>
