@@ -1007,13 +1007,15 @@ test("friendly match detail: directions and calendar buttons share weight, size 
   await page.goto("/personal-matches/qa-friendly")
   const card = page.locator(".app-schedule-card")
   const directions = card.getByRole("button", { name: "Cómo llegar", exact: true })
-  const calendar = card.getByRole("button", { name: "Añadir al calendario", exact: true })
+  const calendar = card.getByRole("button", { name: "Calendario", exact: true })
   await expect(directions).toBeVisible()
   await expect(calendar).toBeVisible()
   const look = (button: typeof directions) => button.evaluate(element => { const style = getComputedStyle(element); return { size: style.fontSize, weight: style.fontWeight, height: element.getBoundingClientRect().height, width: Math.round(element.getBoundingClientRect().width) } })
   const [a, b] = [await look(directions), await look(calendar)]
   expect(b.size).toBe(a.size)
   expect(b.weight).toBe(a.weight)
+  // One line each: a label that wraps makes both buttons taller (this is why the short "Calendario" is used).
+  expect(b.height).toBeLessThanOrEqual(40)
   expect(Math.abs(a.height - b.height)).toBeLessThanOrEqual(1)
   expect(Math.abs(a.width - b.width)).toBeLessThanOrEqual(1)
   await expect(calendar).toHaveClass(/app-action-primary/)

@@ -79,7 +79,7 @@ export function PersonalMatchSchedulePanel({
             triggerClassName={`${matchPrimaryButton} w-full`}
           >
             <CalendarAddIcon />
-            {tx("Añadir al calendario")}
+            {tx("Calendario")}
           </PersonalAddToCalendarButton>
         ) : null
       }

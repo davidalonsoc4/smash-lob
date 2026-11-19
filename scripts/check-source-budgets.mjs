@@ -19,6 +19,8 @@ function lineCount(source) {
   return source.length === 0 ? 0 : source.split(/\r?\n/).length
 }
 
+// Dictionaries and the changelog grow with every text, not with complexity: they have their own per-file caps.
+const excludedFromTotal = config.excludeFromTotal ?? []
 const files = await walk("src")
 let totalLines = 0
 let clientFiles = 0
@@ -29,8 +31,8 @@ const failures = []
 for (const file of files) {
   const source = await readFile(file, "utf8")
   const lines = lineCount(source)
-  totalLines += lines
   const normalized = file.replaceAll(path.sep, "/")
+  if (!excludedFromTotal.some((prefix) => normalized.startsWith(prefix))) totalLines += lines
   const isClient = /^(["'])use client\1/.test(source.trimStart())
   if (isClient) clientFiles += 1
   if (isClient && normalized.endsWith("/page.tsx")) clientPages += 1

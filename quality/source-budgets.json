@@ -1,13 +1,22 @@
 {
-  "maxTotalSourceLines": 143400,
+  "maxTotalSourceLines": 132000,
   "maxClientFiles": 210,
   "maxClientPages": 50,
   "maxApiRouteLines": 1000,
   "files": {
     "src/app/admin/season/page.tsx": 6320,
-    "src/lib/changelog.ts": 2490,
+    "src/lib/changelog.ts": 2700,
     "src/context/LeagueAccessProvider.tsx": 2010,
     "src/context/MatchDataProvider.tsx": 1835,
-    "src/app/league/home/page.tsx": 1510
-  }
+    "src/app/league/home/page.tsx": 1510,
+    "src/i18n/locales/enText.ts": 3400,
+    "src/i18n/locales/euText.ts": 3400,
+    "src/i18n/locales/es.ts": 1800,
+    "src/i18n/locales/eu.ts": 1750,
+    "src/i18n/locales/en.ts": 1750
+  },
+  "excludeFromTotal": [
+    "src/i18n/locales/",
+    "src/lib/changelog.ts"
+  ]
 }
