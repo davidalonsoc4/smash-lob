@@ -3,14 +3,15 @@
 import React from "react";
 import { Easing, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { Ball, Frame, SceneDef, TimedWord, VideoSeries, Words, pop, sfx, totalFrames, useTheme } from "./kit";
-import { Av, Chip, COLORS, NAMES, Outro, Soon } from "./Reel1";
+import { Av, Chip, NAMES, Outro, Soon } from "./Reel1";
 import { Card } from "./Reel2";
 import { BOUNDS_01 as BOUNDS, VOICE_01 as VOICE } from "./voiceApp3";
 
 type P = { ws: TimedWord[] };
 const norm = (w: string) => w.replace(/[,.:;!?¡¿«»]/g, "").toLowerCase();
-const sceneWords = (i: number): TimedWord[] =>
-  VOICE.filter((x) => x.s >= BOUNDS[i] - 0.05 && x.s < BOUNDS[i + 1]).map((x) => ({ w: x.w, f: Math.max(0, Math.round((x.s - BOUNDS[i]) * 30)), e: Math.round((x.e - BOUNDS[i]) * 30) }));
+const wordsBetween = (i0: number, i1: number): TimedWord[] =>
+  VOICE.filter((x) => x.s >= BOUNDS[i0] - 0.05 && x.s < BOUNDS[i1]).map((x) => ({ w: x.w, f: Math.max(0, Math.round((x.s - BOUNDS[i0]) * 30)), e: Math.round((x.e - BOUNDS[i0]) * 30) }));
+const sceneWords = (i: number): TimedWord[] => wordsBetween(i, i + 1);
 const wf = (ws: TimedWord[], text: string, nth = 0) => {
   const m = ws.filter((x) => norm(x.w) === norm(text));
   return (m[nth] ?? m[0] ?? { f: 0 }).f;
@@ -61,174 +62,148 @@ const Logo: React.FC<P> = ({ ws }) => {
   );
 };
 
-/* 3 · Liguilla entre amigos, competición individual */
-const League: React.FC<P> = ({ ws }) => {
-  const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const lgF = wf(ws, "liguilla"), inF = wf(ws, "individual");
-  const sc = [21, 17, 24, 12, 19, 15, 22, 14];
-  const grow = interpolate(f, [inF, inF + 30], [0, 1], clamp);
-  return (
-    <Frame timedWords={ws}>
-      <div style={{ opacity: pop(f, fps, Math.max(0, lgF - 6), 10), marginBottom: 50 }}><Chip gold>{grow > 0.05 ? "LIGUILLA · INDIVIDUAL" : "LIGUILLA"}</Chip></div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "40px 36px" }}>
-        {COLORS.map((_, i) => { const p = pop(f, fps, 4 + i * 4, 9); return (
-          <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, opacity: Math.min(1, p * 2), transform: `scale(${0.5 + 0.5 * p})` }}>
-            <Av i={i} size={160} />
-            <div style={{ fontSize: 30, fontWeight: 800, color: t.textMuted }}>{NAMES[i]}</div>
-            <div style={{ fontSize: 44, fontWeight: 900, color: t.accent, opacity: grow, minHeight: 52 }}>{Math.round(sc[i] * grow)}</div>
-          </div>); })}
-      </div>
-    </Frame>
-  );
-};
-
-/* 4 · Parejas y rivales rotativos (pista en planta) y después con y contra todos */
+/* 3-5 · BLOQUE CENTRAL con elementos compartidos: los mismos 8 avatares viajan de la cuadrícula a la pista, al octágono y a la gráfica */
 const ICE = "#53B4D1";
-const SLOTS: Record<string, [number, number]> = { BL: [-175, 250], BR: [175, 250], TL: [-175, -250], TR: [175, -250] };
-// Jornadas desde el punto de vista de "tú" (Ana, siempre abajo a la izquierda): [compañero en BR, rival en TL, rival en TR]
-const JORN: [number, number, number][] = [[1, 2, 3], [2, 1, 3], [3, 1, 2]];
-const ease = (q: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, q)), 3);
-
-const Court: React.FC<{ f: number; stepAt: number[]; ws: TimedWord[] }> = ({ f, stepAt }) => {
-  const t = useTheme();
-  const D = 20; // duración del movimiento (cuadros)
-  const step = f < stepAt[0] ? 0 : f < stepAt[1] ? 1 : 2;
-  const pos = (av: number): [number, number] => {
-    const slotOf = (j: number): [number, number] => {
-      const [pa, tl] = JORN[j];
-      if (av === 0) return SLOTS.BL; if (av === pa) return SLOTS.BR; if (av === tl) return SLOTS.TL; return SLOTS.TR;
-    };
-    if (step === 0) return slotOf(0);
-    const q = ease((f - stepAt[step - 1]) / D);
-    const [x0, y0] = slotOf(step - 1), [x1, y1] = slotOf(step);
-    const arc = Math.sin(Math.PI * q) * (x0 === x1 && y0 === y1 ? 0 : 90) * (av % 2 ? 1 : -1);
-    return [x0 + (x1 - x0) * q + arc * 0.4, y0 + (y1 - y0) * q - Math.abs(arc) * 0.5];
-  };
-  const mv = step === 0 ? 1 : Math.min(1, (f - stepAt[step - 1]) / D);
-  const moving = step > 0 && mv < 1;
-  const role = (av: number) => (av === 0 ? "me" : JORN[step][0] === av ? "pair" : "rival");
-  const hop = (av: number) => { // pequeño salto al moverse
-    if (!moving) return 0;
-    const [pa0, tl0, tr0] = JORN[step - 1], [pa1, tl1, tr1] = JORN[step];
-    const prevSlot = av === pa0 ? "BR" : av === tl0 ? "TL" : av === tr0 ? "TR" : "BL";
-    const nextSlot = av === pa1 ? "BR" : av === tl1 ? "TL" : av === tr1 ? "TR" : "BL";
-    return prevSlot === nextSlot ? 0 : Math.sin(Math.PI * mv) * 40;
-  };
-  const CX = 450, CY = 560;
-  const pairGlow = 0.6 + 0.4 * Math.sin(f / 5);
-  const pr = pos(JORN[step][0]), me = pos(0);
-  return (
-    <div style={{ position: "relative", width: 900, height: 1120 }}>
-      <svg width={900} height={1120} style={{ position: "absolute", inset: 0 }}>
-        <rect x={110} y={40} width={680} height={1040} rx={40} fill="#0f1319" stroke={t.borderStrong} strokeWidth={5} />
-        <line x1={110} x2={790} y1={560} y2={560} stroke={t.accent} strokeWidth={6} strokeDasharray="14 12" opacity={0.85} />
-        <line x1={450} x2={450} y1={300} y2={820} stroke={t.border} strokeWidth={3} />
-        <line x1={110} x2={790} y1={300} y2={300} stroke={t.border} strokeWidth={3} />
-        <line x1={110} x2={790} y1={820} y2={820} stroke={t.border} strokeWidth={3} />
-        {/* vínculo de pareja (dorado) */}
-        <line x1={CX + me[0]} y1={CY + me[1]} x2={CX + pr[0]} y2={CY + pr[1]} stroke={t.accent} strokeWidth={14} strokeLinecap="round" opacity={0.35 + 0.35 * pairGlow} />
-        {/* rivales: líneas azules hacia el otro lado de la red */}
-        {[1, 2, 3].filter((a) => role(a) === "rival").map((a) => { const q = pos(a); return <line key={a} x1={CX + me[0]} y1={CY + me[1]} x2={CX + q[0]} y2={CY + q[1]} stroke={ICE} strokeWidth={5} strokeDasharray="4 14" strokeLinecap="round" opacity={0.7} />; })}
-      </svg>
-      <div style={{ position: "absolute", left: CX - 120, top: 535, width: 240, textAlign: "center", fontSize: 54, fontWeight: 900, color: t.text, background: "#0f1319", borderRadius: 30 }}>VS</div>
-      {[0, 1, 2, 3].map((av) => {
-        const [x, y] = pos(av); const r = role(av); const h = hop(av);
-        const ring = r === "me" ? "#f4f3ef" : r === "pair" ? t.accent : ICE;
-        return (
-          <div key={av} style={{ position: "absolute", left: CX + x - 85, top: CY + y - 85 - h, transform: `scale(${1 + h / 200})`, zIndex: 10 + (h > 0 ? 5 : 0) }}>
-            <Av i={av} size={170} ring={ring} />
-            <div style={{ position: "absolute", left: 0, right: 0, bottom: -52, textAlign: "center", fontSize: 32, fontWeight: 900, letterSpacing: 3, color: ring }}>{r === "me" ? "TÚ" : r === "pair" ? "PAREJA" : "RIVAL"}</div>
-          </div>
-        );
-      })}
-      <div style={{ position: "absolute", left: 0, right: 0, top: -64, display: "flex", justifyContent: "center", gap: 22 }}>
-        {["J1", "J2", "J3"].map((j, k) => <div key={j} style={{ opacity: k <= step ? 1 : 0.35, transform: `scale(${k === step ? 1.18 : 1})` }}><Chip gold={k === step} size={40}>{j}</Chip></div>)}
-      </div>
-    </div>
-  );
-};
-
-const Balance: React.FC<P> = ({ ws }) => {
-  const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const jgF = wf(ws, "jugarás"), eqF = wf(ws, "equilibrio");
-  const split = jgF - 4;
-  if (f < split) {
-    return (
-      <Frame timedWords={ws}>
-        <div style={{ transform: "translateY(-10px) scale(0.9)", transformOrigin: "50% 50%" }}>
-          <Court f={f} stepAt={[Math.round(split * 0.36), Math.round(split * 0.7)]} ws={ws} />
-        </div>
-      </Frame>
-    );
-  }
-  const R = 330, cx = 450, cy = 400;
-  const pt = (i: number): [number, number] => [cx + R * Math.cos((i / 8) * Math.PI * 2 - Math.PI / 2), cy + R * Math.sin((i / 8) * Math.PI * 2 - Math.PI / 2)];
-  const lines: [number, number][] = [];
-  for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++) lines.push([a, b]);
-  const g0 = f - jgF;
-  const chip = pop(f, fps, eqF, 10);
-  const glow = interpolate(f, [eqF, eqF + 20], [0, 1], clamp);
-  return (
-    <Frame timedWords={ws}>
-      <div style={{ position: "relative", width: 900, height: 800 }}>
-        <svg width={900} height={800} style={{ position: "absolute", inset: 0 }}>
-          {lines.map(([a, b], k) => {
-            const [x1, y1] = pt(a), [x2, y2] = pt(b);
-            const p = interpolate(g0, [k * 1.4, k * 1.4 + 9], [0, 1], clamp);
-            const col = (a + b) % 2 ? t.accent : ICE;
-            return (
-              <g key={k}>
-                <line x1={x1} y1={y1} x2={x1 + (x2 - x1) * p} y2={y1 + (y2 - y1) * p} stroke={col} strokeWidth={3.5 + glow * 1.5} opacity={0.6 + glow * 0.3} />
-                {p > 0 && p < 1 && <circle cx={x1 + (x2 - x1) * p} cy={y1 + (y2 - y1) * p} r={9} fill={col === ICE ? "#c8f1ff" : "#fff3c9"} />}
-              </g>
-            );
-          })}
-        </svg>
-        {COLORS.map((_, i) => { const [x, y] = pt(i); const p = pop(f, fps, jgF - 4 + i, 10); return <div key={i} style={{ position: "absolute", left: x - 55, top: y - 55, transform: `scale(${p})` }}><Av i={i} size={110} ring={glow > 0.5 ? t.accent : undefined} /></div>; })}
-      </div>
-      <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
-        <div style={{ opacity: g0 > 0 ? 1 : 0.3 }}><Chip gold size={38}>CON TODOS</Chip></div>
-        <div style={{ opacity: g0 > 14 ? 1 : 0.3, border: `3px solid ${ICE}`, color: ICE, borderRadius: 999, padding: "14px 36px", fontSize: 38, fontWeight: 900, letterSpacing: 4, background: "#141518" }}>CONTRA TODOS</div>
-      </div>
-      <div style={{ marginTop: 30, opacity: chip, transform: `scale(${0.8 + 0.2 * chip})` }}><Chip gold size={46}>✓ EQUILIBRIO PERFECTO</Chip></div>
-      {sfx("ding", eqF, 0.45)}{sfx("pop", jgF, 0.3)}
-    </Frame>
-  );
-};
-
-/* 5 · Sé el más constante y demuestra quién es el mejor: línea continua con tu avatar en la punta */
+type St = { x: number; y: number; s: number; o: number; l: number };
+const lerpSt = (a: St, b: St, q: number): St => ({ x: a.x + (b.x - a.x) * q, y: a.y + (b.y - a.y) * q, s: a.s + (b.s - a.s) * q, o: a.o + (b.o - a.o) * q, l: a.l + (b.l - a.l) * q });
+const easeO = (q: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, q)), 3);
 const partial = (pts: [number, number][], t: number): { str: string; head: [number, number] } => {
   const tt = Math.min(pts.length - 1, Math.max(0, t));
   const i = Math.min(pts.length - 2, Math.floor(tt)), r = tt - i;
   const head: [number, number] = [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * r, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * r];
-  return { str: [...pts.slice(0, i + 1), head].map((p) => p.join(",")).join(" "), head };
+  return { str: [...pts.slice(0, i + 1), head].map((q) => q.join(",")).join(" "), head };
 };
-const Best: React.FC<P> = ({ ws }) => {
+
+const Stage: React.FC<P> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const cF = wf(ws, "constante"), mF = wf(ws, "mejor");
-  const W = 880, H = 560, PADX = 50;
-  const xy = (vals: number[]): [number, number][] => vals.map((v, i) => [PADX + (i / (vals.length - 1)) * (W - 2 * PADX), H - 60 - (v / 100) * (H - 170)]);
-  const gold = xy([8, 22, 36, 50, 63, 78, 93]), g1 = xy([20, 55, 25, 62, 30, 58, 48]), g2 = xy([12, 38, 60, 34, 66, 28, 55]);
-  const end = Math.max(30, mF + 6);
-  const prog = interpolate(f, [4, end], [0, 6], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.quad) });
+  const CX = 450, CY = 550;
+  const lgF = wf(ws, "liguilla"), inF = wf(ws, "individual"), jgF = wf(ws, "jugarás"), eqF = wf(ws, "equilibrio"), seF = wf(ws, "Sé"), cF = wf(ws, "constante"), mF = wf(ws, "mejor");
+  const sc = [21, 17, 24, 12, 19, 15, 22, 14];
+  // cuarteto de la pista: Ana (tú, ancla), Beto, Carla, Dani; el resto espera a los lados
+  const Q = [0, 1, 2, 3], bench = [4, 5, 6, 7];
+  const ROUNDS: [number, number, number][] = [[1, 2, 3], [2, 1, 3], [3, 1, 2]];
+  const SLOT: [number, number][] = [[-165, 235], [165, 235], [-165, -235], [165, -235]];
+  // gráfica (coordenadas locales del panel de 880x560, centrado en la escena)
+  const GW = 880, GH = 560;
+  const gxy = (vals: number[]): [number, number][] => vals.map((v, i) => [50 + (i / (vals.length - 1)) * (GW - 100), GH - 60 - (v / 100) * (GH - 170)]);
+  const gold = gxy([8, 22, 36, 50, 63, 78, 93]), g1 = gxy([20, 55, 25, 62, 30, 58, 48]), g2 = gxy([12, 38, 60, 34, 66, 28, 55]);
+  const toStage = ([x, y]: [number, number]): [number, number] => [x - GW / 2, y - GH / 2 - 10];
+
+  const grid = (p: number): St => ({ x: ((p % 4) - 1.5) * 215, y: (Math.floor(p / 4) - 0.5) * 290 - 30, s: 160, o: 1, l: 1 });
+  const court = (p: number, r: number): St => {
+    if (Q.includes(p)) { const [pa, tl] = ROUNDS[r]; const slot = p === 0 ? 0 : p === pa ? 1 : p === tl ? 2 : 3; return { x: SLOT[slot][0], y: SLOT[slot][1], s: 150, o: 1, l: 1 }; }
+    const bi = bench.indexOf(p);
+    return { x: bi < 2 ? -392 : 392, y: (bi % 2 ? 1 : -1) * 150 - 20, s: 70, o: 0.6, l: 0 };
+  };
+  const oct = (p: number): St => ({ x: 340 * Math.cos((p / 8) * Math.PI * 2 - Math.PI / 2), y: -20 + 340 * Math.sin((p / 8) * Math.PI * 2 - Math.PI / 2), s: 112, o: 1, l: 1 });
+
+  // tiempos (el mismo para J1, J2 y J3)
+  const D = 26;
+  const courtAt = inF + 12;
+  const octAt = jgF + 4;
+  const slot = (octAt - (courtAt + D)) / 3;
+  const T = { court: courtAt, j2: courtAt + D + slot, j3: courtAt + D + 2 * slot, oct: octAt, graph: seF - 22 };
+  const startPt = toStage(gold[0]);
+  const graphOf = (p: number): St => p === 0 ? { x: startPt[0], y: startPt[1], s: 96, o: 1, l: 0 } : { x: oct(p).x * 0.6, y: oct(p).y * 0.6 + 320, s: 50, o: 0, l: 0 };
+  const segs: { at: number; to: (p: number) => St; arc: number; dur: number }[] = [
+    { at: T.court, to: (p) => court(p, 0), arc: 40, dur: D },
+    { at: T.j2, to: (p) => court(p, 1), arc: 90, dur: D },
+    { at: T.j3, to: (p) => court(p, 2), arc: 90, dur: D },
+    { at: T.oct, to: oct, arc: 30, dur: D + 4 },
+    { at: T.graph, to: graphOf, arc: 24, dur: 34 },
+  ];
+  const stateOf = (p: number): St => {
+    let cur: St = grid(p);
+    for (const sg of segs) {
+      if (f < sg.at) break;
+      const q = (f - sg.at - p * 1.6) / sg.dur;
+      const target = sg.to(p);
+      if (q >= 1) { cur = target; continue; }
+      const st = lerpSt(cur, target, easeO(q));
+      st.y -= Math.sin(Math.PI * Math.max(0, Math.min(1, q))) * sg.arc * (p % 2 ? 1 : -0.6);
+      return st;
+    }
+    return cur;
+  };
+  const states = [0, 1, 2, 3, 4, 5, 6, 7].map(stateOf);
+
+  // gráfica: línea continua; Ana la recorre
+  const drawStart = T.graph + 30, drawEnd = mF + 8;
+  const prog = interpolate(f, [drawStart, drawEnd], [0, 6], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.quad) });
   const pg = partial(gold, prog), p1 = partial(g1, prog), p2 = partial(g2, prog);
-  const done = prog >= 5.98;
-  const trophy = pop(f, fps, end, 9);
+  const headPos = toStage(pg.head);
+  const arrived = f >= T.graph + 34 + 7 * 1.6;
+  if (arrived) { states[0] = { ...states[0], x: headPos[0], y: headPos[1] }; }
+
+  // fondos
+  const roundIdx = f >= T.j3 ? 2 : f >= T.j2 ? 1 : 0;
+  const courtIn = easeO((f - T.court) / 20) * (1 - easeO((f - T.oct) / 12));
+  const octOut = 1 - easeO((f - T.graph) / 14);
+  const octP = (k: number) => interpolate(f, [T.oct + 14 + k * 1.1, T.oct + 14 + k * 1.1 + 8], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const chartIn = easeO((f - T.graph - 8) / 20);
+  const scoreO = interpolate(f, [inF, inF + 8, T.court, T.court + 12], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const gridChip = 1 - easeO((f - T.court + 6) / 10);
+  const lines: [number, number][] = [];
+  for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++) lines.push([a, b]);
+  const [pa] = ROUNDS[roundIdx];
+  const roleOf = (p: number) => (p === 0 ? "TÚ" : p === pa ? "PAREJA" : "RIVAL");
+  const ringOf = (p: number) => (courtIn < 0.5 || !Q.includes(p) ? undefined : p === 0 || p === pa ? t.accent : ICE);
+  const trophy = pop(f, fps, drawEnd, 9);
+
   return (
     <Frame timedWords={ws}>
-      <div style={{ opacity: pop(f, fps, Math.max(0, cF - 6), 10), marginBottom: 36 }}><Chip>CONSTANCIA</Chip></div>
-      <div style={{ position: "relative", width: W + 40, height: H + 40, background: t.surface, border: `2px solid ${t.border}`, borderRadius: 36, padding: 20 }}>
-        <svg width={W} height={H} style={{ overflow: "visible" }}>
-          {gold.map(([x], k) => <g key={k}><line x1={x} x2={x} y1={20} y2={H - 50} stroke={t.border} strokeWidth={2} strokeDasharray="4 10" /><text x={x} y={H - 10} textAnchor="middle" fontSize={30} fontWeight={800} fill={prog >= k ? t.text : t.textSubtle}>{`J${k + 1}`}</text></g>)}
-          <polyline points={p1.str} fill="none" stroke="#5f6670" strokeWidth={7} strokeLinejoin="round" strokeLinecap="round" opacity={0.85} />
-          <polyline points={p2.str} fill="none" stroke={ICE} strokeWidth={7} strokeLinejoin="round" strokeLinecap="round" opacity={0.7} />
-          <polyline points={pg.str} fill="none" stroke={t.accent} strokeWidth={13} strokeLinejoin="round" strokeLinecap="round" />
-          {gold.map(([x, y], k) => prog >= k && <circle key={k} cx={x} cy={y} r={10} fill={t.bg} stroke={t.accent} strokeWidth={6} />)}
+      <div style={{ position: "relative", width: 900, height: 1100 }}>
+        {/* pista */}
+        <svg width={900} height={1100} style={{ position: "absolute", inset: 0, opacity: courtIn }}>
+          <rect x={CX - 300} y={CY - 440} width={600} height={880} rx={36} fill="#0f1319" stroke={t.borderStrong} strokeWidth={5} />
+          <line x1={CX - 300} x2={CX + 300} y1={CY} y2={CY} stroke={t.accent} strokeWidth={6} strokeDasharray="14 12" opacity={0.9} />
+          <line x1={CX} x2={CX} y1={CY - 250} y2={CY + 250} stroke={t.border} strokeWidth={3} />
+          <line x1={CX - 300} x2={CX + 300} y1={CY - 250} y2={CY - 250} stroke={t.border} strokeWidth={3} />
+          <line x1={CX - 300} x2={CX + 300} y1={CY + 250} y2={CY + 250} stroke={t.border} strokeWidth={3} />
         </svg>
-        <div style={{ position: "absolute", left: 20 + pg.head[0] - 48, top: 20 + pg.head[1] - 48 - (done ? 6 : 0), filter: `drop-shadow(0 0 18px ${t.accent}aa)` }}><Av i={0} size={96} ring={t.accent} /></div>
-        <div style={{ position: "absolute", right: 28, top: 8, transform: `scale(${trophy})`, fontSize: 110, opacity: trophy }}>🏆</div>
+        {/* octógono */}
+        <svg width={900} height={1100} style={{ position: "absolute", inset: 0, opacity: octOut }}>
+          {lines.map(([a, b], k) => { const A = states[a], B = states[b]; const p = octP(k); return p > 0 ? <line key={k} x1={CX + A.x} y1={CY + A.y} x2={CX + A.x + (B.x - A.x) * p} y2={CY + A.y + (B.y - A.y) * p} stroke={(a + b) % 2 ? t.accent : ICE} strokeWidth={3.5} opacity={0.6} /> : null; })}
+        </svg>
+        {/* gráfica */}
+        <div style={{ position: "absolute", left: CX - GW / 2 - 20, top: CY - GH / 2 - 30, width: GW + 40, height: GH + 40, background: t.surface, border: `2px solid ${t.border}`, borderRadius: 36, opacity: chartIn, boxSizing: "border-box" }}>
+          <svg width={GW} height={GH} style={{ position: "absolute", left: 20, top: 20, overflow: "visible" }}>
+            {gold.map(([x], k) => <g key={k}><line x1={x} x2={x} y1={20} y2={GH - 50} stroke={t.border} strokeWidth={2} strokeDasharray="4 10" /><text x={x} y={GH - 10} textAnchor="middle" fontSize={30} fontWeight={800} fill={prog >= k ? t.text : t.textSubtle}>{`J${k + 1}`}</text></g>)}
+            <polyline points={p1.str} fill="none" stroke="#5f6670" strokeWidth={7} strokeLinejoin="round" strokeLinecap="round" opacity={0.85} />
+            <polyline points={p2.str} fill="none" stroke={ICE} strokeWidth={7} strokeLinejoin="round" strokeLinecap="round" opacity={0.7} />
+            <polyline points={pg.str} fill="none" stroke={t.accent} strokeWidth={13} strokeLinejoin="round" strokeLinecap="round" />
+            {gold.map(([x, y], k) => prog >= k && <circle key={k} cx={x} cy={y} r={10} fill={t.bg} stroke={t.accent} strokeWidth={6} />)}
+          </svg>
+          <div style={{ position: "absolute", right: 28, top: 8, transform: `scale(${trophy})`, fontSize: 110, opacity: trophy }}>🏆</div>
+        </div>
+        {/* avatares compartidos */}
+        {states.map((st, p) => {
+          const pI = pop(f, fps, 4 + p * 4, 10);
+          const labelGrid = Math.max(0, st.l) * gridChip;
+          const labelRole = courtIn > 0.6 && Q.includes(p) ? 1 : 0;
+          const big = st.s > 120;
+          return (
+            <div key={p} style={{ position: "absolute", left: CX + st.x - st.s / 2, top: CY + st.y - st.s / 2, opacity: Math.min(1, pI * 2) * st.o, transform: `scale(${0.5 + 0.5 * pI})`, zIndex: p === 0 ? 8 : 5, filter: p === 0 && arrived ? `drop-shadow(0 0 18px ${t.accent}aa)` : undefined }}>
+              <Av i={p} size={st.s} ring={p === 0 && arrived ? t.accent : ringOf(p)} />
+              <div style={{ position: "absolute", left: -40, right: -40, top: st.s + 8, textAlign: "center", fontSize: big ? 32 : 26, fontWeight: 800, color: t.textMuted, opacity: labelGrid * (1 - labelRole) }}>{NAMES[p]}</div>
+              <div style={{ position: "absolute", left: -40, right: -40, top: st.s + 6, textAlign: "center", fontSize: 28, fontWeight: 900, letterSpacing: 3, color: p === 0 || p === pa ? t.accent : ICE, opacity: labelRole }}>{roleOf(p)}</div>
+              <div style={{ position: "absolute", left: 0, right: 0, top: -64, textAlign: "center", fontSize: 46, fontWeight: 900, color: t.accent, opacity: scoreO * (p < 8 ? 1 : 0) }}>{Math.round(sc[p] * easeO((f - inF) / 30))}</div>
+            </div>
+          );
+        })}
+        {/* rótulos de fase */}
+        <div style={{ position: "absolute", left: 0, right: 0, top: -10, display: "flex", justifyContent: "center", opacity: gridChip * pop(f, fps, Math.max(0, lgF - 6), 10) }}><Chip gold>{f >= inF ? "LIGUILLA · INDIVIDUAL" : "LIGUILLA"}</Chip></div>
+        <div style={{ position: "absolute", left: 0, right: 0, top: -10, display: "flex", justifyContent: "center", gap: 22, opacity: courtIn }}>
+          {["J1", "J2", "J3"].map((j, k) => <div key={j} style={{ opacity: k <= roundIdx ? 1 : 0.35, transform: `scale(${k === roundIdx ? 1.18 : 1})` }}><Chip gold={k === roundIdx} size={40}>{j}</Chip></div>)}
+        </div>
+        <div style={{ position: "absolute", left: 0, right: 0, top: -10, display: "flex", justifyContent: "center", gap: 20, opacity: (1 - easeO((f - eqF + 4) / 8)) * easeO((f - T.oct - 10) / 10) * (1 - courtIn) }}>
+          <Chip gold size={40}>CON TODOS</Chip>
+          <div style={{ border: `3px solid ${ICE}`, color: ICE, borderRadius: 999, padding: "14px 36px", fontSize: 40, fontWeight: 900, letterSpacing: 4, background: "#141518", whiteSpace: "nowrap" }}>CONTRA TODOS</div>
+        </div>
+        <div style={{ position: "absolute", left: 0, right: 0, top: -10, display: "flex", justifyContent: "center", opacity: easeO((f - eqF) / 10) * octOut, transform: `scale(${0.8 + 0.2 * pop(f, fps, eqF, 10)})` }}><Chip gold size={46}>✓ EQUILIBRIO PERFECTO</Chip></div>
+        <div style={{ position: "absolute", left: 0, right: 0, top: -10, display: "flex", justifyContent: "center", opacity: pop(f, fps, cF - 6, 10) * chartIn }}><Chip>CONSTANCIA</Chip></div>
       </div>
-      {sfx("ding", end, 0.45)}
+      {[T.court, T.j2, T.j3, T.oct, T.graph].map((m) => sfx("whoosh", Math.max(1, Math.round(m)), 0.18))}{sfx("ding", eqF, 0.45)}{sfx("ding", drawEnd, 0.45)}
     </Frame>
   );
 };
@@ -262,8 +237,13 @@ const Auto: React.FC<P> = ({ ws }) => {
   );
 };
 
-const COMPS: React.FC<P>[] = [Hook, Logo, League, Balance, Best, Auto, Soon, Outro];
-const KEYS = ["hook", "logo", "league", "balance", "best", "auto", "soon", "outro"];
-const makeScenes = (): SceneDef[] => COMPS.map((C, i) => ({ key: KEYS[i], dur: Math.round((BOUNDS[i + 1] - BOUNDS[i]) * 30), C: () => <C ws={sceneWords(i)} /> }));
+const makeScenes = (): SceneDef[] => [
+  { key: "hook", dur: Math.round((BOUNDS[1] - BOUNDS[0]) * 30), C: () => <Hook ws={sceneWords(0)} /> },
+  { key: "logo", dur: Math.round((BOUNDS[2] - BOUNDS[1]) * 30), C: () => <Logo ws={sceneWords(1)} /> },
+  { key: "stage", dur: Math.round((BOUNDS[5] - BOUNDS[2]) * 30), C: () => <Stage ws={wordsBetween(2, 5)} /> },
+  { key: "auto", dur: Math.round((BOUNDS[6] - BOUNDS[5]) * 30), C: () => <Auto ws={sceneWords(5)} /> },
+  { key: "soon", dur: Math.round((BOUNDS[7] - BOUNDS[6]) * 30), C: () => <Soon ws={sceneWords(6)} /> },
+  { key: "outro", dur: Math.round((BOUNDS[8] - BOUNDS[7]) * 30), C: () => <Outro ws={sceneWords(7)} /> },
+];
 export const REEL3_FRAMES = totalFrames(makeScenes());
 export const Reel3: React.FC = () => <VideoSeries scenes={makeScenes()} accent="#d7a544" voice="voice-app3-david.mp3" />;
