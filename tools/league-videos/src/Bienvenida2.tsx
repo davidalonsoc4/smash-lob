@@ -98,14 +98,17 @@ const Stage = ({ league, ws }: P) => {
   const order = rankAt(NAMES, 2);
   const rank = (p: number): St => ({ x: -356, y: (order[NAMES[p]] - 3.5) * 118, s: 64, l: 0 });
 
+  const D = 24;
+  const courtAt = wf(ws, "jornadas") + 22;           // la pista entra justo después de "siete jornadas"
+  const octAt = wf(ws, "buscando") - 4;              // el octágono empieza con "buscando el equilibrio perfecto"
+  const slot = (octAt - (courtAt + D)) / 3;          // las tres jornadas (J1, J2, J3) duran lo mismo
   const T = {
-    court: wf(ws, "En") + 4,
-    j2: wf(ws, "rivales") - 8,
-    j3: wf(ws, "vez") - 14,
-    oct: wf(ws, "buscando") - 8,
+    court: courtAt,
+    j2: courtAt + D + slot,
+    j3: courtAt + D + 2 * slot,
+    oct: octAt,
     rank: wf(ws, "parejas") - 4,
   };
-  const D = 24;
   const segs: { at: number; to: (p: number) => St; arc: number; dur?: number }[] = [
     { at: T.court, to: (p) => court(p, 0), arc: 40 },
     { at: T.j2, to: (p) => court(p, 1), arc: 90 },
