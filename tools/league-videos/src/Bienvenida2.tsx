@@ -95,32 +95,29 @@ const Stage = ({ league, ws }: P) => {
     return { x: bi < 2 ? -392 : 392, y: (bi % 2 ? 1 : -1) * 150 - 20, s: 70, l: 0 };
   };
   const oct = (p: number): St => ({ x: 340 * Math.cos((p / 8) * Math.PI * 2 - Math.PI / 2), y: -20 + 340 * Math.sin((p / 8) * Math.PI * 2 - Math.PI / 2), s: 112, l: 1 });
-  const pairs = (p: number): St => { const k = Math.floor(p / 2); return { x: (k % 2 ? 215 : -215) + (p % 2 ? 80 : -80), y: (k < 2 ? -250 : 130), s: 128, l: 1 }; };
   const order = rankAt(NAMES, 2);
-  const rank = (p: number): St => ({ x: -318, y: (order[NAMES[p]] - 3.5) * 118, s: 84, l: 0 });
+  const rank = (p: number): St => ({ x: -356, y: (order[NAMES[p]] - 3.5) * 118, s: 64, l: 0 });
 
   const T = {
     court: wf(ws, "En") + 4,
     j2: wf(ws, "rivales") - 8,
     j3: wf(ws, "vez") - 14,
     oct: wf(ws, "buscando") - 8,
-    pairs: wf(ws, "parejas"),
-    rank: wf(ws, "ranking") - 6,
+    rank: wf(ws, "parejas") - 4,
   };
   const D = 24;
-  const segs: { at: number; to: (p: number) => St; arc: number }[] = [
+  const segs: { at: number; to: (p: number) => St; arc: number; dur?: number }[] = [
     { at: T.court, to: (p) => court(p, 0), arc: 40 },
     { at: T.j2, to: (p) => court(p, 1), arc: 90 },
     { at: T.j3, to: (p) => court(p, 2), arc: 90 },
     { at: T.oct, to: oct, arc: 30 },
-    { at: T.pairs, to: pairs, arc: 30 },
-    { at: T.rank, to: rank, arc: 24 },
+    { at: T.rank, to: rank, arc: 18, dur: 38 },
   ];
   const stateOf = (p: number): St => {
     let cur: St = grid(p);
     for (const s of segs) {
       if (f < s.at) break;
-      const q = (f - s.at - p * 1.6) / D;
+      const q = (f - s.at - p * 1.6) / (s.dur ?? D);
       const target = s.to(p);
       if (q >= 1) { cur = target; continue; }
       const e = ease(q);
@@ -136,9 +133,8 @@ const Stage = ({ league, ws }: P) => {
   const courtIn = ease((f - T.court) / 20) * (1 - ease((f - T.oct) / 12));
   const roundIdx = f >= T.j3 ? 2 : f >= T.j2 ? 1 : 0;
   const octP = (k: number) => interpolate(f, [T.oct + 14 + k * 1.1, T.oct + 14 + k * 1.1 + 8], [0, 1], clampO);
-  const octOut = 1 - ease((f - T.pairs) / 12);
-  const pairsIn = ease((f - T.pairs - 12) / 14) * (1 - ease((f - T.rank) / 8));
-  const rankIn = ease((f - T.rank - 14) / 16);
+  const octOut = 1 - ease((f - T.rank) / 14);
+  const rankIn = ease((f - T.rank - 22) / 18);
   const gridChips = 1 - ease((f - T.court + 10) / 10);
   const lines: [number, number][] = [];
   for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++) lines.push([a, b]);
@@ -158,22 +154,15 @@ const Stage = ({ league, ws }: P) => {
           <line x1={CX} x2={CX} y1={CY - 250} y2={CY + 250} stroke={t.border} strokeWidth={3} />
           <line x1={CX - 300} x2={CX + 300} y1={CY - 250} y2={CY - 250} stroke={t.border} strokeWidth={3} />
           <line x1={CX - 300} x2={CX + 300} y1={CY + 250} y2={CY + 250} stroke={t.border} strokeWidth={3} />
-          {/* vínculo de pareja */}
-          {(() => { const [pa] = ROUNDS[roundIdx]; const a = statesNow[Q[0]], b = statesNow[Q[pa]]; const other = [1, 2, 3].filter((x) => x !== pa); const c = statesNow[Q[other[0]]], d = statesNow[Q[other[1]]];
-            return <g><line x1={CX + a.x} y1={CY + a.y} x2={CX + b.x} y2={CY + b.y} stroke={t.accent} strokeWidth={14} strokeLinecap="round" opacity={0.55} /><line x1={CX + c.x} y1={CY + c.y} x2={CX + d.x} y2={CY + d.y} stroke={ICE} strokeWidth={14} strokeLinecap="round" opacity={0.55} /></g>; })()}
         </svg>
         {/* octógono */}
         <svg width={900} height={1100} style={{ position: "absolute", inset: 0, opacity: octOut }}>
           {lines.map(([a, b], k) => { const A = statesNow[a], B = statesNow[b]; const p = octP(k); const col = (a + b) % 2 ? t.accent : ICE; return p > 0 ? <line key={k} x1={CX + A.x} y1={CY + A.y} x2={CX + A.x + (B.x - A.x) * p} y2={CY + A.y + (B.y - A.y) * p} stroke={col} strokeWidth={3.5} opacity={0.6} /> : null; })}
         </svg>
-        {/* parejas (barras entre compañeros) */}
-        <svg width={900} height={1100} style={{ position: "absolute", inset: 0, opacity: pairsIn }}>
-          {[0, 1, 2, 3].map((k) => { const A = statesNow[k * 2], B = statesNow[k * 2 + 1]; return <line key={k} x1={CX + A.x} y1={CY + A.y} x2={CX + B.x} y2={CY + B.y} stroke={t.accent} strokeWidth={14} strokeLinecap="round" opacity={0.7} />; })}
-        </svg>
         {/* ranking: filas de fondo */}
         <div style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: rankIn }}>
-          {NAMES.map((n, p) => { const r = order[n]; const y = CY + (r - 3.5) * 118; const me = r === 0; const pts = Math.round(PTS[n][2] * ease((f - T.rank - 22) / 20)); const d = DIFF[n][2];
-            return <div key={n} style={{ position: "absolute", left: 40, right: 40, top: y - 46, height: 92, borderRadius: 24, background: me ? `${t.accent}22` : t.mutedSurface, border: `3px solid ${me ? t.accent : "transparent"}`, display: "flex", alignItems: "center", paddingLeft: 190, paddingRight: 30, gap: 20 }}>
+          {NAMES.map((n, p) => { const r = order[n]; const y = CY + (r - 3.5) * 118; const me = r === 0; const pts = Math.round(PTS[n][2] * ease((f - T.rank - 30) / 20)); const d = DIFF[n][2];
+            return <div key={n} style={{ position: "absolute", left: 40, right: 40, top: y - 46, height: 92, borderRadius: 24, background: me ? `${t.accent}22` : t.mutedSurface, border: `3px solid ${me ? t.accent : "transparent"}`, display: "flex", alignItems: "center", paddingLeft: 104, paddingRight: 30, gap: 20 }}>
               <div style={{ flex: 1, fontSize: 40, fontWeight: 800 }}>{names[p]}</div>
               <div style={{ fontSize: 28, fontWeight: 700, color: t.textMuted }}>{d > 0 ? `+${d}` : d}</div>
               <div style={{ width: 70, textAlign: "right", fontSize: 46, fontWeight: 900, color: me ? t.accent : t.text }}>{pts}</div>
@@ -200,10 +189,9 @@ const Stage = ({ league, ws }: P) => {
           {["J1", "J2", "J3"].map((j, k) => <div key={j} style={{ opacity: k <= roundIdx ? 1 : 0.35, transform: `scale(${k === roundIdx ? 1.18 : 1})` }}><Chip gold={k === roundIdx} size={40}>{j}</Chip></div>)}
         </div>
         <div style={{ position: "absolute", left: 0, right: 0, top: -10, display: "flex", justifyContent: "center", opacity: ease((f - T.oct - 90) / 10) * octOut, transform: `scale(${0.8 + 0.2 * pop(f, fps, T.oct + 90, 10)})` }}><Chip gold size={46}>✓ EQUILIBRIO PERFECTO</Chip></div>
-        <div style={{ position: "absolute", left: 0, right: 0, top: -10, display: "flex", justifyContent: "center", opacity: pairsIn }}><Chip size={44}>SE JUEGA POR PAREJAS</Chip></div>
         <div style={{ position: "absolute", left: 0, right: 0, top: -10, display: "flex", justifyContent: "center", opacity: rankIn }}><Chip gold size={44}>RANKING INDIVIDUAL</Chip></div>
       </div>
-      {[T.court, T.j2, T.j3, T.oct, T.pairs, T.rank].map((m) => sfx("whoosh", Math.max(1, m), 0.18))}{sfx("ding", T.oct + 90, 0.45)}
+      {[T.court, T.j2, T.j3, T.oct, T.rank].map((m) => sfx("whoosh", Math.max(1, m), 0.18))}{sfx("ding", T.oct + 90, 0.45)}
     </Frame>
   );
 };
