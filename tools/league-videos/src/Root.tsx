@@ -1,3 +1,4 @@
+import { BolasMuestra } from "./Bolas";
 import { DemoAvatares, DemoGraficas, DEMO_AVATARES_FRAMES, DEMO_GRAFICAS_FRAMES } from "./Demos";
 import { Reel3, REEL3_FRAMES } from "./Reel3";
 import { Reel2, REEL2_FRAMES } from "./Reel2";
@@ -36,6 +37,7 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="InstagramReel3" component={Reel3} durationInFrames={REEL3_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="DemoGraficas" component={DemoGraficas} durationInFrames={DEMO_GRAFICAS_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="DemoAvatares" component={DemoAvatares} durationInFrames={DEMO_AVATARES_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="BolasMuestra" component={BolasMuestra} durationInFrames={1} fps={30} width={1600} height={1250} />
     <Composition id="LigaFormato" component={LigaFormato} durationInFrames={TOTAL_FRAMES} fps={30} width={1080} height={1920} />
   </>
 );
