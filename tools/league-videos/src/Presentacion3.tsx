@@ -6,7 +6,8 @@
 import React from "react";
 import { Img, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { Ball, Frame, SceneDef, TimedWord, VideoSeries, Words, pop, sfx, totalFrames, useTheme } from "./kit";
-import { Avatar, NATIVE_W, RankRow, RankingCard } from "./appUi";
+import { Avatar, NATIVE_W } from "./appUi";
+import type { RankRow } from "./appUi";
 import { DIFF, LeagueConfig, PRO_LEAGUE, PTS, rankAt } from "./Bienvenida";
 import { Icon } from "./Presentacion";
 import { MorphBar, SHARED, ease, geo } from "./Presentacion2";
@@ -117,6 +118,35 @@ const ScoreRow: React.FC<{ a: string; b: string; games: number[]; sets: number; 
 };
 const DateLine: React.FC<{ a: string; b: string }> = ({ a, b }) => { const t = useTheme(); return <div style={{ borderTop: `1px solid ${t.border}`, marginTop: 6, paddingTop: 8, fontSize: 12.5, color: t.textMuted, lineHeight: 1.45 }}><div>{a}</div><div>{b}</div></div>; };
 
+
+/* tabla de ranking a todo el ancho de la pantalla (como en la app), con filas animadas */
+const RankTable: React.FC<{ rows: RankRow[] }> = ({ rows }) => {
+  const t = useTheme();
+  const RH = 33, HH = 28;
+  const bars = [t.accent, "#9aa0a8", "#b87333"];
+  const head = (w: number, l: string, align: "left" | "right" | "center" = "right") => <div style={{ width: w, textAlign: align, fontSize: 10.5, fontWeight: 900, letterSpacing: 1.6, color: t.textMuted }}>{l}</div>;
+  return (
+    <div style={{ width: W, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderRadius: 18, overflow: "hidden" }}>
+      <div style={{ height: HH, display: "flex", alignItems: "center", padding: "0 14px 0 12px", borderBottom: `1px solid ${t.border}` }}>{head(34, "POS", "left")}<div style={{ flex: 1 }}>{head(80, "JUGADOR", "left")}</div>{head(26, "J")}{head(44, "DIF")}{head(34, "PTS")}</div>
+      <div style={{ position: "relative", height: RH * rows.length }}>
+        {rows.map((r) => {
+          const rp = Math.round(r.pos);
+          return (
+            <div key={r.key} style={{ position: "absolute", left: 0, right: 0, top: r.pos * RH, height: RH, display: "flex", alignItems: "center", padding: "0 14px 0 12px", borderBottom: `1px solid ${t.border}`, background: r.moved ? `${t.accent}14` : "transparent" }}>
+              {rp < 3 && <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: bars[rp] }} />}
+              <div style={{ width: 34 }}><div style={{ width: 24, height: 24, borderRadius: 8, background: rp === 0 ? t.accent : "transparent", border: rp === 0 ? "none" : `1.5px solid ${t.borderStrong}`, color: rp === 0 ? t.accentContrast : t.accent, fontSize: 13, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>{rp + 1}</div></div>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 9 }}><Avatar size={24} /><div style={{ fontSize: 14.5, fontWeight: 700 }}>{r.name}</div></div>
+              <div style={{ width: 26, textAlign: "right", fontSize: 12.5, color: t.textMuted }}>{r.j}</div>
+              <div style={{ width: 44, textAlign: "right", fontSize: 13, fontWeight: 700, color: r.diff > 0 ? t.text : t.textMuted }}>{r.diff > 0 ? `+${r.diff}` : r.diff}</div>
+              <div style={{ width: 34, textAlign: "right", fontSize: 16, fontWeight: 900 }}>{r.pts}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 /* bolitas sueltas: caen y rebotan */
 const dropY = (q: number) => { if (q <= 0) return -900; if (q >= 1) return 0; if (q < 0.55) { const u = q / 0.55; return -900 * (1 - u * u); } if (q < 0.8) { const u = (q - 0.55) / 0.25; return -70 * (1 - (2 * u - 1) ** 2); } const u = (q - 0.8) / 0.2; return -22 * (1 - (2 * u - 1) ** 2); };
 
@@ -201,7 +231,7 @@ const Stage = ({ league, ws }: P) => {
       <div style={{ display: "flex", gap: 8, width: W }}><Stat label="PARTIDOS" value="3" sub="3V · 0D" /><Stat label="VICTORIAS" value="100%" sub="porcentaje global" /></div>
       <div style={{ display: "flex", gap: 8, width: W }}><Stat label="DIF. JUEGOS" value="+18" sub="51-33" /><Stat label="RACHA ACTUAL" value="3V" sub="resultado consecutivo" /></div></div>) },
     { from: S.inn + 30, to: inM[1] - 4, node: (<div style={gap}><HeaderCard title={league.name} logo={league.logo} sub={`${league.season} · Próxima`} />{countdown}</div>) },
-    { from: inM[1] - 4, to: inM[2] - 4, node: (<div style={gap}><HeaderCard title="Ranking individual" sub={`${league.season} · En curso`} /><div style={{ zoom: 0.66 }}><RankingCard rows={rkRows} /></div></div>) },
+    { from: inM[1] - 4, to: inM[2] - 4, node: (<div style={gap}><HeaderCard title="Ranking individual" sub={`${league.season} · En curso`} /><RankTable rows={rkRows} /></div>) },
     { from: inM[2] - 4, to: inM[3] - 4, node: (<div style={gap}><HeaderCard title="Calendario de liga" sub={`${league.season} · En curso`} /><Seg items={["Vista", "Liga completa", "Mis partidos"]} active={1} small /><Sec title="Jornada 1" />
       <Card accent><div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: t.textMuted, marginBottom: 8 }}>JORNADA 1</div><div style={{ display: "flex", alignItems: "center", gap: 8 }}><PairBox a={q4[0]} b={q4[1]} gold /><Vs /><PairBox a={q4[2]} b={q4[3]} gold /></div>
         <div style={{ marginTop: 10, border: `1.5px solid ${t.accent}66`, borderRadius: 12, padding: "9px 0", textAlign: "center", fontSize: 13.5, fontWeight: 800, display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}><Icon name="cal" color={t.text} size={18} />Añadir fecha, hora y lugar</div></Card>
@@ -240,7 +270,7 @@ const Stage = ({ league, ws }: P) => {
         <div style={{ position: "relative", width: WIN_W, height: WIN_H, borderRadius: 56, border: `4px solid ${t.borderStrong}`, overflow: "hidden", background: t.bg, boxShadow: `0 30px 80px rgba(0,0,0,.55), 0 0 0 1px ${t.border}`, boxSizing: "content-box" }}>
           <div style={{ position: "absolute", left: 0, top: 0, width: NATIVE_W, height: SCR_H, transformOrigin: "0 0", transform: `scale(${Z})`, opacity: 1 - 0.78 * dimWin }}>
             {screens.map((s, i) => {
-              const inn = ease((f - s.from) / 14), out = 1 - ease((f - (s.to - 11)) / 10);
+              const inn = ease((f - s.from) / 14), out = 1 - ease((f - (s.to - 6)) / 8);
               const o = Math.min(inn, out);
               if (o <= 0.01) return null;
               return <React.Fragment key={i}><div style={{ position: "absolute", left: 12, top: CONTENT_TOP, opacity: o, transform: `translateX(${(1 - inn) * 46 - (1 - out) * 30}px)` }}>{s.node}</div>{showFab(s.fab) && <div style={{ opacity: o }}><Fab icon={s.fab!} /></div>}</React.Fragment>;
