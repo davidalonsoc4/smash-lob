@@ -21,7 +21,7 @@ const B30 = (i: number) => Math.round(BOUNDS[i] * 30);
 const at = (i: number, text: string, nth = 0) => B30(i) + wf(sceneWords(i), text, nth); // cuadro absoluto del vídeo
 
 /* ---------- Barra de navegación única que se transforma ---------- */
-export const OUT = [["trophy", "Competiciones"], ["ball", "Mis partidos"], ["chat", "Chats"], ["user", "Mi perfil"]];
+export const OUT = [["layers", "Competiciones"], ["callist", "Mis partidos"], ["chat", "Chats"], ["user", "Mi perfil"]];
 export const IN = [["home", "Inicio"], ["rank", "Ranking"], ["cal", "Calendario"], ["chat", "Chats"], ["user", "Perfil"]];
 export const BAR_W = NATIVE_W - 18, GAP = 4, ITEM_H = 58;
 export const geo = (n: number, i: number) => { const w = (BAR_W - GAP * (n - 1)) / n; return { x: i * (w + GAP), w }; };
@@ -50,7 +50,7 @@ export const MorphBar: React.FC<{ m: number; activeOut: number; activeIn: number
     els.push(item(`i${j}`, icon, label, gI.x, gI.w, activeIn === j && m > 0.5, ease((m - 0.35) * 1.7), 0.88 + 0.12 * m, !!dim[j], !!lock[j]));
   });
   return (
-    <div style={{ width: NATIVE_W, boxSizing: "border-box", background: t.bg, border: `1px solid ${t.border}`, borderRadius: 22, padding: 8 }}>
+    <div style={{ width: NATIVE_W, boxSizing: "border-box", background: t.bg, borderTop: `1px solid ${t.border}`, padding: "8px 9px 8px 9px" }}>
       <div style={{ position: "relative", width: BAR_W, height: ITEM_H }}>{els}</div>
     </div>
   );

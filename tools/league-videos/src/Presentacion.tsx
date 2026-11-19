@@ -36,6 +36,12 @@ export const Icon: React.FC<{ name: string; color: string; size?: number }> = ({
       {name === "pin" && (<><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" /><circle cx={12} cy={9.5} r={2.5} /></>)}
       {name === "clock" && (<><circle cx={12} cy={12} r={9} /><path d="M12 7v5l3 2" /></>)}
       {name === "check" && <path d="M5 12.5l4.5 4.5L19 7.5" />}
+      {name === "layers" && <path d="M12 3l9 5-9 5-9-5 9-5zM3 12.5l9 5 9-5M3 16.5l9 5 9-5" />}
+      {name === "callist" && (<><rect x={3.5} y={4.5} width={17} height={16} rx={3} /><path d="M3.5 9.5h17M8 3v3M16 3v3M8 14h8M8 17.5h5" /></>)}
+      {name === "sliders" && (<><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx={15} cy={7} r={2} /><circle cx={9} cy={17} r={2} /></>)}
+      {name === "share" && (<><circle cx={6} cy={12} r={2.4} /><circle cx={17.5} cy={6} r={2.4} /><circle cx={17.5} cy={18} r={2.4} /><path d="M8.2 10.9l7.2-3.7M8.2 13.1l7.2 3.7" /></>)}
+      {name === "plus" && <path d="M12 5v14M5 12h14" />}
+      {name === "search" && (<><circle cx={11} cy={11} r={6.5} /><path d="M16 16l4.5 4.5" /></>)}
       {name === "lock" && (<><rect x={5} y={11} width={14} height={9} rx={2} /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>)}
     </svg>
   );
