@@ -62,7 +62,7 @@ export const NavBar: React.FC<{ items: NavDef[]; active: number; dim?: boolean[]
 const OUTSIDE: NavDef[] = [["trophy", "Competiciones"], ["ball", "Mis partidos"], ["chat", "Chats"], ["user", "Mi perfil"]];
 export const INSIDE: NavDef[] = [["home", "Inicio"], ["rank", "Ranking"], ["cal", "Calendario"], ["chat", "Chats"], ["user", "Perfil"]];
 
-const Row: React.FC<{ title: string; sub?: string; right?: string; icon?: string }> = ({ title, sub, right, icon }) => {
+export const Row: React.FC<{ title: string; sub?: string; right?: string; icon?: string }> = ({ title, sub, right, icon }) => {
   const t = useTheme();
   return (
     <div style={{ width: NATIVE_W - 38, display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderTop: `1px solid ${t.border}` }}>
@@ -73,7 +73,7 @@ const Row: React.FC<{ title: string; sub?: string; right?: string; icon?: string
   );
 };
 
-const MiniCountdown: React.FC = () => {
+export const MiniCountdown: React.FC = () => {
   const t = useTheme();
   const tile = (v: string, l: string) => <div style={{ flex: 1, background: "rgba(255,255,255,.16)", borderRadius: 14, padding: "12px 0 10px", textAlign: "center" }}><div style={{ fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{v}</div><div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, marginTop: 6 }}>{l}</div></div>;
   return (
@@ -236,7 +236,7 @@ const NotError = ({ ws }: Props) => {
 };
 
 /* 7 · Cierre con empaque: "Así que recuerda, ¡Nos vemos en la pista!" */
-const Outro = ({ league, ws }: Props) => {
+export const PresOutro = ({ league, ws }: Props) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, 0, 8);
   const marks = [wf(ws, "nos"), wf(ws, "vemos"), wf(ws, "en"), wf(ws, "pista")];
@@ -263,7 +263,7 @@ const Outro = ({ league, ws }: Props) => {
   );
 };
 
-const COMPS: React.FC<Props>[] = [Hook, Outside, Inside, TopRight, Locked, NotError, Outro];
+const COMPS: React.FC<Props>[] = [Hook, Outside, Inside, TopRight, Locked, NotError, PresOutro];
 const KEYS = ["hook", "outside", "inside", "topright", "locked", "noterror", "outro"];
 const makeScenes = (league: LeagueConfig): SceneDef[] =>
   COMPS.map((C, i) => ({ key: KEYS[i], dur: Math.round((BOUNDS[i + 1] - BOUNDS[i]) * 30), C: () => <C league={league} ws={sceneWords(i)} /> }));

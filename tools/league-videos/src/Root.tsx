@@ -1,3 +1,4 @@
+import { Presentacion2, PRESENTACION2_FRAMES } from "./Presentacion2";
 import { Bienvenida2, BIENVENIDA2_FRAMES } from "./Bienvenida2";
 import { BolasMuestra } from "./Bolas";
 import { DemoAvatares, DemoGraficas, DEMO_AVATARES_FRAMES, DEMO_GRAFICAS_FRAMES } from "./Demos";
@@ -40,6 +41,7 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="DemoAvatares" component={DemoAvatares} durationInFrames={DEMO_AVATARES_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="BolasMuestra" component={BolasMuestra} durationInFrames={1} fps={30} width={1600} height={1250} />
     <Composition id="BienvenidaV2" component={Bienvenida2} durationInFrames={BIENVENIDA2_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
+    <Composition id="PresentacionV2" component={Presentacion2} durationInFrames={PRESENTACION2_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="LigaFormato" component={LigaFormato} durationInFrames={TOTAL_FRAMES} fps={30} width={1080} height={1920} />
   </>
 );
