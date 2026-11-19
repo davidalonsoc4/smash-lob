@@ -21,7 +21,7 @@ export const PRO_LEAGUE: LeagueConfig = {
   exampleQuartet: ["Alain", "David", "Álvaro", "Nicolás"],
   rounds: 7, daysToStart: 30,
   // La hora está por confirmar: las pistas se reservan a partir del 1 de diciembre.
-  opening: { weekday: "DOMINGO", day: "20", month: "DICIEMBRE", place: "Pando · Portugalete", time: null, note: "Reservamos las pistas el 1 de diciembre y confirmamos la hora" },
+  opening: { weekday: "DOMINGO", day: "20", month: "DICIEMBRE", place: "Polideportivo Pando · Portugalete", time: null, note: "Desvelaremos la hora el 1 de diciembre" },
 };
 type Props = { league: LeagueConfig };
 
