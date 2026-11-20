@@ -90,6 +90,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
   const [replyTo, setReplyTo] = useState<Message | null>(null)
   const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null)
   const [announce, setAnnounce] = useState(false)
+  const [asLeague, setAsLeague] = useState(false)
   const [participantsOpen, setParticipantsOpen] = useState(false)
   const endpoint = `/api/league-season-chats/${encodeURIComponent(seasonId)}`
   const accountHeader = account ? encodeURIComponent(account.trim().toLowerCase()) : null
@@ -237,7 +238,8 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     const sentAttachment = attachment
     const sentReplyId = replyTo?.id
     const sentAsAnnouncement = announce && Boolean(chat.canAnnounce)
-    setPending({ id: "pending", sender_user_id: chat.me, sender_display_name: sender?.displayName ?? tx("Tú"), body: text, created_at: new Date().toISOString(), ...(sentAsAnnouncement ? { is_announcement: true } : {}), ...(replyTo ? { reply_to_id: replyTo.id, reply: { id: replyTo.id, sender_user_id: replyTo.sender_user_id, sender_display_name: replyTo.sender_display_name, body: replyTo.body.slice(0, 140), media_kind: replyTo.media_kind ?? null } } : {}), ...(sentAttachment ? { media_kind: sentAttachment.kind, media_url: sentAttachment.previewUrl, media_poster_url: sentAttachment.posterUrl, media_width: sentAttachment.width, media_height: sentAttachment.height, media_duration_ms: sentAttachment.durationMs } : {}) })
+    const sentAsLeague = sentAsAnnouncement && asLeague && !attachment && !replyTo
+    setPending({ id: "pending", sender_user_id: chat.me, sender_display_name: sentAsLeague ? tx("La liga") : sender?.displayName ?? tx("Tú"), body: text, created_at: new Date().toISOString(), ...(sentAsAnnouncement ? { is_announcement: true } : {}), ...(replyTo ? { reply_to_id: replyTo.id, reply: { id: replyTo.id, sender_user_id: replyTo.sender_user_id, sender_display_name: replyTo.sender_display_name, body: replyTo.body.slice(0, 140), media_kind: replyTo.media_kind ?? null } } : {}), ...(sentAttachment ? { media_kind: sentAttachment.kind, media_url: sentAttachment.previewUrl, media_poster_url: sentAttachment.posterUrl, media_width: sentAttachment.width, media_height: sentAttachment.height, media_duration_ms: sentAttachment.durationMs } : {}) })
     setError(false)
     setMediaError(null)
     setBody("")
@@ -262,13 +264,14 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
       setPending(current => current ? { ...current, upload_progress: null } : current)
     }
     const response = await fetch(`/api/league-season-chats/${encodeURIComponent(seasonId)}`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text, ...(mediaPath ? { mediaPath, ...(posterPath ? { posterPath } : {}), ...(sentAttachment?.width && sentAttachment.height ? { mediaWidth: sentAttachment.width, mediaHeight: sentAttachment.height } : {}), ...(sentAttachment?.durationMs !== null && sentAttachment?.durationMs !== undefined ? { mediaDurationMs: sentAttachment.durationMs } : {}) } : {}), ...(sentReplyId ? { replyToId: sentReplyId } : {}), ...(sentAsAnnouncement ? { announcement: true } : {}) }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: text, ...(mediaPath ? { mediaPath, ...(posterPath ? { posterPath } : {}), ...(sentAttachment?.width && sentAttachment.height ? { mediaWidth: sentAttachment.width, mediaHeight: sentAttachment.height } : {}), ...(sentAttachment?.durationMs !== null && sentAttachment?.durationMs !== undefined ? { mediaDurationMs: sentAttachment.durationMs } : {}) } : {}), ...(sentReplyId ? { replyToId: sentReplyId } : {}), ...(sentAsAnnouncement ? { announcement: true } : {}), ...(sentAsLeague ? { asLeague: true } : {}) }),
     }).catch(() => null)
     const confirmed = response?.ok ? (await response.json().catch(() => null))?.message as Message | undefined : undefined
     if (response?.ok) {
       if (sentAttachment) clearAttachment()
       setReplyTo(null)
       setAnnounce(false)
+      setAsLeague(false)
       if (confirmed?.id) setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [confirmed]) } : current)
       window.dispatchEvent(new Event(CHAT_UNREAD_LOCAL_REFRESH_EVENT))
     } else {
@@ -460,7 +463,8 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     {mediaError ? <p role="alert" className="shrink-0 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700">{mediaError}</p> : null}
     {announce && chat?.canAnnounce && !chat.readOnly ? <div data-league-chat-announce-bar className="league-chat-announcement flex shrink-0 items-center gap-2 border-x-0 border-b-0 border-t-2 px-3 py-2">
       <span className="min-w-0 flex-1 text-xs font-bold leading-snug"><span className="league-chat-announcement-label uppercase tracking-wide">{tx("Novedad")}</span> · {tx("Se avisará a todos los participantes con una notificación, aunque la tengan silenciada.")}</span>
-      <button type="button" onClick={() => setAnnounce(false)} aria-label={tx("Quitar novedad")} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/10"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-4 w-4"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+      {!attachment && !replyTo ? <label className="flex shrink-0 items-center gap-1.5 text-xs font-bold"><input type="checkbox" data-league-chat-as-league checked={asLeague} onChange={(event) => setAsLeague(event.target.checked)} className="h-4 w-4" />{tx("Como la liga")}</label> : null}
+      <button type="button" onClick={() => { setAnnounce(false); setAsLeague(false) }} aria-label={tx("Quitar novedad")} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/10"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" className="h-4 w-4"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
     </div> : null}
     {replyTo && !chat?.readOnly ? <div data-league-chat-reply className="flex shrink-0 items-center gap-2 border-t border-neutral-200 bg-white px-3 pt-2">
       <span aria-hidden="true" className="h-9 w-1 shrink-0 rounded-full bg-neutral-400" />

@@ -833,6 +833,8 @@ const EXACT_OVERRIDES = {
   "Guardado, pero no se ha publicado el aviso en el chat de:": "Gordeta, baina abisua ez da argitaratu honako txatean:",
   "Comprueba que la liga tenga una temporada en curso o sin comenzar.": "Egiaztatu ligak denboraldi bat martxan edo hasi gabe duela.",
   "Entendido": "Ulertuta",
+  "Como la liga": "Ligaren izenean",
+  "La liga": "Liga",
   "Calendario": "Egutegia",
   "Aviso sin enviar en el chat de:": "Oharra ez da bidali hemen:",
   "Sin temporada en curso o sin comenzar. Edita y guarda para reintentarlo.": "Ez dago denboraldirik martxan edo hasteko zain. Editatu eta gorde berriro saiatzeko.",

@@ -6,6 +6,7 @@ import { LEAGUE_CHAT_MEDIA_BUCKET } from "@/lib/leagueChatMedia"
 import { canAnnounceInLeagueChat, canPublishLeagueChatMedia, leagueChatMediaExists } from "@/lib/serverLeagueChatMedia"
 import { recordServerActorActivity } from "@/lib/serverActivityWrite"
 import { notifyLeagueChatAnnouncement } from "@/lib/serverLeagueChatAnnouncement"
+import { sendLeagueSystemText } from "@/lib/serverLeagueChatSystemMessage"
 import { LEAGUE_CHAT_MESSAGE_FIELDS, shapeLeagueChatMessages, type LeagueChatMessageRow } from "@/lib/serverLeagueChatMessages"
 import { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 import { parseJsonBody, validateUuid } from "@/lib/serverRequest"
@@ -123,7 +124,7 @@ export async function POST(request: Request, context: Context) {
   const { seasonId } = await context.params
   const access = await getLeagueSeasonChatActor(seasonId)
   if (!access.ok) return fail(access.error, access.status)
-  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown; replyToId?: unknown; announcement?: unknown; posterPath?: unknown; mediaWidth?: unknown; mediaHeight?: unknown; mediaDurationMs?: unknown; poll?: unknown }>(request)
+  const input = await parseJsonBody<{ body?: unknown; mediaPath?: unknown; replyToId?: unknown; announcement?: unknown; asLeague?: unknown; posterPath?: unknown; mediaWidth?: unknown; mediaHeight?: unknown; mediaDurationMs?: unknown; poll?: unknown }>(request)
   const body = typeof input?.body === "string" ? input.body.trim() : ""
   const pollInput = input?.poll && typeof input.poll === "object" ? (input.poll as { options?: unknown }) : null
   const pollOptions = pollInput && Array.isArray(pollInput.options) ? pollInput.options.filter((option): option is string => typeof option === "string") : null
@@ -156,6 +157,16 @@ export async function POST(request: Request, context: Context) {
       .gte("created_at", new Date(Date.now() - 3_600_000).toISOString())
     if (recentAnnouncements.error) return fail("league_chat_write_failed", 500)
     if ((recentAnnouncements.count ?? 0) >= 5) return fail("league_chat_rate_limited", 429)
+  }
+  if (input?.asLeague === true) {
+    // Signed by the league itself: only a text Novedad, written by the creator or an administrator.
+    if (!isAnnouncement || hasMedia || pollOptions || replyToId) return fail("invalid_message", 400)
+    const sentAsLeague = await sendLeagueSystemText({ supabase, leagueId: access.season.league_id, seasonId, body })
+    if (!sentAsLeague.ok) return fail(sentAsLeague.error, sentAsLeague.status)
+    await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
+    await notifyLeagueChatAnnouncement({ supabase, user, leagueId: access.season.league_id, seasonId, messageId: sentAsLeague.row.id, body })
+    const [shaped] = (await shapeLeagueChatMessages(access.actor, seasonId, [sentAsLeague.row as LeagueChatMessageRow])) ?? []
+    return NextResponse.json({ message: shaped ?? null }, { status: 201 })
   }
   // Per user (not per IP: a whole club may share one Wi-Fi). Far above normal chatting; it only stops loops and abuse.
   const recentMessages = await supabase.from("league_season_chat_messages").select("id", { count: "exact", head: true })
