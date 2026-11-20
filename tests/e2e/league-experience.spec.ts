@@ -577,6 +577,9 @@ test("league chat shows announcements prominently and lets the creator send one"
   await expect(fromLeague.locator("[data-chat-sender]")).toHaveClass(/chat-league-sender/)
   await expect(fromLeague.locator("[data-chat-sender]")).toHaveAttribute("style", /--chat-league-accent/)
   await expect(fromLeague.locator("[data-chat-sender]")).toHaveText("Liga QA")
+  // Really coloured with the accent (yellow by default: red and green well above blue), not a muted grey.
+  const [red, , blue] = (await fromLeague.locator("[data-chat-sender]").evaluate((element) => getComputedStyle(element).color)).match(/[\d.]+/g)!.slice(-3).map(Number)
+  expect(Math.abs(red - blue)).toBeGreaterThan(0.1) // channels are 0-1 for color(srgb ...) and 0-255 for rgb(): both clear a grey
   await expect(fromLeague.locator('[data-chat-time-spacer]')).toHaveCount(1)
   await expect(fromLeague.locator('[class*="!rounded-full"]')).toHaveCount(1)
   await page.getByRole("button", { name: "Añadir", exact: true }).click()
