@@ -6,7 +6,7 @@ import type { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAcces
 type ChatActor = Extract<Awaited<ReturnType<typeof getLeagueSeasonChatActor>>, { ok: true }>["actor"]
 
 export const LEAGUE_CHAT_MESSAGE_FIELDS =
-  "id,sender_user_id,sender_display_name,body,created_at,edited_at,deleted_at,media_kind,media_path,reply_to_id,is_announcement,media_poster_path,media_width,media_height,media_duration_ms,has_poll"
+  "id,sender_user_id,sender_display_name,body,created_at,edited_at,deleted_at,media_kind,media_path,reply_to_id,is_announcement,is_system,media_poster_path,media_width,media_height,media_duration_ms,has_poll"
 
 export type LeagueChatMessageRow = {
   id: string
@@ -20,6 +20,7 @@ export type LeagueChatMessageRow = {
   media_path: string | null
   reply_to_id: string | null
   is_announcement: boolean
+  is_system?: boolean
   media_poster_path: string | null
   media_width: number | null
   media_height: number | null
@@ -84,6 +85,8 @@ export async function shapeLeagueChatMessages(actor: ChatActor, seasonId: string
     const original = row.reply_to_id ? originals.get(row.reply_to_id) : undefined
     return {
       ...row,
+      // Written by the organization in the name of the league: it is nobody's own message, not even the technical author's.
+      sender_user_id: row.is_system ? "league" : row.sender_user_id,
       media_kind: row.deleted_at ? null : row.media_kind,
       media_url: media_path && !row.deleted_at ? (urls.get(media_path) ?? null) : null,
       media_poster_url: media_poster_path && !row.deleted_at ? (urls.get(media_poster_path) ?? null) : null,

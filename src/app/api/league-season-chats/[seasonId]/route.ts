@@ -159,12 +159,18 @@ export async function POST(request: Request, context: Context) {
     if ((recentAnnouncements.count ?? 0) >= 5) return fail("league_chat_rate_limited", 429)
   }
   if (input?.asLeague === true) {
-    // Signed by the league itself: only a text Novedad, written by the creator or an administrator.
-    if (!isAnnouncement || hasMedia || pollOptions || replyToId) return fail("invalid_message", 400)
-    const sentAsLeague = await sendLeagueSystemText({ supabase, leagueId: access.season.league_id, seasonId, body })
+    // Signed by the league itself, by the creator or an administrator: text only, a Novedad or a normal message.
+    if (hasMedia || pollOptions || replyToId) return fail("invalid_message", 400)
+    if (!isAnnouncement) {
+      const allowedAsLeague = await canAnnounceInLeagueChat(access.actor, access.season.league_id)
+      if (allowedAsLeague === null) return fail("league_chat_access_failed", 500)
+      if (!allowedAsLeague) return fail("league_chat_announcement_forbidden", 403)
+    }
+    const sentAsLeague = await sendLeagueSystemText({ supabase, leagueId: access.season.league_id, seasonId, body, announcement: isAnnouncement })
     if (!sentAsLeague.ok) return fail(sentAsLeague.error, sentAsLeague.status)
     await broadcastLeagueSeasonChatRefresh(access.season.league_id, seasonId)
-    await notifyLeagueChatAnnouncement({ supabase, user, leagueId: access.season.league_id, seasonId, messageId: sentAsLeague.row.id, body })
+    if (isAnnouncement) await notifyLeagueChatAnnouncement({ supabase, user, leagueId: access.season.league_id, seasonId, messageId: sentAsLeague.row.id, body })
+    else await notifyChatMessage({ access, seasonId, messageId: sentAsLeague.row.id, preview: body })
     const [shaped] = (await shapeLeagueChatMessages(access.actor, seasonId, [sentAsLeague.row as LeagueChatMessageRow])) ?? []
     return NextResponse.json({ message: shaped ?? null }, { status: 201 })
   }

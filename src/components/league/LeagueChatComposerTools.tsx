@@ -14,7 +14,7 @@ export const LEAGUE_CHAT_POLL_MIN_OPTIONS = 2
  * The "+" next to the message bar: one button that opens what the person may send besides text
  * (photo or video, announcement, poll), instead of one button for each.
  */
-export function LeagueChatComposerTools({ seasonId, canPublishMedia, canAnnounce, disabled, fileInputRef, onPickFile, onAnnounce, onCreatePoll, onShareTutorial }: {
+export function LeagueChatComposerTools({ seasonId, canPublishMedia, canAnnounce, disabled, fileInputRef, onPickFile, onAnnounce, onAsLeague, onCreatePoll, onShareTutorial }: {
   seasonId: string
   canPublishMedia: boolean
   canAnnounce: boolean
@@ -22,6 +22,8 @@ export function LeagueChatComposerTools({ seasonId, canPublishMedia, canAnnounce
   fileInputRef: RefObject<HTMLInputElement | null>
   onPickFile: (event: ChangeEvent<HTMLInputElement>) => void
   onAnnounce: () => void
+  /** A normal message written in the name of the league. */
+  onAsLeague: () => void
   /** Resolves true when the poll was published. */
   onCreatePoll: (question: string, options: string[]) => Promise<boolean>
   /** Posts an existing tutorial video instead of uploading a new one. Resolves true when it was posted. */
@@ -65,6 +67,7 @@ export function LeagueChatComposerTools({ seasonId, canPublishMedia, canAnnounce
     ] : []),
     ...(canAnnounce ? [
       { key: "announce", icon: "megaphone" as const, label: tx("Novedad"), onSelect: () => { setAnchor(null); onAnnounce() } },
+      { key: "as-league", icon: "league" as const, label: tx("Mensaje de la liga"), onSelect: () => { setAnchor(null); onAsLeague() } },
       { key: "poll", icon: "poll" as const, label: tx("Encuesta"), onSelect: () => { setAnchor(null); setPollOpen(true) } },
     ] : []),
   ]

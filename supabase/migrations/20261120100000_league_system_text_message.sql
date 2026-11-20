@@ -1,10 +1,12 @@
--- Text "Novedad" signed by the league itself (sent by the organization, not by a person).
--- Same shape as send_league_system_announcement, without media. Only the server (service_role) can call it,
+-- Text message signed by the league itself (sent by the organization, not by a person): a "Novedad" or, when
+-- p_is_announcement is false, a normal message that looks like one more participant. Same shape as
+-- send_league_system_announcement, without media. Only the server (service_role) can call it,
 -- after checking that the caller is the creator or an administrator of the league.
 create function public.send_league_system_text(
   p_season_id uuid,
   p_sender_display_name text,
-  p_body text
+  p_body text,
+  p_is_announcement boolean default true
 ) returns public.league_season_chat_messages
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -28,12 +30,12 @@ begin
   insert into public.league_season_chat_messages (
     season_id, sender_user_id, sender_display_name, body, is_announcement, is_system
   ) values (
-    p_season_id, v_sender, btrim(p_sender_display_name), btrim(p_body), true, true
+    p_season_id, v_sender, btrim(p_sender_display_name), btrim(p_body), coalesce(p_is_announcement, true), true
   )
   returning * into v_message;
   return v_message;
 end;
 $$;
 
-revoke all on function public.send_league_system_text(uuid, text, text) from public, anon, authenticated;
-grant execute on function public.send_league_system_text(uuid, text, text) to service_role;
+revoke all on function public.send_league_system_text(uuid, text, text, boolean) from public, anon, authenticated;
+grant execute on function public.send_league_system_text(uuid, text, text, boolean) to service_role;

@@ -20,17 +20,22 @@ function fakeSupabase({ recent = 0, rpcError = null as null | { message: string 
 describe("sendLeagueSystemText", () => {
   it("signs the message with the league name", async () => {
     const { client, rpc } = fakeSupabase({})
-    const result = await sendLeagueSystemText({ supabase: client, leagueId: "l", seasonId: "s", body: "Hola" })
+    const result = await sendLeagueSystemText({ supabase: client, leagueId: "l", seasonId: "s", body: "Hola", announcement: true })
     expect(result.ok).toBe(true)
-    expect(rpc).toHaveBeenCalledWith("send_league_system_text", { p_season_id: "s", p_sender_display_name: "Liga Test", p_body: "Hola" })
+    expect(rpc).toHaveBeenCalledWith("send_league_system_text", { p_season_id: "s", p_sender_display_name: "Liga Test", p_body: "Hola", p_is_announcement: true })
   })
   it("limits to 5 per hour", async () => {
     const { client, rpc } = fakeSupabase({ recent: 5 })
-    expect(await sendLeagueSystemText({ supabase: client, leagueId: "l", seasonId: "s", body: "Hola" })).toMatchObject({ ok: false, status: 429 })
+    expect(await sendLeagueSystemText({ supabase: client, leagueId: "l", seasonId: "s", body: "Hola", announcement: true })).toMatchObject({ ok: false, status: 429 })
     expect(rpc).not.toHaveBeenCalled()
+  })
+  it("sends a normal message without the announcement flag", async () => {
+    const { client, rpc } = fakeSupabase({})
+    await sendLeagueSystemText({ supabase: client, leagueId: "l", seasonId: "s", body: "Hola", announcement: false })
+    expect(rpc).toHaveBeenCalledWith("send_league_system_text", expect.objectContaining({ p_is_announcement: false }))
   })
   it("reports a finished season as read only", async () => {
     const { client } = fakeSupabase({ rpcError: { message: "season_chat_read_only" } })
-    expect(await sendLeagueSystemText({ supabase: client, leagueId: "l", seasonId: "s", body: "Hola" })).toMatchObject({ ok: false, status: 409 })
+    expect(await sendLeagueSystemText({ supabase: client, leagueId: "l", seasonId: "s", body: "Hola", announcement: true })).toMatchObject({ ok: false, status: 409 })
   })
 })
