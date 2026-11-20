@@ -51,9 +51,10 @@ describe("v1.6.6 HOME quick league switcher", () => {
     ])
 
     const currentVersion = JSON.parse(pkg).version as string
+    const finalVersion = currentVersion.replace(/-pre\.\d+$/, "") // PRE may carry X.Y.Z-pre.N; PROD and the changelog use X.Y.Z
     expect(lock).toContain(`"version": "${currentVersion}"`)
     expect(version).toContain(`APP_VERSION = "${currentVersion}"`)
     expect(sw).toContain(`CACHE_VERSION = "smash-lob-v${currentVersion}"`)
-    expect(changelog).toContain(`version: "v${currentVersion}"`)
+    expect(changelog).toContain(`version: "v${finalVersion}"`)
   })
 })

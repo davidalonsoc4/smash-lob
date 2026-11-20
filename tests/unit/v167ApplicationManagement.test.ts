@@ -16,6 +16,7 @@ describe("v1.6.7 application management", () => {
   it("keeps the release surfaces aligned with the current app version", async () => {
     const [pkg, lock, version, sw, changelog] = await Promise.all([readFile("package.json", "utf8"), readFile("package-lock.json", "utf8"), readFile("src/lib/appVersion.ts", "utf8"), readFile("public/sw.js", "utf8"), readFile("src/lib/changelog.ts", "utf8")])
     const currentVersion = JSON.parse(pkg).version as string
-    expect(pkg).toContain(`"version": "${currentVersion}"`); expect(pkg).toContain(` ${currentVersion} pre`); expect(pkg).toContain(` ${currentVersion} prod`); expect(lock).toContain(`"version": "${currentVersion}"`); expect(version).toContain(currentVersion); expect(sw).toContain(`smash-lob-v${currentVersion}`); expect(changelog).toContain(`version: "v${currentVersion}"`)
+    const finalVersion = currentVersion.replace(/-pre\.\d+$/, "") // PRE may carry X.Y.Z-pre.N; PROD and the changelog use X.Y.Z
+    expect(pkg).toContain(`"version": "${currentVersion}"`); expect(pkg).toContain(` ${currentVersion} pre`); expect(pkg).toContain(` ${finalVersion} prod`); expect(lock).toContain(`"version": "${currentVersion}"`); expect(version).toContain(currentVersion); expect(sw).toContain(`smash-lob-v${currentVersion}`); expect(changelog).toContain(`version: "v${finalVersion}"`)
   })
 })

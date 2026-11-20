@@ -134,6 +134,8 @@ export function MatchChatTextMessage({
   pending = false,
   rowClassName = "",
   gestureProps,
+  senderAvatar,
+  senderColor: senderColorOverride,
 }: {
   message: MatchChatTextMessageData
   me: string
@@ -152,9 +154,13 @@ export function MatchChatTextMessage({
   pending?: boolean
   rowClassName?: string
   gestureProps?: HTMLAttributes<HTMLDivElement>
+  /** A sender that is not a person (the league itself): its own picture instead of a profile photo. */
+  senderAvatar?: ReactNode
+  /** Accent colour for the sender name (the league accent), shown with enough contrast, instead of the person palette. */
+  senderColor?: string | null
 }) {
   const { locale } = useI18n()
-  const mine = message.sender_user_id === me || pending
+  const mine = (message.sender_user_id === me || pending) && !senderAvatar
   const sender = participants.find((item) => item.userId === message.sender_user_id)
   const senderColor = getMatchChatParticipantColorClass(
     message.sender_user_id,
@@ -169,7 +175,7 @@ export function MatchChatTextMessage({
       {!mine ? (
         <span className="flex h-7 w-7 shrink-0 items-start">
           {!previousSameSender ? (
-            senderHref ? (
+            senderAvatar ? senderAvatar : senderHref ? (
               <Link href={senderHref} aria-label={message.sender_display_name} onClick={(event) => event.stopPropagation()} data-chat-sender-avatar="" className="block rounded-full">
                 <PlayerAvatar player={{ displayName: sender?.displayName ?? message.sender_display_name, avatarUrl: sender?.avatarUrl ?? null }} size="sm" />
               </Link>
@@ -203,7 +209,7 @@ export function MatchChatTextMessage({
               {message.sender_display_name}
             </Link>
           ) : (
-            <p data-chat-sender="" className={`max-w-full truncate whitespace-nowrap type-caption font-black ${senderColor}`}>
+            <p data-chat-sender="" style={senderColorOverride ? ({ "--chat-league-accent": senderColorOverride } as React.CSSProperties) : undefined} className={`max-w-full truncate whitespace-nowrap type-caption font-black ${senderColorOverride ? "chat-league-sender" : senderColor}`}>
               {message.sender_display_name}
             </p>
           )

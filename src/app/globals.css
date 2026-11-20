@@ -86,6 +86,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Name of the league as sender in its chat: its accent colour, darkened or lightened so it stays readable on the bubble. */
+.chat-league-sender { color: color-mix(in srgb, var(--chat-league-accent) 45%, black); }
+html.dark .chat-league-sender { color: color-mix(in srgb, var(--chat-league-accent) 30%, white); }
+
 button,
 a,
 input,

@@ -19,6 +19,7 @@ import { getChatDayKey, getChatDayLabel } from "@/lib/chatDayLabel"
 import { canDeleteLeagueChatMessage, canEditLeagueChatMessage } from "@/lib/leagueChatChangeWindow"
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
+import { DEFAULT_LEAGUE_ACCENT, normalizeAccentColor } from "@/lib/visualStyle"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useSeasonSettings } from "@/context/SeasonSettingsProvider"
@@ -439,6 +440,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
           message={message} me={chat.me} participants={chat.participants ?? []} pending={message === pending}
           rowClassName={message === pending ? "opacity-70" : ""}
           previousSameSender={sameGroup}
+          {...(message.sender_user_id === "league" ? { senderAvatar: <LeagueLogo league={league ?? { name: message.sender_display_name, logoUrl: null }} size="sm" className="!h-7 !w-7 !rounded-full" />, senderColor: normalizeAccentColor(league?.accentColor ?? DEFAULT_LEAGUE_ACCENT) } : {})}
           senderHref={profileHref(chat.participants?.find(item => item.userId === message.sender_user_id))}
           bodyContent={message.deleted_at ? <em>{tx("Mensaje eliminado")}</em> : message.poll ? <LeagueChatPollBody question={message.body} poll={message.poll} names={participantNames} mine={message.sender_user_id === chat.me} disabled={message === pending || chat.readOnly} onVote={optionId => void vote(message, optionId)} /> : message.media_url ? <LeagueChatMediaBody message={message} mine={message.sender_user_id === chat.me || message === pending} /> : undefined}
           ownTimeSpacer={Boolean(message.media_url) || Boolean(message.poll)}

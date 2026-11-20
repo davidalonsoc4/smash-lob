@@ -555,6 +555,7 @@ test("league chat shows announcements prominently and lets the creator send one"
   const messages: Array<Record<string, unknown>> = [
     { id: "news", sender_user_id: "qa-user", sender_display_name: "QA", body: "La jornada 3 se publica el lunes", created_at: "2026-10-16T09:00:00Z", edited_at: null, deleted_at: null, is_announcement: true },
     { id: "plain", sender_user_id: "friend", sender_display_name: "Ana", body: "Perfecto, gracias", created_at: "2026-10-16T09:05:00Z", edited_at: null, deleted_at: null },
+    { id: "from-league", sender_user_id: "league", sender_display_name: "Liga QA", body: "Os esperamos a todos", created_at: "2026-10-16T09:10:00Z", edited_at: null, deleted_at: null, is_announcement: false, is_system: true },
   ]
   let sent: { body?: string; announcement?: boolean; asLeague?: boolean } | null = null
   await page.route("**/api/league-season-chats/**", route => {
@@ -571,6 +572,13 @@ test("league chat shows announcements prominently and lets the creator send one"
   await expect(card).toHaveCount(1)
   await expect(card).toContainText("Novedad")
   await expect(card).toContainText("La jornada 3 se publica el lunes")
+  // A message from the league looks like one more participant: its logo (or initials) and its accent colour, not "mine".
+  const fromLeague = page.locator('[data-message-id="from-league"]')
+  await expect(fromLeague.locator("[data-chat-sender]")).toHaveClass(/chat-league-sender/)
+  await expect(fromLeague.locator("[data-chat-sender]")).toHaveAttribute("style", /--chat-league-accent/)
+  await expect(fromLeague.locator("[data-chat-sender]")).toHaveText("Liga QA")
+  await expect(fromLeague.locator('[data-chat-time-spacer]')).toHaveCount(1)
+  await expect(fromLeague.locator('[class*="!rounded-full"]')).toHaveCount(1)
   await page.getByRole("button", { name: "Añadir", exact: true }).click()
   await page.getByRole("menuitem", { name: "Novedad" }).click()
   await expect(page.locator("[data-league-chat-announce-bar]")).toContainText("aunque la tengan silenciada")
