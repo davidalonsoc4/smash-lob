@@ -626,6 +626,8 @@ test("league chat reacts to a message from the menu and toggles it from the chip
   await page.goto("/league-chat/" + seasonId)
   const chips = page.locator("[data-league-chat-reactions]")
   await expect(chips.getByRole("button", { name: "Me encanta: 1" })).toHaveAttribute("aria-pressed", "false")
+  // One person: the emoji alone, like WhatsApp; the count only appears from two people on.
+  await expect(chips.locator("[data-reaction-count]")).toHaveCount(0)
   // Pressing the message offers the six reactions above the usual options.
   const text = page.getByText("Quién juega el jueves")
   await text.dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true })

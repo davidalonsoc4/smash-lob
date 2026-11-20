@@ -22,7 +22,10 @@ export function LeagueChatReactionPicker({ current, onPick, translate }: {
   )
 }
 
-/** The reactions of a message under its bubble: tapping one toggles the viewer's own reaction. */
+/**
+ * The reactions of a message, floating over the bottom edge of its bubble: tapping one toggles the viewer's own reaction.
+ * The count only shows from two people on. The row keeps its own height below the bubble, so it never covers the next message.
+ */
 export function LeagueChatReactionChips({ reactions, mine, disabled, onToggle, translate }: {
   reactions: LeagueChatReaction[]
   /** The message is the viewer's own: chips line up on the right, like the bubble. */
@@ -33,13 +36,13 @@ export function LeagueChatReactionChips({ reactions, mine, disabled, onToggle, t
 }) {
   if (!reactions.length) return null
   return (
-    <div data-league-chat-reactions className={`mt-0.5 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start pl-8"}`}>
+    <div data-league-chat-reactions className={`relative z-[1] -mt-2.5 flex flex-wrap gap-1 ${mine ? "justify-end pr-2" : "justify-start pl-10"}`}>
       {reactions.map((reaction) => (
         <button key={reaction.key} type="button" data-reaction={reaction.key} disabled={disabled} aria-pressed={reaction.mine}
           aria-label={`${translate(labelOf(reaction.key))}: ${reaction.count}`} onClick={() => onToggle(reaction.key)}
-          className={`league-chat-reaction inline-flex min-h-7 items-center gap-1 rounded-full border px-2 text-xs font-bold leading-none ${reaction.mine ? "border-neutral-950 bg-neutral-200 text-neutral-950" : "border-neutral-300 bg-white text-neutral-700"}`}>
-          <span aria-hidden="true">{emojiOf(reaction.key)}</span>
-          <span>{reaction.count}</span>
+          className={`league-chat-reaction inline-flex h-6 min-w-6 items-center justify-center gap-1 rounded-full border px-1.5 shadow-sm leading-none ${reaction.mine ? "border-neutral-950 bg-neutral-200 text-neutral-950" : "border-neutral-300 bg-white text-neutral-700"}`}>
+          <span aria-hidden="true" className="text-sm leading-none">{emojiOf(reaction.key)}</span>
+          {reaction.count > 1 ? <span aria-hidden="true" data-reaction-count className="type-micro font-bold">{reaction.count}</span> : null}
         </button>
       ))}
     </div>
