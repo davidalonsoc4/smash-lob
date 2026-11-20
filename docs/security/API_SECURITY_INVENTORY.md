@@ -44,6 +44,7 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/league-season-chats/[seasonId]` | PATCH | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/league-season-chats/[seasonId]/media` | POST | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/league-season-chats/[seasonId]/poll` | POST | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
+| `/api/league-season-chats/[seasonId]/reaction` | POST | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/league-season-chats/[seasonId]/tutorial` | GET | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/league-season-chats/[seasonId]/tutorial` | POST | Protegido | getLeagueSeasonChatActor (authenticated season participant) |
 | `/api/leagues` | POST | Protegido | requireAuthenticatedAppUser |

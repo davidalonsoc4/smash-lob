@@ -23,7 +23,7 @@ function setup(options: { participant?: boolean; registered?: boolean; status?: 
     }
     return query
   })
-  mocks.auth.mockResolvedValue({ ok: true, actor: { user: { id: userId, email: "a@example.invalid", displayName: "Jugador" }, supabase: { from, rpc } } })
+  mocks.auth.mockResolvedValue({ ok: true, actor: { user: { id: userId, email: "a@example.invalid", displayName: "Jugador" }, supabase: { from, rpc: (name: string, args: unknown) => (name === "league_season_chat_reaction_summary" ? Promise.resolve({ data: [], error: null }) : rpc(name, args)) } } })
   return { rpc, calls }
 }
 const get = () => new Request(`http://localhost/api/league-season-chats/${seasonId}?markRead=0`)

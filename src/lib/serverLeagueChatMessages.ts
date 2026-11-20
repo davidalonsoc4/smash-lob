@@ -1,5 +1,6 @@
 import "server-only"
 
+import { isLeagueChatReactionKey, sortLeagueChatReactions, type LeagueChatReaction } from "@/lib/leagueChatReactions"
 import { signLeagueChatMediaUrls } from "@/lib/serverLeagueChatMedia"
 import type { getLeagueSeasonChatActor } from "@/lib/serverLeagueSeasonChatAccess"
 
@@ -81,6 +82,16 @@ export async function shapeLeagueChatMessages(actor: ChatActor, seasonId: string
     }
   }
 
+  const reactionMessageIds = rows.filter((row) => !row.deleted_at).map((row) => row.id)
+  const reactions = new Map<string, LeagueChatReaction[]>()
+  if (reactionMessageIds.length) {
+    const summary = await actor.supabase.rpc("league_season_chat_reaction_summary", { p_message_ids: reactionMessageIds, p_user_id: actor.user.id })
+    if (summary.error) return null
+    for (const item of (summary.data ?? []) as { message_id: string; reaction: string; total: number; mine: boolean }[]) {
+      if (isLeagueChatReactionKey(item.reaction)) reactions.set(item.message_id, [...(reactions.get(item.message_id) ?? []), { key: item.reaction, count: item.total, mine: item.mine }])
+    }
+  }
+
   return rows.map(({ media_path, media_poster_path, has_poll, ...row }) => {
     const original = row.reply_to_id ? originals.get(row.reply_to_id) : undefined
     return {
@@ -91,6 +102,7 @@ export async function shapeLeagueChatMessages(actor: ChatActor, seasonId: string
       media_url: media_path && !row.deleted_at ? (urls.get(media_path) ?? null) : null,
       media_poster_url: media_poster_path && !row.deleted_at ? (urls.get(media_poster_path) ?? null) : null,
       poll: has_poll && !row.deleted_at ? (polls.get(row.id) ?? null) : null,
+      reactions: sortLeagueChatReactions(reactions.get(row.id) ?? []),
       reply: original
         ? {
             id: row.reply_to_id as string,

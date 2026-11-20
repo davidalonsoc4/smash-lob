@@ -11,6 +11,8 @@ import { FloatingDialog } from "@/components/ui/FloatingDialog"
 import { LeagueChatParticipantsDialog, leagueChatProfileHref } from "@/components/league/LeagueChatParticipantsDialog"
 import { LeagueChatMessageActions } from "@/components/league/LeagueChatMessageActions"
 import { LeagueChatMessageMenu } from "@/components/league/LeagueChatMessageMenu"
+import { LeagueChatReactionChips } from "@/components/league/LeagueChatReactions"
+import { applyLeagueChatReaction, type LeagueChatReaction, type LeagueChatReactionKey } from "@/lib/leagueChatReactions"
 import { LeagueChatAnnouncementCard } from "@/components/league/LeagueChatAnnouncementCard"
 import { LeagueChatComposerTools } from "@/components/league/LeagueChatComposerTools"
 import { LeagueChatPollBody, type LeagueChatPoll } from "@/components/league/LeagueChatPollBody"
@@ -37,7 +39,7 @@ import { extractVideoPoster, readImageSize } from "@/lib/videoPoster"
 const FOLLOW_THRESHOLD = 96
 
 type ReplyPreview = { id: string; sender_user_id?: string; sender_display_name: string; body: string; deleted?: boolean; media_kind?: "image" | "video" | null }
-type Message = { id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string; edited_at?: string | null; deleted_at?: string | null; media_kind?: "image" | "video" | null; media_url?: string | null; media_poster_url?: string | null; media_width?: number | null; media_height?: number | null; media_duration_ms?: number | null; reply_to_id?: string | null; poll?: LeagueChatPoll | null; reply?: ReplyPreview | null; upload_progress?: number | null; is_announcement?: boolean }
+type Message = { id: string; sender_user_id: string; sender_display_name: string; body: string; created_at: string; edited_at?: string | null; deleted_at?: string | null; media_kind?: "image" | "video" | null; media_url?: string | null; media_poster_url?: string | null; media_width?: number | null; media_height?: number | null; media_duration_ms?: number | null; reply_to_id?: string | null; poll?: LeagueChatPoll | null; reply?: ReplyPreview | null; upload_progress?: number | null; is_announcement?: boolean; reactions?: LeagueChatReaction[] }
 type Attachment = { file: File; previewUrl: string; kind: "image" | "video"; poster: Blob | null; posterUrl: string | null; width: number | null; height: number | null; durationMs: number | null }
 type Chat = { unread?: number; messages: Message[]; participants?: MatchChatParticipant[]; me: string; readOnly: boolean; hasMore: boolean; canPublishMedia?: boolean; canAnnounce?: boolean; season: { name: string; league_id?: string }; realtimeTopic: string | null }
 
@@ -393,6 +395,20 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     if (confirmed?.id) setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [confirmed]) } : current)
     else setChat(current => current ? { ...current, messages: current.messages.map(item => item.id === message.id ? { ...item, poll: previous } : item) } : current)
   }
+  async function react(message: Message, key: LeagueChatReactionKey) {
+    if (!chat || chat.readOnly || message.deleted_at) return
+    const previous = message.reactions
+    // Choosing the one already chosen withdraws it; the server decides the same way.
+    const chosen = previous?.find(reaction => reaction.mine)?.key === key ? null : key
+    const setReactions = (reactions: LeagueChatReaction[] | undefined) => setChat(current => current ? { ...current, messages: current.messages.map(item => item.id === message.id ? { ...item, reactions } : item) } : current)
+    setReactions(applyLeagueChatReaction(previous, chosen))
+    const response = await fetch(`${endpoint}/reaction`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messageId: message.id, reaction: chosen }),
+    }).catch(() => null)
+    const confirmed = response?.ok ? (await response.json().catch(() => null))?.message as Message | undefined : undefined
+    if (confirmed?.id) setChat(current => current ? { ...current, messages: mergeMessages(current.messages, [confirmed]) } : current)
+    else setReactions(previous)
+  }
   const participantNames = new Map((chat?.participants ?? []).flatMap(participant => participant.userId ? [[participant.userId, participant.displayName] as const] : []))
   function openMenuFor(message: Message, rect: DOMRect) {
     setEditBody(message.body)
@@ -449,6 +465,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
           quotedReply={message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, href: profileHref(chat.participants?.find(item => item.userId === message.reply!.sender_user_id)), body: replyPreviewText(message.reply) } : null}
           onQuotedReplyClick={message.reply ? () => void jumpToMessage(message.reply!.id) : undefined}
         />
+        const chips = message.reactions?.length && !message.deleted_at ? <LeagueChatReactionChips reactions={message.reactions} mine={message.sender_user_id === chat.me} disabled={chat.readOnly || message === pending} onToggle={key => void react(message, key)} translate={tx} /> : null
         const spacing = index === 0 ? "" : sameGroup ? "mt-0.5" : "mt-3"
         const separator = newDay ? <div key={`day-${message.id}`} data-chat-day-separator className={`flex justify-center ${index === 0 ? "pb-1" : "py-3"}`}>
           <span className="chat-day-pill rounded-full px-3 py-1 type-micro font-bold uppercase tracking-wide">
@@ -456,9 +473,9 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
           </span>
         </div> : null
         if (chat.readOnly || message === pending || message.deleted_at) {
-          return <Fragment key={message.id}>{separator}<div data-message-id={message.id} className={newDay ? "" : spacing}>{bubble}</div></Fragment>
+          return <Fragment key={message.id}>{separator}<div data-message-id={message.id} className={newDay ? "" : spacing}>{bubble}{chips}</div></Fragment>
         }
-        return <Fragment key={message.id}>{separator}<div data-message-id={message.id} className={newDay ? "" : spacing}><LeagueChatMessageActions label={optionsLabel} replyLabel={tx("Responder")} onOpen={rect => openMenuFor(message, rect)} onReply={() => startReply(message)}>{bubble}</LeagueChatMessageActions></div></Fragment>
+        return <Fragment key={message.id}>{separator}<div data-message-id={message.id} className={newDay ? "" : spacing}><LeagueChatMessageActions label={optionsLabel} replyLabel={tx("Responder")} onOpen={rect => openMenuFor(message, rect)} onReply={() => startReply(message)}>{bubble}</LeagueChatMessageActions>{chips}</div></Fragment>
       })}
     </div>
     {unseenCount > 0 ? <div className="relative h-0 shrink-0"><button type="button" onClick={scrollToLatest} className="absolute bottom-2 left-1/2 z-10 inline-flex min-h-9 -translate-x-1/2 items-center justify-center rounded-full text-center bg-neutral-950 px-4 text-xs font-black text-white shadow-lg active:scale-[0.97]">↓ {unseenCount} {tx(unseenCount === 1 ? "mensaje nuevo" : "mensajes nuevos")}</button></div> : null}
@@ -487,6 +504,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
     {chat?.readOnly ? <MatchChatReadOnlyBar>{tx("Temporada finalizada · Solo lectura")}</MatchChatReadOnlyBar> : chat ? <MatchChatComposer body={body} composerRef={composerRef} onSubmit={send} onBodyChange={(value, element) => { setBody(value); resizeMatchChatComposer(element) }} sending={pending !== null} hasTopAttachment={Boolean(attachment) || Boolean(replyTo)} allowEmpty={Boolean(attachment)} leadingAction={chat.canPublishMedia || chat.canAnnounce ? <LeagueChatComposerTools seasonId={seasonId} onShareTutorial={shareTutorial} canPublishMedia={Boolean(chat.canPublishMedia)} canAnnounce={Boolean(chat.canAnnounce)} disabled={pending !== null} fileInputRef={fileInputRef} onPickFile={pickFile} onAnnounce={() => setAnnounce(true)} onAsLeague={() => { setAsLeague(true); setAnnounce(false) }} onCreatePoll={createPoll} /> : undefined} /> : null}
     {action?.mode === "menu" && menuAnchor && actionMessage ? <LeagueChatMessageMenu anchor={menuAnchor} mine={actionIsMine} label={optionsLabel}
       onClose={() => { setAction(null); setMenuAnchor(null) }}
+      reactions={{ current: actionMessage.reactions?.find(reaction => reaction.mine)?.key ?? null, translate: tx, onPick: key => { setAction(null); setMenuAnchor(null); void react(actionMessage, key) } }}
       items={[
         { key: "reply", icon: "reply", label: tx("Responder"), onSelect: () => startReply(actionMessage) },
         // Own messages can only be edited for a short time and deleted for a little longer.

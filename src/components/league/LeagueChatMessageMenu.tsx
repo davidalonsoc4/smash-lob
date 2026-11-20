@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useRef } from "react"
 import { createPortal } from "react-dom"
+import { LeagueChatReactionPicker } from "@/components/league/LeagueChatReactions"
+import type { LeagueChatReactionKey } from "@/lib/leagueChatReactions"
 
-const MENU_WIDTH = 208
+const MENU_WIDTH = 248
+const REACTION_ROW_HEIGHT = 48
 const ITEM_HEIGHT = 44
 const EDGE = 8
 
@@ -21,22 +24,24 @@ const ICONS = {
 } as const
 
 /** Small menu next to the pressed message, instead of a centred dialog. */
-export function LeagueChatMessageMenu({ anchor, mine, items, label, onClose }: {
+export function LeagueChatMessageMenu({ anchor, mine, items, label, onClose, reactions }: {
   anchor: DOMRect
   mine: boolean
   items: Item[]
   label: string
   onClose: () => void
+  /** Quick reactions on top of the menu. */
+  reactions?: { current: LeagueChatReactionKey | null; onPick: (key: LeagueChatReactionKey) => void; translate: (text: string) => string }
 }) {
   const menu = useRef<HTMLDivElement>(null)
   // Only rendered after a press, so the viewport size is always known here.
   const position = useMemo(() => {
-    const height = items.length * ITEM_HEIGHT + EDGE
+    const height = items.length * ITEM_HEIGHT + (reactions ? REACTION_ROW_HEIGHT : 0) + EDGE
     const above = anchor.top - height - EDGE > 64
     const top = Math.max(EDGE, Math.min(above ? anchor.top - height - 4 : anchor.bottom + 4, window.innerHeight - height - EDGE))
     const left = Math.max(EDGE, Math.min(mine ? anchor.right - MENU_WIDTH : anchor.left, window.innerWidth - MENU_WIDTH - EDGE))
     return { top, left }
-  }, [anchor, items.length, mine])
+  }, [anchor, items.length, mine, reactions])
   useEffect(() => {
     menu.current?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true })
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onClose() }
@@ -50,6 +55,7 @@ export function LeagueChatMessageMenu({ anchor, mine, items, label, onClose }: {
       <div ref={menu} role="menu" aria-label={label} data-league-chat-menu
         style={{ top: position.top, left: position.left, width: MENU_WIDTH }}
         className="league-chat-menu fixed z-[151] overflow-hidden rounded-2xl border border-neutral-200 bg-white py-1 shadow-xl">
+        {reactions ? <LeagueChatReactionPicker current={reactions.current} onPick={reactions.onPick} translate={reactions.translate} /> : null}
         {items.map(item => <button key={item.key} type="button" role="menuitem" onClick={item.onSelect}
           style={{ height: ITEM_HEIGHT }}
           className={`flex w-full items-center gap-3 px-4 text-left text-sm font-bold active:bg-neutral-100 ${item.danger ? "text-red-600" : "text-neutral-900"}`}>

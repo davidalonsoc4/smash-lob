@@ -527,7 +527,7 @@ test("league season chat opens from home and sends a message", async ({ page }, 
   })
   await page.goto("/league/home")
   const chat = page.getByRole("link", { name: "Abrir chat de liga" })
-  await expect(chat).toHaveCSS("box-shadow", "rgb(255, 255, 255) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0.4) 0px 5px 14px 0px")
+  await expect(chat).toHaveCSS("box-shadow", "rgb(17, 17, 19) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0.4) 0px 5px 14px 0px")
   await expect(chat).toHaveCSS("border-width", "0px")
   await expect(chat.getByLabel("Mensajes sin leer")).toBeVisible()
   await chat.click()
@@ -606,6 +606,40 @@ test("league chat shows announcements prominently and lets the creator send one"
   await page.getByRole("button", { name: "Enviar mensaje" }).click()
   await expect(page.locator("[data-league-chat-as-league-bar]")).toHaveCount(0)
   expect(sent).toEqual({ body: "Buenas, soy la liga", asLeague: true })
+  const results = await new AxeBuilder({ page }).analyze()
+  expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})
+
+test("league chat reacts to a message from the menu and toggles it from the chip", async ({ page }) => {
+  await setup(page, "dark", "classic")
+  const message: Record<string, unknown> = { id: "m1", sender_user_id: "friend", sender_display_name: "Ana", body: "Quién juega el jueves", created_at: "2026-10-16T09:05:00Z", edited_at: null, deleted_at: null, reactions: [{ key: "heart", count: 1, mine: false }] }
+  const sent: Array<{ messageId?: string; reaction?: string | null }> = []
+  await page.route("**/api/league-season-chats/**", route => {
+    if (route.request().method() === "POST" && route.request().url().endsWith("/reaction")) {
+      const body = route.request().postDataJSON()
+      sent.push(body)
+      message.reactions = body.reaction === "fire" ? [{ key: "fire", count: 1, mine: true }, { key: "heart", count: 1, mine: false }] : [{ key: "heart", count: 1, mine: false }]
+      return route.fulfill({ json: { message } })
+    }
+    return route.fulfill({ json: { season: { name: "Temporada 2", league_id: leagueId }, messages: [message], participants: [{ userId: "qa-user", displayName: "QA", avatarUrl: null, lastReadAt: null }, { userId: "friend", displayName: "Ana", avatarUrl: null, lastReadAt: null }], me: "qa-user", readOnly: false } })
+  })
+  await page.goto("/league-chat/" + seasonId)
+  const chips = page.locator("[data-league-chat-reactions]")
+  await expect(chips.getByRole("button", { name: "Me encanta: 1" })).toHaveAttribute("aria-pressed", "false")
+  // Pressing the message offers the six reactions above the usual options.
+  const text = page.getByText("Quién juega el jueves")
+  await text.dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true })
+  const picker = page.locator("[data-league-chat-reaction-picker]")
+  await expect(picker.getByRole("button")).toHaveCount(6)
+  await picker.getByRole("button", { name: "Fuego" }).click()
+  await expect(picker).toHaveCount(0)
+  await expect(chips.getByRole("button", { name: "Fuego: 1" })).toHaveAttribute("aria-pressed", "true")
+  expect(sent[0]).toEqual({ messageId: "m1", reaction: "fire" })
+  // Tapping your own chip withdraws it; the other person's stays.
+  await chips.getByRole("button", { name: "Fuego: 1" }).click()
+  await expect(chips.getByRole("button", { name: "Fuego: 1" })).toHaveCount(0)
+  expect(sent[1]).toEqual({ messageId: "m1", reaction: null })
+  await expect(chips.getByRole("button", { name: "Me encanta: 1" })).toBeVisible()
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })
