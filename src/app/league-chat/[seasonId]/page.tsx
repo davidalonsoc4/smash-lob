@@ -467,7 +467,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
         />
         const chips = message.reactions?.length && !message.deleted_at ? <LeagueChatReactionChips reactions={message.reactions} mine={message.sender_user_id === chat.me} disabled={chat.readOnly || message === pending} onToggle={key => void react(message, key)} translate={tx} /> : null
         const spacing = index === 0 ? "" : sameGroup ? "mt-0.5" : "mt-3"
-        const separator = newDay ? <div key={`day-${message.id}`} data-chat-day-separator className={`flex justify-center ${index === 0 ? "pb-1" : "py-3"}`}>
+        const separator = newDay ? <div key={`day-${message.id}`} data-chat-day-separator className={`flex justify-center ${index === 0 ? "pb-3" : "py-3"}`}>
           <span className="chat-day-pill rounded-full px-3 py-1 type-micro font-bold uppercase tracking-wide">
             {getChatDayLabel(message.created_at, new Date(), getIntlLocale(locale), { today: tx("Hoy"), yesterday: tx("Ayer") })}
           </span>

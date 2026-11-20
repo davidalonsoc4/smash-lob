@@ -706,6 +706,10 @@ test("league chat replies to a message with a quote", async ({ page }) => {
   })
   await page.goto("/league-chat/" + seasonId)
   await expect(page.locator("[data-chat-day-separator]")).toHaveCount(1)
+  // The first date has the same room below as the others (it used to sit almost on top of the first message).
+  const dayPill = await page.locator("[data-chat-day-separator] > span").first().boundingBox()
+  const firstMessage = await page.locator("[data-message-id]").first().boundingBox()
+  expect(firstMessage!.y - (dayPill!.y + dayPill!.height)).toBeGreaterThanOrEqual(11)
   const anas = page.getByRole("group", { name: "Opciones del mensaje" }).filter({ hasText: "¿Quién juega el jueves?" })
   await anas.focus()
   await anas.press("Enter")
