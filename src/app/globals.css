@@ -87,9 +87,11 @@ body {
 }
 
 /* Name of the league as sender in its chat: its accent colour, darkened or lightened so it stays readable on the bubble. */
-/* !important: the Competition style paints every .type-caption with its muted colour. */
-.chat-league-sender { color: color-mix(in srgb, var(--chat-league-accent) 45%, black) !important; }
-html.dark .chat-league-sender { color: color-mix(in srgb, var(--chat-league-accent) 75%, white) !important; }
+/* The Competition style paints every .type-caption with its muted colour (!important), so this one needs more specificity. */
+html [data-chat-sender].chat-league-sender,
+html[data-visual-style] [data-chat-sender].chat-league-sender { color: color-mix(in srgb, var(--chat-league-accent) 45%, black) !important; }
+html.dark [data-chat-sender].chat-league-sender,
+html.dark[data-visual-style] [data-chat-sender].chat-league-sender { color: color-mix(in srgb, var(--chat-league-accent) 75%, white) !important; }
 
 button,
 a,

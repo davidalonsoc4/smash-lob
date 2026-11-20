@@ -551,7 +551,7 @@ test("league season chat opens from home and sends a message", async ({ page }, 
 })
 
 test("league chat shows announcements prominently and lets the creator send one", async ({ page }) => {
-  await setup(page, "dark", "classic")
+  await setup(page, "dark", "competition")
   const messages: Array<Record<string, unknown>> = [
     { id: "news", sender_user_id: "qa-user", sender_display_name: "QA", body: "La jornada 3 se publica el lunes", created_at: "2026-10-16T09:00:00Z", edited_at: null, deleted_at: null, is_announcement: true },
     { id: "plain", sender_user_id: "friend", sender_display_name: "Ana", body: "Perfecto, gracias", created_at: "2026-10-16T09:05:00Z", edited_at: null, deleted_at: null },
