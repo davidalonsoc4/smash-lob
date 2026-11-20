@@ -628,6 +628,8 @@ test("league chat reacts to a message from the menu and toggles it from the chip
   await expect(chips.getByRole("button", { name: "Me encanta: 1" })).toHaveAttribute("aria-pressed", "false")
   // One person: the emoji alone, like WhatsApp; the count only appears from two people on.
   await expect(chips.locator("[data-reaction-count]")).toHaveCount(0)
+  // The reactions already there when the chat opens do not animate.
+  await expect(chips.locator("[data-reaction-new]")).toHaveCount(0)
   // Pressing the message offers the six reactions above the usual options.
   const text = page.getByText("Quién juega el jueves")
   await text.dispatchEvent("pointerdown", { pointerType: "touch", isPrimary: true })
@@ -636,6 +638,10 @@ test("league chat reacts to a message from the menu and toggles it from the chip
   await picker.getByRole("button", { name: "Fuego" }).click()
   await expect(picker).toHaveCount(0)
   await expect(chips.getByRole("button", { name: "Fuego: 1" })).toHaveAttribute("aria-pressed", "true")
+  // The one that has just appeared pops in.
+  await expect(chips.getByRole("button", { name: "Fuego: 1" })).toHaveAttribute("data-reaction-new", "true")
+  await expect(chips.getByRole("button", { name: "Me encanta: 1" })).not.toHaveAttribute("data-reaction-new", "true")
+  expect(await chips.getByRole("button", { name: "Fuego: 1" }).evaluate(element => getComputedStyle(element).animationName)).toBe("league-chat-reaction-pop")
   expect(sent[0]).toEqual({ messageId: "m1", reaction: "fire" })
   // Tapping your own chip withdraws it; the other person's stays.
   await chips.getByRole("button", { name: "Fuego: 1" }).click()

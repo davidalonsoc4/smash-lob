@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import { openChatWithPreview } from "@/lib/chatEntryRequest"
 import { useParams } from "next/navigation"
 import { BackButton } from "@/components/ui/BackButton"
-import { MatchChatComposer, MatchChatReadOnlyBar, MatchChatTextMessage, resizeMatchChatComposer, useMatchChatViewport } from "@/components/match/chat/MatchChatShared"
+import { ChatDaySeparator, isNewChatDay, MatchChatComposer, MatchChatReadOnlyBar, MatchChatTextMessage, resizeMatchChatComposer, useMatchChatViewport } from "@/components/match/chat/MatchChatShared"
 import type { MatchChatParticipant } from "@/components/match/chat/MatchChatShared"
 import { FloatingDialog } from "@/components/ui/FloatingDialog"
 import { LeagueChatParticipantsDialog, leagueChatProfileHref } from "@/components/league/LeagueChatParticipantsDialog"
@@ -16,8 +16,6 @@ import { applyLeagueChatReaction, type LeagueChatReaction, type LeagueChatReacti
 import { LeagueChatAnnouncementCard } from "@/components/league/LeagueChatAnnouncementCard"
 import { LeagueChatComposerTools } from "@/components/league/LeagueChatComposerTools"
 import { LeagueChatPollBody, type LeagueChatPoll } from "@/components/league/LeagueChatPollBody"
-import { getIntlLocale } from "@/i18n/localeFormatting"
-import { getChatDayKey, getChatDayLabel } from "@/lib/chatDayLabel"
 import { canDeleteLeagueChatMessage, canEditLeagueChatMessage } from "@/lib/leagueChatChangeWindow"
 import { CHAT_LIST_ACCOUNT_HEADER } from "@/lib/chatListMemory"
 import { LeagueLogo } from "@/components/league/LeagueLogo"
@@ -63,7 +61,7 @@ function mergeMessages(previous: Message[], incoming: Message[]) {
 }
 
 function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: string | null }) {
-  const { tx, locale } = useI18n()
+  const { tx } = useI18n()
   const { leagues, isLeagueAdmin } = useLeagueAccess()
   const { seasons, seasonSettings } = useSeasonSettings()
   const [chat, setChat] = useState<Chat | null>(null)
@@ -94,6 +92,8 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
   const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null)
   const [announce, setAnnounce] = useState(false)
   const [asLeague, setAsLeague] = useState(false)
+  // Reactions on screen after the last render: anything not in here yet has just appeared and pops in (null until the chat first loads).
+  const [seenReactions, setSeenReactions] = useState<Set<string> | null>(null)
   const [participantsOpen, setParticipantsOpen] = useState(false)
   const endpoint = `/api/league-season-chats/${encodeURIComponent(seasonId)}`
   const accountHeader = account ? encodeURIComponent(account.trim().toLowerCase()) : null
@@ -310,6 +310,12 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
   }
 
   useEffect(() => { if (action?.mode === "edit") editorRef.current?.focus({ preventScroll: true }) }, [action?.mode])
+  useEffect(() => {
+    if (!chat) return
+    // Exactly what is on screen now, so a reaction that is withdrawn and chosen again pops in again.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSeenReactions(new Set(chat.messages.flatMap(message => (message.reactions ?? []).map(reaction => `${message.id}:${reaction.key}`))))
+  }, [chat])
 
   function replyPreviewText(reply: ReplyPreview) {
     if (reply.deleted) return tx("Mensaje eliminado")
@@ -445,7 +451,7 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
       {chat && messages.length === 0 ? <p className="text-center type-small">{tx("Todavía no hay mensajes. ¡Empieza la conversación!")}</p> : null}
       {chat && messages.map((message, index) => {
         const previous = index > 0 ? messages[index - 1] : null
-        const newDay = !previous || getChatDayKey(previous.created_at) !== getChatDayKey(message.created_at)
+        const newDay = isNewChatDay(previous?.created_at, message.created_at)
         const sameGroup = Boolean(previous) && !newDay && previous!.sender_user_id === message.sender_user_id && !message.is_announcement && !previous!.is_announcement
         const quoted = message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, href: profileHref(chat.participants?.find(item => item.userId === message.reply!.sender_user_id)), body: replyPreviewText(message.reply) } : null
         const bubble = message.is_announcement && !message.deleted_at ? <LeagueChatAnnouncementCard
@@ -465,13 +471,9 @@ function LeagueSeasonChat({ seasonId, account }: { seasonId: string; account?: s
           quotedReply={message.reply && !message.deleted_at ? { senderDisplayName: message.reply.sender_display_name, authorUserId: message.reply.sender_user_id ?? null, href: profileHref(chat.participants?.find(item => item.userId === message.reply!.sender_user_id)), body: replyPreviewText(message.reply) } : null}
           onQuotedReplyClick={message.reply ? () => void jumpToMessage(message.reply!.id) : undefined}
         />
-        const chips = message.reactions?.length && !message.deleted_at ? <LeagueChatReactionChips reactions={message.reactions} mine={message.sender_user_id === chat.me} disabled={chat.readOnly || message === pending} onToggle={key => void react(message, key)} translate={tx} /> : null
+        const chips = message.reactions?.length && !message.deleted_at ? <LeagueChatReactionChips reactions={message.reactions} mine={message.sender_user_id === chat.me} disabled={chat.readOnly || message === pending} onToggle={key => void react(message, key)} translate={tx} isNew={key => seenReactions !== null && !seenReactions.has(`${message.id}:${key}`)} /> : null
         const spacing = index === 0 ? "" : sameGroup ? "mt-0.5" : "mt-3"
-        const separator = newDay ? <div key={`day-${message.id}`} data-chat-day-separator className={`flex justify-center ${index === 0 ? "pb-3" : "py-3"}`}>
-          <span className="chat-day-pill rounded-full px-3 py-1 type-micro font-bold uppercase tracking-wide">
-            {getChatDayLabel(message.created_at, new Date(), getIntlLocale(locale), { today: tx("Hoy"), yesterday: tx("Ayer") })}
-          </span>
-        </div> : null
+        const separator = newDay ? <ChatDaySeparator key={`day-${message.id}`} iso={message.created_at} first={index === 0} /> : null
         if (chat.readOnly || message === pending || message.deleted_at) {
           return <Fragment key={message.id}>{separator}<div data-message-id={message.id} className={newDay ? "" : spacing}>{bubble}{chips}</div></Fragment>
         }

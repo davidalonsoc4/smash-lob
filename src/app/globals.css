@@ -86,6 +86,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* A reaction that has just appeared: the chip pops in like a gummy (squash and stretch) and the emoji bounces inside it. */
+@keyframes league-chat-reaction-pop {
+  0% { transform: scale(0.2); opacity: 0; }
+  55% { transform: scale(1.18, 0.9); opacity: 1; }
+  80% { transform: scale(0.95, 1.07); }
+  100% { transform: scale(1); }
+}
+@keyframes league-chat-reaction-emoji {
+  0% { transform: scale(0.3) rotate(-14deg); }
+  60% { transform: scale(1.25) rotate(6deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .league-chat-reaction-pop { animation: league-chat-reaction-pop 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .league-chat-reaction-pop > span:first-child { animation: league-chat-reaction-emoji 460ms ease-out 60ms both; }
+}
+
 /* Name of the league as sender in its chat: its accent colour, darkened or lightened so it stays readable on the bubble. */
 /* The Competition style paints every .type-caption with its muted colour (!important), so this one needs more specificity. */
 html [data-chat-sender].chat-league-sender,

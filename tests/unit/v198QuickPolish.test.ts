@@ -29,7 +29,7 @@ describe("v1.9.8 quick product polish", () => {
       read("src/components/match/chat/MatchChatShared.tsx"),
     ])
 
-    expect(chat).toContain('rowSpacing = index ? previousSameSender ? "mt-px" : "mt-1.5" : ""')
+    expect(chat).toContain('rowSpacing = index && !newDay ? previousSameSender ? "mt-px" : "mt-1.5" : ""')
     expect(shared).toContain('border border-transparent bg-clip-padding bg-neutral-950 text-white')
     expect(shared).toContain('border border-neutral-200 bg-white text-neutral-950')
   })

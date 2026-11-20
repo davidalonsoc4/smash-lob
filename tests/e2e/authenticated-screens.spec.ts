@@ -310,6 +310,36 @@ test("friendly chat reservation opens calendar options in both Competition modes
   }
 })
 
+test("match and friendly chats separate the days with the same date pill as the league chat", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-08-12T12:00:00Z"))
+  const at = (iso: string) => ({ created_at: iso, sender_user_id: "friend", sender_display_name: "Ana" })
+  await page.route("**/api/matches/season-2-round-4-match-1/chat*", async route => {
+    await route.fulfill({ json: { currentUserId: "qa-user", round: 4, readOnly: false, participants: [{ playerId: "davo", userId: "qa-user", displayName: "QA v1.1", handle: "qa", avatarUrl: null }, { playerId: "ana", userId: "friend", displayName: "Ana", handle: "ana", avatarUrl: null }], messages: [
+      { id: "m1", body: "Hola", kind: "text", payload: {}, responses: [], ...at("2026-08-10T09:00:00Z") },
+      { id: "m2", body: "Ayer jugamos", kind: "text", payload: {}, responses: [], ...at("2026-08-11T09:00:00Z") },
+      { id: "m3", body: "Hoy también", kind: "text", payload: {}, responses: [], ...at("2026-08-12T09:00:00Z") },
+      { id: "m4", body: "Seguido", kind: "text", payload: {}, responses: [], ...at("2026-08-12T09:01:00Z") },
+    ] } })
+  })
+  await page.route("**/api/personal-matches/qa-friendly/chat*", async route => {
+    await route.fulfill({ json: { currentUserId: "qa-user", participants: [], readOnly: false, messages: [
+      { id: "p1", body: "Ayer jugamos", ...at("2026-08-11T09:00:00Z") },
+      { id: "p2", body: "Hoy también", ...at("2026-08-12T09:00:00Z") },
+    ], match: { id: "qa-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2026-08-12T17:00:00Z", locationName: "Pista QA", participants: [{ team: 1, slot: 1, displayName: "Ana QA" }, { team: 2, slot: 1, displayName: "Rival QA" }], courtBooking: { isReserved: true } } } })
+  })
+  for (const [url, pills, first] of [["/match/season-2-round-4-match-1/chat", 3, "Hola"], ["/personal-matches/qa-friendly/chat", 2, "Ayer jugamos"]] as const) {
+    await page.goto(url)
+    const separators = page.locator("[data-chat-day-separator]")
+    await expect(separators).toHaveCount(pills)
+    await expect(separators.last()).toHaveText("Hoy")
+    await expect(separators.nth(pills - 2)).toHaveText("Ayer")
+    // The first date has room below, like the rest.
+    const pill = await separators.first().locator("span").boundingBox()
+    const message = await page.getByText(first, { exact: true }).boundingBox()
+    expect(message!.y - (pill!.y + pill!.height)).toBeGreaterThanOrEqual(8)
+  }
+})
+
 test("league spectator share shows a downloadable QR and shares the league link", async ({ page }) => {
   const spectatorUrl = "http://localhost:3000/spectator/invite/league-code"
   await page.addInitScript(() => {

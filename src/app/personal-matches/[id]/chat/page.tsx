@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { FormEvent, Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createCoalescedRunner } from "@/lib/coalescedRunner"
 import { useI18n } from "@/i18n/I18nProvider"
 import { useSession } from "next-auth/react"
@@ -16,6 +16,8 @@ import {
   MatchChatComposer,
   MatchChatReadOnlyBar,
   MatchChatScreen,
+  ChatDaySeparator,
+  isNewChatDay,
   MatchChatTextMessage,
   MatchChatWriteWindowBanner,
   resizeMatchChatComposer,
@@ -319,18 +321,21 @@ function PersonalMatchChat({ account, id }: { account?: string | null; id: strin
 
   const messageNodes = messages.map((message, index) => {
     const previous = index > 0 ? messages[index - 1] : null
-    const previousSameSender = previous?.sender_user_id === message.sender_user_id
-    const spacing = previousSameSender ? "mt-0.5" : index ? "mt-2" : ""
+    const newDay = isNewChatDay(previous?.created_at, message.created_at)
+    const previousSameSender = !newDay && previous?.sender_user_id === message.sender_user_id
+    const spacing = newDay ? "" : previousSameSender ? "mt-0.5" : index ? "mt-2" : ""
 
     return (
-      <MatchChatTextMessage
-        key={message.id}
-        message={message}
-        me={me}
-        participants={participants}
-        previousSameSender={previousSameSender}
-        rowClassName={spacing}
-      />
+      <Fragment key={message.id}>
+        {newDay ? <ChatDaySeparator iso={message.created_at} first={index === 0} /> : null}
+        <MatchChatTextMessage
+          message={message}
+          me={me}
+          participants={participants}
+          previousSameSender={previousSameSender}
+          rowClassName={spacing}
+        />
+      </Fragment>
     )
   })
 

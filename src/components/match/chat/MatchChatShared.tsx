@@ -17,6 +17,7 @@ import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { BackButton } from "@/components/ui/BackButton"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
+import { getChatDayKey, getChatDayLabel } from "@/lib/chatDayLabel"
 import { MATCH_CHAT_TIME_ZONE } from "@/lib/matchChatWindow"
 import type { Locale } from "@/i18n/translations"
 
@@ -107,6 +108,23 @@ export function MatchChatMessageReceipt({
     >
       {pending ? "·" : allRead ? "✓✓" : "✓"}
     </span>
+  )
+}
+
+/** A message opens a new day when it is the first one or the previous one was written on another local day. */
+export function isNewChatDay(previousIso: string | undefined, iso: string) {
+  return !previousIso || getChatDayKey(previousIso) !== getChatDayKey(iso)
+}
+
+/** The date pill ("Hoy", "Ayer", a full date) that every chat shows when the day changes; the first one only needs room below. */
+export function ChatDaySeparator({ iso, first }: { iso: string; first: boolean }) {
+  const { tx, locale } = useI18n()
+  return (
+    <div data-chat-day-separator className={`flex justify-center ${first ? "pb-3" : "py-3"}`}>
+      <span className="chat-day-pill rounded-full px-3 py-1 type-micro font-bold uppercase tracking-wide">
+        {getChatDayLabel(iso, new Date(), getIntlLocale(locale), { today: tx("Hoy"), yesterday: tx("Ayer") })}
+      </span>
+    </div>
   )
 }
 
