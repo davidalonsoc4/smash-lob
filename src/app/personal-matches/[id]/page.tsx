@@ -6,6 +6,7 @@ import { requestMatchDashboardRefresh, requestPaymentLedgerRefresh, requestPerso
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { clearMatchChatCache, readMatchChatCache, writeMatchChatCache } from "@/lib/matchChatCache"
+import { MatchCoinTossPanel } from "@/components/match/MatchCoinToss"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { MatchChatFloatingAction } from "@/components/match/MatchChatFloatingAction"
 import { PersonalMatchParticipantsPanel } from "@/components/personal/PersonalMatchParticipantsPanel"
@@ -148,6 +149,9 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
         showFinishedPlayerMetadata: false,
       }}
     >
+      <MatchCoinTossPanel kind="friendly" matchId={item.id} scheduledAt={item.scheduledAt} canToss={item.canManage} matchOpen={item.status === "scheduled"}
+        teamNames={[1, 2].map(team => item.participants.filter(participant => participant.team === team).sort((a, b) => a.slot - b.slot).map(participant => participant.displayName).join(" + ")) as [string, string]} />
+
       <PersonalMatchParticipantsPanel match={item} onUpdated={updateItem} />
 
       <PersonalMatchSchedulePanel match={item} onUpdated={updateItem} />

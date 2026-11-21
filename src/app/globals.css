@@ -86,6 +86,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Coin toss: a gold coin that spins while the server answers and then lands on the face that came out (three ways to do it). */
+.coin-scene { perspective: 900px; width: 11rem; height: 11rem; }
+.coin-arc { width: 100%; height: 100%; }
+.coin { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transform: rotateX(var(--coin-face, 0deg)); }
+.coin-face {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 9999px; backface-visibility: hidden; -webkit-backface-visibility: hidden; color: #4a3205;
+  background: radial-gradient(circle at 35% 30%, #f8e29b, #d7a544 55%, #9a6f1c); border: 6px solid #f3c96a;
+  box-shadow: inset 0 0 0 4px rgb(120 80 10 / 0.35), 0 14px 32px rgb(0 0 0 / 0.55);
+}
+.coin-tails { transform: rotateX(180deg); }
+@keyframes coin-wait { to { transform: rotateX(360deg); } }
+@keyframes coin-land-1 { from { transform: rotateX(0deg); } to { transform: rotateX(calc(var(--coin-face) + 2520deg)); } }
+@keyframes coin-land-2 { from { transform: rotateX(0deg) rotateY(0deg); } to { transform: rotateX(calc(var(--coin-face) + 1800deg)) rotateY(360deg); } }
+@keyframes coin-land-3 { from { transform: rotateX(0deg); } to { transform: rotateX(calc(var(--coin-face) + 3240deg)); } }
+@keyframes coin-arc-1 { 0% { transform: translateY(0) scale(1); } 45% { transform: translateY(-9rem) scale(1.25); } 100% { transform: translateY(0) scale(1); } }
+@keyframes coin-arc-2 { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-11rem) scale(1.4); } 100% { transform: translateY(0) scale(1); } }
+@keyframes coin-arc-3 { 0% { transform: translateY(0) scale(1); } 38% { transform: translateY(-10rem) scale(1.3); } 68% { transform: translateY(0) scale(1); } 80% { transform: translateY(-2rem) scale(1.04); } 100% { transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  .coin-waiting { animation: coin-wait 0.7s linear infinite; }
+  .coin-landing-1 { animation: coin-land-1 2.3s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+  .coin-landing-2 { animation: coin-land-2 2.6s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+  .coin-landing-3 { animation: coin-land-3 2.8s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+  .coin-arc-1.is-landing { animation: coin-arc-1 2.3s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+  .coin-arc-2.is-landing { animation: coin-arc-2 2.6s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+  .coin-arc-3.is-landing { animation: coin-arc-3 2.8s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+}
+
 /* A reaction that has just appeared: the chip pops in like a gummy (squash and stretch) and the emoji bounces inside it. */
 @keyframes league-chat-reaction-pop {
   0% { transform: scale(0.2); opacity: 0; }

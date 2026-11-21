@@ -1051,3 +1051,60 @@ test("friendly match detail: directions and calendar buttons share weight, size 
   await expect(calendar).toHaveClass(/app-action-primary/)
   await expect(calendar.locator("svg")).toHaveCount(1)
 })
+
+test.describe("coin toss in the detail of a friendly", () => {
+  const item = {
+    id: "qa-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2026-11-26T16:00:00Z", resultRecordedAt: null,
+    locationName: "Portugalete · Pando · Pista 1", sets: [], canManage: true, canDelete: true, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null,
+    participants: [
+      { team: 1, slot: 1, displayName: "David", isCurrentUser: true, personKey: "a" }, { team: 1, slot: 2, displayName: "Álvaro", isCurrentUser: false, personKey: "b" },
+      { team: 2, slot: 1, displayName: "Alain", isCurrentUser: false, personKey: "c" }, { team: 2, slot: 2, displayName: "Unai", isCurrentUser: false, personKey: "d" },
+    ],
+  }
+
+  test("is not offered before the window opens", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-26T14:00:00Z"))
+    await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
+    await page.route("**/api/personal-matches/qa-friendly/coin-toss", route => route.fulfill({ json: { coinToss: null, window: { state: "early", opensAt: "2026-11-26T15:30:00Z" } } }))
+    await page.goto("/personal-matches/qa-friendly")
+    const panel = page.locator("[data-coin-toss-panel]")
+    await expect(panel).toContainText("La moneda se activa a las")
+    await expect(panel.locator("[data-coin-start]")).toHaveCount(0)
+  })
+
+  test("tosses, lets the winner pick the side and the other team pick serve or return", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
+    await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
+    const open = { state: "open", opensAt: null }
+    let toss: Record<string, unknown> | null = null
+    const posts: Array<Record<string, unknown>> = []
+    await page.route("**/api/personal-matches/qa-friendly/coin-toss", route => {
+      if (route.request().method() === "GET") return route.fulfill({ json: { coinToss: toss, window: open } })
+      const body = route.request().postDataJSON()
+      posts.push(body)
+      if (body.action === "toss") toss = { calledHeadsTeam: body.headsTeam, result: "tails", winnerTeam: body.headsTeam === 1 ? 2 : 1, winnerChoice: null, otherChoice: null, servingTeam: null, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z" }
+      else if (body.choice === "side") toss = { ...toss, winnerChoice: "side" }
+      else if (toss?.winnerChoice === "side") toss = { ...toss, otherChoice: body.choice, servingTeam: body.choice === "serve" ? 1 : 2 }
+      else toss = { ...toss, winnerChoice: body.choice, servingTeam: 2 }
+      return route.fulfill({ json: { coinToss: toss, window: open } })
+    })
+    await page.goto("/personal-matches/qa-friendly")
+    await page.locator("[data-coin-start]").click()
+    const dialog = page.locator("[data-coin-toss-dialog]")
+    await expect(dialog.getByRole("heading", { name: "¿Quién canta cara?" })).toBeVisible()
+    // Team 1 calls heads; it comes out tails, so team 2 wins.
+    await dialog.locator('[data-coin-call="1"]').click()
+    await expect(dialog.locator('[data-coin-result="tails"]')).toBeVisible({ timeout: 15000 })
+    await expect(dialog).toContainText("Alain + Unai")
+    await dialog.getByRole("button", { name: "Elegir", exact: true }).click()
+    await dialog.locator('[data-coin-choice="side"]').click()
+    await expect(dialog).toContainText("David + Álvaro")
+    await dialog.locator('[data-coin-choice="serve"]').click()
+    await expect(dialog.locator('[data-coin-serving="1"]')).toContainText("David + Álvaro")
+    expect(posts).toEqual([{ action: "toss", headsTeam: 1 }, { action: "choose", choice: "side" }, { action: "choose", choice: "serve" }])
+    await dialog.getByRole("button", { name: "Listo" }).click()
+    // The summary stays in the detail, and it can be repeated.
+    await expect(page.locator("[data-coin-summary-serving]")).toContainText("David + Álvaro")
+    await expect(page.locator("[data-coin-repeat]")).toBeVisible()
+  })
+})

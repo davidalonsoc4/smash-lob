@@ -1,0 +1,66 @@
+/** Coin toss for who serves first, in league matches and friendlies. Shared by the screen and the server. */
+export type CoinTossTeam = 1 | 2
+export type CoinTossFace = "heads" | "tails"
+/** What the winning team picks: serve, return, or the side (then the other team picks serve or return). */
+export type CoinTossChoice = "serve" | "return" | "side"
+
+export type CoinToss = {
+  /** The team that called heads; the other team called tails. */
+  calledHeadsTeam: CoinTossTeam
+  result: CoinTossFace
+  winnerTeam: CoinTossTeam
+  winnerChoice: CoinTossChoice | null
+  /** Only when the winner picked the side: what the other team picked. */
+  otherChoice: "serve" | "return" | null
+  /** The team that serves first, once it is known. */
+  servingTeam: CoinTossTeam | null
+  /** How many times it has been tossed; repeating replaces the previous toss. */
+  tossCount: number
+  tossedAt: string
+}
+
+/** The toss is for being on the court: it opens before the booked time and closes some hours after it. */
+export const COIN_TOSS_OPENS_BEFORE_MS = 30 * 60_000
+export const COIN_TOSS_CLOSES_AFTER_MS = 4 * 3_600_000
+
+export type CoinTossWindow = {
+  state: "open" | "early" | "late" | "unscheduled"
+  /** When it opens, if the match has a time and it has not opened yet. */
+  opensAt: string | null
+}
+
+/**
+ * A league match must have a time (that is what keeps the toss for the court, not for home); a friendly without a
+ * time can toss whenever, since there is nothing to compare with.
+ */
+export function getCoinTossWindow({ scheduledAt, now, requireTime }: { scheduledAt: string | null; now: number; requireTime: boolean }): CoinTossWindow {
+  const start = scheduledAt ? Date.parse(scheduledAt) : Number.NaN
+  if (Number.isNaN(start)) return { state: requireTime ? "unscheduled" : "open", opensAt: null }
+  const opensAt = start - COIN_TOSS_OPENS_BEFORE_MS
+  if (now < opensAt) return { state: "early", opensAt: new Date(opensAt).toISOString() }
+  if (now > start + COIN_TOSS_CLOSES_AFTER_MS) return { state: "late", opensAt: null }
+  return { state: "open", opensAt: null }
+}
+
+export const otherCoinTossTeam = (team: CoinTossTeam): CoinTossTeam => (team === 1 ? 2 : 1)
+
+/** The face that a team called. */
+export const faceCalledByTeam = (calledHeadsTeam: CoinTossTeam, team: CoinTossTeam): CoinTossFace => (calledHeadsTeam === team ? "heads" : "tails")
+
+/** Who serves first given the choices (null while the choices are not complete). */
+export function resolveServingTeam(winnerTeam: CoinTossTeam, winnerChoice: CoinTossChoice | null, otherChoice: "serve" | "return" | null): CoinTossTeam | null {
+  if (winnerChoice === "serve") return winnerTeam
+  if (winnerChoice === "return") return otherCoinTossTeam(winnerTeam)
+  if (winnerChoice === "side") return otherChoice === "serve" ? otherCoinTossTeam(winnerTeam) : otherChoice === "return" ? winnerTeam : null
+  return null
+}
+
+/** What is left to choose: the pick of the winner, the pick of the other team after a side choice, or nothing. */
+export function pendingCoinTossStep(toss: CoinToss): "winner" | "other" | null {
+  if (!toss.winnerChoice) return "winner"
+  if (toss.winnerChoice === "side" && !toss.otherChoice) return "other"
+  return null
+}
+
+export const isCoinTossTeam = (value: unknown): value is CoinTossTeam => value === 1 || value === 2
+export const isCoinTossChoice = (value: unknown): value is CoinTossChoice => value === "serve" || value === "return" || value === "side"

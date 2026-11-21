@@ -14,6 +14,7 @@ import { MatchResultForm } from "@/components/match/MatchResultForm"
 import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfirmationCard"
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchReservationConfirmation } from "@/components/match/MatchReservationConfirmation"
+import { MatchCoinTossPanel } from "@/components/match/MatchCoinToss"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
@@ -556,6 +557,9 @@ export default function MatchDetailPage() {
         sideStatistics: buildSideStatistics(storedMatches.map(item => ({ ...item, resultCounts: item.rankingCounts !== false && getMatchResultConfirmationState({ matchId: item.id, participantIds: [...item.teamA, ...item.teamB], reporterPlayerId: item.resultReportedByPlayerId, resultRecordedAt: item.resultRecordedAt, resultLocked: item.resultLocked, confirmations: resultConfirmations, mode: getSeasonRoundSettings(item.seasonId).resultConfirmationMode }).countsForRanking })), playerProfiles, seasonPlayers),
       }}
     >
+      <MatchCoinTossPanel kind="league" matchId={match.id} scheduledAt={match.scheduledAt} canToss={canManageMatch} matchOpen={match.status === "scheduled"}
+        teamNames={[match.teamA.map(id => getPlayerDisplayName(id, players)).join(" + "), match.teamB.map(id => getPlayerDisplayName(id, players)).join(" + ")]} />
+
       <MatchActionsContent
         match={match}
         players={players}

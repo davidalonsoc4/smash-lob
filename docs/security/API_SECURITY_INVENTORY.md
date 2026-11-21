@@ -96,6 +96,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/matches/[matchId]/chat` | GET | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/chat` | POST | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/chat` | PATCH | Protegido | getServerMatchActor |
+| `/api/matches/[matchId]/coin-toss` | GET | Protegido | getServerMatchActor |
+| `/api/matches/[matchId]/coin-toss` | POST | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/coordination` | GET | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking` | PUT | Protegido | getServerMatchActor |
 | `/api/matches/[matchId]/court-booking` | DELETE | Protegido | getServerMatchActor |
@@ -137,6 +139,8 @@ Generado por `npm run api-security:check`. Cualquier ruta o método nuevo debe q
 | `/api/personal-matches/[id]` | DELETE | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/chat` | GET | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/chat` | POST | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]/coin-toss` | GET | Protegido | requireAuthenticatedAppUser |
+| `/api/personal-matches/[id]/coin-toss` | POST | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/court-booking` | PUT | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/court-booking` | DELETE | Protegido | requireAuthenticatedAppUser |
 | `/api/personal-matches/[id]/court-booking/transfers/[transferId]` | PUT | Protegido | requireAuthenticatedAppUser |
