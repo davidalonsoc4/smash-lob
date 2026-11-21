@@ -501,20 +501,26 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
   const and = tx("y")
   const winnerTeam = toss ? shortTeam(teamNames, toss.winnerTeam, and) : null
   const otherTeam = toss ? shortTeam(teamNames, otherCoinTossTeam(toss.winnerTeam), and) : null
-  const choiceText = (choice: CoinTossChoice | "serve" | "return") => tx(choice === "serve" ? "sacar" : choice === "return" ? "restar" : "el lado")
-  let main = ""
+  // Two lines always. Big: what the team that won the coin chose (the verb in the accent colour). Small: what is left for the other team.
+  const verb = (choice: "serve" | "return", plural: boolean) => tx(choice === "serve" ? (plural ? "sacan" : "saca") : plural ? "restan" : "resta")
+  let lead = ""
+  let accent = ""
   let detail = ""
   if (toss && winnerTeam && otherTeam) {
     if (!toss.winnerChoice) {
-      main = `${tx("Gana")} ${winnerTeam.text}`
-      detail = `${tx(winnerTeam.plural ? "tienen que elegir" : "tiene que elegir")}${canToss && matchOpen ? ` (${tx("toca la moneda para continuar")})` : ""}`
+      lead = tx("Gana")
+      accent = winnerTeam.text
+      detail = tx(winnerTeam.plural ? "tienen que elegir" : "tiene que elegir")
+    } else if (toss.winnerChoice === "side") {
+      lead = winnerTeam.text
+      accent = tx(winnerTeam.plural ? "eligen lado" : "elige lado")
+      detail = toss.otherChoice
+        ? `${otherTeam.text} ${verb(toss.otherChoice, otherTeam.plural)}`
+        : `${otherTeam.text} ${tx(otherTeam.plural ? "tienen que elegir" : "tiene que elegir")}`
     } else {
-      main = `${winnerTeam.text} ${tx(winnerTeam.plural ? "eligieron" : "eligió")} ${choiceText(toss.winnerChoice)}`
-      detail = toss.winnerChoice !== "side"
-        ? `${otherTeam.text} ${tx(otherTeam.plural ? "eligen" : "elige")} ${tx("el lado")}`
-        : toss.otherChoice
-          ? `${otherTeam.text} ${tx(otherTeam.plural ? "eligieron" : "eligió")} ${choiceText(toss.otherChoice)}`
-          : `${otherTeam.text} ${tx(otherTeam.plural ? "tienen que elegir" : "tiene que elegir")} ${tx("sacar o restar")}${canToss && matchOpen ? ` (${tx("toca la moneda para continuar")})` : ""}`
+      lead = winnerTeam.text
+      accent = verb(toss.winnerChoice, winnerTeam.plural)
+      detail = `${otherTeam.text} ${tx(otherTeam.plural ? "eligen" : "elige")} ${tx("el lado")}`
     }
   }
   const canOpen = canToss && matchOpen && (canStart || Boolean(toss))
@@ -526,8 +532,8 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
           <div className="min-w-0 flex-1">
             <p className="type-panel-title app-panel-title">{tx("Sorteo del saque")}</p>
             {toss ? <div className="mt-1">
-              <p data-coin-panel-main className="text-sm font-black leading-snug text-neutral-950">{main}</p>
-              <p data-coin-panel-detail className="mt-0.5 text-xs font-semibold leading-snug text-neutral-600">{detail}</p>
+              <p data-coin-panel-main className="text-sm font-black leading-snug text-neutral-950">{lead} <span className="coin-panel-verb">{accent}</span></p>
+              <p data-coin-panel-detail className="mt-0.5 text-xs font-semibold leading-snug text-neutral-600 first-letter:uppercase">{detail}</p>
             </div> : <p className="mt-1 text-sm font-bold leading-snug text-neutral-800">
               {canStart ? `${tx("Tira la moneda para empezar el partido")} (${tx("toca la moneda para lanzarla")})` : `${tx("La moneda se activa a las")} ${opensAt ?? ""} · ${tx("30 minutos antes del partido")}`}
             </p>}

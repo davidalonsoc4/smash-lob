@@ -1210,8 +1210,8 @@ test.describe("coin toss in the detail of a friendly", () => {
     await expect(dialog).toHaveCount(1)
     await expect(dialog).toHaveCount(0, { timeout: 15000 })
     // The panel shows the choice of who won the coin in big and what is left for the other team below, with the short names.
-    await expect(page.locator("[data-coin-panel-main]")).toHaveText("Alain y Unai eligieron el lado")
-    await expect(page.locator("[data-coin-panel-detail]")).toHaveText("David y Álvaro eligieron sacar")
+    await expect(page.locator("[data-coin-panel-main]")).toHaveText("Alain y Unai eligen lado")
+    await expect(page.locator("[data-coin-panel-detail]")).toHaveText("David y Álvaro sacan")
     await expect(page.locator('[data-coin-mini="tails"]')).toBeVisible()
     // While it is being tested, pressing the coin opens the full screen again, where the toss can be repeated.
     await page.locator("[data-coin-open]").click()

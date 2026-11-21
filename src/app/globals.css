@@ -3708,6 +3708,10 @@ html .app-match-chat-metadata[data-overlay="true"] .type-caption { color: #fff !
 /* Destructive text action on a neutral button: readable in the dark classic theme (competition styles have their own red). */
 html.dark:not(.colorful):not([data-visual-style="competition"]) .app-danger-action { color: #fca5a5; }
 
+/* The key word of the toss panel (sacan, restan, eligen lado): the accent colour, darkened on light themes so it stays readable. */
+.coin-panel-verb { color: color-mix(in srgb, var(--app-accent, #b8860b) 62%, #000000); }
+html.dark .coin-panel-verb { color: var(--app-accent, #d7a544); }
+
 /* Competition: the boxes with the names of the pairs have the same background as the panels (the surface), not a lighter gray. */
 html[data-visual-style="competition"] .app-match-pair-surface {
   background: var(--competition-surface) !important;
