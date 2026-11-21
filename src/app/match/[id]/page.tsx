@@ -557,7 +557,7 @@ export default function MatchDetailPage() {
         sideStatistics: buildSideStatistics(storedMatches.map(item => ({ ...item, resultCounts: item.rankingCounts !== false && getMatchResultConfirmationState({ matchId: item.id, participantIds: [...item.teamA, ...item.teamB], reporterPlayerId: item.resultReportedByPlayerId, resultRecordedAt: item.resultRecordedAt, resultLocked: item.resultLocked, confirmations: resultConfirmations, mode: getSeasonRoundSettings(item.seasonId).resultConfirmationMode }).countsForRanking })), playerProfiles, seasonPlayers),
       }}
     >
-      <MatchCoinTossPanel kind="league" matchId={match.id} scheduledAt={match.scheduledAt} canToss={canManageMatch} matchOpen={match.status === "scheduled"}
+      <MatchCoinTossPanel kind="league" matchId={match.id} scheduledAt={match.scheduledAt} canToss={canManageMatch} matchOpen={match.status === "scheduled" || match.status === "scheduling"}
         teamNames={[match.teamA.map(id => getPlayerDisplayName(id, players)).join(" + "), match.teamB.map(id => getPlayerDisplayName(id, players)).join(" + ")]} />
 
       <MatchActionsContent

@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({ actor: vi.fn(), load: vi.fn(), run: vi.fn(), personal: vi.fn(), manageable: vi.fn(), auth: vi.fn() }))
 vi.mock("@/lib/serverMatchAccess", () => ({ getServerMatchActor: mocks.actor }))
 vi.mock("@/lib/serverMatchCoinToss", () => ({ loadCoinToss: mocks.load, runCoinTossAction: mocks.run }))
+// The time rule is switched off in the app for now; these tests check the rule itself.
+vi.mock("@/lib/matchCoinToss", async (original) => ({ ...(await original<typeof import("@/lib/matchCoinToss")>()), COIN_TOSS_TIME_WINDOW_ENABLED: true }))
 vi.mock("@/lib/serverRateLimit", () => ({ enforceRequestRateLimit: vi.fn().mockResolvedValue(null) }))
 vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.auth }))
 vi.mock("@/lib/serverPersonalMatches", () => ({ loadPersonalMatch: mocks.personal, loadManageablePersonalMatch: mocks.manageable }))
@@ -51,9 +53,15 @@ describe("league coin toss route", () => {
   })
 
   it("only tosses in a season that can change and in a match that has not been played", async () => {
-    leagueActor({}, { status: "finished" })
-    expect((await leaguePost(post({ action: "toss", headsTeam: 1 }), context)).status).toBe(409)
+    for (const status of ["finished", "postponed"]) {
+      leagueActor({}, { status })
+      expect((await leaguePost(post({ action: "toss", headsTeam: 1 }), context)).status).toBe(409)
+    }
     expect(mocks.run).not.toHaveBeenCalled()
+    // Not yet scheduled in the app: it can still be played, so it can toss (the window code decides about the time).
+    leagueActor({}, { status: "scheduling", scheduledAt: "2026-11-26T16:00:00Z" })
+    expect((await leaguePost(post({ action: "toss", headsTeam: 1 }), context)).status).toBe(200)
+    mocks.run.mockClear()
     leagueActor()
     expect((await leaguePost(post({ action: "toss", headsTeam: 1 }), context)).status).toBe(200)
     expect(mocks.actor).toHaveBeenLastCalledWith(matchId, expect.objectContaining({ requireMutableSeason: true, requireLeagueAccess: true }))

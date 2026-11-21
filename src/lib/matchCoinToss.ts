@@ -23,6 +23,12 @@ export type CoinToss = {
 export const COIN_TOSS_OPENS_BEFORE_MS = 30 * 60_000
 export const COIN_TOSS_CLOSES_AFTER_MS = 4 * 3_600_000
 
+/**
+ * Whether the toss is only available around the booked time. Off while the feature is being polished: the toss can be
+ * used at any moment (the window code stays, so turning this on brings back the 30-minute rule everywhere).
+ */
+export const COIN_TOSS_TIME_WINDOW_ENABLED = false
+
 export type CoinTossWindow = {
   state: "open" | "early" | "late" | "unscheduled"
   /** When it opens, if the match has a time and it has not opened yet. */
@@ -30,10 +36,11 @@ export type CoinTossWindow = {
 }
 
 /**
- * A league match must have a time (that is what keeps the toss for the court, not for home); a friendly without a
+ * With `enforce` off the toss is always open. With it on: a league match must have a time (that is what keeps the toss for the court, not for home); a friendly without a
  * time can toss whenever, since there is nothing to compare with.
  */
-export function getCoinTossWindow({ scheduledAt, now, requireTime }: { scheduledAt: string | null; now: number; requireTime: boolean }): CoinTossWindow {
+export function getCoinTossWindow({ scheduledAt, now, requireTime, enforce }: { scheduledAt: string | null; now: number; requireTime: boolean; enforce: boolean }): CoinTossWindow {
+  if (!enforce) return { state: "open", opensAt: null }
   const start = scheduledAt ? Date.parse(scheduledAt) : Number.NaN
   if (Number.isNaN(start)) return { state: requireTime ? "unscheduled" : "open", opensAt: null }
   const opensAt = start - COIN_TOSS_OPENS_BEFORE_MS

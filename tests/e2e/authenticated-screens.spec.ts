@@ -1062,14 +1062,12 @@ test.describe("coin toss in the detail of a friendly", () => {
     ],
   }
 
-  test("is not offered before the window opens", async ({ page }) => {
-    await page.clock.setFixedTime(new Date("2026-11-26T14:00:00Z"))
+  test("is offered at any time while the time rule is switched off (even hours before the booked time)", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-26T10:00:00Z"))
     await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
-    await page.route("**/api/personal-matches/qa-friendly/coin-toss", route => route.fulfill({ json: { coinToss: null, window: { state: "early", opensAt: "2026-11-26T15:30:00Z" } } }))
+    await page.route("**/api/personal-matches/qa-friendly/coin-toss", route => route.fulfill({ json: { coinToss: null, window: { state: "open", opensAt: null } } }))
     await page.goto("/personal-matches/qa-friendly")
-    const panel = page.locator("[data-coin-toss-panel]")
-    await expect(panel).toContainText("La moneda se activa a las")
-    await expect(panel.locator("[data-coin-start]")).toHaveCount(0)
+    await expect(page.locator("[data-coin-toss-panel] [data-coin-start]")).toBeVisible()
   })
 
   test("tosses, lets the winner pick the side and the other team pick serve or return", async ({ page }) => {
@@ -1107,4 +1105,11 @@ test.describe("coin toss in the detail of a friendly", () => {
     await expect(page.locator("[data-coin-summary-serving]")).toContainText("David + Álvaro")
     await expect(page.locator("[data-coin-repeat]")).toBeVisible()
   })
+})
+
+test("league match detail shows the coin toss to who can manage the match", async ({ page }) => {
+  await page.route("**/api/matches/season-2-round-4-match-1/coin-toss", route => route.fulfill({ json: { coinToss: null, window: { state: "open", opensAt: null } } }))
+  await page.goto("/match/season-2-round-4-match-1")
+  await expect(page.locator("[data-coin-toss-panel]")).toContainText("Sorteo del saque")
+  await expect(page.locator("[data-coin-toss-panel] [data-coin-start]")).toBeVisible()
 })

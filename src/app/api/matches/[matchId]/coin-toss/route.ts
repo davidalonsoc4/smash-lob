@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getCoinTossWindow } from "@/lib/matchCoinToss"
+import { COIN_TOSS_TIME_WINDOW_ENABLED, getCoinTossWindow } from "@/lib/matchCoinToss"
 import { loadCoinToss, runCoinTossAction } from "@/lib/serverMatchCoinToss"
 import { getServerMatchActor } from "@/lib/serverMatchAccess"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
@@ -18,7 +18,7 @@ async function loadAccess(matchId: string, mutate: boolean) {
   const { actor } = access
   if (actor.isSpectator || !(actor.isAdmin || actor.participantPlayerId)) return { error: fail("forbidden", 403) }
   // A league match needs its time: the window is counted from it.
-  const window = getCoinTossWindow({ scheduledAt: actor.match.scheduledAt, now: Date.now(), requireTime: true })
+  const window = getCoinTossWindow({ scheduledAt: actor.match.scheduledAt, now: Date.now(), requireTime: true, enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
   return { actor, window }
 }
 
@@ -40,7 +40,8 @@ export async function POST(request: Request, context: Context) {
   if (!matchId) return fail("invalid_match_id", 400)
   const loaded = await loadAccess(matchId, true)
   if (loaded.error) return loaded.error
-  if (loaded.actor.match.status !== "scheduled") return fail("coin_toss_closed", 409)
+  // Played, or postponed, no; a match not yet scheduled in the app can still be played, so it can toss.
+  if (loaded.actor.match.status !== "scheduled" && loaded.actor.match.status !== "scheduling") return fail("coin_toss_closed", 409)
   const result = await runCoinTossAction({
     supabase: loaded.actor.supabase, target: { kind: "league", matchId }, userId: loaded.actor.user.id,
     body: await parseJsonBody(request), window: loaded.window,

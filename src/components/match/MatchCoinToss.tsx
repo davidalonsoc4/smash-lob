@@ -3,7 +3,7 @@ import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
 import {
-  faceCalledByTeam, getCoinTossWindow, otherCoinTossTeam, pendingCoinTossStep,
+  COIN_TOSS_TIME_WINDOW_ENABLED, faceCalledByTeam, getCoinTossWindow, otherCoinTossTeam, pendingCoinTossStep,
   type CoinToss, type CoinTossChoice, type CoinTossFace, type CoinTossTeam,
 } from "@/lib/matchCoinToss"
 import { chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFailure, type CoinTossKind } from "@/lib/matchCoinTossClient"
@@ -198,7 +198,7 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, canT
     return () => window.clearInterval(timer)
   }, [])
 
-  const tossWindow = getCoinTossWindow({ scheduledAt, now, requireTime: kind === "league" })
+  const tossWindow = getCoinTossWindow({ scheduledAt, now, requireTime: kind === "league", enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
   const canStart = canToss && matchOpen && tossWindow.state === "open"
   if (!visible) return null
   if (!toss && !canStart && !(canToss && matchOpen && tossWindow.state === "early")) return null

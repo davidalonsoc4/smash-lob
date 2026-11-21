@@ -11,7 +11,7 @@ const toss = (patch: Partial<CoinToss> = {}): CoinToss => ({
 
 describe("coin toss window", () => {
   it("opens 30 minutes before the booked time and closes 4 hours after it", () => {
-    const base = { scheduledAt: new Date(START).toISOString(), requireTime: true }
+    const base = { scheduledAt: new Date(START).toISOString(), requireTime: true, enforce: true }
     expect(getCoinTossWindow({ ...base, now: START - COIN_TOSS_OPENS_BEFORE_MS - 1 })).toEqual({ state: "early", opensAt: "2026-11-26T15:30:00.000Z" })
     expect(getCoinTossWindow({ ...base, now: START - COIN_TOSS_OPENS_BEFORE_MS }).state).toBe("open")
     expect(getCoinTossWindow({ ...base, now: START + 10 * 60_000 }).state).toBe("open")
@@ -19,10 +19,23 @@ describe("coin toss window", () => {
     expect(getCoinTossWindow({ ...base, now: START + COIN_TOSS_CLOSES_AFTER_MS + 1 }).state).toBe("late")
   })
 
+  it("is open for a match scheduled for right now or a few minutes ago", () => {
+    const base = { requireTime: true, enforce: true, now: START }
+    expect(getCoinTossWindow({ ...base, scheduledAt: new Date(START).toISOString() }).state).toBe("open")
+    expect(getCoinTossWindow({ ...base, scheduledAt: new Date(START - 20 * 60_000).toISOString() }).state).toBe("open")
+    expect(getCoinTossWindow({ ...base, scheduledAt: new Date(START + 5 * 60_000).toISOString() }).state).toBe("open")
+  })
+
   it("needs a time in a league match, but a friendly without one can toss whenever", () => {
-    expect(getCoinTossWindow({ scheduledAt: null, now: START, requireTime: true }).state).toBe("unscheduled")
-    expect(getCoinTossWindow({ scheduledAt: null, now: START, requireTime: false }).state).toBe("open")
-    expect(getCoinTossWindow({ scheduledAt: "not a date", now: START, requireTime: true }).state).toBe("unscheduled")
+    expect(getCoinTossWindow({ scheduledAt: null, now: START, requireTime: true, enforce: true }).state).toBe("unscheduled")
+    expect(getCoinTossWindow({ scheduledAt: null, now: START, requireTime: false, enforce: true }).state).toBe("open")
+    expect(getCoinTossWindow({ scheduledAt: "not a date", now: START, requireTime: true, enforce: true }).state).toBe("unscheduled")
+  })
+
+  it("is always open while the time rule is switched off", () => {
+    expect(getCoinTossWindow({ scheduledAt: null, now: START, requireTime: true, enforce: false }).state).toBe("open")
+    expect(getCoinTossWindow({ scheduledAt: new Date(START).toISOString(), now: START - 5 * 3_600_000, requireTime: true, enforce: false }).state).toBe("open")
+    expect(getCoinTossWindow({ scheduledAt: new Date(START).toISOString(), now: START + 9 * 3_600_000, requireTime: true, enforce: false }).state).toBe("open")
   })
 })
 

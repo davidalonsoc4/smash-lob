@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getCoinTossWindow } from "@/lib/matchCoinToss"
+import { COIN_TOSS_TIME_WINDOW_ENABLED, getCoinTossWindow } from "@/lib/matchCoinToss"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { loadCoinToss, runCoinTossAction } from "@/lib/serverMatchCoinToss"
 import { loadManageablePersonalMatch, loadPersonalMatch } from "@/lib/serverPersonalMatches"
@@ -24,7 +24,7 @@ export async function GET(_request: Request, context: Context) {
     const found = await loadCoinToss(auth.actor.supabase, { kind: "friendly", matchId })
     if (!found.ok) return fail("coin_toss_failed", 500)
     // A friendly without a time can toss whenever.
-    const window = getCoinTossWindow({ scheduledAt: item.scheduledAt, now: Date.now(), requireTime: false })
+    const window = getCoinTossWindow({ scheduledAt: item.scheduledAt, now: Date.now(), requireTime: false, enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
     return NextResponse.json({ coinToss: found.toss, window }, { headers: noStore })
   } catch {
     return fail("coin_toss_failed", 500)
@@ -44,7 +44,7 @@ export async function POST(request: Request, context: Context) {
     if (!row) return fail("personal_match_not_found", 404)
     if (row === "forbidden") return fail("forbidden", 403)
     if (row.status !== "scheduled") return fail("coin_toss_closed", 409)
-    const window = getCoinTossWindow({ scheduledAt: row.played_at ?? null, now: Date.now(), requireTime: false })
+    const window = getCoinTossWindow({ scheduledAt: row.played_at ?? null, now: Date.now(), requireTime: false, enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
     const result = await runCoinTossAction({
       supabase: auth.actor.supabase, target: { kind: "friendly", matchId }, userId: auth.actor.user.id,
       body: await parseJsonBody(request), window,
