@@ -55,11 +55,11 @@ const pick = <T,>(list: readonly T[]) => list[crypto.getRandomValues(new Uint32A
 /**
  * After landing the coin bounces, and each toss does it a bit differently. Heights are a part of the half height of the screen
  * (2 is the whole screen): the first bounce goes up 50% to 60% of the screen, always keeping on spinning; the second one 30% to 35%
- * and may give the coin one more flip, or two or three, or none; then two smaller ones (13% to 19%, and 4% to 6%) that die out. The `spin` of a bounce is whole turns end over end while it is in the air, so it ends flat on the face that came out.
+ * and may give the coin one more flip, or two, or none; then two smaller ones (13% to 19%, and 4% to 6%) that die out. The `spin` of a bounce is whole turns end over end while it is in the air, so it ends flat on the face that came out.
  */
 const bouncePattern = (): Bounce[] => [
   { height: pick([1.0, 1.05, 1.1, 1.15, 1.2]), spin: pick([1, 1, 2]) },
-  { height: pick([0.6, 0.64, 0.68, 0.7]), spin: pick([0, 0, 1, 1, 2, 3]) },
+  { height: pick([0.6, 0.64, 0.68, 0.7]), spin: pick([0, 0, 1, 1, 2]) },
   { height: pick([0.26, 0.3, 0.34, 0.38]), spin: 0 },
   { height: pick([0.08, 0.1, 0.12]), spin: 0 },
 ]
