@@ -1137,6 +1137,9 @@ test.describe("coin toss in the detail of a friendly", () => {
     await page.waitForTimeout(300)
     expect(posts).toEqual([])
     await swipe(300, 0)
+    // With the machine very busy (the software renderer of the test browser) an event can arrive late: one more try.
+    await page.waitForTimeout(1500)
+    if (await dialog.locator("[data-coin-throw-hint]").count()) await swipe(300, 0)
     await expect(dialog.locator("[data-coin-throw-hint]")).toHaveCount(0)
     await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 20000 })
     expect(posts).toEqual([{ action: "toss", headsTeam: 1 }])

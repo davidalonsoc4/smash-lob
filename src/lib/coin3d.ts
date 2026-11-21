@@ -34,8 +34,8 @@ export type CoinScene = {
 
 /** How the metal looks: lights, reflections and finish. */
 const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughness: 0.4, bump: 3.2, tint: 0xffffff }
-/** The coin is always seen with its top leaning a little toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
-const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), 0.14)
+/** The coin is always seen with its top leaning 5 degrees toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
+const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), (5 * Math.PI) / 180)
 const RADIUS = 1
 const THICKNESS = 0.15
 const FACE_QUATERNION: Record<CoinTossFace, Quaternion> = {
@@ -57,13 +57,13 @@ const VARIANTS = [
  * floor. All of them end flat on the face that came out.
  */
 const BOUNCE_PATTERNS = [
-  [{ height: 0.42, spin: 1 }, { height: 0.13, spin: 0 }, { height: 0.045, spin: 0 }, { height: 0.018, spin: 0 }],
-  [{ height: 0.5, spin: 2 }, { height: 0.14, spin: 0 }, { height: 0.05, spin: 0 }],
-  [{ height: 0.38, spin: 1 }, { height: 0.16, spin: 1 }, { height: 0.06, spin: 0 }, { height: 0.02, spin: 0 }],
-  [{ height: 0.46, spin: 1 }, { height: 0.1, spin: 0 }, { height: 0.04, spin: 0 }, { height: 0.015, spin: 0 }],
-  [{ height: 0.34, spin: 0 }, { height: 0.14, spin: 0 }, { height: 0.06, spin: 0 }, { height: 0.025, spin: 0 }],
-  [{ height: 0.52, spin: 2 }, { height: 0.18, spin: 1 }, { height: 0.06, spin: 0 }],
-  [{ height: 0.4, spin: 1 }, { height: 0.12, spin: 0 }, { height: 0.04, spin: 0 }],
+  [{ height: 0.63, spin: 1 }, { height: 0.13, spin: 0 }, { height: 0.045, spin: 0 }, { height: 0.018, spin: 0 }],
+  [{ height: 0.75, spin: 2 }, { height: 0.14, spin: 0 }, { height: 0.05, spin: 0 }],
+  [{ height: 0.57, spin: 1 }, { height: 0.16, spin: 1 }, { height: 0.06, spin: 0 }, { height: 0.02, spin: 0 }],
+  [{ height: 0.69, spin: 1 }, { height: 0.1, spin: 0 }, { height: 0.04, spin: 0 }, { height: 0.015, spin: 0 }],
+  [{ height: 0.51, spin: 0 }, { height: 0.14, spin: 0 }, { height: 0.06, spin: 0 }, { height: 0.025, spin: 0 }],
+  [{ height: 0.78, spin: 2 }, { height: 0.18, spin: 1 }, { height: 0.06, spin: 0 }],
+  [{ height: 0.6, spin: 1 }, { height: 0.12, spin: 0 }, { height: 0.04, spin: 0 }],
 ] as const
 /** How long a bounce of that height lasts: the same gravity as the flight, a bit faster. */
 const bounceSeconds = (height: number) => 0.15 + 1.05 * Math.sqrt(height)
