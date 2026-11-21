@@ -49,24 +49,23 @@ const VARIANTS = [
   { turns: 4, wobble: [0.4, 0.2] },
   { turns: 6, wobble: [0.26, 0.12] },
 ] as const
-/** After landing: three bounces, each lower (height as a part of the half height of the screen, and seconds). */
+type Bounce = { height: number; spin: number }
+const pick = <T,>(list: readonly T[]) => list[crypto.getRandomValues(new Uint32Array(1))[0] % list.length]
+
 /**
- * After landing the coin bounces, and not always the same way: the first bounce goes up high and keeps spinning, and the next ones
- * are smaller and die out. Each pattern is a list of bounces (height as a part of the half height of the screen), and some of
- * them add `spin` more turns end over end while the coin is in the air, like a coin that gets one more flip after hitting the
- * floor. All of them end flat on the face that came out.
+ * After landing the coin bounces, and each toss does it a bit differently. Heights are a part of the half height of the screen
+ * (2 is the whole screen): the first bounce goes up almost as high as the toss itself (50% to 75% of the screen), always keeping
+ * on spinning; the second one is about 30% and may give the coin one more flip, or two or three, or none; then two small ones
+ * that die out. The `spin` of a bounce is whole turns end over end while it is in the air, so it ends flat on the face that came out.
  */
-const BOUNCE_PATTERNS = [
-  [{ height: 0.63, spin: 1 }, { height: 0.13, spin: 0 }, { height: 0.045, spin: 0 }, { height: 0.018, spin: 0 }],
-  [{ height: 0.75, spin: 2 }, { height: 0.14, spin: 0 }, { height: 0.05, spin: 0 }],
-  [{ height: 0.57, spin: 1 }, { height: 0.16, spin: 1 }, { height: 0.06, spin: 0 }, { height: 0.02, spin: 0 }],
-  [{ height: 0.69, spin: 1 }, { height: 0.1, spin: 0 }, { height: 0.04, spin: 0 }, { height: 0.015, spin: 0 }],
-  [{ height: 0.51, spin: 0 }, { height: 0.14, spin: 0 }, { height: 0.06, spin: 0 }, { height: 0.025, spin: 0 }],
-  [{ height: 0.78, spin: 2 }, { height: 0.18, spin: 1 }, { height: 0.06, spin: 0 }],
-  [{ height: 0.6, spin: 1 }, { height: 0.12, spin: 0 }, { height: 0.04, spin: 0 }],
-] as const
-/** How long a bounce of that height lasts: the same gravity as the flight, a bit faster. */
-const bounceSeconds = (height: number) => 0.15 + 1.05 * Math.sqrt(height)
+const bouncePattern = (): Bounce[] => [
+  { height: pick([1.0, 1.15, 1.3, 1.4, 1.5]), spin: pick([1, 1, 2]) },
+  { height: pick([0.55, 0.6, 0.65]), spin: pick([0, 0, 1, 1, 2, 3]) },
+  { height: pick([0.2, 0.24, 0.28]), spin: 0 },
+  { height: pick([0.07, 0.09, 0.11]), spin: 0 },
+]
+/** How long a bounce of that height lasts (the same gravity as the flight). */
+const bounceSeconds = (height: number) => 0.05 + 1.1 * Math.sqrt(height)
 const REST_PAUSE = 0.3
 const RETURN_TIME = 0.7
 
@@ -107,8 +106,8 @@ type Throw = {
   from: { y: number; orientation: Quaternion }
   power: number
   variant: number
-  /** One of the bounce patterns. */
-  pattern: number
+  /** The bounces of this toss. */
+  bounces: Bounce[]
   /** Unknown until the server answers. Meanwhile the coin tumbles as if it were heads. */
   face: CoinTossFace | null
   /** Seconds into the toss when the face became known (to blend into it without a jump). */
@@ -249,7 +248,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     const up = 0.45 + 0.17 * current.power
     const down = up * Math.sqrt(Math.max(0.1, (peak - floor) / Math.max(0.1, peak - y0)))
     const landing = up + down
-    const bounces = BOUNCE_PATTERNS[current.pattern % BOUNCE_PATTERNS.length]
+    const bounces = current.bounces
     let y = floor
     let z = 0
     let extraSpin = 0
@@ -365,7 +364,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     tossing = {
       start: lastFrame, from: { y, orientation: orientation.clone() }, power, face: null, faceKnownAt: 0,
       variant: 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % VARIANTS.length),
-      pattern: crypto.getRandomValues(new Uint32Array(1))[0] % BOUNCE_PATTERNS.length, resolve: null, landed: false,
+      bounces: bouncePattern(), resolve: null, landed: false,
     }
   }
   const onDown = (event: PointerEvent) => {
