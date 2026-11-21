@@ -32,6 +32,8 @@ export type CoinScene = {
   dispose(): void
 }
 
+/** How the metal looks: lights, reflections and finish. */
+const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughness: 0.4, bump: 3.2, tint: 0xffffff }
 const RADIUS = 1
 const THICKNESS = 0.15
 const FACE_QUATERNION: Record<CoinTossFace, Quaternion> = {
@@ -41,14 +43,29 @@ const FACE_QUATERNION: Record<CoinTossFace, Quaternion> = {
 
 /** How a toss tumbles: end over end like a real coin, with a light wobble to the sides (radians) that fades as it comes down. */
 const VARIANTS = [
-  { turns: 7, wobble: [0.32, 0.16] },
-  { turns: 6, wobble: [0.4, 0.2] },
-  { turns: 8, wobble: [0.26, 0.12] },
+  { turns: 5, wobble: [0.32, 0.16] },
+  { turns: 4, wobble: [0.4, 0.2] },
+  { turns: 6, wobble: [0.26, 0.12] },
 ] as const
 /** After landing: three bounces, each lower (height as a part of the half height of the screen, and seconds). */
-const BOUNCES = [{ height: 0.17, time: 0.52 }, { height: 0.065, time: 0.3 }, { height: 0.022, time: 0.19 }] as const
-const REST_PAUSE = 0.4
-const RETURN_TIME = 0.8
+/**
+ * After landing the coin bounces, and not always the same way: each pattern is a list of bounces (height as a part of the half
+ * height of the screen) and some of them add `spin` more turns end over end while the coin is in the air, like a coin that gets
+ * one more flip after hitting the floor. All of them end flat on the face that came out.
+ */
+const BOUNCE_PATTERNS = [
+  [{ height: 0.24, spin: 0 }, { height: 0.08, spin: 0 }, { height: 0.025, spin: 0 }],
+  [{ height: 0.3, spin: 1 }, { height: 0.09, spin: 0 }, { height: 0.03, spin: 0 }],
+  [{ height: 0.26, spin: 0 }, { height: 0.13, spin: 1 }, { height: 0.04, spin: 0 }],
+  [{ height: 0.34, spin: 2 }, { height: 0.1, spin: 0 }],
+  [{ height: 0.22, spin: 0 }, { height: 0.06, spin: 0 }],
+  [{ height: 0.28, spin: 1 }, { height: 0.12, spin: 1 }, { height: 0.04, spin: 0 }],
+  [{ height: 0.3, spin: 0 }, { height: 0.05, spin: 0 }],
+] as const
+/** How long a bounce of that height lasts: the same gravity as the flight, a bit faster. */
+const bounceSeconds = (height: number) => 0.2 + 1.35 * Math.sqrt(height)
+const REST_PAUSE = 0.3
+const RETURN_TIME = 0.7
 
 const smoothstep = (edge0: number, edge1: number, value: number) => {
   const x = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)))
@@ -87,6 +104,8 @@ type Throw = {
   from: { y: number; orientation: Quaternion }
   power: number
   variant: number
+  /** One of the bounce patterns. */
+  pattern: number
   /** Unknown until the server answers. Meanwhile the coin tumbles as if it were heads. */
   face: CoinTossFace | null
   /** Seconds into the toss when the face became known (to blend into it without a jump). */
@@ -121,16 +140,19 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   for (const texture of [smash, lob]) { texture.colorSpace = SRGBColorSpace; texture.anisotropy = maxAnisotropy }
   for (const texture of [smashHeight, lobHeight]) texture.anisotropy = maxAnisotropy
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 3))
   renderer.toneMapping = ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.05
+  const look = LOOK
+  renderer.toneMappingExposure = look.exposure
   renderer.outputColorSpace = SRGBColorSpace
 
   const scene = new Scene()
   const pmrem = new PMREMGenerator(renderer)
   const environment = pmrem.fromScene(new RoomEnvironment(), 0.04)
   scene.environment = environment.texture
-  const key = new DirectionalLight(0xfff1d0, 2.2)
+  // How much the room is reflected in the metal (the material setting does not count for the scene environment).
+  scene.environmentIntensity = look.environment
+  const key = new DirectionalLight(0xfff1d0, look.key)
   key.position.set(-3, 4, 5)
   scene.add(key)
 
@@ -148,7 +170,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   back.translate(0, 0, -THICKNESS / 2)
   const reeding = reedingTexture()
   const edgeMaterial = new MeshStandardMaterial({ color: 0xd9ac47, metalness: 1, roughness: 0.36, bumpMap: reeding, bumpScale: 1.6 })
-  const faceMaterial = (map: Texture, height: Texture) => new MeshStandardMaterial({ map, bumpMap: height, bumpScale: 3.2, metalness: 0.8, roughness: 0.4, envMapIntensity: 1.15 })
+  const faceMaterial = (map: Texture, height: Texture) => new MeshStandardMaterial({ map, color: look.tint, bumpMap: height, bumpScale: look.bump, metalness: look.metalness, roughness: look.roughness, envMapIntensity: look.environment })
   const frontMaterial = faceMaterial(smash, smashHeight)
   const backMaterial = faceMaterial(lob, lobHeight)
   const coin = new Group()
@@ -221,11 +243,13 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     const y0 = current.from.y
     const peak = Math.min(0.7 * half, y0 + (0.5 + 0.3 * current.power) * half)
     // Up and down under the same gravity: the way down is longer because it falls from higher than it started.
-    const up = 0.78 + 0.3 * current.power
+    const up = 0.45 + 0.17 * current.power
     const down = up * Math.sqrt(Math.max(0.1, (peak - floor) / Math.max(0.1, peak - y0)))
     const landing = up + down
+    const bounces = BOUNCE_PATTERNS[current.pattern % BOUNCE_PATTERNS.length]
     let y = floor
     let z = 0
+    let extraSpin = 0
     if (seconds < up) {
       const u = seconds / up
       y = y0 + (peak - y0) * (2 * u - u * u)
@@ -234,13 +258,16 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       y = peak - (peak - floor) * v * v
     } else {
       let start = landing
-      for (const bounce of BOUNCES) {
-        if (seconds < start + bounce.time) {
-          const u = (seconds - start) / bounce.time
+      for (const bounce of bounces) {
+        const time = bounceSeconds(bounce.height)
+        if (seconds < start + time) {
+          const u = (seconds - start) / time
           y = floor + bounce.height * half * 4 * u * (1 - u)
+          // A bounce can carry one more flip or two: whole turns, so it ends exactly as it began.
+          extraSpin = bounce.spin * Math.PI * 2 * smoothstep(0, 1, u)
           break
         }
-        start += bounce.time
+        start += time
       }
     }
     // It comes toward the camera as it goes up: it looks bigger.
@@ -248,8 +275,8 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     const after = Math.max(0, seconds - landing)
     const wobble = 0.3 * (seconds < landing ? smoothstep(landing - 0.25, landing, seconds) : Math.exp(-3.6 * after) * Math.cos(15 * after))
     const decay = Math.pow(Math.max(0, 1 - seconds / landing), 1.4)
-    const turns = variant.turns + 3 * current.power
-    const x = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), turns * Math.PI * 2 * decay + wobble)
+    const turns = variant.turns + 2 * current.power
+    const x = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), turns * Math.PI * 2 * decay + wobble + extraSpin)
     const yaw = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.sin(seconds * 9 + current.variant) * variant.wobble[0] * decay + wobble * 0.6)
     const roll = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.sin(seconds * 6.5 + 1.3) * variant.wobble[1] * decay + wobble * 0.35)
     // Until the result is known the coin tumbles as heads; then it blends into the real face while it is spinning fast.
@@ -258,7 +285,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       ? FACE_QUATERNION.heads.clone().slerp(FACE_QUATERNION[face], smoothstep(current.faceKnownAt, current.faceKnownAt + 0.7, seconds))
       : FACE_QUATERNION.heads
     const rotation = x.multiply(yaw).multiply(roll).multiply(target)
-    const resting = landing + BOUNCES.reduce((sum, bounce) => sum + bounce.time, 0)
+    const resting = landing + bounces.reduce((sum, bounce) => sum + bounceSeconds(bounce.height), 0)
     return { rotation, y, z, landing, resting, floor, peak }
   }
 
@@ -334,7 +361,8 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     touched = true
     tossing = {
       start: lastFrame, from: { y, orientation: orientation.clone() }, power, face: null, faceKnownAt: 0,
-      variant: 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % VARIANTS.length), resolve: null, landed: false,
+      variant: 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % VARIANTS.length),
+      pattern: crypto.getRandomValues(new Uint32Array(1))[0] % BOUNCE_PATTERNS.length, resolve: null, landed: false,
     }
   }
   const onDown = (event: PointerEvent) => {
@@ -354,7 +382,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     const now = event.timeStamp
     // The last moments of the swipe: the speed is measured over them, not against the moment the finger lifts.
     pointerTrail.push({ y: event.clientY, t: now })
-    pointerTrail = pointerTrail.filter((point) => now - point.t <= 300)
+    pointerTrail = pointerTrail.filter((point) => now - point.t <= 700)
     if (mode === "throw") {
       // The coin follows the finger upwards.
       fingerLift = Math.min(0.35 * half, Math.max(0, fingerLift - dy * worldPerPixel))

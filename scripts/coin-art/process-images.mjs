@@ -13,7 +13,9 @@ if (!smashSource || !lobSource || !smashHeight || !lobHeight) {
   process.exit(1)
 }
 const outDir = path.resolve(outArg ?? "public/coin")
-const SIZE = 640
+/** The pictures are sharp on a phone screen even when the coin fills half of it (the screen has 2 to 3 pixels per point). */
+const PICTURE_SIZE = 1024
+const HEIGHT_SIZE = 768
 /** Pixels darker than this are the black background around the coin. */
 const BACKGROUND_LEVEL = 38
 /** In the height maps the field of the coin is a mid gray and only the outside is black. */
@@ -44,13 +46,13 @@ async function cutCoin(source) {
   const cropped = await sharp(source).removeAlpha().extract(area).png().toBuffer()
   const cut = await sharp(cropped).ensureAlpha().composite([{ input: circleMask(area.width, area.height), blend: "dest-in" }]).png().toBuffer()
   // The coin is almost round: this makes it exactly round.
-  return sharp(cut).resize(SIZE, SIZE, { fit: "fill" }).webp({ quality: 82, alphaQuality: 90, effort: 6 }).toBuffer()
+  return sharp(cut).resize(PICTURE_SIZE, PICTURE_SIZE, { fit: "fill" }).webp({ quality: 78, alphaQuality: 88, effort: 6 }).toBuffer()
 }
 
 /** The height map of a face, in the same frame as its picture so both match on the coin. */
 async function cutHeight(source) {
   const area = await findCoin(source, HEIGHT_BACKGROUND_LEVEL)
-  return sharp(source).removeAlpha().greyscale().extract(area).resize(SIZE, SIZE, { fit: "fill" }).webp({ quality: 90, effort: 6 }).toBuffer()
+  return sharp(source).removeAlpha().greyscale().extract(area).resize(HEIGHT_SIZE, HEIGHT_SIZE, { fit: "fill" }).webp({ quality: 90, effort: 6 }).toBuffer()
 }
 
 await mkdir(outDir, { recursive: true })
