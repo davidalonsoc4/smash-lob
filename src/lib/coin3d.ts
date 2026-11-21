@@ -68,6 +68,8 @@ const bouncePattern = (): Bounce[] => [
  * height, so every bounce is shorter than the one before but not by much: 1.3 s, 1.0 s, 0.8 s and 0.45 s for the four of them.
  */
 const bounceSeconds = (height: number) => 0.12 + 1.15 * Math.sqrt(height)
+/** The coin lands on a floor this far above the bottom edge of the screen (about the height of the navigation bar), shadow included. */
+const FLOOR_MARGIN_PX = 64
 const REST_PAUSE = 0.3
 const RETURN_TIME = 0.7
 
@@ -189,6 +191,8 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   let half = 4
   let distance = 14
   let worldPerPixel = 0.01
+  /** Pixels at the bottom of the screen that the coin does not use: the floor margin plus the safe area of the phone (the gesture bar). */
+  let bottomMargin = FLOOR_MARGIN_PX
   const resize = () => {
     const { clientWidth: width, clientHeight: height } = canvas
     if (!width || !height) return
@@ -202,6 +206,13 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
     worldPerPixel = (2 * half) / height
+    const probe = document.createElement("div")
+    probe.style.cssText = "position:fixed;bottom:0;left:0;width:0;height:env(safe-area-inset-bottom, 0px);visibility:hidden;pointer-events:none"
+    document.body.appendChild(probe)
+    const safeArea = probe.offsetHeight
+    probe.remove()
+    // On a very low screen (landscape) the margin is a part of it, so the coin still has room.
+    bottomMargin = Math.min(FLOOR_MARGIN_PX + safeArea, 0.14 * height)
   }
   const observer = new ResizeObserver(resize)
   observer.observe(canvas)
@@ -227,7 +238,8 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   /** The time of the last animation frame: everything is measured on the clock of the frames, which is also the one of the pointer events. */
   let lastFrame = 0
 
-  const floorY = () => -0.7 * half
+  /** Where the center of the coin is when it lies on the floor: the bottom of the coin stays `bottomMargin` pixels above the edge. */
+  const floorY = () => -half + bottomMargin * worldPerPixel + RADIUS
   const targetRestY = () => (layout === "top" ? 0.3 : 0.02) * half
 
   /** Coin and shadow at a height. `y` is the height of the center of the coin, `z` how much it comes toward the camera. */
