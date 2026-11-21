@@ -34,11 +34,14 @@ const FACE_QUATERNION: Record<CoinTossFace, Quaternion> = {
   tails: new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI),
 }
 
-/** One toss: how high the coin goes, how it tumbles (turns on each axis) and how long each bounce lasts. */
+/**
+ * One toss: how high the coin goes and how long it flies. As a real coin it flips end over end (`turns` around the horizontal
+ * axis) and only wobbles a little to the sides (`wobble`, in radians, around the other two axes).
+ */
 const VARIANTS = [
-  { turns: [5, 2, 1], flight: 1.5, rise: 1.5 },
-  { turns: [3, 4, 0.5], flight: 1.65, rise: 1.7 },
-  { turns: [6, 1, 2], flight: 1.4, rise: 1.4 },
+  { turns: 6, wobble: [0.32, 0.16], flight: 1.5, rise: 1.5 },
+  { turns: 5, wobble: [0.4, 0.2], flight: 1.65, rise: 1.7 },
+  { turns: 7, wobble: [0.26, 0.12], flight: 1.4, rise: 1.4 },
 ] as const
 const BOUNCES = [{ height: 0.42, time: 0.36 }, { height: 0.15, time: 0.22 }, { height: 0.05, time: 0.14 }] as const
 
@@ -144,6 +147,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   let waiting = false
   let disposed = false
   let dragging = false
+  let released = false
   let lastPointer = { x: 0, y: 0 }
   const spin = { x: 0, y: 0 }
   let tossing: { start: number; from: Quaternion; face: CoinTossFace; variant: number; resolve: () => void; landed: boolean } | null = null
@@ -170,7 +174,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   /** The tumble: on every axis, slowing down until the coin lands, then a small wobble that dies out with each bounce. */
   const tossPose = (seconds: number, current: NonNullable<typeof tossing>) => {
     const variant = VARIANTS[(current.variant - 1) % VARIANTS.length]
-    const { flight, rise, turns } = variant
+    const { flight, rise, turns, wobble: sideWobble } = variant
     const landing = flight
     let lift = 0
     let towardCamera = 0
@@ -192,10 +196,10 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     const after = Math.max(0, seconds - landing)
     const wobble = 0.3 * (seconds < landing ? smoothstep(landing - 0.25, landing, seconds) : Math.exp(-3.6 * after) * Math.cos(15 * after))
     const decay = Math.pow(Math.max(0, 1 - seconds / landing), 1.45)
-    const angle = (turn: number, residual: number) => turn * Math.PI * 2 * decay + residual
-    const x = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), angle(turns[0], wobble))
-    const y = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), angle(turns[1], wobble * 0.6))
-    const z = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), angle(turns[2], wobble * 0.35))
+    // End over end, with a light wobble to the sides that fades as the coin comes down.
+    const x = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), turns * Math.PI * 2 * decay + wobble)
+    const y = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.sin(seconds * 9 + current.variant) * sideWobble[0] * decay + wobble * 0.6)
+    const z = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.sin(seconds * 6.5 + 1.3) * sideWobble[1] * decay + wobble * 0.35)
     const rotation = x.multiply(y).multiply(z).multiply(FACE_QUATERNION[current.face])
     const total = landing + BOUNCES.reduce((sum, bounce) => sum + bounce.time, 0) + 0.25
     return { rotation, lift, towardCamera, total, landing }
@@ -227,6 +231,12 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
         spin.x *= 0.94
         spin.y *= 0.94
       }
+      // After turning it by hand the coin settles on the closest face, with the picture upright, whichever way it was turned.
+      if (released && !dragging) {
+        // The face looking at the camera decides which one it settles on.
+        const target = new Vector3(0, 0, 1).applyQuaternion(orientation).z >= 0 ? FACE_QUATERNION.heads : FACE_QUATERNION.tails
+        orientation.slerp(target, 0.07)
+      }
       place(REST, 0, 0)
     }
     // A slow sway while nobody has touched it, so the relief catches the light and it shows that the coin can be turned.
@@ -241,6 +251,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   const onDown = (event: PointerEvent) => {
     if (!interactive || tossing) return
     dragging = true
+    released = false
     touched = true
     lastPointer = { x: event.clientX, y: event.clientY }
     spin.x = spin.y = 0
@@ -256,6 +267,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     orientation.premultiply(new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), spin.x)).premultiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), spin.y))
   }
   const onUp = (event: PointerEvent) => {
+    if (dragging) released = true
     dragging = false
     if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId)
   }
@@ -270,6 +282,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     toss(face, variant) {
       return new Promise<void>((resolve) => {
         waiting = false
+        released = false
         touched = true
         tossing = { start: performance.now(), from: orientation.clone(), face, variant, resolve, landed: false }
       })
