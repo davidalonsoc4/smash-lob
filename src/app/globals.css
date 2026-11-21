@@ -96,8 +96,8 @@ html .coin-toss-screen .coin-btn-sub { color: #525252 !important; }
 html .coin-toss-screen .coin-close { background: rgb(255 255 255 / 0.14) !important; color: #ffffff !important; border: 0 !important; }
 html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important; color: #fecaca !important; }
 
-/* Where the 3D coin is drawn (a canvas): tall enough for the toss to go up. */
-.coin-stage { position: relative; width: 100%; max-width: 22rem; height: 20rem; }
+/* Where the 3D coin is drawn (a canvas): the whole screen of the toss, so the coin can go up and come down. */
+.coin-stage { position: absolute; inset: 0; }
 
 /* Coin toss: a gold coin with thickness and a reeded edge; its faces are the relief of the smash and the lob (public/coin).
    It spins while the server answers and then lands on the face that came out (three ways to do it), with its shadow on the floor and a shine. */

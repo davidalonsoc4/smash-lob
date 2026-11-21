@@ -1082,6 +1082,18 @@ test.describe("coin toss in the detail of a friendly", () => {
     })
   }
 
+  /** Picks and, with the 3D coin, tosses it with the small button (the swipe has its own test). */
+  async function pickAndToss(dialog: import("@playwright/test").Locator, pick: string) {
+    const stage = dialog.locator("[data-coin-stage]")
+    await expect(stage).toHaveAttribute("data-coin-stage", /ready|fallback/, { timeout: 15000 })
+    const threeD = (await stage.getAttribute("data-coin-stage")) === "ready"
+    await dialog.locator(pick).click()
+    if (threeD) {
+      await expect(dialog.locator("[data-coin-throw-hint]")).toBeVisible()
+      await dialog.locator("[data-coin-throw-button]").click()
+    }
+  }
+
   test("the 3D coin is shown (or the flat one without WebGL) and picking the lob gives the smash to the other team", async ({ page }) => {
     const posts: Array<Record<string, unknown>> = []
     await mockToss(page, item, posts)
@@ -1090,9 +1102,45 @@ test.describe("coin toss in the detail of a friendly", () => {
     const dialog = page.locator("[data-coin-toss-dialog]")
     await expect(dialog.locator("[data-coin-stage]")).toHaveAttribute("data-coin-stage", /ready|fallback/, { timeout: 15000 })
     // The person plays in team 1: picking the lob means that team 2 is the one that calls the smash.
-    await dialog.locator("[data-coin-pick=\"lob\"]").click()
-    await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 15000 })
+    await pickAndToss(dialog, "[data-coin-pick=\"lob\"]")
+    await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 20000 })
     expect(posts).toEqual([{ action: "toss", headsTeam: 2 }])
+  })
+
+  test("tosses the coin with a swipe upwards, and the buttons come back when it has stopped", async ({ page }) => {
+    const posts: Array<Record<string, unknown>> = []
+    await mockToss(page, item, posts)
+    await page.goto("/personal-matches/qa-friendly")
+    await page.locator("[data-coin-start]").click()
+    const dialog = page.locator("[data-coin-toss-dialog]")
+    const stage = dialog.locator("[data-coin-stage]")
+    await expect(stage).toHaveAttribute("data-coin-stage", /ready|fallback/, { timeout: 15000 })
+    test.skip((await stage.getAttribute("data-coin-stage")) !== "ready", "this browser has no WebGL: the flat coin has no swipe")
+    await dialog.locator("[data-coin-pick=\"smash\"]").click()
+    // After the pick the buttons and the texts go away and only the hint (and the small button) stay.
+    await expect(dialog.locator("[data-coin-throw-hint]")).toBeVisible()
+    await expect(dialog.locator("[data-coin-pick]")).toHaveCount(0)
+    expect(posts).toEqual([])
+    // A short slow movement is not a toss, a quick swipe upwards is. The gestures are sent from inside the page, so their speed
+    // does not depend on how fast the test runner talks to the browser.
+    const swipe = (distance: number, pauseMs: number) => dialog.locator("[data-coin-canvas]").evaluate(async (canvas, [travel, pause]) => {
+      const rect = canvas.getBoundingClientRect()
+      const x = rect.left + rect.width / 2
+      const y = rect.top + rect.height * 0.6
+      const send = (type: string, offset: number) => canvas.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: "touch", isPrimary: true, bubbles: true, clientX: x, clientY: y - offset }))
+      send("pointerdown", 0)
+      for (let step = 1; step <= 3; step++) { await new Promise(resolve => setTimeout(resolve, 16)); send("pointermove", (travel * step) / 3) }
+      await new Promise(resolve => setTimeout(resolve, pause))
+      send("pointerup", travel)
+    }, [distance, pauseMs] as const)
+    await swipe(20, 600)
+    await page.waitForTimeout(300)
+    expect(posts).toEqual([])
+    await swipe(300, 0)
+    await expect(dialog.locator("[data-coin-throw-hint]")).toHaveCount(0)
+    await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 20000 })
+    expect(posts).toEqual([{ action: "toss", headsTeam: 1 }])
+    await expect(dialog.getByRole("button", { name: "Elegir", exact: true })).toBeVisible()
   })
 
   test("keeps asking who calls the smash when the person does not play the match", async ({ page }) => {
@@ -1103,8 +1151,8 @@ test.describe("coin toss in the detail of a friendly", () => {
     const dialog = page.locator("[data-coin-toss-dialog]")
     await expect(dialog.getByRole("heading", { name: "¿Quién canta remate?" })).toBeVisible()
     await expect(dialog.locator("[data-coin-pick]")).toHaveCount(0)
-    await dialog.locator("[data-coin-call=\"2\"]").click()
-    await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 15000 })
+    await pickAndToss(dialog, "[data-coin-call=\"2\"]")
+    await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 20000 })
     expect(posts).toEqual([{ action: "toss", headsTeam: 2 }])
   })
 
@@ -1138,8 +1186,8 @@ test.describe("coin toss in the detail of a friendly", () => {
     // The app knows who is holding the phone: it asks what their team picks (team 1: David + Álvaro).
     await expect(dialog).toContainText("David + Álvaro")
     // Team 1 picks the smash (heads); it comes out lob (tails), so team 2 wins.
-    await dialog.locator('[data-coin-pick="smash"]').click()
-    await expect(dialog.locator('[data-coin-result="tails"]')).toBeVisible({ timeout: 15000 })
+    await pickAndToss(dialog, '[data-coin-pick="smash"]')
+    await expect(dialog.locator('[data-coin-result="tails"]')).toBeVisible({ timeout: 20000 })
     await expect(dialog).toContainText("Alain + Unai")
     await dialog.getByRole("button", { name: "Elegir", exact: true }).click()
     await dialog.locator('[data-coin-choice="side"]').click()

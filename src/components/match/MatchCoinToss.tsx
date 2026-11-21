@@ -36,8 +36,8 @@ function Coin({ mode, face, variant, onLanded }: { mode: "rest" | "wait" | "land
 
 type Stage = "loading" | "ready" | "fallback"
 
-/** Where the coin is: the 3D coin on a canvas (drawn on demand), or the flat one when the device cannot do WebGL. */
-function CoinStage({ sceneRef, stage, onStage, initialFace, face, mode, variant, interactive, waiting, onLanded }: {
+/** The whole screen is the stage: the 3D coin on a canvas (drawn on demand), or the flat coin when the device cannot do WebGL. */
+function CoinStage({ sceneRef, stage, onStage, initialFace, face, mode, variant, onLanded }: {
   sceneRef: MutableRefObject<CoinScene | null>
   stage: Stage
   onStage: (stage: Stage) => void
@@ -45,8 +45,6 @@ function CoinStage({ sceneRef, stage, onStage, initialFace, face, mode, variant,
   face: CoinTossFace
   mode: "rest" | "wait" | "land"
   variant: number
-  interactive: boolean
-  waiting: boolean
   onLanded: () => void
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -74,31 +72,28 @@ function CoinStage({ sceneRef, stage, onStage, initialFace, face, mode, variant,
     // The scene is made once per screen.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  useEffect(() => {
-    if (stage !== "ready") return
-    sceneRef.current?.setInteractive(interactive)
-    sceneRef.current?.setWaiting(waiting)
-  }, [stage, interactive, waiting, sceneRef])
-  useEffect(() => {
-    if (stage === "ready" && mode === "rest") sceneRef.current?.setFace(face)
-  }, [stage, mode, face, sceneRef])
   return (
     <div className="coin-stage" data-coin-stage={stage}>
       <canvas ref={canvasRef} data-coin-canvas className={stage === "fallback" ? "hidden" : "absolute inset-0 h-full w-full"} />
-      {stage === "fallback" ? <div className="flex h-full items-center justify-center"><Coin mode={mode} face={face} variant={variant} onLanded={onLanded} /></div> : null}
+      {stage === "fallback" ? <div className="absolute inset-x-0 top-[14%] flex justify-center"><Coin mode={mode} face={face} variant={variant} onLanded={onLanded} /></div> : null}
     </div>
   )
 }
 
-type Phase = "call" | "flipping" | "result" | "winner" | "other" | "done"
+/** call: who picks what; throw: the coin waits to be tossed; flipping: it is in the air; then what the winner picks. */
+type Phase = "call" | "throw" | "flipping" | "result" | "winner" | "other" | "done"
 const phaseFor = (toss: CoinToss | null): Phase => {
   if (!toss) return "call"
   const step = pendingCoinTossStep(toss)
   return step === "winner" ? "winner" : step === "other" ? "other" : "done"
 }
 const bigButton = "coin-btn flex min-h-14 w-full flex-col items-center justify-center rounded-2xl px-4 py-3 text-center text-base font-black active:scale-[0.98] disabled:opacity-50"
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
-/** Full screen, for the court: who calls heads, the toss, and what the winning team picks (the other team picks what is left). */
+/**
+ * Full screen, for the court: what each team picks (remate or globo), the toss (a swipe upwards: the coin goes up to the top of
+ * the screen and falls to the bottom), and what the winning team picks (the other team picks what is left).
+ */
 function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat, onChange, onClose }: {
   kind: CoinTossKind
   matchId: string
@@ -120,6 +115,8 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const sceneRef = useRef<CoinScene | null>(null)
   const [stage, setStage] = useState<Stage>("loading")
   const [startFace] = useState<CoinTossFace>(initialToss?.result ?? "heads")
+  /** The team that called the smash, once the pick is made and the coin waits to be tossed. */
+  const [headsTeam, setHeadsTeam] = useState<CoinTossTeam | null>(null)
 
   useEffect(() => {
     closeRef.current?.focus({ preventScroll: true })
@@ -132,31 +129,68 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     navigator.vibrate?.(40)
     setPhase("result")
   }, [])
-  // If the browser never reports the end of the animation, the result still comes out.
+  // The flat coin: if the browser never reports the end of its animation, the result still comes out.
   useEffect(() => {
     if (landing === null || phase !== "flipping") return
     const timer = window.setTimeout(landed, 3800)
     return () => window.clearTimeout(timer)
   }, [landing, phase, landed])
 
-  async function call(headsTeam: CoinTossTeam) {
+  /** The toss through the server, for the flat coin and for people who prefer less motion. */
+  async function call(team: CoinTossTeam) {
     if (busy) return
     setBusy(true); setError(null); setLanding(null); setPhase("flipping")
-    const result = await tossCoinRequest(kind, matchId, headsTeam)
+    const result = await tossCoinRequest(kind, matchId, team)
     setBusy(false)
     if (!result.ok) { setError(result.error); setPhase("call"); return }
     const next = result.state.coinToss!
     setToss(next); onChange(next)
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reducedMotion()) {
       sceneRef.current?.setFace(next.result)
       setPhase("result")
       return
     }
-    const variant = 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 3)
-    setLanding(variant)
-    // The 3D coin tells when it has stopped; the flat one does it through its animation.
-    void sceneRef.current?.toss(next.result, variant).then(landed)
+    setLanding(1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 3))
   }
+
+  /** The 3D coin: the pick is made, now it is tossed with a swipe (or the small button). */
+  function pick(team: CoinTossTeam) {
+    if (busy) return
+    if (stage === "ready" && !reducedMotion()) {
+      setError(null)
+      setHeadsTeam(team)
+      setPhase("throw")
+    } else void call(team)
+  }
+
+  /** The coin is in the air (the swipe started it, or the button does it now) and the server decides at the same time. */
+  async function launch(power: number, startedByGesture: boolean) {
+    if (!headsTeam || busy) return
+    const scene = sceneRef.current
+    if (!scene) return
+    if (!startedByGesture) scene.launch(power)
+    setBusy(true); setError(null); setPhase("flipping")
+    const result = await tossCoinRequest(kind, matchId, headsTeam)
+    setBusy(false)
+    if (!result.ok) { scene.cancel(); setError(result.error); setPhase("throw"); return }
+    const next = result.state.coinToss!
+    setToss(next); onChange(next)
+    await scene.land(next.result)
+    setPhase("result")
+  }
+  const launchRef = useRef(launch)
+  useEffect(() => { launchRef.current = launch })
+
+  // What the finger does on the coin, and where the coin waits, depend on the step.
+  useEffect(() => {
+    if (stage !== "ready") return
+    const scene = sceneRef.current
+    if (!scene) return
+    scene.setLayout(phase === "throw" || phase === "flipping" ? "center" : "top")
+    if (phase === "call") scene.setMode("turn")
+    else if (phase === "throw") scene.setMode("throw", (power) => void launchRef.current(power, true))
+    else scene.setMode("off")
+  }, [stage, phase])
 
   async function choose(choice: CoinTossChoice) {
     if (busy) return
@@ -171,43 +205,44 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const winner = toss?.winnerTeam
   const coinFace: CoinTossFace = toss?.result ?? "heads"
   const coinMode = phase === "flipping" ? (landing === null ? "wait" : "land") : phase === "result" && landing !== null ? "land" : "rest"
+  const inTheAir = phase === "throw" || phase === "flipping"
 
   // In the body, not inside the card: a card with its own stacking or transform would stop it from covering the screen.
   if (typeof document === "undefined") return null
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label={tx("Sorteo del saque")} data-coin-toss-dialog
-      className="coin-toss-screen fixed inset-0 z-[200] flex flex-col items-center justify-between overflow-y-auto px-5 pb-8 pt-4">
-      <div className="flex w-full max-w-md justify-end">
-        <button ref={closeRef} type="button" onClick={onClose} className="coin-close inline-flex min-h-10 items-center justify-center rounded-full px-4 text-center text-sm font-bold">{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
-      </div>
+    <div role="dialog" aria-modal="true" aria-label={tx("Sorteo del saque")} data-coin-toss-dialog className="coin-toss-screen fixed inset-0 z-[200] overflow-hidden">
+      <CoinStage sceneRef={sceneRef} stage={stage} onStage={setStage} initialFace={startFace} face={coinFace} mode={coinMode} variant={landing ?? 1} onLanded={landed} />
 
-      <div className="flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 py-4">
-        <CoinStage sceneRef={sceneRef} stage={stage} onStage={setStage} initialFace={startFace} face={coinFace} mode={coinMode} variant={landing ?? 1}
-          interactive={phase === "call"} waiting={phase === "flipping" && landing === null} onLanded={landed} />
-        {stage === "ready" && phase === "call" ? <p className="-mt-3 text-xs font-semibold coin-dim">{tx("Arrastra la moneda para girarla")}</p> : null}
+      <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-between px-5 pb-8 pt-4">
+        <div className="pointer-events-auto flex w-full max-w-md justify-end">
+          <button ref={closeRef} type="button" onClick={onClose} className="coin-close inline-flex min-h-10 items-center justify-center rounded-full px-4 text-center text-sm font-bold">{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
+        </div>
 
-        <div className="w-full space-y-3 text-center" aria-live="polite">
+        <div className={`w-full max-w-md space-y-3 text-center ${inTheAir ? "pointer-events-none" : "pointer-events-auto"}`} aria-live="polite">
+          {stage === "ready" && phase === "call" ? <p className="text-xs font-semibold coin-dim">{tx("Arrastra la moneda para girarla")}</p> : null}
+
           {phase === "call" && myTeam ? <>
             <h2 className="text-2xl font-black">{tx("¿Qué elige tu equipo?")}</h2>
             <p className="text-sm font-semibold coin-muted">{teamName(teamNames, myTeam)}</p>
             <div className="grid grid-cols-2 gap-3">
-              <button type="button" data-coin-pick="smash" disabled={busy} onClick={() => void call(myTeam)} className={bigButton}>{tx("Remate")}</button>
-              <button type="button" data-coin-pick="lob" disabled={busy} onClick={() => void call(otherCoinTossTeam(myTeam))} className={bigButton}>{tx("Globo")}</button>
+              <button type="button" data-coin-pick="smash" disabled={busy} onClick={() => pick(myTeam)} className={bigButton}>{tx("Remate")}</button>
+              <button type="button" data-coin-pick="lob" disabled={busy} onClick={() => pick(otherCoinTossTeam(myTeam))} className={bigButton}>{tx("Globo")}</button>
             </div>
           </> : null}
 
           {phase === "call" && !myTeam ? <>
             <h2 className="text-2xl font-black">{tx("¿Quién canta remate?")}</h2>
             <p className="text-sm font-semibold coin-muted">{tx("Poneos de acuerdo y elegid. La moneda decide quién elige.")}</p>
-            {([1, 2] as CoinTossTeam[]).map((headsTeam) => (
-              <button key={headsTeam} type="button" data-coin-call={headsTeam} disabled={busy} onClick={() => void call(headsTeam)} className={bigButton}>
-                <span>{tx("Remate")}: {teamName(teamNames, headsTeam)}</span>
-                <span className="text-sm font-bold coin-btn-sub">{tx("Globo")}: {teamName(teamNames, otherCoinTossTeam(headsTeam))}</span>
+            {([1, 2] as CoinTossTeam[]).map((team) => (
+              <button key={team} type="button" data-coin-call={team} disabled={busy} onClick={() => pick(team)} className={bigButton}>
+                <span>{tx("Remate")}: {teamName(teamNames, team)}</span>
+                <span className="text-sm font-bold coin-btn-sub">{tx("Globo")}: {teamName(teamNames, otherCoinTossTeam(team))}</span>
               </button>
             ))}
           </> : null}
 
-          {phase === "flipping" ? <p className="text-xl font-black">{tx("Lanzando…")}</p> : null}
+          {phase === "throw" ? <p data-coin-throw-hint className="text-xl font-black">{tx("Lanza la moneda deslizando hacia arriba")}</p> : null}
+          {phase === "flipping" && stage !== "ready" ? <p className="text-xl font-black">{tx("Lanzando…")}</p> : null}
 
           {phase === "result" && toss ? <>
             <h2 data-coin-result={toss.result} className="text-4xl font-black uppercase tracking-wide">{tx(toss.result === "heads" ? "Remate" : "Globo")}</h2>
@@ -247,6 +282,12 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
           </p> : null}
         </div>
       </div>
+
+      {/* For whoever cannot swipe (keyboard, assistive technology) or when the swipe does not register. */}
+      {phase === "throw" ? (
+        <button type="button" data-coin-throw-button onClick={() => void launch(0.6, false)}
+          className="coin-close absolute bottom-4 right-4 z-20 inline-flex min-h-9 items-center justify-center rounded-full px-3 text-center text-xs font-bold">{tx("Lanzar")}</button>
+      ) : null}
     </div>,
     document.body,
   )
