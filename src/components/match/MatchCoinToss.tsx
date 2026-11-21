@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react"
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type MutableRefObject } from "react"
 import { createPortal } from "react-dom"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
-import type { CoinScene } from "@/lib/coin3d"
+import type { CoinScene, ScreenCircle } from "@/lib/coin3d"
 import {
-  COIN_TOSS_TIME_WINDOW_ENABLED, faceCalledByTeam, getCoinTossWindow, otherCoinTossTeam, pendingCoinTossStep,
+  COIN_TOSS_TIME_WINDOW_ENABLED, getCoinTossWindow, otherCoinTossTeam, pendingCoinTossStep,
   type CoinToss, type CoinTossChoice, type CoinTossFace, type CoinTossTeam,
 } from "@/lib/matchCoinToss"
 import { chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFailure, type CoinTossKind } from "@/lib/matchCoinTossClient"
@@ -13,21 +13,56 @@ import { chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFai
 type TeamNames = [string, string]
 const teamName = (names: TeamNames, team: CoinTossTeam) => names[team - 1]
 
+/** The three parts of the coin as flat layers (CSS): edge with thickness and the two faces. */
+function CoinLayers() {
+  return (
+    <>
+      {Array.from({ length: 13 }, (_, index) => <div key={index} className="coin-edge" style={{ transform: `translateZ(${index - 6}px)` }} />)}
+      <div className="coin-face coin-face-smash" />
+      <div className="coin-face coin-tails coin-face-lob" />
+    </>
+  )
+}
+
 /**
- * The flat coin (CSS): only for devices without WebGL. The 3D coin (src/lib/coin3d.ts) is the normal one.
- * The coin: gold, with real thickness and a reeded edge. One face is the smash (heads) and the other the lob (tails), both in relief
- * (images made by scripts/coin-art/build.mjs). While it waits for the server it spins; then it lands on the face that came out.
+ * The flat coin (CSS): only for devices without WebGL, in the full screen of the toss. The 3D coin (src/lib/coin3d.ts) is the
+ * normal one. One face is the smash (heads) and the other the lob (tails), both in relief (images made by scripts/coin-art).
+ * While it waits for the server it spins; then it lands on the face that came out.
  */
 function Coin({ mode, face, variant, onLanded }: { mode: "rest" | "wait" | "land"; face: CoinTossFace; variant: number; onLanded?: () => void }) {
   return (
     <div className="coin-scene" aria-hidden="true">
       <div className={`coin-shadow ${mode === "land" ? `coin-shadow-${variant}` : ""}`} />
       <div className={`coin-arc ${mode === "land" ? `coin-arc-${variant} is-landing` : ""}`}>
-        <div data-coin-mode={mode} onAnimationEnd={onLanded} style={{ "--coin-face": face === "heads" ? "0deg" : "180deg" } as React.CSSProperties}
+        <div data-coin-mode={mode} onAnimationEnd={onLanded} style={{ "--coin-face": face === "heads" ? "0deg" : "180deg" } as CSSProperties}
           className={`coin ${mode === "wait" ? "coin-waiting" : ""} ${mode === "land" ? `coin-landing-${variant}` : ""}`}>
-          {Array.from({ length: 13 }, (_, index) => <div key={index} className="coin-edge" style={{ transform: `translateZ(${index - 6}px)` }} />)}
-          <div className="coin-face coin-face-smash" />
-          <div className="coin-face coin-tails coin-face-lob" />
+          <CoinLayers />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The small coin of the panel (CSS, very light): before the toss it turns slowly on its vertical axis like a preview, and after it
+ * rests on the face that came out. It stops turning while it is off the screen.
+ */
+function MiniCoin({ face, spinning }: { face: CoinTossFace; spinning: boolean }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [onScreen, setOnScreen] = useState(true)
+  useEffect(() => {
+    const element = ref.current
+    if (!element || typeof IntersectionObserver === "undefined") return
+    const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return (
+    <div ref={ref} aria-hidden="true" data-coin-mini={spinning ? "spinning" : face} className={`coin-mini ${spinning ? "coin-mini-spinning" : ""}`}
+      style={{ "--coin-face": face === "heads" ? "0deg" : "180deg" } as CSSProperties}>
+      <div className="coin-scene">
+        <div className="coin-arc">
+          <div className="coin" style={{ animationPlayState: onScreen ? "running" : "paused" }}><CoinLayers /></div>
         </div>
       </div>
     </div>
@@ -37,11 +72,13 @@ function Coin({ mode, face, variant, onLanded }: { mode: "rest" | "wait" | "land
 type Stage = "loading" | "ready" | "fallback"
 
 /** The whole screen is the stage: the 3D coin on a canvas (drawn on demand), or the flat coin when the device cannot do WebGL. */
-function CoinStage({ sceneRef, stage, onStage, initialFace, face, mode, variant, onLanded }: {
+function CoinStage({ sceneRef, stage, onStage, initialFace, appearFrom, face, mode, variant, onLanded }: {
   sceneRef: MutableRefObject<CoinScene | null>
   stage: Stage
   onStage: (stage: Stage) => void
   initialFace: CoinTossFace
+  /** Where the small coin of the panel is: the big one starts there and moves to its place. */
+  appearFrom: ScreenCircle | null
   face: CoinTossFace
   mode: "rest" | "wait" | "land"
   variant: number
@@ -61,6 +98,7 @@ function CoinStage({ sceneRef, stage, onStage, initialFace, face, mode, variant,
         created = scene
         sceneRef.current = scene
         scene.setFace(initialFace)
+        if (appearFrom) scene.appear(appearFrom)
         onStage("ready")
       })
       .catch(() => { if (active) onStage("fallback") })
@@ -88,13 +126,25 @@ const phaseFor = (toss: CoinToss | null): Phase => {
   return step === "winner" ? "winner" : step === "other" ? "other" : "done"
 }
 const bigButton = "coin-btn flex min-h-14 w-full flex-col items-center justify-center rounded-2xl px-4 py-3 text-center text-base font-black active:scale-[0.98] disabled:opacity-50"
+const smallButton = "coin-close inline-flex min-h-9 items-center justify-center rounded-full px-4 text-center text-sm font-bold"
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+/** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */
+type Origin = { card: DOMRect | null; coin: DOMRect | null }
+const circleOf = (rect: DOMRect | null): ScreenCircle | null => (rect && rect.width > 0 ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, size: Math.min(rect.width, rect.height) } : null)
+const isInView = (rect: DOMRect | null) => Boolean(rect && rect.width > 0 && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth)
+const clipOf = (rect: DOMRect) => `inset(${Math.max(0, rect.top)}px ${Math.max(0, window.innerWidth - rect.right)}px ${Math.max(0, window.innerHeight - rect.bottom)}px ${Math.max(0, rect.left)}px round 12px)`
+const FULL_CLIP = "inset(0px round 0px)"
+/** After the last choice the result stays on the full screen this long, and then it closes into the panel. */
+const RESULT_HOLD_MS = 2000
+const CLOSE_MS = 560
 
 /**
  * Full screen, for the court: what each team picks (remate or globo), the toss (a swipe upwards: the coin goes up to the top of
- * the screen and falls to the bottom), and what the winning team picks (the other team picks what is left).
+ * the screen and falls to the bottom), and what the winning team picks (the other team picks what is left). It opens from the
+ * small coin of the panel and, two seconds after the last choice, closes back into it.
  */
-function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat, onChange, onClose }: {
+function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat, canRepeat, origin, getOrigin, onChange, onClose }: {
   kind: CoinTossKind
   matchId: string
   teamNames: TeamNames
@@ -102,6 +152,10 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   myTeam: CoinTossTeam | null
   initialToss: CoinToss | null
   repeat: boolean
+  /** The toss can be done again (while the feature is being tested). */
+  canRepeat: boolean
+  origin: Origin
+  getOrigin: () => Origin
   onChange: (toss: CoinToss) => void
   onClose: () => void
 }) {
@@ -117,13 +171,55 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const [startFace] = useState<CoinTossFace>(initialToss?.result ?? "heads")
   /** The team that called the smash, once the pick is made and the coin waits to be tossed. */
   const [headsTeam, setHeadsTeam] = useState<CoinTossTeam | null>(null)
+  // Opening and closing: the screen grows from the panel and shrinks back into it.
+  const [opensFromPanel] = useState(() => !reducedMotion() && isInView(origin.card))
+  const [anim, setAnim] = useState<"enter" | "open" | "leave" | "fade">(opensFromPanel ? "enter" : "open")
+  const [leaveRect, setLeaveRect] = useState<DOMRect | null>(null)
+  const closing = useRef(false)
+  const closeTimer = useRef<number | null>(null)
+  /** The flow was finished here (not reopened from the panel): then it closes by itself. */
+  const autoClose = useRef(false)
+
+  useEffect(() => {
+    if (anim !== "enter") return
+    // One frame with the screen as small as the panel, so the transition has a starting point.
+    let second = 0
+    const first = requestAnimationFrame(() => { second = requestAnimationFrame(() => setAnim("open")) })
+    return () => { cancelAnimationFrame(first); cancelAnimationFrame(second) }
+  }, [anim])
+  useEffect(() => () => { if (closeTimer.current) window.clearTimeout(closeTimer.current) }, [])
+
+  const requestClose = useCallback(() => {
+    if (closing.current) return
+    closing.current = true
+    const fresh = getOrigin()
+    if (!reducedMotion() && isInView(fresh.card)) {
+      setLeaveRect(fresh.card)
+      setAnim("leave")
+      const circle = circleOf(fresh.coin)
+      if (circle) void sceneRef.current?.dismiss(circle)
+      closeTimer.current = window.setTimeout(onClose, CLOSE_MS)
+    } else {
+      setAnim("fade")
+      closeTimer.current = window.setTimeout(onClose, 200)
+    }
+  }, [getOrigin, onClose])
+  const requestCloseRef = useRef(requestClose)
+  useEffect(() => { requestCloseRef.current = requestClose })
 
   useEffect(() => {
     closeRef.current?.focus({ preventScroll: true })
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onClose() }
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") requestCloseRef.current() }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
+  }, [])
+
+  // Two seconds with the result in sight, and it closes.
+  useEffect(() => {
+    if (phase !== "done" || !autoClose.current) return
+    const timer = window.setTimeout(() => requestCloseRef.current(), RESULT_HOLD_MS)
+    return () => window.clearTimeout(timer)
+  }, [phase])
 
   const landed = useCallback(() => {
     navigator.vibrate?.(40)
@@ -198,24 +294,41 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     const result = await chooseCoinTossRequest(kind, matchId, choice)
     setBusy(false)
     if (!result.ok) { setError(result.error); return }
-    setToss(result.state.coinToss!); onChange(result.state.coinToss!)
-    setPhase(phaseFor(result.state.coinToss))
+    const next = result.state.coinToss!
+    setToss(next); onChange(next)
+    // Everything is chosen: the result stays in sight for a moment and the screen closes into the panel.
+    if (!pendingCoinTossStep(next)) autoClose.current = true
+    setPhase(phaseFor(next))
+  }
+
+  /** Start again (for as long as the toss is being tested). */
+  function repeatNow() {
+    autoClose.current = false
+    setHeadsTeam(null)
+    setError(null)
+    setPhase("call")
   }
 
   const winner = toss?.winnerTeam
   const coinFace: CoinTossFace = toss?.result ?? "heads"
   const coinMode = phase === "flipping" ? (landing === null ? "wait" : "land") : phase === "result" && landing !== null ? "land" : "rest"
   const inTheAir = phase === "throw" || phase === "flipping"
+  const open = anim === "open"
 
   // In the body, not inside the card: a card with its own stacking or transform would stop it from covering the screen.
   if (typeof document === "undefined") return null
+  const clip = open || anim === "fade" ? FULL_CLIP : clipOf((anim === "leave" ? leaveRect : origin.card) ?? new DOMRect(0, 0, window.innerWidth, window.innerHeight))
+  const motion = reducedMotion() ? "none" : anim === "fade" ? "opacity 180ms ease" : "clip-path 520ms cubic-bezier(0.25, 0.8, 0.25, 1), opacity 220ms ease 320ms"
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label={tx("Sorteo del saque")} data-coin-toss-dialog className="coin-toss-screen fixed inset-0 z-[200] overflow-hidden">
-      <CoinStage sceneRef={sceneRef} stage={stage} onStage={setStage} initialFace={startFace} face={coinFace} mode={coinMode} variant={landing ?? 1} onLanded={landed} />
+    <div role="dialog" aria-modal="true" aria-label={tx("Sorteo del saque")} data-coin-toss-dialog data-coin-anim={anim} className="coin-toss-screen fixed inset-0 z-[200] overflow-hidden"
+      style={{ clipPath: clip, opacity: anim === "leave" || anim === "fade" ? 0 : 1, transition: motion }}>
+      <CoinStage sceneRef={sceneRef} stage={stage} onStage={setStage} initialFace={startFace} appearFrom={opensFromPanel ? circleOf(origin.coin) : null}
+        face={coinFace} mode={coinMode} variant={landing ?? 1} onLanded={landed} />
 
-      <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-between px-5 pb-8 pt-4">
+      <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-between px-5 pb-8 pt-4"
+        style={{ opacity: open ? 1 : 0, transition: reducedMotion() ? "none" : open ? "opacity 300ms ease 220ms" : "opacity 160ms ease" }}>
         <div className="pointer-events-auto flex w-full max-w-md justify-end">
-          <button ref={closeRef} type="button" onClick={onClose} className="coin-close inline-flex min-h-10 items-center justify-center rounded-full px-4 text-center text-sm font-bold">{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
+          <button ref={closeRef} type="button" onClick={requestClose} className={smallButton}>{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
         </div>
 
         <div className={`w-full max-w-md space-y-3 text-center ${inTheAir ? "pointer-events-none" : "pointer-events-auto"}`} aria-live="polite">
@@ -275,6 +388,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
             <p className="text-base font-bold coin-muted">
               {teamName(teamNames, toss.winnerChoice === "side" ? winner : otherCoinTossTeam(winner))} {tx("elige el lado")}
             </p>
+            {canRepeat ? <button type="button" data-coin-repeat onClick={repeatNow} className={smallButton}>{tx("Repetir sorteo")}</button> : null}
           </> : null}
 
           {error ? <p role="alert" className="coin-error rounded-xl px-3 py-2 text-sm font-bold">
@@ -293,9 +407,16 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   )
 }
 
+/** First names of a team, for the panel ("Alain y David"), and whether the team has more than one player. */
+function shortTeam(names: TeamNames, team: CoinTossTeam, and: string) {
+  const firstNames = teamName(names, team).split(" + ").map((name) => name.trim().split(/\s+/)[0]).filter(Boolean)
+  return { text: firstNames.join(` ${and} `), plural: firstNames.length > 1 }
+}
+
 /**
- * The coin toss in the detail of a match (league or friendly): a button that opens the full screen, and the summary of
- * what came out. Available from 30 minutes before the booked time, so it is done at the court and not at home.
+ * The coin toss in the detail of a match (league or friendly): before the toss, a short text and the small coin turning slowly;
+ * after it, what each team chose and the coin resting on the face that came out. Pressing it opens the full screen (and, while it
+ * is being tested, lets the toss be done again). Available from 30 minutes before the booked time when that rule is on.
  */
 export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTeam = null, canToss, matchOpen }: {
   kind: CoinTossKind
@@ -312,8 +433,10 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
   const { tx, locale } = useI18n()
   const [toss, setToss] = useState<CoinToss | null>(null)
   const [visible, setVisible] = useState(false)
-  const [dialog, setDialog] = useState<{ repeat: boolean } | null>(null)
+  const [dialog, setDialog] = useState<{ repeat: boolean; origin: Origin } | null>(null)
   const [now, setNow] = useState(() => Date.now())
+  const cardRef = useRef<HTMLDivElement>(null)
+  const coinRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     let active = true
@@ -339,6 +462,13 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
     void import("@/lib/coin3d")
   }, [canPreload])
 
+  /** Where the panel and its coin are right now. */
+  const measure = useCallback((): Origin => ({
+    card: cardRef.current?.getBoundingClientRect() ?? null,
+    coin: coinRef.current?.getBoundingClientRect() ?? null,
+  }), [])
+  const closeDialog = useCallback(() => setDialog(null), [])
+
   const tossWindow = getCoinTossWindow({ scheduledAt, now, requireTime: kind === "league", enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
   const canStart = canToss && matchOpen && tossWindow.state === "open"
   if (!visible) return null
@@ -348,23 +478,53 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
   const opensAt = tossWindow.opensAt
     ? new Intl.DateTimeFormat(getIntlLocale(locale), { hour: "2-digit", minute: "2-digit" }).format(new Date(tossWindow.opensAt))
     : null
+  const openDialog = (repeat: boolean) => setDialog({ repeat, origin: measure() })
+
+  // What each team chose, in short: the choice of the team that won the coin in big, what is left for the other team below.
+  const and = tx("y")
+  const winnerTeam = toss ? shortTeam(teamNames, toss.winnerTeam, and) : null
+  const otherTeam = toss ? shortTeam(teamNames, otherCoinTossTeam(toss.winnerTeam), and) : null
+  const choiceText = (choice: CoinTossChoice | "serve" | "return") => tx(choice === "serve" ? "sacar" : choice === "return" ? "restar" : "el lado")
+  let main = ""
+  let detail = ""
+  if (toss && winnerTeam && otherTeam) {
+    if (!toss.winnerChoice) {
+      main = `${tx("Gana")} ${winnerTeam.text}`
+      detail = tx(winnerTeam.plural ? "tienen que elegir" : "tiene que elegir")
+    } else {
+      main = `${winnerTeam.text} ${tx(winnerTeam.plural ? "eligieron" : "eligió")} ${choiceText(toss.winnerChoice)}`
+      detail = toss.winnerChoice !== "side"
+        ? `${otherTeam.text} ${tx(otherTeam.plural ? "eligen" : "elige")} ${tx("el lado")}`
+        : toss.otherChoice
+          ? `${otherTeam.text} ${tx(otherTeam.plural ? "eligieron" : "eligió")} ${choiceText(toss.otherChoice)}`
+          : `${otherTeam.text} ${tx(otherTeam.plural ? "tienen que elegir" : "tiene que elegir")} ${tx("sacar o restar")}`
+    }
+  }
+  const canOpen = canToss && matchOpen && (canStart || Boolean(toss))
 
   return (
-    <AppCard data-coin-toss-panel>
-      <p className="type-panel-title">{tx("Sorteo del saque")}</p>
-      {toss ? <div className="mt-1 space-y-0.5 text-sm font-semibold text-neutral-700">
-        <p>🪙 {tx(toss.result === "heads" ? "Remate" : "Globo")} · {tx("Gana")} <span className="font-black text-neutral-950">{teamName(teamNames, toss.winnerTeam)}</span> ({tx(faceCalledByTeam(toss.calledHeadsTeam, toss.winnerTeam) === "heads" ? "remate" : "globo")})</p>
-        {toss.servingTeam ? <p data-coin-summary-serving>{tx("Saca primero")}: <span className="font-black text-neutral-950">{teamName(teamNames, toss.servingTeam)}</span></p> : null}
-        {step === "other" ? <p>{teamName(teamNames, otherCoinTossTeam(toss.winnerTeam))} {tx("tiene que elegir sacar o restar")}</p> : null}
-        {step === "winner" ? <p>{teamName(teamNames, toss.winnerTeam)} {tx("tiene que elegir")}</p> : null}
-        {toss.servingTeam ? <p>{teamName(teamNames, toss.winnerChoice === "side" ? toss.winnerTeam : otherCoinTossTeam(toss.winnerTeam))} {tx("elige el lado")}</p> : null}
-      </div> : <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
-        {canStart ? tx("Para decidir en la pista quién empieza sacando.") : `${tx("La moneda se activa a las")} ${opensAt ?? ""} · ${tx("30 minutos antes del partido")}`}
-      </p>}
-      {canStart && !toss ? <button type="button" data-coin-start onClick={() => setDialog({ repeat: false })} className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white">🪙 {tx("Tirar la moneda")}</button> : null}
-      {toss && canToss && matchOpen && step ? <button type="button" data-coin-continue onClick={() => setDialog({ repeat: false })} className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white">{tx("Continuar")}</button> : null}
-      {toss && canStart ? <button type="button" data-coin-repeat onClick={() => setDialog({ repeat: true })} className="mt-2 inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-neutral-100 px-3 text-center text-xs font-black text-neutral-700">{tx("Repetir sorteo")}</button> : null}
-      {dialog ? <CoinTossDialog kind={kind} matchId={matchId} teamNames={teamNames} myTeam={myTeam} initialToss={toss} repeat={dialog.repeat} onChange={setToss} onClose={() => setDialog(null)} /> : null}
-    </AppCard>
+    <div ref={cardRef}>
+      <AppCard data-coin-toss-panel>
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="type-panel-title">{tx("Sorteo del saque")}</p>
+            {toss ? <div className="mt-1">
+              <p data-coin-panel-main className="text-sm font-black leading-snug text-neutral-950">{main}</p>
+              <p data-coin-panel-detail className="mt-0.5 text-xs font-semibold leading-snug text-neutral-600">{detail}</p>
+            </div> : <p className="mt-1 text-sm font-bold leading-snug text-neutral-800">
+              {canStart ? tx("Tira la moneda para empezar el partido") : `${tx("La moneda se activa a las")} ${opensAt ?? ""} · ${tx("30 minutos antes del partido")}`}
+            </p>}
+            {canStart && !toss ? <button type="button" data-coin-start onClick={() => openDialog(false)} className="mt-2 inline-flex min-h-10 items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white">{tx("Tirar la moneda")}</button> : null}
+            {toss && canToss && matchOpen && step ? <button type="button" data-coin-continue onClick={() => openDialog(false)} className="mt-2 inline-flex min-h-10 items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white">{tx("Continuar")}</button> : null}
+          </div>
+          <button ref={coinRef} type="button" data-coin-open disabled={!canOpen} onClick={() => openDialog(false)} aria-label={tx("Sorteo del saque")}
+            className="shrink-0 rounded-full disabled:cursor-default" style={{ visibility: dialog ? "hidden" : "visible" }}>
+            <MiniCoin face={toss?.result ?? "heads"} spinning={!toss} />
+          </button>
+        </div>
+      </AppCard>
+      {dialog ? <CoinTossDialog kind={kind} matchId={matchId} teamNames={teamNames} myTeam={myTeam} initialToss={toss} repeat={dialog.repeat} canRepeat={canStart}
+        origin={dialog.origin} getOrigin={measure} onChange={setToss} onClose={closeDialog} /> : null}
+    </div>
   )
 }

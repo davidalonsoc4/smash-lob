@@ -1068,6 +1068,8 @@ test.describe("coin toss in the detail of a friendly", () => {
     await page.route("**/api/personal-matches/qa-friendly/coin-toss", route => route.fulfill({ json: { coinToss: null, window: { state: "open", opensAt: null } } }))
     await page.goto("/personal-matches/qa-friendly")
     await expect(page.locator("[data-coin-toss-panel] [data-coin-start]")).toBeVisible()
+    await expect(page.locator("[data-coin-toss-panel]")).toContainText("Tira la moneda para empezar el partido")
+    await expect(page.locator("[data-coin-mini=\"spinning\"]")).toBeVisible()
   })
 
   const openState = { state: "open", opensAt: null }
@@ -1160,6 +1162,8 @@ test.describe("coin toss in the detail of a friendly", () => {
   })
 
   test("tosses, lets the winner pick the side and the other team pick serve or return", async ({ page }) => {
+    // The whole flow: toss, choices, two seconds of result, the screen closing into the panel and opening again.
+    test.setTimeout(75_000)
     await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
     await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
     const open = { state: "open", opensAt: null }
@@ -1198,10 +1202,21 @@ test.describe("coin toss in the detail of a friendly", () => {
     await dialog.locator('[data-coin-choice="serve"]').click()
     await expect(dialog.locator('[data-coin-serving="1"]')).toContainText("David + Álvaro")
     expect(posts).toEqual([{ action: "toss", headsTeam: 1 }, { action: "choose", choice: "side" }, { action: "choose", choice: "serve" }])
-    await dialog.getByRole("button", { name: "Listo" }).click()
-    // The summary stays in the detail, and it can be repeated.
-    await expect(page.locator("[data-coin-summary-serving]")).toContainText("David + Álvaro")
-    await expect(page.locator("[data-coin-repeat]")).toBeVisible()
+    // The result stays in sight for two seconds and then the screen closes into the panel.
+    await expect(dialog).toHaveCount(1)
+    await expect(dialog).toHaveCount(0, { timeout: 15000 })
+    // The panel shows the choice of who won the coin in big and what is left for the other team below, with the short names.
+    await expect(page.locator("[data-coin-panel-main]")).toHaveText("Alain y Unai eligieron el lado")
+    await expect(page.locator("[data-coin-panel-detail]")).toHaveText("David y Álvaro eligieron sacar")
+    await expect(page.locator('[data-coin-mini="tails"]')).toBeVisible()
+    // While it is being tested, pressing the coin opens the full screen again, where the toss can be repeated.
+    await page.locator("[data-coin-open]").click()
+    await expect(dialog.locator('[data-coin-serving="1"]')).toBeVisible()
+    await dialog.locator("[data-coin-repeat]").click()
+    await expect(dialog.locator("[data-coin-pick=\"smash\"]")).toBeVisible()
+    // Without a new toss it does not close by itself (it was reopened by hand): closing is with its button.
+    await dialog.getByRole("button", { name: "Cerrar" }).click()
+    await expect(dialog).toHaveCount(0, { timeout: 5000 })
   })
 })
 

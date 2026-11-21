@@ -123,6 +123,14 @@ html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important
   position: absolute; left: 50%; bottom: -1.9rem; width: 8rem; height: 1.3rem; margin-left: -4rem; border-radius: 50%; opacity: 0.7;
   background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.65), transparent 70%); filter: blur(2px);
 }
+/* The small coin of the panel: the same coin, half of its size. Before the toss it turns slowly on its vertical axis (a preview of the
+   coin); after it, it rests on the face that came out. */
+.coin-mini { position: relative; width: 5.4rem; height: 5.4rem; flex-shrink: 0; }
+.coin-mini .coin-scene { position: absolute; left: 0; top: 0; transform: scale(0.4909); transform-origin: 0 0; }
+.coin-mini-spinning .coin { transform: rotateY(0deg); }
+/* Turning on the vertical axis, the back face has to be turned on that same axis to stand upright. */
+.coin-mini-spinning .coin-tails { transform: rotateY(180deg) translateZ(var(--coin-half)); }
+@keyframes coin-mini-spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
 @keyframes coin-wait { to { transform: rotateX(360deg); } }
 @keyframes coin-land-1 { from { transform: rotateX(0deg); } to { transform: rotateX(calc(var(--coin-face) + 2520deg)); } }
 @keyframes coin-land-2 { from { transform: rotateX(0deg) rotateY(0deg); } to { transform: rotateX(calc(var(--coin-face) + 1800deg)) rotateY(360deg); } }
@@ -136,6 +144,7 @@ html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important
 @keyframes coin-shine { 0% { background-position: 140% 0; } 100% { background-position: -40% 0; } }
 @media (prefers-reduced-motion: no-preference) {
   .coin-waiting { animation: coin-wait 0.7s linear infinite; }
+  .coin-mini-spinning .coin { animation: coin-mini-spin 9s linear infinite; }
   .coin-landing-1 { animation: coin-land-1 2.3s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
   .coin-landing-2 { animation: coin-land-2 2.6s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
   .coin-landing-3 { animation: coin-land-3 2.8s cubic-bezier(0.2, 0.7, 0.3, 1) both; }

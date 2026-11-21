@@ -13,6 +13,9 @@ import type { CoinTossFace } from "@/lib/matchCoinToss"
  *
  * The coin lies facing the camera. The smash is the face on the front and the lob the one on the back.
  */
+/** A circle on the screen, in pixels: where the small coin of the panel is (center and diameter). */
+export type ScreenCircle = { x: number; y: number; size: number }
+
 export type CoinScene = {
   /** Shows the coin resting on a face, without animation. */
   setFace(face: CoinTossFace): void
@@ -29,6 +32,10 @@ export type CoinScene = {
   land(face: CoinTossFace): Promise<void>
   /** The toss could not be made: the coin goes back to its place. */
   cancel(): void
+  /** The coin starts on that circle (the small coin of the panel) and moves to its place, growing. */
+  appear(from: ScreenCircle): void
+  /** The coin moves onto that circle and shrinks to its size. Resolves when it has arrived. */
+  dismiss(to: ScreenCircle): Promise<void>
   dispose(): void
 }
 
@@ -103,6 +110,10 @@ function shadowTexture() {
   context.fillRect(0, 0, 128, 128)
   return new CanvasTexture(canvas)
 }
+
+/** The coin moving between the screen of the toss and the small coin of the panel. */
+type View = { kind: "appear" | "dismiss"; start: number | null; duration: number; circle: ScreenCircle; resolve: (() => void) | null }
+const VIEW_TIME = 620
 
 type Throw = {
   start: number
@@ -234,6 +245,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   const spin = { x: 0, y: 0 }
   let tossing: Throw | null = null
   let glide: Glide | null = null
+  let view: View | null = null
   let frame = 0
   /** The time of the last animation frame: everything is measured on the clock of the frames, which is also the one of the pointer events. */
   let lastFrame = 0
@@ -360,6 +372,25 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       if (!dragging) fingerLift *= 0.8
       place(restY + fingerLift, 0.03 * distance * (fingerLift / (0.35 * half)), restY)
     }
+    if (view) {
+      view.start ??= now
+      const progress = Math.min(1, (now - view.start) / view.duration)
+      const eased = smoothstep(0, 1, progress)
+      // The circle on the screen, in the units of the scene.
+      const width = canvas.clientWidth
+      const height = canvas.clientHeight
+      const target = { x: (view.circle.x - width / 2) * worldPerPixel, y: (height / 2 - view.circle.y) * worldPerPixel, scale: (view.circle.size / 2) * worldPerPixel / RADIUS }
+      const current = { x: coin.position.x, y: coin.position.y, scale: 1 }
+      const from = view.kind === "appear" ? target : current
+      const to = view.kind === "appear" ? current : target
+      coin.position.x = from.x + (to.x - from.x) * eased
+      coin.position.y = from.y + (to.y - from.y) * eased
+      coin.scale.setScalar(from.scale + (to.scale - from.scale) * eased)
+      // The shadow is only there while the coin is on the screen of the toss.
+      ;(shadow.material as MeshBasicMaterial).opacity *= view.kind === "appear" ? eased : 1 - eased
+      if (progress >= 1 && view.kind === "appear") view = null
+      else if (progress >= 1) { const done = view.resolve; view.resolve = null; done?.() }
+    }
     // A slow sway while nobody has touched it, so the relief catches the light and it shows that the coin can be turned.
     const sway = !touched && !tossing && !glide && mode === "turn"
       ? new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.sin(now / 900) * 0.28).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.sin(now / 1300) * 0.12))
@@ -382,7 +413,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     }
   }
   const onDown = (event: PointerEvent) => {
-    if (mode === "off" || tossing || glide) return
+    if (mode === "off" || tossing || glide || view) return
     dragging = true
     released = false
     touched = true
@@ -462,6 +493,14 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
         current.face = face
         current.faceKnownAt = (lastFrame - current.start) / 1000
         current.resolve = resolve
+      })
+    },
+    appear(from) {
+      view = { kind: "appear", start: null, duration: VIEW_TIME, circle: from, resolve: null }
+    },
+    dismiss(to) {
+      return new Promise<void>((resolve) => {
+        view = { kind: "dismiss", start: null, duration: VIEW_TIME, circle: to, resolve }
       })
     },
     cancel() {
