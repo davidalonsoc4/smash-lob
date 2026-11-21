@@ -96,17 +96,30 @@ html .coin-toss-screen .coin-btn-sub { color: #525252 !important; }
 html .coin-toss-screen .coin-close { background: rgb(255 255 255 / 0.14) !important; color: #ffffff !important; border: 0 !important; }
 html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important; color: #fecaca !important; }
 
-/* Coin toss: a gold coin that spins while the server answers and then lands on the face that came out (three ways to do it). */
-.coin-scene { perspective: 900px; width: 11rem; height: 11rem; }
+/* Coin toss: a gold coin with thickness and a reeded edge; its faces are the relief of the smash and the lob (public/coin).
+   It spins while the server answers and then lands on the face that came out (three ways to do it), with its shadow on the floor and a shine. */
+.coin-scene { position: relative; perspective: 900px; width: 11rem; height: 11rem; }
 .coin-arc { width: 100%; height: 100%; }
-.coin { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transform: rotateX(var(--coin-face, 0deg)); }
+.coin { --coin-half: 7px; position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transform: rotateX(var(--coin-face, 0deg)); }
 .coin-face {
-  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  border-radius: 9999px; backface-visibility: hidden; -webkit-backface-visibility: hidden; color: #4a3205;
-  background: radial-gradient(circle at 35% 30%, #f8e29b, #d7a544 55%, #9a6f1c); border: 6px solid #f3c96a;
-  box-shadow: inset 0 0 0 4px rgb(120 80 10 / 0.35), 0 14px 32px rgb(0 0 0 / 0.55);
+  position: absolute; inset: 0; border-radius: 9999px; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background-size: cover; background-position: center; background-repeat: no-repeat; transform: translateZ(var(--coin-half));
 }
-.coin-tails { transform: rotateX(180deg); }
+.coin-face-smash { background-image: url("/coin/smash.webp"); }
+.coin-face-lob { background-image: url("/coin/lob.webp"); }
+.coin-tails { transform: rotateX(180deg) translateZ(var(--coin-half)); }
+.coin-face::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; mix-blend-mode: soft-light;
+  background: linear-gradient(115deg, transparent 36%, rgb(255 255 255 / 0.65) 50%, transparent 64%); background-size: 280% 100%; background-position: 140% 0;
+}
+.coin-edge {
+  position: absolute; inset: 1px; border-radius: 9999px;
+  background: repeating-conic-gradient(from 0deg, #e0b04a 0deg 2.4deg, #7f5815 2.4deg 4.8deg);
+}
+.coin-shadow {
+  position: absolute; left: 50%; bottom: -1.9rem; width: 8rem; height: 1.3rem; margin-left: -4rem; border-radius: 50%; opacity: 0.7;
+  background: radial-gradient(ellipse at center, rgb(0 0 0 / 0.65), transparent 70%); filter: blur(2px);
+}
 @keyframes coin-wait { to { transform: rotateX(360deg); } }
 @keyframes coin-land-1 { from { transform: rotateX(0deg); } to { transform: rotateX(calc(var(--coin-face) + 2520deg)); } }
 @keyframes coin-land-2 { from { transform: rotateX(0deg) rotateY(0deg); } to { transform: rotateX(calc(var(--coin-face) + 1800deg)) rotateY(360deg); } }
@@ -114,6 +127,10 @@ html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important
 @keyframes coin-arc-1 { 0% { transform: translateY(0) scale(1); } 45% { transform: translateY(-9rem) scale(1.25); } 100% { transform: translateY(0) scale(1); } }
 @keyframes coin-arc-2 { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-11rem) scale(1.4); } 100% { transform: translateY(0) scale(1); } }
 @keyframes coin-arc-3 { 0% { transform: translateY(0) scale(1); } 38% { transform: translateY(-10rem) scale(1.3); } 68% { transform: translateY(0) scale(1); } 80% { transform: translateY(-2rem) scale(1.04); } 100% { transform: translateY(0) scale(1); } }
+@keyframes coin-shadow-1 { 0% { transform: scale(1); opacity: 0.7; } 45% { transform: scale(0.55); opacity: 0.2; } 100% { transform: scale(1); opacity: 0.7; } }
+@keyframes coin-shadow-2 { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(0.45); opacity: 0.15; } 100% { transform: scale(1); opacity: 0.7; } }
+@keyframes coin-shadow-3 { 0% { transform: scale(1); opacity: 0.7; } 38% { transform: scale(0.5); opacity: 0.18; } 68% { transform: scale(1); opacity: 0.7; } 80% { transform: scale(0.85); opacity: 0.5; } 100% { transform: scale(1); opacity: 0.7; } }
+@keyframes coin-shine { 0% { background-position: 140% 0; } 100% { background-position: -40% 0; } }
 @media (prefers-reduced-motion: no-preference) {
   .coin-waiting { animation: coin-wait 0.7s linear infinite; }
   .coin-landing-1 { animation: coin-land-1 2.3s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
@@ -122,6 +139,10 @@ html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important
   .coin-arc-1.is-landing { animation: coin-arc-1 2.3s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
   .coin-arc-2.is-landing { animation: coin-arc-2 2.6s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
   .coin-arc-3.is-landing { animation: coin-arc-3 2.8s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+  .coin-shadow-1 { animation: coin-shadow-1 2.3s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+  .coin-shadow-2 { animation: coin-shadow-2 2.6s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+  .coin-shadow-3 { animation: coin-shadow-3 2.8s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+  .coin-face::after { animation: coin-shine 2.8s ease-in-out infinite; }
 }
 
 /* A reaction that has just appeared: the chip pops in like a gummy (squash and stretch) and the emoji bounces inside it. */

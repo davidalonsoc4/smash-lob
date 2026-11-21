@@ -1096,7 +1096,7 @@ test.describe("coin toss in the detail of a friendly", () => {
     expect(box).toMatchObject({ x: 0, y: 0, width: viewport.width, height: viewport.height })
     expect(await dialog.evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgb(10, 10, 10)")
     expect(await dialog.getByRole("button", { name: "Cerrar" }).evaluate(element => getComputedStyle(element).color)).toBe("rgb(255, 255, 255)")
-    await expect(dialog.getByRole("heading", { name: "¿Quién canta cara?" })).toBeVisible()
+    await expect(dialog.getByRole("heading", { name: "¿Quién canta remate?" })).toBeVisible()
     // Team 1 calls heads; it comes out tails, so team 2 wins.
     await dialog.locator('[data-coin-call="1"]').click()
     await expect(dialog.locator('[data-coin-result="tails"]')).toBeVisible({ timeout: 15000 })

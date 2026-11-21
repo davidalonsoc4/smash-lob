@@ -1,5 +1,6 @@
 /** Coin toss for who serves first, in league matches and friendlies. Shared by the screen and the server. */
 export type CoinTossTeam = 1 | 2
+/** The two faces of the coin are the smash ("heads") and the lob ("tails"): the stored values keep the usual heads and tails. */
 export type CoinTossFace = "heads" | "tails"
 /** What the winning team picks: serve, return, or the side (then the other team picks serve or return). */
 export type CoinTossChoice = "serve" | "return" | "side"

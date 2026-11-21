@@ -12,16 +12,20 @@ import { chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFai
 type TeamNames = [string, string]
 const teamName = (names: TeamNames, team: CoinTossTeam) => names[team - 1]
 
-/** The coin: a gold disc with "S&L" on heads and a ball on tails. While it waits for the server it spins; then it lands on the face that came out. */
+/**
+ * The coin: gold, with real thickness and a reeded edge. One face is the smash (heads) and the other the lob (tails), both in relief
+ * (images made by scripts/coin-art/build.mjs). While it waits for the server it spins; then it lands on the face that came out.
+ */
 function Coin({ mode, face, variant, onLanded }: { mode: "rest" | "wait" | "land"; face: CoinTossFace; variant: number; onLanded?: () => void }) {
-  const { tx } = useI18n()
   return (
     <div className="coin-scene" aria-hidden="true">
+      <div className={`coin-shadow ${mode === "land" ? `coin-shadow-${variant}` : ""}`} />
       <div className={`coin-arc ${mode === "land" ? `coin-arc-${variant} is-landing` : ""}`}>
         <div data-coin-mode={mode} onAnimationEnd={onLanded} style={{ "--coin-face": face === "heads" ? "0deg" : "180deg" } as React.CSSProperties}
           className={`coin ${mode === "wait" ? "coin-waiting" : ""} ${mode === "land" ? `coin-landing-${variant}` : ""}`}>
-          <div className="coin-face"><span className="text-4xl font-black tracking-tight">S&amp;L</span><span className="mt-1 text-xs font-black uppercase tracking-widest">{tx("Cara")}</span></div>
-          <div className="coin-face coin-tails"><span className="text-5xl leading-none">🎾</span><span className="mt-1 text-xs font-black uppercase tracking-widest">{tx("Cruz")}</span></div>
+          {Array.from({ length: 13 }, (_, index) => <div key={index} className="coin-edge" style={{ transform: `translateZ(${index - 6}px)` }} />)}
+          <div className="coin-face coin-face-smash" />
+          <div className="coin-face coin-tails coin-face-lob" />
         </div>
       </div>
     </div>
@@ -112,12 +116,12 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
 
         <div className="w-full space-y-3 text-center" aria-live="polite">
           {phase === "call" ? <>
-            <h2 className="text-2xl font-black">{tx("¿Quién canta cara?")}</h2>
+            <h2 className="text-2xl font-black">{tx("¿Quién canta remate?")}</h2>
             <p className="text-sm font-semibold coin-muted">{tx("Poneos de acuerdo y elegid. La moneda decide quién elige.")}</p>
             {([1, 2] as CoinTossTeam[]).map((headsTeam) => (
               <button key={headsTeam} type="button" data-coin-call={headsTeam} disabled={busy} onClick={() => void call(headsTeam)} className={bigButton}>
-                <span>{tx("Cara")}: {teamName(teamNames, headsTeam)}</span>
-                <span className="text-sm font-bold coin-btn-sub">{tx("Cruz")}: {teamName(teamNames, otherCoinTossTeam(headsTeam))}</span>
+                <span>{tx("Remate")}: {teamName(teamNames, headsTeam)}</span>
+                <span className="text-sm font-bold coin-btn-sub">{tx("Globo")}: {teamName(teamNames, otherCoinTossTeam(headsTeam))}</span>
               </button>
             ))}
           </> : null}
@@ -125,7 +129,7 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
           {phase === "flipping" ? <p className="text-xl font-black">{tx("Lanzando…")}</p> : null}
 
           {phase === "result" && toss ? <>
-            <h2 data-coin-result={toss.result} className="text-4xl font-black uppercase tracking-wide">{tx(toss.result === "heads" ? "Cara" : "Cruz")}</h2>
+            <h2 data-coin-result={toss.result} className="text-4xl font-black uppercase tracking-wide">{tx(toss.result === "heads" ? "Remate" : "Globo")}</h2>
             <p className="text-lg font-bold">{tx("Gana")} <span className="coin-gold">{teamName(teamNames, toss.winnerTeam)}</span></p>
             <button type="button" onClick={() => setPhase(phaseFor(toss))} className={bigButton}>{tx("Elegir")}</button>
           </> : null}
@@ -202,6 +206,13 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, canT
     return () => window.clearInterval(timer)
   }, [])
 
+  // The two faces are images: load them before the screen opens so the coin does not spin blank.
+  const canPreload = canToss && matchOpen
+  useEffect(() => {
+    if (!canPreload) return
+    for (const face of ["smash", "lob"]) new Image().src = `/coin/${face}.webp`
+  }, [canPreload])
+
   const tossWindow = getCoinTossWindow({ scheduledAt, now, requireTime: kind === "league", enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
   const canStart = canToss && matchOpen && tossWindow.state === "open"
   if (!visible) return null
@@ -216,7 +227,7 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, canT
     <AppCard data-coin-toss-panel>
       <p className="type-panel-title">{tx("Sorteo del saque")}</p>
       {toss ? <div className="mt-1 space-y-0.5 text-sm font-semibold text-neutral-700">
-        <p>🪙 {tx(toss.result === "heads" ? "Cara" : "Cruz")} · {tx("Gana")} <span className="font-black text-neutral-950">{teamName(teamNames, toss.winnerTeam)}</span> ({tx(faceCalledByTeam(toss.calledHeadsTeam, toss.winnerTeam) === "heads" ? "cara" : "cruz")})</p>
+        <p>🪙 {tx(toss.result === "heads" ? "Remate" : "Globo")} · {tx("Gana")} <span className="font-black text-neutral-950">{teamName(teamNames, toss.winnerTeam)}</span> ({tx(faceCalledByTeam(toss.calledHeadsTeam, toss.winnerTeam) === "heads" ? "remate" : "globo")})</p>
         {toss.servingTeam ? <p data-coin-summary-serving>{tx("Saca primero")}: <span className="font-black text-neutral-950">{teamName(teamNames, toss.servingTeam)}</span></p> : null}
         {step === "other" ? <p>{teamName(teamNames, otherCoinTossTeam(toss.winnerTeam))} {tx("tiene que elegir sacar o restar")}</p> : null}
         {step === "winner" ? <p>{teamName(teamNames, toss.winnerTeam)} {tx("tiene que elegir")}</p> : null}
