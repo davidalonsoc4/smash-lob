@@ -330,7 +330,7 @@ export function MatchIncidentPanel({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <p className="type-panel-title">{tx("Incidencia")}</p>
+        <p className="type-panel-title app-panel-title">{tx("Incidencia")}</p>
         {isOpen ? (
           <StatusHelp kind="incident" status="pending" className="rounded-full bg-amber-100 px-2 py-0.5 type-caption font-black uppercase text-amber-800">
             {tx("Pendiente")}{" "}</StatusHelp>

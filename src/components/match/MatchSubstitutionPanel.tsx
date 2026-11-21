@@ -167,7 +167,7 @@ export function MatchSubstitutionPanel({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <p className="type-panel-title">{t.matchDetail.substitutionsTitle}</p>
+        <p className="type-panel-title app-panel-title">{t.matchDetail.substitutionsTitle}</p>
         {matchSubstitutions.length > 0 ? (
           <span className="rounded-full bg-red-100 px-2 py-0.5 type-caption font-black text-red-700">
             {matchSubstitutions.length}

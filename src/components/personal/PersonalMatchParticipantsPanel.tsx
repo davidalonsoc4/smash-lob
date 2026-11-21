@@ -147,7 +147,7 @@ export function PersonalMatchParticipantsPanel({
     <AppCard accentStrip className="overflow-hidden !p-0">
       <div className="flex items-center justify-between gap-3 px-3 py-2.5">
         <div className="min-w-0">
-          <p className="type-panel-title text-neutral-950">{tx("Jugadores del amistoso")}</p>
+          <p className="type-panel-title app-panel-title text-neutral-950">{tx("Jugadores del amistoso")}</p>
           <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Cambia tu pareja o los contrincantes antes de registrar el resultado.")}</p>
         </div>
         {!editing ? (

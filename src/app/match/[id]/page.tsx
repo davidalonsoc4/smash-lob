@@ -536,7 +536,7 @@ export default function MatchDetailPage() {
 
           {isPlayerSeasonLocked ? (
             <AppCard>
-              <p className="type-panel-title">{tx("Temporada próximamente")}</p>
+              <p className="type-panel-title app-panel-title">{tx("Temporada próximamente")}</p>
               <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
                 {tx("Esta temporada ya está creada, pero todavía no ha comenzado. En vista de jugador, la programación y los resultados permanecen bloqueados hasta el inicio.")}{" "}</p>
             </AppCard>
@@ -585,7 +585,7 @@ export default function MatchDetailPage() {
         <AppCard>
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="type-panel-title">{t.rounds.officialWindow}</p>
+              <p className="type-panel-title app-panel-title">{t.rounds.officialWindow}</p>
 
               {roundWindowText ? (
                 <p className="mt-0.5 text-xs font-semibold text-neutral-600">
@@ -694,7 +694,7 @@ export default function MatchDetailPage() {
 
       {match.status === "postponed" && !canEnterResult ? (
         <AppCard>
-          <p className="type-panel-title">{t.matchResult.postponedTitle}</p>
+          <p className="type-panel-title app-panel-title">{t.matchResult.postponedTitle}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-neutral-500">
             {t.matchResult.postponedDescription}
           </p>

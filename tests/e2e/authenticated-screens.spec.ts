@@ -1069,6 +1069,10 @@ test.describe("coin toss in the detail of a friendly", () => {
     await page.goto("/personal-matches/qa-friendly")
     await expect(page.locator("[data-coin-toss-panel] [data-coin-start]")).toBeVisible()
     await expect(page.locator("[data-coin-toss-panel]")).toContainText("Tira la moneda para empezar el partido")
+    await expect(page.locator("[data-coin-toss-panel]")).toContainText("toca la moneda para lanzarla")
+    // No separate button: the coin is the button, and the title has the accent bar like the other panels.
+    await expect(page.locator("[data-coin-toss-panel] button")).toHaveCount(1)
+    expect(await page.locator("[data-coin-toss-panel] .app-panel-title").evaluate(element => getComputedStyle(element, "::before").width)).not.toBe("auto")
     await expect(page.locator("[data-coin-mini=\"spinning\"]")).toBeVisible()
   })
 

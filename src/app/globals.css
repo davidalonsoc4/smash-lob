@@ -125,8 +125,8 @@ html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important
 }
 /* The small coin of the panel: the same coin, half of its size. Before the toss it turns slowly on its vertical axis (a preview of the
    coin); after it, it rests on the face that came out. */
-.coin-mini { position: relative; width: 5.4rem; height: 5.4rem; flex-shrink: 0; }
-.coin-mini .coin-scene { position: absolute; left: 0; top: 0; transform: scale(0.4909); transform-origin: 0 0; }
+.coin-mini { position: relative; width: 4.6rem; height: 4.6rem; flex-shrink: 0; }
+.coin-mini .coin-scene { position: absolute; left: 0; top: 0; transform: scale(0.4182); transform-origin: 0 0; }
 .coin-mini-spinning .coin { transform: rotateY(0deg); }
 /* Turning on the vertical axis, the back face has to be turned on that same axis to stand upright. */
 .coin-mini-spinning .coin-tails { transform: rotateY(180deg) translateZ(var(--coin-half)); }
@@ -2774,7 +2774,7 @@ html[data-visual-style="competition"] .appearance-preview-competition .appearanc
 html[data-visual-style="competition"] .app-card,
 html[data-visual-style="competition"] .app-stat-card,
 html[data-visual-style="competition"] .app-ranking-list {
-  background: linear-gradient(145deg, rgb(var(--competition-rgb-border) / .46), rgb(var(--competition-rgb-surface) / .16)) !important;
+  background: var(--competition-surface) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 18%, var(--competition-border)) !important;
   box-shadow: 0 18px 38px rgb(var(--competition-shadow-rgb) / calc(.24 * var(--competition-shadow-strength))), inset 0 1px 0 rgb(var(--competition-rgb-highlight) / .025) !important;
   backdrop-filter: blur(18px) saturate(1.15);
@@ -3079,7 +3079,7 @@ html[data-visual-style="competition"] .text-pink-800 {
    tint is useful for small controls but makes the whole panel brown in dark
    mode, so keep the surface neutral and retain the accent on the edge. */
 html[data-visual-style="competition"] .app-schedule-card {
-  background: linear-gradient(145deg, rgb(var(--competition-rgb-border) / .46), rgb(var(--competition-rgb-surface) / .16)) !important;
+  background: var(--competition-surface) !important;
   border-color: color-mix(in srgb, var(--competition-accent) 18%, var(--competition-border)) !important;
 }
 
@@ -3411,14 +3411,19 @@ html.dark .app-dialog button.bg-neutral-950 { background:#404040 !important; col
 html.dark .app-dialog button.bg-neutral-950 :is(.text-neutral-300,.text-white) { color:#e5e5e5 !important; }
 .app-dialog :is(button,a) { min-height:44px; min-width:44px; }
 /* Shared hierarchy for primary section headings. */
+/* Every panel title has the accent bar: the ones in a SectionHeader (h2 or span) and the ones that carry .app-panel-title. */
 .app-section-header > h2,
-h2.type-section-title {
+.app-section-header > .type-panel-title,
+h2.type-section-title,
+.app-panel-title {
   display: flex;
   align-items: center;
   gap: .5rem;
 }
 .app-section-header > h2::before,
-h2.type-section-title::before {
+.app-section-header > .type-panel-title::before,
+h2.type-section-title::before,
+.app-panel-title::before {
   content: "";
   width: .3rem;
   height: 1rem;
@@ -3702,3 +3707,8 @@ html .app-match-chat-metadata[data-overlay="true"] .type-caption { color: #fff !
 
 /* Destructive text action on a neutral button: readable in the dark classic theme (competition styles have their own red). */
 html.dark:not(.colorful):not([data-visual-style="competition"]) .app-danger-action { color: #fca5a5; }
+
+/* Competition: the boxes with the names of the pairs have the same background as the panels (the surface), not a lighter gray. */
+html[data-visual-style="competition"] .app-match-pair-surface {
+  background: var(--competition-surface) !important;
+}

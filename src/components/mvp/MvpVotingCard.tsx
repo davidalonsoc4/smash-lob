@@ -144,7 +144,7 @@ export function MvpVotingCard({
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="type-panel-title">{tx("MVP del partido")}</p>
+        <p className="type-panel-title app-panel-title">{tx("MVP del partido")}</p>
         {hasPendingVote ? (
           <span className="rounded-full bg-amber-200 px-2 py-1 type-caption font-black text-amber-900">
             {tx("Voto pendiente")}{" "}</span>
