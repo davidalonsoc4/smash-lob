@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.22.0-pre.8",
+  "version": "1.22.0-pre.9",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -24,7 +24,7 @@
     "public-urls:check": "node scripts/check-public-app-urls.mjs",
     "migrations:check": "node scripts/check-identity-migrations.mjs",
     "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
-    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.22.0-pre.8 pre",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.22.0-pre.9 pre",
     "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.22.0 prod",
     "api-security:check": "node scripts/check-api-security-inventory.mjs",
     "api-security:update": "node scripts/check-api-security-inventory.mjs --write",
@@ -55,6 +55,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "sharp": "0.35.5",
+    "three": "^0.187.0",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
@@ -67,6 +68,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.187.0",
     "@types/web-push": "^3.6.4",
     "eslint": "9.39.4",
     "eslint-config-next": "16.4.6",

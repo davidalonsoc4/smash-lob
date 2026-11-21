@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react"
 import { createPortal } from "react-dom"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
+import type { CoinScene } from "@/lib/coin3d"
 import {
   COIN_TOSS_TIME_WINDOW_ENABLED, faceCalledByTeam, getCoinTossWindow, otherCoinTossTeam, pendingCoinTossStep,
   type CoinToss, type CoinTossChoice, type CoinTossFace, type CoinTossTeam,
@@ -13,6 +14,7 @@ type TeamNames = [string, string]
 const teamName = (names: TeamNames, team: CoinTossTeam) => names[team - 1]
 
 /**
+ * The flat coin (CSS): only for devices without WebGL. The 3D coin (src/lib/coin3d.ts) is the normal one.
  * The coin: gold, with real thickness and a reeded edge. One face is the smash (heads) and the other the lob (tails), both in relief
  * (images made by scripts/coin-art/build.mjs). While it waits for the server it spins; then it lands on the face that came out.
  */
@@ -32,6 +34,62 @@ function Coin({ mode, face, variant, onLanded }: { mode: "rest" | "wait" | "land
   )
 }
 
+type Stage = "loading" | "ready" | "fallback"
+
+/** Where the coin is: the 3D coin on a canvas (drawn on demand), or the flat one when the device cannot do WebGL. */
+function CoinStage({ sceneRef, stage, onStage, initialFace, face, mode, variant, interactive, waiting, onLanded }: {
+  sceneRef: MutableRefObject<CoinScene | null>
+  stage: Stage
+  onStage: (stage: Stage) => void
+  initialFace: CoinTossFace
+  face: CoinTossFace
+  mode: "rest" | "wait" | "land"
+  variant: number
+  interactive: boolean
+  waiting: boolean
+  onLanded: () => void
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    let active = true
+    let created: CoinScene | null = null
+    import("@/lib/coin3d")
+      .then(({ createCoinScene }) => createCoinScene(canvas))
+      .then((scene) => {
+        if (!active) { scene?.dispose(); return }
+        if (!scene) { onStage("fallback"); return }
+        created = scene
+        sceneRef.current = scene
+        scene.setFace(initialFace)
+        onStage("ready")
+      })
+      .catch(() => { if (active) onStage("fallback") })
+    return () => {
+      active = false
+      created?.dispose()
+      if (sceneRef.current === created) sceneRef.current = null
+    }
+    // The scene is made once per screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    if (stage !== "ready") return
+    sceneRef.current?.setInteractive(interactive)
+    sceneRef.current?.setWaiting(waiting)
+  }, [stage, interactive, waiting, sceneRef])
+  useEffect(() => {
+    if (stage === "ready" && mode === "rest") sceneRef.current?.setFace(face)
+  }, [stage, mode, face, sceneRef])
+  return (
+    <div className="coin-stage" data-coin-stage={stage}>
+      <canvas ref={canvasRef} data-coin-canvas className={stage === "fallback" ? "hidden" : "absolute inset-0 h-full w-full"} />
+      {stage === "fallback" ? <div className="flex h-full items-center justify-center"><Coin mode={mode} face={face} variant={variant} onLanded={onLanded} /></div> : null}
+    </div>
+  )
+}
+
 type Phase = "call" | "flipping" | "result" | "winner" | "other" | "done"
 const phaseFor = (toss: CoinToss | null): Phase => {
   if (!toss) return "call"
@@ -41,10 +99,12 @@ const phaseFor = (toss: CoinToss | null): Phase => {
 const bigButton = "coin-btn flex min-h-14 w-full flex-col items-center justify-center rounded-2xl px-4 py-3 text-center text-base font-black active:scale-[0.98] disabled:opacity-50"
 
 /** Full screen, for the court: who calls heads, the toss, and what the winning team picks (the other team picks what is left). */
-function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChange, onClose }: {
+function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat, onChange, onClose }: {
   kind: CoinTossKind
   matchId: string
   teamNames: TeamNames
+  /** The team of the person holding the phone, when they play this match. */
+  myTeam: CoinTossTeam | null
   initialToss: CoinToss | null
   repeat: boolean
   onChange: (toss: CoinToss) => void
@@ -57,6 +117,9 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<CoinTossFailure | null>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
+  const sceneRef = useRef<CoinScene | null>(null)
+  const [stage, setStage] = useState<Stage>("loading")
+  const [startFace] = useState<CoinTossFace>(initialToss?.result ?? "heads")
 
   useEffect(() => {
     closeRef.current?.focus({ preventScroll: true })
@@ -84,8 +147,15 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
     if (!result.ok) { setError(result.error); setPhase("call"); return }
     const next = result.state.coinToss!
     setToss(next); onChange(next)
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) setPhase("result")
-    else setLanding(1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 3))
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      sceneRef.current?.setFace(next.result)
+      setPhase("result")
+      return
+    }
+    const variant = 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 3)
+    setLanding(variant)
+    // The 3D coin tells when it has stopped; the flat one does it through its animation.
+    void sceneRef.current?.toss(next.result, variant).then(landed)
   }
 
   async function choose(choice: CoinTossChoice) {
@@ -112,10 +182,21 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
       </div>
 
       <div className="flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 py-4">
-        <Coin mode={coinMode} face={coinFace} variant={landing ?? 1} onLanded={landed} />
+        <CoinStage sceneRef={sceneRef} stage={stage} onStage={setStage} initialFace={startFace} face={coinFace} mode={coinMode} variant={landing ?? 1}
+          interactive={phase === "call"} waiting={phase === "flipping" && landing === null} onLanded={landed} />
+        {stage === "ready" && phase === "call" ? <p className="-mt-3 text-xs font-semibold coin-dim">{tx("Arrastra la moneda para girarla")}</p> : null}
 
         <div className="w-full space-y-3 text-center" aria-live="polite">
-          {phase === "call" ? <>
+          {phase === "call" && myTeam ? <>
+            <h2 className="text-2xl font-black">{tx("¿Qué elige tu equipo?")}</h2>
+            <p className="text-sm font-semibold coin-muted">{teamName(teamNames, myTeam)}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" data-coin-pick="smash" disabled={busy} onClick={() => void call(myTeam)} className={bigButton}>{tx("Remate")}</button>
+              <button type="button" data-coin-pick="lob" disabled={busy} onClick={() => void call(otherCoinTossTeam(myTeam))} className={bigButton}>{tx("Globo")}</button>
+            </div>
+          </> : null}
+
+          {phase === "call" && !myTeam ? <>
             <h2 className="text-2xl font-black">{tx("¿Quién canta remate?")}</h2>
             <p className="text-sm font-semibold coin-muted">{tx("Poneos de acuerdo y elegid. La moneda decide quién elige.")}</p>
             {([1, 2] as CoinTossTeam[]).map((headsTeam) => (
@@ -175,11 +256,13 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
  * The coin toss in the detail of a match (league or friendly): a button that opens the full screen, and the summary of
  * what came out. Available from 30 minutes before the booked time, so it is done at the court and not at home.
  */
-export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, canToss, matchOpen }: {
+export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTeam = null, canToss, matchOpen }: {
   kind: CoinTossKind
   matchId: string
   scheduledAt: string | null
   teamNames: TeamNames
+  /** The team of the person who is looking, if they play the match: the screen asks what their team picks. */
+  myTeam?: CoinTossTeam | null
   /** The person may toss and choose (a player of the match, an administrator). */
   canToss: boolean
   /** The match has not been played yet. */
@@ -210,7 +293,9 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, canT
   const canPreload = canToss && matchOpen
   useEffect(() => {
     if (!canPreload) return
-    for (const face of ["smash", "lob"]) new Image().src = `/coin/${face}.webp`
+    for (const name of ["smash", "lob", "smash-height", "lob-height"]) new Image().src = `/coin/${name}.webp`
+    // The 3D engine is its own chunk: fetch it now, so the coin shows as soon as the screen opens.
+    void import("@/lib/coin3d")
   }, [canPreload])
 
   const tossWindow = getCoinTossWindow({ scheduledAt, now, requireTime: kind === "league", enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
@@ -238,7 +323,7 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, canT
       {canStart && !toss ? <button type="button" data-coin-start onClick={() => setDialog({ repeat: false })} className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white">🪙 {tx("Tirar la moneda")}</button> : null}
       {toss && canToss && matchOpen && step ? <button type="button" data-coin-continue onClick={() => setDialog({ repeat: false })} className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white">{tx("Continuar")}</button> : null}
       {toss && canStart ? <button type="button" data-coin-repeat onClick={() => setDialog({ repeat: true })} className="mt-2 inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-neutral-100 px-3 text-center text-xs font-black text-neutral-700">{tx("Repetir sorteo")}</button> : null}
-      {dialog ? <CoinTossDialog kind={kind} matchId={matchId} teamNames={teamNames} initialToss={toss} repeat={dialog.repeat} onChange={setToss} onClose={() => setDialog(null)} /> : null}
+      {dialog ? <CoinTossDialog kind={kind} matchId={matchId} teamNames={teamNames} myTeam={myTeam} initialToss={toss} repeat={dialog.repeat} onChange={setToss} onClose={() => setDialog(null)} /> : null}
     </AppCard>
   )
 }

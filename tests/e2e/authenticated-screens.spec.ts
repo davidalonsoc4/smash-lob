@@ -1070,6 +1070,44 @@ test.describe("coin toss in the detail of a friendly", () => {
     await expect(page.locator("[data-coin-toss-panel] [data-coin-start]")).toBeVisible()
   })
 
+  const openState = { state: "open", opensAt: null }
+  async function mockToss(page: import("@playwright/test").Page, matchItem: unknown, posts: Array<Record<string, unknown>>) {
+    await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
+    await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item: matchItem } }))
+    await page.route("**/api/personal-matches/qa-friendly/coin-toss", route => {
+      if (route.request().method() === "GET") return route.fulfill({ json: { coinToss: null, window: openState } })
+      const body = route.request().postDataJSON()
+      posts.push(body)
+      return route.fulfill({ json: { coinToss: { calledHeadsTeam: body.headsTeam, result: "heads", winnerTeam: body.headsTeam, winnerChoice: null, otherChoice: null, servingTeam: null, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z" }, window: openState } })
+    })
+  }
+
+  test("the 3D coin is shown (or the flat one without WebGL) and picking the lob gives the smash to the other team", async ({ page }) => {
+    const posts: Array<Record<string, unknown>> = []
+    await mockToss(page, item, posts)
+    await page.goto("/personal-matches/qa-friendly")
+    await page.locator("[data-coin-start]").click()
+    const dialog = page.locator("[data-coin-toss-dialog]")
+    await expect(dialog.locator("[data-coin-stage]")).toHaveAttribute("data-coin-stage", /ready|fallback/, { timeout: 15000 })
+    // The person plays in team 1: picking the lob means that team 2 is the one that calls the smash.
+    await dialog.locator("[data-coin-pick=\"lob\"]").click()
+    await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 15000 })
+    expect(posts).toEqual([{ action: "toss", headsTeam: 2 }])
+  })
+
+  test("keeps asking who calls the smash when the person does not play the match", async ({ page }) => {
+    const posts: Array<Record<string, unknown>> = []
+    await mockToss(page, { ...item, participants: item.participants.map(participant => ({ ...participant, isCurrentUser: false })) }, posts)
+    await page.goto("/personal-matches/qa-friendly")
+    await page.locator("[data-coin-start]").click()
+    const dialog = page.locator("[data-coin-toss-dialog]")
+    await expect(dialog.getByRole("heading", { name: "¿Quién canta remate?" })).toBeVisible()
+    await expect(dialog.locator("[data-coin-pick]")).toHaveCount(0)
+    await dialog.locator("[data-coin-call=\"2\"]").click()
+    await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 15000 })
+    expect(posts).toEqual([{ action: "toss", headsTeam: 2 }])
+  })
+
   test("tosses, lets the winner pick the side and the other team pick serve or return", async ({ page }) => {
     await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
     await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
@@ -1096,9 +1134,11 @@ test.describe("coin toss in the detail of a friendly", () => {
     expect(box).toMatchObject({ x: 0, y: 0, width: viewport.width, height: viewport.height })
     expect(await dialog.evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgb(10, 10, 10)")
     expect(await dialog.getByRole("button", { name: "Cerrar" }).evaluate(element => getComputedStyle(element).color)).toBe("rgb(255, 255, 255)")
-    await expect(dialog.getByRole("heading", { name: "¿Quién canta remate?" })).toBeVisible()
-    // Team 1 calls heads; it comes out tails, so team 2 wins.
-    await dialog.locator('[data-coin-call="1"]').click()
+    await expect(dialog.getByRole("heading", { name: "¿Qué elige tu equipo?" })).toBeVisible()
+    // The app knows who is holding the phone: it asks what their team picks (team 1: David + Álvaro).
+    await expect(dialog).toContainText("David + Álvaro")
+    // Team 1 picks the smash (heads); it comes out lob (tails), so team 2 wins.
+    await dialog.locator('[data-coin-pick="smash"]').click()
     await expect(dialog.locator('[data-coin-result="tails"]')).toBeVisible({ timeout: 15000 })
     await expect(dialog).toContainText("Alain + Unai")
     await dialog.getByRole("button", { name: "Elegir", exact: true }).click()

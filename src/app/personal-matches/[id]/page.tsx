@@ -149,7 +149,7 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
         showFinishedPlayerMetadata: false,
       }}
     >
-      <MatchCoinTossPanel kind="friendly" matchId={item.id} scheduledAt={item.scheduledAt} canToss={item.canManage} matchOpen={item.status === "scheduled"}
+      <MatchCoinTossPanel kind="friendly" matchId={item.id} scheduledAt={item.scheduledAt} myTeam={item.participants.find(participant => participant.isCurrentUser)?.team ?? null} canToss={item.canManage} matchOpen={item.status === "scheduled"}
         teamNames={[1, 2].map(team => item.participants.filter(participant => participant.team === team).sort((a, b) => a.slot - b.slot).map(participant => participant.displayName).join(" + ")) as [string, string]} />
 
       <PersonalMatchParticipantsPanel match={item} onUpdated={updateItem} />

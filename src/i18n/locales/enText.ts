@@ -836,6 +836,8 @@ const EXACT_OVERRIDES = {
   "Guardado, pero no se ha publicado el aviso en el chat de:": "Saved, but the notice was not posted in the chat of:",
   "Comprueba que la liga tenga una temporada en curso o sin comenzar.": "Check that the league has a season in progress or not started yet.",
   "Entendido": "Got it",
+  "¿Qué elige tu equipo?": "What does your team pick?",
+  "Arrastra la moneda para girarla": "Drag the coin to turn it",
   "Remate": "Smash",
   "Globo": "Lob",
   "remate": "smash",
