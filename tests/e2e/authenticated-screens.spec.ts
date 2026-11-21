@@ -1086,9 +1086,16 @@ test.describe("coin toss in the detail of a friendly", () => {
       else toss = { ...toss, winnerChoice: body.choice, servingTeam: 2 }
       return route.fulfill({ json: { coinToss: toss, window: open } })
     })
+    // Competition repaints dark and white utilities and its cards must not trap the screen: the toss covers the whole viewport in dark.
+    await page.addInitScript(() => localStorage.setItem("smash-lob-visual-style", "competition"))
     await page.goto("/personal-matches/qa-friendly")
     await page.locator("[data-coin-start]").click()
     const dialog = page.locator("[data-coin-toss-dialog]")
+    const box = await dialog.boundingBox()
+    const viewport = page.viewportSize()!
+    expect(box).toMatchObject({ x: 0, y: 0, width: viewport.width, height: viewport.height })
+    expect(await dialog.evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgb(10, 10, 10)")
+    expect(await dialog.getByRole("button", { name: "Cerrar" }).evaluate(element => getComputedStyle(element).color)).toBe("rgb(255, 255, 255)")
     await expect(dialog.getByRole("heading", { name: "¿Quién canta cara?" })).toBeVisible()
     // Team 1 calls heads; it comes out tails, so team 2 wins.
     await dialog.locator('[data-coin-call="1"]').click()

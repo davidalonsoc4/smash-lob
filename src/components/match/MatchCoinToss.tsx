@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
@@ -33,7 +34,7 @@ const phaseFor = (toss: CoinToss | null): Phase => {
   const step = pendingCoinTossStep(toss)
   return step === "winner" ? "winner" : step === "other" ? "other" : "done"
 }
-const bigButton = "flex min-h-14 w-full flex-col items-center justify-center rounded-2xl bg-white px-4 py-3 text-center text-base font-black text-neutral-950 active:scale-[0.98] disabled:opacity-50"
+const bigButton = "coin-btn flex min-h-14 w-full flex-col items-center justify-center rounded-2xl px-4 py-3 text-center text-base font-black active:scale-[0.98] disabled:opacity-50"
 
 /** Full screen, for the court: who calls heads, the toss, and what the winning team picks (the other team picks what is left). */
 function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChange, onClose }: {
@@ -97,11 +98,13 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
   const coinFace: CoinTossFace = toss?.result ?? "heads"
   const coinMode = phase === "flipping" ? (landing === null ? "wait" : "land") : phase === "result" && landing !== null ? "land" : "rest"
 
-  return (
+  // In the body, not inside the card: a card with its own stacking or transform would stop it from covering the screen.
+  if (typeof document === "undefined") return null
+  return createPortal(
     <div role="dialog" aria-modal="true" aria-label={tx("Sorteo del saque")} data-coin-toss-dialog
-      className="fixed inset-0 z-[200] flex flex-col items-center justify-between overflow-y-auto bg-neutral-950 px-5 pb-8 pt-4 text-white">
+      className="coin-toss-screen fixed inset-0 z-[200] flex flex-col items-center justify-between overflow-y-auto px-5 pb-8 pt-4">
       <div className="flex w-full max-w-md justify-end">
-        <button ref={closeRef} type="button" onClick={onClose} className="inline-flex min-h-10 items-center justify-center rounded-full bg-white/10 text-center px-4 text-sm font-bold text-white">{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
+        <button ref={closeRef} type="button" onClick={onClose} className="coin-close inline-flex min-h-10 items-center justify-center rounded-full px-4 text-center text-sm font-bold">{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
       </div>
 
       <div className="flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 py-4">
@@ -110,11 +113,11 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
         <div className="w-full space-y-3 text-center" aria-live="polite">
           {phase === "call" ? <>
             <h2 className="text-2xl font-black">{tx("¿Quién canta cara?")}</h2>
-            <p className="text-sm font-semibold text-neutral-300">{tx("Poneos de acuerdo y elegid. La moneda decide quién elige.")}</p>
+            <p className="text-sm font-semibold coin-muted">{tx("Poneos de acuerdo y elegid. La moneda decide quién elige.")}</p>
             {([1, 2] as CoinTossTeam[]).map((headsTeam) => (
               <button key={headsTeam} type="button" data-coin-call={headsTeam} disabled={busy} onClick={() => void call(headsTeam)} className={bigButton}>
                 <span>{tx("Cara")}: {teamName(teamNames, headsTeam)}</span>
-                <span className="text-sm font-bold text-neutral-600">{tx("Cruz")}: {teamName(teamNames, otherCoinTossTeam(headsTeam))}</span>
+                <span className="text-sm font-bold coin-btn-sub">{tx("Cruz")}: {teamName(teamNames, otherCoinTossTeam(headsTeam))}</span>
               </button>
             ))}
           </> : null}
@@ -123,23 +126,23 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
 
           {phase === "result" && toss ? <>
             <h2 data-coin-result={toss.result} className="text-4xl font-black uppercase tracking-wide">{tx(toss.result === "heads" ? "Cara" : "Cruz")}</h2>
-            <p className="text-lg font-bold">{tx("Gana")} <span className="text-amber-300">{teamName(teamNames, toss.winnerTeam)}</span></p>
+            <p className="text-lg font-bold">{tx("Gana")} <span className="coin-gold">{teamName(teamNames, toss.winnerTeam)}</span></p>
             <button type="button" onClick={() => setPhase(phaseFor(toss))} className={bigButton}>{tx("Elegir")}</button>
           </> : null}
 
           {phase === "winner" && winner ? <>
-            <h2 className="text-2xl font-black">{tx("Elige")} <span className="text-amber-300">{teamName(teamNames, winner)}</span></h2>
+            <h2 className="text-2xl font-black">{tx("Elige")} <span className="coin-gold">{teamName(teamNames, winner)}</span></h2>
             <div className="grid grid-cols-2 gap-3">
               <button type="button" data-coin-choice="serve" disabled={busy} onClick={() => void choose("serve")} className={bigButton}>{tx("Sacar")}</button>
               <button type="button" data-coin-choice="return" disabled={busy} onClick={() => void choose("return")} className={bigButton}>{tx("Restar")}</button>
             </div>
             <button type="button" data-coin-choice="side" disabled={busy} onClick={() => void choose("side")} className={bigButton}>{tx("Elegir lado")}</button>
-            <p className="text-xs font-semibold text-neutral-400">{tx("El otro equipo elige lo que queda.")}</p>
+            <p className="text-xs font-semibold coin-dim">{tx("El otro equipo elige lo que queda.")}</p>
           </> : null}
 
           {phase === "other" && winner ? <>
-            <h2 className="text-2xl font-black">{tx("Elige")} <span className="text-amber-300">{teamName(teamNames, otherCoinTossTeam(winner))}</span></h2>
-            <p className="text-sm font-semibold text-neutral-300">{teamName(teamNames, winner)} {tx("ha elegido el lado")}</p>
+            <h2 className="text-2xl font-black">{tx("Elige")} <span className="coin-gold">{teamName(teamNames, otherCoinTossTeam(winner))}</span></h2>
+            <p className="text-sm font-semibold coin-muted">{teamName(teamNames, winner)} {tx("ha elegido el lado")}</p>
             <div className="grid grid-cols-2 gap-3">
               <button type="button" data-coin-choice="serve" disabled={busy} onClick={() => void choose("serve")} className={bigButton}>{tx("Sacar")}</button>
               <button type="button" data-coin-choice="return" disabled={busy} onClick={() => void choose("return")} className={bigButton}>{tx("Restar")}</button>
@@ -147,19 +150,20 @@ function CoinTossDialog({ kind, matchId, teamNames, initialToss, repeat, onChang
           </> : null}
 
           {phase === "done" && toss?.servingTeam && winner ? <>
-            <p className="text-sm font-black uppercase tracking-widest text-neutral-400">{tx("Saca primero")}</p>
-            <h2 data-coin-serving={toss.servingTeam} className="text-3xl font-black text-amber-300">{teamName(teamNames, toss.servingTeam)}</h2>
-            <p className="text-base font-bold text-neutral-200">
+            <p className="text-sm font-black uppercase tracking-widest coin-dim">{tx("Saca primero")}</p>
+            <h2 data-coin-serving={toss.servingTeam} className="text-3xl font-black coin-gold">{teamName(teamNames, toss.servingTeam)}</h2>
+            <p className="text-base font-bold coin-muted">
               {teamName(teamNames, toss.winnerChoice === "side" ? winner : otherCoinTossTeam(winner))} {tx("elige el lado")}
             </p>
           </> : null}
 
-          {error ? <p role="alert" className="rounded-xl bg-red-500/20 px-3 py-2 text-sm font-bold text-red-200">
+          {error ? <p role="alert" className="coin-error rounded-xl px-3 py-2 text-sm font-bold">
             {tx(error === "closed" ? "La moneda ya no está disponible para este partido." : error === "forbidden" ? "No tienes permiso para tirar la moneda en este partido." : "No se ha podido completar. Comprueba la conexión e inténtalo de nuevo.")}
           </p> : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
