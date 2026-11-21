@@ -34,6 +34,8 @@ export type CoinScene = {
 
 /** How the metal looks: lights, reflections and finish. */
 const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughness: 0.4, bump: 3.2, tint: 0xffffff }
+/** The coin is always seen with its top leaning a little toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
+const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), 0.14)
 const RADIUS = 1
 const THICKNESS = 0.15
 const FACE_QUATERNION: Record<CoinTossFace, Quaternion> = {
@@ -49,21 +51,22 @@ const VARIANTS = [
 ] as const
 /** After landing: three bounces, each lower (height as a part of the half height of the screen, and seconds). */
 /**
- * After landing the coin bounces, and not always the same way: each pattern is a list of bounces (height as a part of the half
- * height of the screen) and some of them add `spin` more turns end over end while the coin is in the air, like a coin that gets
- * one more flip after hitting the floor. All of them end flat on the face that came out.
+ * After landing the coin bounces, and not always the same way: the first bounce goes up high and keeps spinning, and the next ones
+ * are smaller and die out. Each pattern is a list of bounces (height as a part of the half height of the screen), and some of
+ * them add `spin` more turns end over end while the coin is in the air, like a coin that gets one more flip after hitting the
+ * floor. All of them end flat on the face that came out.
  */
 const BOUNCE_PATTERNS = [
-  [{ height: 0.24, spin: 0 }, { height: 0.08, spin: 0 }, { height: 0.025, spin: 0 }],
-  [{ height: 0.3, spin: 1 }, { height: 0.09, spin: 0 }, { height: 0.03, spin: 0 }],
-  [{ height: 0.26, spin: 0 }, { height: 0.13, spin: 1 }, { height: 0.04, spin: 0 }],
-  [{ height: 0.34, spin: 2 }, { height: 0.1, spin: 0 }],
-  [{ height: 0.22, spin: 0 }, { height: 0.06, spin: 0 }],
-  [{ height: 0.28, spin: 1 }, { height: 0.12, spin: 1 }, { height: 0.04, spin: 0 }],
-  [{ height: 0.3, spin: 0 }, { height: 0.05, spin: 0 }],
+  [{ height: 0.42, spin: 1 }, { height: 0.13, spin: 0 }, { height: 0.045, spin: 0 }, { height: 0.018, spin: 0 }],
+  [{ height: 0.5, spin: 2 }, { height: 0.14, spin: 0 }, { height: 0.05, spin: 0 }],
+  [{ height: 0.38, spin: 1 }, { height: 0.16, spin: 1 }, { height: 0.06, spin: 0 }, { height: 0.02, spin: 0 }],
+  [{ height: 0.46, spin: 1 }, { height: 0.1, spin: 0 }, { height: 0.04, spin: 0 }, { height: 0.015, spin: 0 }],
+  [{ height: 0.34, spin: 0 }, { height: 0.14, spin: 0 }, { height: 0.06, spin: 0 }, { height: 0.025, spin: 0 }],
+  [{ height: 0.52, spin: 2 }, { height: 0.18, spin: 1 }, { height: 0.06, spin: 0 }],
+  [{ height: 0.4, spin: 1 }, { height: 0.12, spin: 0 }, { height: 0.04, spin: 0 }],
 ] as const
 /** How long a bounce of that height lasts: the same gravity as the flight, a bit faster. */
-const bounceSeconds = (height: number) => 0.2 + 1.35 * Math.sqrt(height)
+const bounceSeconds = (height: number) => 0.15 + 1.05 * Math.sqrt(height)
 const REST_PAUSE = 0.3
 const RETURN_TIME = 0.7
 
@@ -348,7 +351,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     const sway = !touched && !tossing && !glide && mode === "turn"
       ? new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.sin(now / 900) * 0.28).multiply(new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.sin(now / 1300) * 0.12))
       : null
-    coin.quaternion.copy(sway ? sway.multiply(orientation) : orientation)
+    coin.quaternion.copy(VIEW_TILT).multiply(sway ? sway.multiply(orientation) : orientation)
     renderer.render(scene, camera)
   }
   frame = requestAnimationFrame(render)
