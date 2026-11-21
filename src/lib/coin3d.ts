@@ -54,18 +54,20 @@ const pick = <T,>(list: readonly T[]) => list[crypto.getRandomValues(new Uint32A
 
 /**
  * After landing the coin bounces, and each toss does it a bit differently. Heights are a part of the half height of the screen
- * (2 is the whole screen): the first bounce goes up almost as high as the toss itself (50% to 75% of the screen), always keeping
- * on spinning; the second one is about 30% and may give the coin one more flip, or two or three, or none; then two small ones
- * that die out. The `spin` of a bounce is whole turns end over end while it is in the air, so it ends flat on the face that came out.
+ * (2 is the whole screen): the first bounce goes up 50% to 60% of the screen, always keeping on spinning; the second one 30% to 35%
+ * and may give the coin one more flip, or two or three, or none; then two smaller ones (13% to 19%, and 4% to 6%) that die out. The `spin` of a bounce is whole turns end over end while it is in the air, so it ends flat on the face that came out.
  */
 const bouncePattern = (): Bounce[] => [
-  { height: pick([1.0, 1.15, 1.3, 1.4, 1.5]), spin: pick([1, 1, 2]) },
-  { height: pick([0.55, 0.6, 0.65]), spin: pick([0, 0, 1, 1, 2, 3]) },
-  { height: pick([0.2, 0.24, 0.28]), spin: 0 },
-  { height: pick([0.07, 0.09, 0.11]), spin: 0 },
+  { height: pick([1.0, 1.05, 1.1, 1.15, 1.2]), spin: pick([1, 1, 2]) },
+  { height: pick([0.6, 0.64, 0.68, 0.7]), spin: pick([0, 0, 1, 1, 2, 3]) },
+  { height: pick([0.26, 0.3, 0.34, 0.38]), spin: 0 },
+  { height: pick([0.08, 0.1, 0.12]), spin: 0 },
 ]
-/** How long a bounce of that height lasts (the same gravity as the flight). */
-const bounceSeconds = (height: number) => 0.05 + 1.1 * Math.sqrt(height)
+/**
+ * How long a bounce of that height lasts. A ball under gravity stays in the air for a time that goes with the square root of its
+ * height, so every bounce is shorter than the one before but not by much: 1.3 s, 1.0 s, 0.8 s and 0.45 s for the four of them.
+ */
+const bounceSeconds = (height: number) => 0.12 + 1.15 * Math.sqrt(height)
 const REST_PAUSE = 0.3
 const RETURN_TIME = 0.7
 
