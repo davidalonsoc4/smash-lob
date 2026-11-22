@@ -38,6 +38,22 @@ function colours(picture, i, mask) {
   return [0, 1, 2].map((c) => aged[c] + (silver[c] - aged[c]) * MIX.relief * mask)
 }
 
+/**
+ * The outermost pixels of the picture are the dark shading of the border of the artwork (and, in the height map, a drop to the background), so
+ * they came out gold or dark: a line of another colour between the silver ring and the silver edge. Every pixel of the rim takes what the
+ * ring has a little further in, along the same radius, so ring and edge look like one piece.
+ */
+const RIM_FROM = 0.972
+const RIM_TAKES = 0.958
+function onRim(x, y, size) {
+  const c = (size - 1) / 2
+  const dx = x - c, dy = y - c
+  const radius = Math.hypot(dx, dy) / c
+  if (radius <= RIM_FROM) return [x, y]
+  const k = RIM_TAKES / radius
+  return [Math.round(c + dx * k), Math.round(c + dy * k)]
+}
+
 async function save(buffer, size, file, options = {}) {
   await sharp(buffer, { raw: { width: size, height: size, channels: 4 } }).webp({ quality: 86, alphaQuality: 90, ...options }).toFile(path.join(dir, file))
   console.log(file)
@@ -52,9 +68,11 @@ async function bake(name) {
   const maps = Buffer.alloc(SIZE * SIZE * 4, 255)
   for (let p = 0; p < SIZE * SIZE; p++) {
     const i = p * 4
-    const h = height[p] / 255
+    const [sx, sy] = onRim(p % SIZE, Math.floor(p / SIZE), SIZE)
+    const q = sy * SIZE + sx
+    const h = height[q] / 255
     const mask = smoothstep((h - 0.45) / 0.3)
-    const mixed = colours(picture, i, mask)
+    const mixed = colours(picture, q * 4, mask)
     for (let c = 0; c < 3; c++) color[i + c] = Math.max(0, Math.min(255, mixed[c]))
     maps[i] = height[p]
     maps[i + 1] = Math.round(255 * (1 - FINISH.drop * mask))
@@ -72,8 +90,9 @@ async function bake(name) {
   for (let y = 0; y < SMALL; y++) {
     for (let x = 0; x < SMALL; x++) {
       const i = (y * SMALL + x) * 4
-      const mask = smoothstep((h(x, y) - 0.45) / 0.3)
-      const mixed = colours(small, i, mask)
+      const [sx, sy] = onRim(x, y, SMALL)
+      const mask = smoothstep((h(sx, sy) - 0.45) / 0.3)
+      const mixed = colours(small, (sy * SMALL + sx) * 4, mask)
       const mixedLum = 0.2126 * mixed[0] + 0.7152 * mixed[1] + 0.0722 * mixed[2]
       const light = 1 + SHADE * ((h(x - 1, y) - h(x + 1, y)) + (h(x, y - 1) - h(x, y + 1))) * 0.5
       for (let c = 0; c < 3; c++) {
