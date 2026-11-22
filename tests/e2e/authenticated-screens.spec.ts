@@ -1114,6 +1114,8 @@ test.describe("coin toss in the detail of a friendly", () => {
   })
 
   test("tosses the coin with a swipe upwards, and the buttons come back when it has stopped", async ({ page }) => {
+    // The 3D coin renders in software in the test browser: with the other tests running at the same time this one needs more than 30 seconds.
+    test.setTimeout(75_000)
     const posts: Array<Record<string, unknown>> = []
     await mockToss(page, item, posts)
     await page.goto("/personal-matches/qa-friendly")
