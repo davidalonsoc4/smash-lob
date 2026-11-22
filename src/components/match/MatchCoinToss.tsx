@@ -157,8 +157,11 @@ function ShotLabel({ shot }: { shot: "smash" | "lob" }) {
   )
 }
 
-/** EXPERIMENT: the looks of the coin that can be compared on the screen. */
-const LOOK_LABELS: Record<CoinLookName, string> = { before: "Antes", relief: "Relieve", tone: "Relieve y tono", silver: "Plata", finish: "Acabados" }
+/** EXPERIMENT: the looks of the coin that can be compared on the screen: [number on the button, what it is]. */
+const LOOK_LABELS: Record<CoinLookName, [string, string]> = {
+  before: ["1", "Antes"], relief: ["2", "Relieve"], silver: ["3", "Plata"], silverFinish: ["3.1", "Plata + Acabados"], silverFinish2: ["3.2", "Plata + Acabados 2"],
+  finish: ["4", "Acabados"], finish2: ["4.1", "Acabados 2"],
+}
 
 /** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */
 type Origin = { card: DOMRect | null; coin: DOMRect | null }
@@ -375,11 +378,14 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
       <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-between px-5 pb-8 pt-4"
         style={{ opacity: open ? 1 : 0, transition: reducedMotion() ? "none" : open ? "opacity 300ms ease 220ms" : "opacity 160ms ease" }}>
         <div className="pointer-events-auto flex w-full max-w-md items-start justify-between">
-          <div role="group" aria-label="Acabado de la moneda" data-coin-look className="flex flex-col items-start gap-1 text-xs font-bold">
-            {(Object.keys(LOOK_LABELS) as CoinLookName[]).map((name) => (
-              <button key={name} type="button" data-coin-look-option={name} aria-pressed={look === name} onClick={() => setLook(name)}
-                className={`min-h-7 rounded-full bg-black/50 px-2.5 ${look === name ? "coin-gold" : "opacity-60"}`}>{LOOK_LABELS[name]}</button>
-            ))}
+          <div role="group" aria-label="Acabado de la moneda" data-coin-look className="flex flex-col items-start gap-1.5 text-xs font-bold">
+            <div className="grid grid-cols-4 gap-1">
+              {(Object.keys(LOOK_LABELS) as CoinLookName[]).map((name) => (
+                <button key={name} type="button" data-coin-look-option={name} aria-pressed={look === name} aria-label={LOOK_LABELS[name][1]} onClick={() => setLook(name)}
+                  className={`min-h-8 min-w-9 rounded-full bg-black/50 px-2 ${look === name ? "coin-gold" : "opacity-60"}`}>{LOOK_LABELS[name][0]}</button>
+              ))}
+            </div>
+            <p data-coin-look-name className="rounded-full bg-black/50 px-2.5 py-1 coin-gold">{LOOK_LABELS[look][0]} · {LOOK_LABELS[look][1]}</p>
           </div>
           <button ref={closeRef} type="button" onClick={requestClose} className={smallButton}>{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
         </div>

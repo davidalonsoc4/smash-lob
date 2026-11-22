@@ -45,21 +45,26 @@ export type CoinScene = {
 /** How the metal looks: lights, reflections and finish. */
 const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughness: 0.4, bump: 3.2, lobBump: 3.2, tint: 0xffffff }
 /**
- * EXPERIMENT (branch exp/coin-design): five looks to compare with a selector on the screen.
- *  - before: what is in production.
- *  - relief: the same gold with more contrast in the relief (stronger bump, a bit less glossy), no tint.
- *  - tone: relief plus a deeper, warmer tint and less exposure (the first candidate: it goes orange).
- *  - silver: relief plus a silver outer ring and a silver edge, like a bimetallic coin.
- *  - finish: all gold with different finishes: satin and darker field, polished brighter relief (both from the height maps), brushed edge.
+ * EXPERIMENT (branch exp/coin-design): seven looks to compare with a selector on the screen. Two things vary: the finish of the gold
+ * (smooth with more relief, "finish" or "finish2": satin field and polished relief made from the height maps) and the silver outer ring.
+ *   1 before: what is in production.      2 relief: more contrast in the relief, nothing else.
+ *   3 silver: relief + silver ring.        3.1 silver + finish.      3.2 silver + finish2.
+ *   4 finish: all gold, satin field, polished relief, brushed edge.      4.1 finish2: the same with a less brownish field.
  */
-export type CoinLookName = "before" | "relief" | "tone" | "silver" | "finish"
-type CoinLook = typeof LOOK & { finish?: boolean; silver?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
+export type CoinLookName = "before" | "relief" | "silver" | "silverFinish" | "silverFinish2" | "finish" | "finish2"
+type CoinLook = typeof LOOK & { finish?: { metalField: number; drop: number }; silver?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
+const RELIEF = { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7 }
+const SILVER = { silver: true, edgeColor: 0xd7dade, edgeRoughness: 0.3 }
+const FINISH: CoinLook = { ...LOOK, metalness: 1, roughness: 0.62, bump: 4.4, lobBump: 6, finish: { metalField: 0.76, drop: 0.6 }, edgeColor: 0xd9ac47, edgeRoughness: 0.42, edgeBump: 2.2 }
+const FINISH2: CoinLook = { ...LOOK, key: 3, metalness: 1, roughness: 0.5, bump: 4.6, lobBump: 6.4, finish: { metalField: 0.92, drop: 0.55 }, edgeColor: 0xe0b44e, edgeRoughness: 0.36, edgeBump: 2.6 }
 export const COIN_LOOKS: Record<CoinLookName, CoinLook> = {
   before: LOOK,
-  relief: { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7 },
-  tone: { exposure: 0.92, key: 2.5, environment: 0.22, metalness: 0.85, roughness: 0.5, bump: 5.2, lobBump: 7, tint: 0xf2dfb4 },
-  silver: { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7, silver: true, edgeColor: 0xd7dade, edgeRoughness: 0.3 },
-  finish: { ...LOOK, metalness: 1, roughness: 0.62, bump: 4.4, lobBump: 6, finish: true, edgeColor: 0xd9ac47, edgeRoughness: 0.42, edgeBump: 2.2 },
+  relief: RELIEF,
+  silver: { ...RELIEF, ...SILVER },
+  silverFinish: { ...FINISH, ...SILVER },
+  silverFinish2: { ...FINISH2, ...SILVER },
+  finish: FINISH,
+  finish2: FINISH2,
 }
 /** The coin is always seen with its top leaning 5 degrees toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
 const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), (5 * Math.PI) / 180)
@@ -230,9 +235,10 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   coin.add(ringFrontMesh, ringBackMesh)
   scene.add(coin)
   // EXPERIMENT: roughness and metalness maps made from the height maps: the field is satin (rougher, a bit less metallic) and the relief polished.
-  const finishMaps = new Map<Texture, Texture>()
-  const finishMapOf = (height: Texture): Texture | null => {
-    const cached = finishMaps.get(height)
+  const finishMapKeys = new Map<string, Texture>()
+  const finishMapOf = (height: Texture, finish: { metalField: number; drop: number }): Texture | null => {
+    const cacheKey = `${height.uuid}-${finish.metalField}-${finish.drop}`
+    const cached = finishMapKeys.get(cacheKey)
     if (cached) return cached
     const source = height.image as CanvasImageSource & { width: number; height: number }
     if (!source || !source.width) return null
@@ -249,14 +255,14 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       const t = Math.min(1, Math.max(0, (h - 0.42) / 0.3))
       const relief = t * t * (3 - 2 * t)
       pixels.data[i] = 255
-      pixels.data[i + 1] = Math.round(255 * (1 - 0.6 * relief)) // roughness: the field is rough, the relief smooth
-      pixels.data[i + 2] = Math.round(255 * (0.76 + 0.24 * relief)) // metalness: the field is a little less metallic
+      pixels.data[i + 1] = Math.round(255 * (1 - finish.drop * relief)) // roughness: the field is rough, the relief smooth
+      pixels.data[i + 2] = Math.round(255 * (finish.metalField + (1 - finish.metalField) * relief)) // metalness: the field is a little less metallic
       pixels.data[i + 3] = 255
     }
     context.putImageData(pixels, 0, 0)
     const texture = new CanvasTexture(canvas)
     texture.anisotropy = maxAnisotropy
-    finishMaps.set(height, texture)
+    finishMapKeys.set(cacheKey, texture)
     return texture
   }
 
@@ -553,7 +559,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       scene.environmentIntensity = next.environment
       key.intensity = next.key
       for (const [material, bump, height] of [[frontMaterial, next.bump, smashHeight], [backMaterial, next.lobBump, lobHeight]] as const) {
-        const map = next.finish ? finishMapOf(height) : null
+        const map = next.finish ? finishMapOf(height, next.finish) : null
         if ((material.roughnessMap === null) !== (map === null)) material.needsUpdate = true
         material.roughnessMap = map
         material.metalnessMap = map
