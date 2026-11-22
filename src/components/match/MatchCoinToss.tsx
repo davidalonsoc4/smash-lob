@@ -3,9 +3,9 @@ import { createPortal } from "react-dom"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
-import type { CoinBlend, CoinScene, ScreenCircle } from "@/lib/coin3d"
+import type { CoinScene, ScreenCircle } from "@/lib/coin3d"
 import {
-  COIN_TOSS_TIME_WINDOW_ENABLED, getCoinTossWindow, otherCoinTossTeam, pendingCoinTossStep,
+  getCoinTossWindow, isCoinTossTimeWindowEnforced, otherCoinTossTeam, pendingCoinTossStep,
   type CoinToss, type CoinTossChoice, type CoinTossFace, type CoinTossTeam,
 } from "@/lib/matchCoinToss"
 import { chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFailure, type CoinTossKind } from "@/lib/matchCoinTossClient"
@@ -157,16 +157,6 @@ function ShotLabel({ shot }: { shot: "smash" | "lob" }) {
   )
 }
 
-/**
- * The look of the coin that was chosen (C: aged gold with silver in the relief): the values of the mix of gold and silver. The other
- * looks that were tried are still in coin3d (COIN_LOOKS, setBlend).
- */
-const COIN_MIX: CoinBlend = { field: 0, relief: 0.95, age: 0.7, radial: 0 }
-
-/** EXPERIMENT: versions of the animation of the toss that can be compared on the screen. */
-type AnimVersion = 1 | 2 | 3
-const ANIMS: Array<[AnimVersion, string]> = [[1, "Actual"], [2, "Cola corta"], [3, "Más rápida"]]
-
 /** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */
 type Origin = { card: DOMRect | null; coin: DOMRect | null }
 const circleOf = (rect: DOMRect | null): ScreenCircle | null => (rect && rect.width > 0 ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, size: Math.min(rect.width, rect.height) } : null)
@@ -206,21 +196,6 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const closeRef = useRef<HTMLButtonElement>(null)
   const sceneRef = useRef<CoinScene | null>(null)
   const [stage, setStage] = useState<Stage>("loading")
-  /** EXPERIMENT (branch exp/coin-design): compares the look in production with the candidate. */
-  // The chosen look is painted as soon as the 3D coin is ready.
-  useEffect(() => {
-    if (stage !== "ready") return
-    sceneRef.current?.setLook("blend")
-    sceneRef.current?.setBlend(COIN_MIX)
-  }, [stage])
-  /** EXPERIMENT: version of the animation, and whether the coin has stopped (the toss can be repeated). */
-  const [tossAnim, setTossAnim] = useState<AnimVersion>(1)
-  const [idle, setIdle] = useState(true)
-  useEffect(() => {
-    if (stage !== "ready") return
-    sceneRef.current?.setAnim(tossAnim)
-    sceneRef.current?.onIdle(() => setIdle(true))
-  }, [stage, tossAnim])
   const [startFace] = useState<CoinTossFace>(initialToss?.result ?? "heads")
   /** The team that called the smash, once the pick is made and the coin waits to be tossed. */
   const [headsTeam, setHeadsTeam] = useState<CoinTossTeam | null>(null)
@@ -283,7 +258,6 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
 
   const landed = useCallback(() => {
     navigator.vibrate?.(40)
-    setIdle(true)
     setPhase("winner")
   }, [])
   // The flat coin: if the browser never reports the end of its animation, the result still comes out.
@@ -326,7 +300,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     const scene = sceneRef.current
     if (!scene) return
     if (!startedByGesture) scene.launch(power)
-    setBusy(true); setError(null); setPhase("flipping"); setIdle(false)
+    setBusy(true); setError(null); setPhase("flipping")
     const result = await tossCoinRequest(kind, matchId, headsTeam)
     setBusy(false)
     if (!result.ok) { scene.cancel(); setError(result.error); setPhase("throw"); return }
@@ -362,14 +336,6 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     setPhase(phaseFor(next))
   }
 
-  /** EXPERIMENT: throw the coin again with the same call (each repetition uses the chosen version of the animation). */
-  function repeatThrow() {
-    if (!headsTeam || !idle || busy) return
-    setError(null)
-    setLanding(null)
-    setPhase("throw")
-  }
-
   /** Start again (for as long as the toss is being tested). */
   function repeatNow() {
     setHeadsTeam(null)
@@ -402,16 +368,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
 
       <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-between px-5 pb-8 pt-4"
         style={{ opacity: open ? 1 : 0, transition: reducedMotion() ? "none" : open ? "opacity 300ms ease 220ms" : "opacity 160ms ease" }}>
-        <div className="pointer-events-auto flex w-full max-w-md items-start justify-between">
-          <div role="group" aria-label="Versión de la animación" data-coin-anim-versions className="flex flex-col items-start gap-1.5 text-xs font-bold">
-            <div className="grid grid-cols-3 gap-1">
-              {ANIMS.map(([version, label]) => (
-                <button key={version} type="button" data-coin-anim-option={version} aria-pressed={tossAnim === version} aria-label={label} onClick={() => setTossAnim(version)}
-                  className={`min-h-8 min-w-9 rounded-full bg-black/50 px-2 ${tossAnim === version ? "coin-gold" : "opacity-60"}`}>{version}</button>
-              ))}
-            </div>
-            <p className="rounded-full bg-black/50 px-2.5 py-1 coin-gold">{tossAnim} · {ANIMS.find(([version]) => version === tossAnim)?.[1]}</p>
-          </div>
+        <div className="pointer-events-auto flex w-full max-w-md justify-end">
           <button ref={closeRef} type="button" onClick={requestClose} className={smallButton}>{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
         </div>
 
@@ -467,8 +424,6 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
                 <span className="text-xs font-bold coin-btn-sub first-letter:uppercase">{tx(isPair(rawName(winner)) ? "empiezan restando" : "empieza restando")}</span>
               </button>
             </div>
-            {/* EXPERIMENT: to see the animation again as many times as needed. */}
-            {headsTeam ? <button type="button" data-coin-repeat-throw disabled={!idle || busy} onClick={repeatThrow} className={`${smallButton} disabled:opacity-40`}>{"Repetir lanzamiento"}</button> : null}
           </> : null}
 
           {phase === "done" && toss?.servingTeam ? <>
@@ -567,7 +522,7 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
   const canPreload = canToss && matchOpen
   useEffect(() => {
     if (!canPreload) return
-    for (const name of ["smash", "lob", "smash-height", "lob-height"]) new Image().src = `/coin/${name}.webp`
+    for (const name of ["smash-3d", "lob-3d", "smash-maps", "lob-maps"]) new Image().src = `/coin/${name}.webp`
     // The 3D engine is its own chunk: fetch it now, so the coin shows as soon as the screen opens.
     void import("@/lib/coin3d")
   }, [canPreload])
@@ -580,7 +535,7 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
   const closeDialog = useCallback(() => { setDialog(null); setCoinHidden(false) }, [])
   const showBigCoin = useCallback(() => setCoinHidden(true), [])
 
-  const tossWindow = getCoinTossWindow({ scheduledAt, now, requireTime: kind === "league", enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
+  const tossWindow = getCoinTossWindow({ scheduledAt, now, requireTime: kind === "league", enforce: isCoinTossTimeWindowEnforced() })
   const canStart = canToss && matchOpen && tossWindow.state === "open"
   if (!visible) return null
   if (!toss && !canStart && !(canToss && matchOpen && tossWindow.state === "early")) return null

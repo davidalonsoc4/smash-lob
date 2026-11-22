@@ -1,5 +1,5 @@
 import {
-  ACESFilmicToneMapping, CanvasTexture, CircleGeometry, CylinderGeometry, RingGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial,
+  ACESFilmicToneMapping, CanvasTexture, CircleGeometry, CylinderGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial,
   PMREMGenerator, PerspectiveCamera, Quaternion, RepeatWrapping, SRGBColorSpace, Scene, TextureLoader, Vector3, WebGLRenderer,
   type Texture,
 } from "three"
@@ -33,18 +33,6 @@ export type CoinScene = {
   land(face: CoinTossFace): Promise<void>
   /** The toss could not be made: the coin goes back to its place. */
   cancel(): void
-  /** EXPERIMENT: changes the look of the metal on the fly (before / after). */
-  setLook(name: CoinLookName): void
-  /** EXPERIMENT: the mix of gold and silver of the "blend" look (repaints the faces). */
-  setBlend(blend: CoinBlend): void
-  /**
-   * EXPERIMENT: version of the toss animation (it applies from the next toss). 1: as it was. 2: the last two bounces are quicker and the
-   * pause and the way back shorter. 3: also the flight and the first two bounces are quicker and the last bounce is left out.
-   * In all of them the result is given when the coin has stopped and is back in its place.
-   */
-  setAnim(version: 1 | 2 | 3): void
-  /** EXPERIMENT: called when the coin has stopped and is back in its place (after the whole toss). */
-  onIdle(handler: (() => void) | null): void
   /** The coin starts on that circle (the small coin of the panel) and moves to its place, growing. */
   appear(from: ScreenCircle): void
   /** The coin moves onto that circle and shrinks to its size. Resolves when it has arrived. */
@@ -53,46 +41,7 @@ export type CoinScene = {
 }
 
 /** How the metal looks: lights, reflections and finish. */
-const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughness: 0.4, bump: 3.2, lobBump: 3.2, tint: 0xffffff }
-/**
- * EXPERIMENT (branch exp/coin-design): seven looks to compare with a selector on the screen. Two things vary: the finish of the gold
- * (smooth with more relief, "finish" or "finish2": satin field and polished relief made from the height maps) and the silver outer ring.
- *   1 before: what is in production.      2 relief: more contrast in the relief, nothing else.
- *   3 silver: relief + silver ring.        3.1 silver + finish.      3.2 silver + finish2.
- *   4 finish: all gold, satin field, polished relief, brushed edge.      4.1 finish2: the same with a less brownish field.
- */
-export type CoinLookName = "before" | "relief" | "silver" | "silverFinish" | "silverFinish2" | "finish" | "finish2" | "finish2Silver" | "goldSilverFaces" | "silverRelief" | "champagne" | "blend"
-type CoinLook = typeof LOOK & { finish?: { metalField: number; drop: number }; silver?: boolean; mix?: [number, number]; reliefSilver?: boolean; blend?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
-const RELIEF = { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7 }
-const SILVER = { silver: true, edgeColor: 0xd7dade, edgeRoughness: 0.3 }
-const FINISH: CoinLook = { ...LOOK, metalness: 1, roughness: 0.62, bump: 4.4, lobBump: 6, finish: { metalField: 0.76, drop: 0.6 }, edgeColor: 0xd9ac47, edgeRoughness: 0.42, edgeBump: 2.2 }
-const FINISH2: CoinLook = { ...LOOK, key: 3, metalness: 1, roughness: 0.5, bump: 4.6, lobBump: 6.4, finish: { metalField: 0.92, drop: 0.55 }, edgeColor: 0xe0b44e, edgeRoughness: 0.36, edgeBump: 2.6 }
-export const COIN_LOOKS: Record<CoinLookName, CoinLook> = {
-  before: LOOK,
-  relief: RELIEF,
-  silver: { ...RELIEF, ...SILVER },
-  silverFinish: { ...FINISH, ...SILVER },
-  silverFinish2: { ...FINISH2, ...SILVER },
-  finish: FINISH,
-  finish2: FINISH2,
-  // The whole coin in silver: the picture of the gold coin turned grey, a cooler light and a silver edge (finish 2 for the rest).
-  finish2Silver: { ...FINISH2, mix: [1, 1], key: 3.2, environment: 0.34, edgeColor: 0xd7dade, edgeRoughness: 0.34, edgeBump: 2.6 },
-  // Each face its own metal: the smash in gold and the lob in silver.
-  goldSilverFaces: { ...FINISH2, mix: [0, 1], key: 3.1, environment: 0.3 },
-  // Silver in the relief (the figures, the racket, the net) and gold in the field.
-  silverRelief: { ...FINISH2, reliefSilver: true, key: 3.1, environment: 0.3 },
-  // One metal between gold and silver: pale gold.
-  champagne: { ...FINISH2, mix: [0.38, 0.38], key: 3.1, environment: 0.3, edgeColor: 0xe3cd94 },
-  // Gold and silver mixed live with sliders (see CoinBlend): the picture is repainted whenever a value changes.
-  blend: { ...FINISH2, key: 3.1, environment: 0.3, blend: true },
-}
-
-/**
- * EXPERIMENT: how gold and silver are mixed in the "blend" look. All from 0 to 1 except `radial` (-1 to 1):
- *  - field: how silver the field (the low parts) is; relief: how silver the relief (figures, racket, net, border) is.
- *  - age: dulls the gold (less yellow, a little darker). radial: more silver towards the edge (positive) or towards the center (negative).
- */
-export type CoinBlend = { field: number; relief: number; age: number; radial: number }
+const LOOK = { exposure: 1.0, key: 3.1, environment: 0.3, metalness: 1, roughness: 0.5, bump: 4.6, lobBump: 6.4, tint: 0xffffff }
 /** The coin is always seen with its top leaning 5 degrees toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
 const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), (5 * Math.PI) / 180)
 const RADIUS = 1
@@ -127,14 +76,10 @@ const bouncePattern = (): Bounce[] => [
  * height, so every bounce is shorter than the one before but not by much: 1.3 s, 1.0 s, 0.8 s and 0.45 s for the four of them.
  */
 const bounceSeconds = (height: number) => 0.12 + 1.15 * Math.sqrt(height)
-/** EXPERIMENT: how long each part of the toss lasts in every version of the animation (1 is the original; the rest are shorter). */
-const TIMING = {
-  1: { flight: 1, bounces: [1, 1, 1, 1], rest: 0.3, back: 0.7, count: 4 },
-  2: { flight: 1, bounces: [1, 1, 0.78, 0.78], rest: 0.12, back: 0.45, count: 4 },
-  3: { flight: 0.8, bounces: [0.8, 0.8, 0.62, 0.62], rest: 0.1, back: 0.4, count: 3 },
-} as const
 /** The coin lands on a floor this far above the bottom edge of the screen (about the height of the navigation bar), shadow included. */
 const FLOOR_MARGIN_PX = 64
+const REST_PAUSE = 0.3
+const RETURN_TIME = 0.7
 
 const smoothstep = (edge0: number, edge1: number, value: number) => {
   const x = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)))
@@ -205,15 +150,17 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   const loader = new TextureLoader()
   let textures: Texture[]
   try {
-    textures = await Promise.all(["smash", "lob", "smash-height", "lob-height"].map((name) => loader.loadAsync(`/coin/${name}.webp`)))
+    // The final look is baked into the pictures (scripts/coin-art/bake-look.mjs): -3d is the colour of each face and -maps has the relief in the
+    // red channel, the roughness in the green one and the metalness in the blue one, so nothing is painted when the coin opens.
+    textures = await Promise.all(["smash-3d", "lob-3d", "smash-maps", "lob-maps"].map((name) => loader.loadAsync(`/coin/${name}.webp`)))
   } catch {
     renderer.dispose()
     return null
   }
-  const [smash, lob, smashHeight, lobHeight] = textures
+  const [smash, lob, smashMaps, lobMaps] = textures
   const maxAnisotropy = renderer.capabilities.getMaxAnisotropy()
   for (const texture of [smash, lob]) { texture.colorSpace = SRGBColorSpace; texture.anisotropy = maxAnisotropy }
-  for (const texture of [smashHeight, lobHeight]) texture.anisotropy = maxAnisotropy
+  for (const texture of [smashMaps, lobMaps]) texture.anisotropy = maxAnisotropy
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 3))
   renderer.toneMapping = ACESFilmicToneMapping
@@ -244,165 +191,16 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   back.rotateX(Math.PI)
   back.translate(0, 0, -THICKNESS / 2)
   const reeding = reedingTexture()
-  const edgeMaterial = new MeshStandardMaterial({ color: 0xd9ac47, metalness: 1, roughness: 0.36, bumpMap: reeding, bumpScale: 1.6 })
-  const faceMaterial = (map: Texture, height: Texture) => new MeshStandardMaterial({ map, color: look.tint, bumpMap: height, bumpScale: look.bump, metalness: look.metalness, roughness: look.roughness, envMapIntensity: look.environment })
-  const frontMaterial = faceMaterial(smash, smashHeight)
-  const backMaterial = faceMaterial(lob, lobHeight)
+  const edgeMaterial = new MeshStandardMaterial({ color: 0xe0b44e, metalness: 1, roughness: 0.36, bumpMap: reeding, bumpScale: 2.6 })
+  const faceMaterial = (map: Texture, maps: Texture, bump: number) => new MeshStandardMaterial({
+    map, color: look.tint, bumpMap: maps, bumpScale: bump, roughnessMap: maps, metalnessMap: maps,
+    metalness: look.metalness, roughness: look.roughness, envMapIntensity: look.environment,
+  })
+  const frontMaterial = faceMaterial(smash, smashMaps, look.bump)
+  const backMaterial = faceMaterial(lob, lobMaps, look.lobBump)
   const coin = new Group()
   coin.add(new Mesh(edge, edgeMaterial), new Mesh(front, frontMaterial), new Mesh(back, backMaterial))
-  // EXPERIMENT: the silver outer rings (same height maps, so the engraving of the border stays), only shown in the silver look.
-  const RING_INNER = 0.905
-  const ringFront = new RingGeometry(RING_INNER, RADIUS, 160)
-  ringFront.translate(0, 0, THICKNESS / 2 + 0.002)
-  const ringBack = new RingGeometry(RING_INNER, RADIUS, 160)
-  ringBack.rotateX(Math.PI)
-  ringBack.translate(0, 0, -THICKNESS / 2 - 0.002)
-  const silverMaterial = (height: Texture) => new MeshStandardMaterial({ color: 0xd7dade, bumpMap: height, bumpScale: 5, metalness: 1, roughness: 0.3, envMapIntensity: 0.3, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
-  const ringFrontMaterial = silverMaterial(smashHeight)
-  const ringBackMaterial = silverMaterial(lobHeight)
-  const ringFrontMesh = new Mesh(ringFront, ringFrontMaterial)
-  const ringBackMesh = new Mesh(ringBack, ringBackMaterial)
-  ringFrontMesh.visible = ringBackMesh.visible = false
-  coin.add(ringFrontMesh, ringBackMesh)
   scene.add(coin)
-  // EXPERIMENT: roughness and metalness maps made from the height maps: the field is satin (rougher, a bit less metallic) and the relief polished.
-  // EXPERIMENT: pictures of other metals made from the gold ones. `mix` goes from the gold picture (0) to the same drawing in grey, which is
-  // silver (1); with `height` the silver is only where the relief is high (the figures, the racket, the net) and the field stays gold.
-  const mixedMaps = new Map<string, Texture>()
-  const pixelsOf = (image: CanvasImageSource & { width: number; height: number }, size: number) => {
-    const canvas = document.createElement("canvas")
-    canvas.width = canvas.height = size
-    const context = canvas.getContext("2d")
-    if (!context) return null
-    context.drawImage(image, 0, 0, size, size)
-    return { context, data: context.getImageData(0, 0, size, size) }
-  }
-  const mixedMapOf = (map: Texture, mix: number, height?: Texture): Texture => {
-    if (mix <= 0 && !height) return map
-    const cacheKey = `${map.uuid}-${mix}-${height?.uuid ?? ""}`
-    const cached = mixedMaps.get(cacheKey)
-    if (cached) return cached
-    const source = map.image as CanvasImageSource & { width: number; height: number }
-    if (!source) return map
-    const size = Math.min(2048, source.width || 1024)
-    const picture = pixelsOf(source, size)
-    const relief = height ? pixelsOf(height.image as CanvasImageSource & { width: number; height: number }, size) : null
-    if (!picture) return map
-    const data = picture.data.data
-    for (let i = 0; i < data.length; i += 4) {
-      // The gold picture is dark in luminance: it is lifted so the silver does not come out dull.
-      const grey = Math.min(255, (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) * 1.28)
-      let amount = mix
-      if (relief) {
-        const h = relief.data.data[i] / 255
-        const t = Math.min(1, Math.max(0, (h - 0.45) / 0.3))
-        amount = t * t * (3 - 2 * t) * 0.9
-      }
-      // Silver in the relief is a little warm (champagne), so it does not fight with the gold around it.
-      const warm = relief ? [1, 0.965, 0.88] : [1, 1, 1]
-      data[i] = data[i] + (grey * warm[0] - data[i]) * amount
-      data[i + 1] = data[i + 1] + (grey * warm[1] - data[i + 1]) * amount
-      data[i + 2] = data[i + 2] + (grey * warm[2] - data[i + 2]) * amount
-    }
-    picture.context.putImageData(picture.data, 0, 0)
-    const texture = new CanvasTexture(picture.context.canvas)
-    texture.colorSpace = SRGBColorSpace
-    texture.anisotropy = maxAnisotropy
-    mixedMaps.set(cacheKey, texture)
-    return texture
-  }
-  // EXPERIMENT: the faces of the "blend" look, painted live: the gold picture and the relief are read once and every change of the sliders mixes them again.
-  let blendParams: CoinBlend = { field: 0.38, relief: 0.95, age: 0, radial: 0 }
-  let blendActive = false
-  let blendFrame = 0
-  type LiveFace = { size: number; gold: Uint8ClampedArray; mask: Float32Array; image: ImageData; context: CanvasRenderingContext2D; texture: Texture }
-  const liveFaces = new Map<Texture, LiveFace>()
-  const paintLive = (live: LiveFace) => {
-    const p = blendParams
-    const n = live.size
-    const out = live.image.data
-    const { gold, mask } = live
-    const dark = 1 - 0.18 * p.age
-    const k = p.age * 0.55
-    for (let y = 0; y < n; y += 1) {
-      const dy = ((y + 0.5) / n) * 2 - 1
-      for (let x = 0; x < n; x += 1) {
-        const dx = ((x + 0.5) / n) * 2 - 1
-        const r = Math.min(1, Math.sqrt(dx * dx + dy * dy))
-        const i = (y * n + x) * 4
-        const R = gold[i], G = gold[i + 1], B = gold[i + 2]
-        const lum = 0.2126 * R + 0.7152 * G + 0.0722 * B
-        const grey = Math.min(255, lum * 1.28)
-        // The gold, dulled when it is aged.
-        const aR = (R + (lum - R) * k) * dark, aG = (G + (lum - G) * k) * dark, aB = (B + (lum - B) * k) * dark
-        // The field: from gold to silver, and more or less silver from the center to the edge.
-        const fm = Math.min(1, Math.max(0, p.field + p.radial * (r * 2 - 1)))
-        const bR = aR + (grey - aR) * fm, bG = aG + (grey - aG) * fm, bB = aB + (grey - aB) * fm
-        // The relief: silver a little warm, so it does not fight with the gold around it.
-        const rR = aR + (grey - aR) * p.relief, rG = aG + (grey * 0.965 - aG) * p.relief, rB = aB + (grey * 0.88 - aB) * p.relief
-        const m = mask[y * n + x]
-        out[i] = bR + (rR - bR) * m
-        out[i + 1] = bG + (rG - bG) * m
-        out[i + 2] = bB + (rB - bB) * m
-        out[i + 3] = 255
-      }
-    }
-    live.context.putImageData(live.image, 0, 0)
-    live.texture.needsUpdate = true
-  }
-  const liveFaceOf = (picture: Texture, height: Texture): Texture | null => {
-    const cached = liveFaces.get(picture)
-    if (cached) return cached.texture
-    const source = picture.image as CanvasImageSource & { width: number; height: number }
-    const heightSource = height.image as CanvasImageSource & { width: number; height: number }
-    if (!source || !heightSource) return null
-    const size = Math.min(1280, source.width || 1024)
-    const base = pixelsOf(source, size)
-    const relief = pixelsOf(heightSource, size)
-    if (!base || !relief) return null
-    const mask = new Float32Array(size * size)
-    for (let i = 0; i < mask.length; i += 1) {
-      const t = Math.min(1, Math.max(0, (relief.data.data[i * 4] / 255 - 0.45) / 0.3))
-      mask[i] = t * t * (3 - 2 * t)
-    }
-    const texture = new CanvasTexture(base.context.canvas)
-    texture.colorSpace = SRGBColorSpace
-    texture.anisotropy = maxAnisotropy
-    const live: LiveFace = { size, gold: new Uint8ClampedArray(base.data.data), mask, image: base.data, context: base.context, texture }
-    liveFaces.set(picture, live)
-    paintLive(live)
-    return texture
-  }
-  const finishMapKeys = new Map<string, Texture>()
-  const finishMapOf = (height: Texture, finish: { metalField: number; drop: number }): Texture | null => {
-    const cacheKey = `${height.uuid}-${finish.metalField}-${finish.drop}`
-    const cached = finishMapKeys.get(cacheKey)
-    if (cached) return cached
-    const source = height.image as CanvasImageSource & { width: number; height: number }
-    if (!source || !source.width) return null
-    const size = Math.min(1024, source.width)
-    const canvas = document.createElement("canvas")
-    canvas.width = canvas.height = size
-    const context = canvas.getContext("2d")
-    if (!context) return null
-    context.drawImage(source, 0, 0, size, size)
-    const pixels = context.getImageData(0, 0, size, size)
-    for (let i = 0; i < pixels.data.length; i += 4) {
-      const h = pixels.data[i] / 255
-      // A curve that separates the relief (high) from the field (low).
-      const t = Math.min(1, Math.max(0, (h - 0.42) / 0.3))
-      const relief = t * t * (3 - 2 * t)
-      pixels.data[i] = 255
-      pixels.data[i + 1] = Math.round(255 * (1 - finish.drop * relief)) // roughness: the field is rough, the relief smooth
-      pixels.data[i + 2] = Math.round(255 * (finish.metalField + (1 - finish.metalField) * relief)) // metalness: the field is a little less metallic
-      pixels.data[i + 3] = 255
-    }
-    context.putImageData(pixels, 0, 0)
-    const texture = new CanvasTexture(canvas)
-    texture.anisotropy = maxAnisotropy
-    finishMapKeys.set(cacheKey, texture)
-    return texture
-  }
 
   const shadowMap = shadowTexture()
   const shadow = new Mesh(new CircleGeometry(1, 48), new MeshBasicMaterial({ map: shadowMap, transparent: true, depthWrite: false }))
@@ -454,12 +252,6 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   let fingerLift = 0
   const spin = { x: 0, y: 0 }
   let tossing: Throw | null = null
-  // EXPERIMENT: version of the animation (see setAnim) and who to tell when everything has stopped.
-  let animVersion: 1 | 2 | 3 = 1
-  let idleHandler: (() => void) | null = null
-  const bounceTime = (height: number, index: number) => bounceSeconds(height) * (TIMING[animVersion].bounces[index] ?? 1)
-  const restPause = () => TIMING[animVersion].rest
-  const returnTime = () => TIMING[animVersion].back
   let glide: Glide | null = null
   let view: View | null = null
   let frame = 0
@@ -487,7 +279,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     const y0 = current.from.y
     const peak = Math.min(0.7 * half, y0 + (0.5 + 0.3 * current.power) * half)
     // Up and down under the same gravity: the way down is longer because it falls from higher than it started.
-    const up = (0.45 + 0.17 * current.power) * TIMING[animVersion].flight
+    const up = 0.45 + 0.17 * current.power
     const down = up * Math.sqrt(Math.max(0.1, (peak - floor) / Math.max(0.1, peak - y0)))
     const landing = up + down
     const bounces = current.bounces
@@ -502,8 +294,8 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       y = peak - (peak - floor) * v * v
     } else {
       let start = landing
-      for (const [bounceIndex, bounce] of bounces.entries()) {
-        const time = bounceTime(bounce.height, bounceIndex)
+      for (const bounce of bounces) {
+        const time = bounceSeconds(bounce.height)
         if (seconds < start + time) {
           const u = (seconds - start) / time
           y = floor + bounce.height * half * 4 * u * (1 - u)
@@ -529,7 +321,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       ? FACE_QUATERNION.heads.clone().slerp(FACE_QUATERNION[face], smoothstep(current.faceKnownAt, current.faceKnownAt + 0.7, seconds))
       : FACE_QUATERNION.heads
     const rotation = x.multiply(yaw).multiply(roll).multiply(target)
-    const resting = landing + bounces.reduce((sum, bounce, index) => sum + bounceTime(bounce.height, index), 0)
+    const resting = landing + bounces.reduce((sum, bounce) => sum + bounceSeconds(bounce.height), 0)
     return { rotation, y, z, landing, resting, floor, peak }
   }
 
@@ -556,7 +348,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       if (tossing.face) {
         let at = live.landing
         for (let hit = 0; hit <= tossing.bounces.length; hit += 1) {
-          if (hit > 0) at += bounceTime(tossing.bounces[hit - 1].height, hit - 1)
+          if (hit > 0) at += bounceSeconds(tossing.bounces[hit - 1].height)
           if (hit >= tossing.hits && seconds >= at) {
             tossing.hits = hit + 1
             playCoinHit(hit === 0 ? 1 : Math.min(0.8, tossing.bounces[hit - 1].height / 1.2))
@@ -564,12 +356,12 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
         }
       }
       if (!tossing.landed && tossing.face && seconds >= live.landing) { tossing.landed = true; navigator.vibrate?.(40) }
-      if (tossing.face && seconds >= live.resting + restPause()) {
+      if (tossing.face && seconds >= live.resting + REST_PAUSE) {
         // Stopped: it glides back to its place.
         const finished = tossing
         tossing = null
         orientation.copy(FACE_QUATERNION[finished.face!])
-        glide = { start: now, duration: returnTime() * 1000, from: { y: live.floor, z: 0, floor: live.floor, orientation: orientation.clone() }, face: finished.face!, resolve: finished.resolve }
+        glide = { start: now, duration: RETURN_TIME * 1000, from: { y: live.floor, z: 0, floor: live.floor, orientation: orientation.clone() }, face: finished.face!, resolve: finished.resolve }
       }
     } else if (glide) {
       const progress = Math.min(1, (now - glide.start) / glide.duration)
@@ -582,7 +374,6 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
         const done = glide
         glide = null
         done.resolve?.()
-        idleHandler?.()
       }
     } else {
       if (!dragging && (Math.abs(spin.x) > 0.0004 || Math.abs(spin.y) > 0.0004)) {
@@ -637,7 +428,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     tossing = {
       start: lastFrame, from: { y, orientation: orientation.clone() }, power, face: null, faceKnownAt: 0,
       variant: 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % VARIANTS.length),
-      bounces: bouncePattern().slice(0, TIMING[animVersion].count), resolve: null, landed: false, hits: 0,
+      bounces: bouncePattern(), resolve: null, landed: false, hits: 0,
     }
     playCoinWhoosh(power)
   }
@@ -698,41 +489,6 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   canvas.addEventListener("pointercancel", onUp)
 
   return {
-    setLook(name) {
-      const next = COIN_LOOKS[name]
-      blendActive = Boolean(next.blend)
-      renderer.toneMappingExposure = next.exposure
-      scene.environmentIntensity = next.environment
-      key.intensity = next.key
-      for (const [material, bump, height, picture, mix] of [[frontMaterial, next.bump, smashHeight, smash, next.mix?.[0] ?? 0], [backMaterial, next.lobBump, lobHeight, lob, next.mix?.[1] ?? 0]] as const) {
-        const painted = next.blend ? liveFaceOf(picture, height) ?? picture : next.reliefSilver ? mixedMapOf(picture, 0, height) : mixedMapOf(picture, mix)
-        if (material.map !== painted) { material.map = painted; material.needsUpdate = true }
-        const map = next.finish ? finishMapOf(height, next.finish) : null
-        if ((material.roughnessMap === null) !== (map === null)) material.needsUpdate = true
-        material.roughnessMap = map
-        material.metalnessMap = map
-        material.metalness = next.metalness
-        material.roughness = next.roughness
-        material.bumpScale = bump
-        material.color.setHex(next.tint)
-        material.envMapIntensity = next.environment
-      }
-      edgeMaterial.color.setHex(next.edgeColor ?? 0xd9ac47)
-      edgeMaterial.roughness = next.edgeRoughness ?? 0.36
-      edgeMaterial.bumpScale = next.edgeBump ?? 1.6
-      ringFrontMesh.visible = ringBackMesh.visible = Boolean(next.silver)
-    },
-    setAnim(version) { animVersion = version },
-    onIdle(handler) { idleHandler = handler },
-    setBlend(blend) {
-      blendParams = blend
-      if (!blendActive || blendFrame) return
-      // Repainted at most once per frame, however fast the slider moves.
-      blendFrame = requestAnimationFrame(() => {
-        blendFrame = 0
-        for (const live of liveFaces.values()) paintLive(live)
-      })
-    },
     setFace(face) { orientation.copy(FACE_QUATERNION[face]); touched = true; released = false },
     setLayout(next) { layout = next },
     setMode(next, handler) {
@@ -776,7 +532,6 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     dispose() {
       disposed = true
       cancelAnimationFrame(frame)
-      cancelAnimationFrame(blendFrame)
       observer.disconnect()
       canvas.removeEventListener("pointerdown", onDown)
       canvas.removeEventListener("pointermove", onMove)

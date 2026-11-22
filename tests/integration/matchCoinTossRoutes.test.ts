@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({ actor: vi.fn(), load: vi.fn(), run: vi.fn(), personal: vi.fn(), manageable: vi.fn(), auth: vi.fn() }))
 vi.mock("@/lib/serverMatchAccess", () => ({ getServerMatchActor: mocks.actor }))
 vi.mock("@/lib/serverMatchCoinToss", () => ({ loadCoinToss: mocks.load, runCoinTossAction: mocks.run }))
-// The time rule is switched off in the app for now; these tests check the rule itself.
-vi.mock("@/lib/matchCoinToss", async (original) => ({ ...(await original<typeof import("@/lib/matchCoinToss")>()), COIN_TOSS_TIME_WINDOW_ENABLED: true }))
+// The time rule only applies in production; these tests check the rule itself, so it is switched on here.
+vi.mock("@/lib/matchCoinToss", async (original) => ({ ...(await original<typeof import("@/lib/matchCoinToss")>()), isCoinTossTimeWindowEnforced: () => true }))
 vi.mock("@/lib/serverRateLimit", () => ({ enforceRequestRateLimit: vi.fn().mockResolvedValue(null) }))
 vi.mock("@/lib/serverAuth", () => ({ requireAuthenticatedAppUser: mocks.auth }))
 vi.mock("@/lib/serverPersonalMatches", () => ({ loadPersonalMatch: mocks.personal, loadManageablePersonalMatch: mocks.manageable }))

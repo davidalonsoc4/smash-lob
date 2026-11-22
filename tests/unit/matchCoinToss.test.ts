@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
-  COIN_TOSS_CLOSES_AFTER_MS, COIN_TOSS_OPENS_BEFORE_MS, faceCalledByTeam, getCoinTossWindow, otherCoinTossTeam,
+  COIN_TOSS_CLOSES_AFTER_MS, COIN_TOSS_OPENS_BEFORE_MS, faceCalledByTeam, getCoinTossWindow, isCoinTossTimeWindowEnforced, otherCoinTossTeam,
   pendingCoinTossStep, resolveServingTeam, type CoinToss,
 } from "@/lib/matchCoinToss"
 
@@ -56,5 +56,15 @@ describe("coin toss choices", () => {
     expect(faceCalledByTeam(1, 2)).toBe("tails")
     expect(faceCalledByTeam(2, 2)).toBe("heads")
     expect(otherCoinTossTeam(1)).toBe(2)
+  })
+})
+
+describe("coin toss time rule by environment", () => {
+  const at = (url: string) => new Request(url)
+  it("applies in production only", () => {
+    expect(isCoinTossTimeWindowEnforced(at("https://smashandlob.com/api/matches/1/coin-toss"))).toBe(true)
+    expect(isCoinTossTimeWindowEnforced(at("https://www.smashandlob.com/api/x"))).toBe(true)
+    expect(isCoinTossTimeWindowEnforced(at("https://pre.smashandlob.com/api/x"))).toBe(false)
+    expect(isCoinTossTimeWindowEnforced(at("http://localhost:3000/api/x"))).toBe(false)
   })
 })

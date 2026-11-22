@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { COIN_TOSS_TIME_WINDOW_ENABLED, getCoinTossWindow } from "@/lib/matchCoinToss"
+import { getCoinTossWindow, isCoinTossTimeWindowEnforced } from "@/lib/matchCoinToss"
 import { loadCoinToss, runCoinTossAction } from "@/lib/serverMatchCoinToss"
 import { getServerMatchActor } from "@/lib/serverMatchAccess"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
@@ -12,20 +12,20 @@ const fail = (error: string, status: number) => NextResponse.json({ error }, { s
 const noStore = { "Cache-Control": "private, no-store" }
 
 /** The players of the match and the administrators of the league: spectators only watch the result. */
-async function loadAccess(matchId: string, mutate: boolean) {
+async function loadAccess(matchId: string, mutate: boolean, request: Request) {
   const access = await getServerMatchActor(matchId, { requireLeagueAccess: true, requireMutableSeason: mutate })
   if (!access.ok) return { error: fail(access.error, access.status) }
   const { actor } = access
   if (actor.isSpectator || !(actor.isAdmin || actor.participantPlayerId)) return { error: fail("forbidden", 403) }
   // A league match needs its time: the window is counted from it.
-  const window = getCoinTossWindow({ scheduledAt: actor.match.scheduledAt, now: Date.now(), requireTime: true, enforce: COIN_TOSS_TIME_WINDOW_ENABLED })
+  const window = getCoinTossWindow({ scheduledAt: actor.match.scheduledAt, now: Date.now(), requireTime: true, enforce: isCoinTossTimeWindowEnforced(request) })
   return { actor, window }
 }
 
-export async function GET(_request: Request, context: Context) {
+export async function GET(request: Request, context: Context) {
   const matchId = validateUuid((await context.params).matchId)
   if (!matchId) return fail("invalid_match_id", 400)
-  const loaded = await loadAccess(matchId, false)
+  const loaded = await loadAccess(matchId, false, request)
   if (loaded.error) return loaded.error
   const found = await loadCoinToss(loaded.actor.supabase, { kind: "league", matchId })
   if (!found.ok) return fail("coin_toss_failed", 500)
@@ -38,7 +38,7 @@ export async function POST(request: Request, context: Context) {
   if (rateLimited) return rateLimited
   const matchId = validateUuid((await context.params).matchId)
   if (!matchId) return fail("invalid_match_id", 400)
-  const loaded = await loadAccess(matchId, true)
+  const loaded = await loadAccess(matchId, true, request)
   if (loaded.error) return loaded.error
   // Played, or postponed, no; a match not yet scheduled in the app can still be played, so it can toss.
   if (loaded.actor.match.status !== "scheduled" && loaded.actor.match.status !== "scheduling") return fail("coin_toss_closed", 409)

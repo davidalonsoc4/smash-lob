@@ -1,3 +1,5 @@
+import { getPublicAppBaseUrl, PRODUCTION_APP_URL } from "@/lib/appUrl"
+
 /** Coin toss for who serves first, in league matches and friendlies. Shared by the screen and the server. */
 export type CoinTossTeam = 1 | 2
 /** The two faces of the coin are the smash ("heads") and the lob ("tails"): the stored values keep the usual heads and tails. */
@@ -23,10 +25,13 @@ export const COIN_TOSS_OPENS_BEFORE_MS = 30 * 60_000
 export const COIN_TOSS_CLOSES_AFTER_MS = 4 * 3_600_000
 
 /**
- * Whether the toss is only available around the booked time. Off while the feature is being polished: the toss can be
- * used at any moment (the window code stays, so turning this on brings back the 30-minute rule everywhere).
+ * Whether the toss is only available around the booked time (from 30 minutes before it until a few hours after it, so it can also be
+ * tossed during the match). It is so in production only: in preproduction and when developing the toss is always available, to be able
+ * to test it. Pass the request on the server (it says where the app is running); in the browser the address of the page says it.
  */
-export const COIN_TOSS_TIME_WINDOW_ENABLED = false
+export function isCoinTossTimeWindowEnforced(request?: Request): boolean {
+  return getPublicAppBaseUrl(request) === PRODUCTION_APP_URL
+}
 
 export type CoinTossWindow = {
   state: "open" | "early" | "late" | "unscheduled"
