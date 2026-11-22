@@ -108,8 +108,9 @@ html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important
   position: absolute; inset: 0; border-radius: 9999px; backface-visibility: hidden; -webkit-backface-visibility: hidden;
   background-size: cover; background-position: center; background-repeat: no-repeat; transform: translateZ(var(--coin-half));
 }
-.coin-face-smash { background-image: url("/coin/smash.webp"); }
-.coin-face-lob { background-image: url("/coin/lob.webp"); }
+/* The faces are the final look of the coin (aged gold with silver in the relief) baked into flat pictures: scripts/coin-art/bake-look.mjs. */
+.coin-face-smash { background-image: url("/coin/smash-c.webp"); }
+.coin-face-lob { background-image: url("/coin/lob-c.webp"); }
 .coin-tails { transform: rotateX(180deg) translateZ(var(--coin-half)); }
 .coin-face::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; mix-blend-mode: soft-light;

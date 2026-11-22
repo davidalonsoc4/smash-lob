@@ -38,8 +38,9 @@ export type CoinScene = {
   /** EXPERIMENT: the mix of gold and silver of the "blend" look (repaints the faces). */
   setBlend(blend: CoinBlend): void
   /**
-   * EXPERIMENT: version of the toss animation. 1: as it was. 2: the result is given at the third hit on the floor (the end of the second
-   * bounce) and the coin keeps bouncing for a while. 3: the same, and the last two bounces, the pause and the way back are quicker.
+   * EXPERIMENT: version of the toss animation (it applies from the next toss). 1: as it was. 2: the last two bounces are quicker and the
+   * pause and the way back shorter. 3: also the flight and the first two bounces are quicker and the last bounce is left out.
+   * In all of them the result is given when the coin has stopped and is back in its place.
    */
   setAnim(version: 1 | 2 | 3): void
   /** EXPERIMENT: called when the coin has stopped and is back in its place (after the whole toss). */
@@ -126,12 +127,14 @@ const bouncePattern = (): Bounce[] => [
  * height, so every bounce is shorter than the one before but not by much: 1.3 s, 1.0 s, 0.8 s and 0.45 s for the four of them.
  */
 const bounceSeconds = (height: number) => 0.12 + 1.15 * Math.sqrt(height)
-/** Animation 3: the last two bounces are quicker. */
-const QUICK_TAIL = 0.78
+/** EXPERIMENT: how long each part of the toss lasts in every version of the animation (1 is the original; the rest are shorter). */
+const TIMING = {
+  1: { flight: 1, bounces: [1, 1, 1, 1], rest: 0.3, back: 0.7, count: 4 },
+  2: { flight: 1, bounces: [1, 1, 0.78, 0.78], rest: 0.12, back: 0.45, count: 4 },
+  3: { flight: 0.8, bounces: [0.8, 0.8, 0.62, 0.62], rest: 0.1, back: 0.4, count: 3 },
+} as const
 /** The coin lands on a floor this far above the bottom edge of the screen (about the height of the navigation bar), shadow included. */
 const FLOOR_MARGIN_PX = 64
-const REST_PAUSE = 0.3
-const RETURN_TIME = 0.7
 
 const smoothstep = (edge0: number, edge1: number, value: number) => {
   const x = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)))
@@ -454,9 +457,9 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   // EXPERIMENT: version of the animation (see setAnim) and who to tell when everything has stopped.
   let animVersion: 1 | 2 | 3 = 1
   let idleHandler: (() => void) | null = null
-  const bounceTime = (height: number, index: number) => bounceSeconds(height) * (animVersion === 3 && index >= 2 ? QUICK_TAIL : 1)
-  const restPause = () => (animVersion === 3 ? 0.12 : REST_PAUSE)
-  const returnTime = () => (animVersion === 3 ? 0.45 : RETURN_TIME)
+  const bounceTime = (height: number, index: number) => bounceSeconds(height) * (TIMING[animVersion].bounces[index] ?? 1)
+  const restPause = () => TIMING[animVersion].rest
+  const returnTime = () => TIMING[animVersion].back
   let glide: Glide | null = null
   let view: View | null = null
   let frame = 0
@@ -484,7 +487,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     const y0 = current.from.y
     const peak = Math.min(0.7 * half, y0 + (0.5 + 0.3 * current.power) * half)
     // Up and down under the same gravity: the way down is longer because it falls from higher than it started.
-    const up = 0.45 + 0.17 * current.power
+    const up = (0.45 + 0.17 * current.power) * TIMING[animVersion].flight
     const down = up * Math.sqrt(Math.max(0.1, (peak - floor) / Math.max(0.1, peak - y0)))
     const landing = up + down
     const bounces = current.bounces
@@ -556,8 +559,6 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
           if (hit > 0) at += bounceTime(tossing.bounces[hit - 1].height, hit - 1)
           if (hit >= tossing.hits && seconds >= at) {
             tossing.hits = hit + 1
-            // Animations 2 and 3 give the result at the third hit, while the coin goes on bouncing.
-            if (hit === 2 && animVersion >= 2 && tossing.resolve) { tossing.resolve(); tossing.resolve = null }
             playCoinHit(hit === 0 ? 1 : Math.min(0.8, tossing.bounces[hit - 1].height / 1.2))
           }
         }
@@ -636,7 +637,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     tossing = {
       start: lastFrame, from: { y, orientation: orientation.clone() }, power, face: null, faceKnownAt: 0,
       variant: 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % VARIANTS.length),
-      bounces: bouncePattern(), resolve: null, landed: false, hits: 0,
+      bounces: bouncePattern().slice(0, TIMING[animVersion].count), resolve: null, landed: false, hits: 0,
     }
     playCoinWhoosh(power)
   }

@@ -165,7 +165,7 @@ const COIN_MIX: CoinBlend = { field: 0, relief: 0.95, age: 0.7, radial: 0 }
 
 /** EXPERIMENT: versions of the animation of the toss that can be compared on the screen. */
 type AnimVersion = 1 | 2 | 3
-const ANIMS: Array<[AnimVersion, string]> = [[1, "Actual"], [2, "Resultado antes"], [3, "Resultado antes y cola corta"]]
+const ANIMS: Array<[AnimVersion, string]> = [[1, "Actual"], [2, "Cola corta"], [3, "Más rápida"]]
 
 /** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */
 type Origin = { card: DOMRect | null; coin: DOMRect | null }
