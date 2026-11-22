@@ -51,8 +51,8 @@ const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughn
  *   3 silver: relief + silver ring.        3.1 silver + finish.      3.2 silver + finish2.
  *   4 finish: all gold, satin field, polished relief, brushed edge.      4.1 finish2: the same with a less brownish field.
  */
-export type CoinLookName = "before" | "relief" | "silver" | "silverFinish" | "silverFinish2" | "finish" | "finish2"
-type CoinLook = typeof LOOK & { finish?: { metalField: number; drop: number }; silver?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
+export type CoinLookName = "before" | "relief" | "silver" | "silverFinish" | "silverFinish2" | "finish" | "finish2" | "finish2Silver"
+type CoinLook = typeof LOOK & { finish?: { metalField: number; drop: number }; silver?: boolean; allSilver?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
 const RELIEF = { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7 }
 const SILVER = { silver: true, edgeColor: 0xd7dade, edgeRoughness: 0.3 }
 const FINISH: CoinLook = { ...LOOK, metalness: 1, roughness: 0.62, bump: 4.4, lobBump: 6, finish: { metalField: 0.76, drop: 0.6 }, edgeColor: 0xd9ac47, edgeRoughness: 0.42, edgeBump: 2.2 }
@@ -65,6 +65,8 @@ export const COIN_LOOKS: Record<CoinLookName, CoinLook> = {
   silverFinish2: { ...FINISH2, ...SILVER },
   finish: FINISH,
   finish2: FINISH2,
+  // The whole coin in silver: the picture of the gold coin turned grey, a cooler light and a silver edge (finish 2 for the rest).
+  finish2Silver: { ...FINISH2, allSilver: true, key: 3.2, environment: 0.34, edgeColor: 0xd7dade, edgeRoughness: 0.34, edgeBump: 2.6 },
 }
 /** The coin is always seen with its top leaning 5 degrees toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
 const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), (5 * Math.PI) / 180)
@@ -235,6 +237,31 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   coin.add(ringFrontMesh, ringBackMesh)
   scene.add(coin)
   // EXPERIMENT: roughness and metalness maps made from the height maps: the field is satin (rougher, a bit less metallic) and the relief polished.
+  // EXPERIMENT: the pictures in grey (for the silver coin): same drawing, no gold in it.
+  const greyMaps = new Map<Texture, Texture>()
+  const greyMapOf = (map: Texture): Texture => {
+    const cached = greyMaps.get(map)
+    if (cached) return cached
+    const source = map.image as CanvasImageSource & { width: number; height: number }
+    const size = Math.min(2048, source?.width || 1024)
+    const canvas = document.createElement("canvas")
+    canvas.width = canvas.height = size
+    const context = canvas.getContext("2d")
+    if (!context || !source) return map
+    context.drawImage(source, 0, 0, size, size)
+    const pixels = context.getImageData(0, 0, size, size)
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      // The gold picture is dark in luminance: it is lifted so the silver does not come out dull.
+      const grey = Math.min(255, Math.round((0.2126 * pixels.data[i] + 0.7152 * pixels.data[i + 1] + 0.0722 * pixels.data[i + 2]) * 1.28))
+      pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = grey
+    }
+    context.putImageData(pixels, 0, 0)
+    const texture = new CanvasTexture(canvas)
+    texture.colorSpace = SRGBColorSpace
+    texture.anisotropy = maxAnisotropy
+    greyMaps.set(map, texture)
+    return texture
+  }
   const finishMapKeys = new Map<string, Texture>()
   const finishMapOf = (height: Texture, finish: { metalField: number; drop: number }): Texture | null => {
     const cacheKey = `${height.uuid}-${finish.metalField}-${finish.drop}`
@@ -558,7 +585,9 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       renderer.toneMappingExposure = next.exposure
       scene.environmentIntensity = next.environment
       key.intensity = next.key
-      for (const [material, bump, height] of [[frontMaterial, next.bump, smashHeight], [backMaterial, next.lobBump, lobHeight]] as const) {
+      for (const [material, bump, height, picture] of [[frontMaterial, next.bump, smashHeight, smash], [backMaterial, next.lobBump, lobHeight, lob]] as const) {
+        const grey = next.allSilver ? greyMapOf(picture) : picture
+        if (material.map !== grey) { material.map = grey; material.needsUpdate = true }
         const map = next.finish ? finishMapOf(height, next.finish) : null
         if ((material.roughnessMap === null) !== (map === null)) material.needsUpdate = true
         material.roughnessMap = map

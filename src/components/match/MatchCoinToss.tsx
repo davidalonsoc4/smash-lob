@@ -157,10 +157,12 @@ function ShotLabel({ shot }: { shot: "smash" | "lob" }) {
   )
 }
 
-/** EXPERIMENT: the looks of the coin that can be compared on the screen: [number on the button, what it is]. */
-const LOOK_LABELS: Record<CoinLookName, [string, string]> = {
-  before: ["1", "Antes"], relief: ["2", "Relieve"], silver: ["3", "Plata"], silverFinish: ["3.1", "Plata + Acabados"], silverFinish2: ["3.2", "Plata + Acabados 2"],
-  finish: ["4", "Acabados"], finish2: ["4.1", "Acabados 2"],
+/**
+ * EXPERIMENT: the looks of the coin that are compared on the screen: [number on the button, what it is]. The other looks of the
+ * engine (relief only, silver ring, finish 1…) are still there in coin3d, they are just not offered.
+ */
+const LOOK_LABELS: Partial<Record<CoinLookName, [string, string]>> = {
+  before: ["1", "Antes"], finish2: ["2", "Acabados"], finish2Silver: ["3", "Acabados plata"],
 }
 
 /** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */
@@ -203,7 +205,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const sceneRef = useRef<CoinScene | null>(null)
   const [stage, setStage] = useState<Stage>("loading")
   /** EXPERIMENT (branch exp/coin-design): compares the look in production with the candidate. */
-  const [look, setLook] = useState<CoinLookName>("finish")
+  const [look, setLook] = useState<CoinLookName>("finish2")
   useEffect(() => { if (stage === "ready") sceneRef.current?.setLook(look) }, [stage, look])
   const [startFace] = useState<CoinTossFace>(initialToss?.result ?? "heads")
   /** The team that called the smash, once the pick is made and the coin waits to be tossed. */
@@ -379,13 +381,13 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
         style={{ opacity: open ? 1 : 0, transition: reducedMotion() ? "none" : open ? "opacity 300ms ease 220ms" : "opacity 160ms ease" }}>
         <div className="pointer-events-auto flex w-full max-w-md items-start justify-between">
           <div role="group" aria-label="Acabado de la moneda" data-coin-look className="flex flex-col items-start gap-1.5 text-xs font-bold">
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-3 gap-1">
               {(Object.keys(LOOK_LABELS) as CoinLookName[]).map((name) => (
-                <button key={name} type="button" data-coin-look-option={name} aria-pressed={look === name} aria-label={LOOK_LABELS[name][1]} onClick={() => setLook(name)}
-                  className={`min-h-8 min-w-9 rounded-full bg-black/50 px-2 ${look === name ? "coin-gold" : "opacity-60"}`}>{LOOK_LABELS[name][0]}</button>
+                <button key={name} type="button" data-coin-look-option={name} aria-pressed={look === name} aria-label={LOOK_LABELS[name]![1]} onClick={() => setLook(name)}
+                  className={`min-h-8 min-w-9 rounded-full bg-black/50 px-2 ${look === name ? "coin-gold" : "opacity-60"}`}>{LOOK_LABELS[name]![0]}</button>
               ))}
             </div>
-            <p data-coin-look-name className="rounded-full bg-black/50 px-2.5 py-1 coin-gold">{LOOK_LABELS[look][0]} · {LOOK_LABELS[look][1]}</p>
+            <p data-coin-look-name className="rounded-full bg-black/50 px-2.5 py-1 coin-gold">{LOOK_LABELS[look]?.[0]} · {LOOK_LABELS[look]?.[1]}</p>
           </div>
           <button ref={closeRef} type="button" onClick={requestClose} className={smallButton}>{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
         </div>
