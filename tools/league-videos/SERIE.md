@@ -19,6 +19,8 @@ Criterio: primero la visión general y la app; el **chat (03) es el punto de inf
 | 08 | ~16-dic | Clasificación, desempate y MVP (`ClasificacionMvp`) | Hecho y aprobado |
 | 10 | ~18-dic | Partidos normales / amistosos (`PartidosNormales`) | Hecho y aprobado |
 
+| nuevo | (por decidir) | **Día de partido** (`DiaPartido`, `src/DiaPartido.tsx`; voz `voiceDiaPartido`, toma `assets/video-dia-partido/`): tarjeta de próximo partido, hora/lugar/cómo llegar, moneda 3D del saque, notificación «Falta el resultado», registrar resultado y clasificación | En revisión (`11-dia-de-partido.mp4`) |
+
 Previstos y NO hechos todavía:
 | Cuándo | Vídeo | Estado |
 |---|---|---|

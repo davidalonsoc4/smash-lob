@@ -69,21 +69,21 @@ export const Card: React.FC<{ children: React.ReactNode; accent?: boolean; pad?:
   const t = useTheme();
   return <div style={{ width: W, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderTop: accent ? `2px solid ${t.accent}` : `1px solid ${t.border}`, borderRadius: 18, padding: pad, ...style }}>{children}</div>;
 };
-const PairBox: React.FC<{ a: string; b: string; gold?: boolean }> = ({ a, b, gold }) => {
+export const PairBox: React.FC<{ a: string; b: string; gold?: boolean }> = ({ a, b, gold }) => {
   const t = useTheme();
   return <div style={{ flex: 1, background: gold ? t.accent : t.mutedSurface, color: gold ? t.accentContrast : t.text, borderRadius: 12, padding: "9px 4px", textAlign: "center", fontWeight: 800, fontSize: 14.5, lineHeight: 1.3 }}><div>{a}</div><div>{b}</div></div>;
 };
-const Vs: React.FC = () => { const t = useTheme(); return <div style={{ width: 30, height: 30, borderRadius: "50%", background: t.mutedSurface, color: t.textMuted, fontWeight: 800, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>VS</div>; };
+export const Vs: React.FC = () => { const t = useTheme(); return <div style={{ width: 30, height: 30, borderRadius: "50%", background: t.mutedSurface, color: t.textMuted, fontWeight: 800, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>VS</div>; };
 const Fab: React.FC<{ icon: string }> = ({ icon }) => { const t = useTheme(); return <div style={{ position: "absolute", right: 14, top: BAR_TOP - 56, width: 46, height: 46, borderRadius: "50%", background: t.accent, border: `2px solid ${t.bg}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(0,0,0,.5)", zIndex: 6 }}><Icon name={icon} color={t.accentContrast} size={24} /></div>; };
 const Seg: React.FC<{ items: string[]; active: number; small?: boolean }> = ({ items, active, small }) => {
   const t = useTheme();
   return <div style={{ width: W, boxSizing: "border-box", display: "flex", gap: 4, background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: 4 }}>{items.map((l, i) => <div key={l} style={{ flex: 1, textAlign: "center", padding: small ? "6px 0" : "8px 0", borderRadius: 10, background: i === active ? t.accent : "transparent", color: i === active ? t.accentContrast : t.textMuted, fontSize: 13, fontWeight: 700 }}>{l}</div>)}</div>;
 };
-const Stat: React.FC<{ label: string; value: string; sub?: string; k?: number }> = ({ label, value, sub }) => {
+export const Stat: React.FC<{ label: string; value: string; sub?: string; k?: number }> = ({ label, value, sub }) => {
   const t = useTheme();
   return <div style={{ flex: 1, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderRadius: 16, padding: "10px 12px" }}><div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 1.6, color: t.textMuted }}>{label}</div><div style={{ fontSize: 24, fontWeight: 900, lineHeight: 1.15 }}>{value}</div>{sub && <div style={{ fontSize: 11.5, color: t.textMuted }}>{sub}</div>}</div>;
 };
-const LeagueRow: React.FC<{ title: string; sub: string; logo?: string; initials?: string; badge: string }> = ({ title, sub, logo, initials, badge }) => {
+export const LeagueRow: React.FC<{ title: string; sub: string; logo?: string; initials?: string; badge: string }> = ({ title, sub, logo, initials, badge }) => {
   const t = useTheme();
   return (
     <Card pad="10px 12px">
@@ -120,7 +120,7 @@ const DateLine: React.FC<{ a: string; b: string }> = ({ a, b }) => { const t = u
 
 
 /* tabla de ranking a todo el ancho de la pantalla (como en la app), con filas animadas */
-const RankTable: React.FC<{ rows: RankRow[] }> = ({ rows }) => {
+export const RankTable: React.FC<{ rows: RankRow[] }> = ({ rows }) => {
   const t = useTheme();
   const RH = 33, HH = 28;
   const bars = [t.accent, "#9aa0a8", "#b87333"];
