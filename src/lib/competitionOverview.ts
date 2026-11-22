@@ -1,6 +1,6 @@
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 import type { Season } from "@/data/fakeData"
-import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
+import { getMatchDisplayStatus, MATCH_IN_PROGRESS_WINDOW_MS } from "@/lib/matchLifecycle"
 import { parseMatchScheduleDate } from "@/lib/matchScheduleTime"
 
 export const LEAGUE_ACCESS_SCOPE_HEADER = "X-Smash-Lob-Access-Scope"
@@ -57,9 +57,25 @@ export function selectCompetitionHighlight(items: PersonalMatchItem[], now: Date
   const last = own.filter(item => item.status === "finished" && lastTime(item) > 0 && lastTime(item) <= now.getTime()).sort((a, b) => lastTime(b) - lastTime(a))[0]
   return last ? { kind: "last" as const, match: last } : null
 }
-/** Keep the same privacy/date rules while exposing the two activity cards. */
+/** After a match ends, it stays this long as the first card of the activity, waiting for its result to be entered. */
+export const AWAITING_RESULT_WINDOW_MS = 2 * 3_600_000
+
+/**
+ * The own match that has just ended and has no result yet: from the end of its playing time and for two hours more. It is the first
+ * card of the activity (the one that is shown by default) so that whoever opens the app after playing finds where to enter the result.
+ */
+export function selectAwaitingResult(items: PersonalMatchItem[], now: Date) {
+  const endsAt = (item: PersonalMatchItem) => (parseMatchScheduleDate(item.scheduledAt)?.getTime() ?? Number.NaN) + MATCH_IN_PROGRESS_WINDOW_MS
+  return items
+    .filter(item => item.participants.some(player => player.isCurrentUser) && item.status === "scheduled" && !item.resultRecordedAt && !item.preview?.hidden)
+    .filter(item => endsAt(item) <= now.getTime() && now.getTime() < endsAt(item) + AWAITING_RESULT_WINDOW_MS)
+    .sort((a, b) => endsAt(b) - endsAt(a))[0] ?? null
+}
+
+/** Keep the same privacy/date rules while exposing the activity cards: the match awaiting its result (if any), the next one and the last one. */
 export function selectCompetitionHighlights(items: PersonalMatchItem[], now: Date) {
+  const awaiting = selectAwaitingResult(items, now)
   const next = selectCompetitionHighlight(items.filter(item => item.status !== "finished"), now)
   const last = selectCompetitionHighlight(items.filter(item => item.status === "finished"), now)
-  return [next, last].filter((item): item is NonNullable<typeof item> => item !== null)
+  return [awaiting ? { kind: "awaiting" as const, match: awaiting } : null, next, last].filter((item): item is NonNullable<typeof item> => item !== null)
 }

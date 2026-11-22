@@ -1127,25 +1127,25 @@ test.describe("coin toss in the detail of a friendly", () => {
     await expect(dialog.locator("[data-coin-throw-hint]")).toBeVisible()
     await expect(dialog.locator("[data-coin-pick]")).toHaveCount(0)
     expect(posts).toEqual([])
-    // A short slow movement is not a toss, a quick swipe upwards is. The gestures are sent from inside the page, so their speed
-    // does not depend on how fast the test runner talks to the browser.
-    const swipe = (distance: number, pauseMs: number) => dialog.locator("[data-coin-canvas]").evaluate(async (canvas, [travel, pause]) => {
+    // A short slow movement is not a toss, a quick swipe upwards is. The gestures are sent from inside the page with the time of each
+    // event written in it, so their speed is exactly what the test says and does not depend on how busy the machine is.
+    const swipe = (distance: number, pauseMs: number) => dialog.locator("[data-coin-canvas]").evaluate((canvas, [travel, pause]) => {
       const rect = canvas.getBoundingClientRect()
       const x = rect.left + rect.width / 2
       const y = rect.top + rect.height * 0.6
-      const send = (type: string, offset: number) => canvas.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType: "touch", isPrimary: true, bubbles: true, clientX: x, clientY: y - offset }))
-      send("pointerdown", 0)
-      for (let step = 1; step <= 3; step++) { await new Promise(resolve => setTimeout(resolve, 16)); send("pointermove", (travel * step) / 3) }
-      await new Promise(resolve => setTimeout(resolve, pause))
-      send("pointerup", travel)
+      const send = (type: string, offset: number, time: number) => {
+        const event = new PointerEvent(type, { pointerId: 7, pointerType: "touch", isPrimary: true, bubbles: true, clientX: x, clientY: y - offset })
+        Object.defineProperty(event, "timeStamp", { value: 1000 + time })
+        canvas.dispatchEvent(event)
+      }
+      send("pointerdown", 0, 0)
+      for (let step = 1; step <= 3; step++) send("pointermove", (travel * step) / 3, 16 * step)
+      send("pointerup", travel, 48 + pause)
     }, [distance, pauseMs] as const)
     await swipe(20, 600)
     await page.waitForTimeout(300)
     expect(posts).toEqual([])
     await swipe(300, 0)
-    // With the machine very busy (the software renderer of the test browser) an event can arrive late: one more try.
-    await page.waitForTimeout(1500)
-    if (await dialog.locator("[data-coin-throw-hint]").count()) await swipe(300, 0)
     await expect(dialog.locator("[data-coin-throw-hint]")).toHaveCount(0)
     await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 20000 })
     expect(posts).toEqual([{ action: "toss", headsTeam: 1 }])

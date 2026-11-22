@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { selectCompetitionHighlight, selectCompetitionHighlights } from "@/lib/competitionOverview"
+import { selectAwaitingResult, selectCompetitionHighlight, selectCompetitionHighlights } from "@/lib/competitionOverview"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 
 const now = new Date("2026-10-16T12:00:00Z")
@@ -7,6 +7,23 @@ function match(id: string, overrides: Partial<PersonalMatchItem> = {}): Personal
   return { id, origin: "friendly", status: "scheduled", scheduledAt: "2026-10-17T12:00:00Z", resultRecordedAt: null, locationName: null, sets: [], canManage: false, canDelete: false, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null, participants: [{ team: 1, slot: 1, displayName: "Fixture", isCurrentUser: true }], ...overrides }
 }
 describe("competition overview", () => {
+  it("shows first the match that ended less than two hours ago and has no result, and drops it afterwards", () => {
+    // Played from 18:00 (two hours): from 20:00 to 22:00 it waits for its result.
+    const played = match("played", { scheduledAt: "2026-10-16T16:00:00Z" })
+    const next = match("next")
+    const at = (hour: number) => new Date(`2026-10-16T${hour}:00:00Z`)
+    expect(selectAwaitingResult([played], at(17))).toBeNull()
+    expect(selectAwaitingResult([played], at(18))?.id).toBe("played")
+    expect(selectCompetitionHighlights([next, played], at(19))).toEqual([{ kind: "awaiting", match: played }, { kind: "next", match: next }])
+    expect(selectAwaitingResult([played], at(20))).toBeNull()
+    // With a result, or if it is not mine, it does not wait for anything.
+    expect(selectAwaitingResult([match("done", { scheduledAt: "2026-10-16T16:00:00Z", resultRecordedAt: "2026-10-16T18:30:00Z" })], at(19))).toBeNull()
+    expect(selectAwaitingResult([match("other", { scheduledAt: "2026-10-16T16:00:00Z", participants: [] })], at(19))).toBeNull()
+    // The most recent one goes first.
+    const earlier = match("earlier", { scheduledAt: "2026-10-16T15:00:00Z" })
+    expect(selectAwaitingResult([earlier, played], at(19))?.id).toBe("played")
+  })
+
   it("offers the next and last own encounters together without duplicating API results", () => {
     const next = match("next")
     const last = match("last", { status: "finished", resultRecordedAt: "2026-10-15T15:00:00Z" })
