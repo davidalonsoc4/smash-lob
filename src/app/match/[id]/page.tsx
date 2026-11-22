@@ -15,6 +15,7 @@ import { MatchResultConfirmationCard } from "@/components/match/MatchResultConfi
 import { MatchScheduleForm } from "@/components/match/MatchScheduleForm"
 import { MatchReservationConfirmation } from "@/components/match/MatchReservationConfirmation"
 import { MatchCoinTossPanel } from "@/components/match/MatchCoinToss"
+import { prefetchCoinToss } from "@/lib/matchCoinTossClient"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { SeasonContextLine } from "@/components/layout/SeasonContextLine"
 import { MvpVotingCard } from "@/components/mvp/MvpVotingCard"
@@ -85,6 +86,11 @@ export default function MatchDetailPage() {
   const [openMatchActionPanel, setOpenMatchActionPanel] =
     useState<MatchActionPanel>(null)
 
+  // The toss of the match is asked as soon as the screen opens (in parallel with the rest), not when its card gets drawn.
+  const maybeToss = storedMatch?.status === "scheduled" || storedMatch?.status === "scheduling"
+  useEffect(() => {
+    if (maybeToss) prefetchCoinToss("league", params.id)
+  }, [maybeToss, params.id])
   const shouldFocusBooking = searchParams.get("focus") === "booking"
   const match = matches.find((item) => item.id === params.id)
   const matchId = match?.id ?? null

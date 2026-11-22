@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { clearMatchChatCache, readMatchChatCache, writeMatchChatCache } from "@/lib/matchChatCache"
 import { MatchCoinTossPanel } from "@/components/match/MatchCoinToss"
+import { rememberCoinToss } from "@/lib/matchCoinTossClient"
+import type { CoinToss } from "@/lib/matchCoinToss"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { MatchChatFloatingAction } from "@/components/match/MatchChatFloatingAction"
 import { PersonalMatchParticipantsPanel } from "@/components/personal/PersonalMatchParticipantsPanel"
@@ -51,8 +53,10 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
           clearMatchChatCache(cacheKey, account)
           setItem(null)
         }
-        const payload = (await response.json()) as { item?: PersonalMatchItem }
+        const payload = (await response.json()) as { item?: PersonalMatchItem; coinToss?: CoinToss | null }
         if (!response.ok || !payload.item) throw new Error("personal_match_lookup_failed")
+        // The toss comes with the match: the card of the toss shows it as soon as the match is on the screen.
+        if ("coinToss" in payload) rememberCoinToss("friendly", id, payload.coinToss ?? null)
         return payload.item
       })
       .then((nextItem) => {

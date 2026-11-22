@@ -191,7 +191,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   back.rotateX(Math.PI)
   back.translate(0, 0, -THICKNESS / 2)
   const reeding = reedingTexture()
-  const edgeMaterial = new MeshStandardMaterial({ color: 0xd7dade, metalness: 1, roughness: 0.3, bumpMap: reeding, bumpScale: 2.6 })
+  const edgeMaterial = new MeshStandardMaterial({ color: 0xffffff, metalness: 1, roughness: 0.2, bumpMap: reeding, bumpScale: 2 })
   const faceMaterial = (map: Texture, maps: Texture, bump: number) => new MeshStandardMaterial({
     map, color: look.tint, bumpMap: maps, bumpScale: bump, roughnessMap: maps, metalnessMap: maps,
     metalness: look.metalness, roughness: look.roughness, envMapIntensity: look.environment,

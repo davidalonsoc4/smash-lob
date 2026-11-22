@@ -22,6 +22,7 @@ import { normalizePersonalMatchParticipantDrafts } from "@/lib/serverPersonalMat
 import { broadcastPersonalMatchChatRefresh } from "@/lib/serverChatRealtime"
 import { isMissingPersonalLocationColumnsError } from "@/lib/serverPersonalLocationSchema"
 import { dispatchPersonalMatchPush } from "@/lib/serverPersonalMatchPush"
+import { loadCoinToss } from "@/lib/serverMatchCoinToss"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -50,11 +51,15 @@ export async function GET(
   }
 
   try {
-    const item = await loadPersonalMatch(authResult.actor, matchId)
+    // The toss is asked at the same time as the match and goes in the same answer, so the card of the toss does not need a request of its own.
+    const [item, coinToss] = await Promise.all([
+      loadPersonalMatch(authResult.actor, matchId),
+      loadCoinToss(authResult.actor.supabase, { kind: "friendly", matchId }),
+    ])
     if (!item) {
       return NextResponse.json({ error: "personal_match_not_found" }, { status: 404 })
     }
-    return NextResponse.json({ item })
+    return NextResponse.json(coinToss.ok ? { item, coinToss: coinToss.toss } : { item })
   } catch {
     return NextResponse.json({ error: "personal_match_lookup_failed" }, { status: 500 })
   }

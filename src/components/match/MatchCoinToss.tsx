@@ -8,7 +8,7 @@ import {
   getCoinTossWindow, isCoinTossTimeWindowEnforced, otherCoinTossTeam, pendingCoinTossStep,
   type CoinToss, type CoinTossChoice, type CoinTossFace, type CoinTossTeam,
 } from "@/lib/matchCoinToss"
-import { rememberedCoinToss, chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFailure, type CoinTossKind } from "@/lib/matchCoinTossClient"
+import { isCoinTossFresh, subscribeCoinToss, rememberedCoinToss, chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFailure, type CoinTossKind } from "@/lib/matchCoinTossClient"
 
 type TeamNames = [string, string]
 const teamName = (names: TeamNames, team: CoinTossTeam) => names[team - 1]
@@ -508,13 +508,18 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
 
   useEffect(() => {
     let active = true
-    void fetchCoinToss(kind, matchId).then((state) => {
+    // A toss that arrives from elsewhere (the data of the friendly, a request made ahead of time) is shown as soon as it is there.
+    const unsubscribe = subscribeCoinToss(kind, matchId, (next) => {
       if (!active) return
-      if (!state) { setUnavailable(true); return }
-      setToss(state.coinToss)
+      setToss(next)
       setVisible(true)
     })
-    return () => { active = false }
+    if (!isCoinTossFresh(kind, matchId)) {
+      void fetchCoinToss(kind, matchId).then((state) => {
+        if (active && !state) setUnavailable(true)
+      })
+    }
+    return () => { active = false; unsubscribe() }
   }, [kind, matchId])
   // The window can open while the screen is on (people wait outside before the time).
   useEffect(() => {

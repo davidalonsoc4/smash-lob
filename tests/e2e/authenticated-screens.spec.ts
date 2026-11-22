@@ -1204,6 +1204,18 @@ test.describe("coin toss in the detail of a friendly", () => {
     expect(Math.abs((after?.height ?? 0) - (before?.height ?? 0))).toBeLessThanOrEqual(2)
   })
 
+  test("a friendly brings its toss with the data of the match: the card has its text without a request of its own", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
+    const toss = { calledHeadsTeam: 1, result: "tails", winnerTeam: 2, winnerChoice: "serve", servingTeam: 2, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z" }
+    await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item, coinToss: toss } }))
+    // The request of the card itself never answers: what it shows must come from the data of the match.
+    await page.route("**/api/personal-matches/qa-friendly/coin-toss", () => new Promise(() => undefined))
+    await page.goto("/personal-matches/qa-friendly")
+    const panel = page.locator("[data-coin-toss-panel]")
+    await expect(panel.locator("[data-coin-panel-main]")).toHaveText("Alain y Unai empiezan sacando")
+    await expect(panel.locator("[data-coin-panel-loading]")).toHaveCount(0)
+  })
+
   test("the card is not left loading when the server says the person cannot see it", async ({ page }) => {
     await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
     await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
