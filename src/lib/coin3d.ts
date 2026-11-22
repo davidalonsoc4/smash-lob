@@ -37,6 +37,13 @@ export type CoinScene = {
   setLook(name: CoinLookName): void
   /** EXPERIMENT: the mix of gold and silver of the "blend" look (repaints the faces). */
   setBlend(blend: CoinBlend): void
+  /**
+   * EXPERIMENT: version of the toss animation. 1: as it was. 2: the result is given at the third hit on the floor (the end of the second
+   * bounce) and the coin keeps bouncing for a while. 3: the same, and the last two bounces, the pause and the way back are quicker.
+   */
+  setAnim(version: 1 | 2 | 3): void
+  /** EXPERIMENT: called when the coin has stopped and is back in its place (after the whole toss). */
+  onIdle(handler: (() => void) | null): void
   /** The coin starts on that circle (the small coin of the panel) and moves to its place, growing. */
   appear(from: ScreenCircle): void
   /** The coin moves onto that circle and shrinks to its size. Resolves when it has arrived. */
@@ -119,6 +126,8 @@ const bouncePattern = (): Bounce[] => [
  * height, so every bounce is shorter than the one before but not by much: 1.3 s, 1.0 s, 0.8 s and 0.45 s for the four of them.
  */
 const bounceSeconds = (height: number) => 0.12 + 1.15 * Math.sqrt(height)
+/** Animation 3: the last two bounces are quicker. */
+const QUICK_TAIL = 0.78
 /** The coin lands on a floor this far above the bottom edge of the screen (about the height of the navigation bar), shadow included. */
 const FLOOR_MARGIN_PX = 64
 const REST_PAUSE = 0.3
@@ -442,6 +451,12 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   let fingerLift = 0
   const spin = { x: 0, y: 0 }
   let tossing: Throw | null = null
+  // EXPERIMENT: version of the animation (see setAnim) and who to tell when everything has stopped.
+  let animVersion: 1 | 2 | 3 = 1
+  let idleHandler: (() => void) | null = null
+  const bounceTime = (height: number, index: number) => bounceSeconds(height) * (animVersion === 3 && index >= 2 ? QUICK_TAIL : 1)
+  const restPause = () => (animVersion === 3 ? 0.12 : REST_PAUSE)
+  const returnTime = () => (animVersion === 3 ? 0.45 : RETURN_TIME)
   let glide: Glide | null = null
   let view: View | null = null
   let frame = 0
@@ -484,8 +499,8 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       y = peak - (peak - floor) * v * v
     } else {
       let start = landing
-      for (const bounce of bounces) {
-        const time = bounceSeconds(bounce.height)
+      for (const [bounceIndex, bounce] of bounces.entries()) {
+        const time = bounceTime(bounce.height, bounceIndex)
         if (seconds < start + time) {
           const u = (seconds - start) / time
           y = floor + bounce.height * half * 4 * u * (1 - u)
@@ -511,7 +526,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       ? FACE_QUATERNION.heads.clone().slerp(FACE_QUATERNION[face], smoothstep(current.faceKnownAt, current.faceKnownAt + 0.7, seconds))
       : FACE_QUATERNION.heads
     const rotation = x.multiply(yaw).multiply(roll).multiply(target)
-    const resting = landing + bounces.reduce((sum, bounce) => sum + bounceSeconds(bounce.height), 0)
+    const resting = landing + bounces.reduce((sum, bounce, index) => sum + bounceTime(bounce.height, index), 0)
     return { rotation, y, z, landing, resting, floor, peak }
   }
 
@@ -538,20 +553,22 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       if (tossing.face) {
         let at = live.landing
         for (let hit = 0; hit <= tossing.bounces.length; hit += 1) {
-          if (hit > 0) at += bounceSeconds(tossing.bounces[hit - 1].height)
+          if (hit > 0) at += bounceTime(tossing.bounces[hit - 1].height, hit - 1)
           if (hit >= tossing.hits && seconds >= at) {
             tossing.hits = hit + 1
+            // Animations 2 and 3 give the result at the third hit, while the coin goes on bouncing.
+            if (hit === 2 && animVersion >= 2 && tossing.resolve) { tossing.resolve(); tossing.resolve = null }
             playCoinHit(hit === 0 ? 1 : Math.min(0.8, tossing.bounces[hit - 1].height / 1.2))
           }
         }
       }
       if (!tossing.landed && tossing.face && seconds >= live.landing) { tossing.landed = true; navigator.vibrate?.(40) }
-      if (tossing.face && seconds >= live.resting + REST_PAUSE) {
+      if (tossing.face && seconds >= live.resting + restPause()) {
         // Stopped: it glides back to its place.
         const finished = tossing
         tossing = null
         orientation.copy(FACE_QUATERNION[finished.face!])
-        glide = { start: now, duration: RETURN_TIME * 1000, from: { y: live.floor, z: 0, floor: live.floor, orientation: orientation.clone() }, face: finished.face!, resolve: finished.resolve }
+        glide = { start: now, duration: returnTime() * 1000, from: { y: live.floor, z: 0, floor: live.floor, orientation: orientation.clone() }, face: finished.face!, resolve: finished.resolve }
       }
     } else if (glide) {
       const progress = Math.min(1, (now - glide.start) / glide.duration)
@@ -564,6 +581,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
         const done = glide
         glide = null
         done.resolve?.()
+        idleHandler?.()
       }
     } else {
       if (!dragging && (Math.abs(spin.x) > 0.0004 || Math.abs(spin.y) > 0.0004)) {
@@ -703,6 +721,8 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       edgeMaterial.bumpScale = next.edgeBump ?? 1.6
       ringFrontMesh.visible = ringBackMesh.visible = Boolean(next.silver)
     },
+    setAnim(version) { animVersion = version },
+    onIdle(handler) { idleHandler = handler },
     setBlend(blend) {
       blendParams = blend
       if (!blendActive || blendFrame) return
