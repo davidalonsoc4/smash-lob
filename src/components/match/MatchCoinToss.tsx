@@ -196,6 +196,9 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const closeRef = useRef<HTMLButtonElement>(null)
   const sceneRef = useRef<CoinScene | null>(null)
   const [stage, setStage] = useState<Stage>("loading")
+  /** EXPERIMENT (branch exp/coin-design): compares the look in production with the candidate. */
+  const [look, setLook] = useState<"before" | "after">("after")
+  useEffect(() => { if (stage === "ready") sceneRef.current?.setLook(look) }, [stage, look])
   const [startFace] = useState<CoinTossFace>(initialToss?.result ?? "heads")
   /** The team that called the smash, once the pick is made and the coin waits to be tossed. */
   const [headsTeam, setHeadsTeam] = useState<CoinTossTeam | null>(null)
@@ -368,7 +371,13 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
 
       <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-between px-5 pb-8 pt-4"
         style={{ opacity: open ? 1 : 0, transition: reducedMotion() ? "none" : open ? "opacity 300ms ease 220ms" : "opacity 160ms ease" }}>
-        <div className="pointer-events-auto flex w-full max-w-md justify-end">
+        <div className="pointer-events-auto flex w-full max-w-md items-center justify-between">
+          <div role="group" aria-label="Antes / Después" data-coin-look className="coin-close inline-flex overflow-hidden rounded-full text-sm font-bold">
+            {(["before", "after"] as const).map((name) => (
+              <button key={name} type="button" data-coin-look-option={name} aria-pressed={look === name} onClick={() => setLook(name)}
+                className={`min-h-9 px-3 ${look === name ? "coin-gold" : "opacity-60"}`}>{name === "before" ? "Antes" : "Después"}</button>
+            ))}
+          </div>
           <button ref={closeRef} type="button" onClick={requestClose} className={smallButton}>{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
         </div>
 

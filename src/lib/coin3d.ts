@@ -33,6 +33,8 @@ export type CoinScene = {
   land(face: CoinTossFace): Promise<void>
   /** The toss could not be made: the coin goes back to its place. */
   cancel(): void
+  /** EXPERIMENT: changes the look of the metal on the fly (before / after). */
+  setLook(name: CoinLookName): void
   /** The coin starts on that circle (the small coin of the panel) and moves to its place, growing. */
   appear(from: ScreenCircle): void
   /** The coin moves onto that circle and shrinks to its size. Resolves when it has arrived. */
@@ -41,7 +43,17 @@ export type CoinScene = {
 }
 
 /** How the metal looks: lights, reflections and finish. */
-const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughness: 0.4, bump: 3.2, tint: 0xffffff }
+const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughness: 0.4, bump: 3.2, lobBump: 3.2, tint: 0xffffff }
+/**
+ * EXPERIMENT (branch exp/coin-design): the look that is in production ("before") and a candidate ("after") with less yellow glare
+ * and more contrast in the relief (stronger bump, a bit more roughness so the highlights do not flatten the picture, less reflection of
+ * the room, a deeper tint), and a stronger relief on the lob. A switch on the screen goes from one to the other to compare them.
+ */
+export type CoinLookName = "before" | "after"
+export const COIN_LOOKS: Record<CoinLookName, typeof LOOK> = {
+  before: LOOK,
+  after: { exposure: 0.92, key: 2.5, environment: 0.22, metalness: 0.85, roughness: 0.5, bump: 5.2, lobBump: 7, tint: 0xf2dfb4 },
+}
 /** The coin is always seen with its top leaning 5 degrees toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
 const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), (5 * Math.PI) / 180)
 const RADIUS = 1
@@ -484,6 +496,19 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   canvas.addEventListener("pointercancel", onUp)
 
   return {
+    setLook(name) {
+      const next = COIN_LOOKS[name]
+      renderer.toneMappingExposure = next.exposure
+      scene.environmentIntensity = next.environment
+      key.intensity = next.key
+      for (const [material, bump] of [[frontMaterial, next.bump], [backMaterial, next.lobBump]] as const) {
+        material.metalness = next.metalness
+        material.roughness = next.roughness
+        material.bumpScale = bump
+        material.color.setHex(next.tint)
+        material.envMapIntensity = next.environment
+      }
+    },
     setFace(face) { orientation.copy(FACE_QUATERNION[face]); touched = true; released = false },
     setLayout(next) { layout = next },
     setMode(next, handler) {
