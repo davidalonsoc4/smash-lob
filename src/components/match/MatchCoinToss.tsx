@@ -8,7 +8,7 @@ import {
   getCoinTossWindow, isCoinTossTimeWindowEnforced, otherCoinTossTeam, pendingCoinTossStep,
   type CoinToss, type CoinTossChoice, type CoinTossFace, type CoinTossTeam,
 } from "@/lib/matchCoinToss"
-import { chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFailure, type CoinTossKind } from "@/lib/matchCoinTossClient"
+import { rememberedCoinToss, chooseCoinTossRequest, fetchCoinToss, tossCoinRequest, type CoinTossFailure, type CoinTossKind } from "@/lib/matchCoinTossClient"
 
 type TeamNames = [string, string]
 const teamName = (names: TeamNames, team: CoinTossTeam) => names[team - 1]
@@ -495,8 +495,11 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
   matchOpen: boolean
 }) {
   const { tx, locale } = useI18n()
-  const [toss, setToss] = useState<CoinToss | null>(null)
-  const [visible, setVisible] = useState(false)
+  // It starts from what the server said last time about this match, if this tab knows it, so the card does not have to wait.
+  const [toss, setToss] = useState<CoinToss | null>(() => rememberedCoinToss(kind, matchId) ?? null)
+  const [visible, setVisible] = useState(() => rememberedCoinToss(kind, matchId) !== undefined)
+  /** The server answered that this person cannot see the toss (or it failed): the card is not shown. */
+  const [unavailable, setUnavailable] = useState(false)
   const [dialog, setDialog] = useState<{ repeat: boolean; origin: Origin } | null>(null)
   const [coinHidden, setCoinHidden] = useState(false)
   const [now, setNow] = useState(() => Date.now())
@@ -506,7 +509,8 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
   useEffect(() => {
     let active = true
     void fetchCoinToss(kind, matchId).then((state) => {
-      if (!active || !state) return
+      if (!active) return
+      if (!state) { setUnavailable(true); return }
       setToss(state.coinToss)
       setVisible(true)
     })
@@ -537,8 +541,11 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
 
   const tossWindow = getCoinTossWindow({ scheduledAt, now, requireTime: kind === "league", enforce: isCoinTossTimeWindowEnforced() })
   const canStart = canToss && matchOpen && tossWindow.state === "open"
-  if (!visible) return null
-  if (!toss && !canStart && !(canToss && matchOpen && tossWindow.state === "early")) return null
+  // Until the server answers, the card is there already (with its lines still empty) when it is going to be shown for this person, so
+  // it does not pop in later and push the rest of the screen down.
+  const loading = !visible && !unavailable && canToss && matchOpen && (tossWindow.state === "open" || tossWindow.state === "early")
+  if (!visible && !loading) return null
+  if (!loading && !toss && !canStart && !(canToss && matchOpen && tossWindow.state === "early")) return null
 
   const step = toss ? pendingCoinTossStep(toss) : null
   const opensAt = tossWindow.opensAt
@@ -567,7 +574,7 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
       detail = `${otherTeam.text} ${verb(toss.winnerChoice === "serve" ? "return" : "serve", otherTeam.plural)}`
     }
   }
-  const canOpen = canToss && matchOpen && (canStart || Boolean(toss))
+  const canOpen = !loading && canToss && matchOpen && (canStart || Boolean(toss))
 
   return (
     <div ref={cardRef}>
@@ -576,7 +583,10 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
           <div className="min-w-0 flex-1">
             <p className="type-panel-title app-panel-title">{tx("Sorteo del saque")}</p>
             {/* The lines sit between the title and the bottom edge with the same room above and below (the card has 10px at the bottom). */}
-            {toss ? <div className="mt-2.5">
+            {loading ? <div data-coin-panel-loading aria-busy="true" className="mt-2.5">
+              <span className="block h-[1.1875rem] w-3/4 rounded bg-current opacity-10 motion-safe:animate-pulse" />
+              <span className="mt-0.5 block h-4 w-1/2 rounded bg-current opacity-10 motion-safe:animate-pulse" />
+            </div> : toss ? <div className="mt-2.5">
               <p data-coin-panel-main className="text-sm font-semibold leading-snug text-neutral-950">{lead} <span className="coin-panel-verb">{accent}</span></p>
               <p data-coin-panel-detail className="mt-0.5 text-xs font-semibold leading-snug text-neutral-600 first-letter:uppercase">{detail}</p>
             </div> : <div className="mt-2.5">

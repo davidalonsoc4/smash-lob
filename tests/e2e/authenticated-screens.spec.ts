@@ -1176,6 +1176,41 @@ test.describe("coin toss in the detail of a friendly", () => {
     })
   }
 
+  test("the card is there at once while the server answers, and its lines fill in afterwards", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
+    await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
+    let answer: () => void = () => {}
+    const answered = new Promise<void>(resolve => { answer = resolve })
+    await page.route("**/api/personal-matches/qa-friendly/coin-toss", async route => {
+      await answered
+      await route.fulfill({ json: { coinToss: null, window: openState } })
+    })
+    await page.goto("/personal-matches/qa-friendly")
+    const panel = page.locator("[data-coin-toss-panel]")
+    // The server has not answered: the card is already there, with its title and empty lines, and the coin cannot be pressed yet.
+    await expect(panel).toBeVisible()
+    await expect(panel.locator("[data-coin-panel-loading]")).toBeVisible()
+    await expect(panel).toContainText("Sorteo del saque")
+    await expect(panel.locator("[data-coin-open]")).toBeDisabled()
+    const before = await panel.boundingBox()
+    answer()
+    await expect(panel.locator("[data-coin-panel-hint]")).toBeVisible()
+    await expect(panel.locator("[data-coin-panel-loading]")).toHaveCount(0)
+    await expect(panel.locator("[data-coin-open]")).toBeEnabled()
+    // The card does not change its size when the answer arrives: nothing below it jumps.
+    const after = await panel.boundingBox()
+    expect(Math.abs((after?.height ?? 0) - (before?.height ?? 0))).toBeLessThanOrEqual(2)
+  })
+
+  test("the card is not left loading when the server says the person cannot see it", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
+    await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
+    await page.route("**/api/personal-matches/qa-friendly/coin-toss", route => route.fulfill({ status: 403, json: { error: "forbidden" } }))
+    await page.goto("/personal-matches/qa-friendly")
+    await expect(page.locator("[data-coin-toss-panel]")).toHaveCount(0)
+    await expect(page.locator("[data-coin-panel-loading]")).toHaveCount(0)
+  })
+
   test("keeps asking who calls the smash when the person does not play the match", async ({ page }) => {
     const posts: Array<Record<string, unknown>> = []
     await mockToss(page, { ...item, participants: item.participants.map(participant => ({ ...participant, isCurrentUser: false })) }, posts)
