@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type MutableRefObject } from "react"
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type MutableRefObject, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -356,6 +356,13 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   }
 
   const winner = toss?.winnerTeam
+  const rawName = (team: CoinTossTeam) => teamName(teamNames, team)
+  /** "Ana + Luis" is shown as "Ana y Luis" ("e" before a name that starts with i in Spanish): the names are not a sum. */
+  const nm = (team: CoinTossTeam) => rawName(team).split(" + ").reduce((text, name, index) => {
+    if (index === 0) return name
+    const and = locale === "es" && /^h?i(?!e)/i.test(name.trim()) ? "e" : tx("y")
+    return `${text} ${and} ${name}`
+  }, "")
   const coinFace: CoinTossFace = toss?.result ?? "heads"
   const coinMode = phase === "flipping" ? (landing === null ? "wait" : "land") : phase === "winner" && landing !== null ? "land" : "rest"
   const inTheAir = phase === "throw" || phase === "flipping"
@@ -380,7 +387,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
         <div className={`w-full max-w-md space-y-3 text-center ${inTheAir ? "pointer-events-none" : "pointer-events-auto"}`} aria-live="polite">
           {phase === "call" && myTeam ? <>
             <h2 className="text-2xl font-black">{tx("¿Qué elige tu equipo?")}</h2>
-            <p className="text-sm font-semibold coin-muted">{teamName(teamNames, myTeam)}</p>
+            <p className="text-sm font-semibold coin-muted">{nm(myTeam)}</p>
             <div className="grid grid-cols-2 gap-3">
               <button type="button" data-coin-pick="smash" disabled={busy} onClick={() => pick(myTeam)} className={bigButton}><ShotLabel shot="smash" /></button>
               <button type="button" data-coin-pick="lob" disabled={busy} onClick={() => pick(otherCoinTossTeam(myTeam))} className={bigButton}><ShotLabel shot="lob" /></button>
@@ -394,16 +401,20 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
             <p className="text-sm font-semibold coin-muted">{tx("Poneos de acuerdo y elegid. La moneda decide quién elige.")}</p>
             {([1, 2] as CoinTossTeam[]).map((team) => (
               <button key={team} type="button" data-coin-call={team} disabled={busy} onClick={() => pick(team)} className={bigButton}>
-                <span>{SHOT_NAME.smash}: {teamName(teamNames, team)}</span>
-                <span className="text-sm font-bold coin-btn-sub">{SHOT_NAME.lob}: {teamName(teamNames, otherCoinTossTeam(team))}</span>
+                <span>{SHOT_NAME.smash}: {nm(team)}</span>
+                <span className="text-sm font-bold coin-btn-sub">{SHOT_NAME.lob}: {nm(otherCoinTossTeam(team))}</span>
               </button>
             ))}
             <p className="text-xs font-semibold coin-dim">{tx("Quien acierte elige sacar o restar")}</p>
           </> : null}
 
           {phase === "throw" && headsTeam ? <>
-            <p data-coin-called className="text-sm font-semibold coin-muted">{teamName(teamNames, headsTeam)}: <span className="coin-gold font-black">{SHOT_NAME.smash}</span> · {teamName(teamNames, otherCoinTossTeam(headsTeam))}: <span className="coin-gold font-black">{SHOT_NAME.lob}</span></p>
+            <div data-coin-called className="space-y-0.5 text-sm font-semibold coin-muted">
+              <p><FitText text={`${nm(headsTeam)}: ${SHOT_NAME.smash}`} maxPx={14}>{nm(headsTeam)}: <span className="coin-gold font-black">{SHOT_NAME.smash}</span></FitText></p>
+              <p><FitText text={`${nm(otherCoinTossTeam(headsTeam))}: ${SHOT_NAME.lob}`} maxPx={14}>{nm(otherCoinTossTeam(headsTeam))}: <span className="coin-gold font-black">{SHOT_NAME.lob}</span></FitText></p>
+            </div>
             <p data-coin-throw-hint className="text-xl font-black">{tx("Desliza hacia arriba para lanzar")}</p>
+            <p className="text-xs font-semibold coin-dim">{tx("o")}</p>
             {/* For whoever cannot swipe (keyboard, assistive technology) or when the swipe does not register. */}
             <button type="button" data-coin-throw-button onClick={() => void launch(0.6, false)}
               className="coin-close pointer-events-auto flex min-h-12 w-full items-center justify-center rounded-2xl px-4 text-center text-base font-bold">{tx("Lanzar")}</button>
@@ -413,25 +424,25 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
           {phase === "winner" && toss && winner ? <>
             <h2 data-coin-result={toss.result} className="text-4xl font-black uppercase tracking-wide">{toss.result === "heads" ? SHOT_NAME.smash : SHOT_NAME.lob}</h2>
             {locale !== "en" ? <p className="-mt-2 text-sm font-bold coin-muted">({tx(toss.result === "heads" ? "remate" : "globo")})</p> : null}
-            <p data-coin-winner className="text-lg font-bold">{tx(isPair(teamName(teamNames, winner)) ? "Ganan" : "Gana")} <span className="coin-gold">{teamName(teamNames, winner)}</span></p>
-            <p className="text-sm font-semibold coin-muted">{tx(isPair(teamName(teamNames, winner)) ? "¿Qué eligen?" : "¿Qué elige?")}</p>
+            <p data-coin-winner className="text-lg font-bold">{tx(isPair(rawName(winner)) ? "Ganan" : "Gana")} <span className="coin-gold">{nm(winner)}</span></p>
+            <p className="text-sm font-semibold coin-muted">{tx(isPair(rawName(winner)) ? "¿Qué eligen?" : "¿Qué elige?")}</p>
             <div className="grid grid-cols-2 gap-3">
               <button type="button" data-coin-choice="serve" disabled={busy} onClick={() => void choose("serve")} className={bigButton}>
                 <span>{tx("Sacar")}</span>
-                <span className="text-xs font-bold coin-btn-sub first-letter:uppercase">{tx(isPair(teamName(teamNames, winner)) ? "empiezan sacando" : "empieza sacando")}</span>
+                <span className="text-xs font-bold coin-btn-sub first-letter:uppercase">{tx(isPair(rawName(winner)) ? "empiezan sacando" : "empieza sacando")}</span>
               </button>
               <button type="button" data-coin-choice="return" disabled={busy} onClick={() => void choose("return")} className={bigButton}>
                 <span>{tx("Restar")}</span>
-                <span className="text-xs font-bold coin-btn-sub first-letter:uppercase">{tx(isPair(teamName(teamNames, winner)) ? "empiezan restando" : "empieza restando")}</span>
+                <span className="text-xs font-bold coin-btn-sub first-letter:uppercase">{tx(isPair(rawName(winner)) ? "empiezan restando" : "empieza restando")}</span>
               </button>
             </div>
           </> : null}
 
           {phase === "done" && toss?.servingTeam ? <>
-            <p className="text-sm font-black uppercase tracking-widest coin-dim">{tx("Saca primero")}</p>
-            <h2 data-coin-serving={toss.servingTeam} className="text-3xl font-black coin-gold">{teamName(teamNames, toss.servingTeam)}</h2>
+            <p className="text-sm font-black uppercase tracking-widest coin-dim">{tx(isPair(rawName(toss.servingTeam)) ? "Sacan primero" : "Saca primero")}</p>
+            <h2 data-coin-serving={toss.servingTeam} className="font-black coin-gold"><FitText text={nm(toss.servingTeam)} maxPx={30} /></h2>
             <p className="text-base font-bold coin-muted">
-              {teamName(teamNames, otherCoinTossTeam(toss.servingTeam))} {tx(isPair(teamName(teamNames, otherCoinTossTeam(toss.servingTeam))) ? "restan" : "resta")}
+              {nm(otherCoinTossTeam(toss.servingTeam))} {tx(isPair(rawName(otherCoinTossTeam(toss.servingTeam))) ? "restan" : "resta")}
             </p>
             {canRepeat ? <button type="button" data-coin-repeat onClick={repeatNow} className={smallButton}>{tx("Repetir sorteo")}</button> : null}
           </> : null}
@@ -445,6 +456,31 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     </div>,
     document.body,
   )
+}
+
+/** A text that always fits on one line: it is as big as `maxPx` and shrinks only as much as it needs for the width it has. */
+function FitText({ text, maxPx, children }: { text: string; maxPx: number; children?: ReactNode }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    const element = ref.current
+    const box = element?.parentElement
+    if (!element || !box) return
+    const fit = () => {
+      element.style.fontSize = `${maxPx}px`
+      const room = box.clientWidth
+      const need = element.scrollWidth
+      if (need > room && room > 0) element.style.fontSize = `${Math.max(9, Math.floor((maxPx * room * 0.97) / need))}px`
+    }
+    fit()
+    // The letters can arrive after the first measure (the font loads late) and change the width.
+    let active = true
+    void document.fonts?.ready.then(() => { if (active) fit() })
+    if (typeof ResizeObserver === "undefined") return () => { active = false }
+    const observer = new ResizeObserver(fit)
+    observer.observe(box)
+    return () => { active = false; observer.disconnect() }
+  }, [text, maxPx])
+  return <span ref={ref} className="block whitespace-nowrap" style={{ fontSize: maxPx }}>{children ?? text}</span>
 }
 
 /** First names of a team, for the panel ("Alain y David"), and whether the team has more than one player. */

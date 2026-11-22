@@ -1216,19 +1216,22 @@ test.describe("coin toss in the detail of a friendly", () => {
     expect(await dialog.evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgb(10, 10, 10)")
     expect(await dialog.getByRole("button", { name: "Cerrar" }).evaluate(element => getComputedStyle(element).color)).toBe("rgb(255, 255, 255)")
     await expect(dialog.getByRole("heading", { name: "¿Qué elige tu equipo?" })).toBeVisible()
-    // The app knows who is holding the phone: it asks what their team picks (team 1: David + Álvaro).
-    await expect(dialog).toContainText("David + Álvaro")
+    // The app knows who is holding the phone: it asks what their team picks (team 1: David y Álvaro).
+    await expect(dialog).toContainText("David y Álvaro")
     // Team 1 picks the smash (heads); it comes out lob (tails), so team 2 wins.
     await pickAndToss(dialog, '[data-coin-pick="smash"]')
     await expect(dialog.locator('[data-coin-result="tails"]')).toBeVisible({ timeout: 20000 })
     // The result and the choice are on the same screen: who won, and what they pick (there is no side to pick).
-    await expect(dialog.locator("[data-coin-winner]")).toHaveText("Ganan Alain + Unai")
+    await expect(dialog.locator("[data-coin-winner]")).toHaveText("Ganan Alain y Unai")
     await expect(dialog.locator("[data-coin-choice]")).toHaveCount(2)
     await expect(dialog.locator('[data-coin-choice="serve"]')).toContainText(/empiezan sacando/i)
     await expect(dialog.locator('[data-coin-choice="return"]')).toContainText(/empiezan restando/i)
     await dialog.locator('[data-coin-choice="serve"]').click()
-    await expect(dialog.locator('[data-coin-serving="2"]')).toContainText("Alain + Unai")
-    await expect(dialog).toContainText("David + Álvaro restan")
+    await expect(dialog.locator('[data-coin-serving="2"]')).toContainText("Alain y Unai")
+    await expect(dialog).toContainText("David y Álvaro restan")
+    // The names never go to a second line (the text shrinks if it needs to) and the label is in the plural: they are pairs.
+    await expect(dialog.locator('[data-coin-serving="2"]').locator("span")).toHaveJSProperty("scrollWidth", await dialog.locator('[data-coin-serving="2"]').locator("span").evaluate(e => e.clientWidth))
+    await expect(dialog).toContainText(/sacan primero/i)
     expect(posts).toEqual([{ action: "toss", headsTeam: 1 }, { action: "choose", choice: "serve" }])
     // The result stays in sight for two seconds and then the screen closes into the panel.
     await expect(dialog).toHaveCount(1)
