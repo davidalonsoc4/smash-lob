@@ -5,6 +5,7 @@ import {
 } from "three"
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js"
 import type { CoinTossFace } from "@/lib/matchCoinToss"
+import { playCoinHit, playCoinWhoosh } from "@/lib/coinSound"
 
 /**
  * The 3D coin of the coin toss: real thickness, reeded edge and relief lit from the height maps of each face (public/coin).
@@ -129,6 +130,8 @@ type Throw = {
   faceKnownAt: number
   resolve: (() => void) | null
   landed: boolean
+  /** How many hits on the floor have already made their sound (the landing, then the end of each bounce). */
+  hits: number
 }
 
 /** The coin goes back to its place (after a toss that could not be made). */
@@ -336,6 +339,17 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       // The first moments blend from wherever the coin was (it may have been turned by hand) into the tumble.
       orientation.copy(tossing.from.orientation).slerp(live.rotation, smoothstep(0, 0.22, seconds))
       place(live.y, live.z, live.floor)
+      // The sound of each hit on the floor: the landing and the end of every bounce, softer each time.
+      if (tossing.face) {
+        let at = live.landing
+        for (let hit = 0; hit <= tossing.bounces.length; hit += 1) {
+          if (hit > 0) at += bounceSeconds(tossing.bounces[hit - 1].height)
+          if (hit >= tossing.hits && seconds >= at) {
+            tossing.hits = hit + 1
+            playCoinHit(hit === 0 ? 1 : Math.min(0.8, tossing.bounces[hit - 1].height / 1.2))
+          }
+        }
+      }
       if (!tossing.landed && tossing.face && seconds >= live.landing) { tossing.landed = true; navigator.vibrate?.(40) }
       if (tossing.face && seconds >= live.resting + REST_PAUSE) {
         // Stopped: it glides back to its place.
@@ -409,8 +423,9 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     tossing = {
       start: lastFrame, from: { y, orientation: orientation.clone() }, power, face: null, faceKnownAt: 0,
       variant: 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % VARIANTS.length),
-      bounces: bouncePattern(), resolve: null, landed: false,
+      bounces: bouncePattern(), resolve: null, landed: false, hits: 0,
     }
+    playCoinWhoosh(power)
   }
   const onDown = (event: PointerEvent) => {
     if (mode === "off" || tossing || glide || view) return

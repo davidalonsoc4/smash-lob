@@ -2,8 +2,8 @@
 export type CoinTossTeam = 1 | 2
 /** The two faces of the coin are the smash ("heads") and the lob ("tails"): the stored values keep the usual heads and tails. */
 export type CoinTossFace = "heads" | "tails"
-/** What the winning team picks: serve, return, or the side (then the other team picks serve or return). */
-export type CoinTossChoice = "serve" | "return" | "side"
+/** What the winning team picks: serve or return (the other team gets what is left). The side is not chosen: the courts are the same for everyone. */
+export type CoinTossChoice = "serve" | "return"
 
 export type CoinToss = {
   /** The team that called heads; the other team called tails. */
@@ -11,8 +11,6 @@ export type CoinToss = {
   result: CoinTossFace
   winnerTeam: CoinTossTeam
   winnerChoice: CoinTossChoice | null
-  /** Only when the winner picked the side: what the other team picked. */
-  otherChoice: "serve" | "return" | null
   /** The team that serves first, once it is known. */
   servingTeam: CoinTossTeam | null
   /** How many times it has been tossed; repeating replaces the previous toss. */
@@ -55,20 +53,17 @@ export const otherCoinTossTeam = (team: CoinTossTeam): CoinTossTeam => (team ===
 /** The face that a team called. */
 export const faceCalledByTeam = (calledHeadsTeam: CoinTossTeam, team: CoinTossTeam): CoinTossFace => (calledHeadsTeam === team ? "heads" : "tails")
 
-/** Who serves first given the choices (null while the choices are not complete). */
-export function resolveServingTeam(winnerTeam: CoinTossTeam, winnerChoice: CoinTossChoice | null, otherChoice: "serve" | "return" | null): CoinTossTeam | null {
+/** Who serves first given the winner's choice (null while it is not made). */
+export function resolveServingTeam(winnerTeam: CoinTossTeam, winnerChoice: CoinTossChoice | null): CoinTossTeam | null {
   if (winnerChoice === "serve") return winnerTeam
   if (winnerChoice === "return") return otherCoinTossTeam(winnerTeam)
-  if (winnerChoice === "side") return otherChoice === "serve" ? otherCoinTossTeam(winnerTeam) : otherChoice === "return" ? winnerTeam : null
   return null
 }
 
-/** What is left to choose: the pick of the winner, the pick of the other team after a side choice, or nothing. */
-export function pendingCoinTossStep(toss: CoinToss): "winner" | "other" | null {
-  if (!toss.winnerChoice) return "winner"
-  if (toss.winnerChoice === "side" && !toss.otherChoice) return "other"
-  return null
+/** What is left to choose: the pick of the winner, or nothing. */
+export function pendingCoinTossStep(toss: CoinToss): "winner" | null {
+  return toss.winnerChoice ? null : "winner"
 }
 
 export const isCoinTossTeam = (value: unknown): value is CoinTossTeam => value === 1 || value === 2
-export const isCoinTossChoice = (value: unknown): value is CoinTossChoice => value === "serve" || value === "return" || value === "side"
+export const isCoinTossChoice = (value: unknown): value is CoinTossChoice => value === "serve" || value === "return"

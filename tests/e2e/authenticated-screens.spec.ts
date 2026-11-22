@@ -1084,7 +1084,7 @@ test.describe("coin toss in the detail of a friendly", () => {
       if (route.request().method() === "GET") return route.fulfill({ json: { coinToss: null, window: openState } })
       const body = route.request().postDataJSON()
       posts.push(body)
-      return route.fulfill({ json: { coinToss: { calledHeadsTeam: body.headsTeam, result: "heads", winnerTeam: body.headsTeam, winnerChoice: null, otherChoice: null, servingTeam: null, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z" }, window: openState } })
+      return route.fulfill({ json: { coinToss: { calledHeadsTeam: body.headsTeam, result: "heads", winnerTeam: body.headsTeam, winnerChoice: null, servingTeam: null, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z" }, window: openState } })
     })
   }
 
@@ -1149,7 +1149,7 @@ test.describe("coin toss in the detail of a friendly", () => {
     await expect(dialog.locator("[data-coin-throw-hint]")).toHaveCount(0)
     await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 20000 })
     expect(posts).toEqual([{ action: "toss", headsTeam: 1 }])
-    await expect(dialog.getByRole("button", { name: "Elegir", exact: true })).toBeVisible()
+    await expect(dialog.locator('[data-coin-choice="serve"]')).toBeVisible()
   })
 
   for (const [locale, translations] of [["es", ["(remate)", "(globo)"]], ["eu", ["(errematea)", "(globoa)"]], ["en", null]] as const) {
@@ -1189,7 +1189,7 @@ test.describe("coin toss in the detail of a friendly", () => {
     expect(posts).toEqual([{ action: "toss", headsTeam: 2 }])
   })
 
-  test("tosses, lets the winner pick the side and the other team pick serve or return", async ({ page }) => {
+  test("tosses and lets the winner pick serve or return, on one screen with the result", async ({ page }) => {
     // The whole flow: toss, choices, two seconds of result, the screen closing into the panel and opening again.
     test.setTimeout(75_000)
     await page.clock.setFixedTime(new Date("2026-11-26T15:45:00Z"))
@@ -1201,10 +1201,8 @@ test.describe("coin toss in the detail of a friendly", () => {
       if (route.request().method() === "GET") return route.fulfill({ json: { coinToss: toss, window: open } })
       const body = route.request().postDataJSON()
       posts.push(body)
-      if (body.action === "toss") toss = { calledHeadsTeam: body.headsTeam, result: "tails", winnerTeam: body.headsTeam === 1 ? 2 : 1, winnerChoice: null, otherChoice: null, servingTeam: null, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z" }
-      else if (body.choice === "side") toss = { ...toss, winnerChoice: "side" }
-      else if (toss?.winnerChoice === "side") toss = { ...toss, otherChoice: body.choice, servingTeam: body.choice === "serve" ? 1 : 2 }
-      else toss = { ...toss, winnerChoice: body.choice, servingTeam: 2 }
+      if (body.action === "toss") toss = { calledHeadsTeam: body.headsTeam, result: "tails", winnerTeam: body.headsTeam === 1 ? 2 : 1, winnerChoice: null, servingTeam: null, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z" }
+      else toss = { ...toss, winnerChoice: body.choice, servingTeam: body.choice === "serve" ? 2 : 1 }
       return route.fulfill({ json: { coinToss: toss, window: open } })
     })
     // Competition repaints dark and white utilities and its cards must not trap the screen: the toss covers the whole viewport in dark.
@@ -1223,23 +1221,25 @@ test.describe("coin toss in the detail of a friendly", () => {
     // Team 1 picks the smash (heads); it comes out lob (tails), so team 2 wins.
     await pickAndToss(dialog, '[data-coin-pick="smash"]')
     await expect(dialog.locator('[data-coin-result="tails"]')).toBeVisible({ timeout: 20000 })
-    await expect(dialog).toContainText("Alain + Unai")
-    await dialog.getByRole("button", { name: "Elegir", exact: true }).click()
-    await dialog.locator('[data-coin-choice="side"]').click()
-    await expect(dialog).toContainText("David + Álvaro")
+    // The result and the choice are on the same screen: who won, and what they pick (there is no side to pick).
+    await expect(dialog.locator("[data-coin-winner]")).toHaveText("Ganan Alain + Unai")
+    await expect(dialog.locator("[data-coin-choice]")).toHaveCount(2)
+    await expect(dialog.locator('[data-coin-choice="serve"]')).toContainText(/empiezan sacando/i)
+    await expect(dialog.locator('[data-coin-choice="return"]')).toContainText(/empiezan restando/i)
     await dialog.locator('[data-coin-choice="serve"]').click()
-    await expect(dialog.locator('[data-coin-serving="1"]')).toContainText("David + Álvaro")
-    expect(posts).toEqual([{ action: "toss", headsTeam: 1 }, { action: "choose", choice: "side" }, { action: "choose", choice: "serve" }])
+    await expect(dialog.locator('[data-coin-serving="2"]')).toContainText("Alain + Unai")
+    await expect(dialog).toContainText("David + Álvaro restan")
+    expect(posts).toEqual([{ action: "toss", headsTeam: 1 }, { action: "choose", choice: "serve" }])
     // The result stays in sight for two seconds and then the screen closes into the panel.
     await expect(dialog).toHaveCount(1)
     await expect(dialog).toHaveCount(0, { timeout: 15000 })
     // The panel shows the choice of who won the coin in big and what is left for the other team below, with the short names.
-    await expect(page.locator("[data-coin-panel-main]")).toHaveText("Alain y Unai eligen lado")
-    await expect(page.locator("[data-coin-panel-detail]")).toHaveText("David y Álvaro sacan")
+    await expect(page.locator("[data-coin-panel-main]")).toHaveText("Alain y Unai empiezan sacando")
+    await expect(page.locator("[data-coin-panel-detail]")).toHaveText("David y Álvaro restan")
     await expect(page.locator('[data-coin-mini="tails"]')).toBeVisible()
     // While it is being tested, pressing the coin opens the full screen again, where the toss can be repeated.
     await page.locator("[data-coin-open]").click()
-    await expect(dialog.locator('[data-coin-serving="1"]')).toBeVisible()
+    await expect(dialog.locator('[data-coin-serving="2"]')).toBeVisible()
     await dialog.locator("[data-coin-repeat]").click()
     await expect(dialog.locator("[data-coin-pick=\"smash\"]")).toBeVisible()
     // Without a new toss it does not close by itself (it was reopened by hand): closing is with its button.

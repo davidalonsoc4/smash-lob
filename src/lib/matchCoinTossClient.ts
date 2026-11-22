@@ -25,5 +25,5 @@ async function send(kind: CoinTossKind, matchId: string, body: Record<string, un
 /** Toss (or repeat): `headsTeam` is the team that calls heads. The server decides the face. */
 export const tossCoinRequest = (kind: CoinTossKind, matchId: string, headsTeam: CoinTossTeam) => send(kind, matchId, { action: "toss", headsTeam })
 
-/** The winner picks serve, return or side; after a side, the other team picks serve or return. */
+/** The winner picks serve or return. */
 export const chooseCoinTossRequest = (kind: CoinTossKind, matchId: string, choice: CoinTossChoice) => send(kind, matchId, { action: "choose", choice })

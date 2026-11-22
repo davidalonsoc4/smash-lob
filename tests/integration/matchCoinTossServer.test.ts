@@ -67,16 +67,11 @@ describe("coin toss on the server", () => {
     expect(await chooseCoinToss(fake.client, target, "serve")).toEqual({ ok: false, error: "already_chosen" })
   })
 
-  it("after a side choice, the other team picks serve or return, and cannot pick the side again", async () => {
+  it("does not accept the side: only serve or return", async () => {
     const fake = fakeSupabase()
     await tossCoin(fake.client, target, "user", 1)
-    const toss = await loadCoinToss(fake.client, target)
-    const winner = toss.ok && toss.toss ? toss.toss.winnerTeam : 1
-    const side = await chooseCoinToss(fake.client, target, "side")
-    expect(side.ok && side.toss).toMatchObject({ winnerChoice: "side", servingTeam: null })
-    expect(await chooseCoinToss(fake.client, target, "side")).toEqual({ ok: false, error: "invalid_choice" })
-    const other = await chooseCoinToss(fake.client, target, "serve")
-    expect(other.ok && other.toss).toMatchObject({ otherChoice: "serve", servingTeam: winner === 1 ? 2 : 1 })
+    const rejected = await runCoinTossAction({ supabase: fake.client, target, userId: "u", body: { action: "choose", choice: "side" }, window: open })
+    expect(rejected.status).toBe(400)
   })
 
   it("cannot pick before there is a toss", async () => {

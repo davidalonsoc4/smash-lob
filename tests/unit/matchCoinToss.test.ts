@@ -6,7 +6,7 @@ import {
 
 const START = Date.parse("2026-11-26T16:00:00Z")
 const toss = (patch: Partial<CoinToss> = {}): CoinToss => ({
-  calledHeadsTeam: 1, result: "heads", winnerTeam: 1, winnerChoice: null, otherChoice: null, servingTeam: null, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z", ...patch,
+  calledHeadsTeam: 1, result: "heads", winnerTeam: 1, winnerChoice: null, servingTeam: null, tossCount: 1, tossedAt: "2026-11-26T15:45:00Z", ...patch,
 })
 
 describe("coin toss window", () => {
@@ -41,21 +41,13 @@ describe("coin toss window", () => {
 
 describe("coin toss choices", () => {
   it("knows who serves first from what the winner picks", () => {
-    expect(resolveServingTeam(2, "serve", null)).toBe(2)
-    expect(resolveServingTeam(2, "return", null)).toBe(1)
-    expect(resolveServingTeam(2, null, null)).toBeNull()
-  })
-
-  it("lets the other team decide after the winner picks the side", () => {
-    expect(resolveServingTeam(2, "side", null)).toBeNull()
-    expect(resolveServingTeam(2, "side", "serve")).toBe(1)
-    expect(resolveServingTeam(2, "side", "return")).toBe(2)
+    expect(resolveServingTeam(2, "serve")).toBe(2)
+    expect(resolveServingTeam(2, "return")).toBe(1)
+    expect(resolveServingTeam(2, null)).toBeNull()
   })
 
   it("says what is left to choose", () => {
     expect(pendingCoinTossStep(toss())).toBe("winner")
-    expect(pendingCoinTossStep(toss({ winnerChoice: "side" }))).toBe("other")
-    expect(pendingCoinTossStep(toss({ winnerChoice: "side", otherChoice: "return" }))).toBe(null)
     expect(pendingCoinTossStep(toss({ winnerChoice: "serve" }))).toBe(null)
   })
 

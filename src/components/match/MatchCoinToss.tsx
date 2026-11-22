@@ -131,13 +131,14 @@ function CoinStage({ sceneRef, stage, onStage, initialFace, face, mode, variant,
   )
 }
 
-/** call: who picks what; throw: the coin waits to be tossed; flipping: it is in the air; then what the winner picks. */
-type Phase = "call" | "throw" | "flipping" | "result" | "winner" | "other" | "done"
+/** call: who picks what; throw: the coin waits to be tossed; flipping: it is in the air; winner: the face that came out and what the winner picks; done: all chosen. */
+type Phase = "call" | "throw" | "flipping" | "winner" | "done"
 const phaseFor = (toss: CoinToss | null): Phase => {
   if (!toss) return "call"
-  const step = pendingCoinTossStep(toss)
-  return step === "winner" ? "winner" : step === "other" ? "other" : "done"
+  return pendingCoinTossStep(toss) ? "winner" : "done"
 }
+/** More than one player in the team ("Ana + Luis"): the verbs go in the plural. */
+const isPair = (name: string) => name.includes(" + ")
 const bigButton = "coin-btn flex min-h-14 w-full flex-col items-center justify-center rounded-2xl px-4 py-3 text-center text-base font-black active:scale-[0.98] disabled:opacity-50"
 const smallButton = "coin-close inline-flex min-h-9 items-center justify-center rounded-full px-4 text-center text-sm font-bold"
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -268,7 +269,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
 
   const landed = useCallback(() => {
     navigator.vibrate?.(40)
-    setPhase("result")
+    setPhase("winner")
   }, [])
   // The flat coin: if the browser never reports the end of its animation, the result still comes out.
   useEffect(() => {
@@ -288,7 +289,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     setToss(next); onChange(next)
     if (reducedMotion()) {
       sceneRef.current?.setFace(next.result)
-      setPhase("result")
+      setPhase("winner")
       return
     }
     setLanding(1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 3))
@@ -317,7 +318,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     const next = result.state.coinToss!
     setToss(next); onChange(next)
     await scene.land(next.result)
-    setPhase("result")
+    setPhase("winner")
   }
   const launchRef = useRef(launch)
   useEffect(() => { launchRef.current = launch })
@@ -356,7 +357,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
 
   const winner = toss?.winnerTeam
   const coinFace: CoinTossFace = toss?.result ?? "heads"
-  const coinMode = phase === "flipping" ? (landing === null ? "wait" : "land") : phase === "result" && landing !== null ? "land" : "rest"
+  const coinMode = phase === "flipping" ? (landing === null ? "wait" : "land") : phase === "winner" && landing !== null ? "land" : "rest"
   const inTheAir = phase === "throw" || phase === "flipping"
   const open = anim === "open"
 
@@ -377,8 +378,6 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
         </div>
 
         <div className={`w-full max-w-md space-y-3 text-center ${inTheAir ? "pointer-events-none" : "pointer-events-auto"}`} aria-live="polite">
-          {stage === "ready" && phase === "call" ? <p className="text-xs font-semibold coin-dim">{tx("Arrastra la moneda para girarla")}</p> : null}
-
           {phase === "call" && myTeam ? <>
             <h2 className="text-2xl font-black">{tx("¿Qué elige tu equipo?")}</h2>
             <p className="text-sm font-semibold coin-muted">{teamName(teamNames, myTeam)}</p>
@@ -386,6 +385,8 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
               <button type="button" data-coin-pick="smash" disabled={busy} onClick={() => pick(myTeam)} className={bigButton}><ShotLabel shot="smash" /></button>
               <button type="button" data-coin-pick="lob" disabled={busy} onClick={() => pick(otherCoinTossTeam(myTeam))} className={bigButton}><ShotLabel shot="lob" /></button>
             </div>
+            <p className="text-xs font-semibold coin-dim">{tx("Quien acierte elige sacar o restar")}</p>
+            {stage === "ready" ? <p className="text-xs font-semibold coin-dim">{tx("Arrastra la moneda para girarla")}</p> : null}
           </> : null}
 
           {phase === "call" && !myTeam ? <>
@@ -397,42 +398,40 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
                 <span className="text-sm font-bold coin-btn-sub">{SHOT_NAME.lob}: {teamName(teamNames, otherCoinTossTeam(team))}</span>
               </button>
             ))}
+            <p className="text-xs font-semibold coin-dim">{tx("Quien acierte elige sacar o restar")}</p>
           </> : null}
 
-          {phase === "throw" ? <p data-coin-throw-hint className="text-xl font-black">{tx("Lanza la moneda deslizando hacia arriba")}</p> : null}
+          {phase === "throw" && headsTeam ? <>
+            <p data-coin-called className="text-sm font-semibold coin-muted">{teamName(teamNames, headsTeam)}: <span className="coin-gold font-black">{SHOT_NAME.smash}</span> · {teamName(teamNames, otherCoinTossTeam(headsTeam))}: <span className="coin-gold font-black">{SHOT_NAME.lob}</span></p>
+            <p data-coin-throw-hint className="text-xl font-black">{tx("Desliza hacia arriba para lanzar")}</p>
+            {/* For whoever cannot swipe (keyboard, assistive technology) or when the swipe does not register. */}
+            <button type="button" data-coin-throw-button onClick={() => void launch(0.6, false)}
+              className="coin-close pointer-events-auto flex min-h-12 w-full items-center justify-center rounded-2xl px-4 text-center text-base font-bold">{tx("Lanzar")}</button>
+          </> : null}
           {phase === "flipping" && stage !== "ready" ? <p className="text-xl font-black">{tx("Lanzando…")}</p> : null}
 
-          {phase === "result" && toss ? <>
+          {phase === "winner" && toss && winner ? <>
             <h2 data-coin-result={toss.result} className="text-4xl font-black uppercase tracking-wide">{toss.result === "heads" ? SHOT_NAME.smash : SHOT_NAME.lob}</h2>
             {locale !== "en" ? <p className="-mt-2 text-sm font-bold coin-muted">({tx(toss.result === "heads" ? "remate" : "globo")})</p> : null}
-            <p className="text-lg font-bold">{tx("Gana")} <span className="coin-gold">{teamName(teamNames, toss.winnerTeam)}</span></p>
-            <button type="button" onClick={() => setPhase(phaseFor(toss))} className={bigButton}>{tx("Elegir")}</button>
-          </> : null}
-
-          {phase === "winner" && winner ? <>
-            <h2 className="text-2xl font-black">{tx("Elige")} <span className="coin-gold">{teamName(teamNames, winner)}</span></h2>
+            <p data-coin-winner className="text-lg font-bold">{tx(isPair(teamName(teamNames, winner)) ? "Ganan" : "Gana")} <span className="coin-gold">{teamName(teamNames, winner)}</span></p>
+            <p className="text-sm font-semibold coin-muted">{tx(isPair(teamName(teamNames, winner)) ? "¿Qué eligen?" : "¿Qué elige?")}</p>
             <div className="grid grid-cols-2 gap-3">
-              <button type="button" data-coin-choice="serve" disabled={busy} onClick={() => void choose("serve")} className={bigButton}>{tx("Sacar")}</button>
-              <button type="button" data-coin-choice="return" disabled={busy} onClick={() => void choose("return")} className={bigButton}>{tx("Restar")}</button>
-            </div>
-            <button type="button" data-coin-choice="side" disabled={busy} onClick={() => void choose("side")} className={bigButton}>{tx("Elegir lado")}</button>
-            <p className="text-xs font-semibold coin-dim">{tx("El otro equipo elige lo que queda.")}</p>
-          </> : null}
-
-          {phase === "other" && winner ? <>
-            <h2 className="text-2xl font-black">{tx("Elige")} <span className="coin-gold">{teamName(teamNames, otherCoinTossTeam(winner))}</span></h2>
-            <p className="text-sm font-semibold coin-muted">{teamName(teamNames, winner)} {tx("ha elegido el lado")}</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button type="button" data-coin-choice="serve" disabled={busy} onClick={() => void choose("serve")} className={bigButton}>{tx("Sacar")}</button>
-              <button type="button" data-coin-choice="return" disabled={busy} onClick={() => void choose("return")} className={bigButton}>{tx("Restar")}</button>
+              <button type="button" data-coin-choice="serve" disabled={busy} onClick={() => void choose("serve")} className={bigButton}>
+                <span>{tx("Sacar")}</span>
+                <span className="text-xs font-bold coin-btn-sub first-letter:uppercase">{tx(isPair(teamName(teamNames, winner)) ? "empiezan sacando" : "empieza sacando")}</span>
+              </button>
+              <button type="button" data-coin-choice="return" disabled={busy} onClick={() => void choose("return")} className={bigButton}>
+                <span>{tx("Restar")}</span>
+                <span className="text-xs font-bold coin-btn-sub first-letter:uppercase">{tx(isPair(teamName(teamNames, winner)) ? "empiezan restando" : "empieza restando")}</span>
+              </button>
             </div>
           </> : null}
 
-          {phase === "done" && toss?.servingTeam && winner ? <>
+          {phase === "done" && toss?.servingTeam ? <>
             <p className="text-sm font-black uppercase tracking-widest coin-dim">{tx("Saca primero")}</p>
             <h2 data-coin-serving={toss.servingTeam} className="text-3xl font-black coin-gold">{teamName(teamNames, toss.servingTeam)}</h2>
             <p className="text-base font-bold coin-muted">
-              {teamName(teamNames, toss.winnerChoice === "side" ? winner : otherCoinTossTeam(winner))} {tx("elige el lado")}
+              {teamName(teamNames, otherCoinTossTeam(toss.servingTeam))} {tx(isPair(teamName(teamNames, otherCoinTossTeam(toss.servingTeam))) ? "restan" : "resta")}
             </p>
             {canRepeat ? <button type="button" data-coin-repeat onClick={repeatNow} className={smallButton}>{tx("Repetir sorteo")}</button> : null}
           </> : null}
@@ -443,11 +442,6 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
         </div>
       </div>
 
-      {/* For whoever cannot swipe (keyboard, assistive technology) or when the swipe does not register. */}
-      {phase === "throw" ? (
-        <button type="button" data-coin-throw-button onClick={() => void launch(0.6, false)}
-          className="coin-close absolute bottom-4 right-4 z-20 inline-flex min-h-9 items-center justify-center rounded-full px-3 text-center text-xs font-bold">{tx("Lanzar")}</button>
-      ) : null}
     </div>,
     document.body,
   )
@@ -542,16 +536,11 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
       lead = tx("Gana")
       accent = winnerTeam.text
       detail = tx(winnerTeam.plural ? "tienen que elegir" : "tiene que elegir")
-    } else if (toss.winnerChoice === "side") {
-      lead = winnerTeam.text
-      accent = tx(winnerTeam.plural ? "eligen lado" : "elige lado")
-      detail = toss.otherChoice
-        ? `${otherTeam.text} ${verb(toss.otherChoice, otherTeam.plural)}`
-        : `${otherTeam.text} ${tx(otherTeam.plural ? "tienen que elegir" : "tiene que elegir")}`
     } else {
+      // The choice of the winner, and what is left for the other team.
       lead = winnerTeam.text
-      accent = verb(toss.winnerChoice, winnerTeam.plural)
-      detail = `${otherTeam.text} ${tx(otherTeam.plural ? "eligen" : "elige")} ${tx("el lado")}`
+      accent = tx(toss.winnerChoice === "serve" ? (winnerTeam.plural ? "empiezan sacando" : "empieza sacando") : winnerTeam.plural ? "empiezan restando" : "empieza restando")
+      detail = `${otherTeam.text} ${verb(toss.winnerChoice === "serve" ? "return" : "serve", otherTeam.plural)}`
     }
   }
   const canOpen = canToss && matchOpen && (canStart || Boolean(toss))
