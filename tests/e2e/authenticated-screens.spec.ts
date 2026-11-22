@@ -1227,22 +1227,19 @@ test.describe("coin toss in the detail of a friendly", () => {
     await expect(dialog.locator('[data-coin-choice="serve"]')).toContainText(/empiezan sacando/i)
     await expect(dialog.locator('[data-coin-choice="return"]')).toContainText(/empiezan restando/i)
     await dialog.locator('[data-coin-choice="serve"]').click()
-    await expect(dialog.locator('[data-coin-serving="2"]')).toContainText("Alain y Unai")
-    await expect(dialog).toContainText("David y Álvaro restan")
-    // The names never go to a second line (the text shrinks if it needs to) and the label is in the plural: they are pairs.
-    await expect(dialog.locator('[data-coin-serving="2"]').locator("span")).toHaveJSProperty("scrollWidth", await dialog.locator('[data-coin-serving="2"]').locator("span").evaluate(e => e.clientWidth))
-    await expect(dialog).toContainText(/sacan primero/i)
-    expect(posts).toEqual([{ action: "toss", headsTeam: 1 }, { action: "choose", choice: "serve" }])
-    // The result stays in sight for two seconds and then the screen closes into the panel.
-    await expect(dialog).toHaveCount(1)
+    // Right after choosing, the screen closes into the panel: there is no screen of result in between.
     await expect(dialog).toHaveCount(0, { timeout: 15000 })
+    expect(posts).toEqual([{ action: "toss", headsTeam: 1 }, { action: "choose", choice: "serve" }])
     // The panel shows the choice of who won the coin in big and what is left for the other team below, with the short names.
     await expect(page.locator("[data-coin-panel-main]")).toHaveText("Alain y Unai empiezan sacando")
     await expect(page.locator("[data-coin-panel-detail]")).toHaveText("David y Álvaro restan")
     await expect(page.locator('[data-coin-mini="tails"]')).toBeVisible()
     // While it is being tested, pressing the coin opens the full screen again, where the toss can be repeated.
     await page.locator("[data-coin-open]").click()
-    await expect(dialog.locator('[data-coin-serving="2"]')).toBeVisible()
+    // Reopened by hand, it shows who serves first (the pair in the plural, the names on one line) and offers to repeat.
+    await expect(dialog.locator('[data-coin-serving="2"]')).toHaveText("Alain y Unai")
+    await expect(dialog).toContainText(/sacan primero/i)
+    await expect(dialog).toContainText("David y Álvaro restan")
     await dialog.locator("[data-coin-repeat]").click()
     await expect(dialog.locator("[data-coin-pick=\"smash\"]")).toBeVisible()
     // Without a new toss it does not close by itself (it was reopened by hand): closing is with its button.

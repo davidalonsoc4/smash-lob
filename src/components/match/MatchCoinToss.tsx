@@ -163,8 +163,6 @@ const circleOf = (rect: DOMRect | null): ScreenCircle | null => (rect && rect.wi
 const isInView = (rect: DOMRect | null) => Boolean(rect && rect.width > 0 && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth)
 const clipOf = (rect: DOMRect) => `inset(${Math.max(0, rect.top)}px ${Math.max(0, window.innerWidth - rect.right)}px ${Math.max(0, window.innerHeight - rect.bottom)}px ${Math.max(0, rect.left)}px round 12px)`
 const FULL_CLIP = "inset(0px round 0px)"
-/** After the last choice the result stays on the full screen this long, and then it closes into the panel. */
-const RESULT_HOLD_MS = 2000
 const CLOSE_MS = 560
 
 /**
@@ -207,8 +205,6 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const [leaveRect, setLeaveRect] = useState<DOMRect | null>(null)
   const closing = useRef(false)
   const closeTimer = useRef<number | null>(null)
-  /** The flow was finished here (not reopened from the panel): then it closes by itself. */
-  const autoClose = useRef(false)
 
   // The screen does not start to open until the 3D coin is ready (at most 0.9 s): the small coin of the panel stays in sight until then,
   // so the coin does not blink out while the big one loads.
@@ -259,13 +255,6 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [])
-
-  // Two seconds with the result in sight, and it closes.
-  useEffect(() => {
-    if (phase !== "done" || !autoClose.current) return
-    const timer = window.setTimeout(() => requestCloseRef.current(), RESULT_HOLD_MS)
-    return () => window.clearTimeout(timer)
-  }, [phase])
 
   const landed = useCallback(() => {
     navigator.vibrate?.(40)
@@ -338,18 +327,17 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
     if (busy) return
     setBusy(true); setError(null)
     const result = await chooseCoinTossRequest(kind, matchId, choice)
-    setBusy(false)
-    if (!result.ok) { setError(result.error); return }
+    if (!result.ok) { setBusy(false); setError(result.error); return }
     const next = result.state.coinToss!
     setToss(next); onChange(next)
-    // Everything is chosen: the result stays in sight for a moment and the screen closes into the panel.
-    if (!pendingCoinTossStep(next)) autoClose.current = true
+    // Everything is chosen: the screen closes into the panel, which already says it all (the buttons stay off meanwhile).
+    if (!pendingCoinTossStep(next)) { requestCloseRef.current(); return }
+    setBusy(false)
     setPhase(phaseFor(next))
   }
 
   /** Start again (for as long as the toss is being tested). */
   function repeatNow() {
-    autoClose.current = false
     setHeadsTeam(null)
     setError(null)
     setPhase("call")
@@ -357,8 +345,8 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
 
   const winner = toss?.winnerTeam
   const rawName = (team: CoinTossTeam) => teamName(teamNames, team)
-  /** "Ana + Luis" is shown as "Ana y Luis" ("e" before a name that starts with i in Spanish): the names are not a sum. */
-  const nm = (team: CoinTossTeam) => rawName(team).split(" + ").reduce((text, name, index) => {
+  /** "Ana García + Luis Pérez" is shown as "Ana y Luis": first names only (they read big on the court) and joined, not added ("e" before a name that starts with i in Spanish). */
+  const nm = (team: CoinTossTeam) => rawName(team).split(" + ").map((name) => name.trim().split(/\s+/)[0]).reduce((text, name, index) => {
     if (index === 0) return name
     const and = locale === "es" && /^h?i(?!e)/i.test(name.trim()) ? "e" : tx("y")
     return `${text} ${and} ${name}`
