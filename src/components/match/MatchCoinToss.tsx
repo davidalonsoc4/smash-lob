@@ -3,7 +3,7 @@ import { createPortal } from "react-dom"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
-import type { CoinScene, ScreenCircle } from "@/lib/coin3d"
+import type { CoinLookName, CoinScene, ScreenCircle } from "@/lib/coin3d"
 import {
   COIN_TOSS_TIME_WINDOW_ENABLED, getCoinTossWindow, otherCoinTossTeam, pendingCoinTossStep,
   type CoinToss, type CoinTossChoice, type CoinTossFace, type CoinTossTeam,
@@ -157,6 +157,9 @@ function ShotLabel({ shot }: { shot: "smash" | "lob" }) {
   )
 }
 
+/** EXPERIMENT: the looks of the coin that can be compared on the screen. */
+const LOOK_LABELS: Record<CoinLookName, string> = { before: "Antes", relief: "Relieve", tone: "Relieve y tono", silver: "Plata", finish: "Acabados" }
+
 /** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */
 type Origin = { card: DOMRect | null; coin: DOMRect | null }
 const circleOf = (rect: DOMRect | null): ScreenCircle | null => (rect && rect.width > 0 ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, size: Math.min(rect.width, rect.height) } : null)
@@ -197,7 +200,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const sceneRef = useRef<CoinScene | null>(null)
   const [stage, setStage] = useState<Stage>("loading")
   /** EXPERIMENT (branch exp/coin-design): compares the look in production with the candidate. */
-  const [look, setLook] = useState<"before" | "after">("after")
+  const [look, setLook] = useState<CoinLookName>("finish")
   useEffect(() => { if (stage === "ready") sceneRef.current?.setLook(look) }, [stage, look])
   const [startFace] = useState<CoinTossFace>(initialToss?.result ?? "heads")
   /** The team that called the smash, once the pick is made and the coin waits to be tossed. */
@@ -371,11 +374,11 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
 
       <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-between px-5 pb-8 pt-4"
         style={{ opacity: open ? 1 : 0, transition: reducedMotion() ? "none" : open ? "opacity 300ms ease 220ms" : "opacity 160ms ease" }}>
-        <div className="pointer-events-auto flex w-full max-w-md items-center justify-between">
-          <div role="group" aria-label="Antes / Después" data-coin-look className="coin-close inline-flex overflow-hidden rounded-full text-sm font-bold">
-            {(["before", "after"] as const).map((name) => (
+        <div className="pointer-events-auto flex w-full max-w-md items-start justify-between">
+          <div role="group" aria-label="Acabado de la moneda" data-coin-look className="flex flex-col items-start gap-1 text-xs font-bold">
+            {(Object.keys(LOOK_LABELS) as CoinLookName[]).map((name) => (
               <button key={name} type="button" data-coin-look-option={name} aria-pressed={look === name} onClick={() => setLook(name)}
-                className={`min-h-9 px-3 ${look === name ? "coin-gold" : "opacity-60"}`}>{name === "before" ? "Antes" : "Después"}</button>
+                className={`min-h-7 rounded-full bg-black/50 px-2.5 ${look === name ? "coin-gold" : "opacity-60"}`}>{LOOK_LABELS[name]}</button>
             ))}
           </div>
           <button ref={closeRef} type="button" onClick={requestClose} className={smallButton}>{tx(phase === "done" ? "Listo" : "Cerrar")}</button>

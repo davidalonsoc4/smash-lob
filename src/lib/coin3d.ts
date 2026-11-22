@@ -1,5 +1,5 @@
 import {
-  ACESFilmicToneMapping, CanvasTexture, CircleGeometry, CylinderGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial,
+  ACESFilmicToneMapping, CanvasTexture, CircleGeometry, CylinderGeometry, RingGeometry, DirectionalLight, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial,
   PMREMGenerator, PerspectiveCamera, Quaternion, RepeatWrapping, SRGBColorSpace, Scene, TextureLoader, Vector3, WebGLRenderer,
   type Texture,
 } from "three"
@@ -45,14 +45,21 @@ export type CoinScene = {
 /** How the metal looks: lights, reflections and finish. */
 const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughness: 0.4, bump: 3.2, lobBump: 3.2, tint: 0xffffff }
 /**
- * EXPERIMENT (branch exp/coin-design): the look that is in production ("before") and a candidate ("after") with less yellow glare
- * and more contrast in the relief (stronger bump, a bit more roughness so the highlights do not flatten the picture, less reflection of
- * the room, a deeper tint), and a stronger relief on the lob. A switch on the screen goes from one to the other to compare them.
+ * EXPERIMENT (branch exp/coin-design): five looks to compare with a selector on the screen.
+ *  - before: what is in production.
+ *  - relief: the same gold with more contrast in the relief (stronger bump, a bit less glossy), no tint.
+ *  - tone: relief plus a deeper, warmer tint and less exposure (the first candidate: it goes orange).
+ *  - silver: relief plus a silver outer ring and a silver edge, like a bimetallic coin.
+ *  - finish: all gold with different finishes: satin and darker field, polished brighter relief (both from the height maps), brushed edge.
  */
-export type CoinLookName = "before" | "after"
-export const COIN_LOOKS: Record<CoinLookName, typeof LOOK> = {
+export type CoinLookName = "before" | "relief" | "tone" | "silver" | "finish"
+type CoinLook = typeof LOOK & { finish?: boolean; silver?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
+export const COIN_LOOKS: Record<CoinLookName, CoinLook> = {
   before: LOOK,
-  after: { exposure: 0.92, key: 2.5, environment: 0.22, metalness: 0.85, roughness: 0.5, bump: 5.2, lobBump: 7, tint: 0xf2dfb4 },
+  relief: { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7 },
+  tone: { exposure: 0.92, key: 2.5, environment: 0.22, metalness: 0.85, roughness: 0.5, bump: 5.2, lobBump: 7, tint: 0xf2dfb4 },
+  silver: { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7, silver: true, edgeColor: 0xd7dade, edgeRoughness: 0.3 },
+  finish: { ...LOOK, metalness: 1, roughness: 0.62, bump: 4.4, lobBump: 6, finish: true, edgeColor: 0xd9ac47, edgeRoughness: 0.42, edgeBump: 2.2 },
 }
 /** The coin is always seen with its top leaning 5 degrees toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
 const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), (5 * Math.PI) / 180)
@@ -207,7 +214,51 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   const backMaterial = faceMaterial(lob, lobHeight)
   const coin = new Group()
   coin.add(new Mesh(edge, edgeMaterial), new Mesh(front, frontMaterial), new Mesh(back, backMaterial))
+  // EXPERIMENT: the silver outer rings (same height maps, so the engraving of the border stays), only shown in the silver look.
+  const RING_INNER = 0.905
+  const ringFront = new RingGeometry(RING_INNER, RADIUS, 160)
+  ringFront.translate(0, 0, THICKNESS / 2 + 0.002)
+  const ringBack = new RingGeometry(RING_INNER, RADIUS, 160)
+  ringBack.rotateX(Math.PI)
+  ringBack.translate(0, 0, -THICKNESS / 2 - 0.002)
+  const silverMaterial = (height: Texture) => new MeshStandardMaterial({ color: 0xd7dade, bumpMap: height, bumpScale: 5, metalness: 1, roughness: 0.3, envMapIntensity: 0.3, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
+  const ringFrontMaterial = silverMaterial(smashHeight)
+  const ringBackMaterial = silverMaterial(lobHeight)
+  const ringFrontMesh = new Mesh(ringFront, ringFrontMaterial)
+  const ringBackMesh = new Mesh(ringBack, ringBackMaterial)
+  ringFrontMesh.visible = ringBackMesh.visible = false
+  coin.add(ringFrontMesh, ringBackMesh)
   scene.add(coin)
+  // EXPERIMENT: roughness and metalness maps made from the height maps: the field is satin (rougher, a bit less metallic) and the relief polished.
+  const finishMaps = new Map<Texture, Texture>()
+  const finishMapOf = (height: Texture): Texture | null => {
+    const cached = finishMaps.get(height)
+    if (cached) return cached
+    const source = height.image as CanvasImageSource & { width: number; height: number }
+    if (!source || !source.width) return null
+    const size = Math.min(1024, source.width)
+    const canvas = document.createElement("canvas")
+    canvas.width = canvas.height = size
+    const context = canvas.getContext("2d")
+    if (!context) return null
+    context.drawImage(source, 0, 0, size, size)
+    const pixels = context.getImageData(0, 0, size, size)
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      const h = pixels.data[i] / 255
+      // A curve that separates the relief (high) from the field (low).
+      const t = Math.min(1, Math.max(0, (h - 0.42) / 0.3))
+      const relief = t * t * (3 - 2 * t)
+      pixels.data[i] = 255
+      pixels.data[i + 1] = Math.round(255 * (1 - 0.6 * relief)) // roughness: the field is rough, the relief smooth
+      pixels.data[i + 2] = Math.round(255 * (0.76 + 0.24 * relief)) // metalness: the field is a little less metallic
+      pixels.data[i + 3] = 255
+    }
+    context.putImageData(pixels, 0, 0)
+    const texture = new CanvasTexture(canvas)
+    texture.anisotropy = maxAnisotropy
+    finishMaps.set(height, texture)
+    return texture
+  }
 
   const shadowMap = shadowTexture()
   const shadow = new Mesh(new CircleGeometry(1, 48), new MeshBasicMaterial({ map: shadowMap, transparent: true, depthWrite: false }))
@@ -501,13 +552,21 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       renderer.toneMappingExposure = next.exposure
       scene.environmentIntensity = next.environment
       key.intensity = next.key
-      for (const [material, bump] of [[frontMaterial, next.bump], [backMaterial, next.lobBump]] as const) {
+      for (const [material, bump, height] of [[frontMaterial, next.bump, smashHeight], [backMaterial, next.lobBump, lobHeight]] as const) {
+        const map = next.finish ? finishMapOf(height) : null
+        if ((material.roughnessMap === null) !== (map === null)) material.needsUpdate = true
+        material.roughnessMap = map
+        material.metalnessMap = map
         material.metalness = next.metalness
         material.roughness = next.roughness
         material.bumpScale = bump
         material.color.setHex(next.tint)
         material.envMapIntensity = next.environment
       }
+      edgeMaterial.color.setHex(next.edgeColor ?? 0xd9ac47)
+      edgeMaterial.roughness = next.edgeRoughness ?? 0.36
+      edgeMaterial.bumpScale = next.edgeBump ?? 1.6
+      ringFrontMesh.visible = ringBackMesh.visible = Boolean(next.silver)
     },
     setFace(face) { orientation.copy(FACE_QUATERNION[face]); touched = true; released = false },
     setLayout(next) { layout = next },
