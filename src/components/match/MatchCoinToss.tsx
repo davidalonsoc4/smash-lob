@@ -163,6 +163,7 @@ function ShotLabel({ shot }: { shot: "smash" | "lob" }) {
  */
 const LOOK_LABELS: Partial<Record<CoinLookName, [string, string]>> = {
   before: ["1", "Antes"], finish2: ["2", "Acabados"], finish2Silver: ["3", "Acabados plata"],
+  goldSilverFaces: ["4", "Smash oro · Lob plata"], silverRelief: ["5", "Relieve en plata"], champagne: ["6", "Champán"],
 }
 
 /** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */

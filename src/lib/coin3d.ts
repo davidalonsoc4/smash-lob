@@ -51,8 +51,8 @@ const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughn
  *   3 silver: relief + silver ring.        3.1 silver + finish.      3.2 silver + finish2.
  *   4 finish: all gold, satin field, polished relief, brushed edge.      4.1 finish2: the same with a less brownish field.
  */
-export type CoinLookName = "before" | "relief" | "silver" | "silverFinish" | "silverFinish2" | "finish" | "finish2" | "finish2Silver"
-type CoinLook = typeof LOOK & { finish?: { metalField: number; drop: number }; silver?: boolean; allSilver?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
+export type CoinLookName = "before" | "relief" | "silver" | "silverFinish" | "silverFinish2" | "finish" | "finish2" | "finish2Silver" | "goldSilverFaces" | "silverRelief" | "champagne"
+type CoinLook = typeof LOOK & { finish?: { metalField: number; drop: number }; silver?: boolean; mix?: [number, number]; reliefSilver?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
 const RELIEF = { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7 }
 const SILVER = { silver: true, edgeColor: 0xd7dade, edgeRoughness: 0.3 }
 const FINISH: CoinLook = { ...LOOK, metalness: 1, roughness: 0.62, bump: 4.4, lobBump: 6, finish: { metalField: 0.76, drop: 0.6 }, edgeColor: 0xd9ac47, edgeRoughness: 0.42, edgeBump: 2.2 }
@@ -66,7 +66,13 @@ export const COIN_LOOKS: Record<CoinLookName, CoinLook> = {
   finish: FINISH,
   finish2: FINISH2,
   // The whole coin in silver: the picture of the gold coin turned grey, a cooler light and a silver edge (finish 2 for the rest).
-  finish2Silver: { ...FINISH2, allSilver: true, key: 3.2, environment: 0.34, edgeColor: 0xd7dade, edgeRoughness: 0.34, edgeBump: 2.6 },
+  finish2Silver: { ...FINISH2, mix: [1, 1], key: 3.2, environment: 0.34, edgeColor: 0xd7dade, edgeRoughness: 0.34, edgeBump: 2.6 },
+  // Each face its own metal: the smash in gold and the lob in silver.
+  goldSilverFaces: { ...FINISH2, mix: [0, 1], key: 3.1, environment: 0.3 },
+  // Silver in the relief (the figures, the racket, the net) and gold in the field.
+  silverRelief: { ...FINISH2, reliefSilver: true, key: 3.1, environment: 0.3 },
+  // One metal between gold and silver: pale gold.
+  champagne: { ...FINISH2, mix: [0.38, 0.38], key: 3.1, environment: 0.3, edgeColor: 0xe3cd94 },
 }
 /** The coin is always seen with its top leaning 5 degrees toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
 const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), (5 * Math.PI) / 180)
@@ -237,29 +243,49 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   coin.add(ringFrontMesh, ringBackMesh)
   scene.add(coin)
   // EXPERIMENT: roughness and metalness maps made from the height maps: the field is satin (rougher, a bit less metallic) and the relief polished.
-  // EXPERIMENT: the pictures in grey (for the silver coin): same drawing, no gold in it.
-  const greyMaps = new Map<Texture, Texture>()
-  const greyMapOf = (map: Texture): Texture => {
-    const cached = greyMaps.get(map)
-    if (cached) return cached
-    const source = map.image as CanvasImageSource & { width: number; height: number }
-    const size = Math.min(2048, source?.width || 1024)
+  // EXPERIMENT: pictures of other metals made from the gold ones. `mix` goes from the gold picture (0) to the same drawing in grey, which is
+  // silver (1); with `height` the silver is only where the relief is high (the figures, the racket, the net) and the field stays gold.
+  const mixedMaps = new Map<string, Texture>()
+  const pixelsOf = (image: CanvasImageSource & { width: number; height: number }, size: number) => {
     const canvas = document.createElement("canvas")
     canvas.width = canvas.height = size
     const context = canvas.getContext("2d")
-    if (!context || !source) return map
-    context.drawImage(source, 0, 0, size, size)
-    const pixels = context.getImageData(0, 0, size, size)
-    for (let i = 0; i < pixels.data.length; i += 4) {
+    if (!context) return null
+    context.drawImage(image, 0, 0, size, size)
+    return { context, data: context.getImageData(0, 0, size, size) }
+  }
+  const mixedMapOf = (map: Texture, mix: number, height?: Texture): Texture => {
+    if (mix <= 0 && !height) return map
+    const cacheKey = `${map.uuid}-${mix}-${height?.uuid ?? ""}`
+    const cached = mixedMaps.get(cacheKey)
+    if (cached) return cached
+    const source = map.image as CanvasImageSource & { width: number; height: number }
+    if (!source) return map
+    const size = Math.min(2048, source.width || 1024)
+    const picture = pixelsOf(source, size)
+    const relief = height ? pixelsOf(height.image as CanvasImageSource & { width: number; height: number }, size) : null
+    if (!picture) return map
+    const data = picture.data.data
+    for (let i = 0; i < data.length; i += 4) {
       // The gold picture is dark in luminance: it is lifted so the silver does not come out dull.
-      const grey = Math.min(255, Math.round((0.2126 * pixels.data[i] + 0.7152 * pixels.data[i + 1] + 0.0722 * pixels.data[i + 2]) * 1.28))
-      pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = grey
+      const grey = Math.min(255, (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) * 1.28)
+      let amount = mix
+      if (relief) {
+        const h = relief.data.data[i] / 255
+        const t = Math.min(1, Math.max(0, (h - 0.45) / 0.3))
+        amount = t * t * (3 - 2 * t) * 0.9
+      }
+      // Silver in the relief is a little warm (champagne), so it does not fight with the gold around it.
+      const warm = relief ? [1, 0.965, 0.88] : [1, 1, 1]
+      data[i] = data[i] + (grey * warm[0] - data[i]) * amount
+      data[i + 1] = data[i + 1] + (grey * warm[1] - data[i + 1]) * amount
+      data[i + 2] = data[i + 2] + (grey * warm[2] - data[i + 2]) * amount
     }
-    context.putImageData(pixels, 0, 0)
-    const texture = new CanvasTexture(canvas)
+    picture.context.putImageData(picture.data, 0, 0)
+    const texture = new CanvasTexture(picture.context.canvas)
     texture.colorSpace = SRGBColorSpace
     texture.anisotropy = maxAnisotropy
-    greyMaps.set(map, texture)
+    mixedMaps.set(cacheKey, texture)
     return texture
   }
   const finishMapKeys = new Map<string, Texture>()
@@ -585,9 +611,9 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       renderer.toneMappingExposure = next.exposure
       scene.environmentIntensity = next.environment
       key.intensity = next.key
-      for (const [material, bump, height, picture] of [[frontMaterial, next.bump, smashHeight, smash], [backMaterial, next.lobBump, lobHeight, lob]] as const) {
-        const grey = next.allSilver ? greyMapOf(picture) : picture
-        if (material.map !== grey) { material.map = grey; material.needsUpdate = true }
+      for (const [material, bump, height, picture, mix] of [[frontMaterial, next.bump, smashHeight, smash, next.mix?.[0] ?? 0], [backMaterial, next.lobBump, lobHeight, lob, next.mix?.[1] ?? 0]] as const) {
+        const painted = next.reliefSilver ? mixedMapOf(picture, 0, height) : mixedMapOf(picture, mix)
+        if (material.map !== painted) { material.map = painted; material.needsUpdate = true }
         const map = next.finish ? finishMapOf(height, next.finish) : null
         if ((material.roughnessMap === null) !== (map === null)) material.needsUpdate = true
         material.roughnessMap = map
