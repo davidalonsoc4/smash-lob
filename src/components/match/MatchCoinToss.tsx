@@ -3,7 +3,7 @@ import { createPortal } from "react-dom"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getIntlLocale } from "@/i18n/localeFormatting"
-import type { CoinLookName, CoinScene, ScreenCircle } from "@/lib/coin3d"
+import type { CoinBlend, CoinLookName, CoinScene, ScreenCircle } from "@/lib/coin3d"
 import {
   COIN_TOSS_TIME_WINDOW_ENABLED, getCoinTossWindow, otherCoinTossTeam, pendingCoinTossStep,
   type CoinToss, type CoinTossChoice, type CoinTossFace, type CoinTossTeam,
@@ -158,13 +158,25 @@ function ShotLabel({ shot }: { shot: "smash" | "lob" }) {
 }
 
 /**
- * EXPERIMENT: the looks of the coin that are compared on the screen: [number on the button, what it is]. The other looks of the
- * engine (relief only, silver ring, finish 1…) are still there in coin3d, they are just not offered.
+ * EXPERIMENT: what is compared on the screen. 1, 2, 5 and 6 are the looks that were already there (kept to see them again); A to D are
+ * starting points of the gold and silver mix and M is the mix as it is set with the sliders. The rest of the looks are still in coin3d.
  */
-const LOOK_LABELS: Partial<Record<CoinLookName, [string, string]>> = {
-  before: ["1", "Antes"], finish2: ["2", "Acabados"], finish2Silver: ["3", "Acabados plata"],
-  goldSilverFaces: ["4", "Smash oro · Lob plata"], silverRelief: ["5", "Relieve en plata"], champagne: ["6", "Champán"],
+type Choice = "before" | "finish2" | "silverRelief" | "champagne" | "A" | "B" | "C" | "D" | "M"
+const CHOICES: Array<[Choice, string, string]> = [
+  ["before", "1", "Antes"], ["finish2", "2", "Acabados"], ["silverRelief", "5", "Relieve en plata"], ["champagne", "6", "Champán"],
+  ["A", "A", "Fondo champán, relieve plata"], ["B", "B", "Fondo champán, relieve oro"], ["C", "C", "Oro envejecido, relieve plata"], ["D", "D", "Degradado champán al centro"],
+  ["M", "M", "A medida (deslizadores)"],
+]
+/** Sliders in whole numbers: field, relief and age from 0 to 100, radial from -100 to 100. */
+type Mix = { field: number; relief: number; age: number; radial: number }
+const PRESETS: Record<"A" | "B" | "C" | "D", Mix> = {
+  A: { field: 38, relief: 95, age: 0, radial: 0 },
+  B: { field: 38, relief: 0, age: 0, radial: 0 },
+  C: { field: 0, relief: 95, age: 70, radial: 0 },
+  D: { field: 25, relief: 60, age: 15, radial: -25 },
 }
+const SLIDERS: Array<[keyof Mix, string, number, number]> = [["field", "Fondo", 0, 100], ["relief", "Relieve", 0, 100], ["age", "Apagado", 0, 100], ["radial", "Borde", -100, 100]]
+const blendOf = (mix: Mix): CoinBlend => ({ field: mix.field / 100, relief: mix.relief / 100, age: mix.age / 100, radial: mix.radial / 100 })
 
 /** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */
 type Origin = { card: DOMRect | null; coin: DOMRect | null }
@@ -206,8 +218,14 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   const sceneRef = useRef<CoinScene | null>(null)
   const [stage, setStage] = useState<Stage>("loading")
   /** EXPERIMENT (branch exp/coin-design): compares the look in production with the candidate. */
-  const [look, setLook] = useState<CoinLookName>("finish2")
-  useEffect(() => { if (stage === "ready") sceneRef.current?.setLook(look) }, [stage, look])
+  const [choice, setChoice] = useState<Choice>("finish2")
+  const [mix, setMix] = useState<Mix>(PRESETS.A)
+  const blended = choice === "A" || choice === "B" || choice === "C" || choice === "D" || choice === "M"
+  useEffect(() => {
+    if (stage !== "ready") return
+    sceneRef.current?.setLook(blended ? "blend" : (choice as CoinLookName))
+  }, [stage, choice, blended])
+  useEffect(() => { if (stage === "ready" && blended) sceneRef.current?.setBlend(blendOf(mix)) }, [stage, blended, mix])
   const [startFace] = useState<CoinTossFace>(initialToss?.result ?? "heads")
   /** The team that called the smash, once the pick is made and the coin waits to be tossed. */
   const [headsTeam, setHeadsTeam] = useState<CoinTossTeam | null>(null)
@@ -381,17 +399,30 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
       <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-between px-5 pb-8 pt-4"
         style={{ opacity: open ? 1 : 0, transition: reducedMotion() ? "none" : open ? "opacity 300ms ease 220ms" : "opacity 160ms ease" }}>
         <div className="pointer-events-auto flex w-full max-w-md items-start justify-between">
-          <div role="group" aria-label="Acabado de la moneda" data-coin-look className="flex flex-col items-start gap-1.5 text-xs font-bold">
-            <div className="grid grid-cols-3 gap-1">
-              {(Object.keys(LOOK_LABELS) as CoinLookName[]).map((name) => (
-                <button key={name} type="button" data-coin-look-option={name} aria-pressed={look === name} aria-label={LOOK_LABELS[name]![1]} onClick={() => setLook(name)}
-                  className={`min-h-8 min-w-9 rounded-full bg-black/50 px-2 ${look === name ? "coin-gold" : "opacity-60"}`}>{LOOK_LABELS[name]![0]}</button>
+          <div role="group" aria-label="Acabado de la moneda" data-coin-look className="flex w-[15.5rem] flex-col items-start gap-1.5 text-xs font-bold">
+            <div className="grid grid-cols-5 gap-1">
+              {CHOICES.map(([name, number, label]) => (
+                <button key={name} type="button" data-coin-look-option={name} aria-pressed={choice === name} aria-label={label}
+                  onClick={() => { setChoice(name); if (name === "A" || name === "B" || name === "C" || name === "D") setMix(PRESETS[name]) }}
+                  className={`min-h-8 min-w-9 rounded-full bg-black/50 px-2 ${choice === name ? "coin-gold" : "opacity-60"}`}>{number}</button>
               ))}
             </div>
-            <p data-coin-look-name className="rounded-full bg-black/50 px-2.5 py-1 coin-gold">{LOOK_LABELS[look]?.[0]} · {LOOK_LABELS[look]?.[1]}</p>
+            <p data-coin-look-name className="rounded-full bg-black/50 px-2.5 py-1 coin-gold">{CHOICES.find(([name]) => name === choice)?.[1]} · {CHOICES.find(([name]) => name === choice)?.[2]}</p>
           </div>
           <button ref={closeRef} type="button" onClick={requestClose} className={smallButton}>{tx(phase === "done" ? "Listo" : "Cerrar")}</button>
         </div>
+        {blended && (phase === "call" || phase === "winner" || phase === "done") ? (
+          <div data-coin-sliders className="pointer-events-auto absolute inset-x-5 top-[54%] mx-auto grid max-w-md grid-cols-2 gap-x-4 gap-y-0.5 rounded-xl bg-black/55 px-3 py-1.5">
+            {SLIDERS.map(([key, label, min, max]) => (
+              <label key={key} className="flex items-center gap-1.5 text-xs font-semibold">
+                <span className="w-12 shrink-0">{label}</span>
+                <input type="range" min={min} max={max} step={1} value={mix[key]} data-coin-slider={key}
+                  onChange={(event) => { setMix({ ...mix, [key]: Number(event.target.value) }); setChoice("M") }} className="h-5 min-w-0 flex-1 accent-[#d7a544]" />
+                <span data-coin-slider-value={key} className="w-7 shrink-0 text-right tabular-nums">{mix[key]}</span>
+              </label>
+            ))}
+          </div>
+        ) : null}
 
         <div className={`w-full max-w-md space-y-3 text-center ${inTheAir ? "pointer-events-none" : "pointer-events-auto"}`} aria-live="polite">
           {phase === "call" && myTeam ? <>

@@ -35,6 +35,8 @@ export type CoinScene = {
   cancel(): void
   /** EXPERIMENT: changes the look of the metal on the fly (before / after). */
   setLook(name: CoinLookName): void
+  /** EXPERIMENT: the mix of gold and silver of the "blend" look (repaints the faces). */
+  setBlend(blend: CoinBlend): void
   /** The coin starts on that circle (the small coin of the panel) and moves to its place, growing. */
   appear(from: ScreenCircle): void
   /** The coin moves onto that circle and shrinks to its size. Resolves when it has arrived. */
@@ -51,8 +53,8 @@ const LOOK = { exposure: 1.0, key: 2.8, environment: 0.3, metalness: 0.8, roughn
  *   3 silver: relief + silver ring.        3.1 silver + finish.      3.2 silver + finish2.
  *   4 finish: all gold, satin field, polished relief, brushed edge.      4.1 finish2: the same with a less brownish field.
  */
-export type CoinLookName = "before" | "relief" | "silver" | "silverFinish" | "silverFinish2" | "finish" | "finish2" | "finish2Silver" | "goldSilverFaces" | "silverRelief" | "champagne"
-type CoinLook = typeof LOOK & { finish?: { metalField: number; drop: number }; silver?: boolean; mix?: [number, number]; reliefSilver?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
+export type CoinLookName = "before" | "relief" | "silver" | "silverFinish" | "silverFinish2" | "finish" | "finish2" | "finish2Silver" | "goldSilverFaces" | "silverRelief" | "champagne" | "blend"
+type CoinLook = typeof LOOK & { finish?: { metalField: number; drop: number }; silver?: boolean; mix?: [number, number]; reliefSilver?: boolean; blend?: boolean; edgeColor?: number; edgeRoughness?: number; edgeBump?: number }
 const RELIEF = { ...LOOK, roughness: 0.46, bump: 5.2, lobBump: 7 }
 const SILVER = { silver: true, edgeColor: 0xd7dade, edgeRoughness: 0.3 }
 const FINISH: CoinLook = { ...LOOK, metalness: 1, roughness: 0.62, bump: 4.4, lobBump: 6, finish: { metalField: 0.76, drop: 0.6 }, edgeColor: 0xd9ac47, edgeRoughness: 0.42, edgeBump: 2.2 }
@@ -73,7 +75,16 @@ export const COIN_LOOKS: Record<CoinLookName, CoinLook> = {
   silverRelief: { ...FINISH2, reliefSilver: true, key: 3.1, environment: 0.3 },
   // One metal between gold and silver: pale gold.
   champagne: { ...FINISH2, mix: [0.38, 0.38], key: 3.1, environment: 0.3, edgeColor: 0xe3cd94 },
+  // Gold and silver mixed live with sliders (see CoinBlend): the picture is repainted whenever a value changes.
+  blend: { ...FINISH2, key: 3.1, environment: 0.3, blend: true },
 }
+
+/**
+ * EXPERIMENT: how gold and silver are mixed in the "blend" look. All from 0 to 1 except `radial` (-1 to 1):
+ *  - field: how silver the field (the low parts) is; relief: how silver the relief (figures, racket, net, border) is.
+ *  - age: dulls the gold (less yellow, a little darker). radial: more silver towards the edge (positive) or towards the center (negative).
+ */
+export type CoinBlend = { field: number; relief: number; age: number; radial: number }
 /** The coin is always seen with its top leaning 5 degrees toward us: the reflections then fall on the darker part of the light and the gold looks deep instead of washed out. */
 const VIEW_TILT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), (5 * Math.PI) / 180)
 const RADIUS = 1
@@ -286,6 +297,68 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     texture.colorSpace = SRGBColorSpace
     texture.anisotropy = maxAnisotropy
     mixedMaps.set(cacheKey, texture)
+    return texture
+  }
+  // EXPERIMENT: the faces of the "blend" look, painted live: the gold picture and the relief are read once and every change of the sliders mixes them again.
+  let blendParams: CoinBlend = { field: 0.38, relief: 0.95, age: 0, radial: 0 }
+  let blendActive = false
+  let blendFrame = 0
+  type LiveFace = { size: number; gold: Uint8ClampedArray; mask: Float32Array; image: ImageData; context: CanvasRenderingContext2D; texture: Texture }
+  const liveFaces = new Map<Texture, LiveFace>()
+  const paintLive = (live: LiveFace) => {
+    const p = blendParams
+    const n = live.size
+    const out = live.image.data
+    const { gold, mask } = live
+    const dark = 1 - 0.18 * p.age
+    const k = p.age * 0.55
+    for (let y = 0; y < n; y += 1) {
+      const dy = ((y + 0.5) / n) * 2 - 1
+      for (let x = 0; x < n; x += 1) {
+        const dx = ((x + 0.5) / n) * 2 - 1
+        const r = Math.min(1, Math.sqrt(dx * dx + dy * dy))
+        const i = (y * n + x) * 4
+        const R = gold[i], G = gold[i + 1], B = gold[i + 2]
+        const lum = 0.2126 * R + 0.7152 * G + 0.0722 * B
+        const grey = Math.min(255, lum * 1.28)
+        // The gold, dulled when it is aged.
+        const aR = (R + (lum - R) * k) * dark, aG = (G + (lum - G) * k) * dark, aB = (B + (lum - B) * k) * dark
+        // The field: from gold to silver, and more or less silver from the center to the edge.
+        const fm = Math.min(1, Math.max(0, p.field + p.radial * (r * 2 - 1)))
+        const bR = aR + (grey - aR) * fm, bG = aG + (grey - aG) * fm, bB = aB + (grey - aB) * fm
+        // The relief: silver a little warm, so it does not fight with the gold around it.
+        const rR = aR + (grey - aR) * p.relief, rG = aG + (grey * 0.965 - aG) * p.relief, rB = aB + (grey * 0.88 - aB) * p.relief
+        const m = mask[y * n + x]
+        out[i] = bR + (rR - bR) * m
+        out[i + 1] = bG + (rG - bG) * m
+        out[i + 2] = bB + (rB - bB) * m
+        out[i + 3] = 255
+      }
+    }
+    live.context.putImageData(live.image, 0, 0)
+    live.texture.needsUpdate = true
+  }
+  const liveFaceOf = (picture: Texture, height: Texture): Texture | null => {
+    const cached = liveFaces.get(picture)
+    if (cached) return cached.texture
+    const source = picture.image as CanvasImageSource & { width: number; height: number }
+    const heightSource = height.image as CanvasImageSource & { width: number; height: number }
+    if (!source || !heightSource) return null
+    const size = Math.min(1280, source.width || 1024)
+    const base = pixelsOf(source, size)
+    const relief = pixelsOf(heightSource, size)
+    if (!base || !relief) return null
+    const mask = new Float32Array(size * size)
+    for (let i = 0; i < mask.length; i += 1) {
+      const t = Math.min(1, Math.max(0, (relief.data.data[i * 4] / 255 - 0.45) / 0.3))
+      mask[i] = t * t * (3 - 2 * t)
+    }
+    const texture = new CanvasTexture(base.context.canvas)
+    texture.colorSpace = SRGBColorSpace
+    texture.anisotropy = maxAnisotropy
+    const live: LiveFace = { size, gold: new Uint8ClampedArray(base.data.data), mask, image: base.data, context: base.context, texture }
+    liveFaces.set(picture, live)
+    paintLive(live)
     return texture
   }
   const finishMapKeys = new Map<string, Texture>()
@@ -608,11 +681,12 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
   return {
     setLook(name) {
       const next = COIN_LOOKS[name]
+      blendActive = Boolean(next.blend)
       renderer.toneMappingExposure = next.exposure
       scene.environmentIntensity = next.environment
       key.intensity = next.key
       for (const [material, bump, height, picture, mix] of [[frontMaterial, next.bump, smashHeight, smash, next.mix?.[0] ?? 0], [backMaterial, next.lobBump, lobHeight, lob, next.mix?.[1] ?? 0]] as const) {
-        const painted = next.reliefSilver ? mixedMapOf(picture, 0, height) : mixedMapOf(picture, mix)
+        const painted = next.blend ? liveFaceOf(picture, height) ?? picture : next.reliefSilver ? mixedMapOf(picture, 0, height) : mixedMapOf(picture, mix)
         if (material.map !== painted) { material.map = painted; material.needsUpdate = true }
         const map = next.finish ? finishMapOf(height, next.finish) : null
         if ((material.roughnessMap === null) !== (map === null)) material.needsUpdate = true
@@ -628,6 +702,15 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
       edgeMaterial.roughness = next.edgeRoughness ?? 0.36
       edgeMaterial.bumpScale = next.edgeBump ?? 1.6
       ringFrontMesh.visible = ringBackMesh.visible = Boolean(next.silver)
+    },
+    setBlend(blend) {
+      blendParams = blend
+      if (!blendActive || blendFrame) return
+      // Repainted at most once per frame, however fast the slider moves.
+      blendFrame = requestAnimationFrame(() => {
+        blendFrame = 0
+        for (const live of liveFaces.values()) paintLive(live)
+      })
     },
     setFace(face) { orientation.copy(FACE_QUATERNION[face]); touched = true; released = false },
     setLayout(next) { layout = next },
@@ -672,6 +755,7 @@ export async function createCoinScene(canvas: HTMLCanvasElement): Promise<CoinSc
     dispose() {
       disposed = true
       cancelAnimationFrame(frame)
+      cancelAnimationFrame(blendFrame)
       observer.disconnect()
       canvas.removeEventListener("pointerdown", onDown)
       canvas.removeEventListener("pointermove", onMove)
