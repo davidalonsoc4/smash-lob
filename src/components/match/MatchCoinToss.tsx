@@ -142,6 +142,20 @@ const bigButton = "coin-btn flex min-h-14 w-full flex-col items-center justify-c
 const smallButton = "coin-close inline-flex min-h-9 items-center justify-center rounded-full px-4 text-center text-sm font-bold"
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
+/** The two faces of the coin carry the names of the app, the same in every language: Smash and Lob. */
+const SHOT_NAME = { smash: "Smash", lob: "Lob" } as const
+
+/** "Smash" or "Lob" and, except in English, its translation below it in small letters: (remate), (globo). */
+function ShotLabel({ shot }: { shot: "smash" | "lob" }) {
+  const { tx, locale } = useI18n()
+  return (
+    <>
+      <span>{SHOT_NAME[shot]}</span>
+      {locale !== "en" ? <span className="text-xs font-bold coin-btn-sub">({tx(shot === "smash" ? "remate" : "globo")})</span> : null}
+    </>
+  )
+}
+
 /** Where the panel and its coin are on the screen: the full screen opens from there and closes back into it. */
 type Origin = { card: DOMRect | null; coin: DOMRect | null }
 const circleOf = (rect: DOMRect | null): ScreenCircle | null => (rect && rect.width > 0 ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, size: Math.min(rect.width, rect.height) } : null)
@@ -174,7 +188,7 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
   /** The coin of the screen is already showing: the small one of the panel can go (not before, or the coin would blink out). */
   onCoinShown: () => void
 }) {
-  const { tx } = useI18n()
+  const { tx, locale } = useI18n()
   const [toss, setToss] = useState<CoinToss | null>(initialToss)
   const [phase, setPhase] = useState<Phase>(repeat ? "call" : phaseFor(initialToss))
   const [landing, setLanding] = useState<number | null>(null)
@@ -369,18 +383,18 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
             <h2 className="text-2xl font-black">{tx("¿Qué elige tu equipo?")}</h2>
             <p className="text-sm font-semibold coin-muted">{teamName(teamNames, myTeam)}</p>
             <div className="grid grid-cols-2 gap-3">
-              <button type="button" data-coin-pick="smash" disabled={busy} onClick={() => pick(myTeam)} className={bigButton}>{tx("Remate")}</button>
-              <button type="button" data-coin-pick="lob" disabled={busy} onClick={() => pick(otherCoinTossTeam(myTeam))} className={bigButton}>{tx("Globo")}</button>
+              <button type="button" data-coin-pick="smash" disabled={busy} onClick={() => pick(myTeam)} className={bigButton}><ShotLabel shot="smash" /></button>
+              <button type="button" data-coin-pick="lob" disabled={busy} onClick={() => pick(otherCoinTossTeam(myTeam))} className={bigButton}><ShotLabel shot="lob" /></button>
             </div>
           </> : null}
 
           {phase === "call" && !myTeam ? <>
-            <h2 className="text-2xl font-black">{tx("¿Quién canta remate?")}</h2>
+            <h2 className="text-2xl font-black">{tx("¿Quién canta smash?")}</h2>
             <p className="text-sm font-semibold coin-muted">{tx("Poneos de acuerdo y elegid. La moneda decide quién elige.")}</p>
             {([1, 2] as CoinTossTeam[]).map((team) => (
               <button key={team} type="button" data-coin-call={team} disabled={busy} onClick={() => pick(team)} className={bigButton}>
-                <span>{tx("Remate")}: {teamName(teamNames, team)}</span>
-                <span className="text-sm font-bold coin-btn-sub">{tx("Globo")}: {teamName(teamNames, otherCoinTossTeam(team))}</span>
+                <span>{SHOT_NAME.smash}: {teamName(teamNames, team)}</span>
+                <span className="text-sm font-bold coin-btn-sub">{SHOT_NAME.lob}: {teamName(teamNames, otherCoinTossTeam(team))}</span>
               </button>
             ))}
           </> : null}
@@ -389,7 +403,8 @@ function CoinTossDialog({ kind, matchId, teamNames, myTeam, initialToss, repeat,
           {phase === "flipping" && stage !== "ready" ? <p className="text-xl font-black">{tx("Lanzando…")}</p> : null}
 
           {phase === "result" && toss ? <>
-            <h2 data-coin-result={toss.result} className="text-4xl font-black uppercase tracking-wide">{tx(toss.result === "heads" ? "Remate" : "Globo")}</h2>
+            <h2 data-coin-result={toss.result} className="text-4xl font-black uppercase tracking-wide">{toss.result === "heads" ? SHOT_NAME.smash : SHOT_NAME.lob}</h2>
+            {locale !== "en" ? <p className="-mt-2 text-sm font-bold coin-muted">({tx(toss.result === "heads" ? "remate" : "globo")})</p> : null}
             <p className="text-lg font-bold">{tx("Gana")} <span className="coin-gold">{teamName(teamNames, toss.winnerTeam)}</span></p>
             <button type="button" onClick={() => setPhase(phaseFor(toss))} className={bigButton}>{tx("Elegir")}</button>
           </> : null}

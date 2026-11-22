@@ -1152,13 +1152,37 @@ test.describe("coin toss in the detail of a friendly", () => {
     await expect(dialog.getByRole("button", { name: "Elegir", exact: true })).toBeVisible()
   })
 
+  for (const [locale, translations] of [["es", ["(remate)", "(globo)"]], ["eu", ["(errematea)", "(globoa)"]], ["en", null]] as const) {
+    test(`the two picks are called Smash and Lob in every language, with their translation below (${locale})`, async ({ page }) => {
+      await page.addInitScript(language => localStorage.setItem("smash-lob-locale", language), locale)
+      await mockToss(page, item, [])
+      await page.goto("/personal-matches/qa-friendly")
+      await page.locator("[data-coin-start]").click()
+      const dialog = page.locator("[data-coin-toss-dialog]")
+      const smash = dialog.locator('[data-coin-pick="smash"]')
+      const lob = dialog.locator('[data-coin-pick="lob"]')
+      await expect(smash).toBeVisible()
+      // The names of the app come first, in English, in all the languages.
+      await expect(smash).toContainText("Smash")
+      await expect(lob).toContainText("Lob")
+      if (translations) {
+        await expect(smash).toContainText(translations[0])
+        await expect(lob).toContainText(translations[1])
+      } else {
+        // In English there is nothing to translate.
+        await expect(smash).toHaveText("Smash")
+        await expect(lob).toHaveText("Lob")
+      }
+    })
+  }
+
   test("keeps asking who calls the smash when the person does not play the match", async ({ page }) => {
     const posts: Array<Record<string, unknown>> = []
     await mockToss(page, { ...item, participants: item.participants.map(participant => ({ ...participant, isCurrentUser: false })) }, posts)
     await page.goto("/personal-matches/qa-friendly")
     await page.locator("[data-coin-start]").click()
     const dialog = page.locator("[data-coin-toss-dialog]")
-    await expect(dialog.getByRole("heading", { name: "¿Quién canta remate?" })).toBeVisible()
+    await expect(dialog.getByRole("heading", { name: "¿Quién canta smash?" })).toBeVisible()
     await expect(dialog.locator("[data-coin-pick]")).toHaveCount(0)
     await pickAndToss(dialog, "[data-coin-call=\"2\"]")
     await expect(dialog.locator("[data-coin-result]")).toBeVisible({ timeout: 20000 })
