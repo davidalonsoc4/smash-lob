@@ -50,6 +50,22 @@ function Coin({ mode, face, variant, onLanded }: { mode: "rest" | "wait" | "land
 function MiniCoin({ face, spinning }: { face: CoinTossFace; spinning: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const [onScreen, setOnScreen] = useState(true)
+  // The coin is as tall as the text next to it: its size follows the height it is given.
+  useEffect(() => {
+    const element = ref.current
+    if (!element || typeof ResizeObserver === "undefined") return
+    const fit = () => {
+      const full = element.querySelector<HTMLElement>(".coin-scene")?.offsetWidth
+      if (!full) return
+      element.style.setProperty("--mini-scale", String(element.clientHeight / full))
+      // Round: as wide as it is tall (the button around it takes this width).
+      element.style.width = `${element.clientHeight}px`
+    }
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
   useEffect(() => {
     const element = ref.current
     if (!element || typeof IntersectionObserver === "undefined") return
@@ -527,19 +543,21 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
 
   return (
     <div ref={cardRef}>
-      <AppCard data-coin-toss-panel>
-        <div className="flex items-start gap-3">
+      <AppCard data-coin-toss-panel className="!pb-2.5">
+        <div className="flex items-stretch gap-3">
           <div className="min-w-0 flex-1">
             <p className="type-panel-title app-panel-title">{tx("Sorteo del saque")}</p>
-            {toss ? <div className="mt-1">
-              <p data-coin-panel-main className="text-sm font-black leading-snug text-neutral-950">{lead} <span className="coin-panel-verb">{accent}</span></p>
+            {/* The lines sit between the title and the bottom edge with the same room above and below (the card has 10px at the bottom). */}
+            {toss ? <div className="mt-2.5">
+              <p data-coin-panel-main className="text-sm font-semibold leading-snug text-neutral-950">{lead} <span className="coin-panel-verb">{accent}</span></p>
               <p data-coin-panel-detail className="mt-0.5 text-xs font-semibold leading-snug text-neutral-600 first-letter:uppercase">{detail}</p>
-            </div> : <p className="mt-1 text-sm font-bold leading-snug text-neutral-800">
-              {canStart ? `${tx("Tira la moneda para empezar el partido")} (${tx("toca la moneda para lanzarla")})` : `${tx("La moneda se activa a las")} ${opensAt ?? ""} · ${tx("30 minutos antes del partido")}`}
-            </p>}
+            </div> : <div className="mt-2.5">
+              <p className="text-sm font-semibold leading-snug text-neutral-950">{canStart ? tx("Tira la moneda para empezar el partido") : `${tx("La moneda se activa a las")} ${opensAt ?? ""} · ${tx("30 minutos antes del partido")}`}</p>
+              {canStart ? <p data-coin-panel-hint className="mt-0.5 text-xs font-semibold uppercase leading-snug tracking-wide text-neutral-600">{tx("toca la moneda para lanzarla")} →</p> : null}
+            </div>}
           </div>
           <button ref={coinRef} type="button" data-coin-open {...(canStart && !toss ? { "data-coin-start": "" } : {})} {...(toss && canOpen && step ? { "data-coin-continue": "" } : {})} disabled={!canOpen} onClick={() => openDialog(false)} aria-label={tx("Sorteo del saque")}
-            className="shrink-0 rounded-full disabled:cursor-default" style={{ visibility: dialog && coinHidden ? "hidden" : "visible" }}>
+            className="shrink-0 self-stretch rounded-full disabled:cursor-default" style={{ visibility: dialog && coinHidden ? "hidden" : "visible" }}>
             <MiniCoin face={toss?.result ?? "heads"} spinning={!toss} />
           </button>
         </div>

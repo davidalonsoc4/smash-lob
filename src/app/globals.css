@@ -125,8 +125,8 @@ html .coin-toss-screen .coin-error { background: rgb(239 68 68 / 0.2) !important
 }
 /* The small coin of the panel: the same coin, half of its size. Before the toss it turns slowly on its vertical axis (a preview of the
    coin); after it, it rests on the face that came out. */
-.coin-mini { position: relative; width: 4.6rem; height: 4.6rem; flex-shrink: 0; }
-.coin-mini .coin-scene { position: absolute; left: 0; top: 0; transform: scale(0.4182); transform-origin: 0 0; }
+.coin-mini { position: relative; height: 100%; aspect-ratio: 1 / 1; min-height: 3rem; }
+.coin-mini .coin-scene { position: absolute; left: 0; top: 0; transform: scale(var(--mini-scale, 0.35)); transform-origin: 0 0; }
 .coin-mini-spinning .coin { transform: rotateY(0deg); }
 /* Turning on the vertical axis, the back face has to be turned on that same axis to stand upright. */
 .coin-mini-spinning .coin-tails { transform: rotateY(180deg) translateZ(var(--coin-half)); }
@@ -3708,9 +3708,8 @@ html .app-match-chat-metadata[data-overlay="true"] .type-caption { color: #fff !
 /* Destructive text action on a neutral button: readable in the dark classic theme (competition styles have their own red). */
 html.dark:not(.colorful):not([data-visual-style="competition"]) .app-danger-action { color: #fca5a5; }
 
-/* The key word of the toss panel (sacan, restan, eligen lado): the accent colour, darkened on light themes so it stays readable. */
-.coin-panel-verb { color: color-mix(in srgb, var(--app-accent, #b8860b) 62%, #000000); }
-html.dark .coin-panel-verb { color: var(--app-accent, #d7a544); }
+/* The key word of the toss panel (sacan, restan, eligen lado): heavier and underlined with the accent colour (the text itself in the colour of the text, so it stands out next to the golden coin in any theme). */
+.coin-panel-verb { font-weight: 900; text-decoration: underline; text-decoration-color: var(--app-accent, #d7a544); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 
 /* Competition: the boxes with the names of the pairs have the same background as the panels (the surface), not a lighter gray. */
 html[data-visual-style="competition"] .app-match-pair-surface {
