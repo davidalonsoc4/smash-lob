@@ -13,6 +13,7 @@ export function GuidedTourLibrary() {
   const { availableTours, progress, resetAllTours } = useOnboarding()
   const [resetDone, setResetDone] = useState(false)
   const visibleTours = availableTours.filter((tour) => !tour.route.includes(":"))
+  const doneCount = visibleTours.filter((tour) => hasCompletedCurrentTour(progress, tour)).length
 
   return (
     <section id="tutoriales-visuales" className="scroll-mt-24 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
@@ -30,7 +31,12 @@ export function GuidedTourLibrary() {
         </div>
       </div>
 
-      <div className="mt-3 grid gap-2">
+      <details className="group mt-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800">
+          <span>{doneCount}/{visibleTours.length} {copy.completed.toLowerCase()}</span>
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-base text-neutral-500 transition group-open:rotate-45">+</span>
+        </summary>
+      <div className="mt-2 grid gap-2">
         {visibleTours.map((tour) => {
           const completed = hasCompletedCurrentTour(progress, tour)
           return (
@@ -66,6 +72,7 @@ export function GuidedTourLibrary() {
       >
         {resetDone ? copy.resetDone : copy.resetAll}
       </button>
+      </details>
     </section>
   )
 }

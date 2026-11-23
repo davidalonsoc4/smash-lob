@@ -7,19 +7,23 @@ import { fetchTutorialVideoUrl, fetchTutorials, markTutorialSeen } from "@/lib/t
 import type { TutorialSummary } from "@/lib/tutorialVideos"
 import { useI18n } from "@/i18n/I18nProvider"
 
+const PREVIEW_COUNT = 4
+
 /** Video tutorials inside Help. Shows only what this person may see; nothing at all when there are none. */
-export function TutorialVideoLibrary() {
+export function TutorialVideoLibrary({ onLoaded }: { onLoaded?: (count: number) => void } = {}) {
   const { tx } = useI18n()
   const [tutorials, setTutorials] = useState<TutorialSummary[] | null>(null)
   const [current, setCurrent] = useState<TutorialSummary | null>(null)
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
+  const [showAll, setShowAll] = useState(false)
   const marked = useRef<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    void fetchTutorials().then((list) => { if (!cancelled) setTutorials(list ?? []) })
+    void fetchTutorials().then((list) => { if (!cancelled) { setTutorials(list ?? []); onLoaded?.(list?.length ?? 0) } })
     return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function open(tutorial: TutorialSummary) {
@@ -53,10 +57,15 @@ export function TutorialVideoLibrary() {
         {pending ? tx("Aprende a usar la app en pocos minutos. Te faltan por ver:") + ` ${pending}` : tx("Los has visto todos. Puedes repetir el que quieras.")}
       </p>
       <div className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-2">
-        {tutorials.map((tutorial) => (
+        {(showAll ? tutorials : tutorials.slice(0, PREVIEW_COUNT)).map((tutorial) => (
           <TutorialVideoCard key={tutorial.id} tutorial={tutorial} onOpen={() => void open(tutorial)} badge={tutorial.seen ? undefined : tx("Nuevo")} />
         ))}
       </div>
+      {tutorials.length > PREVIEW_COUNT ? (
+        <button type="button" onClick={() => setShowAll((value) => !value)} className="mt-2 flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-xs font-black text-neutral-700">
+          {showAll ? tx("Ver menos") : `${tx("Ver todos los vídeos")} (${tutorials.length})`}
+        </button>
+      ) : null}
       <FloatingDialog open={Boolean(current)} onClose={close} title={current?.title ?? tx("Vídeos tutoriales")} variant="content">
         {current ? (
           <div className="space-y-3 p-3">
