@@ -68,8 +68,8 @@ Colores y datos de liga: objeto `LeagueConfig` (`src/Bienvenida.tsx`); el acento
 ## Idea provisional del plan del día de apertura (NO es plan fijo; no se publica aún)
 Supuesto reserva a las 12:00. Idea del organizador: quedar sobre las 11:00 (desayuno/café), reunirse en la entrada del polideportivo hacia las 11:30–11:40, cambiarse y pistas a las 12:00; partido de 2 h (hasta ~14:00); ducha; comida sobre las 15:00 (intentar reservar mesa para 8; si no se puede, buscar sitio); tarde libre (opcional: tomar algo, bolera…). Plan fijo: 11:00 quedada · 12:00 partido · ~14:00 ducha · ~15:00 comida. Welcome pack (bote de bolas, 2 overgrips, chuches): decidir momento (recomendado: en la quedada de las 11:00). No revelar su contenido en los vídeos.
 
-## Vídeos de ayuda genéricos (para todos los usuarios, no de la liga) — primera tanda de `docs/PLAN_VIDEOS_Y_GUIAS.md` (en `origin/staging`)
-Reglas: sin PRO League ni nombres reales; avatares y nombres genéricos; cierre propio (llamada a la acción, sin «Nos vemos en la pista»); guiones con las variables de configuración de ligas/temporadas y sus alternativas. Salida: `out/listos-para-subir/ayuda/`.
+## Tutoriales genéricos (vídeos de ayuda para todos los usuarios, no de la liga) — primera tanda de `docs/PLAN_VIDEOS_Y_GUIAS.md` (en `origin/staging`)
+Nombre de catálogo: «Tutoriales genéricos» (pídelos así). Reglas: sin PRO League ni nombres reales; avatares y nombres genéricos; cierre propio (llamada a la acción, sin «Nos vemos en la pista»); guiones con las variables de configuración de ligas/temporadas y sus alternativas. Salida: `out/listos-para-subir/ayuda/`.
 Orden aprobado de guiones: 12, 13, 1, 3, 5, 6, 18, 21, 22a, 22b (guiones en la conversación; el 5: lo puede lanzar cualquiera de los cuatro jugadores; no hay ligas por parejas fijas activas).
 - 12 Instalar la app y activar los avisos: **hecho, en revisión** (`Gen12Instalar`, `src/Gen12.tsx`, voz `voiceGen12`, toma `assets/gen12-instalar/`, 31 s).
 - Por verificar antes de hacerlos: 22a calendario manual activo; 22b «todo se puede cambiar después».
