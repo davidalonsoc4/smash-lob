@@ -1365,13 +1365,7 @@ export const es = {
       "No se ha podido guardar este dispositivo. Revisa VAPID, SUPABASE_SERVICE_ROLE_KEY y las tablas de notificaciones.",
     deviceDisabled: "Notificaciones desactivadas en este dispositivo.",
     deviceDisableError: "No se ha podido desactivar este dispositivo.",
-    required: {
-      title: "Avisos obligatorios",
-      badge: "Obligatoria",
-      intro: "Estos avisos son obligatorios: siempre se envían y no se pueden desactivar.",
-      league_news: { title: "Novedades de la liga", description: "Avisos importantes que publica la organización de la liga. Llegan siempre a todos los participantes." },
-      chat_mentions: { title: "Menciones en el chat", description: "Cuando alguien te menciona con @ en el chat de un partido." },
-    },
+    requiredNote: "Siempre recibirás las Novedades de la liga y las menciones con @ en el chat. Para no recibir ningún aviso, desactiva las notificaciones en este dispositivo.",
     preferences: {
       match_schedule: {
         title: "Programación de partidos",

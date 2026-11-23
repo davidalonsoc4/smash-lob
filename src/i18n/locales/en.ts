@@ -1349,13 +1349,7 @@ export const en = {
       "This device could not be saved. Check VAPID, SUPABASE_SERVICE_ROLE_KEY and the notification tables.",
     deviceDisabled: "Notifications disabled on this device.",
     deviceDisableError: "This device could not be disabled.",
-    required: {
-      title: "Required notices",
-      badge: "Required",
-      intro: "These notices are required: they are always sent and cannot be turned off.",
-      league_news: { title: "League news", description: "Important notices published by the league organisers. They always reach every participant." },
-      chat_mentions: { title: "Chat mentions", description: "When someone mentions you with @ in a match chat." },
-    },
+    requiredNote: "You will always receive league news and @ mentions in the chat. To receive no notices at all, turn off notifications on this device.",
     preferences: {
       match_schedule: { title: "Match scheduling", description: "Dates, times, courts, changes and ball-custodian assignments for your matches." },
       match_incidents: { title: "Match incidents", description: "Incidents reported, resolved or removed. Admins also receive new league incidents." },

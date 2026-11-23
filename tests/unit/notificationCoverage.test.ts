@@ -32,7 +32,7 @@ describe("every notification can be configured, or is shown as required", () => 
         expect(text?.title, key).toBeTruthy()
         expect(text?.description, key).toBeTruthy()
       }
-      for (const key of requiredNotificationKeys) expect(locale.notifications.required[key].title, key).toBeTruthy()
+      expect(locale.notifications.requiredNote).toBeTruthy()
     }
   })
 

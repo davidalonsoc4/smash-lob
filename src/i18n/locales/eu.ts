@@ -1358,13 +1358,7 @@ export const eu = {
       "Ezin izan da gailu hau gorde. Egiaztatu VAPID, SUPABASE_SERVICE_ROLE_KEY eta jakinarazpenen taulak.",
     deviceDisabled: "Jakinarazpenak desaktibatuta gailu honetan.",
     deviceDisableError: "Ezin izan da gailu hau desaktibatu.",
-    required: {
-      title: "Derrigorrezko abisuak",
-      badge: "Derrigorrezkoa",
-      intro: "Abisu hauek derrigorrezkoak dira: beti bidaltzen dira eta ezin dira desaktibatu.",
-      league_news: { title: "Ligaren berriak", description: "Ligaren antolakuntzak argitaratutako abisu garrantzitsuak. Beti iristen zaizkie parte-hartzaile guztiei." },
-      chat_mentions: { title: "Txateko aipamenak", description: "Norbaitek partida baten txatean @ bidez aipatzen zaituenean." },
-    },
+    requiredNote: "Beti jasoko dituzu ligaren berriak eta txateko @ aipamenak. Abisurik ez jasotzeko, desaktibatu jakinarazpenak gailu honetan.",
     preferences: {
       match_schedule: { title: "Partiden programazioa", description: "Zure partiden datak, orduak, pistak, aldaketak eta pilotak eramateko esleipenak." },
       match_incidents: { title: "Partidetako gorabeherak", description: "Jakinarazitako, ebatzitako edo ezabatutako gorabeherak. Admin-ek ligako berriak ere jasotzen dituzte." },

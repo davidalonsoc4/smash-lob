@@ -1304,7 +1304,7 @@ test("league match detail shows the coin toss to who can manage the match", asyn
   await expect(page.locator("[data-coin-toss-panel] [data-coin-start]")).toBeVisible()
 })
 
-test("notification settings show six grouped switches and the required notices switched on and locked", async ({ page }) => {
+test("notification settings show six grouped switches and a note about the required notices", async ({ page }) => {
   let saved: Record<string, boolean> | null = null
   await page.route("**/api/notifications/preferences**", route => {
     if (route.request().method() === "POST") {
@@ -1321,10 +1321,6 @@ test("notification settings show six grouped switches and the required notices s
   await page.locator("#before-play").getByRole("switch").click()
   await expect(page.locator("#before-play").getByRole("switch")).toHaveAttribute("aria-checked", "false")
   expect(saved).toMatchObject({ match_upcoming: false, match_coin_toss: false, match_chat: true })
-  const required = page.locator("[data-required-notifications]")
-  await expect(required.locator("[data-required-notification]")).toHaveCount(2)
-  for (const locked of await required.locator("[data-required-notification]").all()) {
-    await expect(locked).toHaveAttribute("aria-checked", "true")
-    await expect(locked).toHaveAttribute("aria-disabled", "true")
-  }
+  await expect(page.locator("[data-required-note]")).toContainText("Novedades de la liga")
+  await expect(page.locator("[data-required-notification]")).toHaveCount(0)
 })
