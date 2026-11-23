@@ -58,6 +58,7 @@ function toActivityEventType(value: unknown): ActivityEventType {
     type === "match_mvp_vote_reminder" ||
     type === "match_mvp_awarded" ||
     type === "match_upcoming_reminder" ||
+    type === "match_coin_toss_open" ||
     type === "match_ball_custodian_assigned" ||
     type === "match_ball_custodian_reminder" ||
     type === "round_in_play" ||

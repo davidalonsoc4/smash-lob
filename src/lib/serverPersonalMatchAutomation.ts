@@ -1,6 +1,7 @@
 import "server-only"
 
 import { getDueMatchResultReminderHours, type ResultReminderHour } from "@/lib/matchLifecycle"
+import { isCoinTossOpenNoticeDue } from "@/lib/matchCoinToss"
 import { dispatchPersonalMatchPush } from "@/lib/serverPersonalMatchPush"
 import type { createSupabaseServiceClient } from "@/lib/supabaseServer"
 
@@ -14,7 +15,7 @@ type PersonalMatchRow = {
   location_name: string | null
 }
 
-type NotificationEventKey = "upcoming_120" | `result_missing_${ResultReminderHour}`
+type NotificationEventKey = "upcoming_120" | "coin_toss_open" | `result_missing_${ResultReminderHour}`
 
 const UPCOMING_WINDOW_MS = 2 * 60 * 60 * 1000
 const RESULT_LOOKBACK_MS = 25 * 60 * 60 * 1000
@@ -90,6 +91,28 @@ export async function runPersonalMatchNotificationAutomation({
             ? `Tu amistoso empieza pronto · ${match.location_name}`
             : "Tu amistoso empieza pronto.",
           tag: `smash-lob-personal-upcoming-${match.id}`,
+        })
+        sent += result.sent
+      }
+    }
+
+    if (isCoinTossOpenNoticeDue(match.played_at, now.getTime()) && !match.result_recorded_at) {
+      // Nobody has tossed the coin yet, and the notice goes out once.
+      const { data: tossed, error: tossedError } = await supabase
+        .from("match_coin_tosses")
+        .select("id")
+        .eq("personal_match_id", match.id)
+        .limit(1)
+      if (tossedError) throw tossedError
+      if (!tossed?.length && (await claimNotificationEvent({ supabase, matchId: match.id, eventKey: "coin_toss_open" }))) {
+        created += 1
+        const result = await dispatchPersonalMatchPush({
+          matchId: match.id,
+          actorUserId: "system",
+          preferenceKey: "match_coin_toss",
+          title: "Sorteo del saque",
+          body: "Ya puedes sortear el saque de tu partido.",
+          tag: `smash-lob-personal-coin-toss-${match.id}`,
         })
         sent += result.sent
       }

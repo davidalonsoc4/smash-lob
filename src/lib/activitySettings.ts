@@ -115,6 +115,12 @@ export const activityEventDefinitions: Record<
     personalScope: "match_participants",
     pushReady: true,
   },
+  match_coin_toss_open: {
+    category: "match",
+    defaultMode: "notify",
+    personalScope: "match_participants",
+    pushReady: true,
+  },
   match_ball_custodian_assigned: {
     category: "match",
     defaultMode: "notify",

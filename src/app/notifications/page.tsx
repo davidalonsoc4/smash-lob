@@ -133,6 +133,7 @@ function isMatchParticipantNotification(event: ActivityEvent) {
     event.type === "match_scheduled" ||
     event.type === "match_schedule_updated" ||
     event.type === "match_upcoming_reminder" ||
+    event.type === "match_coin_toss_open" ||
     event.type === "match_postponed" ||
     event.type === "match_incident_reported" ||
     event.type === "match_incident_resolved" ||
@@ -438,6 +439,8 @@ function getNotificationBody({
     const cleanPreview = preview.length > 120 ? `${preview.slice(0, 117)}...` : preview;
     return cleanPreview ? `${actor}: ${cleanPreview}` : `${actor} ha escrito en el chat del partido.`;
   }
+
+  if (event.type === "match_coin_toss_open") return "Ya puedes sortear el saque de tu partido.";
 
   if (event.type === "match_upcoming_reminder") {
     const locationText =

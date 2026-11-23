@@ -159,6 +159,7 @@ function isMatchParticipantNotification(eventType: ActivityEventType) {
     eventType === "match_mvp_vote_reminder" ||
     eventType === "match_mvp_awarded" ||
     eventType === "match_upcoming_reminder" ||
+    eventType === "match_coin_toss_open" ||
     eventType === "match_chat_message"
   );
 }
@@ -543,6 +544,10 @@ function getNotificationTitle(
     return "Próximo partido";
   }
 
+  if (event.type === "match_coin_toss_open") {
+    return "Sorteo del saque";
+  }
+
   if (event.type === "match_chat_message") {
     const metadata = toRecord(event.metadata), round = toNumber(metadata.round), kind = String(metadata.chatEventKind ?? ""), status = String(metadata.coordinationStatus ?? "");
     if (kind === "coordination_status" && status === "awaiting_booking") return round > 0 ? `Pendiente de reserva · Jornada ${round}` : "Pendiente de reserva";
@@ -849,6 +854,9 @@ function getNotificationBody(
     return (
       event.description?.trim() || "Ya se ha decidido el MVP de la jornada."
     );
+  }
+  if (event.type === "match_coin_toss_open") {
+    return "Ya puedes sortear el saque de tu partido.";
   }
   if (event.type === "match_upcoming_reminder") {
     const metadata = toRecord(event.metadata);

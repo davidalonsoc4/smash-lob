@@ -72,3 +72,12 @@ export function pendingCoinTossStep(toss: CoinToss): "winner" | null {
 
 export const isCoinTossTeam = (value: unknown): value is CoinTossTeam => value === 1 || value === 2
 export const isCoinTossChoice = (value: unknown): value is CoinTossChoice => value === "serve" || value === "return"
+
+/** A notice that the toss is open is only worth sending soon after it opens: from 30 minutes before the match until 30 minutes after it starts. */
+export const COIN_TOSS_NOTICE_GRACE_MS = 30 * 60_000
+export function isCoinTossOpenNoticeDue(scheduledAt: string | null, now: number): boolean {
+  if (!scheduledAt) return false
+  const start = Date.parse(scheduledAt)
+  if (!Number.isFinite(start)) return false
+  return now >= start - COIN_TOSS_OPENS_BEFORE_MS && now <= start + COIN_TOSS_NOTICE_GRACE_MS
+}

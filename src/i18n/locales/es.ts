@@ -1365,6 +1365,13 @@ export const es = {
       "No se ha podido guardar este dispositivo. Revisa VAPID, SUPABASE_SERVICE_ROLE_KEY y las tablas de notificaciones.",
     deviceDisabled: "Notificaciones desactivadas en este dispositivo.",
     deviceDisableError: "No se ha podido desactivar este dispositivo.",
+    required: {
+      title: "Avisos obligatorios",
+      badge: "Obligatoria",
+      intro: "Estos avisos son obligatorios: siempre se envían y no se pueden desactivar.",
+      league_news: { title: "Novedades de la liga", description: "Avisos importantes que publica la organización de la liga. Llegan siempre a todos los participantes." },
+      chat_mentions: { title: "Menciones en el chat", description: "Cuando alguien te menciona con @ en el chat de un partido." },
+    },
     preferences: {
       match_schedule: {
         title: "Programación de partidos",
@@ -1374,6 +1381,7 @@ export const es = {
         title: "Incidencias de partidos",
         description: "Incidencias comunicadas, resueltas o eliminadas. Los admins reciben además los nuevos avisos de su liga.",
       },
+      match_coin_toss: { title: "Sorteo del saque", description: "Aviso cuando se abre el sorteo del saque de tu partido, 30 minutos antes de empezar." },
       match_upcoming: {
         title: "Próximo partido",
         description: "Recordatorio antes del partido, también cuando te toca llevar las bolas.",
@@ -1524,6 +1532,7 @@ export const es = {
       match_mvp_vote_reminder: "Recordatorio para votar al MVP",
       match_mvp_awarded: "MVP del partido decidido",
       match_upcoming_reminder: "Recordatorio de partido próximo",
+      match_coin_toss_open: "Sorteo del saque disponible",
       match_ball_custodian_assigned: "Encargado de llevar las bolas",
       match_ball_custodian_reminder: "Recordatorio para llevar las bolas",
       match_chat_message: "Mensaje nuevo en el chat",
@@ -1573,6 +1582,7 @@ export const es = {
       match_result_missing_reminder: "Resultado",
       match_result_confirmation_reminder: "Confirmación",
       match_upcoming_reminder: "Recordatorio",
+      match_coin_toss_open: "Sorteo",
       match_ball_custodian_assigned: "Bolas asignadas",
       match_ball_custodian_reminder: "Bolas",
       match_chat_message: "Chat",

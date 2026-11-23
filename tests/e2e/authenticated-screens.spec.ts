@@ -1303,3 +1303,19 @@ test("league match detail shows the coin toss to who can manage the match", asyn
   await expect(page.locator("[data-coin-toss-panel]")).toContainText("Sorteo del saque")
   await expect(page.locator("[data-coin-toss-panel] [data-coin-start]")).toBeVisible()
 })
+
+test("notification settings list the coin toss notice and show the required notices switched on and locked", async ({ page }) => {
+  await page.route("**/api/notifications/preferences**", route => route.fulfill({ json: { preferences: {}, isConfigured: true } }))
+  await page.goto("/settings/notifications")
+  await page.getByRole("button", { name: /^Partidos/ }).click()
+  const matchesGroup = page.locator("#matches")
+  await expect(matchesGroup.getByText("Sorteo del saque", { exact: true })).toBeVisible()
+  await expect(matchesGroup.getByRole("switch")).toHaveCount(5)
+  for (const toggle of await matchesGroup.getByRole("switch").all()) await expect(toggle).toHaveAttribute("aria-checked", "true")
+  const required = page.locator("[data-required-notifications]")
+  await expect(required.locator("[data-required-notification]")).toHaveCount(2)
+  for (const locked of await required.locator("[data-required-notification]").all()) {
+    await expect(locked).toHaveAttribute("aria-checked", "true")
+    await expect(locked).toHaveAttribute("aria-disabled", "true")
+  }
+})

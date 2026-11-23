@@ -1942,6 +1942,7 @@ const ADDITIONAL_OVERRIDES = {
     "Pos": "Pos",
     "Premium clásica": "Premium klasikoa",
     "Prepárate para tu partido.": "Prestatu zure partidarako.",
+    "Ya puedes sortear el saque de tu partido.": "Orain zure partidaren zerbitzuaren zozketa egin dezakezu.",
     "Programación, incidencias, mensajes y recordatorios del próximo partido.": "Hurrengo partidaren programazioa, gorabeherak, mezuak eta oroigarriak.",
     "Proponer algo que todavía no permite la aplicación.": "Proposatu aplikazioak oraindik eskaintzen ez duen zerbait.",
     "Propuesta de fecha": "Data-proposamena",

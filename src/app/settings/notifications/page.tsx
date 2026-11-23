@@ -13,6 +13,7 @@ import {
   defaultNotificationPreferences,
   normalizeNotificationPreferences,
   notificationPreferenceDefinitions,
+  requiredNotificationKeys,
   type NotificationPreferenceKey,
   type NotificationPreferences,
 } from "@/lib/notificationSettings"
@@ -47,7 +48,7 @@ const notificationPreferenceGroups: NotificationPreferenceGroup[] = [
     title: "Partidos",
     description: "Programación, incidencias, mensajes y recordatorios del próximo partido.",
     icon: "matches",
-    keys: ["match_schedule", "match_incidents", "match_upcoming", "match_chat"],
+    keys: ["match_schedule", "match_incidents", "match_upcoming", "match_coin_toss", "match_chat"],
   },
   {
     id: "competition",
@@ -558,6 +559,34 @@ export default function NotificationSettingsPage() {
               </section>
             )
           })}
+        </div>
+      </AppCard>
+
+      <AppCard className="p-3" data-required-notifications>
+        <p className="text-sm font-black text-neutral-950">{t.notifications.required.title}</p>
+        <p className="mt-1 text-xs font-semibold leading-4 text-neutral-500">{t.notifications.required.intro}</p>
+        <div className="mt-2 divide-y divide-neutral-100">
+          {requiredNotificationKeys.map((key) => (
+            <div key={key} className="flex items-start justify-between gap-3 py-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-black text-neutral-950">{t.notifications.required[key].title}</p>
+                  <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">{t.notifications.required.badge}</span>
+                </div>
+                <p className="mt-0.5 text-xs font-semibold leading-4 text-neutral-500">{t.notifications.required[key].description}</p>
+              </div>
+              <span
+                role="switch"
+                aria-checked="true"
+                aria-disabled="true"
+                aria-label={t.notifications.required[key].title}
+                data-required-notification={key}
+                className="relative mt-0.5 h-7 w-12 shrink-0 rounded-full bg-neutral-950 opacity-60"
+              >
+                <span className="absolute left-6 top-1 h-5 w-5 rounded-full bg-white shadow-sm" />
+              </span>
+            </div>
+          ))}
         </div>
       </AppCard>
 

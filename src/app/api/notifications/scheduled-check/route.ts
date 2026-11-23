@@ -20,6 +20,7 @@ import { runPersonalMatchNotificationAutomation } from "@/lib/serverPersonalMatc
 import { runProgressiveCalendarRevealAutomation } from "@/lib/serverProgressiveCalendarAutomation";
 import { getUpcomingReminderTargets, safelyRunBallCustodianNotificationAutomation, type OrganizationBallsSetting } from "@/lib/serverBallCustodianNotifications";
 import { processPushRetryQueue } from "@/lib/serverPushRetry";
+import { createCoinTossOpenEvents } from "@/lib/serverCoinTossNotices";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type MatchRow = {
@@ -392,9 +393,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: "progressive_calendar_automation_failed" }, { status: 500 });
   }
 
-  const upcomingReminderWindowEndsAt = new Date(
-    now.getTime() + 2 * 60 * 60 * 1000,
-  );
+  const upcomingReminderWindowEndsAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 
   const [scheduledResult, settingsResult] = await Promise.all([
     supabase
@@ -865,6 +864,7 @@ export async function GET(request: Request) {
     eventIds.push(eventId);
   }
 
+  eventIds.push(...(await createCoinTossOpenEvents({ supabase, matches: activeMatches, now })));
   for (const { match, reminderHours } of resultReminderCandidates) {
     let reminderHourToSend: ResultReminderHour | null = null;
 

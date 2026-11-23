@@ -1945,6 +1945,7 @@ const ADDITIONAL_OVERRIDES = {
     "Pos": "Pos",
     "Premium clásica": "Classic premium",
     "Prepárate para tu partido.": "Get ready for your match.",
+    "Ya puedes sortear el saque de tu partido.": "You can now toss the coin for the serve of your match.",
     "Programación, incidencias, mensajes y recordatorios del próximo partido.": "Scheduling, issues, messages and reminders for the next match.",
     "Proponer algo que todavía no permite la aplicación.": "Suggest something the app does not support yet.",
     "Propuesta de fecha": "Date proposal",

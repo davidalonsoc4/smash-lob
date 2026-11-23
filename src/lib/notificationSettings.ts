@@ -4,6 +4,7 @@ export type NotificationPreferenceKey =
   | "match_schedule"
   | "match_incidents"
   | "match_upcoming"
+  | "match_coin_toss"
   | "match_chat"
   | "match_results"
   | "result_confirmations"
@@ -28,6 +29,13 @@ export type NotificationPreferenceDefinition = {
 /** A "Novedad" in the league chat reaches every participant, whatever their notification preferences. */
 export const alwaysEnabledNotificationEventTypes: ActivityEventType[] = ["league_chat_announcement"]
 
+/**
+ * Notices that always reach the person and cannot be turned off: the settings screen shows them switched on and locked.
+ * "league_news" is the "Novedad" of the league chat; "chat_mentions" is an @ mention in the chat of a match.
+ */
+export const requiredNotificationKeys = ["league_news", "chat_mentions"] as const
+export type RequiredNotificationKey = (typeof requiredNotificationKeys)[number]
+
 export const notificationPreferenceDefinitions: NotificationPreferenceDefinition[] = [
   {
     key: "match_schedule",
@@ -50,6 +58,7 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
     key: "match_upcoming",
     eventTypes: ["match_upcoming_reminder", "match_ball_custodian_reminder"],
   },
+  { key: "match_coin_toss", eventTypes: ["match_coin_toss_open"] },
   { key: "match_chat", eventTypes: ["match_chat_message", "league_chat_message"] },
   {
     key: "match_results",

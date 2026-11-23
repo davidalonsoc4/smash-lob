@@ -14,6 +14,7 @@ export type ActivityEventType =
   | "match_mvp_vote_reminder"
   | "match_mvp_awarded"
   | "match_upcoming_reminder"
+  | "match_coin_toss_open"
   | "match_ball_custodian_assigned"
   | "match_ball_custodian_reminder"
   | "match_chat_message"
@@ -122,6 +123,7 @@ const serverHandledActivityTypes = new Set<ActivityEventType>([
   "player_role_updated",
   "player_unlinked",
   "match_mvp_awarded",
+  "match_coin_toss_open",
   "match_ball_custodian_assigned",
   "match_ball_custodian_reminder",
 ]);
