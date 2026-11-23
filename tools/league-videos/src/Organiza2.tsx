@@ -2,9 +2,9 @@
 // Detalle del partido con horarios recomendados → chat de la jornada (hora y lugar) → programar → calendario del móvil → recordatorios en Ajustes.
 // Sin pagos ni resultado (el resultado va en «Día de partido»). Voz: David Martin · Eleven v3 (una toma, pausas por bloques).
 import React from "react";
-import { Img, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Frame, SceneDef, TimedWord, VideoSeries, Words, pop, sfx, totalFrames, useTheme } from "./kit";
-import { Avatar, NATIVE_W, TabBar } from "./appUi";
+import { NATIVE_W, TabBar } from "./appUi";
 import { LeagueConfig, PRO_LEAGUE } from "./Bienvenida";
 import { Icon } from "./Presentacion";
 import { Suggest } from "./Perfil";
@@ -35,13 +35,11 @@ const Bub: React.FC<{ name?: string; color?: string; text: string; own?: boolean
 
 const Stage = ({ league, ws }: P) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const S1 = B30(1), S4 = B30(6);
+  const S1 = B30(1), S4 = B30(4);
   const q = league.exampleQuartet;
   const horF = at(1, "horarios"), cuaF = at(1, "cuatro");
-  const elF = at(2, "mejor"), dudF = at(2, "dudas");
-  const proF = at(3, "Propón"), horaF = at(3, "hora"), lugF = at(3, "lugar"), acuF = at(3, "acuerdo"), progF = at(3, "programa");
-  const llegaF = at(4, "llega"), tresF = at(4, "tres"), fechaF = at(4, "fecha");
-  const addF = at(5, "Añádelo"), calF = at(5, "calendario"), actF = at(5, "activa"), recF = at(5, "recordatorios");
+  const proF = at(2, "Propón"), horaF = at(2, "hora"), lugF = at(2, "lugar"), acuF = at(2, "acuerdo"), progF = at(2, "programa");
+  const addF = at(3, "Añádelo"), calF = at(3, "calendario"), actF = at(3, "activa"), recF = at(3, "recordatorios");
   const hookO = (1 - ease((f - (S1 - 22)) / 12)) * Math.min(1, pop(f, fps, 6, 10) * 2);
   const winIn = ease((f - (S1 - 14)) / 20), winOut = ease((f - (S4 - 12)) / 12);
 
@@ -51,7 +49,6 @@ const Stage = ({ league, ws }: P) => {
   const setO = win(f, actF - 8, S4 - 12);
   const hot = f >= cuaF;
   const progged = f >= progF + 18;
-  const chosen = f >= elF - 2;
   const slide = (a: number) => (1 - ease((f - a) / 14)) * 40;
 
   const detail = (
@@ -60,9 +57,8 @@ const Stage = ({ league, ws }: P) => {
       <div style={{ display: "flex", alignItems: "center", gap: 8, width: NATIVE_W - 24 }}><PairBox a={q[0]} b={q[1]} gold /><Vs /><PairBox a={q[2]} b={q[3]} gold /></div>
       {f < progF - 4 && <>
         <div style={{ opacity: pop(f, fps, horF - 6, 12) }}><Sec title="Horarios recomendados" /></div>
-        <div style={{ width: NATIVE_W - 24, zoom: (NATIVE_W - 24) / NATIVE_W, outline: chosen ? `3px solid ${t.accent}` : hot ? `2px solid #34d39966` : "none", borderRadius: 14, boxShadow: chosen ? `0 0 20px ${t.accent}55` : "none" }}><Suggest date="JUEVES" time="19:30 – 21:30" at={horF + 6} /></div>
-        <div style={{ width: NATIVE_W - 24, zoom: (NATIVE_W - 24) / NATIVE_W, opacity: chosen ? 0.55 : 1 }}><Suggest date="SÁBADO" time="10:00 – 12:00" at={horF + 22} /></div>
-        {f >= dudF - 4 && <Bub name={q[2]} color="#81c995" text="¿Os viene bien el jueves?" k={pop(f, fps, dudF - 2, 12)} />}
+        <div style={{ width: NATIVE_W - 24, zoom: (NATIVE_W - 24) / NATIVE_W, outline: hot ? `2px solid #34d39966` : "none", borderRadius: 14 }}><Suggest date="JUEVES" time="19:30 – 21:30" at={horF + 6} /></div>
+        <div style={{ width: NATIVE_W - 24, zoom: (NATIVE_W - 24) / NATIVE_W }}><Suggest date="SÁBADO" time="10:00 – 12:00" at={horF + 22} /></div>
       </>}
       {f >= progF - 4 && (
         <Card accent={false} pad="9px 14px">
@@ -79,14 +75,6 @@ const Stage = ({ league, ws }: P) => {
               </div>
             </div>
           )}
-        </Card>
-      )}
-      {progged && f >= tresF - 8 && f < addF + 4 && (
-        <Card accent={false} pad="8px 14px">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ fontSize: 14.5, fontWeight: 800 }}>Aviso enviado</div>
-            <div style={{ display: "flex", gap: 14 }}>{[q[1], q[2], q[3]].map((n, i) => { const k = pop(f, fps, tresF - 6 + i * 6, 12); return <div key={n + i} style={{ opacity: k, transform: `scale(${k})`, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}><Avatar size={32} /><div style={{ fontSize: 11, fontWeight: 800 }}>{n}</div></div>; })}</div>
-          </div>
         </Card>
       )}
     </div>
@@ -115,26 +103,16 @@ const Stage = ({ league, ws }: P) => {
   );
   const sheetK = pop(f, fps, calF + 6, 12) * (1 - ease((f - (actF - 14)) / 8));
   const sheet = sheetK > 0.01 && (
-    <div style={{ position: "absolute", left: 12, right: 12, top: BAR_TOP - 92, opacity: Math.min(1, sheetK * 2), transform: `translateY(${(1 - sheetK) * 60}px)`, background: t.surface, border: `1px solid ${t.border}`, borderLeft: `5px solid ${t.accent}`, borderRadius: 14, padding: "10px 14px", boxShadow: "0 10px 30px rgba(0,0,0,.5)" }}>
+    <div style={{ position: "absolute", left: 12, right: 12, top: BAR_TOP - 150, opacity: Math.min(1, sheetK * 2), transform: `translateY(${(1 - sheetK) * 60}px)`, background: t.surface, border: `1px solid ${t.border}`, borderLeft: `5px solid ${t.accent}`, borderRadius: 14, padding: "10px 14px", boxShadow: "0 10px 30px rgba(0,0,0,.5)" }}>
       <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1, color: t.textMuted }}>CALENDARIO · JUEVES · 19:30</div>
       <div style={{ fontSize: 17, fontWeight: 800, marginTop: 3 }}>Smash &amp; Lob · Jornada 2</div>
       <div style={{ fontSize: 13, color: t.textMuted, marginTop: 2 }}>Polideportivo Pando</div>
     </div>
   );
-  const notK = Math.min(ease((f - (llegaF - 12)) / 12), 1 - ease((f - (fechaF + 40)) / 10));
-  const notif = notK > 0.01 && (
-    <div style={{ position: "absolute", left: 28, right: 28, top: 26, opacity: notK, transform: `translateY(${(1 - notK) * -170}px)`, zIndex: 30 }}>
-      <div style={{ background: "#26272b", borderRadius: 40, padding: "26px 32px", boxShadow: "0 20px 60px rgba(0,0,0,.6)", border: "1px solid #3a3b40" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 26, color: "#b5b8bf" }}><Img src={staticFile("logo.png")} style={{ width: 42, height: 42, borderRadius: 12 }} /><span>Smash & Lob · ahora</span></div>
-        <div style={{ fontSize: 40, fontWeight: 800, marginTop: 14 }}>Partido programado · Jornada 2</div>
-        <div style={{ fontSize: 33, color: "#d6d8dc", marginTop: 6, lineHeight: 1.3 }}>Jornada 2 · Jueves 19:30 · Polideportivo Pando</div>
-      </div>
-    </div>
-  );
   const activeTab = f < proF - 8 ? 2 : f < progF - 12 ? 3 : f < actF - 10 ? 2 : 4;
   const ripples = [{ x: NATIVE_W / 2, y: 198, a: progF + 6 }, { x: NATIVE_W * 0.72, y: 240, a: calF - 2 }, { x: 348, y: 111, a: recF + 4 }];
 
-  const TAGS: [number, string][] = [[S1 + 6, "TU PARTIDO"], [elF - 12, "ELIGE UN HUECO"], [proF - 10, "CHAT DE LA JORNADA"], [progF - 14, "PROGRAMAR"], [llegaF - 14, "AVISO A LOS DEMÁS"], [addF - 8, "AÑADIR AL CALENDARIO"], [actF - 10, "AJUSTES · NOTIFICACIONES"]];
+  const TAGS: [number, string][] = [[S1 + 6, "TU PARTIDO"], [proF - 10, "CHAT DE LA JORNADA"], [progF - 14, "PROGRAMAR"], [addF - 8, "AÑADIR AL CALENDARIO"], [actF - 10, "AJUSTES · NOTIFICACIONES"]];
   const tagI = f >= S4 - 10 ? -2 : TAGS.reduce((a, [s0], i) => (f >= s0 ? i : a), -1);
   const tagK = tagI < 0 ? 0 : pop(f, fps, TAGS[tagI][0], 12);
   const prev = tagI > 0 ? TAGS[tagI - 1][1] : "";
@@ -158,17 +136,16 @@ const Stage = ({ league, ws }: P) => {
             <div style={{ position: "absolute", left: 0, top: BAR_TOP + 4 }}><TabBar active={activeTab} /></div>
             {ripples.map((r, i) => <Ripple key={i} x={r.x} y={r.y} at={r.a} size={46} />)}
           </div>
-          {notif}
         </div>
       </div>
-      {[horF, elF, horaF, lugF, acuF, progF + 6, llegaF, calF, recF + 6].map((m, i) => sfx("pop", Math.max(2, m - 2), 0.3 + (i % 3 === 0 ? 0.05 : 0)))}{sfx("ding", cuaF, 0.4)}{sfx("ding", progF + 18, 0.4)}
+      {[horF, horaF, lugF, acuF, progF + 6, calF, recF + 6].map((m, i) => sfx("pop", Math.max(2, m - 2), 0.3 + (i % 3 === 0 ? 0.05 : 0)))}{sfx("ding", cuaF, 0.4)}{sfx("ding", progF + 18, 0.4)}
     </Frame>
   );
 };
 
 const makeScenes = (league: LeagueConfig): SceneDef[] => [
-  { key: "stage", dur: Math.round(BOUNDS[6] * 30), C: () => <Stage league={league} ws={wordsBetween(0, 6)} /> },
-  { key: "outro", dur: Math.round((BOUNDS[7] - BOUNDS[6]) * 30), C: () => <OutroSync league={league} ws={sceneWords(6)} /> },
+  { key: "stage", dur: Math.round(BOUNDS[4] * 30), C: () => <Stage league={league} ws={wordsBetween(0, 4)} /> },
+  { key: "outro", dur: Math.round((BOUNDS[5] - BOUNDS[4]) * 30), C: () => <OutroSync league={league} ws={sceneWords(4)} /> },
 ];
 export const ORGANIZA2_FRAMES = totalFrames(makeScenes(PRO_LEAGUE));
 export const OrganizaV2: React.FC<{ league: LeagueConfig }> = ({ league }) => <VideoSeries scenes={makeScenes(league)} accent={league.accent} voice="voice-organiza-david.mp3" />;
