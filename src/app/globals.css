@@ -3088,6 +3088,12 @@ html[data-visual-style="competition"] .app-schedule-card {
 html[data-visual-style="competition"] button.bg-\[var\(--app-accent\)\] {
   color: var(--competition-accent-contrast) !important;
 }
+/* The button of the small coin is only a frame for the coin: waiting for its time it is disabled, but it must not get the grey of a disabled button. */
+html[data-visual-style="competition"] button[data-coin-open]:disabled {
+  background: transparent !important;
+  border-color: transparent !important;
+  cursor: default;
+}
 html[data-visual-style="competition"] button:disabled,
 html[data-visual-style="competition"] [data-tour="chat-composer"] .app-match-chat-send:disabled {
   background: var(--competition-surface-muted) !important;
