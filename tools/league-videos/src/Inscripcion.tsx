@@ -19,7 +19,7 @@ const wf = (ws: TimedWord[], text: string, nth = 0) => {
 };
 
 /* ---------- Iconos ---------- */
-const Ico: React.FC<{ name: "court" | "ball" | "gift" | "eye" | "trophy" | "lock"; color: string; size?: number }> = ({ name, color, size = 28 }) => {
+export const Ico: React.FC<{ name: "court" | "ball" | "gift" | "eye" | "trophy" | "lock"; color: string; size?: number }> = ({ name, color, size = 28 }) => {
   const p = { fill: "none", stroke: color, strokeWidth: 2.2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" {...p}>

@@ -1,4 +1,5 @@
 import { DiaPartido, DIAPARTIDO_FRAMES } from "./DiaPartido";
+import { Inscripcion2, INSCRIPCION2_FRAMES } from "./Inscripcion2";
 import { Chat2, CHAT2_FRAMES } from "./Chat2";
 import { Presentacion3, PRESENTACION3_FRAMES } from "./Presentacion3";
 import { Presentacion2, PRESENTACION2_FRAMES } from "./Presentacion2";
@@ -47,6 +48,7 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="PresentacionV2" component={Presentacion2} durationInFrames={PRESENTACION2_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="PresentacionV3" component={Presentacion3} durationInFrames={PRESENTACION3_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="ChatV2" component={Chat2} durationInFrames={CHAT2_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
+    <Composition id="InscripcionV2" component={Inscripcion2} durationInFrames={INSCRIPCION2_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="DiaPartido" component={DiaPartido} durationInFrames={DIAPARTIDO_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="LigaFormato" component={LigaFormato} durationInFrames={TOTAL_FRAMES} fps={30} width={1080} height={1920} />
   </>
