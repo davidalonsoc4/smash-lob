@@ -14,12 +14,12 @@ Criterio: primero la visión general y la app; el **chat (03) es el punto de inf
 | 04 | ~30-nov | Para qué es la inscripción, sin cifras (`InscripcionSinCifras`) | Hecho y aprobado |
 | 05 | ~4-dic | Perfil y disponibilidad (`PerfilDisponibilidad`) | Hecho y aprobado (requiere mover la disponibilidad al perfil: cambio pedido a la app) |
 | 06 | ~7-dic | Organiza tu próximo partido (`OrganizaTuPartido`) | Hecho y aprobado |
-| 07 | ~10-dic | Subir un resultado (`SubirResultado`) | Hecho y aprobado |
+| 07 | ~8-dic | **Día de partido** (`DiaPartido`, `src/DiaPartido.tsx`; voz `voiceDiaPartido`, toma `assets/video-dia-partido/`): tarjeta de próximo partido, hora/lugar/cómo llegar, moneda 3D del saque, notificación «Falta el resultado», registrar resultado y clasificación | **Aprobado (v3, 37,6 s)**, `07-dia-de-partido.mp4` + miniatura |
+| 08 | ~10-dic | Subir un resultado (`SubirResultado`) | Hecho y aprobado |
 | 09 | ~13-dic | Cuenta atrás y desbloqueo del 20-dic (`CuentaAtrasDesbloqueo`): aviso 7 días antes | Hecho y aprobado |
-| 08 | ~16-dic | Clasificación, desempate y MVP (`ClasificacionMvp`) | Hecho y aprobado |
-| 10 | ~18-dic | Partidos normales / amistosos (`PartidosNormales`) | Hecho y aprobado |
+| 10 | ~16-dic | Clasificación, desempate y MVP (`ClasificacionMvp`) | Hecho y aprobado |
+| 11 | ~18-dic | Partidos normales / amistosos (`PartidosNormales`) | Hecho y aprobado |
 
-| nuevo | (por decidir) | **Día de partido** (`DiaPartido`, `src/DiaPartido.tsx`; voz `voiceDiaPartido`, toma `assets/video-dia-partido/`): tarjeta de próximo partido, hora/lugar/cómo llegar, moneda 3D del saque, notificación «Falta el resultado», registrar resultado y clasificación | **Aprobado (v3, 37,6 s)** · `11-dia-de-partido.mp4` + miniatura `.jpg`; posición en el orden por decidir |
 
 Previstos y NO hechos todavía:
 | Cuándo | Vídeo | Estado |
@@ -32,7 +32,7 @@ Previstos y NO hechos todavía:
 
 Instagram @smashandlob (genérico): `ig1-reel-liguilla` hecho (pendiente de aprobación final); `ig2-reel-pareja-nueva` hecho (guion v3: «¿Y si tu compañero no puede jugar?», voz `voiceApp2.ts`, toma `assets/app-reel2/`; pendiente de aprobación); `ig3-reel-gente-y-ganas` hecho (guion v6: «¿Quieres jugar más al pádel? Solo necesitas gente y ganas…», voz `voiceApp3.ts`, toma `assets/app-reel3/`; pendiente de aprobación; sustituye en la práctica a ig2 como Reel 2, que queda guardado como alternativa); ideas de vídeos genéricos de la app (instalar y notificaciones, crear una liga, unirse con invitación, torneos rápidos, espectadores, estadísticas).
 
-Nota: los números 01-10 reflejan el orden de envío; al hacer el vídeo de apertura habrá que renumerar (iría entre 09 y 10). Las miniaturas son 16:9 (`Miniatura`); las 9:16 están en `miniaturas-9x16/`.
+Nota: los números reflejan el orden de envío (07 = Día de partido, insertado tras Organiza tu partido); al hacer el vídeo de apertura habrá que renumerar de nuevo. Las miniaturas de 08, 10 y 11 llevan aún el número antiguo grabado: se regeneran al rehacer cada vídeo. Las miniaturas son 16:9 (`Miniatura`); las 9:16 están en `miniaturas-9x16/`.
 
 ## Reglas de contenido
 - Escenas con datos de ejemplo llevan la etiqueta **"EJEMPLO · DATOS FICTICIOS"**.
