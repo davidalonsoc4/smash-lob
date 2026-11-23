@@ -35,7 +35,7 @@ const Chevron: React.FC<{ color: string }> = ({ color }) => (
   <svg width={18} height={18} viewBox="0 0 20 20" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><path d="M7 4.5 12.5 10 7 15.5" /></svg>
 );
 
-export const SettingsRow: React.FC<{ title: string; desc: string; icon: "clock" | "user" | "bell"; hl: number }> = ({ title, desc, icon, hl }) => {
+export const SettingsRow: React.FC<{ title: string; desc: string; icon: "clock" | "user" | "bell" | "cal"; hl: number }> = ({ title, desc, icon, hl }) => {
   const t = useTheme();
   return (
     <div style={{ width: NATIVE_W, boxSizing: "border-box", display: "flex", alignItems: "center", gap: 12, background: t.surface, border: `1.5px solid ${hl > 0.5 ? t.accent : t.border}`, borderRadius: 16, padding: "12px 14px", transform: `scale(${1 + 0.03 * hl})`, boxShadow: hl > 0.5 ? `0 0 0 3px ${t.accent}33` : "none" }}>

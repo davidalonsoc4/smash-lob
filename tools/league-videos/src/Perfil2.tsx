@@ -4,12 +4,12 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Ball, Frame, SceneDef, TimedWord, VideoSeries, Words, pop, sfx, totalFrames, useTheme } from "./kit";
-import { Avatar, NATIVE_W, Zoom } from "./appUi";
+import { Avatar, NATIVE_W, TabBar, Zoom } from "./appUi";
 import { LeagueConfig, PRO_LEAGUE } from "./Bienvenida";
-import { Outro } from "./Bienvenida2";
+import { OutroSync, SyncWords } from "./SyncWords";
 import { DAYS, DayChips, Panel, Segmented, SettingsRow, Suggest, TimeBox } from "./Perfil";
 import { ease } from "./Presentacion2";
-import { Card, HeaderCard, Ripple, SCR_H, Sec, WIN_H, WIN_W, Z } from "./Presentacion3";
+import { BAR_TOP, Card, HeaderCard, Ripple, SCR_H, Sec, WIN_H, WIN_W, Z } from "./Presentacion3";
 import { BOUNDS_01 as BOUNDS, VOICE_01 as VOICE } from "./voicePerfil";
 
 type P = { league: LeagueConfig; ws: TimedWord[] };
@@ -21,7 +21,6 @@ const wf = (ws: TimedWord[], text: string, nth = 0) => { const m = ws.filter((x)
 const B30 = (i: number) => Math.round(BOUNDS[i] * 30);
 const at = (i: number, text: string, nth = 0) => B30(i) + wf(sceneWords(i), text, nth);
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-const PH = 650; // altura de la ventana (las pantallas son cortas)
 const win = (f: number, a: number, b: number) => Math.min(ease((f - a) / 12), 1 - ease((f - b) / 10)); // visible entre a y b
 
 const Stage = ({ league, ws }: P) => {
@@ -59,8 +58,10 @@ const Stage = ({ league, ws }: P) => {
       <HeaderCard title="Mi perfil" sub="Tus datos y cómo juegas" avatar />
       <Zoom z={0.94}>
         <Panel>
+          <div><div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1.2, color: t.textMuted, marginBottom: 6 }}>NOMBRE</div><div style={{ padding: "10px 12px", borderRadius: 12, background: t.mutedSurface, border: `1px solid ${t.border}`, fontSize: 17, fontWeight: 800 }}>Alain</div></div>
           <Segmented label="Mano dominante" options={["Derecha", "Izquierda"]} sel={f >= manoF + 18 ? 0 : -1} />
           <Segmented label="Posición preferida" options={["Drive", "Revés", "Versátil"]} sel={f >= posF + 22 ? 0 : -1} />
+          <div style={{ background: t.accent, color: t.accentContrast, borderRadius: 14, padding: "11px 0", textAlign: "center", fontSize: 16, fontWeight: 900, opacity: f >= posF + 22 ? 1 : 0.55 }}>Guardar perfil</div>
         </Panel>
       </Zoom>
     </div>
@@ -71,11 +72,13 @@ const Stage = ({ league, ws }: P) => {
       <Zoom z={0.94}>
         <Panel>
           <div style={{ fontSize: 17, fontWeight: 800 }}>{total && f >= totalF - 6 ? "Sin franjas: disponibilidad total" : "Horario semanal habitual"}</div>
+          {!total && <Segmented label="Modo" options={["Rápido", "Por días"]} sel={0} />}
           <DayChips lit={lit} />
           {!total && <div style={{ display: "flex", gap: 10 }}>
             <TimeBox label="DESDE" value="19:00" on={f >= franjaF} />
             <TimeBox label="HASTA" value="21:00" on={f >= franjaF + 8} />
           </div>}
+          {!total && <div style={{ background: t.accent, color: t.accentContrast, borderRadius: 14, padding: "11px 0", textAlign: "center", fontSize: 16, fontWeight: 900, opacity: f >= franjaF + 8 ? 1 : 0.55 }}>Guardar disponibilidad</div>}
         </Panel>
       </Zoom>
       {total && <div style={{ alignSelf: "center", marginTop: 14, opacity: pop(f, fps, totalF, 12), transform: `scale(${0.9 + 0.1 * pop(f, fps, totalF, 12)})`, background: t.accent, color: t.accentContrast, borderRadius: 999, padding: "10px 24px", fontSize: 19, fontWeight: 900 }}>Disponibilidad total</div>}
@@ -115,17 +118,18 @@ const Stage = ({ league, ws }: P) => {
       </div>
       {example && <div style={{ position: "absolute", top: 232, left: 0, right: 0, textAlign: "center", fontSize: 26, fontWeight: 800, letterSpacing: 5, color: t.textSubtle }}>EJEMPLO · DATOS FICTICIOS</div>}
       <div style={{ position: "absolute", top: 560, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: hookO }}><Words text={"¿Ya tienes\ntu *perfil* listo?"} size={110} stagger={4} /></div>
-      <div style={{ position: "absolute", top: 400, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: winIn * (1 - winOut), transform: `translateY(${(1 - winIn) * 120}px) scale(${0.94 + 0.06 * winIn})` }}>
-        <div style={{ position: "relative", width: WIN_W, height: PH, borderRadius: 56, border: `4px solid ${t.borderStrong}`, overflow: "hidden", background: t.bg, boxShadow: `0 30px 80px rgba(0,0,0,.55), 0 0 0 1px ${t.border}`, boxSizing: "content-box" }}>
-          <div style={{ position: "absolute", left: 0, top: 0, width: NATIVE_W, height: Math.round(PH / Z), transformOrigin: "0 0", transform: `scale(${Z})` }}>
+      <div style={{ position: "absolute", top: 300, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: winIn * (1 - winOut), transform: `translateY(${(1 - winIn) * 120}px) scale(${0.94 + 0.06 * winIn})` }}>
+        <div style={{ position: "relative", width: WIN_W, height: WIN_H, borderRadius: 56, border: `4px solid ${t.borderStrong}`, overflow: "hidden", background: t.bg, boxShadow: `0 30px 80px rgba(0,0,0,.55), 0 0 0 1px ${t.border}`, boxSizing: "content-box" }}>
+          <div style={{ position: "absolute", left: 0, top: 0, width: NATIVE_W, height: SCR_H, transformOrigin: "0 0", transform: `scale(${Z})` }}>
             {ajO > 0.01 && ajustes}{perfO > 0.01 && perfil}{dispO > 0.01 && disp}{recO > 0.01 && rec}
+            <div style={{ position: "absolute", left: 0, top: BAR_TOP + 4 }}><TabBar active={4} /></div>
             {ripples.map((r, i) => <Ripple key={i} x={NATIVE_W / 2} y={r.y} at={r.a} size={46} />)}
           </div>
         </div>
       </div>
       <div style={{ position: "absolute", top: 560, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", opacity: thanksK * outO }}>
-        <Words text={"Cinco minutos\nahora te *ahorran*\nmuchos *mensajes*"} size={100} delay={Math.max(0, at(4, "Cinco") - S4)} stagger={5} />
-        <div style={{ marginTop: 60 }}><Ball size={80} /></div>
+        <SyncWords text={"Cinco minutos\nahora te *ahorran*\nmuchos *mensajes*\ndespués"} frames={["Cinco", "minutos", "ahora", "te", "ahorran", "muchos", "mensajes", "después"].map((w) => at(4, w))} size={96} />
+        <div style={{ marginTop: 60, opacity: pop(f, fps, at(4, "después") - 4, 10) }}><Ball size={80} /></div>
       </div>
       {[tapPerfil, manoF + 18, posF + 22, tapDisp, horF - 4, horF + 14, totalF].map((m, i) => sfx("pop", Math.max(2, m - 2), 0.3 + (i % 3 === 0 ? 0.05 : 0)))}
       {[0, 1, 2, 3, 4].map((i) => sfx("pop", diasF + i * 4, 0.2))}
@@ -135,8 +139,8 @@ const Stage = ({ league, ws }: P) => {
 
 const makeScenes = (league: LeagueConfig): SceneDef[] => [
   { key: "stage", dur: Math.round(BOUNDS[5] * 30), C: () => <Stage league={league} ws={wordsBetween(0, 5)} /> },
-  { key: "outro", dur: Math.round((BOUNDS[6] - BOUNDS[5]) * 30), C: () => <Outro league={league} ws={sceneWords(5)} /> },
+  { key: "outro", dur: Math.round((BOUNDS[6] - BOUNDS[5]) * 30), C: () => <OutroSync league={league} ws={sceneWords(5)} /> },
 ];
 export const PERFIL2_FRAMES = totalFrames(makeScenes(PRO_LEAGUE));
 export const PerfilV2: React.FC<{ league: LeagueConfig }> = ({ league }) => <VideoSeries scenes={makeScenes(league)} accent={league.accent} voice="voice-perfil-david.mp3" />;
-void WIN_H; void SCR_H;
+
