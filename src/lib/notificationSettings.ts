@@ -122,6 +122,50 @@ export const notificationPreferenceDefinitions: NotificationPreferenceDefinition
   },
 ]
 
+/**
+ * What the settings screen shows: a handful of switches, each one driving several preference keys at once.
+ * Every key belongs to exactly one group; storage keeps the individual keys so delivery rules do not change.
+ */
+export const notificationPreferenceGroupDefinitions = [
+  { id: "before-play", keys: ["match_upcoming", "match_coin_toss"] },
+  { id: "match-changes", keys: ["match_schedule", "match_incidents", "booking_updates"] },
+  { id: "results", keys: ["match_results", "result_confirmations", "mvp_reminders", "mvp_awards"] },
+  { id: "chat", keys: ["match_chat"] },
+  {
+    id: "league-updates",
+    keys: ["round_events", "season_lifecycle", "season_roster", "announcements", "player_account"],
+  },
+  { id: "payments", keys: ["booking_payments", "payment_reminders"] },
+] as const satisfies ReadonlyArray<{ id: string; keys: readonly NotificationPreferenceKey[] }>
+
+export type NotificationGroupId = (typeof notificationPreferenceGroupDefinitions)[number]["id"]
+
+/** Links and bookmarks from the previous four-section layout keep landing on the closest group. */
+export const legacyNotificationGroupIds: Record<string, NotificationGroupId> = {
+  matches: "before-play",
+  competition: "results",
+  league: "league-updates",
+  payments: "payments",
+}
+
+/** A group reads as on when any of its keys is on, so mixed legacy settings never look switched off. */
+export function isNotificationGroupEnabled(
+  preferences: NotificationPreferences,
+  keys: readonly NotificationPreferenceKey[],
+) {
+  return keys.some((key) => preferences[key])
+}
+
+export function setNotificationGroupEnabled(
+  preferences: NotificationPreferences,
+  keys: readonly NotificationPreferenceKey[],
+  enabled: boolean,
+): NotificationPreferences {
+  const next = { ...preferences }
+  for (const key of keys) next[key] = enabled
+  return next
+}
+
 export const notificationPreferenceKeys = notificationPreferenceDefinitions.map(
   (definition) => definition.key,
 )

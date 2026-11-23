@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
-import { ClickableChevron } from "@/components/ui/ClickableChevron"
 import { SettingsSectionIcon, type SettingsSectionIconName } from "@/components/settings/SettingsSectionIcon"
 import { useCurrentUser } from "@/context/CurrentUserProvider"
 import { useI18n } from "@/i18n/I18nProvider"
@@ -11,9 +10,14 @@ import { showActionFeedback } from "@/lib/actionFeedback"
 import { useCurrentLeagueData } from "@/hooks/useCurrentLeagueData"
 import {
   defaultNotificationPreferences,
+  isNotificationGroupEnabled,
+  legacyNotificationGroupIds,
   normalizeNotificationPreferences,
   notificationPreferenceDefinitions,
+  notificationPreferenceGroupDefinitions,
   requiredNotificationKeys,
+  setNotificationGroupEnabled,
+  type NotificationGroupId,
   type NotificationPreferenceKey,
   type NotificationPreferences,
 } from "@/lib/notificationSettings"
@@ -32,56 +36,58 @@ type LoadPreferencesResponse = {
   isConfigured?: boolean
 }
 
-type NotificationGroupId = "matches" | "competition" | "league" | "payments"
-
-type NotificationPreferenceGroup = {
+type NotificationGroupView = {
   id: NotificationGroupId
   title: string
   description: string
   icon: SettingsSectionIconName
-  keys: NotificationPreferenceKey[]
 }
 
-const notificationPreferenceGroups: NotificationPreferenceGroup[] = [
+const notificationGroupViews: NotificationGroupView[] = [
   {
-    id: "matches",
-    title: "Partidos",
-    description: "Programación, incidencias, mensajes y recordatorios del próximo partido.",
+    id: "before-play",
+    title: "Antes de jugar",
+    description: "Recordatorio del próximo partido, bolas que te tocan llevar y sorteo del saque.",
     icon: "matches",
-    keys: ["match_schedule", "match_incidents", "match_upcoming", "match_coin_toss", "match_chat"],
   },
   {
-    id: "competition",
-    title: "Resultados y competición",
-    description: "Resultados, confirmaciones, MVP, jornadas y temporadas.",
+    id: "match-changes",
+    title: "Cambios en tus partidos",
+    description: "Fecha, hora, pista, reservas e incidencias de tus partidos.",
+    icon: "availability",
+  },
+  {
+    id: "results",
+    title: "Resultados y MVP",
+    description: "Resultados, confirmaciones pendientes, votación y premios MVP.",
     icon: "competition",
-    keys: [
-      "match_results",
-      "result_confirmations",
-      "mvp_reminders",
-      "mvp_awards",
-      "round_events",
-      "season_lifecycle",
-    ],
   },
   {
-    id: "league",
-    title: "Liga y jugadores",
-    description: "Plantilla, comunicados y cambios en cuentas o permisos.",
+    id: "chat",
+    title: "Mensajes del chat",
+    description: "Cuando alguien escribe en el chat de tus partidos o de tu liga. Las menciones @ siempre llegan.",
+    icon: "activity",
+  },
+  {
+    id: "league-updates",
+    title: "Actualizaciones de liga",
+    description: "Jornadas, temporadas, altas y bajas de jugadores, comunicados y cambios de cuentas o permisos.",
     icon: "leagues",
-    keys: ["season_roster", "announcements", "player_account"],
   },
   {
     id: "payments",
-    title: "Reservas y pagos",
-    description: "Cambios de reserva, pagos recibidos y recordatorios.",
+    title: "Pagos",
+    description: "Pagos de pista recibidos y recordatorios de pagos pendientes.",
     icon: "payments",
-    keys: ["booking_updates", "booking_payments", "payment_reminders"],
   },
 ]
 
-function getEnabledCount(preferences: NotificationPreferences) {
-  return Object.values(preferences).filter(Boolean).length
+const notificationGroupKeys = Object.fromEntries(
+  notificationPreferenceGroupDefinitions.map((group) => [group.id, group.keys]),
+) as unknown as Record<NotificationGroupId, readonly NotificationPreferenceKey[]>
+
+function getEnabledGroupCount(preferences: NotificationPreferences) {
+  return notificationPreferenceGroupDefinitions.filter((group) => isNotificationGroupEnabled(preferences, group.keys)).length
 }
 
 export default function NotificationSettingsPage() {
@@ -97,47 +103,18 @@ export default function NotificationSettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [expandedGroups, setExpandedGroups] = useState<Record<NotificationGroupId, boolean>>({
-    matches: false,
-    competition: false,
-    league: false,
-    payments: false,
-  })
 
   useEffect(() => {
-    const groupId = window.location.hash.slice(1) as NotificationGroupId | "device"
-    let scrollFrame: number | null = null
-
-    const openFrame = window.requestAnimationFrame(() => {
-      if (groupId === "device") {
-        document.getElementById("device")?.scrollIntoView({ block: "center" })
-        return
-      }
-
-      const targetGroup = notificationPreferenceGroups.find(
-        (group) => group.id === groupId,
-      )
-
-      if (!targetGroup) return
-
-      setExpandedGroups((current) => ({
-        ...current,
-        [targetGroup.id]: true,
-      }))
-      scrollFrame = window.requestAnimationFrame(() => {
-        document
-          .getElementById(targetGroup.id)
-          ?.scrollIntoView({ block: "center" })
-      })
+    const hash = window.location.hash.slice(1)
+    const targetId = hash === "device" ? hash : (legacyNotificationGroupIds[hash] ?? hash)
+    if (!targetId) return
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({ block: "center" })
     })
-
-    return () => {
-      window.cancelAnimationFrame(openFrame)
-      if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame)
-    }
+    return () => window.cancelAnimationFrame(frame)
   }, [])
 
-  const enabledCount = useMemo(() => getEnabledCount(preferences), [preferences])
+  const enabledCount = useMemo(() => getEnabledGroupCount(preferences), [preferences])
   const canRequestPush = supportStatus === "supported"
 
   function getSupportMessage(status: PushSupportStatus) {
@@ -250,11 +227,9 @@ export default function NotificationSettingsPage() {
     }
   }
 
-  async function togglePreference(key: keyof NotificationPreferences) {
-    const nextPreferences = {
-      ...preferences,
-      [key]: !preferences[key],
-    }
+  async function toggleGroup(groupId: NotificationGroupId) {
+    const keys = notificationGroupKeys[groupId]
+    const nextPreferences = setNotificationGroupEnabled(preferences, keys, !isNotificationGroupEnabled(preferences, keys))
 
     setPreferences(nextPreferences)
     await savePreferences(nextPreferences)
@@ -443,7 +418,7 @@ export default function NotificationSettingsPage() {
               {t.notifications.typesTitle}
             </p>
             <p className="mt-1 text-xs font-semibold text-neutral-500">
-              {t.notifications.enabledCount.replace("{enabled}", String(enabledCount)).replace("{total}", String(notificationPreferenceDefinitions.length))}
+              {t.notifications.enabledCount.replace("{enabled}", String(enabledCount)).replace("{total}", String(notificationPreferenceGroupDefinitions.length))}
             </p>
             <p className="mt-1 type-caption font-semibold leading-4 text-neutral-400">
               {t.notifications.allTypesConfigurable}
@@ -470,92 +445,39 @@ export default function NotificationSettingsPage() {
           </div>
         </div>
 
-        <div className="mt-3 space-y-2">
-          {notificationPreferenceGroups.map((group) => {
-            const definitions = notificationPreferenceDefinitions.filter((definition) =>
-              group.keys.includes(definition.key),
-            )
-            const groupEnabledCount = definitions.filter(
-              (definition) => preferences[definition.key],
-            ).length
-            const isExpanded = expandedGroups[group.id]
+        <div className="mt-2 divide-y divide-neutral-100">
+          {notificationGroupViews.map((group) => {
+            const isEnabled = isNotificationGroupEnabled(preferences, notificationGroupKeys[group.id])
 
             return (
               <section
                 key={group.id}
                 id={group.id}
-                className="settings-search-target overflow-hidden rounded-2xl border border-neutral-200 bg-white"
-                >
-                  <button
+                data-notification-group={group.id}
+                className="settings-search-target flex items-start gap-3 py-3"
+              >
+                <SettingsSectionIcon name={group.icon} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-black text-neutral-950">{tx(group.title)}</p>
+                  <p className="mt-0.5 text-xs font-semibold leading-4 text-neutral-500">{tx(group.description)}</p>
+                </div>
+                <button
                   type="button"
-                  onClick={() =>
-                    setExpandedGroups((current) => ({
-                      ...current,
-                      [group.id]: !current[group.id],
-                    }))
-                  }
-                  aria-expanded={isExpanded}
-                  className="flex w-full items-center gap-3 px-3 py-3 text-left"
-                  >
-                    <SettingsSectionIcon name={group.icon} />
-                    <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-black text-neutral-950">
-                        {group.title}
-                      </p>
-                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black uppercase tracking-[0.12em] text-neutral-500">
-                        {groupEnabledCount}/{definitions.length}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-xs font-semibold leading-4 text-neutral-500">
-                      {group.description}
-                    </p>
-                  </div>
-                  <ClickableChevron
-                    className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                  role="switch"
+                  aria-checked={isEnabled}
+                  aria-label={tx(group.title)}
+                  onClick={() => toggleGroup(group.id)}
+                  disabled={isLoading || isSaving}
+                  className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${
+                    isEnabled ? "bg-neutral-950" : "bg-neutral-300"
+                  } disabled:opacity-60`}
+                >
+                  <span
+                    className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
+                      isEnabled ? "left-6" : "left-1"
+                    }`}
                   />
                 </button>
-
-                {isExpanded ? (
-                  <div className="divide-y divide-neutral-100 border-t border-neutral-100">
-                    {definitions.map((definition) => {
-                      const isEnabled = preferences[definition.key]
-
-                      return (
-                        <div
-                          key={definition.key}
-                          className="flex items-start justify-between gap-3 px-3 py-3"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm font-black text-neutral-950">
-                              {t.notifications.preferences[definition.key].title}
-                            </p>
-                            <p className="mt-0.5 text-xs font-semibold leading-4 text-neutral-500">
-                              {t.notifications.preferences[definition.key].description}
-                            </p>
-                          </div>
-
-                          <button
-                            type="button"
-                            role="switch"
-                            aria-checked={isEnabled}
-                            onClick={() => togglePreference(definition.key)}
-                            disabled={isLoading || isSaving}
-                            className={`relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition ${
-                              isEnabled ? "bg-neutral-950" : "bg-neutral-300"
-                            } disabled:opacity-60`}
-                          >
-                            <span
-                              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition ${
-                                isEnabled ? "left-6" : "left-1"
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : null}
               </section>
             )
           })}

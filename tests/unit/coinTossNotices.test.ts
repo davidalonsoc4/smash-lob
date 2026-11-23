@@ -35,7 +35,7 @@ describe("notice that the coin toss is open (leagues)", () => {
     const { client, inserted } = fakeClient({})
     const ids = await createCoinTossOpenEvents({ supabase: client, matches: [match("m1")], now: NOW })
     expect(ids).toEqual(["event-1"])
-    expect(inserted[0]).toMatchObject({ type: "match_coin_toss_open", match_id: "m1", description: "Ya puedes sortear el saque de tu partido." })
+    expect(inserted[0]).toMatchObject({ type: "match_coin_toss_open", match_id: "m1", description: "¡Ya puedes sortear el saque de tu partido!" })
     expect((inserted[0].metadata as { participantIds: string[] }).participantIds).toEqual(["a", "b", "c", "d"])
   })
 

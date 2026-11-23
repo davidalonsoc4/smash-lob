@@ -1304,14 +1304,23 @@ test("league match detail shows the coin toss to who can manage the match", asyn
   await expect(page.locator("[data-coin-toss-panel] [data-coin-start]")).toBeVisible()
 })
 
-test("notification settings list the coin toss notice and show the required notices switched on and locked", async ({ page }) => {
-  await page.route("**/api/notifications/preferences**", route => route.fulfill({ json: { preferences: {}, isConfigured: true } }))
+test("notification settings show six grouped switches and the required notices switched on and locked", async ({ page }) => {
+  let saved: Record<string, boolean> | null = null
+  await page.route("**/api/notifications/preferences**", route => {
+    if (route.request().method() === "POST") {
+      saved = route.request().postDataJSON().preferences
+      return route.fulfill({ json: { preferences: saved, isConfigured: true } })
+    }
+    return route.fulfill({ json: { preferences: { match_upcoming: false, match_coin_toss: true }, isConfigured: true } })
+  })
   await page.goto("/settings/notifications")
-  await page.getByRole("button", { name: /^Partidos/ }).click()
-  const matchesGroup = page.locator("#matches")
-  await expect(matchesGroup.getByText("Sorteo del saque", { exact: true })).toBeVisible()
-  await expect(matchesGroup.getByRole("switch")).toHaveCount(5)
-  for (const toggle of await matchesGroup.getByRole("switch").all()) await expect(toggle).toHaveAttribute("aria-checked", "true")
+  const groups = page.locator("[data-notification-group]")
+  await expect(groups).toHaveCount(6)
+  await expect(groups.getByRole("switch")).toHaveCount(6)
+  for (const toggle of await groups.getByRole("switch").all()) await expect(toggle).toHaveAttribute("aria-checked", "true")
+  await page.locator("#before-play").getByRole("switch").click()
+  await expect(page.locator("#before-play").getByRole("switch")).toHaveAttribute("aria-checked", "false")
+  expect(saved).toMatchObject({ match_upcoming: false, match_coin_toss: false, match_chat: true })
   const required = page.locator("[data-required-notifications]")
   await expect(required.locator("[data-required-notification]")).toHaveCount(2)
   for (const locked of await required.locator("[data-required-notification]").all()) {

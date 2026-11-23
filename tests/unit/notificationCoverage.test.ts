@@ -37,8 +37,10 @@ describe("every notification can be configured, or is shown as required", () => 
   })
 
   it("every preference appears in a group of the settings screen", () => {
+    const lib = readFileSync("src/lib/notificationSettings.ts", "utf8")
     const page = readFileSync("src/app/settings/notifications/page.tsx", "utf8")
-    for (const { key } of notificationPreferenceDefinitions) expect(page, key).toContain(`"${key}"`)
+    expect(page).toContain("notificationPreferenceGroupDefinitions")
+    for (const { key } of notificationPreferenceDefinitions) expect(lib.split("notificationPreferenceGroupDefinitions = [")[1], key).toContain(`"${key}"`)
   })
 
   it("a person who saved their preferences before the coin toss notice existed gets it switched on", () => {

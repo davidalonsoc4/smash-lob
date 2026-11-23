@@ -111,7 +111,7 @@ export async function runPersonalMatchNotificationAutomation({
           actorUserId: "system",
           preferenceKey: "match_coin_toss",
           title: "Sorteo del saque",
-          body: "Ya puedes sortear el saque de tu partido.",
+          body: "¡Ya puedes sortear el saque de tu partido!",
           tag: `smash-lob-personal-coin-toss-${match.id}`,
         })
         sent += result.sent

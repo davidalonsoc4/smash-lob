@@ -856,7 +856,7 @@ function getNotificationBody(
     );
   }
   if (event.type === "match_coin_toss_open") {
-    return "Ya puedes sortear el saque de tu partido.";
+    return "¡Ya puedes sortear el saque de tu partido!";
   }
   if (event.type === "match_upcoming_reminder") {
     const metadata = toRecord(event.metadata);

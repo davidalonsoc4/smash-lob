@@ -47,7 +47,7 @@ export async function createCoinTossOpenEvents({ supabase, matches, now }: { sup
           actor_display_name: "Smash & Lob",
           type: "match_coin_toss_open",
           title: "Sorteo del saque",
-          description: "Ya puedes sortear el saque de tu partido.",
+          description: "¡Ya puedes sortear el saque de tu partido!",
           metadata: {
             round: match.round,
             participantIds: [...(match.team_a ?? []), ...(match.team_b ?? [])],

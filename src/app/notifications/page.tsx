@@ -440,7 +440,7 @@ function getNotificationBody({
     return cleanPreview ? `${actor}: ${cleanPreview}` : `${actor} ha escrito en el chat del partido.`;
   }
 
-  if (event.type === "match_coin_toss_open") return "Ya puedes sortear el saque de tu partido.";
+  if (event.type === "match_coin_toss_open") return "¡Ya puedes sortear el saque de tu partido!";
 
   if (event.type === "match_upcoming_reminder") {
     const locationText =
