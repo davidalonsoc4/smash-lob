@@ -3,6 +3,7 @@ import { Inscripcion2, INSCRIPCION2_FRAMES } from "./Inscripcion2";
 import { PerfilV2, PERFIL2_FRAMES } from "./Perfil2";
 import { OrganizaV2, ORGANIZA2_FRAMES } from "./Organiza2";
 import { Reserva, RESERVA_FRAMES } from "./Reserva";
+import { Gen12Instalar, GEN12_FRAMES } from "./Gen12";
 import { Chat2, CHAT2_FRAMES } from "./Chat2";
 import { Presentacion3, PRESENTACION3_FRAMES } from "./Presentacion3";
 import { Presentacion2, PRESENTACION2_FRAMES } from "./Presentacion2";
@@ -55,6 +56,7 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="PerfilV2" component={PerfilV2} durationInFrames={PERFIL2_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="OrganizaV2" component={OrganizaV2} durationInFrames={ORGANIZA2_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="ReservaConfirmada" component={Reserva} durationInFrames={RESERVA_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
+    <Composition id="Gen12Instalar" component={Gen12Instalar} durationInFrames={GEN12_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="DiaPartido" component={DiaPartido} durationInFrames={DIAPARTIDO_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="LigaFormato" component={LigaFormato} durationInFrames={TOTAL_FRAMES} fps={30} width={1080} height={1920} />
   </>
