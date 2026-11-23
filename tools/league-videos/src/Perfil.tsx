@@ -49,7 +49,7 @@ export const SettingsRow: React.FC<{ title: string; desc: string; icon: "clock" 
   );
 };
 
-const Segmented: React.FC<{ label: string; options: string[]; sel: number }> = ({ label, options, sel }) => {
+export const Segmented: React.FC<{ label: string; options: string[]; sel: number }> = ({ label, options, sel }) => {
   const t = useTheme();
   return (
     <div>
@@ -63,8 +63,8 @@ const Segmented: React.FC<{ label: string; options: string[]; sel: number }> = (
   );
 };
 
-const DAYS = ["L", "M", "X", "J", "V", "S", "D"];
-const DayChips: React.FC<{ lit: boolean[] }> = ({ lit }) => {
+export const DAYS = ["L", "M", "X", "J", "V", "S", "D"];
+export const DayChips: React.FC<{ lit: boolean[] }> = ({ lit }) => {
   const t = useTheme();
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 5 }}>
@@ -75,7 +75,7 @@ const DayChips: React.FC<{ lit: boolean[] }> = ({ lit }) => {
   );
 };
 
-const TimeBox: React.FC<{ label: string; value: string; on: boolean }> = ({ label, value, on }) => {
+export const TimeBox: React.FC<{ label: string; value: string; on: boolean }> = ({ label, value, on }) => {
   const t = useTheme();
   return (
     <div style={{ flex: 1 }}>
@@ -166,7 +166,7 @@ const Availability = ({ ws }: Props) => {
 };
 
 /* 4 · Horarios recomendados: huecos comunes de los cuatro jugadores (datos ficticios) */
-const Suggest: React.FC<{ date: string; time: string; at: number }> = ({ date, time, at }) => {
+export const Suggest: React.FC<{ date: string; time: string; at: number }> = ({ date, time, at }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const p = pop(f, fps, at, 12);
   return (
