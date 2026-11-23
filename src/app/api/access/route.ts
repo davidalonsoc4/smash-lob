@@ -7,6 +7,9 @@ import { buildMatchChatCoordination } from "@/lib/matchChatCoordination"
 import { LEAGUE_ACCESS_SCOPE_HEADER } from "@/lib/competitionOverview"
 import { buildLeagueOverview, emptyLeagueOverview } from "@/lib/serverLeagueOverview"
 import { mapSupabaseMatch } from "@/lib/supabaseMatches"
+import { COIN_TOSS_FIELDS, toCoinToss, type CoinTossRow } from "@/lib/serverMatchCoinToss"
+import { coinTossForViewer, type WithCoinToss } from "@/lib/leagueCoinToss"
+import type { CoinToss } from "@/lib/matchCoinToss"
 import { readLeagueMatchSnapshot } from "@/lib/serverLeagueMatchSnapshot"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { logServerEvent } from "@/lib/serverLog"
@@ -243,6 +246,7 @@ export async function GET(request: Request) {
     matchSubstitutionsResult,
     leagueMembershipsResult,
     preseasonSecretSettingsResult,
+    coinTossesResult,
   ] = await Promise.all([
     supabase
       .from("seasons")
@@ -278,6 +282,11 @@ export async function GET(request: Request) {
       .from("season_settings")
       .select("season_id,preseason_secret_days_before")
       .in("league_id", leagueIds),
+    // The coin tosses of the matches of these leagues: they travel with the matches, so the card of the toss does not need a request of its own.
+    overviewOnly ? emptyRows : supabase
+      .from("match_coin_tosses")
+      .select(`match_id,${COIN_TOSS_FIELDS},matches!inner(league_id)`)
+      .in("matches.league_id", leagueIds),
   ])
 
   const snapshotFailures: Array<[string, SupabaseQueryError | null]> = [
@@ -537,6 +546,18 @@ export async function GET(request: Request) {
   const ownMembershipByLeagueId = new Map(
     ownMemberships.map((membership) => [membership.leagueId, membership]),
   )
+  // The tosses, by match. If they could not be read, no match says anything about its toss (the card asks for it on its own).
+  const tossByMatchId = new Map<string, CoinToss>()
+  for (const row of (coinTossesResult.data ?? []) as Array<CoinTossRow & { match_id: string | null }>) {
+    if (row.match_id) tossByMatchId.set(row.match_id, toCoinToss(row))
+  }
+  const knownTosses = coinTossesResult.error || overviewOnly ? null : tossByMatchId
+  const withCoinToss = (match: MatchData): MatchData => {
+    const coinToss = coinTossForViewer({ match, membership: ownMembershipByLeagueId.get(match.leagueId), isSpectator: effectiveSpectatorLeagueIds.includes(match.leagueId), tosses: knownTosses })
+    if (coinToss === undefined) return match
+    const withToss: WithCoinToss<MatchData> = { ...match, coinToss }
+    return withToss
+  }
   const canSeeCompetitionAdminData = (leagueId: string) => {
     const membership = ownMembershipByLeagueId.get(leagueId)
     if (!membership) return isSuperuser
@@ -605,7 +626,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return hydratedMatch
+    return withCoinToss(hydratedMatch)
   })
   const memberships: UserLeagueMembership[] = (
     leagueMembershipsResult.data ?? []

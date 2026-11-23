@@ -8,9 +8,11 @@ import { isCoinTossChoice, isCoinTossTeam, otherCoinTossTeam, pendingCoinTossSte
 export type CoinTossTarget = { kind: "league" | "friendly"; matchId: string }
 
 const FIELDS = "called_heads_team,result,winner_team,winner_choice,serving_team,toss_count,tossed_at"
+/** The columns of a toss, for the places that read several at once (the data of the league). */
+export const COIN_TOSS_FIELDS = FIELDS
 const columnOf = (target: CoinTossTarget) => (target.kind === "league" ? "match_id" : "personal_match_id")
 
-type Row = {
+export type CoinTossRow = {
   called_heads_team: CoinTossTeam
   result: CoinTossFace
   winner_team: CoinTossTeam
@@ -20,7 +22,7 @@ type Row = {
   tossed_at: string
 }
 
-const toCoinToss = (row: Row): CoinToss => ({
+export const toCoinToss = (row: CoinTossRow): CoinToss => ({
   calledHeadsTeam: row.called_heads_team, result: row.result, winnerTeam: row.winner_team, winnerChoice: row.winner_choice,
   servingTeam: row.serving_team, tossCount: row.toss_count, tossedAt: row.tossed_at,
 })
@@ -28,7 +30,7 @@ const toCoinToss = (row: Row): CoinToss => ({
 export async function loadCoinToss(supabase: SupabaseClient, target: CoinTossTarget): Promise<{ ok: true; toss: CoinToss | null } | { ok: false }> {
   const found = await supabase.from("match_coin_tosses").select(FIELDS).eq(columnOf(target), target.matchId).maybeSingle()
   if (found.error) return { ok: false }
-  return { ok: true, toss: found.data ? toCoinToss(found.data as Row) : null }
+  return { ok: true, toss: found.data ? toCoinToss(found.data as CoinTossRow) : null }
 }
 
 /**
@@ -47,7 +49,7 @@ export async function tossCoin(supabase: SupabaseClient, target: CoinTossTarget,
     winner_choice: null, serving_team: null, tossed_by_user_id: userId,
     toss_count: ((previous.data?.toss_count as number | undefined) ?? 0) + 1, tossed_at: now, updated_at: now,
   }, { onConflict: column }).select(FIELDS).single()
-  return saved.error || !saved.data ? { ok: false } : { ok: true, toss: toCoinToss(saved.data as Row) }
+  return saved.error || !saved.data ? { ok: false } : { ok: true, toss: toCoinToss(saved.data as CoinTossRow) }
 }
 
 export type CoinTossChooseError = "no_toss" | "already_chosen" | "failed"
@@ -65,7 +67,7 @@ export async function chooseCoinToss(supabase: SupabaseClient, target: CoinTossT
     .eq(column, target.matchId).is("winner_choice", null).select(FIELDS).maybeSingle()
   if (saved.error) return { ok: false, error: "failed" }
   if (!saved.data) return { ok: false, error: "already_chosen" }
-  return { ok: true, toss: toCoinToss(saved.data as Row) }
+  return { ok: true, toss: toCoinToss(saved.data as CoinTossRow) }
 }
 
 /** The answer of the toss routes: the toss and where the window stands. `window` only affects tossing, not reading. */

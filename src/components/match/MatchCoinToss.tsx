@@ -482,9 +482,11 @@ function shortTeam(names: TeamNames, team: CoinTossTeam, and: string) {
  * after it, what each team chose and the coin resting on the face that came out. Pressing it opens the full screen (and, while it
  * is being tested, lets the toss be done again). Available from 30 minutes before the booked time when that rule is on.
  */
-export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTeam = null, canToss, matchOpen }: {
+export function MatchCoinTossPanel({ kind, matchId, knownToss, scheduledAt, teamNames, myTeam = null, canToss, matchOpen }: {
   kind: CoinTossKind
   matchId: string
+  /** What the data of the match already says about its toss (null: there is none; absent: it does not say). It is shown at once and the server confirms it. */
+  knownToss?: CoinToss | null
   scheduledAt: string | null
   teamNames: TeamNames
   /** The team of the person who is looking, if they play the match: the screen asks what their team picks. */
@@ -496,8 +498,8 @@ export function MatchCoinTossPanel({ kind, matchId, scheduledAt, teamNames, myTe
 }) {
   const { tx, locale } = useI18n()
   // It starts from what the server said last time about this match, if this tab knows it, so the card does not have to wait.
-  const [toss, setToss] = useState<CoinToss | null>(() => rememberedCoinToss(kind, matchId) ?? null)
-  const [visible, setVisible] = useState(() => rememberedCoinToss(kind, matchId) !== undefined)
+  const [toss, setToss] = useState<CoinToss | null>(() => rememberedCoinToss(kind, matchId) ?? knownToss ?? null)
+  const [visible, setVisible] = useState(() => rememberedCoinToss(kind, matchId) !== undefined || knownToss !== undefined)
   /** The server answered that this person cannot see the toss (or it failed): the card is not shown. */
   const [unavailable, setUnavailable] = useState(false)
   const [dialog, setDialog] = useState<{ repeat: boolean; origin: Origin } | null>(null)
