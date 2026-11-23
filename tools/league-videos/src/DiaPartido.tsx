@@ -59,10 +59,11 @@ const Stage = ({ league, ws }: P) => {
   const winIn = ease((f - (S.card - 14)) / 20);
   const hookO = (1 - ease((f - (S.card - 18)) / 12)) * Math.min(1, pop(f, fps, 6, 10) * 2);
 
+  const tossed = f >= S.result + 14;                       // tras el sorteo la pantalla del partido cambia (Pendiente resultado)
+  const scrollY = ease((f - (regF - 18)) / 22) * 128;      // el usuario baja hasta «Registrar resultado»
   /* pantallas del móvil */
   const homeO = Math.min(ease((f - (S.card - 6)) / 14), 1 - ease((f - (tapF + 14)) / 10));
-  const detailO = Math.min(ease((f - (tapF + 12)) / 14), 1 - ease((f - (regF - 12)) / 10));
-  const regO = Math.min(ease((f - (regF - 6)) / 14), 1 - ease((f - (claF - 12)) / 10));
+  const detailO = Math.min(ease((f - (tapF + 12)) / 14), 1 - ease((f - (claF - 12)) / 10));
   const rankO = ease((f - (claF - 8)) / 14);
   const morph = ease((f - (tapF + 8)) / 24);
   const activeIn = f < claF - 8 ? 2 : 1;
@@ -86,16 +87,40 @@ const Stage = ({ league, ws }: P) => {
     </div>
   );
 
+  /* registrar resultado */
+  const fill = (a: number) => pop(f, fps, a, 9);
+  const sets: [number, number][] = [[6, 3], [4, 6], [6, 2]];
+  const setAt = [regF + 4, resF - 4, guaF - 26];
+  const saveP = f >= guaF - 2 && f < guaF + 12 ? 1 : 0;
+  const reg = (
+    <Card accent={false} pad="9px 12px">
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}><div style={{ width: 4, height: 16, borderRadius: 2, background: t.accent }} /><div style={{ fontSize: 16.5, fontWeight: 800 }}>Registrar resultado</div></div>
+      <div style={{ fontSize: 13, color: t.textMuted, paddingLeft: 4 }}>Introduce los tres sets. Cada set ganado suma un punto.</div>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, fontSize: 12, color: t.textMuted, paddingRight: 8 }}><span style={{ width: 40, textAlign: "center" }}>Set 1</span><span style={{ width: 40, textAlign: "center" }}>Set 2</span><span style={{ width: 40, textAlign: "center" }}>Set 3</span><span style={{ width: 70, textAlign: "center", color: t.text, fontWeight: 700 }}>Resultado</span></div>
+      {[0, 1].map((r) => {
+        const total = sets.reduce((a, s, i) => a + (f >= setAt[i] && s[r] > s[1 - r] ? 1 : 0), 0);
+        return (
+          <div key={r} style={{ width: NATIVE_W - 24 - 24, boxSizing: "border-box", background: t.mutedSurface, borderRadius: 14, padding: "6px 8px", marginTop: 6, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ flex: 1, fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}><div>{names4[r * 2]}</div><div>{names4[r * 2 + 1]}</div></div>
+            {sets.map((s, i) => { const k = f >= setAt[i] ? fill(setAt[i]) : 0; return <div key={i} style={{ width: 40, height: 40, borderRadius: 10, border: `1.5px solid ${k > 0.3 ? t.accent : t.border}`, background: t.mutedSurface, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, fontWeight: 800, transform: `scale(${0.7 + 0.3 * k})`, opacity: k > 0 ? 1 : 0.5 }}>{k > 0.3 ? s[r] : ""}</div>; })}
+            <div style={{ width: 70, textAlign: "center", fontSize: 28, fontWeight: 900 }}>{total}</div>
+          </div>);
+      })}
+      <div style={{ background: t.accent, color: t.accentContrast, borderRadius: 14, padding: "10px 0", marginTop: 8, textAlign: "center", fontSize: 15, fontWeight: 900, transform: `scale(${saveP ? 0.96 : 1})`, boxShadow: saveP ? `0 0 0 4px ${t.accent}44` : "none" }}>Guardar resultado</div>
+    </Card>
+  );
+
   /* detalle del partido */
   const comoPulse = f >= llegarF - 18 && f < llegarF + 14 ? 1 + 0.06 * Math.sin(((f - (llegarF - 18)) / 32) * Math.PI) : 1;
   const detail = (
-    <div style={{ position: "absolute", left: 12, top: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-      <HeaderCard title="Jornada 2" sub={`${league.season} · En curso`} right={<div style={{ fontSize: 12, color: t.text, background: t.mutedSurface, borderRadius: 999, padding: "4px 10px", fontWeight: 700 }}>Programado</div>} />
+    <div style={{ position: "absolute", left: 12, top: 12 - (tossed ? scrollY : 0), display: "flex", flexDirection: "column", gap: 8 }}>
+      <HeaderCard title="Jornada 2" sub={`${league.season} · En curso`} right={tossed ? <div style={{ fontSize: 12, color: "#f2c14e", background: "#3b2f12", borderRadius: 999, padding: "4px 10px", fontWeight: 700 }}>Pendiente resultado</div> : <div style={{ fontSize: 12, color: t.text, background: t.mutedSurface, borderRadius: 999, padding: "4px 10px", fontWeight: 700 }}>Programado</div>} />
       <div style={{ display: "flex", alignItems: "center", gap: 8, width: NATIVE_W - 24 }}>
         {[[names4[0], names4[1]], [names4[2], names4[3]]].map(([a, b], i) => <React.Fragment key={i}>{i === 1 && <Vs />}<div style={{ flex: 1, textAlign: "center", background: t.surface, border: `1px solid ${t.accent}88`, borderRadius: 16, padding: "9px 0", fontWeight: 800, fontSize: 17, lineHeight: 1.5 }}>{a}<div style={{ height: 1, background: `${t.accent}99`, margin: "4px 18px" }} />{b}</div></React.Fragment>)}
       </div>
-      <Card accent={false} pad="9px 14px"><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}><div><div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 4, height: 16, borderRadius: 2, background: t.accent }} /><div style={{ fontSize: 16.5, fontWeight: 800 }}>Sorteo del saque</div></div><div style={{ fontSize: 13, marginTop: 4 }}>Tira la moneda para empezar el partido</div><div style={{ fontSize: 10.5, letterSpacing: 1, color: t.textMuted, marginTop: 3 }}>TOCA LA MONEDA PARA LANZARLA →</div></div>
+      <Card accent={false} pad="9px 14px"><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}><div><div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 4, height: 16, borderRadius: 2, background: t.accent }} /><div style={{ fontSize: 16.5, fontWeight: 800 }}>Sorteo del saque</div></div>{tossed ? <><div style={{ fontSize: 14.5, marginTop: 4 }}>{q4[0]} y {q4[1]} <b style={{ borderBottom: `2px solid ${t.accent}` }}>empiezan sacando</b></div><div style={{ fontSize: 12.5, color: t.textMuted, marginTop: 3 }}>{q4[2]} y {q4[3]} restan</div></> : <><div style={{ fontSize: 13, marginTop: 4 }}>Tira la moneda para empezar el partido</div><div style={{ fontSize: 10.5, letterSpacing: 1, color: t.textMuted, marginTop: 3 }}>TOCA LA MONEDA PARA LANZARLA →</div></>}</div>
         <div style={{ width: 54, height: 54, borderRadius: "50%", overflow: "hidden", boxShadow: `0 0 ${14 * (f >= lanzaF - 28 && f < lanzaF - 6 ? 1 : 0)}px ${t.accent}` }}><Img src={staticFile("coin-smash.png")} style={{ width: 54, height: 54 }} /></div></div></Card>
+      {tossed && reg}
       <Card accent={false} pad="9px 14px">
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}><div style={{ width: 4, height: 16, borderRadius: 2, background: t.accent }} /><div style={{ fontSize: 16.5, fontWeight: 800 }}>Programación</div></div>
         <div style={{ background: t.mutedSurface, borderRadius: 12, padding: "8px 11px" }}>
@@ -107,29 +132,6 @@ const Stage = ({ league, ws }: P) => {
           </div>
         </div>
       </Card>
-    </div>
-  );
-
-  /* registrar resultado */
-  const fill = (a: number) => pop(f, fps, a, 9);
-  const sets: [number, number][] = [[6, 3], [4, 6], [6, 2]];
-  const setAt = [regF + 4, resF - 4, guaF - 26];
-  const saveP = f >= guaF - 2 && f < guaF + 12 ? 1 : 0;
-  const reg = (
-    <div style={{ position: "absolute", left: 12, top: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-      <HeaderCard title="Registrar resultado" />
-      <div style={{ fontSize: 13, color: t.textMuted, paddingLeft: 4 }}>Introduce los tres sets. Cada set ganado suma un punto.</div>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, fontSize: 12, color: t.textMuted, paddingRight: 8 }}><span style={{ width: 40, textAlign: "center" }}>Set 1</span><span style={{ width: 40, textAlign: "center" }}>Set 2</span><span style={{ width: 40, textAlign: "center" }}>Set 3</span><span style={{ width: 70, textAlign: "center", color: t.text, fontWeight: 700 }}>Resultado</span></div>
-      {[0, 1].map((r) => {
-        const total = sets.reduce((a, s, i) => a + (f >= setAt[i] && s[r] > s[1 - r] ? 1 : 0), 0);
-        return (
-          <div key={r} style={{ width: NATIVE_W - 24, boxSizing: "border-box", background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ flex: 1, fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}><div>{names4[r * 2]}</div><div>{names4[r * 2 + 1]}</div></div>
-            {sets.map((s, i) => { const k = f >= setAt[i] ? fill(setAt[i]) : 0; return <div key={i} style={{ width: 40, height: 40, borderRadius: 10, border: `1.5px solid ${k > 0.3 ? t.accent : t.border}`, background: t.mutedSurface, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, fontWeight: 800, transform: `scale(${0.7 + 0.3 * k})`, opacity: k > 0 ? 1 : 0.5 }}>{k > 0.3 ? s[r] : ""}</div>; })}
-            <div style={{ width: 70, textAlign: "center", fontSize: 28, fontWeight: 900 }}>{total}</div>
-          </div>);
-      })}
-      <div style={{ background: t.accent, color: t.accentContrast, borderRadius: 14, padding: "11px 0", textAlign: "center", fontSize: 15, fontWeight: 900, transform: `scale(${saveP ? 0.96 : 1})`, boxShadow: saveP ? `0 0 0 4px ${t.accent}44` : "none" }}>Guardar resultado</div>
     </div>
   );
 
@@ -198,7 +200,7 @@ const Stage = ({ league, ws }: P) => {
   const prev = tagI > 0 ? TAGS[tagI - 1][1] : "";
   const pill = { background: t.surface, border: `2px solid ${t.accent}`, color: t.accent, fontWeight: 900, fontSize: 32, letterSpacing: 5, padding: "14px 34px", borderRadius: 999, whiteSpace: "nowrap" as const };
   const example = f >= S.card && f < S.thanks - 10;
-  const ripples = [{ x: NATIVE_W / 2, y: 108, a: tapF }, { x: NATIVE_W / 2, y: 170, a: lanzaF - 6 }, { x: NATIVE_W / 2, y: 316, a: guaF }];
+  const ripples = [{ x: NATIVE_W / 2, y: 108, a: tapF }, { x: NATIVE_W / 2, y: 170, a: lanzaF - 6 }, { x: NATIVE_W / 2, y: 290, a: guaF }];
 
   return (
     <Frame timedWords={ws}>
@@ -215,8 +217,7 @@ const Stage = ({ league, ws }: P) => {
           <div style={{ position: "absolute", left: 0, top: 0, width: NATIVE_W, height: SCR_H, transformOrigin: "0 0", transform: `scale(${Z})`, opacity: 1 - dimWin }}>
             {homeO > 0.01 && <div style={{ opacity: homeO, transform: `translateX(${-(1 - homeO) * 20}px)` }}>{home}</div>}
             {detailO > 0.01 && <div style={{ opacity: detailO, transform: `translateX(${(1 - ease((f - (tapF + 12)) / 14)) * 40}px)` }}>{detail}</div>}
-            {regO > 0.01 && <div style={{ opacity: regO, transform: `translateX(${(1 - ease((f - (regF - 6)) / 14)) * 40}px)` }}>{reg}</div>}
-            {rankO > 0.01 && <div style={{ opacity: rankO, transform: `translateX(${(1 - rankO) * 40}px)` }}>{rank}</div>}
+                        {rankO > 0.01 && <div style={{ opacity: rankO, transform: `translateX(${(1 - rankO) * 40}px)` }}>{rank}</div>}
             <div style={{ position: "absolute", left: 0, top: BAR_TOP, width: NATIVE_W }}><MorphBar m={morph} activeOut={f < tapF ? 0 : -1} activeIn={activeIn} dim={[]} lock={[]} /></div>
             {ripples.map((r, i) => <Ripple key={i} x={r.x} y={r.y} at={r.a} size={46} />)}
           </div>
@@ -244,4 +245,4 @@ const makeScenes = (league: LeagueConfig): SceneDef[] => [
 ];
 export const DIAPARTIDO_FRAMES = totalFrames(makeScenes(PRO_LEAGUE));
 export const DiaPartido: React.FC<{ league: LeagueConfig }> = ({ league }) => <VideoSeries scenes={makeScenes(league)} accent={league.accent} voice="voice-dia-partido-david.mp3" />;
-void interpolate; void WIN_H;
+void interpolate; void WIN_H; void Sec;
