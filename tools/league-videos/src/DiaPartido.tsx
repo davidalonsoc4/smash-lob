@@ -25,7 +25,7 @@ const at = (i: number, text: string, nth = 0) => B30(i) + wf(sceneWords(i), text
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 /* ---------- moneda 3D (caras recortadas de la app: Smash y Lob) ---------- */
-const Coin3D: React.FC<{ size: number; y: number; rx: number; ry: number; rz: number; scale: number }> = ({ size, y, rx, ry, rz, scale }) => {
+export const Coin3D: React.FC<{ size: number; y: number; rx: number; ry: number; rz: number; scale: number }> = ({ size, y, rx, ry, rz, scale }) => {
   const T = size * 0.06;
   const layers = Array.from({ length: 14 });
   return (
@@ -39,7 +39,7 @@ const Coin3D: React.FC<{ size: number; y: number; rx: number; ry: number; rz: nu
   );
 };
 // trayectoria del lanzamiento: sube hasta salir de pantalla, cae girando y rebota dos veces
-const tossY = (t: number, peak: number) => {
+export const tossY = (t: number, peak: number) => {
   if (t <= 0) return 0;
   if (t < 0.34) { const u = t / 0.34; return -peak * (1 - (1 - u) * (1 - u)); }       // sube (frena)
   if (t < 0.76) { const u = (t - 0.34) / 0.42; return -peak * (1 - u * u); }            // cae (acelera)

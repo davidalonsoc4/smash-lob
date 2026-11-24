@@ -73,3 +73,7 @@ Nombre de catálogo: «Tutoriales genéricos» (pídelos así). Reglas: sin PRO 
 Orden aprobado de guiones: 12, 13, 1, 3, 5, 6, 18, 21, 22a, 22b (guiones en la conversación; el 5: lo puede lanzar cualquiera de los cuatro jugadores; no hay ligas por parejas fijas activas).
 - 12 Instalar la app y activar los avisos: **hecho, en revisión** (`Gen12Instalar`, `src/Gen12.tsx`, voz `voiceGen12`, toma `assets/gen12-instalar/`, 31 s).
 - Por verificar antes de hacerlos: 22a calendario manual activo; 22b «todo se puede cambiar después».
+
+### Estado de los Tutoriales genéricos (prioridad A) — ver también `out/tutoriales-genericos-A.zip`
+Hechos (en revisión): 12 Instalar la app y avisos (31 s), 13 Configurar notificaciones (40 s, `Gen13Notificaciones`), 1 Cómo funciona una liga (35 s, `Gen01ComoFunciona`), 3 Tu primera jornada (47 s, `Gen03Primera`), 5 Sorteo del saque (31 s, `Gen05Sorteo`), 6 Subir el resultado (47 s, `Gen06Resultado`), 18 Partidos amistosos (29 s, `Gen18Amistosos`). Código en `src/Gen*.tsx` + `src/GenKit.tsx`; voces en `assets/gen*/` y `src/voice_gen*.ts`.
+Pendiente de la prioridad A: **2 Cómo se puntúa** (guion por aprobar). Miniaturas «TUTORIAL NN» (16:9). Los de «Crear…» (21, 22a, 22b) y todo el bloque de administración quedan aparcados (solo hay un usuario con rol de creador).
