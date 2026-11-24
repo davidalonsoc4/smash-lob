@@ -8,7 +8,7 @@ import { Icon } from "./Presentacion";
 import { ease } from "./Presentacion2";
 import { Card, HeaderCard, Ripple } from "./Presentacion3";
 import { SyncWords } from "./SyncWords";
-import { Av, ExampleLabel, GenOutro, PhoneWin, Tags, mkGen, mkTiming, slideIn, win } from "./GenKit";
+import { Av, ExampleLabel, PhoneWin, Tags, mkGen, mkTiming, slideIn, win } from "./GenKit";
 import { BOUNDS_01 as BOUNDS, VOICE_01 as VOICE } from "./voice_gen18";
 
 const tm = mkTiming(BOUNDS, VOICE);
@@ -16,14 +16,14 @@ const { at, B30 } = tm;
 
 const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5);
+  const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5), END = B30(6);
   const hookW = ["Quieres", "jugar", "un", "partido", "fuera", "de", "la", "liga"].map((w) => at(0, w));
   const creaF = at(1, "Crea"), fechaF = at(1, "fecha"), lugarF = at(1, "lugar"), invitaF = at(1, "invita");
   const cuentaF = at(2, "cuenta"), nombreF = at(2, "nombre");
   const editarF = at(3, "editar"), creoF = at(3, "creó"), borrarF = at(3, "borrar");
   const monedaF = at(4, "moneda"), resF = at(4, "resultado"), chatF = at(4, "chat");
   const hookO = 1 - ease((f - (S1 - 16)) / 12);
-  const listO = win(f, S1 - 10, creaF + 14), formO = win(f, creaF + 12, S4 - 8), featO = win(f, S4 - 8, S5 - 12);
+  const listO = win(f, S1 - 10, creaF + 14), formO = win(f, creaF + 12, S4 - 8), featO = win(f, S4 - 8, END - 12);
   const base = { position: "absolute" as const, left: 12, top: 12, width: NATIVE_W - 24 };
   const slots: { n: string; acc: boolean; i: number }[] = [{ n: "Ana", acc: true, i: 0 }, { n: "Beto", acc: true, i: 1 }, { n: "Carla", acc: false, i: 2 }, { n: "Dani", acc: false, i: 3 }];
   const list = (
@@ -85,10 +85,10 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   );
   return (
     <Frame timedWords={ws}>
-      <Tags endF={S5} tags={[[S1 + 4, "CREA UN AMISTOSO"], [S2 + 4, "JUGADORES"], [S3 + 4, "EDITAR Y BORRAR"], [S4 + 4, "COMO EN LA LIGA"]]} />
-      <ExampleLabel show={f >= S1 && f < S5 - 12} />
+      <Tags endF={END} tags={[[S1 + 4, "CREA UN AMISTOSO"], [S2 + 4, "JUGADORES"], [S3 + 4, "EDITAR Y BORRAR"], [S4 + 4, "COMO EN LA LIGA"], [S5 + 4, "CREA AHORA TU PRÓXIMO AMISTOSO"]]} />
+      <ExampleLabel show={f >= S1 && f < END - 12} />
       <div style={{ position: "absolute", top: 520, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: hookO }}><SyncWords text={"¿Quieres jugar\nun partido *fuera*\nde la liga?"} frames={[hookW[0], hookW[1], hookW[2], hookW[3], hookW[4], hookW[5], hookW[6], hookW[7]]} size={100} /></div>
-      <PhoneWin inF={S1 - 12} outF={S5 - 12}>
+      <PhoneWin inF={S1 - 12} outF={END - 12}>
         {listO > 0.01 && list}{formO > 0.01 && form}{featO > 0.01 && features}
         <Ripple x={206} y={92} at={creaF - 2} size={40} />
       </PhoneWin>
@@ -97,6 +97,6 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   );
 };
 
-const g = mkGen((ws) => <Stage ws={ws} />, (ws) => <GenOutro ws={ws} line1="Crea ahora" words1={["Crea", "ahora"]} line2="tu próximo *amistoso*" words2={["tu", "próximo", "amistoso"]} lastWord="amistoso" />, BOUNDS, tm, 5, "voice-gen18-david.mp3");
+const g = mkGen((ws) => <Stage ws={ws} />, null, BOUNDS, tm, 6, "voice-gen18-david.mp3");
 export const GEN18_FRAMES = g.frames;
 export const Gen18Amistosos = g.Comp;

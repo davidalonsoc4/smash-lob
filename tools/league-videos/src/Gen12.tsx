@@ -4,12 +4,13 @@
 // Voz: David Martin · Eleven v3 (una toma, pausas por bloques). Réplicas de pantalla con datos ficticios.
 import React from "react";
 import { Img, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import { Ball, Frame, SceneDef, TimedWord, VideoSeries, pop, sfx, totalFrames, useTheme } from "./kit";
+import { Frame, SceneDef, TimedWord, VideoSeries, pop, sfx, totalFrames, useTheme } from "./kit";
 import { NATIVE_W } from "./appUi";
 import { Icon } from "./Presentacion";
 import { ease } from "./Presentacion2";
 import { Card, HeaderCard, Ripple, SCR_H, WIN_H, WIN_W, Z } from "./Presentacion3";
 import { SyncWords } from "./SyncWords";
+import { GenTail } from "./GenKit";
 import { BOUNDS_01 as BOUNDS, VOICE_01 as VOICE } from "./voiceGen12";
 
 const ACCENT = "#d7a544";
@@ -24,7 +25,7 @@ const win = (f: number, a: number, b: number) => Math.min(ease((f - a) / 12), 1 
 
 const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5), S6 = B30(6);
+  const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5), S6 = B30(6), END = B30(7);
   const hookW = ["Instala", "Smash", "and", "Lob", "en", "tu", "móvil"].map((w) => at(0, w));
   const ofF = at(1, "ofrezca"), insF = at(1, "Instalar");
   const comF = at(2, "Compartir"), añaF = at(2, "Añadir");
@@ -32,9 +33,9 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const notiF = at(4, "notificaciones"), partF = at(4, "partido"), sorF = at(4, "sorteo");
   const ipF = at(5, "iPhone"), insdF = at(5, "instalada");
   const hookO = 1 - ease((f - (S1 - 16)) / 12);
-  const winIn = ease((f - (S1 - 12)) / 20), winOut = ease((f - (S6 - 12)) / 12);
+  const winIn = ease((f - (S1 - 12)) / 20), winOut = ease((f - (END - 12)) / 12);
 
-  const aO = win(f, S1 - 10, S2 - 8), iO = win(f, S2 - 8, S3 - 8), hO = win(f, S3 - 8, S4 - 8), nO = win(f, S4 - 8, S5 - 8), cO = win(f, S5 - 8, S6 - 12);
+  const aO = win(f, S1 - 10, S2 - 8), iO = win(f, S2 - 8, S3 - 8), hO = win(f, S3 - 8, S4 - 8), nO = win(f, S4 - 8, S5 - 8), cO = win(f, S5 - 8, END - 12);
   const base = { position: "absolute" as const, left: 12, top: 12, width: NATIVE_W - 24 };
 
   /* Android: tarjeta de instalación (réplica del aviso de la app) */
@@ -142,8 +143,8 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
     </div>
   );
 
-  const TAGS: [number, string][] = [[S1 + 4, "ANDROID"], [S2 + 4, "IPHONE"], [S3 + 4, "ABRIR LA APP"], [S4 + 4, "NOTIFICACIONES"], [S5 + 4, "EN IPHONE"]];
-  const tagI = f >= S6 - 10 ? -2 : TAGS.reduce((a, [s0], i) => (f >= s0 ? i : a), -1);
+  const TAGS: [number, string][] = [[S1 + 4, "ANDROID"], [S2 + 4, "IPHONE"], [S3 + 4, "ABRIR LA APP"], [S4 + 4, "NOTIFICACIONES"], [S5 + 4, "EN IPHONE"], [S6 + 4, "HAZLO AHORA: SON DOS MINUTOS"]];
+  const tagI = f >= END - 10 ? -2 : TAGS.reduce((a, [s0], i) => (f >= s0 ? i : a), -1);
   const tagK = tagI < 0 ? 0 : pop(f, fps, TAGS[tagI][0], 12);
   const prev = tagI > 0 ? TAGS[tagI - 1][1] : "";
   const pill: React.CSSProperties = { background: t.surface, border: `2px solid ${t.accent}`, color: t.accent, fontWeight: 900, fontSize: 32, letterSpacing: 5, padding: "14px 34px", borderRadius: 999, whiteSpace: "nowrap" };
@@ -176,28 +177,9 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   );
 };
 
-/* Cierre propio: «Hazlo ahora: son dos minutos.» */
-const Outro: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
-  const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const p = pop(f, fps, 0, 8);
-  const mF = wf(ws, "minutos");
-  const bounce = Math.abs(Math.sin((f - mF) / 7)) * 60 * Math.exp(-Math.max(0, f - mF) / 40);
-  return (
-    <Frame timedWords={ws}>
-      <Img src={staticFile("logo.png")} style={{ width: 260, height: 260, borderRadius: 58, transform: `scale(${p * (1 + Math.sin(f / 5) * 0.03)})`, boxShadow: `0 0 80px ${t.accent}66` }} />
-      <div style={{ height: 40 }} />
-      <SyncWords text={"Hazlo *ahora*"} frames={[wf(ws, "Hazlo"), wf(ws, "ahora")]} size={124} />
-      <div style={{ height: 24 }} />
-      <SyncWords text={"son dos *minutos*"} frames={[wf(ws, "son"), wf(ws, "dos"), mF]} size={80} />
-      <div style={{ marginTop: 64, opacity: pop(f, fps, mF, 9), transform: `translateY(${-bounce}px)` }}><Ball size={84} /></div>
-      {sfx("ding", mF, 0.5)}
-    </Frame>
-  );
-};
-
 const makeScenes = (): SceneDef[] => [
-  { key: "stage", dur: Math.round(BOUNDS[6] * 30), C: () => <Stage ws={wordsBetween(0, 6)} /> },
-  { key: "outro", dur: Math.round((BOUNDS[7] - BOUNDS[6]) * 30), C: () => <Outro ws={sceneWords(6)} /> },
+  { key: "stage", dur: Math.round(BOUNDS[7] * 30), C: () => <Stage ws={wordsBetween(0, 7)} /> },
+  { key: "tail", dur: 75, C: () => <GenTail /> },
 ];
 export const GEN12_FRAMES = totalFrames(makeScenes());
 export const Gen12Instalar: React.FC = () => <VideoSeries scenes={makeScenes()} accent={ACCENT} voice="voice-gen12-david.mp3" />;

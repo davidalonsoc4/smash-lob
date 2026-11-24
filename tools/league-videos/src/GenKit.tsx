@@ -36,7 +36,8 @@ export const Tags: React.FC<{ tags: [number, string][]; endF: number }> = ({ tag
   const i = f >= endF - 10 ? -2 : tags.reduce((a, [s0], k) => (f >= s0 ? k : a), -1);
   const k = i < 0 ? 0 : pop(f, fps, tags[i][0], 12);
   const prev = i > 0 ? tags[i - 1][1] : "";
-  const pill: React.CSSProperties = { background: t.surface, border: `2px solid ${t.accent}`, color: t.accent, fontWeight: 900, fontSize: 32, letterSpacing: 5, padding: "14px 34px", borderRadius: 999, whiteSpace: "nowrap" };
+  const cur = i >= 0 ? tags[i][1] : ""; const fs = Math.min(32, Math.floor((32 * 24) / Math.max(24, cur.length)));
+  const pill: React.CSSProperties = { background: t.surface, border: `2px solid ${t.accent}`, color: t.accent, fontWeight: 900, fontSize: fs, letterSpacing: 5, padding: "14px 34px", borderRadius: 999, whiteSpace: "nowrap" };
   return (
     <div style={{ position: "absolute", top: 150, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
       {i >= 0 && <div style={{ position: "relative" }}>

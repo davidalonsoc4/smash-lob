@@ -5,7 +5,7 @@ import { useCurrentFrame, useVideoConfig } from "remotion";
 import { Frame, TimedWord, pop, sfx, useTheme } from "./kit";
 import { ease } from "./Presentacion2";
 import { SyncWords } from "./SyncWords";
-import { Av, GenOutro, Tags, mkGen, mkTiming } from "./GenKit";
+import { Av, Tags, mkGen, mkTiming } from "./GenKit";
 import { BOUNDS_01 as BOUNDS, VOICE_01 as VOICE } from "./voice_gen02";
 
 const tm = mkTiming(BOUNDS, VOICE);
@@ -36,7 +36,7 @@ const Score: React.FC<{ x: number; y: number; sets: [number, number][]; winnerLe
 
 const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5), S6 = B30(6);
+  const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5), S6 = B30(6), END = B30(7);
   const hookW = ["Cómo", "se", "puntúa", "en", "Smash", "and", "Lob"].map((w) => at(0, w));
   const setF = at(1, "set"), puntoF = at(1, "punto");
   const tresF = at(2, "tres", 1), dosF = at(2, "dos"), pierdeF = at(2, "pierde");
@@ -47,7 +47,7 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const o1 = Math.min(ease((f - (S1 - 8)) / 12), 1 - ease((f - (S2 - 10)) / 10));
   const o2a = Math.min(ease((f - (S2 - 8)) / 12), 1 - ease((f - (S3 - 10)) / 10));
   const o3 = Math.min(ease((f - (S3 - 8)) / 12), 1 - ease((f - (S4 - 10)) / 10));
-  const o4 = Math.min(ease((f - (S4 - 8)) / 12), 1 - ease((f - (S6 - 12)) / 10));
+  const o4 = Math.min(ease((f - (S4 - 8)) / 12), 1 - ease((f - (END - 12)) / 10));
   // marcador de ejemplo del bloque 2: 3-0 y luego 2-1
   const swap = f >= dosF - 10;
   const sets2: [number, number][] = swap ? [[6, 4], [3, 6], [6, 2]] : [[6, 4], [6, 3], [6, 2]];
@@ -89,7 +89,7 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   );
   return (
     <Frame timedWords={ws}>
-      <Tags endF={S6} tags={[[S1 + 4, "CADA SET = 1 PUNTO"], [S2 + 4, "TRES A CERO · DOS A UNO"], [S3 + 4, "SOLO LOS SETS JUGADOS"], [S4 + 4, "ORDEN DE LA TABLA"], [S5 + 4, "SE ACTUALIZA SOLA"]]} />
+      <Tags endF={END} tags={[[S1 + 4, "CADA SET = 1 PUNTO"], [S2 + 4, "TRES A CERO · DOS A UNO"], [S3 + 4, "SOLO LOS SETS JUGADOS"], [S4 + 4, "ORDEN DE LA TABLA"], [S5 + 4, "SE ACTUALIZA SOLA"], [S6 + 4, "CONSULTA LA CLASIFICACIÓN DE TU LIGA"]]} />
       <div style={{ position: "absolute", top: 520, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: hookO }}><SyncWords text={"¿Cómo se *puntúa*\nen Smash and Lob?"} frames={hookW} size={104} /></div>
       <Score x={110} y={560} sets={[[6, 4], [4, 6], [6, 2]]} winnerLeft played={f >= puntoF - 10 ? 1 : 1} showPts={puntoF - 4} opacity={o1} />
       <div style={{ position: "absolute", left: 0, right: 0, top: 880, textAlign: "center", opacity: o1 * pop(f, fps, setF - 4, 10) }}><span style={{ fontSize: 120, fontWeight: 900, color: t.accent }}>1 set</span><span style={{ fontSize: 70, fontWeight: 900 }}> = </span><span style={{ fontSize: 120, fontWeight: 900, color: t.accent }}>1 punto</span></div>
@@ -98,11 +98,12 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
       <Score x={110} y={520} sets={[[6, 2], [6, 3], [6, 0]]} winnerLeft played={2} showPts={cuentanF} opacity={o3} />
       <div style={{ position: "absolute", left: 110, right: 110, top: 880, textAlign: "center", fontSize: 50, fontWeight: 800, color: t.textMuted, opacity: o3 * pop(f, fps, jugarF + 4, 10) }}>Si la liga no exige los tres sets, cuentan solo los jugados</div>
       {Tbl}
+      <div style={{ position: "absolute", top: 1140, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: Math.min(1, Math.max(0, (f - (S6 - 4)) / 8)) * (1 - ease((f - (END - 12)) / 10)) }}><SyncWords text={"Consulta la *clasificación*\nde tu *liga*"} frames={["Consulta", "la", "clasificación", "de", "tu", "liga"].map((w) => at(6, w))} size={68} /></div>
       {[setF, puntoF, tresF, dosF, jugarF, cuentanF, puntosF, difF, favorF, guardaF].map((m, i) => sfx("pop", Math.max(2, m - 3), 0.25 + (i % 4 === 0 ? 0.05 : 0)))}
     </Frame>
   );
 };
 
-const g = mkGen((ws) => <Stage ws={ws} />, (ws) => <GenOutro ws={ws} line1="Consulta la *clasificación*" words1={["Consulta", "la", "clasificación"]} line2="de tu *liga*" words2={["de", "tu", "liga"]} lastWord="liga" />, BOUNDS, tm, 6, "voice-gen02-david.mp3");
+const g = mkGen((ws) => <Stage ws={ws} />, null, BOUNDS, tm, 7, "voice-gen02-david.mp3");
 export const GEN02_FRAMES = g.frames;
 export const Gen02Puntuacion = g.Comp;

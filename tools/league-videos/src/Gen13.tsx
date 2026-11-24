@@ -7,7 +7,7 @@ import { Icon } from "./Presentacion";
 import { HeaderCard, Ripple, Sec } from "./Presentacion3";
 import { SettingsRow } from "./Perfil";
 import { SyncWords } from "./SyncWords";
-import { ExampleLabel, GenOutro, PhoneWin, Switch, Tags, mkGen, mkTiming, slideIn, win } from "./GenKit";
+import { ExampleLabel, PhoneWin, Switch, Tags, mkGen, mkTiming, slideIn, win } from "./GenKit";
 import { BOUNDS_01 as BOUNDS, VOICE_01 as VOICE } from "./voice_gen13";
 
 const tm = mkTiming(BOUNDS, VOICE);
@@ -23,7 +23,7 @@ const GROUPS: [string, string][] = [
 
 const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
-  const S1 = B30(1), S2 = B30(2), S4 = B30(4), S5 = B30(5), S6 = B30(6);
+  const S1 = B30(1), S2 = B30(2), S4 = B30(4), S5 = B30(5), S6 = B30(6), END = B30(7);
   const hookW = ["Elige", "qué", "avisos", "quieres", "recibir"].map((w) => at(0, w));
   const tapF = at(1, "Notificaciones");
   const gF = [at(2, "Antes"), at(2, "Cambios"), at(2, "Resultados"), at(2, "Mensajes"), at(2, "Actualizaciones"), at(2, "Pagos")];
@@ -31,7 +31,7 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const novF = at(4, "novedades"), menF = at(4, "menciones");
   const mvpF = at(5, "MVP"), pagF = at(5, "pagos");
   const hookO = 1 - ease2(f, S1 - 16);
-  const aO = win(f, S1 - 10, tapF + 14), bO = Math.max(win(f, tapF + 12, S4 - 8), win(f, S5 - 8, S6 - 12)), cO = win(f, S4 - 8, S5 - 8);
+  const aO = win(f, S1 - 10, tapF + 14), bO = Math.max(win(f, tapF + 12, S4 - 8), win(f, S5 - 8, END - 12)), cO = win(f, S4 - 8, S5 - 8);
   const off = (i: number) => (i === 3 && f >= soloF + 4) || (i === 5 && f >= intF - 6);
   const hot = (i: number) => f >= gF[i] - 4 && f < gF[i] + 36;
   const dimR = (i: number) => (f >= S5 - 8 ? (i === 2 || i === 5 ? 1 : 0.4) : 1);
@@ -80,10 +80,10 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
 
   return (
     <Frame timedWords={ws}>
-      <Tags endF={S6} tags={[[S1 + 4, "AJUSTES"], [S2 + 4, "SEIS INTERRUPTORES"], [S4 + 4, "SIEMPRE ACTIVOS"], [S5 + 4, "SEGÚN TU LIGA"]]} />
+      <Tags endF={END} tags={[[S1 + 4, "AJUSTES"], [S2 + 4, "SEIS INTERRUPTORES"], [S4 + 4, "SIEMPRE ACTIVOS"], [S5 + 4, "SEGÚN TU LIGA"], [S6 + 4, "REVISA LOS TUYOS AHORA"]]} />
       <ExampleLabel show={false} />
       <div style={{ position: "absolute", top: 560, left: 0, right: 0, display: "flex", justifyContent: "center", opacity: hookO }}><SyncWords text={"Elige qué *avisos*\nquieres recibir"} frames={hookW} size={104} /></div>
-      <PhoneWin inF={S1 - 12} outF={S6 - 12}>
+      <PhoneWin inF={S1 - 12} outF={END - 12}>
         {aO > 0.01 && ajustes}{bO > 0.01 && list}{cO > 0.01 && locked}
         {ripples.map((r, i) => <Ripple key={i} x={r.x} y={r.y} at={r.a} size={40} />)}
       </PhoneWin>
@@ -93,6 +93,6 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
 };
 const ease2 = (f: number, a: number) => Math.min(1, Math.max(0, (f - a) / 12));
 
-const g = mkGen((ws) => <Stage ws={ws} />, (ws) => <GenOutro ws={ws} line1="Revisa los *tuyos*" words1={["Revisa", "los", "tuyos"]} line2="*ahora*" words2={["ahora"]} lastWord="ahora" />, BOUNDS, tm, 6, "voice-gen13-david.mp3");
+const g = mkGen((ws) => <Stage ws={ws} />, null, BOUNDS, tm, 7, "voice-gen13-david.mp3");
 export const GEN13_FRAMES = g.frames;
 export const Gen13Notificaciones = g.Comp;
