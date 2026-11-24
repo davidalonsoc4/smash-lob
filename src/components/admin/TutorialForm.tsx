@@ -5,7 +5,7 @@ import { inspectMp4, moveMoovToFront } from "@/lib/mp4"
 import { extractVideoPoster } from "@/lib/videoPoster"
 import { TUTORIAL_FILE_ACCEPT, TUTORIAL_SCREENS, getTutorialFileRule, type TutorialAudience } from "@/lib/tutorialVideos"
 import { createTutorial, fromLocalInputValue, toLocalInputValue, updateTutorial, uploadTutorialFile, type TutorialDraft, type TutorialLeagueOption, type TutorialSaveResult } from "@/lib/tutorialVideosClient"
-import { isZipFile, planBulkTutorials, readZipFiles, type BulkTutorialEntry, type BulkTutorialPlan } from "@/lib/tutorialBulk"
+import { applyBulkManifest, isBulkManifestName, isZipFile, matchLeagueNames, parseBulkManifest, planBulkTutorials, readZipFiles, type BulkAudience, type BulkDestination, type BulkManifestWarning, type BulkTutorialEntry, type BulkTutorialPlan } from "@/lib/tutorialBulk"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type Picked = { file: File; poster: Blob | null; width: number | null; height: number | null; durationMs: number | null }
@@ -211,8 +211,11 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
   )
 }
 
-type BulkRow = BulkTutorialEntry & { screen: string; state: "pending" | "uploading" | "done" | "failed"; progress: number }
-type BulkDestination = "generic" | "leagues" | "social"
+/** Fields set by the manifest of a .zip win over the general choices of the form for that video. */
+type BulkRow = BulkTutorialEntry & {
+  screen: string; description: string; state: "pending" | "uploading" | "done" | "failed"; progress: number
+  destination?: BulkDestination; audience?: BulkAudience; leagueIds?: string[]; unknownLeagues?: string[]
+}
 
 /**
  * Uploads many tutorials at once: pick the files (or a .zip with them), say where they go, check the titles,
@@ -228,6 +231,9 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
   const [busy, setBusy] = useState(false)
   const [reading, setReading] = useState(false)
   const [zipError, setZipError] = useState(false)
+  const [manifestError, setManifestError] = useState(false)
+  const [warnings, setWarnings] = useState<BulkManifestWarning[]>([])
+  const where = (row: BulkRow) => ({ destination: row.destination ?? destination, audience: row.audience ?? audience, leagueIds: row.leagueIds ?? leagueIds })
 
   async function choose(event: ChangeEvent<HTMLInputElement>) {
     const chosen = Array.from(event.target.files ?? [])
@@ -240,10 +246,22 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
       if (!isZipFile(file)) { files.push(file); continue }
       try { files.push(...(await readZipFiles(file))) } catch { setZipError(true) }
     }
+    const manifestFile = files.find((file) => isBulkManifestName(file.name))
+    const manifest = manifestFile ? parseBulkManifest(await manifestFile.text().catch(() => "")) : null
+    setManifestError(Boolean(manifestFile) && !manifest)
     setReading(false)
-    const plan = planBulkTutorials(files)
+    const plan = planBulkTutorials(files.filter((file) => !isBulkManifestName(file.name)))
+    const applied = applyBulkManifest(plan, manifest, files)
     setIgnored(plan.ignored)
-    setRows(plan.entries.map((entry) => ({ ...entry, screen: "", state: "pending", progress: 0 })))
+    setWarnings(applied.warnings)
+    setRows(applied.entries.map(({ meta, ...entry }) => {
+      const matched = meta?.leagueNames ? matchLeagueNames(meta.leagueNames, leagues) : null
+      return {
+        ...entry, screen: meta?.screen ?? "", description: meta?.description ?? "", state: "pending", progress: 0,
+        destination: meta?.destination, audience: meta?.audience,
+        leagueIds: matched ? matched.ids : undefined, unknownLeagues: matched?.unknown.length ? matched.unknown : undefined,
+      }
+    }))
   }
   const patch = (key: string, change: Partial<BulkRow>) => setRows((current) => current.map((row) => (row.key === key ? { ...row, ...change } : row)))
   const toggleLeague = (id: string) => setLeagueIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]))
@@ -260,12 +278,13 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
     const videoPath = await uploadTutorialFile(video, "video/mp4", (fraction) => patch(row.key, { progress: fraction }))
     if (!videoPath) return false
     const posterPath = row.poster ? await uploadTutorialFile(row.poster, row.poster.type) : frame?.blob ? await uploadTutorialFile(frame.blob, "image/jpeg") : null
+    const target = where(row)
     const created = await createTutorial({
-      title: row.title.trim(), description: "", publishAt: null,
-      audience: destination === "leagues" ? "leagues" : destination === "social" ? "draft" : audience,
-      leagueIds: destination === "leagues" ? leagueIds : [],
-      category: destination === "social" ? "social" : "app",
-      screen: destination === "generic" ? row.screen || null : null,
+      title: row.title.trim(), description: row.description, publishAt: null,
+      audience: target.destination === "leagues" ? "leagues" : target.destination === "social" ? "draft" : target.audience,
+      leagueIds: target.destination === "leagues" ? target.leagueIds : [],
+      category: target.destination === "social" ? "social" : "app",
+      screen: target.destination === "generic" ? row.screen || null : null,
       videoPath, posterPath, width: frame?.width ?? null, height: frame?.height ?? null, durationMs: frame?.durationMs ?? null, announce: false,
     })
     return created.ok
@@ -285,8 +304,9 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
 
   const pending = rows.filter((row) => row.state !== "done").length
   const allDone = rows.length > 0 && pending === 0
-  const valid = rows.length > 0 && rows.every((row) => row.title.trim().length > 0) && (destination !== "leagues" || leagueIds.length > 0)
+  const valid = rows.length > 0 && rows.every((row) => row.title.trim().length > 0 && (where(row).destination !== "leagues" || where(row).leagueIds.length > 0))
   const reasons = { not_supported: tx("formato no admitido"), too_big: tx("archivo demasiado grande"), no_video: tx("imagen sin vídeo con el mismo nombre") }
+  const warningLabels = { bad_destination: tx("destino no válido"), bad_screen: tx("pantalla no válida"), bad_audience: tx("«quien» no válido"), no_file: tx("el manifest cita un archivo que no está") }
   const stateLabel = { pending: tx("Pendiente"), uploading: tx("Subiendo…"), done: tx("Subido"), failed: tx("Ha fallado: vuelve a pulsar Subir") }
   const destinations: { value: BulkDestination; label: string; hint: string }[] = [
     { value: "generic", label: tx("Genéricos"), hint: tx("Tutoriales de la aplicación para todo el mundo.") },
@@ -314,7 +334,7 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
           <p className="text-xs font-semibold text-neutral-600">{tx("Elige los vídeos MP4 y, si quieres, sus miniaturas con el mismo nombre (JPG, PNG o WebP), o un archivo .zip que los contenga.")}</p>
           <label className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white focus-within:ring-2 focus-within:ring-neutral-950 focus-within:ring-offset-2 aria-disabled:opacity-40" aria-disabled={reading}>
             {tx("Elegir vídeos e imágenes")}
-            <input type="file" multiple data-bulk-files accept="video/mp4,image/jpeg,image/png,image/webp" disabled={reading} onChange={(event) => void choose(event)} className="sr-only" />
+            <input type="file" multiple data-bulk-files accept="video/mp4,image/jpeg,image/png,image/webp,.json,.txt,application/json,text/plain" disabled={reading} onChange={(event) => void choose(event)} className="sr-only" />
           </label>
           <label className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl bg-neutral-100 px-4 text-center text-sm font-black text-neutral-950 focus-within:ring-2 focus-within:ring-neutral-950 focus-within:ring-offset-2 aria-disabled:opacity-40" aria-disabled={reading}>
             {tx("Elegir un archivo .zip")}
@@ -324,7 +344,9 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
         </div>
       ) : null}
       {zipError ? <p role="alert" className="text-xs font-bold text-red-700">{tx("No se ha podido leer el .zip. Comprueba que no esté dañado.")}</p> : null}
-      {rows.length ? (
+      {manifestError ? <p role="alert" className="text-xs font-bold text-red-700">{tx("No se ha podido leer el manifest.json. Revisa que sea un JSON válido; se usan los ajustes de abajo.")}</p> : null}
+      {rows.some((row) => row.destination) ? <p role="status" className="text-xs font-bold text-emerald-800">{tx("Se han aplicado los datos del manifest. Revisa cada vídeo antes de subir.")}</p> : null}
+      {rows.length && rows.some((row) => !row.destination) ? (
         <>
           <fieldset className="space-y-1.5" disabled={busy}>
             <legend className="text-xs font-semibold text-neutral-600">{tx("¿Dónde van?")}</legend>
@@ -363,7 +385,9 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
         <div key={row.key} data-bulk-row className="space-y-1.5 rounded-xl border border-neutral-300 p-2">
           <p className="truncate text-xs font-semibold text-neutral-600">{row.video.name}{row.poster ? ` + ${row.poster.name}` : ""}</p>
           <input value={row.title} maxLength={120} disabled={busy || row.state === "done"} onChange={(event) => patch(row.key, { title: event.target.value })} aria-label={tx("Título")} className="w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950" />
-          {destination === "generic" ? (
+          {row.destination ? <p className="text-xs font-black text-neutral-950">{destinations.find((option) => option.value === row.destination)?.label}{row.destination === "generic" ? ` · ${row.audience === "public" ? tx("Público") : tx("Borrador")}` : ""}{row.destination === "leagues" ? `: ${leagues.filter((league) => row.leagueIds?.includes(league.id)).map((league) => league.name).join(", ") || tx("sin liga")}` : ""}</p> : null}
+          {row.unknownLeagues ? <p role="alert" className="text-xs font-bold text-red-700">{tx("Liga no encontrada:")} {row.unknownLeagues.join(", ")}</p> : null}
+          {where(row).destination === "generic" ? (
             <select value={row.screen} disabled={busy || row.state === "done"} onChange={(event) => patch(row.key, { screen: event.target.value })} aria-label={tx("Pantalla del vídeo (opcional)")} className="w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950">
               <option value="">{tx("Vídeo general (sin pantalla)")}</option>
               {TUTORIAL_SCREENS.map((screen) => <option key={screen.id} value={screen.id}>{tx(screen.label)}</option>)}
@@ -374,6 +398,12 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
           </p>
         </div>
       ))}
+      {warnings.length ? (
+        <div role="status" className="space-y-1 rounded-xl bg-amber-100 p-2 text-xs font-bold text-amber-950">
+          <p>{tx("Avisos del manifest:")}</p>
+          {warnings.map((item, index) => <p key={index} className="font-semibold">{warningLabels[item.reason]}: {item.detail}</p>)}
+        </div>
+      ) : null}
       {ignored.length ? (
         <div role="status" className="space-y-1 rounded-xl bg-amber-100 p-2 text-xs font-bold text-amber-950">
           <p>{tx("No se usarán estos archivos:")}</p>

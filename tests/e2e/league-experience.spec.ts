@@ -2272,7 +2272,7 @@ test("bulk upload offers separate pickers for media and for a zip, and a zip fil
   await page.route("https://qa.supabase.co/upload/**", route => route.fulfill({ status: 200, body: "", headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "PUT, OPTIONS", "access-control-allow-headers": "*" } }))
   await page.goto("/admin/tutorials")
   await page.locator("[data-bulk-open]").click()
-  await expect(page.locator("[data-bulk-files]")).toHaveAttribute("accept", "video/mp4,image/jpeg,image/png,image/webp")
+  await expect(page.locator("[data-bulk-files]")).toHaveAttribute("accept", /video\/mp4,image\/jpeg,image\/png,image\/webp/)
   await expect(page.locator("[data-bulk-zip]")).toHaveAttribute("accept", /\.zip/)
   await page.screenshot({ path: "test-results/bulk-pickers.png" })
   const { zipSync } = await import("fflate")
@@ -2289,6 +2289,49 @@ test("bulk upload offers separate pickers for media and for a zip, and a zip fil
   await expect(page.getByRole("button", { name: "Listo" })).toBeVisible({ timeout: 60_000 })
   expect(created).toHaveLength(1)
   expect(created[0]).toMatchObject({ title: "Bienvenida", category: "social", audience: "draft", leagueIds: [], screen: null, announce: false })
+})
+
+test("a zip with a manifest fills destination, screen, audience, league and description by itself", async ({ page }) => {
+  await setup(page, "light", "classic", true, false, true)
+  const created: Record<string, unknown>[] = []
+  let counter = 0
+  await page.route("**/api/application-admin/tutorials", route => {
+    if (route.request().method() === "POST") { created.push(route.request().postDataJSON()); return route.fulfill({ status: 201, json: { id: "new" } }) }
+    return route.fulfill({ json: { tutorials: [], leagues: [{ id: "00000000-0000-4000-8000-0000000000aa", name: "Liga Norte" }] } })
+  })
+  await page.route("**/api/application-admin/tutorials/upload", route => {
+    counter += 1
+    return route.fulfill({ json: { path: `00000000-0000-4000-8000-${String(counter).padStart(12, "0")}.mp4`, uploadUrl: `https://qa.supabase.co/upload/${counter}` } })
+  })
+  await page.route("https://qa.supabase.co/upload/**", route => route.fulfill({ status: 200, body: "", headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "PUT, OPTIONS", "access-control-allow-headers": "*" } }))
+  await page.goto("/admin/tutorials")
+  await page.locator("[data-bulk-open]").click()
+  const { zipSync, strToU8 } = await import("fflate")
+  const manifest = {
+    videos: [
+      { archivo: "05_sorteo.mp4", titulo: "Sorteo del saque", descripcion: "La moneda decide.", destino: "generico", pantalla: "match", quien: "publico" },
+      { archivo: "19_liguilla.mp4", destino: "redes" },
+      { archivo: "20_reglas.mp4", destino: "ligas", ligas: ["liga norte"] },
+      { archivo: "21_mal.mp4", destino: "generico", pantalla: "nada" },
+    ],
+  }
+  const zip = zipSync({ "manifest.json": strToU8(JSON.stringify(manifest)), "05_sorteo.mp4": new Uint8Array(2000), "19_liguilla.mp4": new Uint8Array(2000), "20_reglas.mp4": new Uint8Array(2000), "21_mal.mp4": new Uint8Array(2000) })
+  await page.locator("[data-bulk-zip]").setInputFiles({ name: "pack.zip", mimeType: "application/zip", buffer: Buffer.from(zip) })
+  const rows = page.locator("[data-bulk-row]")
+  await expect(rows).toHaveCount(4)
+  await expect(page.getByText("Se han aplicado los datos del manifest")).toBeVisible()
+  await expect(rows.nth(0).getByRole("textbox")).toHaveValue("Sorteo del saque")
+  await expect(rows.nth(0).getByRole("combobox")).toHaveValue("match")
+  await expect(rows.nth(2)).toContainText("Liga Norte")
+  await expect(page.getByText("pantalla no válida")).toBeVisible()
+  await page.screenshot({ path: "test-results/bulk-manifest.png", fullPage: true })
+  await page.locator("[data-bulk-upload]").click()
+  await expect(page.getByRole("button", { name: "Listo" })).toBeVisible({ timeout: 60_000 })
+  expect(created).toHaveLength(4)
+  expect(created[0]).toMatchObject({ title: "Sorteo del saque", description: "La moneda decide.", category: "app", audience: "public", screen: "match", leagueIds: [] })
+  expect(created[1]).toMatchObject({ category: "social", audience: "draft", screen: null })
+  expect(created[2]).toMatchObject({ category: "app", audience: "leagues", leagueIds: ["00000000-0000-4000-8000-0000000000aa"] })
+  expect(created[3]).toMatchObject({ audience: "draft", screen: null })
 })
 
 test("tutorial management sorts the videos into tabs and reorders inside each one", async ({ page }) => {
