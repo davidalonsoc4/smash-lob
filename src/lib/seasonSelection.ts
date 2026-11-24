@@ -41,3 +41,31 @@ export function writeSelectedSeasonId(leagueId: string, seasonId: string) {
     }),
   )
 }
+
+const seenSeasonKeyPrefix = "smash-lob-seen-season:"
+
+export function readSeenSeasonId(leagueId: string) {
+  if (typeof window === "undefined" || !leagueId) return null
+  try { return window.localStorage.getItem(`${seenSeasonKeyPrefix}${leagueId}`) } catch { return null }
+}
+
+export function writeSeenSeasonId(leagueId: string, seasonId: string) {
+  if (typeof window === "undefined" || !leagueId || !seasonId) return
+  try { window.localStorage.setItem(`${seenSeasonKeyPrefix}${leagueId}`, seasonId) } catch { /* private mode: the season is only offered again next time */ }
+}
+
+/**
+ * The newest season of a league the person can see (the one they play, or any for who manages the league), when it is
+ * not the one they were last taken to. The first visit after a new season exists lands there; afterwards the person
+ * keeps whatever they choose with the season selector.
+ */
+export function getNewSeasonToOffer({ seasons, leagueId, participatingSeasonIds, canManage, seenSeasonId }: {
+  seasons: Season[]
+  leagueId: string
+  participatingSeasonIds: ReadonlySet<string>
+  canManage: boolean
+  seenSeasonId: string | null
+}) {
+  const newest = getNewestLeagueSeasons(seasons, leagueId).find(season => canManage || participatingSeasonIds.has(season.id))
+  return newest && newest.id !== seenSeasonId ? newest.id : null
+}

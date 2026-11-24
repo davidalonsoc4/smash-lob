@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
@@ -90,7 +90,6 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
 
 export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean }) {
   const { tx } = useI18n()
-  const [lockedNotice, setLockedNotice] = useState(false)
   const pathname = usePathname()
   const { t } = useI18n()
   const { activeLeagueId } = useActiveLeague()
@@ -215,13 +214,6 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
   ]
   const navItems = spectatorMode ? spectatorNavItems : playerNavItems
 
-  // The notice that explains a locked button disappears by itself.
-  useEffect(() => {
-    if (!lockedNotice) return
-    const timer = window.setTimeout(() => setLockedNotice(false), 2800)
-    return () => window.clearTimeout(timer)
-  }, [lockedNotice])
-
   return (
     <nav
       data-tour="bottom-navigation"
@@ -231,7 +223,6 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      {lockedNotice ? <div role="status" data-nav-lock-notice className="pointer-events-none absolute bottom-full left-1/2 mb-2 w-max max-w-[90%] -translate-x-1/2 rounded-full bg-neutral-950 px-3 py-1.5 text-center text-xs font-black text-white shadow-lg">{tx("Disponible cuando comience la temporada")}</div> : null}
       <div
         className={`app-bottom-nav-grid grid w-full ${spectatorMode ? "grid-cols-4" : "grid-cols-5"} bg-transparent`}
         style={{
@@ -255,9 +246,9 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
               <button
                 key={item.href}
                 type="button"
+                disabled
                 aria-disabled="true"
                 title={tx("Disponible cuando comience la temporada")}
-                onClick={() => setLockedNotice(true)}
                 className="app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-400"
                 style={{ minHeight: "52px" }}
               >

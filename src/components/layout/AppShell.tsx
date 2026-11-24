@@ -25,7 +25,11 @@ import { getAppBranding } from "@/lib/appVariant"
 import { buildSettingsSearchEntries } from "@/lib/settingsSearch"
 import { applyAppFontSize, readStoredAppFontSize } from "@/lib/fontSizePreference"
 import {
+  getNewSeasonToOffer,
+  readSeenSeasonId,
   readSelectedSeasonId,
+  writeSeenSeasonId,
+  writeSelectedSeasonId,
   SEASON_SELECTION_CHANGED_EVENT,
 } from "@/lib/seasonSelection"
 import { isScheduledSeasonHomeLocked } from "@/lib/seasonScheduling"
@@ -149,7 +153,7 @@ export function AppShell({ children }: AppShellProps) {
     isAppAdmin,
     leagues,
   } = useLeagueAccess()
-  const { seasons, seasonSettings } = useSeasonSettings()
+  const { seasons, seasonSettings, seasonPlayers } = useSeasonSettings()
   const isInviteRoute = pathname === "/invite" || pathname.startsWith("/invite/")
   const isSpectateRoute = pathname.startsWith("/spectate/")
   const isLeagueNavigationRoute = pathname === "/open"
@@ -257,6 +261,17 @@ export function AppShell({ children }: AppShellProps) {
   const canSelfUnlink = Boolean(
     activeMembership && activeMembership.role !== "creator",
   )
+
+  // First visit after a new season exists: take the person to it. They can go back with the season selector.
+  const activePlayerId = activeMembership?.playerId ?? null
+  useEffect(() => {
+    if (spectatorMode || !activeLeagueId || isInviteRoute || isSpectateRoute) return
+    const participatingSeasonIds = new Set(seasonPlayers.filter(item => item.playerId === activePlayerId && item.status !== "withdrawn").map(item => item.seasonId))
+    const offered = getNewSeasonToOffer({ seasons, leagueId: activeLeagueId, participatingSeasonIds, canManage: canAccessAdmin, seenSeasonId: readSeenSeasonId(activeLeagueId) })
+    if (!offered) return
+    writeSeenSeasonId(activeLeagueId, offered)
+    writeSelectedSeasonId(activeLeagueId, offered)
+  }, [activeLeagueId, activePlayerId, canAccessAdmin, isInviteRoute, isSpectateRoute, seasonPlayers, seasons, spectatorMode])
 
   useEffect(() => {
     const isAdminOnlyRoute =
