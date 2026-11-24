@@ -2,7 +2,7 @@ import "server-only"
 
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
-import { TUTORIAL_AUDIENCES, TUTORIAL_BUCKET, TUTORIAL_CATEGORIES, isTutorialPath, isTutorialScreen, type TutorialAudience, type TutorialCategory, type TutorialScreenId } from "@/lib/tutorialVideos"
+import { TUTORIAL_AUDIENCES, TUTORIAL_BUCKET, TUTORIAL_CATEGORIES, TUTORIAL_ROLES, isTutorialPath, isTutorialScreen, type TutorialAudience, type TutorialCategory, type TutorialRole, type TutorialScreenId } from "@/lib/tutorialVideos"
 import { announceTutorialInLeagues } from "@/lib/serverTutorialChatShare"
 import { TUTORIAL_FIELDS, requireTutorialManager, type TutorialRow } from "@/lib/serverTutorials"
 import { normalizeBoundedText, validateUuid } from "@/lib/serverRequest"
@@ -19,7 +19,7 @@ export const adminFail = (error: string, status: number) => NextResponse.json({ 
 
 type Actor = Extract<Awaited<ReturnType<typeof requireTutorialAdmin>>, { ok: true }>["actor"]
 
-export type TutorialFields = { title: string; description: string; audience: TutorialAudience; leagueIds: string[]; publishAt: string | null; screen: TutorialScreenId | null; category: TutorialCategory }
+export type TutorialFields = { title: string; description: string; audience: TutorialAudience; leagueIds: string[]; publishAt: string | null; screen: TutorialScreenId | null; category: TutorialCategory; role: TutorialRole }
 
 const MAX_SCHEDULE_AHEAD_MS = 2 * 365 * 24 * 3_600_000
 
@@ -38,10 +38,12 @@ export function parseTutorialFields(input: Record<string, unknown> | null): Tuto
   const title = normalizeBoundedText(input.title, 120)
   const description = typeof input.description === "string" ? input.description.trim().slice(0, 500) : ""
   const rawAudience = input.audience as TutorialAudience
+  const role = (input.role === undefined || input.role === null ? "player" : input.role) as TutorialRole
+  if (!TUTORIAL_ROLES.includes(role)) return null
   const category = (input.category === undefined || input.category === null ? "app" : input.category) as TutorialCategory
   if (!title || !TUTORIAL_AUDIENCES.includes(rawAudience) || !TUTORIAL_CATEGORIES.includes(category)) return null
   // Social media material is never published to the app: it stays a private draft that only the managers see.
-  if (category === "social") return { title, description, audience: "draft", leagueIds: [], publishAt: null, screen: null, category }
+  if (category === "social") return { title, description, audience: "draft", leagueIds: [], publishAt: null, screen: null, category, role: "player" }
   const audience = rawAudience
   const rawLeagues = Array.isArray(input.leagueIds) ? input.leagueIds : []
   const leagueIds = [...new Set(rawLeagues.map(validateUuid))]
@@ -52,7 +54,7 @@ export function parseTutorialFields(input: Record<string, unknown> | null): Tuto
   if (publishAt === undefined) return null
   const rawScreen = input.screen === undefined || input.screen === null || input.screen === "" ? null : input.screen
   if (rawScreen !== null && !isTutorialScreen(rawScreen)) return null
-  return { title, description, audience, leagueIds: audience === "leagues" ? ids : [], publishAt, screen: rawScreen, category }
+  return { title, description, audience, leagueIds: audience === "leagues" ? ids : [], publishAt, screen: rawScreen, category, role }
 }
 
 export async function tutorialFileExists(actor: Actor, path: string) {
@@ -94,13 +96,14 @@ export async function allLeaguesExist(actor: Actor, leagueIds: string[]) {
 
 /** Scheduling columns for a save: the notice waits for publish_at when there is one, otherwise it goes out right away. */
 export function tutorialScheduleColumns(fields: TutorialFields, announce: boolean) {
-  return { publish_at: fields.publishAt, announce_on_publish: Boolean(fields.publishAt) && announce && fields.audience === "leagues" }
+  return { publish_at: fields.publishAt, announce_on_publish: Boolean(fields.publishAt) && announce && fields.audience === "leagues" && fields.role === "player" }
 }
 
 /** Posts the "Novedad" in the chats of the leagues that were not announced yet, when the admin asked for it. Scheduled tutorials wait. */
-export async function announceTutorialIfRequested(actor: Actor, tutorialId: string, wanted: boolean, fields: Pick<TutorialFields, "audience" | "leagueIds" | "publishAt">) {
+export async function announceTutorialIfRequested(actor: Actor, tutorialId: string, wanted: boolean, fields: Pick<TutorialFields, "audience" | "leagueIds" | "publishAt" | "role">) {
   const { audience, leagueIds } = fields
-  if (!wanted || fields.publishAt || audience !== "leagues" || !leagueIds.length) return null
+  // A video for organizers is never announced in the chat of the league: the players would see it.
+  if (!wanted || fields.role !== "player" || fields.publishAt || audience !== "leagues" || !leagueIds.length) return null
   const row = await actor.supabase.from("tutorial_videos").select(TUTORIAL_FIELDS).eq("id", tutorialId).maybeSingle()
   if (row.error || !row.data) return null
   return announceTutorialInLeagues({ supabase: actor.supabase, user: actor.user, tutorial: row.data as unknown as TutorialRow, leagueIds })

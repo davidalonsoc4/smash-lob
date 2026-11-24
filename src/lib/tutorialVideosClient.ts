@@ -72,6 +72,8 @@ export type TutorialDraft = {
   screen: string | null
   /** "app" (tutorial of the application) or "social" (social media material, managers only). */
   category: "app" | "social"
+  /** Who it is for: any player, or only who organizes (league creators and admins). */
+  role: "player" | "creator"
 }
 
 /** ISO moment -> value of a datetime-local input (the viewer's own time zone). */

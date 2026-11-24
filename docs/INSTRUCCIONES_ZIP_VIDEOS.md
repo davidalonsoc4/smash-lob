@@ -47,6 +47,7 @@ Reglas del manifest, por si algún vídeo cambia:
 - "destino": "generico" (tutorial de la app), "ligas" (vídeo de una liga concreta; entonces añade "ligas": ["Nombre exacto de la liga"]) o "redes" (material para redes sociales).
 - "pantalla" (solo en genéricos): uno de home, matches, match, match-chat, chats, ranking, statistics, notification-settings, profile, settings, personal-matches, payments, leagues, activity, season-admin, league-admin, users-admin, tournaments. Si es un vídeo general, omite el campo.
 - "quien": "borrador" (solo yo, lo publico después) o "publico".
+- "rol": a quién va dirigido el vídeo: "jugador" (cualquier jugador) o "creator" (solo quien organiza la liga: creadores y administradores; los jugadores no lo ven). En los vídeos 21 a 28 es "creator".
 - "titulo" y "descripcion" son opcionales; el orden de la lista es el orden en la app.
 
 Entrégame solo el .zip.
@@ -58,6 +59,7 @@ Entrégame solo el .zip.
 {
   "destino": "generico",
   "quien": "borrador",
+  "rol": "jugador",
   "videos": [
     { "archivo": "01_como-funciona-una-liga.mp4", "titulo": "Cómo funciona una liga", "descripcion": "Qué es una liga, cómo se juega y cómo se organiza una temporada." },
     { "archivo": "02_como-se-puntua.mp4", "titulo": "Cómo se puntúa", "descripcion": "Cómo se reparten los puntos y cómo se calcula la clasificación.", "pantalla": "ranking" },
@@ -79,14 +81,14 @@ Entrégame solo el .zip.
     { "archivo": "18_amistosos.mp4", "titulo": "Partidos normales (amistosos)", "descripcion": "Cómo crear y gestionar un amistoso.", "pantalla": "personal-matches" },
     { "archivo": "19_liguilla.mp4", "titulo": "Liguilla", "descripcion": "Reel de la liguilla.", "destino": "redes" },
     { "archivo": "20_torneos.mp4", "titulo": "Torneos", "descripcion": "Cómo funcionan los torneos.", "pantalla": "tournaments" },
-    { "archivo": "21_crear-tu-liga-e-invitar-jugadores.mp4", "titulo": "Crear tu liga e invitar jugadores", "descripcion": "Cómo crear una liga e invitar a los jugadores.", "pantalla": "leagues" },
-    { "archivo": "22_crear-una-temporada.mp4", "titulo": "Crear una temporada", "descripcion": "Cómo configurar y crear una temporada.", "pantalla": "season-admin" },
-    { "archivo": "23_gestionar-la-temporada-en-curso.mp4", "titulo": "Gestionar la temporada en curso", "descripcion": "Cómo gestionar partidos y jornadas durante la temporada.", "pantalla": "season-admin" },
-    { "archivo": "24_economia-de-la-temporada.mp4", "titulo": "Economía de la temporada", "descripcion": "Cómo llevar los pagos y las cuentas de la temporada.", "pantalla": "payments" },
-    { "archivo": "25_comunicados-y-chat-de-la-liga.mp4", "titulo": "Comunicados y chat de la liga", "descripcion": "Cómo comunicarte con los jugadores de la liga.", "pantalla": "chats" },
-    { "archivo": "26_roles-usuarios-y-espectadores.mp4", "titulo": "Roles, usuarios y espectadores", "descripcion": "Cómo gestionar roles, usuarios y espectadores.", "pantalla": "users-admin" },
-    { "archivo": "27_cerrar-la-temporada-y-empezar-la-siguiente.mp4", "titulo": "Cerrar la temporada y empezar la siguiente", "descripcion": "Cómo cerrar una temporada y abrir la siguiente.", "pantalla": "season-admin" },
-    { "archivo": "28_kit-de-medios-y-pack-de-bienvenida.mp4", "titulo": "Kit de medios y pack de bienvenida", "descripcion": "Material para redes y pack de bienvenida.", "destino": "redes" }
+    { "archivo": "21_crear-tu-liga-e-invitar-jugadores.mp4", "titulo": "Crear tu liga e invitar jugadores", "descripcion": "Cómo crear una liga e invitar a los jugadores.", "pantalla": "leagues", "rol": "creator" },
+    { "archivo": "22_crear-una-temporada.mp4", "titulo": "Crear una temporada", "descripcion": "Cómo configurar y crear una temporada.", "pantalla": "season-admin", "rol": "creator" },
+    { "archivo": "23_gestionar-la-temporada-en-curso.mp4", "titulo": "Gestionar la temporada en curso", "descripcion": "Cómo gestionar partidos y jornadas durante la temporada.", "pantalla": "season-admin", "rol": "creator" },
+    { "archivo": "24_economia-de-la-temporada.mp4", "titulo": "Economía de la temporada", "descripcion": "Cómo llevar los pagos y las cuentas de la temporada.", "pantalla": "payments", "rol": "creator" },
+    { "archivo": "25_comunicados-y-chat-de-la-liga.mp4", "titulo": "Comunicados y chat de la liga", "descripcion": "Cómo comunicarte con los jugadores de la liga.", "pantalla": "chats", "rol": "creator" },
+    { "archivo": "26_roles-usuarios-y-espectadores.mp4", "titulo": "Roles, usuarios y espectadores", "descripcion": "Cómo gestionar roles, usuarios y espectadores.", "pantalla": "users-admin", "rol": "creator" },
+    { "archivo": "27_cerrar-la-temporada-y-empezar-la-siguiente.mp4", "titulo": "Cerrar la temporada y empezar la siguiente", "descripcion": "Cómo cerrar una temporada y abrir la siguiente.", "pantalla": "season-admin", "rol": "creator" },
+    { "archivo": "28_kit-de-medios-y-pack-de-bienvenida.mp4", "titulo": "Kit de medios y pack de bienvenida", "descripcion": "Material para redes y pack de bienvenida.", "rol": "creator" }
   ]
 }
 ```
@@ -94,6 +96,7 @@ Entrégame solo el .zip.
 ## Qué hace la app con él
 
 - Si falta o falla un valor (pantalla que no existe, destino raro), esa fila queda marcada con un aviso y se corrige a mano antes de subir.
+- Los vídeos con `"rol": "creator"` solo los ven quienes organizan alguna liga (creadores y administradores) y quien gestiona los tutoriales; los jugadores ni se enteran y no se avisa en el chat de la liga.
 - Los vídeos del manifest con destino propio ignoran los selectores generales de la pantalla; los demás los usan.
 - Una liga que no existe con ese nombre se avisa y hay que elegirla con los selectores generales.
 - Todo entra como borrador: se publica después desde la gestión.

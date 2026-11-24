@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 import { zipSync, strToU8 } from "fflate"
+import { canViewTutorial } from "@/lib/tutorialVideos"
 import { applyBulkManifest, matchLeagueNames, parseBulkManifest, planBulkTutorials, readZipFiles } from "@/lib/tutorialBulk"
 
 const file = (name: string, type: string) => new File([new Uint8Array(100)], name, { type })
@@ -57,5 +58,23 @@ describe("bulk tutorial manifest", () => {
     expect(manifest.warnings).toEqual([])
     expect(manifest.byFile.size).toBe(28)
     for (const name of manifest.byFile.keys()) expect(doc).toContain(name)
+  })
+
+  it("reads the role of a video and a top-level default", () => {
+    const manifest = parseBulkManifest(JSON.stringify({ rol: "Jugador", videos: [{ archivo: "a.mp4" }, { archivo: "b.mp4", rol: "Creator" }, { archivo: "c.mp4", rol: "jefe" }] }))!
+    expect(manifest.byFile.get("a")?.role).toBe("player")
+    expect(manifest.byFile.get("b")?.role).toBe("creator")
+    expect(manifest.byFile.get("c")?.role).toBe("player")
+    expect(manifest.warnings).toEqual([{ reason: "bad_role", detail: "c.mp4: jefe" }])
+  })
+
+  it("hides creator videos from people who organize no league", () => {
+    const base = { audience: "public" as const, leagueIds: ["l1"], memberLeagueIds: ["l1"], isSuperuser: false, role: "creator" as const }
+    expect(canViewTutorial({ ...base, organizerLeagueIds: [] })).toBe(false)
+    expect(canViewTutorial({ ...base, organizerLeagueIds: ["l9"] })).toBe(true)
+    expect(canViewTutorial({ ...base, audience: "leagues", organizerLeagueIds: ["l9"] })).toBe(false)
+    expect(canViewTutorial({ ...base, audience: "leagues", organizerLeagueIds: ["l1"] })).toBe(true)
+    expect(canViewTutorial({ ...base, role: "player", organizerLeagueIds: [] })).toBe(true)
+    expect(canViewTutorial({ ...base, isSuperuser: true })).toBe(true)
   })
 })

@@ -16,7 +16,7 @@ const fail = (error: string, status: number) => NextResponse.json({ error }, { s
 async function eligibleTutorials(access: Extract<Awaited<ReturnType<typeof getLeagueSeasonChatActor>>, { ok: true }>) {
   const leagueId = access.season.league_id
   const [rows, links] = await Promise.all([
-    access.actor.supabase.from("tutorial_videos").select(TUTORIAL_FIELDS).neq("audience", "draft").order("position", { ascending: true }).order("created_at", { ascending: true }),
+    access.actor.supabase.from("tutorial_videos").select(TUTORIAL_FIELDS).neq("audience", "draft").eq("target_role", "player").order("position", { ascending: true }).order("created_at", { ascending: true }),
     access.actor.supabase.from("tutorial_video_leagues").select("tutorial_id").eq("league_id", leagueId),
   ])
   if (rows.error || links.error) return null

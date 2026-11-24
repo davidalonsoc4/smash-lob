@@ -5,7 +5,7 @@ import { inspectMp4, moveMoovToFront } from "@/lib/mp4"
 import { extractVideoPoster } from "@/lib/videoPoster"
 import { TUTORIAL_FILE_ACCEPT, TUTORIAL_SCREENS, getTutorialFileRule, type TutorialAudience } from "@/lib/tutorialVideos"
 import { createTutorial, fromLocalInputValue, toLocalInputValue, updateTutorial, uploadTutorialFile, type TutorialDraft, type TutorialLeagueOption, type TutorialSaveResult } from "@/lib/tutorialVideosClient"
-import { applyBulkManifest, isBulkManifestName, isZipFile, matchLeagueNames, parseBulkManifest, planBulkTutorials, readZipFiles, type BulkAudience, type BulkDestination, type BulkManifestWarning, type BulkTutorialEntry, type BulkTutorialPlan } from "@/lib/tutorialBulk"
+import { applyBulkManifest, isBulkManifestName, isZipFile, matchLeagueNames, parseBulkManifest, planBulkTutorials, readZipFiles, type BulkAudience, type BulkDestination, type BulkRole, type BulkManifestWarning, type BulkTutorialEntry, type BulkTutorialPlan } from "@/lib/tutorialBulk"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type Picked = { file: File; poster: Blob | null; width: number | null; height: number | null; durationMs: number | null }
@@ -30,7 +30,7 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
   const [announce, setAnnounce] = useState(true)
   const [notice, setNotice] = useState<string | null>(null)
   const social = draft.category === "social"
-  const pendingLeagues = !social && draft.audience === "leagues" ? draft.leagueIds.filter((id) => !announcedLeagueIds.includes(id)) : []
+  const pendingLeagues = !social && draft.role === "player" && draft.audience === "leagues" ? draft.leagueIds.filter((id) => !announcedLeagueIds.includes(id)) : []
   const wantsAnnouncement = announce && pendingLeagues.length > 0
 
   /** Closes the form, unless some league could not be notified: then the admin must see which one. */
@@ -160,6 +160,14 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
         </select>
         <span className="mt-1 block text-xs font-semibold text-neutral-600">{tx("Si eliges una pantalla, su botón de ayuda ofrecerá este vídeo.")}</span>
       </label>
+      <label className="block text-xs font-semibold text-neutral-600">
+        {tx("Rol al que va dirigido")}
+        <select value={draft.role} disabled={busy} onChange={(event) => setDraft({ ...draft, role: event.target.value === "creator" ? "creator" : "player" })} className="mt-1 w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950">
+          <option value="player">{tx("Jugador (todo el mundo)")}</option>
+          <option value="creator">{tx("Creator (solo quien organiza la liga)")}</option>
+        </select>
+        <span className="mt-1 block text-xs font-semibold text-neutral-600">{tx("Los de Creator no los ven los jugadores ni se avisa en el chat de la liga.")}</span>
+      </label>
       <fieldset className="space-y-1.5" disabled={busy}>
         <legend className="text-xs font-semibold text-neutral-600">{tx("¿Quién lo ve?")}</legend>
         {audiences.map((option) => (
@@ -214,7 +222,7 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
 /** Fields set by the manifest of a .zip win over the general choices of the form for that video. */
 type BulkRow = BulkTutorialEntry & {
   screen: string; description: string; state: "pending" | "uploading" | "done" | "failed"; progress: number
-  destination?: BulkDestination; audience?: BulkAudience; leagueIds?: string[]; unknownLeagues?: string[]
+  destination?: BulkDestination; audience?: BulkAudience; role?: BulkRole; leagueIds?: string[]; unknownLeagues?: string[]
 }
 
 /**
@@ -228,12 +236,13 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
   const [destination, setDestination] = useState<BulkDestination>("generic")
   const [audience, setAudience] = useState<"draft" | "public">("draft")
   const [leagueIds, setLeagueIds] = useState<string[]>([])
+  const [role, setRole] = useState<BulkRole>("player")
   const [busy, setBusy] = useState(false)
   const [reading, setReading] = useState(false)
   const [zipError, setZipError] = useState(false)
   const [manifestError, setManifestError] = useState(false)
   const [warnings, setWarnings] = useState<BulkManifestWarning[]>([])
-  const where = (row: BulkRow) => ({ destination: row.destination ?? destination, audience: row.audience ?? audience, leagueIds: row.leagueIds ?? leagueIds })
+  const where = (row: BulkRow) => ({ destination: row.destination ?? destination, audience: row.audience ?? audience, role: row.role ?? role, leagueIds: row.leagueIds ?? leagueIds })
 
   async function choose(event: ChangeEvent<HTMLInputElement>) {
     const chosen = Array.from(event.target.files ?? [])
@@ -258,7 +267,7 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
       const matched = meta?.leagueNames ? matchLeagueNames(meta.leagueNames, leagues) : null
       return {
         ...entry, screen: meta?.screen ?? "", description: meta?.description ?? "", state: "pending", progress: 0,
-        destination: meta?.destination, audience: meta?.audience,
+        destination: meta?.destination, audience: meta?.audience, role: meta?.role,
         leagueIds: matched ? matched.ids : undefined, unknownLeagues: matched?.unknown.length ? matched.unknown : undefined,
       }
     }))
@@ -284,6 +293,7 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
       audience: target.destination === "leagues" ? "leagues" : target.destination === "social" ? "draft" : target.audience,
       leagueIds: target.destination === "leagues" ? target.leagueIds : [],
       category: target.destination === "social" ? "social" : "app",
+      role: target.destination === "social" ? "player" : target.role,
       screen: target.destination === "generic" ? row.screen || null : null,
       videoPath, posterPath, width: frame?.width ?? null, height: frame?.height ?? null, durationMs: frame?.durationMs ?? null, announce: false,
     })
@@ -306,7 +316,7 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
   const allDone = rows.length > 0 && pending === 0
   const valid = rows.length > 0 && rows.every((row) => row.title.trim().length > 0 && (where(row).destination !== "leagues" || where(row).leagueIds.length > 0))
   const reasons = { not_supported: tx("formato no admitido"), too_big: tx("archivo demasiado grande"), no_video: tx("imagen sin vídeo con el mismo nombre") }
-  const warningLabels = { bad_destination: tx("destino no válido"), bad_screen: tx("pantalla no válida"), bad_audience: tx("«quien» no válido"), no_file: tx("el manifest cita un archivo que no está") }
+  const warningLabels = { bad_destination: tx("destino no válido"), bad_screen: tx("pantalla no válida"), bad_audience: tx("«quien» no válido"), bad_role: tx("«rol» no válido"), no_file: tx("el manifest cita un archivo que no está") }
   const stateLabel = { pending: tx("Pendiente"), uploading: tx("Subiendo…"), done: tx("Subido"), failed: tx("Ha fallado: vuelve a pulsar Subir") }
   const destinations: { value: BulkDestination; label: string; hint: string }[] = [
     { value: "generic", label: tx("Genéricos"), hint: tx("Tutoriales de la aplicación para todo el mundo.") },
@@ -357,6 +367,17 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
               </label>
             ))}
           </fieldset>
+          {destination !== "social" ? (
+            <fieldset className="space-y-1.5" disabled={busy}>
+              <legend className="text-xs font-semibold text-neutral-600">{tx("Rol al que van dirigidos")}</legend>
+              {(["player", "creator"] as const).map((value) => (
+                <label key={value} className="flex items-center gap-2 rounded-xl bg-neutral-100 p-2 text-sm font-black text-neutral-950">
+                  <input type="radio" name="bulk-role" checked={role === value} onChange={() => setRole(value)} />
+                  {value === "player" ? tx("Jugador (todo el mundo)") : tx("Creator (solo quien organiza la liga)")}
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
           {destination === "generic" ? (
             <fieldset className="space-y-1.5" disabled={busy}>
               <legend className="text-xs font-semibold text-neutral-600">{tx("¿Quién los ve?")}</legend>
@@ -385,6 +406,7 @@ export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: Tutor
         <div key={row.key} data-bulk-row className="space-y-1.5 rounded-xl border border-neutral-300 p-2">
           <p className="truncate text-xs font-semibold text-neutral-600">{row.video.name}{row.poster ? ` + ${row.poster.name}` : ""}</p>
           <input value={row.title} maxLength={120} disabled={busy || row.state === "done"} onChange={(event) => patch(row.key, { title: event.target.value })} aria-label={tx("Título")} className="w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950" />
+          {row.role === "creator" || (!row.role && role === "creator" && where(row).destination !== "social") ? <p className="text-xs font-black text-amber-800">{tx("Rol: Creator")}</p> : null}
           {row.destination ? <p className="text-xs font-black text-neutral-950">{destinations.find((option) => option.value === row.destination)?.label}{row.destination === "generic" ? ` · ${row.audience === "public" ? tx("Público") : tx("Borrador")}` : ""}{row.destination === "leagues" ? `: ${leagues.filter((league) => row.leagueIds?.includes(league.id)).map((league) => league.name).join(", ") || tx("sin liga")}` : ""}</p> : null}
           {row.unknownLeagues ? <p role="alert" className="text-xs font-bold text-red-700">{tx("Liga no encontrada:")} {row.unknownLeagues.join(", ")}</p> : null}
           {where(row).destination === "generic" ? (

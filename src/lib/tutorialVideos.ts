@@ -9,6 +9,10 @@ export const TUTORIAL_AUDIENCES: TutorialAudience[] = ["draft", "public", "leagu
 export type TutorialCategory = "app" | "social"
 export const TUTORIAL_CATEGORIES: TutorialCategory[] = ["app", "social"]
 
+/** Who a tutorial is for: 'player' = any player; 'creator' = only who organizes (league creators and admins). */
+export type TutorialRole = "player" | "creator"
+export const TUTORIAL_ROLES: TutorialRole[] = ["player", "creator"]
+
 /** The tab of Help a tutorial belongs to: generic, league videos or social media. */
 export type TutorialGroup = "generic" | "leagues" | "social"
 export function getTutorialGroup(category: TutorialCategory | null | undefined, audience: TutorialAudience): TutorialGroup {
@@ -89,6 +93,10 @@ export type TutorialAccess = {
   now?: number
   /** Social media material is only seen by the managers, whatever its audience. */
   category?: TutorialCategory | null
+  /** Who the tutorial is for; 'creator' ones are hidden from people who do not organize any league. */
+  role?: TutorialRole | null
+  /** Leagues where the viewer is creator or admin. */
+  organizerLeagueIds?: string[]
 }
 
 /** True while a tutorial is scheduled for a moment that has not come yet. */
@@ -99,12 +107,13 @@ export function isTutorialScheduled(publishAt: string | null | undefined, now = 
 }
 
 /** Who sees a tutorial: the manager sees all; everyone with a session sees 'public'; members see their leagues'. */
-export function canViewTutorial({ audience, leagueIds, memberLeagueIds, isSuperuser, publishAt, now, category }: TutorialAccess) {
+export function canViewTutorial({ audience, leagueIds, memberLeagueIds, isSuperuser, publishAt, now, category, role, organizerLeagueIds = [] }: TutorialAccess) {
   if (isSuperuser) return true
   if (category === "social") return false
   if (isTutorialScheduled(publishAt, now)) return false
-  if (audience === "public") return true
-  if (audience === "leagues") return leagueIds.some((id) => memberLeagueIds.includes(id))
+  const forCreators = role === "creator"
+  if (audience === "public") return !forCreators || organizerLeagueIds.length > 0
+  if (audience === "leagues") return leagueIds.some((id) => (forCreators ? organizerLeagueIds : memberLeagueIds).includes(id))
   return false
 }
 
@@ -131,6 +140,7 @@ export type TutorialSummary = {
 export type TutorialAdminItem = TutorialSummary & {
   audience: TutorialAudience
   category: TutorialCategory
+  role: TutorialRole
   leagueIds: string[]
   /** Leagues that already received the automatic notice in their chat. */
   announcedLeagueIds: string[]

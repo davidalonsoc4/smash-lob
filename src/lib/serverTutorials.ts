@@ -9,13 +9,14 @@ import {
   type TutorialAdminItem,
   type TutorialAudience,
   type TutorialCategory,
+  type TutorialRole,
 } from "@/lib/tutorialVideos"
 import type { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 
 type Actor = Extract<Awaited<ReturnType<typeof requireAuthenticatedAppUser>>, { ok: true }>["actor"]
 
 export const TUTORIAL_FIELDS =
-  "id,title,description,position,audience,video_path,poster_path,width,height,duration_ms,created_at,publish_at,announce_on_publish,screen,category"
+  "id,title,description,position,audience,video_path,poster_path,width,height,duration_ms,created_at,publish_at,announce_on_publish,screen,category,target_role"
 
 export type TutorialRow = {
   id: string
@@ -32,6 +33,14 @@ export type TutorialRow = {
   announce_on_publish?: boolean
   screen?: string | null
   category?: TutorialCategory
+  target_role?: TutorialRole
+}
+
+/** Leagues where this person is creator or admin: the ones whose organizer videos they may see. */
+async function getOrganizerLeagueIds(actor: Actor) {
+  const found = await actor.supabase.from("league_memberships").select("league_id").eq("user_id", actor.user.id).in("role", ["creator", "admin"])
+  if (found.error) return null
+  return (found.data ?? []).map((row) => String(row.league_id))
 }
 
 export async function getMemberLeagueIds(actor: Actor) {
@@ -56,13 +65,14 @@ export async function signTutorialPaths(actor: Actor, paths: string[]) {
 
 /** The tutorials this person may see, in display order, with thumbnails signed and the "seen" mark. */
 export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminItem[] | null> {
-  const [rows, links, views, memberLeagueIds] = await Promise.all([
+  const [rows, links, views, memberLeagueIds, organizerLeagueIds] = await Promise.all([
     actor.supabase.from("tutorial_videos").select(TUTORIAL_FIELDS).order("position", { ascending: true }).order("created_at", { ascending: true }),
     actor.supabase.from("tutorial_video_leagues").select("tutorial_id,league_id,announced_at,announce_failed_reason"),
     actor.supabase.from("tutorial_video_views").select("tutorial_id").eq("user_id", actor.user.id),
     getMemberLeagueIds(actor),
+    getOrganizerLeagueIds(actor),
   ])
-  if (rows.error || links.error || views.error || memberLeagueIds === null) return null
+  if (rows.error || links.error || views.error || memberLeagueIds === null || organizerLeagueIds === null) return null
 
   const leaguesByTutorial = new Map<string, string[]>()
   for (const link of links.data ?? []) {
@@ -93,6 +103,8 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
       isSuperuser: requireTutorialManager(actor),
       publishAt: row.publish_at,
       category: row.category,
+      role: row.target_role,
+      organizerLeagueIds,
     }),
   )
   const isManager = requireTutorialManager(actor)
@@ -124,6 +136,7 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
     seen: seen.has(row.id),
     screen: row.screen ?? null,
     category: row.category ?? "app",
+    role: row.target_role ?? "player",
     group: getTutorialGroup(row.category, row.audience),
     draft: row.audience === "draft",
     // A person only sees the leagues they belong to; the managers see all of them.

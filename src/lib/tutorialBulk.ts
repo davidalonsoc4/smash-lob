@@ -85,6 +85,7 @@ const MAX_MANIFEST_BYTES = 256 * 1024
 
 export type BulkDestination = "generic" | "leagues" | "social"
 export type BulkAudience = "draft" | "public"
+export type BulkRole = "player" | "creator"
 
 /** What the manifest says about one video; every field is optional and anything invalid is dropped with a warning. */
 export type BulkManifestItem = {
@@ -94,11 +95,12 @@ export type BulkManifestItem = {
   poster?: string
   destination?: BulkDestination
   audience?: BulkAudience
+  role?: BulkRole
   /** A screen id (see TUTORIAL_SCREENS); absent means a general video. */
   screen?: string
   leagueNames?: string[]
 }
-export type BulkManifestWarning = { reason: "bad_destination" | "bad_screen" | "bad_audience" | "no_file"; detail: string }
+export type BulkManifestWarning = { reason: "bad_destination" | "bad_screen" | "bad_audience" | "bad_role" | "no_file"; detail: string }
 export type BulkManifest = { byFile: Map<string, BulkManifestItem>; warnings: BulkManifestWarning[] }
 
 /** "manifest.json" or "manifest.txt" (any case): the file that describes the videos of a .zip. */
@@ -116,6 +118,13 @@ function destinationOf(value: unknown): BulkDestination | null {
   return null
 }
 
+function roleOf(value: unknown): BulkRole | null {
+  const word = plain(value)
+  if (["jugador", "jugadores", "player", "players"].includes(word)) return "player"
+  if (["creator", "creador", "creadores", "organizador", "organizadores"].includes(word)) return "creator"
+  return null
+}
+
 function audienceOf(value: unknown): BulkAudience | null {
   const word = plain(value)
   if (["borrador", "draft", "privado"].includes(word)) return "draft"
@@ -130,14 +139,15 @@ function audienceOf(value: unknown): BulkAudience | null {
 export function parseBulkManifest(text: string): BulkManifest | null {
   let data: unknown
   try { data = JSON.parse(text.replace(/^﻿/, "")) } catch { return null }
-  const root = data as { destino?: unknown; quien?: unknown; videos?: unknown } | null
+  const root = data as { destino?: unknown; quien?: unknown; rol?: unknown; videos?: unknown } | null
   const list = Array.isArray(data) ? data : root && typeof root === "object" ? root.videos : null
   if (!Array.isArray(list)) return null
   const warnings: BulkManifestWarning[] = []
-  const common: { destination?: BulkDestination; audience?: BulkAudience } = {}
+  const common: { destination?: BulkDestination; audience?: BulkAudience; role?: BulkRole } = {}
   if (root && !Array.isArray(root)) {
     if (root.destino !== undefined) { const d = destinationOf(root.destino); if (d) common.destination = d; else warnings.push({ reason: "bad_destination", detail: String(root.destino) }) }
     if (root.quien !== undefined) { const a = audienceOf(root.quien); if (a) common.audience = a; else warnings.push({ reason: "bad_audience", detail: String(root.quien) }) }
+    if (root.rol !== undefined) { const r = roleOf(root.rol); if (r) common.role = r; else warnings.push({ reason: "bad_role", detail: String(root.rol) }) }
   }
   const byFile = new Map<string, BulkManifestItem>()
   list.forEach((raw, order) => {
@@ -150,6 +160,7 @@ export function parseBulkManifest(text: string): BulkManifest | null {
     if (typeof item.miniatura === "string" && item.miniatura.trim()) out.poster = item.miniatura.trim()
     if (item.destino !== undefined) { const d = destinationOf(item.destino); if (d) out.destination = d; else warnings.push({ reason: "bad_destination", detail: `${file}: ${String(item.destino)}` }) }
     if (item.quien !== undefined) { const a = audienceOf(item.quien); if (a) out.audience = a; else warnings.push({ reason: "bad_audience", detail: `${file}: ${String(item.quien)}` }) }
+    if (item.rol !== undefined) { const r = roleOf(item.rol); if (r) out.role = r; else warnings.push({ reason: "bad_role", detail: `${file}: ${String(item.rol)}` }) }
     if (item.pantalla !== undefined && item.pantalla !== null && String(item.pantalla).trim()) {
       const screen = String(item.pantalla).trim().toLowerCase()
       if (isTutorialScreen(screen)) out.screen = screen

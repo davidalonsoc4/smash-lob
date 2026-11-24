@@ -12,7 +12,7 @@ import { deleteTutorial, fetchAdminTutorials, reorderTutorials, type TutorialLea
 import { formatTutorialDuration, getTutorialGroup, type TutorialAdminItem, type TutorialGroup } from "@/lib/tutorialVideos"
 import { useI18n } from "@/i18n/I18nProvider"
 
-const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, leagueIds: [] as string[], publishAt: null as string | null, screen: null as string | null, category: "app" as "app" | "social" }
+const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, leagueIds: [] as string[], publishAt: null as string | null, screen: null as string | null, category: "app" as "app" | "social", role: "player" as "player" | "creator" }
 
 export default function AdminTutorialsPage() {
   const { tx, locale } = useI18n()
@@ -64,7 +64,8 @@ export default function AdminTutorialsPage() {
     if (await deleteTutorial(item.id)) void load()
     else setError(true)
   }
-  const audienceLabel = (item: TutorialAdminItem) =>
+  const audienceLabel = (item: TutorialAdminItem) => (item.role === "creator" && item.category !== "social" ? `${tx("Rol: Creator")} · ` : "") + baseAudienceLabel(item)
+  const baseAudienceLabel = (item: TutorialAdminItem) =>
     item.category === "social" ? tx("Redes sociales") : item.audience === "public" ? tx("Público") : item.audience === "leagues" ? `${tx("Ligas")}: ${item.leagueIds.map((id) => leagues.find((league) => league.id === id)?.name ?? "—").join(", ")}` : tx("Borrador")
 
   return (
@@ -130,7 +131,7 @@ export default function AdminTutorialsPage() {
             {form ? (
               <TutorialForm
                 editingId={form.editing?.id ?? null}
-                initial={form.editing ? { title: form.editing.title, description: form.editing.description, audience: form.editing.audience, leagueIds: form.editing.leagueIds, publishAt: form.editing.publishAt, screen: form.editing.screen ?? null, category: form.editing.category } : EMPTY_DRAFT}
+                initial={form.editing ? { title: form.editing.title, description: form.editing.description, audience: form.editing.audience, leagueIds: form.editing.leagueIds, publishAt: form.editing.publishAt, screen: form.editing.screen ?? null, category: form.editing.category, role: form.editing.role } : EMPTY_DRAFT}
                 leagues={leagues}
                 announcedLeagueIds={form.editing?.announcedLeagueIds ?? []}
                 onDone={() => { setForm(null); void load() }}

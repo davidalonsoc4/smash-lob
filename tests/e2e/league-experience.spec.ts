@@ -2142,6 +2142,7 @@ test("the tutorial form dialog fits the screen and keeps Save in view while scro
   const tutorial = { id: "t1", title: "Bienvenida", description: "", position: 1, audience: "leagues", leagueIds: ["l1"], announcedLeagueIds: [], announceFailures: [], announceOnPublish: false, publishAt: "2031-05-06T10:15:00.000Z", viewCount: 0, posterUrl: null, width: 1080, height: 1920, durationMs: 36_567, seen: false }
   await page.route("**/api/application-admin/tutorials", route => route.fulfill({ json: { tutorials: [tutorial], leagues } }))
   await page.goto("/admin/tutorials")
+  await page.getByRole("tab", { name: /Ligas/ }).click()
   await page.getByRole("button", { name: "Editar" }).first().click()
   const dialog = page.getByRole("dialog", { name: "Editar tutorial" })
   await expect(dialog).toBeVisible()
@@ -2309,7 +2310,7 @@ test("a zip with a manifest fills destination, screen, audience, league and desc
   const { zipSync, strToU8 } = await import("fflate")
   const manifest = {
     videos: [
-      { archivo: "05_sorteo.mp4", titulo: "Sorteo del saque", descripcion: "La moneda decide.", destino: "generico", pantalla: "match", quien: "publico" },
+      { archivo: "05_sorteo.mp4", titulo: "Sorteo del saque", descripcion: "La moneda decide.", destino: "generico", pantalla: "match", quien: "publico", rol: "creator" },
       { archivo: "19_liguilla.mp4", destino: "redes" },
       { archivo: "20_reglas.mp4", destino: "ligas", ligas: ["liga norte"] },
       { archivo: "21_mal.mp4", destino: "generico", pantalla: "nada" },
@@ -2328,8 +2329,8 @@ test("a zip with a manifest fills destination, screen, audience, league and desc
   await page.locator("[data-bulk-upload]").click()
   await expect(page.getByRole("button", { name: "Listo" })).toBeVisible({ timeout: 60_000 })
   expect(created).toHaveLength(4)
-  expect(created[0]).toMatchObject({ title: "Sorteo del saque", description: "La moneda decide.", category: "app", audience: "public", screen: "match", leagueIds: [] })
-  expect(created[1]).toMatchObject({ category: "social", audience: "draft", screen: null })
+  expect(created[0]).toMatchObject({ title: "Sorteo del saque", description: "La moneda decide.", category: "app", audience: "public", screen: "match", leagueIds: [], role: "creator" })
+  expect(created[1]).toMatchObject({ category: "social", audience: "draft", screen: null, role: "player" })
   expect(created[2]).toMatchObject({ category: "app", audience: "leagues", leagueIds: ["00000000-0000-4000-8000-0000000000aa"] })
   expect(created[3]).toMatchObject({ audience: "draft", screen: null })
 })
