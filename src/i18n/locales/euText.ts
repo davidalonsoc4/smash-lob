@@ -1068,6 +1068,7 @@ const EXACT_OVERRIDES = {
   "Gestiona la cuota de inscripción y los nombres de la plantilla activa.": "Kudeatu izen-emate kuota eta plantilla aktiboko izenak.",
   "Gestiona los jugadores de la liga, sus cuentas vinculadas y los permisos de administración. Estos jugadores pertenecen a la liga; cada temporada decide cuáles participan.": "Kudeatu ligako jokalariak, lotutako kontuak eta administrazio-baimenak. Jokalari hauek ligakoak dira; denboraldi bakoitzak erabakitzen du zeinek parte hartzen duen.",
   "Gestionar suplente": "Kudeatu ordezkoa",
+  "Al guardar, la moneda se podrá volver a lanzar.": "Gordetakoan, txanpona berriro bota ahal izango da.",
   "Gestionar jugadores": "Kudeatu jokalariak",
   "Toca un jugador y luego otro para intercambiarlos, o arrástralo.": "Ukitu jokalari bat eta gero beste bat trukatzeko, edo arrastatu.",
   "Pareja A": "A bikotea",

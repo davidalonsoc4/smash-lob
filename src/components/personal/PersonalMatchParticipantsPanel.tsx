@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
+import { rememberCoinToss } from "@/lib/matchCoinTossClient"
 import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import {
   PersonalMatchParticipantSelector,
@@ -124,10 +125,11 @@ export function PersonalMatchParticipantsPanel({
           })),
         }),
       })
-      const payload = (await response.json()) as { item?: PersonalMatchItem; error?: string }
+      const payload = (await response.json()) as { item?: PersonalMatchItem; error?: string; coinTossReset?: boolean }
       if (!response.ok || !payload.item) {
         throw new Error(payload.error ?? "personal_match_participants_update_failed")
       }
+      if (payload.coinTossReset) rememberCoinToss("friendly", match.id, null)
 
       if (payload.item.status === "finished") requestPersonalProfileHistoryRefresh()
       else requestMatchDashboardRefresh()

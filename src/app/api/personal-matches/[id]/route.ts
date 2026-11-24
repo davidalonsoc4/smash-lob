@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import {
   getScheduleLocationDisplayText,
@@ -33,6 +34,17 @@ type UpdatePersonalMatchBody = {
   locationName?: unknown
   sets?: unknown
   participants?: unknown
+}
+
+// Who plays with whom, ignoring the order of the pairs and of the players inside them.
+async function readPairSignature(supabase: SupabaseClient, matchId: string) {
+  const { data } = await supabase.from("personal_match_participants").select("team,user_id,source_player_id,display_name").eq("match_id", matchId)
+  const teams = new Map<number, string[]>()
+  for (const row of data ?? []) {
+    const who = row.user_id ?? row.source_player_id ?? String(row.display_name).trim().toLowerCase()
+    teams.set(row.team, [...(teams.get(row.team) ?? []), who])
+  }
+  return [...teams.values()].map((members) => members.sort().join("+")).sort().join("|")
 }
 
 export async function GET(
@@ -104,6 +116,7 @@ export async function PATCH(
     }
 
     const nowIso = new Date().toISOString()
+    let coinTossReset = false
     if (action === "schedule") {
       const scheduledAt = validateIsoDateTime(body?.scheduledAt)
       const timestamp = scheduledAt ? Date.parse(scheduledAt) : Number.NaN
@@ -201,7 +214,13 @@ export async function PATCH(
           { status: 400 },
         )
       }
+      const pairsBefore = await readPairSignature(authResult.actor.supabase, matchId)
       await replacePersonalMatchParticipants(authResult.actor, matchId, drafts)
+      // New pairs mean the toss no longer says anything: it is removed so the coin can be tossed again.
+      if (pairsBefore !== (await readPairSignature(authResult.actor.supabase, matchId))) {
+        const removed = await authResult.actor.supabase.from("match_coin_tosses").delete().eq("personal_match_id", matchId)
+        coinTossReset = !removed.error
+      }
       const { error } = await authResult.actor.supabase
         .from("personal_matches")
         .update({ updated_at: nowIso })
@@ -228,7 +247,7 @@ export async function PATCH(
     }).catch(() => null)
 
     const item = await loadPersonalMatch(authResult.actor, matchId)
-    return NextResponse.json({ item })
+    return NextResponse.json({ item, coinTossReset })
   } catch (error) {
     const message = error instanceof Error ? error.message : "personal_match_update_failed"
     if (
