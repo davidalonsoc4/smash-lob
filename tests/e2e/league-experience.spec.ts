@@ -811,6 +811,19 @@ test("preseason general chat opens from both entrances without requesting match 
   await expect(page.getByText("Hola desde pretemporada")).toBeVisible()
 })
 
+test("while the season is scheduled, the locked tabs show a lock and explain why when tapped", async ({ page }) => {
+  const fixture = await setup(page, "dark", "competition")
+  fixture.setUpcoming()
+  await page.goto("/league/home")
+  const nav = page.locator("[data-tour='bottom-navigation']")
+  await expect(nav.locator("[data-nav-lock]")).toHaveCount(4)
+  await expect(nav.getByRole("link", { name: "Inicio" })).toBeVisible()
+  await nav.locator("button[aria-disabled='true']").first().click({ force: true })
+  await expect(page.locator("[data-nav-lock-notice]")).toHaveText("Disponible cuando comience la temporada")
+  await page.screenshot({ path: "test-results/nav-locked.png" })
+  await expect(page.locator("[data-nav-lock-notice]")).toHaveCount(0, { timeout: 6000 })
+})
+
 test("global chats include and filter active league conversations", async ({ page }) => {
   await setup(page, "dark", "competition")
   let permitted = true

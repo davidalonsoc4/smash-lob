@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
@@ -90,6 +90,7 @@ function NavIcon({ icon }: { icon: NavItem["icon"] }) {
 
 export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean }) {
   const { tx } = useI18n()
+  const [lockedNotice, setLockedNotice] = useState(false)
   const pathname = usePathname()
   const { t } = useI18n()
   const { activeLeagueId } = useActiveLeague()
@@ -214,6 +215,13 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
   ]
   const navItems = spectatorMode ? spectatorNavItems : playerNavItems
 
+  // The notice that explains a locked button disappears by itself.
+  useEffect(() => {
+    if (!lockedNotice) return
+    const timer = window.setTimeout(() => setLockedNotice(false), 2800)
+    return () => window.clearTimeout(timer)
+  }, [lockedNotice])
+
   return (
     <nav
       data-tour="bottom-navigation"
@@ -223,6 +231,7 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
+      {lockedNotice ? <div role="status" data-nav-lock-notice className="pointer-events-none absolute bottom-full left-1/2 mb-2 w-max max-w-[90%] -translate-x-1/2 rounded-full bg-neutral-950 px-3 py-1.5 text-center text-xs font-black text-white shadow-lg">{tx("Disponible cuando comience la temporada")}</div> : null}
       <div
         className={`app-bottom-nav-grid grid w-full ${spectatorMode ? "grid-cols-4" : "grid-cols-5"} bg-transparent`}
         style={{
@@ -236,8 +245,8 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
           const isDisabled = homeOnlyLocked && item.href !== "/league/home"
           const content = (
             <>
-              <span className="relative"><NavIcon icon={item.icon} />{!homeOnlyLocked && item.icon === "chats" && chatUnread > 0 ? <span className="absolute -right-3 -top-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-xs font-black leading-4 text-white">{chatUnread > 99 ? "99+" : chatUnread}</span> : null}</span>
-              <span className="leading-none">{item.label}</span>
+              <span className="relative"><span className={isDisabled ? "opacity-40" : undefined}><NavIcon icon={item.icon} /></span>{isDisabled ? <span data-nav-lock aria-hidden="true" className="absolute -right-3 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-neutral-950 text-white ring-1 ring-neutral-300"><svg viewBox="0 0 24 24" fill="none" className="h-2.5 w-2.5"><rect x="5" y="11" width="14" height="9" rx="2" fill="currentColor" /><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg></span> : null}{!homeOnlyLocked && item.icon === "chats" && chatUnread > 0 ? <span className="absolute -right-3 -top-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-xs font-black leading-4 text-white">{chatUnread > 99 ? "99+" : chatUnread}</span> : null}</span>
+              <span className={isDisabled ? "leading-none opacity-40" : "leading-none"}>{item.label}</span>
             </>
           )
 
@@ -246,10 +255,10 @@ export function BottomNav({ homeOnlyLocked = false }: { homeOnlyLocked?: boolean
               <button
                 key={item.href}
                 type="button"
-                disabled
                 aria-disabled="true"
                 title={tx("Disponible cuando comience la temporada")}
-                className="app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-400 opacity-40"
+                onClick={() => setLockedNotice(true)}
+                className="app-bottom-nav-item flex flex-col items-center justify-center bg-transparent text-center font-black text-neutral-400"
                 style={{ minHeight: "52px" }}
               >
                 {content}
