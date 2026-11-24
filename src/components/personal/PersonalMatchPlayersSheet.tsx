@@ -359,7 +359,9 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
           <button type="button" onClick={() => void save()} disabled={saving || !changed} className="flex-1 rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300">{saving ? tx("Guardando...") : tx("Guardar")}</button>
         </div>
       </div>
+      {/* The pop-up is rendered in a portal, but React events still bubble through the tree: without this a click inside it would close the sheet. */}
       {pickerIndex !== null ? (
+        <div className="contents" onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
         <PersonalMatchPlayerPicker
           open
           playerName={order[pickerIndex].name}
@@ -371,6 +373,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
           onClose={() => setPickerIndex(null)}
           onConfirm={(player) => void changePlayer(player)}
         />
+        </div>
       ) : null}
     </div>
   )
