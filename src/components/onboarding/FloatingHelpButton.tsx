@@ -23,21 +23,21 @@ export function HelpIcon() {
 }
 
 export function FloatingHelpButton() {
-  const { locale } = useI18n()
+  const { locale, tx } = useI18n()
   const copy = getOnboardingCopy(locale)
   const { currentTour, progress, startCurrentTour } = useOnboarding()
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
   const screen = getTutorialScreenForPath(pathname ?? "")
-  const [screenVideo, setScreenVideo] = useState<TutorialSummary | null>(null)
+  const [screenVideos, setScreenVideos] = useState<TutorialSummary[]>([])
   const [playing, setPlaying] = useState<TutorialSummary | null>(null)
 
-  // The video of this screen (if one was assigned to it) is looked up when the panel opens.
+  // The videos of this screen (the ones assigned to it, in the order of the management) are looked up when the panel opens.
   useEffect(() => {
     if (!open || !screen) return
     let cancelled = false
     void fetchTutorials().then((list) => {
-      if (!cancelled) setScreenVideo(list?.find((item) => item.screen === screen) ?? null)
+      if (!cancelled) setScreenVideos(list?.filter((item) => item.screen === screen) ?? [])
     })
     return () => { cancelled = true }
   }, [open, screen])
@@ -80,17 +80,36 @@ export function FloatingHelpButton() {
               </button>
             ) : null}
 
-            {screen && screenVideo?.screen === screen ? (
+            {screen && screenVideos.length === 1 ? (
               <button
                 type="button"
                 onClick={() => {
                   setOpen(false)
-                  setPlaying(screenVideo)
+                  setPlaying(screenVideos[0])
                 }}
                 className="app-dialog-option mt-2 justify-center"
               >
                 {copy.screenVideo}
               </button>
+            ) : null}
+            {screen && screenVideos.length > 1 ? (
+              <div data-screen-videos className="mt-3 space-y-1.5">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-neutral-500">{tx("Vídeos de esta pantalla")}</p>
+                {screenVideos.map((video) => (
+                  <button
+                    key={video.id}
+                    type="button"
+                    onClick={() => {
+                      setOpen(false)
+                      setPlaying(video)
+                    }}
+                    className="app-dialog-option w-full justify-between gap-2 text-left"
+                  >
+                    <span className="min-w-0 flex-1 truncate">{video.title}</span>
+                    {!video.seen ? <span className="shrink-0 rounded-full bg-neutral-950 px-2 py-0.5 type-caption font-black text-white">{tx("Nuevo")}</span> : null}
+                  </button>
+                ))}
+              </div>
             ) : null}
 
             <Link
@@ -101,7 +120,7 @@ export function FloatingHelpButton() {
               {copy.allTutorials}
             </Link>
       </FloatingDialog>
-      <TutorialPlayerDialog tutorial={playing} onClose={() => setPlaying(null)} />
+      <TutorialPlayerDialog tutorial={playing} onClose={() => setPlaying(null)} onSeen={(id) => setScreenVideos((list) => list.map((item) => (item.id === id ? { ...item, seen: true } : item)))} />
     </>
   )
 }

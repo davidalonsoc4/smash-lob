@@ -2041,6 +2041,30 @@ test("the help button of a screen offers the video assigned to that screen", asy
   await expect(player.locator("video")).toHaveAttribute("src", "http://localhost/none.mp4")
 })
 
+test("the help button lists every video of a screen when it has several and opens the chosen one", async ({ page }) => {
+  await setup(page, "dark", "classic")
+  const base = { description: "", posterUrl: null, width: null, height: null, durationMs: 40_000 }
+  const tutorials = [
+    { ...base, id: "t1", title: "Primero de la clasificación", position: 1, seen: true, screen: "ranking" },
+    { ...base, id: "t2", title: "Segundo de la clasificación", position: 2, seen: false, screen: "ranking" },
+    { ...base, id: "t3", title: "Otra pantalla", position: 3, seen: false, screen: "matches" },
+  ]
+  await page.route("**/api/tutorials**", route => {
+    const url = new URL(route.request().url())
+    if (url.pathname === "/api/tutorials") return route.fulfill({ json: { tutorials } })
+    return route.fulfill({ json: { videoUrl: "http://localhost/none.mp4" } })
+  })
+  await page.goto("/ranking")
+  await page.getByRole("button", { name: "Ayuda de esta pantalla", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "Ayuda de esta pantalla" })
+  const list = dialog.locator("[data-screen-videos]")
+  await expect(list.getByRole("button")).toHaveText([/Primero de la clasificación/, /Segundo de la clasificación\s*Nuevo/])
+  await expect(dialog.getByRole("button", { name: "Ver el vídeo de esta pantalla" })).toHaveCount(0)
+  await list.getByRole("button", { name: /Segundo de la clasificación/ }).click()
+  const player = page.getByRole("dialog", { name: "Segundo de la clasificación" })
+  await expect(player.locator("video")).toHaveAttribute("src", "http://localhost/none.mp4")
+})
+
 test("tutorial management lets the app admin watch each tutorial, drafts included", async ({ page }) => {
   await setup(page, "dark", "classic", true, false, true)
   const tutorials = [

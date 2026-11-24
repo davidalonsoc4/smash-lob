@@ -1984,6 +1984,7 @@ const ADDITIONAL_OVERRIDES = {
     "Administrar liga": "Manage league",
     "Usuarios y roles": "Users and roles",
     "Subir varios vídeos": "Upload several videos",
+    "Vídeos de esta pantalla": "Videos of this screen",
     "Rol al que va dirigido": "Role it is aimed at",
     "Rol al que van dirigidos": "Role they are aimed at",
     "Jugador (todo el mundo)": "Player (everyone)",

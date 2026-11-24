@@ -1981,6 +1981,7 @@ const ADDITIONAL_OVERRIDES = {
     "Administrar liga": "Liga kudeatu",
     "Usuarios y roles": "Erabiltzaileak eta rolak",
     "Subir varios vídeos": "Hainbat bideo igo",
+    "Vídeos de esta pantalla": "Pantaila honetako bideoak",
     "Rol al que va dirigido": "Zein rolei zuzenduta dagoen",
     "Rol al que van dirigidos": "Zein rolei zuzenduta dauden",
     "Jugador (todo el mundo)": "Jokalaria (denak)",
