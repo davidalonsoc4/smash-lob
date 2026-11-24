@@ -12,11 +12,11 @@ type Stat = { personKey: string; winRate: number | null; matches: number }
 // Court seen from above, drawn wider than the real 10 x 20 m so the cards have room for the names, with the net across the middle.
 // Pair A plays at the top, pair B at the bottom. The backhand player stands closer to the net, the drive player further back, one on each side.
 const SLOT_POSITIONS = [
-  { left: 2, top: 30 }, { left: 51, top: 6 },
-  { left: 51, top: 58 }, { left: 2, top: 82 },
+  { left: 2, top: 27 }, { left: 51, top: 4 },
+  { left: 51, top: 56 }, { left: 2, top: 79 },
 ] as const
 const CHIP_WIDTH = 47
-const CHIP_HEIGHT = 12
+const CHIP_HEIGHT = 17
 const slotStyle = (index: number) => ({ left: `${SLOT_POSITIONS[index].left}%`, top: `${SLOT_POSITIONS[index].top}%` })
 const PAIR_COLORS = ["#38bdf8", "#fb923c"] as const
 
@@ -24,26 +24,29 @@ function initials(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("")
 }
 
+const LINE = "#ffffff"
+
 function CourtLines() {
   // Service lines are 6.95 m from the net on a 10 m half: 34.75 % of the court length each side.
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-[3%]">
-      <div className="absolute inset-0 border-2 border-white" />
-      <div className="absolute inset-x-0 h-0.5 -translate-y-1/2 bg-white/90" style={{ top: "15.25%" }} />
-      <div className="absolute inset-x-0 h-0.5 -translate-y-1/2 bg-white/90" style={{ top: "84.75%" }} />
-      <div className="absolute left-1/2 bottom-[15.25%] top-[15.25%] w-0.5 -translate-x-1/2 bg-white/90" />
-      <div className="absolute inset-x-[-3%] top-1/2 h-1.5 -translate-y-1/2 bg-white shadow-[0_0_6px_rgba(0,0,0,0.45)]" />
+      <div className="absolute inset-0" style={{ border: `2px solid ${LINE}` }} />
+      <div className="absolute inset-x-0 h-0.5 -translate-y-1/2" style={{ top: "15.25%", background: LINE }} />
+      <div className="absolute inset-x-0 h-0.5 -translate-y-1/2" style={{ top: "84.75%", background: LINE }} />
+      <div className="absolute left-1/2 w-0.5 -translate-x-1/2" style={{ top: "15.25%", bottom: "15.25%", background: LINE }} />
+      <div className="absolute inset-x-[-3%] top-1/2 h-1.5 -translate-y-1/2" style={{ background: LINE, boxShadow: "0 0 6px rgba(0,0,0,0.45)" }} />
     </div>
   )
 }
 
+// Win rate: a bar that goes from red (0 %) to green (100 %) with a marker where the player stands.
 function RatePill({ rate, label }: { rate: number | null; label: string }) {
   return (
-    <span className="mt-0.5 flex w-full items-center gap-1">
-      <span className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-neutral-200">
-        <span className="block h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${rate ?? 0}%` }} />
+    <span className="mt-0.5 flex w-full items-center gap-1.5" title={rate === null ? label : undefined}>
+      <span className="relative h-2 min-w-0 flex-1 rounded-full" style={{ background: rate === null ? "#9ca3af55" : "linear-gradient(90deg,#ef4444 0%,#eab308 50%,#22c55e 100%)" }}>
+        {rate === null ? null : <span className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow" style={{ left: `${Math.min(96, Math.max(4, rate))}%`, borderColor: "#ffffff", background: "#111827" }} />}
       </span>
-      <span className="shrink-0 type-caption font-bold leading-none text-neutral-500" title={rate === null ? label : undefined}>{rate === null ? "–" : `${rate}%`}</span>
+      <span className="w-9 shrink-0 text-right text-xs font-black leading-none text-neutral-600">{rate === null ? "–" : `${rate}%`}</span>
     </span>
   )
 }
@@ -211,7 +214,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
           </div>
         </div>
 
-        <div className="relative mt-2 flex min-h-64 w-full flex-1 select-none flex-col overflow-hidden rounded-2xl bg-slate-900 p-1.5 shadow-inner">
+        <div className="relative mt-2 flex min-h-[22rem] w-full flex-1 select-none flex-col overflow-hidden rounded-2xl bg-slate-900 p-1.5 shadow-inner">
           <div className="relative min-h-0 w-full flex-1 overflow-hidden rounded-xl" style={{ background: "linear-gradient(180deg,#2f7fd1 0%,#2563b0 50%,#2f7fd1 100%)" }}>
             <CourtLines />
             {[0, 1, 2, 3].map((index) => <div key={`slot-${index}`} data-slot-index={index} aria-hidden="true" className="absolute rounded-lg bg-white/10" style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%` }} />)}
@@ -232,16 +235,14 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                   onPointerUp={finishDrag}
                   onPointerCancel={() => setDrag(null)}
                   onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tapSlot(index) } }}
-                  className={`absolute flex touch-none cursor-grab items-center gap-1.5 rounded-lg bg-white px-1.5 text-left ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
-                  style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderLeft: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
+                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-0.5 rounded-lg bg-white px-2 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
+                  style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderTop: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
                 >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-xs font-black text-neutral-600" style={{ boxShadow: `0 0 0 2px ${color}` }}>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600" style={{ boxShadow: `0 0 0 2px ${color}` }}>
                     {chip.avatarUrl ? <img src={chip.avatarUrl} alt="" draggable={false} className="h-full w-full object-cover" /> : initials(chip.name)}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-xs font-black leading-tight text-neutral-950">{chip.name}</span>
-                    <RatePill rate={player.rate} label={tx("sin datos")} />
-                  </span>
+                  <span className="block w-full truncate text-sm font-black leading-tight text-neutral-950">{chip.name}</span>
+                  <RatePill rate={player.rate} label={tx("sin datos")} />
                 </button>
               )
             })}
