@@ -29,6 +29,7 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem("smash-lob:competition-launch-popup-v2:qa-v1-1@example.test", "dismissed")
     const guides = JSON.parse(localStorage.getItem("smash-lob-guided-onboarding-v1") ?? "{}")
     guides.competitions = { tourKey: "competitions", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null }
+    guides.home = { tourKey: "home", tourVersion: 7, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null }
     localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(guides))
     localStorage.setItem("smash-lob-user-league-memberships", JSON.stringify([{ userId: "qa-v1-1@example.test", leagueId: "league-smash-lob", playerId: "davo", role: "admin" }]))
   })

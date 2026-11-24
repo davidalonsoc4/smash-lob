@@ -209,14 +209,11 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           (tour) => tour.key === requestedTourKey && (tour.route === pathname || currentTour?.key === tour.key),
         ) ?? null
       : null
-    const candidate = requestedTour ?? currentTour
     const hasSeenWelcome = Boolean(progress.home || progress["app-introduction"])
-    // Las guías ya no se abren solas: solo la primera vez se avisa del botón de ayuda.
-    const includeFirstRunOnly =
-      !requestedTour &&
-      pathname === "/league/home" &&
-      candidate?.key === "home" &&
-      !hasSeenWelcome
+    // Las guías ya no se abren solas: solo la primera vez, en Mis competiciones (inicio de la app),
+    // se avisa del botón de ayuda con la bienvenida de la guía de inicio.
+    const includeFirstRunOnly = !requestedTour && pathname === "/leagues" && !hasSeenWelcome
+    const candidate = requestedTour ?? (includeFirstRunOnly ? availableTours.find((tour) => tour.key === "home") ?? null : currentTour)
     const shouldStart = Boolean(candidate) && (Boolean(requestedTour) || includeFirstRunOnly)
 
     if (!candidate || !shouldStart) {
