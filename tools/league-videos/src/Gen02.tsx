@@ -37,7 +37,7 @@ const Score: React.FC<{ x: number; y: number; sets: [number, number][]; winnerLe
 const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5), S6 = B30(6), END = B30(7);
-  const hookW = ["Cómo", "se", "puntúa", "en", "Smash", "and", "Lob"].map((w) => at(0, w));
+  const hookW = ["Cómo", "se", "puntúa", "en", "Smash", "&", "Lob"].map((w) => at(0, w));
   const setF = at(1, "set"), puntoF = at(1, "punto");
   const tresF = at(2, "tres", 1), dosF = at(2, "dos"), pierdeF = at(2, "pierde");
   const jugarF = at(3, "jugar"), cuentanF = at(3, "cuentan");
@@ -84,7 +84,7 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
         })}
       </div>
       {f >= ordenF && f < guardaF - 20 && <div style={{ marginTop: 24, textAlign: "center", fontSize: 32, fontWeight: 800, color: t.textMuted, opacity: pop(f, fps, ordenF, 10) }}>Ana y Carla empatan a puntos: decide la diferencia</div>}
-      {f >= guardaF - 20 && <div style={{ marginTop: 28, display: "flex", justifyContent: "center", opacity: pop(f, fps, guardaF - 20, 10) }}><div style={{ background: t.accent, color: t.accentContrast, borderRadius: 24, padding: "22px 60px", fontSize: 44, fontWeight: 900, transform: `scale(${saveK ? 0.96 : 1})`, boxShadow: saveK ? `0 0 0 8px ${t.accent}44` : "none" }}>Guardar resultado</div></div>}
+      {f >= guardaF - 20 && f < actF + 40 && <div style={{ marginTop: 28, display: "flex", justifyContent: "center", opacity: pop(f, fps, guardaF - 20, 10) }}><div style={{ background: t.accent, color: t.accentContrast, borderRadius: 24, padding: "22px 60px", fontSize: 44, fontWeight: 900, transform: `scale(${saveK ? 0.96 : 1})`, boxShadow: saveK ? `0 0 0 8px ${t.accent}44` : "none" }}>Guardar resultado</div></div>}
     </div>
   );
   return (

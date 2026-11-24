@@ -49,7 +49,7 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
             const tag = s.acc ? f >= cuentaF - 4 : f >= nombreF - 4;
             return (
               <div key={s.n} style={{ textAlign: "center", opacity: Math.min(1, q * 2), transform: `scale(${0.9 + 0.1 * q})` }}>
-                {s.acc ? <Av i={s.i} size={48} ring={canEdit(k) && f < borrarF - 6 ? t.accent : undefined} /> : <div style={{ width: 48, height: 48, borderRadius: "50%", background: t.mutedSurface, border: `1.5px dashed ${t.textSubtle}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, color: t.textMuted }}>{s.n[0]}</div>}
+                <div style={{ width: 52, height: 52, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", lineHeight: 0 }}>{s.acc ? <div style={{ width: 48, height: 48, lineHeight: 0, display: "block" }}><Av i={s.i} size={48} ring={canEdit(k) && f < borrarF - 6 ? t.accent : undefined} /></div> : <div style={{ width: 48, height: 48, borderRadius: "50%", boxSizing: "border-box", background: t.mutedSurface, border: `1.5px dashed ${t.textSubtle}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, lineHeight: 1, color: t.textMuted }}>{s.n[0]}</div>}</div>
                 <div style={{ fontSize: 12, fontWeight: 800, marginTop: 3 }}>{s.n}</div>
                 <div style={{ fontSize: 9.5, fontWeight: 900, marginTop: 1, color: s.acc ? t.accent : t.textMuted, opacity: tag ? 1 : 0 }}>{s.acc ? "CON CUENTA" : "SOLO NOMBRE"}</div>
               </div>

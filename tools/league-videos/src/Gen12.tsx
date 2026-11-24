@@ -26,7 +26,7 @@ const win = (f: number, a: number, b: number) => Math.min(ease((f - a) / 12), 1 
 const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5), S6 = B30(6), END = B30(7);
-  const hookW = ["Instala", "Smash", "and", "Lob", "en", "tu", "móvil"].map((w) => at(0, w));
+  const hookW = ["Instala", "Smash", "&", "Lob", "en", "tu", "móvil"].map((w) => at(0, w));
   const ofF = at(1, "ofrezca"), insF = at(1, "Instalar");
   const comF = at(2, "Compartir"), añaF = at(2, "Añadir");
   const iconF = at(3, "icono");

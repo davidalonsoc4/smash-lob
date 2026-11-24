@@ -21,7 +21,7 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const t = useTheme(); const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const S1 = B30(1), S2 = B30(2), S3 = B30(3), S4 = B30(4), S5 = B30(5);
-  const hookW = ["Cómo", "funciona", "una", "liga", "en", "Smash", "and", "Lob"].map((w) => at(0, w));
+  const hookW = ["Cómo", "funciona", "una", "liga", "en", "Smash", "&", "Lob"].map((w) => at(0, w));
   const parF = at(1, "parejas"), indF = at(1, "individual"), setF = at(1, "set"), puntoF = at(1, "punto");
   const jorF = at(2, "jornada"), camF = at(2, "cambia"), conF = at(2, "contra"), todF = at(2, "todos", 1);
   const unaF = at(3, "una"), idaF = at(3, "ida"), variasF = at(3, "varias");
