@@ -10,7 +10,8 @@ import { MatchCoinTossPanel } from "@/components/match/MatchCoinToss"
 import { rememberCoinToss } from "@/lib/matchCoinTossClient"
 import type { CoinToss } from "@/lib/matchCoinToss"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
-import { MatchChatFloatingAction } from "@/components/match/MatchChatFloatingAction"
+import { ActionsMenuShell } from "@/components/match/MatchActionsMenu"
+import { PersonalMatchPlayersSheet } from "@/components/personal/PersonalMatchPlayersSheet"
 import { PersonalMatchParticipantsPanel } from "@/components/personal/PersonalMatchParticipantsPanel"
 import { PersonalMatchCourtBookingPanel } from "@/components/personal/PersonalMatchCourtBookingPanel"
 import { PersonalMatchResultForm } from "@/components/personal/PersonalMatchResultForm"
@@ -40,6 +41,8 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
   const [editingResult, setEditingResult] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [playersOpen, setPlayersOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const revision = useRef(0)
 
@@ -139,7 +142,12 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
       scheduledAt={item.scheduledAt}
       resultRecordedAt={item.resultRecordedAt}
       headerActions={
-        <MatchChatFloatingAction href={`/personal-matches/${item.id}/chat`} />
+        <ActionsMenuShell
+          chatHref={`/personal-matches/${item.id}/chat`}
+          items={item.canManage && item.status === "scheduled" ? [{ key: "players", icon: "👥", label: tx("Gestionar jugadores"), onSelect: () => setPlayersOpen(true) }] : []}
+          menuOpen={menuOpen}
+          onMenuOpenChange={setMenuOpen}
+        />
       }
       pairing={{
         teamA: scoreboard.teamA,
@@ -157,6 +165,7 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
         teamNames={[1, 2].map(team => item.participants.filter(participant => participant.team === team).sort((a, b) => a.slot - b.slot).map(participant => participant.displayName).join(" + ")) as [string, string]} /></div>
 
       <div data-tour="friendly-participants"><PersonalMatchParticipantsPanel match={item} onUpdated={updateItem} /></div>
+      {playersOpen ? <PersonalMatchPlayersSheet key={item.participants.map(participant => participant.displayName).join("|")} match={item} onClose={() => setPlayersOpen(false)} onUpdated={updateItem} /> : null}
 
       <div data-tour="friendly-schedule" className="empty:hidden"><PersonalMatchSchedulePanel match={item} onUpdated={updateItem} /></div>
 

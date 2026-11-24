@@ -1,0 +1,177 @@
+/* eslint-disable @next/next/no-img-element */
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useI18n } from "@/i18n/I18nProvider"
+import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
+import { nextBalanced, pairId, pairingGap, shuffleList } from "@/lib/pairingBalance"
+import { sortPersonalMatchParticipants, type PersonalMatchItem } from "@/lib/personalMatches"
+
+type Chip = { id: string; name: string; avatarUrl: string | null; personKey: string | null; rate: number | null }
+type Stat = { personKey: string; winRate: number | null; matches: number }
+
+// Court seen from above: slots 0-1 are pair A (top), 2-3 pair B (bottom).
+const slotStyle = (index: number) => ({ left: index % 2 === 0 ? "3%" : "52%", top: index < 2 ? "6%" : "54%" })
+
+function initials(name: string) {
+  return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("")
+}
+
+export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match: PersonalMatchItem; onClose: () => void; onUpdated: (match: PersonalMatchItem) => void }) {
+  const { tx } = useI18n()
+  const [order, setOrder] = useState<Chip[]>(() => sortPersonalMatchParticipants(match.participants).map((participant, index) => ({
+    id: `p${index}`,
+    name: participant.displayName,
+    avatarUrl: participant.avatarUrl ?? null,
+    personKey: participant.personKey && !participant.personKey.startsWith("external:") ? participant.personKey : null,
+    rate: null,
+  })))
+  const [stats, setStats] = useState<Stat[]>([])
+  const [selected, setSelected] = useState<number | null>(null)
+  const [drag, setDrag] = useState<{ index: number; x: number; y: number; startX: number; startY: number } | null>(null)
+  const [shown, setShown] = useState<string[]>([])
+  const [note, setNote] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const courtRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    let active = true
+    fetch(`/api/personal-matches/${encodeURIComponent(match.id)}/pairing-stats`, { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { stats?: Stat[] } | null) => { if (active && payload?.stats) setStats(payload.stats) })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [match.id])
+
+  const players = useMemo(() => order.map((chip) => ({ ...chip, rate: stats.find((stat) => stat.personKey === chip.personKey)?.winRate ?? null })), [order, stats])
+  const pairPlayers = players.map((player) => ({ key: player.id, rate: player.rate }))
+  const hasRates = players.some((player) => player.rate !== null)
+  const teamRate = (a: number, b: number) => Math.round(((players[a].rate ?? 50) + (players[b].rate ?? 50)) / 2)
+  const original = useMemo(() => sortPersonalMatchParticipants(match.participants).map((participant) => `${participant.team}-${participant.slot}-${participant.displayName}`).join("|"), [match.participants])
+  const current = order.map((chip, index) => `${index < 2 ? 1 : 2}-${(index % 2) + 1}-${chip.name}`).join("|")
+  const changed = original !== current
+
+  function swap(from: number, to: number) {
+    if (from === to) return
+    setOrder((list) => { const next = [...list]; ;[next[from], next[to]] = [next[to], next[from]]; return next })
+    setNote(null)
+  }
+  function tapSlot(index: number) {
+    if (selected === null) setSelected(index)
+    else { swap(selected, index); setSelected(null) }
+  }
+  function mix() {
+    setOrder((list) => shuffleList(list))
+    setSelected(null)
+    setNote(null)
+  }
+  function balance() {
+    const fresh = shown.length >= 3 ? [] : shown
+    const next = nextBalanced(pairPlayers, fresh)
+    const same = pairId(next.order) === pairId(pairPlayers)
+    setOrder(next.order.map((player) => order.find((chip) => chip.id === player.key)!))
+    setShown([...fresh, next.id])
+    setSelected(null)
+    setNote(same ? tx("Estas parejas ya son las más equilibradas.") : fresh.length > 0 && next.exhausted ? tx("Ya has visto todas las combinaciones.") : null)
+  }
+
+  function slotFromPoint(x: number, y: number) {
+    for (const element of document.elementsFromPoint(x, y)) {
+      const slot = element.closest("[data-slot-index]")?.getAttribute("data-slot-index")
+      if (slot !== undefined && slot !== null && Number(slot) !== drag?.index) return Number(slot)
+    }
+    return null
+  }
+  function finishDrag(event: React.PointerEvent) {
+    if (!drag) return
+    const moved = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 8
+    const target = slotFromPoint(event.clientX, event.clientY)
+    if (moved && target !== null) { swap(drag.index, target); setSelected(null) }
+    else if (!moved) tapSlot(drag.index)
+    setDrag(null)
+  }
+
+  async function save() {
+    setSaving(true)
+    setError(null)
+    try {
+      const response = await fetch(`/api/personal-matches/${encodeURIComponent(match.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "participants", participants: order.map((chip, index) => ({ team: index < 2 ? 1 : 2, slot: (index % 2) + 1, personKey: chip.personKey, displayName: chip.name })) }),
+      })
+      const payload = (await response.json()) as { item?: PersonalMatchItem }
+      if (!response.ok || !payload.item) throw new Error("save_failed")
+      if (payload.item.status === "finished") requestPersonalProfileHistoryRefresh()
+      else requestMatchDashboardRefresh()
+      onUpdated(payload.item)
+      onClose()
+    } catch {
+      setError(tx("No se han podido guardar las parejas."))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={tx("Gestionar jugadores")} data-players-sheet className="fixed inset-0 z-[150] flex items-end justify-center bg-black/50" onClick={onClose}>
+      <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-4 pb-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between gap-3">
+          <p className="type-panel-title text-neutral-950">{tx("Gestionar jugadores")}</p>
+          <button type="button" onClick={onClose} aria-label={tx("Cerrar")} className="grid h-8 w-8 place-items-center rounded-full bg-neutral-100 text-neutral-600">✕</button>
+        </div>
+        <p className="mt-1 type-caption font-semibold text-neutral-500">{tx("Toca un jugador y luego otro para intercambiarlos, o arrástralo.")}</p>
+
+        <div className="mt-3 flex items-center justify-between type-caption font-black text-neutral-600">
+          <span>{tx("Pareja A")}{hasRates ? ` · ${teamRate(0, 1)}%` : ""}</span>
+        </div>
+        <div ref={courtRef} className="relative mt-1 w-full select-none overflow-hidden rounded-2xl border-2 border-white bg-emerald-600 ring-1 ring-emerald-800/30" style={{ aspectRatio: "10 / 12" }}>
+          <div aria-hidden="true" className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-white/90" />
+          <div aria-hidden="true" className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/50" />
+          {[0, 1, 2, 3].map((index) => <div key={`slot-${index}`} data-slot-index={index} aria-hidden="true" className="absolute h-[40%] w-[45%] rounded-xl border border-dashed border-white/50" style={slotStyle(index)} />)}
+          {order.map((chip, index) => {
+            const player = players[index]
+            const dragging = drag?.index === index
+            const base = slotStyle(index)
+            return (
+              <button
+                key={chip.id}
+                type="button"
+                data-slot-index={index}
+                data-player-chip
+                aria-pressed={selected === index}
+                onPointerDown={(event) => setDrag({ index, x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY })}
+                onPointerMove={(event) => { if (drag?.index === index) setDrag({ ...drag, x: event.clientX, y: event.clientY }) }}
+                onPointerUp={finishDrag}
+                onPointerCancel={() => setDrag(null)}
+                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tapSlot(index) } }}
+                className={`absolute flex h-[40%] w-[45%] touch-none flex-col items-center justify-center gap-1 rounded-xl bg-white px-1 text-center shadow-md ${dragging ? "z-20 scale-105" : "z-10 transition-all duration-300"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
+                style={{ ...base, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px)` } : {}) }}
+              >
+                <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600 ring-1 ring-neutral-200">
+                  {chip.avatarUrl ? <img src={chip.avatarUrl} alt="" draggable={false} className="h-full w-full object-cover" /> : initials(chip.name)}
+                </span>
+                <span className="w-full truncate text-xs font-black text-neutral-950">{chip.name}</span>
+                <span className="type-caption font-semibold text-neutral-500">{player.rate === null ? tx("sin datos") : `${player.rate}%`}</span>
+              </button>
+            )
+          })}
+        </div>
+        <div className="mt-1 flex items-center justify-between type-caption font-black text-neutral-600">
+          <span>{tx("Pareja B")}{hasRates ? ` · ${teamRate(2, 3)}%` : ""}</span>
+          {hasRates ? <span>{tx("Diferencia")}: {Math.round(pairingGap(pairPlayers))}%</span> : null}
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={mix} className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-900">🔀 {tx("Mezclar parejas")}</button>
+          <button type="button" onClick={balance} className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-900">⚖ {tx("Equilibrar parejas")}</button>
+        </div>
+        {note ? <p className="mt-2 type-caption font-semibold text-neutral-500">{note}</p> : null}
+        {error ? <p className="mt-2 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">{error}</p> : null}
+        <div className="mt-3 flex gap-2">
+          <button type="button" onClick={onClose} disabled={saving} className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm font-black text-neutral-800">{tx("Cancelar")}</button>
+          <button type="button" onClick={() => void save()} disabled={saving || !changed} className="flex-1 rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300">{saving ? tx("Guardando...") : tx("Guardar")}</button>
+        </div>
+      </div>
+    </div>
+  )
+}

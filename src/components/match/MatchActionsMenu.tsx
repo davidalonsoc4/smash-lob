@@ -22,25 +22,34 @@ function availability({ match, isAdmin, canReportIncident, canManageSubstitution
   return { hasOpenIncident, canOpenIncident, canOpenSubstitution, hasMenuActions: canOpenIncident || canOpenSubstitution }
 }
 
-export function MatchActionsTrigger({ match, isAdmin, canReportIncident, canManageSubstitutions, chatHref, menuOpen, onMenuOpenChange, onSelectPanel }: MatchActionsTriggerProps) {
+export type ActionsMenuItem = { key: string; icon: string; label: string; onSelect: () => void }
+
+// Floating chat link plus the three-dots menu; shared by league matches and friendlies.
+export function ActionsMenuShell({ chatHref, items, menuOpen, onMenuOpenChange }: { chatHref?: string | null; items: ActionsMenuItem[]; menuOpen: boolean; onMenuOpenChange: (open: boolean) => void }) {
   const { tx } = useI18n()
-  const { canOpenIncident, canOpenSubstitution, hasMenuActions } = availability({ match, isAdmin, canReportIncident, canManageSubstitutions })
-  if (!hasMenuActions && !chatHref) return null
-  const selectPanel = (panel: Exclude<MatchActionPanel, null>) => { onSelectPanel(panel); onMenuOpenChange(false) }
+  if (items.length === 0 && !chatHref) return null
   return (
     <div className="app-match-actions fixed z-40 flex flex-col items-end gap-2" style={{ right: "max(14px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 14px))", bottom: "calc(84px + env(safe-area-inset-bottom, 0px))" }}>
       {chatHref ? <MatchChatActionLink href={chatHref} /> : null}
-      {hasMenuActions ? <div data-tour="match-actions-menu" className="relative">
+      {items.length > 0 ? <div data-tour="match-actions-menu" className="relative">
         <button type="button" aria-expanded={menuOpen} aria-label={tx("Más acciones del partido")} title={tx("Más acciones")} onClick={() => onMenuOpenChange(!menuOpen)} className="app-floating-control grid h-10 w-10 place-items-center rounded-full border border-neutral-200 bg-white/95 text-neutral-600 shadow-lg backdrop-blur transition active:scale-95 active:bg-neutral-100">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor"><circle cx="5" cy="12" r="1.75" /><circle cx="12" cy="12" r="1.75" /><circle cx="19" cy="12" r="1.75" /></svg>
         </button>
         {menuOpen ? <div className="app-match-actions-menu absolute bottom-12 right-0 z-30 w-max min-w-52 max-w-[calc(100vw-28px)] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 text-left shadow-xl">
-          {canOpenIncident ? <button type="button" onClick={() => selectPanel("incident")} className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-black hover:bg-neutral-100"><span aria-hidden="true">⚠</span>{tx(match.incidentStatus ? "Ver o gestionar incidencia" : "Comunicar incidencia")}</button> : null}
-          {canOpenSubstitution ? <button type="button" onClick={() => selectPanel("substitution")} className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-black hover:bg-neutral-100"><span aria-hidden="true">↔</span>{tx("Gestionar suplente")}</button> : null}
+          {items.map((item) => <button key={item.key} type="button" onClick={() => { item.onSelect(); onMenuOpenChange(false) }} className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-black hover:bg-neutral-100"><span aria-hidden="true">{item.icon}</span>{item.label}</button>)}
         </div> : null}
       </div> : null}
     </div>
   )
+}
+
+export function MatchActionsTrigger({ match, isAdmin, canReportIncident, canManageSubstitutions, chatHref, menuOpen, onMenuOpenChange, onSelectPanel }: MatchActionsTriggerProps) {
+  const { tx } = useI18n()
+  const { canOpenIncident, canOpenSubstitution } = availability({ match, isAdmin, canReportIncident, canManageSubstitutions })
+  const items: ActionsMenuItem[] = []
+  if (canOpenIncident) items.push({ key: "incident", icon: "⚠", label: tx(match.incidentStatus ? "Ver o gestionar incidencia" : "Comunicar incidencia"), onSelect: () => onSelectPanel("incident") })
+  if (canOpenSubstitution) items.push({ key: "substitution", icon: "↔", label: tx("Gestionar suplente"), onSelect: () => onSelectPanel("substitution") })
+  return <ActionsMenuShell chatHref={chatHref} items={items} menuOpen={menuOpen} onMenuOpenChange={onMenuOpenChange} />
 }
 
 export function MatchActionsContent({ match, players, isAdmin, canReportIncident, canManageSubstitutions, openPanel, onOpenPanelChange }: MatchActionsContentProps) {
