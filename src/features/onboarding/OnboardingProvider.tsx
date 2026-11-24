@@ -35,7 +35,7 @@ type OnboardingContextValue = {
   progress: OnboardingProgressMap
   isLoading: boolean
   availableTours: OnboardingTourDefinition[]
-  startTour: (tour: OnboardingTourDefinition, options?: { includeFirstRunOnly?: boolean }) => void
+  startTour: (tour: OnboardingTourDefinition, options?: { includeFirstRunOnly?: boolean; helpIntroOnly?: boolean }) => void
   startCurrentTour: () => void
   nextStep: () => void
   previousStep: () => void
@@ -158,11 +158,14 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const startTour = useCallback((
     tour: OnboardingTourDefinition,
-    options: { includeFirstRunOnly?: boolean } = {},
+    options: { includeFirstRunOnly?: boolean; helpIntroOnly?: boolean } = {},
   ) => {
+    const launchSteps = getTourStepsForLaunch(tour, options)
     const launchTour = {
       ...tour,
-      steps: getTourStepsForLaunch(tour, options),
+      steps: options.helpIntroOnly
+        ? launchSteps.filter((step) => step.firstRunOnly || step.selector === "[data-tour='floating-help']")
+        : launchSteps,
     }
     const steps = getAvailableSteps(launchTour)
     if (steps.length === 0) return
@@ -203,19 +206,18 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     const requestedTour = requestedTourKey
       ? availableTours.find(
-          (tour) => tour.key === requestedTourKey && tour.route === pathname,
+          (tour) => tour.key === requestedTourKey && (tour.route === pathname || currentTour?.key === tour.key),
         ) ?? null
       : null
     const candidate = requestedTour ?? currentTour
-    const shouldStart = candidate
-      ? Boolean(requestedTour) || !hasCompletedCurrentTour(progress, candidate)
-      : false
     const hasSeenWelcome = Boolean(progress.home || progress["app-introduction"])
+    // Las guías ya no se abren solas: solo la primera vez se avisa del botón de ayuda.
     const includeFirstRunOnly =
       !requestedTour &&
       pathname === "/league/home" &&
       candidate?.key === "home" &&
       !hasSeenWelcome
+    const shouldStart = Boolean(candidate) && (Boolean(requestedTour) || includeFirstRunOnly)
 
     if (!candidate || !shouldStart) {
       autoStartedPathRef.current = autoStartKey
@@ -224,7 +226,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     const timeout = window.setTimeout(() => {
       autoStartedPathRef.current = autoStartKey
-      startTour(candidate, { includeFirstRunOnly })
+      startTour(candidate, { includeFirstRunOnly, helpIntroOnly: includeFirstRunOnly })
     }, 850)
 
     return () => window.clearTimeout(timeout)

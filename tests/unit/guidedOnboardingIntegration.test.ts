@@ -14,6 +14,10 @@ describe("guided onboarding integration", () => {
     expect(shell).toContain('data-tour="floating-notifications"')
     expect(provider).toContain("includeFirstRunOnly")
     expect(provider).toContain('progress["app-introduction"]')
+    // Las guías no se abren solas: solo la bienvenida con el aviso del botón de ayuda, o ?tour=.
+    expect(provider).toContain("helpIntroOnly")
+    expect(provider).toContain("Boolean(requestedTour) || includeFirstRunOnly")
+    expect(provider).not.toContain("!hasCompletedCurrentTour(progress, candidate)")
     expect(overlay).toContain("window.visualViewport")
     expect(overlay).toContain("maxHeight")
     expect(overlay).toContain("viewport.top + 12")
