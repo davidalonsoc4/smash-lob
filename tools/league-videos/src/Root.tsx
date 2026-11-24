@@ -10,6 +10,7 @@ import { Gen03Primera, GEN03_FRAMES } from "./Gen03";
 import { Gen05Sorteo, GEN05_FRAMES } from "./Gen05";
 import { Gen06Resultado, GEN06_FRAMES } from "./Gen06";
 import { Gen18Amistosos, GEN18_FRAMES } from "./Gen18";
+import { Gen02Puntuacion, GEN02_FRAMES } from "./Gen02";
 import { Chat2, CHAT2_FRAMES } from "./Chat2";
 import { Presentacion3, PRESENTACION3_FRAMES } from "./Presentacion3";
 import { Presentacion2, PRESENTACION2_FRAMES } from "./Presentacion2";
@@ -69,6 +70,7 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="Gen05Sorteo" component={Gen05Sorteo} durationInFrames={GEN05_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Gen06Resultado" component={Gen06Resultado} durationInFrames={GEN06_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Gen18Amistosos" component={Gen18Amistosos} durationInFrames={GEN18_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen02Puntuacion" component={Gen02Puntuacion} durationInFrames={GEN02_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="DiaPartido" component={DiaPartido} durationInFrames={DIAPARTIDO_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="LigaFormato" component={LigaFormato} durationInFrames={TOTAL_FRAMES} fps={30} width={1080} height={1920} />
   </>

@@ -76,4 +76,4 @@ Orden aprobado de guiones: 12, 13, 1, 3, 5, 6, 18, 21, 22a, 22b (guiones en la c
 
 ### Estado de los Tutoriales genéricos (prioridad A) — ver también `out/tutoriales-genericos-A.zip`
 Hechos (en revisión): 12 Instalar la app y avisos (31 s), 13 Configurar notificaciones (40 s, `Gen13Notificaciones`), 1 Cómo funciona una liga (35 s, `Gen01ComoFunciona`), 3 Tu primera jornada (47 s, `Gen03Primera`), 5 Sorteo del saque (31 s, `Gen05Sorteo`), 6 Subir el resultado (47 s, `Gen06Resultado`), 18 Partidos amistosos (29 s, `Gen18Amistosos`). Código en `src/Gen*.tsx` + `src/GenKit.tsx`; voces en `assets/gen*/` y `src/voice_gen*.ts`.
-Pendiente de la prioridad A: **2 Cómo se puntúa** (guion por aprobar). Miniaturas «TUTORIAL NN» (16:9). Los de «Crear…» (21, 22a, 22b) y todo el bloque de administración quedan aparcados (solo hay un usuario con rol de creador).
+Hecho también: 2 Cómo se puntúa (34 s, `Gen02Puntuacion`; guion aprobado). Con él, **toda la prioridad A está hecha** (8 tutoriales; en revisión). Miniaturas «TUTORIAL NN» (16:9). Los de «Crear…» (21, 22a, 22b) y todo el bloque de administración quedan aparcados (solo hay un usuario con rol de creador).
