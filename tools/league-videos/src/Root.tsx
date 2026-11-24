@@ -12,6 +12,15 @@ import { Gen06Resultado, GEN06_FRAMES } from "./Gen06";
 import { Gen18Amistosos, GEN18_FRAMES } from "./Gen18";
 import { Gen10Bolas, GEN10_FRAMES } from "./Gen10";
 import { Gen15Apariencia, GEN15_FRAMES } from "./Gen15";
+import { Gen17Espectadores, GEN17_FRAMES } from "./Gen17";
+import { Gen21Crealiga, GEN21_FRAMES } from "./Gen21";
+import { Gen22Temporada, GEN22_FRAMES } from "./Gen22";
+import { Gen23Gestion, GEN23_FRAMES } from "./Gen23";
+import { Gen24Economia, GEN24_FRAMES } from "./Gen24";
+import { Gen25Comunicados, GEN25_FRAMES } from "./Gen25";
+import { Gen26Roles, GEN26_FRAMES } from "./Gen26";
+import { Gen27Cierre, GEN27_FRAMES } from "./Gen27";
+import { Gen28Kit, GEN28_FRAMES } from "./Gen28";
 import { Gen02Puntuacion, GEN02_FRAMES } from "./Gen02";
 import { Liga08Resultado, LIGA08_FRAMES } from "./Liga08";
 import { Liga09Cuenta, LIGA09_FRAMES } from "./Liga09";
@@ -85,6 +94,15 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="Gen18Amistosos" component={Gen18Amistosos} durationInFrames={GEN18_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Gen10Bolas" component={Gen10Bolas} durationInFrames={GEN10_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Gen15Apariencia" component={Gen15Apariencia} durationInFrames={GEN15_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen17Espectadores" component={Gen17Espectadores} durationInFrames={GEN17_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen21Crealiga" component={Gen21Crealiga} durationInFrames={GEN21_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen22Temporada" component={Gen22Temporada} durationInFrames={GEN22_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen23Gestion" component={Gen23Gestion} durationInFrames={GEN23_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen24Economia" component={Gen24Economia} durationInFrames={GEN24_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen25Comunicados" component={Gen25Comunicados} durationInFrames={GEN25_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen26Roles" component={Gen26Roles} durationInFrames={GEN26_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen27Cierre" component={Gen27Cierre} durationInFrames={GEN27_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen28Kit" component={Gen28Kit} durationInFrames={GEN28_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Gen02Puntuacion" component={Gen02Puntuacion} durationInFrames={GEN02_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Liga08Resultado" component={Liga08Resultado} durationInFrames={LIGA08_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Liga09Cuenta" component={Liga09Cuenta} durationInFrames={LIGA09_FRAMES} fps={30} width={1080} height={1920} />
