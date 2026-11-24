@@ -15,6 +15,13 @@ import { Liga08Resultado, LIGA08_FRAMES } from "./Liga08";
 import { Liga09Cuenta, LIGA09_FRAMES } from "./Liga09";
 import { Liga10Clasificacion, LIGA10_FRAMES } from "./Liga10";
 import { Liga11Amistosos, LIGA11_FRAMES } from "./Liga11";
+import { Gen04Estados, GEN04_FRAMES } from "./Gen04";
+import { Gen07Confirmar, GEN07_FRAMES } from "./Gen07";
+import { Gen08Mvp, GEN08_FRAMES } from "./Gen08";
+import { Gen09Aplazar, GEN09_FRAMES } from "./Gen09";
+import { Gen11Pagos, GEN11_FRAMES } from "./Gen11";
+import { Gen14Perfil, GEN14_FRAMES } from "./Gen14";
+import { Gen16Estadisticas, GEN16_FRAMES } from "./Gen16";
 import { Chat2, CHAT2_FRAMES } from "./Chat2";
 import { Presentacion3, PRESENTACION3_FRAMES } from "./Presentacion3";
 import { Presentacion2, PRESENTACION2_FRAMES } from "./Presentacion2";
@@ -79,6 +86,13 @@ export const RemotionRoot: React.FC = () => (
     <Composition id="Liga09Cuenta" component={Liga09Cuenta} durationInFrames={LIGA09_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Liga10Clasificacion" component={Liga10Clasificacion} durationInFrames={LIGA10_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="Liga11Amistosos" component={Liga11Amistosos} durationInFrames={LIGA11_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen04Estados" component={Gen04Estados} durationInFrames={GEN04_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen07Confirmar" component={Gen07Confirmar} durationInFrames={GEN07_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen08Mvp" component={Gen08Mvp} durationInFrames={GEN08_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen09Aplazar" component={Gen09Aplazar} durationInFrames={GEN09_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen11Pagos" component={Gen11Pagos} durationInFrames={GEN11_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen14Perfil" component={Gen14Perfil} durationInFrames={GEN14_FRAMES} fps={30} width={1080} height={1920} />
+    <Composition id="Gen16Estadisticas" component={Gen16Estadisticas} durationInFrames={GEN16_FRAMES} fps={30} width={1080} height={1920} />
     <Composition id="DiaPartido" component={DiaPartido} durationInFrames={DIAPARTIDO_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ league: PRO_LEAGUE }} />
     <Composition id="LigaFormato" component={LigaFormato} durationInFrames={TOTAL_FRAMES} fps={30} width={1080} height={1920} />
   </>
