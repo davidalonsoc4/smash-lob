@@ -83,3 +83,5 @@ Norma de los Tutoriales genéricos: **sin escena de cierre con logo y frase**; l
 Preferencia de entrega: **no enviar zips** (el usuario los ve desde el móvil): enviar vídeos y miniaturas como archivos sueltos.
 
 Fix (24-nov): la transcripción de ElevenLabs convierte «and» en «&» en `VOICE`; las animaciones deben buscar «&», no «and» (afectó a 1, 2 y 12). Pendiente: el 13 dice «eme-uve-pe» en vez de «Em-Bi-Pi» (regenerar solo las 2 frases con MVP y empalmar; la cuenta de ElevenLabs tenía 344 créditos restantes al intentarlo con la toma completa de 534).
+
+Actualización: cuenta ElevenLabs ampliada a Creator (121.344 créditos/mes, reinicio ~24-dic). El 13 rehecho con «Em-Bi-Pi» (534 créditos); los subtítulos muestran «MVP».
