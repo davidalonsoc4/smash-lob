@@ -79,3 +79,5 @@ Hechos (en revisión): 12 Instalar la app y avisos (31 s), 13 Configurar notific
 Hecho también: 2 Cómo se puntúa (34 s, `Gen02Puntuacion`; guion aprobado). Con él, **toda la prioridad A está hecha** (8 tutoriales; en revisión). Miniaturas «TUTORIAL NN» (16:9). Los de «Crear…» (21, 22a, 22b) y todo el bloque de administración quedan aparcados (solo hay un usuario con rol de creador).
 
 Norma de los Tutoriales genéricos: **sin escena de cierre con logo y frase**; la última frase de la locución va dentro del vídeo (etiqueta/texto en pantalla) y el vídeo acaba con una cola corta sin voz (logo + pelota), igual que 3, 5 y 6. Aplicado a 2, 12, 13 y 18.
+
+Preferencia de entrega: **no enviar zips** (el usuario los ve desde el móvil): enviar vídeos y miniaturas como archivos sueltos.
