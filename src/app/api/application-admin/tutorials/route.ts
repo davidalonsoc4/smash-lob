@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   const created = await auth.actor.supabase
     .from("tutorial_videos")
     .insert({
-      title: fields.title, description: fields.description, audience: fields.audience, screen: fields.screen,
+      title: fields.title, description: fields.description, audience: fields.audience, screen: fields.screen, category: fields.category,
       ...tutorialScheduleColumns(fields, input.announce === true),
       position: ((last.data?.position as number | undefined) ?? 0) + 1,
       video_path: videoPath, poster_path: posterPath,

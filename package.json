@@ -1,6 +1,6 @@
 {
   "name": "smash-lob",
-  "version": "1.22.8",
+  "version": "1.22.9-pre.1",
   "private": true,
   "scripts": {
     "predev": "npm run env:check",
@@ -24,8 +24,8 @@
     "public-urls:check": "node scripts/check-public-app-urls.mjs",
     "migrations:check": "node scripts/check-identity-migrations.mjs",
     "release:check": "npm run validate && npm run test:e2e && npm audit --omit=dev --audit-level=high",
-    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.22.8 pre",
-    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.22.8 prod",
+    "smoke:pre": "node scripts/smoke-deployment.mjs https://pre.smashandlob.com 1.22.9-pre.1 pre",
+    "smoke:prod": "node scripts/smoke-deployment.mjs https://smashandlob.com 1.22.9 prod",
     "api-security:check": "node scripts/check-api-security-inventory.mjs",
     "api-security:update": "node scripts/check-api-security-inventory.mjs --write",
     "quality:source": "node scripts/check-source-budgets.mjs",
@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",
+    "fflate": "~0.8.3",
     "next": "16.4.6",
     "next-auth": "5.0.0-beta.32",
     "qrcode-generator": "^2.0.4",

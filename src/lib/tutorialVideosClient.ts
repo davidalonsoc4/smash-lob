@@ -70,6 +70,8 @@ export type TutorialDraft = {
   publishAt: string | null
   /** Screen the video explains (an id of TUTORIAL_SCREENS); null for a general video. */
   screen: string | null
+  /** "app" (tutorial of the application) or "social" (social media material, managers only). */
+  category: "app" | "social"
 }
 
 /** ISO moment -> value of a datetime-local input (the viewer's own time zone). */

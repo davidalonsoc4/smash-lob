@@ -5,7 +5,7 @@ import { inspectMp4, moveMoovToFront } from "@/lib/mp4"
 import { extractVideoPoster } from "@/lib/videoPoster"
 import { TUTORIAL_FILE_ACCEPT, TUTORIAL_SCREENS, getTutorialFileRule, type TutorialAudience } from "@/lib/tutorialVideos"
 import { createTutorial, fromLocalInputValue, toLocalInputValue, updateTutorial, uploadTutorialFile, type TutorialDraft, type TutorialLeagueOption, type TutorialSaveResult } from "@/lib/tutorialVideosClient"
-import { planBulkTutorials, type BulkTutorialEntry, type BulkTutorialPlan } from "@/lib/tutorialBulk"
+import { isZipFile, planBulkTutorials, readZipFiles, type BulkTutorialEntry, type BulkTutorialPlan } from "@/lib/tutorialBulk"
 import { useI18n } from "@/i18n/I18nProvider"
 
 type Picked = { file: File; poster: Blob | null; width: number | null; height: number | null; durationMs: number | null }
@@ -29,7 +29,8 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
   const [busy, setBusy] = useState(false)
   const [announce, setAnnounce] = useState(true)
   const [notice, setNotice] = useState<string | null>(null)
-  const pendingLeagues = draft.audience === "leagues" ? draft.leagueIds.filter((id) => !announcedLeagueIds.includes(id)) : []
+  const social = draft.category === "social"
+  const pendingLeagues = !social && draft.audience === "leagues" ? draft.leagueIds.filter((id) => !announcedLeagueIds.includes(id)) : []
   const wantsAnnouncement = announce && pendingLeagues.length > 0
 
   /** Closes the form, unless some league could not be notified: then the admin must see which one. */
@@ -40,7 +41,7 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
     setNotice(`${tx("Guardado, pero no se ha publicado el aviso en el chat de:")} ${names}. ${tx("Comprueba que la liga tenga una temporada en curso o sin comenzar.")}`)
   }
 
-  const valid = draft.title.trim().length > 0 && (editingId !== null || picked !== null) && (draft.audience !== "leagues" || draft.leagueIds.length > 0)
+  const valid = draft.title.trim().length > 0 && (editingId !== null || picked !== null) && (social || draft.audience !== "leagues" || draft.leagueIds.length > 0)
 
   async function pick(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -81,7 +82,7 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
     if (!valid || busy) return
     setBusy(true)
     setError(null)
-    const fields = { ...draft, title: draft.title.trim(), description: draft.description.trim(), publishAt: draft.audience === "draft" ? null : draft.publishAt }
+    const fields = { ...draft, title: draft.title.trim(), description: draft.description.trim(), publishAt: social || draft.audience === "draft" ? null : draft.publishAt, ...(social ? { audience: "draft" as const, leagueIds: [], screen: null } : {}) }
     if (editingId) {
       const newPosterPath = customPoster ? await uploadTutorialFile(customPoster, customPoster.type) : null
       if (customPoster && !newPosterPath) { setBusy(false); setError(tx("No se ha podido subir la miniatura.")); return }
@@ -144,6 +145,14 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
         <textarea value={draft.description} rows={2} maxLength={500} disabled={busy} onChange={(event) => setDraft({ ...draft, description: event.target.value })} className="mt-1 w-full rounded-lg border border-neutral-400 p-2 text-base text-neutral-950" />
       </label>
       <label className="block text-xs font-semibold text-neutral-600">
+        {tx("Tipo de vídeo")}
+        <select value={draft.category} disabled={busy} onChange={(event) => setDraft({ ...draft, category: event.target.value === "social" ? "social" : "app" })} className="mt-1 w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950">
+          <option value="app">{tx("Tutorial de la aplicación")}</option>
+          <option value="social">{tx("Redes sociales (solo lo ves tú)")}</option>
+        </select>
+      </label>
+      {social ? null : <>
+      <label className="block text-xs font-semibold text-neutral-600">
         {tx("Pantalla del vídeo (opcional)")}
         <select value={draft.screen ?? ""} disabled={busy} onChange={(event) => setDraft({ ...draft, screen: event.target.value || null })} className="mt-1 w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950">
           <option value="">{tx("Vídeo general (sin pantalla)")}</option>
@@ -189,6 +198,7 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
           <span className="min-w-0 text-xs font-bold leading-snug text-neutral-950"><span className="block text-sm font-black">{tx("Avisar en el chat de la liga")}</span><span className="block font-semibold text-neutral-600">{tx("Publica una Novedad firmada por la liga y avisa a todos sus participantes. Solo se avisa una vez a cada liga.")}</span></span>
         </label>
       ) : null}
+      </>}
       {progress !== null ? <div role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100} className="h-2 overflow-hidden rounded-full bg-neutral-200"><div className="h-full bg-neutral-950" style={{ width: `${Math.round(progress * 100)}%` }} /></div> : null}
       {error ? <p role="alert" className="text-xs font-bold text-red-700">{error}</p> : null}
       {notice ? (
@@ -202,23 +212,41 @@ export function TutorialForm({ editingId, initial, leagues, announcedLeagueIds =
 }
 
 type BulkRow = BulkTutorialEntry & { screen: string; state: "pending" | "uploading" | "done" | "failed"; progress: number }
+type BulkDestination = "generic" | "leagues" | "social"
 
-/** Uploads many tutorials at once: pick all the files, check the titles, and each video is uploaded and recorded in turn. */
-export function TutorialBulkForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+/**
+ * Uploads many tutorials at once: pick the files (or a .zip with them), say where they go, check the titles,
+ * and each video is uploaded and recorded in turn together with the thumbnail that has the same name.
+ */
+export function TutorialBulkForm({ leagues, onDone, onCancel }: { leagues: TutorialLeagueOption[]; onDone: () => void; onCancel: () => void }) {
   const { tx } = useI18n()
   const [rows, setRows] = useState<BulkRow[]>([])
   const [ignored, setIgnored] = useState<BulkTutorialPlan["ignored"]>([])
+  const [destination, setDestination] = useState<BulkDestination>("generic")
   const [audience, setAudience] = useState<"draft" | "public">("draft")
+  const [leagueIds, setLeagueIds] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
+  const [reading, setReading] = useState(false)
+  const [zipError, setZipError] = useState(false)
 
-  function choose(event: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? [])
+  async function choose(event: ChangeEvent<HTMLInputElement>) {
+    const chosen = Array.from(event.target.files ?? [])
     event.target.value = ""
+    if (!chosen.length) return
+    setZipError(false)
+    setReading(true)
+    const files: File[] = []
+    for (const file of chosen) {
+      if (!isZipFile(file)) { files.push(file); continue }
+      try { files.push(...(await readZipFiles(file))) } catch { setZipError(true) }
+    }
+    setReading(false)
     const plan = planBulkTutorials(files)
     setIgnored(plan.ignored)
     setRows(plan.entries.map((entry) => ({ ...entry, screen: "", state: "pending", progress: 0 })))
   }
   const patch = (key: string, change: Partial<BulkRow>) => setRows((current) => current.map((row) => (row.key === key ? { ...row, ...change } : row)))
+  const toggleLeague = (id: string) => setLeagueIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]))
 
   async function uploadRow(row: BulkRow) {
     patch(row.key, { state: "uploading", progress: 0 })
@@ -233,7 +261,11 @@ export function TutorialBulkForm({ onDone, onCancel }: { onDone: () => void; onC
     if (!videoPath) return false
     const posterPath = row.poster ? await uploadTutorialFile(row.poster, row.poster.type) : frame?.blob ? await uploadTutorialFile(frame.blob, "image/jpeg") : null
     const created = await createTutorial({
-      title: row.title.trim(), description: "", audience, leagueIds: [], publishAt: null, screen: row.screen || null,
+      title: row.title.trim(), description: "", publishAt: null,
+      audience: destination === "leagues" ? "leagues" : destination === "social" ? "draft" : audience,
+      leagueIds: destination === "leagues" ? leagueIds : [],
+      category: destination === "social" ? "social" : "app",
+      screen: destination === "generic" ? row.screen || null : null,
       videoPath, posterPath, width: frame?.width ?? null, height: frame?.height ?? null, durationMs: frame?.durationMs ?? null, announce: false,
     })
     return created.ok
@@ -253,9 +285,14 @@ export function TutorialBulkForm({ onDone, onCancel }: { onDone: () => void; onC
 
   const pending = rows.filter((row) => row.state !== "done").length
   const allDone = rows.length > 0 && pending === 0
-  const valid = rows.length > 0 && rows.every((row) => row.title.trim().length > 0)
+  const valid = rows.length > 0 && rows.every((row) => row.title.trim().length > 0) && (destination !== "leagues" || leagueIds.length > 0)
   const reasons = { not_supported: tx("formato no admitido"), too_big: tx("archivo demasiado grande"), no_video: tx("imagen sin vídeo con el mismo nombre") }
   const stateLabel = { pending: tx("Pendiente"), uploading: tx("Subiendo…"), done: tx("Subido"), failed: tx("Ha fallado: vuelve a pulsar Subir") }
+  const destinations: { value: BulkDestination; label: string; hint: string }[] = [
+    { value: "generic", label: tx("Genéricos"), hint: tx("Tutoriales de la aplicación para todo el mundo.") },
+    { value: "leagues", label: tx("Ligas"), hint: tx("Solo los ven los miembros de las ligas que marques.") },
+    { value: "social", label: tx("Redes sociales"), hint: tx("Material para redes. Solo lo ves tú.") },
+  ]
 
   return (
     <div className="space-y-3">
@@ -273,30 +310,65 @@ export function TutorialBulkForm({ onDone, onCancel }: { onDone: () => void; onC
         )}
       </div>
       {!rows.length ? (
-        <label className="block text-xs font-semibold text-neutral-600">
-          {tx("Elige todos los archivos de una vez: los vídeos MP4 y, si quieres, sus miniaturas con el mismo nombre (JPG, PNG o WebP).")}
-          <input type="file" multiple accept="video/mp4,image/jpeg,image/png,image/webp" onChange={choose} className="mt-2 block w-full text-sm" />
-        </label>
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-neutral-600">{tx("Elige los vídeos MP4 y, si quieres, sus miniaturas con el mismo nombre (JPG, PNG o WebP), o un archivo .zip que los contenga.")}</p>
+          <label className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white focus-within:ring-2 focus-within:ring-neutral-950 focus-within:ring-offset-2 aria-disabled:opacity-40" aria-disabled={reading}>
+            {tx("Elegir vídeos e imágenes")}
+            <input type="file" multiple data-bulk-files accept="video/mp4,image/jpeg,image/png,image/webp" disabled={reading} onChange={(event) => void choose(event)} className="sr-only" />
+          </label>
+          <label className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-xl bg-neutral-100 px-4 text-center text-sm font-black text-neutral-950 focus-within:ring-2 focus-within:ring-neutral-950 focus-within:ring-offset-2 aria-disabled:opacity-40" aria-disabled={reading}>
+            {tx("Elegir un archivo .zip")}
+            <input type="file" data-bulk-zip accept=".zip,application/zip,application/x-zip-compressed" disabled={reading} onChange={(event) => void choose(event)} className="sr-only" />
+          </label>
+          {reading ? <p className="text-xs font-bold text-neutral-700">{tx("Leyendo el archivo…")}</p> : null}
+        </div>
       ) : null}
+      {zipError ? <p role="alert" className="text-xs font-bold text-red-700">{tx("No se ha podido leer el .zip. Comprueba que no esté dañado.")}</p> : null}
       {rows.length ? (
-        <fieldset className="space-y-1.5" disabled={busy}>
-          <legend className="text-xs font-semibold text-neutral-600">{tx("¿Quién los ve?")}</legend>
-          {(["draft", "public"] as const).map((value) => (
-            <label key={value} className="flex items-center gap-2 rounded-xl bg-neutral-100 p-2 text-sm font-black text-neutral-950">
-              <input type="radio" name="bulk-audience" checked={audience === value} onChange={() => setAudience(value)} />
-              {value === "draft" ? tx("Borrador (solo tú; los publicas después)") : tx("Público (cualquier persona con sesión)")}
-            </label>
-          ))}
-        </fieldset>
+        <>
+          <fieldset className="space-y-1.5" disabled={busy}>
+            <legend className="text-xs font-semibold text-neutral-600">{tx("¿Dónde van?")}</legend>
+            {destinations.map((option) => (
+              <label key={option.value} className="flex items-start gap-2 rounded-xl bg-neutral-100 p-2">
+                <input type="radio" name="bulk-destination" checked={destination === option.value} onChange={() => setDestination(option.value)} className="mt-1" />
+                <span><span className="block text-sm font-black text-neutral-950">{option.label}</span><span className="block text-xs font-semibold text-neutral-600">{option.hint}</span></span>
+              </label>
+            ))}
+          </fieldset>
+          {destination === "generic" ? (
+            <fieldset className="space-y-1.5" disabled={busy}>
+              <legend className="text-xs font-semibold text-neutral-600">{tx("¿Quién los ve?")}</legend>
+              {(["draft", "public"] as const).map((value) => (
+                <label key={value} className="flex items-center gap-2 rounded-xl bg-neutral-100 p-2 text-sm font-black text-neutral-950">
+                  <input type="radio" name="bulk-audience" checked={audience === value} onChange={() => setAudience(value)} />
+                  {value === "draft" ? tx("Borrador (solo tú; los publicas después)") : tx("Público (cualquier persona con sesión)")}
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
+          {destination === "leagues" ? (
+            <fieldset className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-neutral-300 p-2" disabled={busy}>
+              <legend className="px-1 text-xs font-semibold text-neutral-600">{tx("Ligas")}</legend>
+              {leagues.map((league) => (
+                <label key={league.id} className="flex items-center gap-2 py-1 text-sm font-semibold text-neutral-950">
+                  <input type="checkbox" checked={leagueIds.includes(league.id)} onChange={() => toggleLeague(league.id)} />
+                  <span className="min-w-0 truncate">{league.name}</span>
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
+        </>
       ) : null}
       {rows.map((row) => (
         <div key={row.key} data-bulk-row className="space-y-1.5 rounded-xl border border-neutral-300 p-2">
           <p className="truncate text-xs font-semibold text-neutral-600">{row.video.name}{row.poster ? ` + ${row.poster.name}` : ""}</p>
           <input value={row.title} maxLength={120} disabled={busy || row.state === "done"} onChange={(event) => patch(row.key, { title: event.target.value })} aria-label={tx("Título")} className="w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950" />
-          <select value={row.screen} disabled={busy || row.state === "done"} onChange={(event) => patch(row.key, { screen: event.target.value })} aria-label={tx("Pantalla del vídeo (opcional)")} className="w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950">
-            <option value="">{tx("Vídeo general (sin pantalla)")}</option>
-            {TUTORIAL_SCREENS.map((screen) => <option key={screen.id} value={screen.id}>{tx(screen.label)}</option>)}
-          </select>
+          {destination === "generic" ? (
+            <select value={row.screen} disabled={busy || row.state === "done"} onChange={(event) => patch(row.key, { screen: event.target.value })} aria-label={tx("Pantalla del vídeo (opcional)")} className="w-full rounded-lg border border-neutral-400 px-2.5 py-1.5 text-base text-neutral-950">
+              <option value="">{tx("Vídeo general (sin pantalla)")}</option>
+              {TUTORIAL_SCREENS.map((screen) => <option key={screen.id} value={screen.id}>{tx(screen.label)}</option>)}
+            </select>
+          ) : null}
           <p className={`text-xs font-bold ${row.state === "failed" ? "text-red-700" : "text-neutral-700"}`}>
             {stateLabel[row.state]}{row.state === "uploading" ? ` ${Math.round(row.progress * 100)}%` : ""}
           </p>

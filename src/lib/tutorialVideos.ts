@@ -5,6 +5,17 @@ export const TUTORIAL_URL_TTL_SECONDS = 60 * 60 * 6
 export type TutorialAudience = "draft" | "public" | "leagues"
 export const TUTORIAL_AUDIENCES: TutorialAudience[] = ["draft", "public", "leagues"]
 
+/** 'app' = tutorial of the application (with its audience); 'social' = material for social media, only seen by whoever manages tutorials. */
+export type TutorialCategory = "app" | "social"
+export const TUTORIAL_CATEGORIES: TutorialCategory[] = ["app", "social"]
+
+/** The tab of Help a tutorial belongs to: generic, league videos or social media. */
+export type TutorialGroup = "generic" | "leagues" | "social"
+export function getTutorialGroup(category: TutorialCategory | null | undefined, audience: TutorialAudience): TutorialGroup {
+  if (category === "social") return "social"
+  return audience === "leagues" ? "leagues" : "generic"
+}
+
 const FILE_TYPES = {
   "video/mp4": { kind: "video", extension: "mp4", maxBytes: 50 * 1024 * 1024 },
   "image/jpeg": { kind: "poster", extension: "jpg", maxBytes: 5 * 1024 * 1024 },
@@ -76,6 +87,8 @@ export type TutorialAccess = {
   /** Scheduled publication (ISO). Until then only managers see it. */
   publishAt?: string | null
   now?: number
+  /** Social media material is only seen by the managers, whatever its audience. */
+  category?: TutorialCategory | null
 }
 
 /** True while a tutorial is scheduled for a moment that has not come yet. */
@@ -86,8 +99,9 @@ export function isTutorialScheduled(publishAt: string | null | undefined, now = 
 }
 
 /** Who sees a tutorial: the manager sees all; everyone with a session sees 'public'; members see their leagues'. */
-export function canViewTutorial({ audience, leagueIds, memberLeagueIds, isSuperuser, publishAt, now }: TutorialAccess) {
+export function canViewTutorial({ audience, leagueIds, memberLeagueIds, isSuperuser, publishAt, now, category }: TutorialAccess) {
   if (isSuperuser) return true
+  if (category === "social") return false
   if (isTutorialScheduled(publishAt, now)) return false
   if (audience === "public") return true
   if (audience === "leagues") return leagueIds.some((id) => memberLeagueIds.includes(id))
@@ -106,10 +120,17 @@ export type TutorialSummary = {
   seen: boolean
   /** Screen this video explains (see TUTORIAL_SCREENS); empty when it is general. */
   screen?: string | null
+  /** Tab of Help it belongs to. */
+  group?: TutorialGroup
+  /** Leagues of a league video (only the ones this person may see). */
+  leagues?: { id: string; name: string }[]
+  /** Only the managers see it (not published yet). */
+  draft?: boolean
 }
 
 export type TutorialAdminItem = TutorialSummary & {
   audience: TutorialAudience
+  category: TutorialCategory
   leagueIds: string[]
   /** Leagues that already received the automatic notice in their chat. */
   announcedLeagueIds: string[]

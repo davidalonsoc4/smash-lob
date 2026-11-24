@@ -2084,7 +2084,7 @@ test("bulk upload pairs videos with pictures, keeps the file order and records e
   await page.goto("/admin/tutorials")
   await page.locator("[data-bulk-open]").click()
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64")
-  await page.locator('input[type="file"]').setInputFiles([
+  await page.locator("[data-bulk-files]").setInputFiles([
     { name: "02_chat-de-la-liga.mp4", mimeType: "video/mp4", buffer: Buffer.alloc(2000) },
     { name: "02_chat-de-la-liga.png", mimeType: "image/png", buffer: png },
     { name: "01_bienvenida.mp4", mimeType: "video/mp4", buffer: Buffer.alloc(2000) },
@@ -2207,4 +2207,85 @@ test("tutorial management shows which leagues still have the notice pending", as
   await expect(pending).toContainText("Edita y guarda para reintentarlo")
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})
+
+test("help sorts the video tutorials into light tabs: generic, leagues and social media", async ({ page }) => {
+  await setup(page, "light", "classic")
+  const base = { description: "", posterUrl: null, width: null, height: null, durationMs: 60_000, seen: false }
+  const tutorials = [
+    { ...base, id: "g1", title: "Cómo apuntarte a una liga", position: 1, group: "generic", leagues: [] },
+    { ...base, id: "g2", title: "Subir un resultado", position: 2, group: "generic", leagues: [], seen: true },
+    { ...base, id: "l1", title: "Reglas de la Liga Norte", position: 3, group: "leagues", leagues: [{ id: "a", name: "Liga Norte" }] },
+    { ...base, id: "l2", title: "Reglas de la Liga Sur", position: 4, group: "leagues", leagues: [{ id: "b", name: "Liga Sur" }] },
+    { ...base, id: "s1", title: "Reel de bienvenida", position: 5, group: "social", leagues: [], draft: true },
+  ]
+  await page.route("**/api/tutorials**", route => new URL(route.request().url()).pathname === "/api/tutorials" ? route.fulfill({ json: { tutorials } }) : route.fulfill({ json: { videoUrl: "http://localhost/none.mp4" } }))
+  await page.goto("/help")
+  const section = page.locator("#videos-tutoriales")
+  const tabs = section.getByRole("tab")
+  await expect(tabs).toHaveText(["Genéricos", "Ligas", "Redes"])
+  await expect(section.getByRole("tab", { name: "Genéricos" })).toHaveAttribute("aria-selected", "true")
+  await expect(section).toContainText("Cómo apuntarte a una liga")
+  await expect(section).not.toContainText("Reglas de la Liga Norte")
+  await section.getByRole("tab", { name: "Ligas" }).click()
+  const leagueGroups = section.locator("[data-league-videos]")
+  await expect(leagueGroups).toHaveCount(2)
+  await expect(leagueGroups.first()).toContainText("Liga Norte")
+  await expect(section).toContainText("Reglas de la Liga Norte")
+  await section.getByRole("tab", { name: "Redes" }).click()
+  await expect(section).toContainText("Reel de bienvenida")
+  await expect(section).toContainText("Borrador")
+  await section.scrollIntoViewIfNeeded()
+  await page.screenshot({ path: "test-results/help-video-tabs.png", fullPage: false })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+})
+
+test("help shows no tabs when a person only has generic videos, and one league shows without a dropdown", async ({ page }) => {
+  await setup(page, "light", "classic")
+  const base = { description: "", posterUrl: null, width: null, height: null, durationMs: 60_000, seen: false, position: 1 }
+  await page.route("**/api/tutorials**", route => route.fulfill({ json: { tutorials: [
+    { ...base, id: "g1", title: "Cómo apuntarte a una liga", group: "generic", leagues: [] },
+    { ...base, id: "l1", title: "Reglas de la Liga Norte", group: "leagues", leagues: [{ id: "a", name: "Liga Norte" }] },
+  ] } }))
+  await page.goto("/help")
+  const section = page.locator("#videos-tutoriales")
+  await expect(section.getByRole("tab")).toHaveText(["Genéricos", "Ligas"])
+  await section.getByRole("tab", { name: "Ligas" }).click()
+  await expect(section.locator("[data-league-videos]")).toHaveCount(0)
+  await expect(section).toContainText("Liga Norte")
+  await expect(section).toContainText("Reglas de la Liga Norte")
+})
+
+test("bulk upload offers separate pickers for media and for a zip, and a zip fills the rows and the destination decides the category", async ({ page }) => {
+  await setup(page, "light", "classic", true, false, true)
+  const created: Record<string, unknown>[] = []
+  let counter = 0
+  await page.route("**/api/application-admin/tutorials", route => {
+    if (route.request().method() === "POST") { created.push(route.request().postDataJSON()); return route.fulfill({ status: 201, json: { id: "new" } }) }
+    return route.fulfill({ json: { tutorials: [], leagues: [{ id: "00000000-0000-4000-8000-0000000000aa", name: "Liga Norte" }] } })
+  })
+  await page.route("**/api/application-admin/tutorials/upload", route => {
+    counter += 1
+    return route.fulfill({ json: { path: `00000000-0000-4000-8000-${String(counter).padStart(12, "0")}.mp4`, uploadUrl: `https://qa.supabase.co/upload/${counter}` } })
+  })
+  await page.route("https://qa.supabase.co/upload/**", route => route.fulfill({ status: 200, body: "", headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "PUT, OPTIONS", "access-control-allow-headers": "*" } }))
+  await page.goto("/admin/tutorials")
+  await page.locator("[data-bulk-open]").click()
+  await expect(page.locator("[data-bulk-files]")).toHaveAttribute("accept", "video/mp4,image/jpeg,image/png,image/webp")
+  await expect(page.locator("[data-bulk-zip]")).toHaveAttribute("accept", /\.zip/)
+  await page.screenshot({ path: "test-results/bulk-pickers.png" })
+  const { zipSync } = await import("fflate")
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64")
+  const zip = zipSync({ "reels/01_bienvenida.mp4": new Uint8Array(2000), "reels/01_bienvenida.png": new Uint8Array(png), "__MACOSX/._x.mp4": new Uint8Array(10) })
+  await page.locator("[data-bulk-zip]").setInputFiles({ name: "reels.zip", mimeType: "application/zip", buffer: Buffer.from(zip) })
+  const rows = page.locator("[data-bulk-row]")
+  await expect(rows).toHaveCount(1)
+  await expect(rows.first().getByRole("textbox")).toHaveValue("Bienvenida")
+  await expect(rows.first()).toContainText("01_bienvenida.mp4 + 01_bienvenida.png")
+  await page.getByRole("radio", { name: /Redes sociales/ }).check()
+  await expect(rows.first().getByRole("combobox")).toHaveCount(0)
+  await page.locator("[data-bulk-upload]").click()
+  await expect(page.getByRole("button", { name: "Listo" })).toBeVisible({ timeout: 60_000 })
+  expect(created).toHaveLength(1)
+  expect(created[0]).toMatchObject({ title: "Bienvenida", category: "social", audience: "draft", leagueIds: [], screen: null, announce: false })
 })

@@ -29,3 +29,30 @@ describe("bulk tutorial plan", () => {
     expect(titleFromFileName("07.mp4")).toBe("07")
   })
 })
+
+describe("bulk tutorials from a .zip", () => {
+  it("unpacks videos and thumbnails, flattening folders and skipping hidden and macOS files", async () => {
+    const { zipSync } = await import("fflate")
+    const bytes = new Uint8Array(200).fill(7)
+    const zip = zipSync({
+      "tutoriales/01-inicio.mp4": bytes,
+      "tutoriales/01-inicio.png": bytes,
+      "__MACOSX/tutoriales/._01-inicio.mp4": bytes,
+      "tutoriales/.DS_Store": bytes,
+      "tutoriales/notas.txt": bytes,
+      "02-chat.mp4": bytes,
+    })
+    const { isZipFile, readZipFiles } = await import("@/lib/tutorialBulk")
+    const archive = new File([zip as BlobPart], "videos.zip", { type: "application/zip" })
+    expect(isZipFile(archive)).toBe(true)
+    const files = await readZipFiles(archive)
+    expect(files.map((item) => `${item.name}:${item.type}`).sort()).toEqual(["01-inicio.mp4:video/mp4", "01-inicio.png:image/png", "02-chat.mp4:video/mp4"])
+    const plan = planBulkTutorials(files)
+    expect(plan.entries.map((entry) => [entry.title, entry.poster?.name ?? null])).toEqual([["Inicio", "01-inicio.png"], ["Chat", null]])
+  })
+
+  it("rejects a file that is not a zip", async () => {
+    const { readZipFiles } = await import("@/lib/tutorialBulk")
+    await expect(readZipFiles(new File([new Uint8Array(50)], "roto.zip"))).rejects.toBeTruthy()
+  })
+})

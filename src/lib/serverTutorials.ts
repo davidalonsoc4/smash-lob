@@ -4,16 +4,18 @@ import {
   TUTORIAL_BUCKET,
   TUTORIAL_URL_TTL_SECONDS,
   canViewTutorial,
+  getTutorialGroup,
   isTutorialScheduled,
   type TutorialAdminItem,
   type TutorialAudience,
+  type TutorialCategory,
 } from "@/lib/tutorialVideos"
 import type { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 
 type Actor = Extract<Awaited<ReturnType<typeof requireAuthenticatedAppUser>>, { ok: true }>["actor"]
 
 export const TUTORIAL_FIELDS =
-  "id,title,description,position,audience,video_path,poster_path,width,height,duration_ms,created_at,publish_at,announce_on_publish,screen"
+  "id,title,description,position,audience,video_path,poster_path,width,height,duration_ms,created_at,publish_at,announce_on_publish,screen,category"
 
 export type TutorialRow = {
   id: string
@@ -29,6 +31,7 @@ export type TutorialRow = {
   publish_at?: string | null
   announce_on_publish?: boolean
   screen?: string | null
+  category?: TutorialCategory
 }
 
 export async function getMemberLeagueIds(actor: Actor) {
@@ -89,8 +92,17 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
       memberLeagueIds,
       isSuperuser: requireTutorialManager(actor),
       publishAt: row.publish_at,
+      category: row.category,
     }),
   )
+  const isManager = requireTutorialManager(actor)
+  const linkedLeagueIds = [...new Set((links.data ?? []).map((link) => String(link.league_id)))]
+  const leagueNames = new Map<string, string>()
+  if (linkedLeagueIds.length) {
+    const found = await actor.supabase.from("leagues").select("id,name").in("id", linkedLeagueIds)
+    if (found.error) return null
+    for (const league of found.data ?? []) leagueNames.set(String(league.id), String(league.name))
+  }
   const posters = await signPaths(actor, visible.flatMap((row) => (row.poster_path ? [row.poster_path] : [])))
   if (posters === null) return null
   return visible.map((row) => ({
@@ -111,6 +123,14 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
     durationMs: row.duration_ms,
     seen: seen.has(row.id),
     screen: row.screen ?? null,
+    category: row.category ?? "app",
+    group: getTutorialGroup(row.category, row.audience),
+    draft: row.audience === "draft",
+    // A person only sees the leagues they belong to; the managers see all of them.
+    leagues: (leaguesByTutorial.get(row.id) ?? [])
+      .filter((id) => isManager || memberLeagueIds.includes(id))
+      .map((id) => ({ id, name: leagueNames.get(id) ?? "" }))
+      .filter((league) => league.name),
   }))
 }
 

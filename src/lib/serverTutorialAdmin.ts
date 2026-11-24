@@ -2,7 +2,7 @@ import "server-only"
 
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
-import { TUTORIAL_AUDIENCES, TUTORIAL_BUCKET, isTutorialPath, isTutorialScreen, type TutorialAudience, type TutorialScreenId } from "@/lib/tutorialVideos"
+import { TUTORIAL_AUDIENCES, TUTORIAL_BUCKET, TUTORIAL_CATEGORIES, isTutorialPath, isTutorialScreen, type TutorialAudience, type TutorialCategory, type TutorialScreenId } from "@/lib/tutorialVideos"
 import { announceTutorialInLeagues } from "@/lib/serverTutorialChatShare"
 import { TUTORIAL_FIELDS, requireTutorialManager, type TutorialRow } from "@/lib/serverTutorials"
 import { normalizeBoundedText, validateUuid } from "@/lib/serverRequest"
@@ -19,7 +19,7 @@ export const adminFail = (error: string, status: number) => NextResponse.json({ 
 
 type Actor = Extract<Awaited<ReturnType<typeof requireTutorialAdmin>>, { ok: true }>["actor"]
 
-export type TutorialFields = { title: string; description: string; audience: TutorialAudience; leagueIds: string[]; publishAt: string | null; screen: TutorialScreenId | null }
+export type TutorialFields = { title: string; description: string; audience: TutorialAudience; leagueIds: string[]; publishAt: string | null; screen: TutorialScreenId | null; category: TutorialCategory }
 
 const MAX_SCHEDULE_AHEAD_MS = 2 * 365 * 24 * 3_600_000
 
@@ -37,8 +37,12 @@ export function parseTutorialFields(input: Record<string, unknown> | null): Tuto
   if (!input) return null
   const title = normalizeBoundedText(input.title, 120)
   const description = typeof input.description === "string" ? input.description.trim().slice(0, 500) : ""
-  const audience = input.audience as TutorialAudience
-  if (!title || !TUTORIAL_AUDIENCES.includes(audience)) return null
+  const rawAudience = input.audience as TutorialAudience
+  const category = (input.category === undefined || input.category === null ? "app" : input.category) as TutorialCategory
+  if (!title || !TUTORIAL_AUDIENCES.includes(rawAudience) || !TUTORIAL_CATEGORIES.includes(category)) return null
+  // Social media material is never published to the app: it stays a private draft that only the managers see.
+  if (category === "social") return { title, description, audience: "draft", leagueIds: [], publishAt: null, screen: null, category }
+  const audience = rawAudience
   const rawLeagues = Array.isArray(input.leagueIds) ? input.leagueIds : []
   const leagueIds = [...new Set(rawLeagues.map(validateUuid))]
   if (leagueIds.some((id) => id === null)) return null
@@ -48,7 +52,7 @@ export function parseTutorialFields(input: Record<string, unknown> | null): Tuto
   if (publishAt === undefined) return null
   const rawScreen = input.screen === undefined || input.screen === null || input.screen === "" ? null : input.screen
   if (rawScreen !== null && !isTutorialScreen(rawScreen)) return null
-  return { title, description, audience, leagueIds: audience === "leagues" ? ids : [], publishAt, screen: rawScreen }
+  return { title, description, audience, leagueIds: audience === "leagues" ? ids : [], publishAt, screen: rawScreen, category }
 }
 
 export async function tutorialFileExists(actor: Actor, path: string) {

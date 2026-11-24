@@ -69,3 +69,22 @@ describe("tutorial screens", () => {
     expect(isTutorialScreen(null)).toBe(false)
   })
 })
+
+describe("tutorial categories", () => {
+  it("places each tutorial in the tab it belongs to", async () => {
+    const { getTutorialGroup } = await import("@/lib/tutorialVideos")
+    expect(getTutorialGroup("app", "public")).toBe("generic")
+    expect(getTutorialGroup(undefined, "draft")).toBe("generic")
+    expect(getTutorialGroup("app", "leagues")).toBe("leagues")
+    expect(getTutorialGroup("social", "draft")).toBe("social")
+  })
+
+  it("keeps social media material away from everyone but the managers", async () => {
+    const { canViewTutorial } = await import("@/lib/tutorialVideos")
+    const base = { leagueIds: ["l1"], memberLeagueIds: ["l1"], isSuperuser: false }
+    expect(canViewTutorial({ ...base, audience: "public", category: "social" })).toBe(false)
+    expect(canViewTutorial({ ...base, audience: "leagues", category: "social" })).toBe(false)
+    expect(canViewTutorial({ ...base, audience: "public", category: "app" })).toBe(true)
+    expect(canViewTutorial({ ...base, isSuperuser: true, audience: "draft", category: "social" })).toBe(true)
+  })
+})

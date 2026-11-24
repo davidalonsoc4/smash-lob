@@ -15,6 +15,7 @@ export async function GET() {
   const tutorials: TutorialSummary[] = list.map((item) => ({
     id: item.id, title: item.title, description: item.description, position: item.position,
     posterUrl: item.posterUrl, width: item.width, height: item.height, durationMs: item.durationMs, seen: item.seen, screen: item.screen ?? null,
+    group: item.group, leagues: item.leagues, draft: item.draft,
   }))
   return NextResponse.json({ tutorials }, { headers: { "Cache-Control": "private, no-store" } })
 }
