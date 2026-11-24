@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/EmptyState"
 import { FloatingDialog } from "@/components/ui/FloatingDialog"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
 import { deleteTutorial, fetchAdminTutorials, reorderTutorials, type TutorialLeagueOption } from "@/lib/tutorialVideosClient"
-import { formatTutorialDuration, type TutorialAdminItem } from "@/lib/tutorialVideos"
+import { formatTutorialDuration, getTutorialGroup, type TutorialAdminItem, type TutorialGroup } from "@/lib/tutorialVideos"
 import { useI18n } from "@/i18n/I18nProvider"
 
 const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, leagueIds: [] as string[], publishAt: null as string | null, screen: null as string | null, category: "app" as "app" | "social" }
@@ -24,6 +24,7 @@ export default function AdminTutorialsPage() {
   const [form, setForm] = useState<{ editing: TutorialAdminItem | null } | null>(null)
   const [bulk, setBulk] = useState(false)
   const [preview, setPreview] = useState<TutorialAdminItem | null>(null)
+  const [tab, setTab] = useState<TutorialGroup>("generic")
 
   const load = useCallback(async () => {
     const data = await fetchAdminTutorials()
@@ -38,12 +39,23 @@ export default function AdminTutorialsPage() {
     void load()
   }, [canManage, load])
 
+  const groupOf = (item: TutorialAdminItem) => getTutorialGroup(item.category, item.audience)
+  const visibleItems = (items ?? []).filter((item) => groupOf(item) === tab)
+  const tabs: { id: TutorialGroup; label: string }[] = [
+    { id: "generic", label: tx("Genéricos") },
+    { id: "leagues", label: tx("Ligas") },
+    { id: "social", label: tx("Redes") },
+  ]
+
+  /** Moves a tutorial one place up or down inside its tab; the order of the others is kept. */
   async function move(index: number, direction: -1 | 1) {
     if (!items) return
-    const target = index + direction
-    if (target < 0 || target >= items.length) return
+    const neighbour = visibleItems[index + direction]
+    if (!neighbour) return
+    const from = items.findIndex((item) => item.id === visibleItems[index].id)
+    const target = items.findIndex((item) => item.id === neighbour.id)
     const next = [...items]
-    ;[next[index], next[target]] = [next[target], next[index]]
+    ;[next[from], next[target]] = [next[target], next[from]]
     setItems(next)
     if (!(await reorderTutorials(next.map((item) => item.id)))) void load()
   }
@@ -73,7 +85,19 @@ export default function AdminTutorialsPage() {
           </button>
           {error ? <p role="alert" className="text-sm font-bold text-red-700">{tx("No se ha podido completar la operación.")}</p> : null}
           {items?.length === 0 ? <EmptyState title={tx("Aún no hay tutoriales")} description={tx("Sube el primer vídeo para empezar.")} /> : null}
-          {items?.map((item, index) => (
+          {items?.length ? (
+            <div role="tablist" aria-label={tx("Tipos de vídeo")} className="flex gap-1 rounded-2xl bg-neutral-100 p-1">
+              {tabs.map((option) => (
+                <button key={option.id} type="button" role="tab" aria-selected={tab === option.id} onClick={() => setTab(option.id)}
+                  className={`flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-2 text-center text-xs font-black transition ${tab === option.id ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-500"}`}>
+                  <span className="truncate">{option.label}</span>
+                  <span className="shrink-0 text-neutral-400">{items.filter((item) => groupOf(item) === option.id).length}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {items?.length && visibleItems.length === 0 ? <EmptyState title={tx("No hay vídeos en esta pestaña")} description={tx("Sube vídeos y elige este destino para verlos aquí.")} /> : null}
+          {visibleItems.map((item, index) => (
             <AppCard key={item.id} className="space-y-2 !p-3">
               <div className="flex items-start gap-3">
                 <button type="button" onClick={() => setPreview(item)} aria-label={`${tx("Ver")}: ${item.title}`} className="relative block h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-black">
@@ -92,7 +116,7 @@ export default function AdminTutorialsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <button type="button" onClick={() => setPreview(item)} data-tutorial-view className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-950 px-4 text-sm font-bold text-white">{tx("Ver")}</button>
                 <button type="button" disabled={index === 0} onClick={() => void move(index, -1)} aria-label={tx("Subir")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↑</button>
-                <button type="button" disabled={index === items.length - 1} onClick={() => void move(index, 1)} aria-label={tx("Bajar")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↓</button>
+                <button type="button" disabled={index === visibleItems.length - 1} onClick={() => void move(index, 1)} aria-label={tx("Bajar")} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold disabled:opacity-40">↓</button>
                 <button type="button" onClick={() => setForm({ editing: item })} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold">{tx("Editar")}</button>
                 <button type="button" onClick={() => void remove(item)} className="inline-flex min-h-9 items-center justify-center rounded-full text-center bg-neutral-100 px-3 text-sm font-bold text-red-700 app-danger-action">{tx("Eliminar")}</button>
               </div>

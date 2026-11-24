@@ -1996,6 +1996,8 @@ const ADDITIONAL_OVERRIDES = {
     "Material para redes. Solo lo ves tú.": "Social media material. Only you see it.",
     "Elige los archivos de una vez, o un .zip que los contenga: los vídeos MP4 y, si quieres, sus miniaturas con el mismo nombre (JPG, PNG o WebP).": "Choose the files at once, or a .zip that contains them: the MP4 videos and, if you like, their thumbnails with the same name (JPG, PNG or WebP).",
     "Leyendo el archivo…": "Reading the file…",
+    "No hay vídeos en esta pestaña": "No videos in this tab",
+    "Sube vídeos y elige este destino para verlos aquí.": "Upload videos and choose this destination to see them here.",
     "Elige los vídeos MP4 y, si quieres, sus miniaturas con el mismo nombre (JPG, PNG o WebP), o un archivo .zip que los contenga.": "Choose the videos (MP4) and, if you like, their thumbnails with the same name (JPG, PNG or WebP), or a .zip file that contains them.",
     "Elegir vídeos e imágenes": "Choose video files and images",
     "Elegir un archivo .zip": "Choose a .zip file",

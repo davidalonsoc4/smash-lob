@@ -2201,6 +2201,7 @@ test("tutorial management shows which leagues still have the notice pending", as
   ]
   await page.route("**/api/application-admin/tutorials", route => route.fulfill({ json: { tutorials, leagues: [{ id: "l1", name: "Liga Uno" }] } }))
   await page.goto("/admin/tutorials")
+  await page.getByRole("tab", { name: /Ligas/ }).click()
   const pending = page.locator("[data-tutorial-announce-pending]")
   await expect(pending).toHaveCount(1)
   await expect(pending).toContainText("Liga Uno")
@@ -2288,4 +2289,32 @@ test("bulk upload offers separate pickers for media and for a zip, and a zip fil
   await expect(page.getByRole("button", { name: "Listo" })).toBeVisible({ timeout: 60_000 })
   expect(created).toHaveLength(1)
   expect(created[0]).toMatchObject({ title: "Bienvenida", category: "social", audience: "draft", leagueIds: [], screen: null, announce: false })
+})
+
+test("tutorial management sorts the videos into tabs and reorders inside each one", async ({ page }) => {
+  await setup(page, "light", "classic", true, false, true)
+  const base = { description: "", leagueIds: [], announcedLeagueIds: [], announceFailures: [], announceOnPublish: false, viewCount: 0, posterUrl: null, width: null, height: null, durationMs: 30_000, seen: false, publishAt: null }
+  const tutorials = [
+    { ...base, id: "t1", title: "Genérico uno", position: 1, audience: "public", category: "app" },
+    { ...base, id: "t2", title: "Reel uno", position: 2, audience: "draft", category: "social" },
+    { ...base, id: "t3", title: "Genérico dos", position: 3, audience: "draft", category: "app" },
+    { ...base, id: "t4", title: "Liga uno", position: 4, audience: "leagues", category: "app", leagueIds: ["l1"] },
+  ]
+  let order: string[] = []
+  await page.route("**/api/application-admin/tutorials", route => {
+    if (route.request().method() === "PUT") { order = route.request().postDataJSON().order; return route.fulfill({ json: { ok: true } }) }
+    return route.fulfill({ json: { tutorials, leagues: [{ id: "l1", name: "Liga Norte" }] } })
+  })
+  await page.goto("/admin/tutorials")
+  const tabs = page.getByRole("tab")
+  await expect(tabs).toHaveText(["Genéricos2", "Ligas1", "Redes1"])
+  await expect(page.getByText("Genérico uno")).toBeVisible()
+  await expect(page.getByText("Reel uno")).toHaveCount(0)
+  await page.getByRole("button", { name: "Bajar" }).first().click()
+  await expect.poll(() => order).toEqual(["t3", "t2", "t1", "t4"])
+  await page.getByRole("tab", { name: /Redes/ }).click()
+  await expect(page.getByText("Reel uno")).toBeVisible()
+  await expect(page.getByRole("button", { name: "Bajar" })).toBeDisabled()
+  await page.getByRole("tab", { name: /Ligas/ }).click()
+  await expect(page.getByText("Liga Norte")).toBeVisible()
 })

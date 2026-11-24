@@ -1993,6 +1993,8 @@ const ADDITIONAL_OVERRIDES = {
     "Material para redes. Solo lo ves tú.": "Sare sozialetarako materiala. Zuk bakarrik ikusten duzu.",
     "Elige los archivos de una vez, o un .zip que los contenga: los vídeos MP4 y, si quieres, sus miniaturas con el mismo nombre (JPG, PNG o WebP).": "Aukeratu fitxategiak batera, edo horiek dituen .zip bat: MP4 bideoak eta, nahi baduzu, izen bereko miniaturak (JPG, PNG edo WebP).",
     "Leyendo el archivo…": "Fitxategia irakurtzen…",
+    "No hay vídeos en esta pestaña": "Ez dago bideorik fitxa honetan",
+    "Sube vídeos y elige este destino para verlos aquí.": "Igo bideoak eta aukeratu helmuga hau hemen ikusteko.",
     "Elige los vídeos MP4 y, si quieres, sus miniaturas con el mismo nombre (JPG, PNG o WebP), o un archivo .zip que los contenga.": "Aukeratu MP4 bideoak eta, nahi baduzu, izen bereko miniaturak (JPG, PNG edo WebP), edo horiek dituen .zip fitxategi bat.",
     "Elegir vídeos e imágenes": "Aukeratu bideoak eta irudiak",
     "Elegir un archivo .zip": "Aukeratu .zip fitxategi bat",
