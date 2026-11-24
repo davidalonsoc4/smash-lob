@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import { rememberCoinToss } from "@/lib/matchCoinTossClient"
@@ -12,11 +12,11 @@ type Stat = { personKey: string; winRate: number | null; matches: number }
 // Court seen from above, drawn wider than the real 10 x 20 m so the cards have room for the names, with the net across the middle.
 // Pair A plays at the top, pair B at the bottom. The backhand player stands closer to the net, the drive player further back, one on each side.
 const SLOT_POSITIONS = [
-  { left: 2, top: 28 }, { left: 51, top: 5 },
-  { left: 51, top: 58 }, { left: 2, top: 81 },
+  { left: 2, top: 30 }, { left: 51, top: 6 },
+  { left: 51, top: 58 }, { left: 2, top: 82 },
 ] as const
 const CHIP_WIDTH = 47
-const CHIP_HEIGHT = 14
+const CHIP_HEIGHT = 12
 const slotStyle = (index: number) => ({ left: `${SLOT_POSITIONS[index].left}%`, top: `${SLOT_POSITIONS[index].top}%` })
 const PAIR_COLORS = ["#38bdf8", "#fb923c"] as const
 
@@ -65,11 +65,45 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [entered, setEntered] = useState(false)
+  const [closing, setClosing] = useState(false)
+  const [sheetY, setSheetY] = useState(0)
+  const [sheetDragging, setSheetDragging] = useState(false)
+  const sheetStart = useRef(0)
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setEntered(true))
     return () => window.cancelAnimationFrame(frame)
   }, [])
+
+  // The page behind must not scroll while the sheet is open.
+  useEffect(() => {
+    const html = document.documentElement.style.overflow
+    const body = document.body.style.overflow
+    document.documentElement.style.overflow = "hidden"
+    document.body.style.overflow = "hidden"
+    return () => { document.documentElement.style.overflow = html; document.body.style.overflow = body }
+  }, [])
+
+  function requestClose() {
+    if (closing) return
+    setClosing(true)
+    window.setTimeout(onClose, 280)
+  }
+  function startSheetDrag(event: React.PointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest("button")) return
+    event.currentTarget.setPointerCapture(event.pointerId)
+    sheetStart.current = event.clientY
+    setSheetDragging(true)
+  }
+  function moveSheetDrag(event: React.PointerEvent) {
+    if (sheetDragging) setSheetY(Math.max(0, event.clientY - sheetStart.current))
+  }
+  function endSheetDrag() {
+    if (!sheetDragging) return
+    setSheetDragging(false)
+    if (sheetY > 110) requestClose()
+    else setSheetY(0)
+  }
 
   useEffect(() => {
     let active = true
@@ -87,8 +121,6 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
   const original = useMemo(() => sortPersonalMatchParticipants(match.participants).map((participant) => `${participant.team}-${participant.slot}-${participant.displayName}`).join("|"), [match.participants])
   const current = order.map((chip, index) => `${index < 2 ? 1 : 2}-${(index % 2) + 1}-${chip.name}`).join("|")
   const changed = original !== current
-  const pairSignature = (names: string[]) => [[names[0], names[1]].sort().join("+"), [names[2], names[3]].sort().join("+")].sort().join("|")
-  const pairsChanged = pairSignature(sortPersonalMatchParticipants(match.participants).map((participant) => participant.displayName)) !== pairSignature(order.map((chip) => chip.name))
 
   function swap(from: number, to: number) {
     if (from === to) return
@@ -145,7 +177,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
       if (payload.item.status === "finished") requestPersonalProfileHistoryRefresh()
       else requestMatchDashboardRefresh()
       onUpdated(payload.item)
-      onClose()
+      requestClose()
     } catch {
       setError(tx("No se han podido guardar las parejas."))
     } finally {
@@ -154,28 +186,33 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
   }
 
   const pairHeader = (pair: 0 | 1) => (
-    <div className="flex items-center gap-2 type-caption font-black text-neutral-700">
-      <span className="h-2.5 w-2.5 rounded-full" style={{ background: PAIR_COLORS[pair] }} />
+    <div className={`flex items-center gap-1.5 type-caption font-black text-neutral-700 ${pair === 1 ? "justify-end" : ""}`}>
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: PAIR_COLORS[pair] }} />
       <span>{tx(pair === 0 ? "Pareja A" : "Pareja B")}</span>
-      {hasRates ? <span className="font-semibold text-neutral-500">· {pair === 0 ? teamRate(0, 1) : teamRate(2, 3)}%</span> : null}
+      {hasRates ? <span className="font-semibold text-neutral-500">{pair === 0 ? teamRate(0, 1) : teamRate(2, 3)}%</span> : null}
     </div>
   )
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={tx("Gestionar jugadores")} data-players-sheet className={`fixed inset-0 z-[150] flex items-end justify-center transition-colors duration-300 ${entered ? "bg-black/55" : "bg-black/0"}`} onClick={onClose}>
-      <div className={`max-h-[94dvh] w-full max-w-md overflow-y-auto rounded-t-[28px] bg-white px-4 pb-6 pt-2 shadow-2xl transition-transform duration-300 ease-out ${entered ? "translate-y-0" : "translate-y-full"}`} onClick={(event) => event.stopPropagation()}>
-        <div aria-hidden="true" className="mx-auto h-1 w-10 rounded-full bg-neutral-300" />
-        <div className="mt-3 flex items-start justify-between gap-3">
-          <div>
-            <p className="type-panel-title text-neutral-950">{tx("Gestionar jugadores")}</p>
-            <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Toca un jugador y luego otro para intercambiarlos, o arrástralo.")}</p>
+    <div role="dialog" aria-modal="true" aria-label={tx("Gestionar jugadores")} data-players-sheet className={`fixed inset-x-0 top-0 z-[150] flex h-[100dvh] items-end justify-center transition-colors duration-300 ${entered && !closing ? "bg-black/55" : "bg-black/0"}`} onClick={requestClose}>
+      <div
+        className={`flex h-[90dvh] w-full max-w-md flex-col overflow-y-auto overscroll-contain rounded-t-[28px] bg-white px-4 pt-1 shadow-2xl ${sheetDragging ? "" : "transition-transform duration-300 ease-out"}`}
+        style={{ transform: closing || !entered ? "translateY(100%)" : `translateY(${sheetY}px)`, paddingBottom: "max(14px, env(safe-area-inset-bottom))" }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div data-sheet-handle className="shrink-0 touch-none" onPointerDown={startSheetDrag} onPointerMove={moveSheetDrag} onPointerUp={endSheetDrag} onPointerCancel={endSheetDrag}>
+          <div className="flex justify-center py-2"><div aria-hidden="true" className="h-1.5 w-12 rounded-full bg-neutral-300" /></div>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="type-panel-title text-neutral-950">{tx("Gestionar jugadores")}</p>
+              <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Toca un jugador y luego otro para intercambiarlos, o arrástralo.")}</p>
+            </div>
+            <button type="button" onClick={requestClose} aria-label={tx("Cerrar")} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600 active:scale-95">✕</button>
           </div>
-          <button type="button" onClick={onClose} aria-label={tx("Cerrar")} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600 active:scale-95">✕</button>
         </div>
 
-        <div className="mx-auto mt-3 w-full">{pairHeader(0)}</div>
-        <div className="relative mx-auto mt-1.5 w-full select-none overflow-hidden rounded-2xl bg-slate-900 p-1.5 shadow-inner">
-          <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "1 / 1.12", background: "linear-gradient(180deg,#2f7fd1 0%,#2563b0 50%,#2f7fd1 100%)" }}>
+        <div className="relative mt-2 flex min-h-64 w-full flex-1 select-none flex-col overflow-hidden rounded-2xl bg-slate-900 p-1.5 shadow-inner">
+          <div className="relative min-h-0 w-full flex-1 overflow-hidden rounded-xl" style={{ background: "linear-gradient(180deg,#2f7fd1 0%,#2563b0 50%,#2f7fd1 100%)" }}>
             <CourtLines />
             {[0, 1, 2, 3].map((index) => <div key={`slot-${index}`} data-slot-index={index} aria-hidden="true" className="absolute rounded-lg bg-white/10" style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%` }} />)}
             {order.map((chip, index) => {
@@ -210,9 +247,13 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
             })}
           </div>
         </div>
-        <div className="mx-auto mt-1.5 flex w-full items-center justify-between gap-2">{pairHeader(1)}{hasRates ? <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black text-neutral-600">{tx("Diferencia")}: {Math.round(pairingGap(pairPlayers))}%</span> : null}</div>
+        <div className="mt-1.5 grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
+          {pairHeader(0)}
+          {hasRates ? <span title={tx("Diferencia")} className="rounded-full bg-amber-100 px-3 py-0.5 text-sm font-black text-amber-800 ring-1 ring-amber-300">{Math.round(pairingGap(pairPlayers))}%</span> : <span />}
+          {pairHeader(1)}
+        </div>
 
-        <div className="mt-2 grid grid-cols-2 gap-2">
+        <div className="mt-1.5 grid shrink-0 grid-cols-2 gap-2">
           <button type="button" onClick={mix} className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-sm font-black text-neutral-900 transition active:scale-[0.97] active:bg-neutral-100">
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>
             {tx("Mezclar")}
@@ -222,10 +263,10 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
             {tx("Equilibrar")}
           </button>
         </div>
-        <p className="mt-1 min-h-4 type-caption font-semibold text-neutral-500">{note ?? (pairsChanged ? tx("Al guardar, la moneda se podrá volver a lanzar.") : "")}</p>
+        {note ? <p className="mt-1 shrink-0 type-caption font-semibold text-neutral-500">{note}</p> : null}
         {error ? <p className="mt-1 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">{error}</p> : null}
-        <div className="mt-1.5 flex gap-2">
-          <button type="button" onClick={onClose} disabled={saving} className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm font-black text-neutral-800">{tx("Cancelar")}</button>
+        <div className="mt-1.5 flex shrink-0 gap-2">
+          <button type="button" onClick={requestClose} disabled={saving} className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm font-black text-neutral-800">{tx("Cancelar")}</button>
           <button type="button" onClick={() => void save()} disabled={saving || !changed} className="flex-1 rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300">{saving ? tx("Guardando...") : tx("Guardar")}</button>
         </div>
       </div>
