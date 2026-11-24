@@ -175,7 +175,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
 
         <div className="mx-auto mt-3 w-full">{pairHeader(0)}</div>
         <div className="relative mx-auto mt-1.5 w-full select-none overflow-hidden rounded-2xl bg-slate-900 p-1.5 shadow-inner">
-          <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "1 / 1.05", background: "linear-gradient(180deg,#2f7fd1 0%,#2563b0 50%,#2f7fd1 100%)" }}>
+          <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "1 / 1.12", background: "linear-gradient(180deg,#2f7fd1 0%,#2563b0 50%,#2f7fd1 100%)" }}>
             <CourtLines />
             {[0, 1, 2, 3].map((index) => <div key={`slot-${index}`} data-slot-index={index} aria-hidden="true" className="absolute rounded-lg bg-white/10" style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%` }} />)}
             {order.map((chip, index) => {
@@ -212,19 +212,19 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
         </div>
         <div className="mx-auto mt-1.5 flex w-full items-center justify-between gap-2">{pairHeader(1)}{hasRates ? <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black text-neutral-600">{tx("Diferencia")}: {Math.round(pairingGap(pairPlayers))}%</span> : null}</div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button type="button" onClick={mix} className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-900 transition active:scale-[0.97] active:bg-neutral-100">
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button type="button" onClick={mix} className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-sm font-black text-neutral-900 transition active:scale-[0.97] active:bg-neutral-100">
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>
-            {tx("Mezclar parejas")}
+            {tx("Mezclar")}
           </button>
-          <button type="button" onClick={balance} className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-900 transition active:scale-[0.97] active:bg-neutral-100">
+          <button type="button" onClick={balance} className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-sm font-black text-neutral-900 transition active:scale-[0.97] active:bg-neutral-100">
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0L5 7ZM19 7l-3 7a3 3 0 0 0 6 0l-3-7Z" /></svg>
-            {tx("Equilibrar parejas")}
+            {tx("Equilibrar")}
           </button>
         </div>
-        <p className="mt-2 min-h-4 type-caption font-semibold text-neutral-500">{note ?? (pairsChanged ? tx("Al guardar, la moneda se podrá volver a lanzar.") : "")}</p>
+        <p className="mt-1 min-h-4 type-caption font-semibold text-neutral-500">{note ?? (pairsChanged ? tx("Al guardar, la moneda se podrá volver a lanzar.") : "")}</p>
         {error ? <p className="mt-1 rounded-lg bg-red-50 p-2 text-xs font-semibold text-red-700">{error}</p> : null}
-        <div className="mt-2 flex gap-2">
+        <div className="mt-1.5 flex gap-2">
           <button type="button" onClick={onClose} disabled={saving} className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm font-black text-neutral-800">{tx("Cancelar")}</button>
           <button type="button" onClick={() => void save()} disabled={saving || !changed} className="flex-1 rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300">{saving ? tx("Guardando...") : tx("Guardar")}</button>
         </div>

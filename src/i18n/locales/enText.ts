@@ -1072,6 +1072,8 @@ const EXACT_OVERRIDES = {
   "Gestiona los jugadores de la liga, sus cuentas vinculadas y los permisos de administración. Estos jugadores pertenecen a la liga; cada temporada decide cuáles participan.": "Manage league players, their linked accounts and administration permissions. These players belong to the league; each season decides who participates.",
   "Gestionar suplente": "Manage substitute",
   "Al guardar, la moneda se podrá volver a lanzar.": "The coin can be tossed again once you save.",
+  "Mezclar": "Shuffle",
+  "Equilibrar": "Balance",
   "Gestionar jugadores": "Manage players",
   "Toca un jugador y luego otro para intercambiarlos, o arrástralo.": "Tap one player and then another to swap them, or drag one.",
   "Pareja A": "Pair A",
