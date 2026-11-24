@@ -28,14 +28,14 @@ const Stage: React.FC<{ ws: TimedWord[] }> = ({ ws }) => {
   const slots: { n: string; acc: boolean; i: number }[] = [{ n: "Ana", acc: true, i: 0 }, { n: "Beto", acc: true, i: 1 }, { n: "Carla", acc: false, i: 2 }, { n: "Dani", acc: false, i: 3 }];
   const list = (
     <div style={{ ...base, display: "flex", flexDirection: "column", gap: 8, opacity: listO, transform: `translateX(${slideIn(f, S1 - 10)}px)` }}>
-      <HeaderCard title="Partidos normales" sub="Amistosos fuera de la liga" />
-      <div style={{ borderRadius: 14, padding: "12px 0", textAlign: "center", fontSize: 15.5, fontWeight: 900, background: t.accent, color: t.accentContrast, boxShadow: f >= creaF - 8 ? `0 0 18px ${t.accent}aa` : "none" }}>＋ Crear amistoso</div>
+      <HeaderCard title="Mis partidos" sub="Partidos normales fuera de la liga" />
+      <div style={{ borderRadius: 14, padding: "12px 0", textAlign: "center", fontSize: 15.5, fontWeight: 900, background: t.accent, color: t.accentContrast, boxShadow: f >= creaF - 8 ? `0 0 18px ${t.accent}aa` : "none" }}>＋ Crear nuevo encuentro</div>
     </div>
   );
   const canEdit = (i: number) => f >= editarF - 4 && (i < 2 || i === 0);
   const form = (
     <div style={{ ...base, display: "flex", flexDirection: "column", gap: 8, opacity: formO, transform: `translateX(${slideIn(f, creaF + 12)}px)` }}>
-      <HeaderCard title="Nuevo amistoso" sub="Fecha, lugar y jugadores" />
+      <HeaderCard title="Nuevo encuentro" sub="Fecha, lugar y jugadores" />
       <Card accent={false} pad="10px 12px">
         {[["FECHA", "Sábado · 11:00", fechaF, "clock"], ["LUGAR", "Polideportivo", lugarF, "pin"]].map(([lab, val, af, ico]) => (
           <div key={lab as string} style={{ display: "flex", alignItems: "center", gap: 10, background: t.mutedSurface, borderRadius: 12, padding: "8px 11px", marginBottom: 6, opacity: pop(f, fps, (af as number) - 6, 10) }}>

@@ -85,3 +85,7 @@ Preferencia de entrega: **no enviar zips** (el usuario los ve desde el móvil): 
 Fix (24-nov): la transcripción de ElevenLabs convierte «and» en «&» en `VOICE`; las animaciones deben buscar «&», no «and» (afectó a 1, 2 y 12). Pendiente: el 13 dice «eme-uve-pe» en vez de «Em-Bi-Pi» (regenerar solo las 2 frases con MVP y empalmar; la cuenta de ElevenLabs tenía 344 créditos restantes al intentarlo con la toma completa de 534).
 
 Actualización: cuenta ElevenLabs ampliada a Creator (121.344 créditos/mes, reinicio ~24-dic). El 13 rehecho con «Em-Bi-Pi» (534 créditos); los subtítulos muestran «MVP».
+
+### Serie de la liga: 08–11 rehechos (24-nov)
+08 Subir un resultado (`Liga08Resultado`, 30 s), 09 Cuenta atrás y desbloqueo (`Liga09Cuenta`, 42 s), 10 Clasificación y MVP (`Liga10Clasificacion`, 44 s), 11 Partidos normales (`Liga11Amistosos`, 36 s). Voces nuevas (`assets/liga08..11/`, `src/voice_liga*.ts`), cierre estándar «Así que recuerda, nos vemos en la pista», móvil con réplicas y pausas por bloques. Miniaturas 16:9 regeneradas con su número. En revisión.
+Entregas (zips, a petición): `out/videos-liga-pro.zip` (01–11 + 04b), `out/tutoriales-genericos.zip` (1, 2, 3, 5, 6, 12, 13, 18), `out/reels-instagram.zip`.
