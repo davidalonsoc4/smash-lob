@@ -12,11 +12,11 @@ type Stat = { personKey: string; winRate: number | null; matches: number }
 // Court seen from above, drawn wider than the real 10 x 20 m so the cards have room for the names, with the net across the middle.
 // Pair A plays at the top, pair B at the bottom. The backhand player stands closer to the net, the drive player further back, one on each side.
 const SLOT_POSITIONS = [
-  { left: 2, top: 27 }, { left: 51, top: 4 },
-  { left: 51, top: 56 }, { left: 2, top: 79 },
+  { left: 2, top: 26 }, { left: 51, top: 3 },
+  { left: 51, top: 54 }, { left: 2, top: 77 },
 ] as const
 const CHIP_WIDTH = 47
-const CHIP_HEIGHT = 17
+const CHIP_HEIGHT = 20
 const slotStyle = (index: number) => ({ left: `${SLOT_POSITIONS[index].left}%`, top: `${SLOT_POSITIONS[index].top}%` })
 const PAIR_COLORS = ["#38bdf8", "#fb923c"] as const
 
@@ -39,14 +39,20 @@ function CourtLines() {
   )
 }
 
-// Win rate: a bar that goes from red (0 %) to green (100 %) with a marker where the player stands.
+// Colour of the bar for a win rate: red at 0, orange-yellow in the middle, green at 100.
+function rateColor(rate: number) {
+  const hue = rate <= 50 ? (rate / 50) * 42 : 42 + ((rate - 50) / 50) * 88
+  return `hsl(${Math.round(hue)} 82% 48%)`
+}
+
+// Win rate: a thin bar that fills up to the rate, in the colour that rate deserves.
 function RatePill({ rate, label }: { rate: number | null; label: string }) {
   return (
     <span className="mt-0.5 flex w-full items-center gap-1.5" title={rate === null ? label : undefined}>
-      <span className="relative h-2 min-w-0 flex-1 rounded-full" style={{ background: rate === null ? "#9ca3af55" : "linear-gradient(90deg,#ef4444 0%,#eab308 50%,#22c55e 100%)" }}>
-        {rate === null ? null : <span className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow" style={{ left: `${Math.min(96, Math.max(4, rate))}%`, borderColor: "#ffffff", background: "#111827" }} />}
+      <span className="h-1 min-w-0 flex-1 overflow-hidden rounded-full" style={{ background: "rgba(148,163,184,0.35)" }}>
+        <span className="block h-full rounded-full transition-all duration-500" style={{ width: `${rate ?? 0}%`, background: rate === null ? "transparent" : rateColor(rate) }} />
       </span>
-      <span className="w-9 shrink-0 text-right text-xs font-black leading-none text-neutral-600">{rate === null ? "–" : `${rate}%`}</span>
+      <span className="w-9 shrink-0 text-right type-caption font-bold leading-none text-neutral-500">{rate === null ? "–" : `${rate}%`}</span>
     </span>
   )
 }
@@ -235,7 +241,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                   onPointerUp={finishDrag}
                   onPointerCancel={() => setDrag(null)}
                   onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tapSlot(index) } }}
-                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-0.5 rounded-lg bg-white px-2 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
+                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pt-1.5 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
                   style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderTop: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
                 >
                   <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600" style={{ boxShadow: `0 0 0 2px ${color}` }}>
