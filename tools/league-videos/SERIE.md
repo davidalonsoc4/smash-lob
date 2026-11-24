@@ -89,3 +89,6 @@ Actualización: cuenta ElevenLabs ampliada a Creator (121.344 créditos/mes, rei
 ### Serie de la liga: 08–11 rehechos (24-nov)
 08 Subir un resultado (`Liga08Resultado`, 30 s), 09 Cuenta atrás y desbloqueo (`Liga09Cuenta`, 42 s), 10 Clasificación y MVP (`Liga10Clasificacion`, 44 s), 11 Partidos normales (`Liga11Amistosos`, 36 s). Voces nuevas (`assets/liga08..11/`, `src/voice_liga*.ts`), cierre estándar «Así que recuerda, nos vemos en la pista», móvil con réplicas y pausas por bloques. Miniaturas 16:9 regeneradas con su número. En revisión.
 Entregas (zips, a petición): `out/videos-liga-pro.zip` (01–11 + 04b), `out/tutoriales-genericos.zip` (1, 2, 3, 5, 6, 12, 13, 18), `out/reels-instagram.zip`.
+
+### Tutoriales genéricos · prioridad B hecha (24-nov)
+4 Estados de un partido, 7 Confirmar un resultado, 8 MVP: votar y premios, 9 Aplazar, lesión y suplentes, 11 Pagos de pista, 14 Perfil y disponibilidad, 16 Estadísticas y récords (`Gen04…Gen16`, voces en `assets/gen04..16/`, `src/voice_gen*.ts`). Aparcado: 17 Compartir con espectadores (solo lo hace la administración). En revisión.
