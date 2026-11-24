@@ -13,7 +13,7 @@ import type { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 type Actor = Extract<Awaited<ReturnType<typeof requireAuthenticatedAppUser>>, { ok: true }>["actor"]
 
 export const TUTORIAL_FIELDS =
-  "id,title,description,position,audience,video_path,poster_path,width,height,duration_ms,created_at,publish_at,announce_on_publish"
+  "id,title,description,position,audience,video_path,poster_path,width,height,duration_ms,created_at,publish_at,announce_on_publish,screen"
 
 export type TutorialRow = {
   id: string
@@ -28,6 +28,7 @@ export type TutorialRow = {
   duration_ms: number | null
   publish_at?: string | null
   announce_on_publish?: boolean
+  screen?: string | null
 }
 
 export async function getMemberLeagueIds(actor: Actor) {
@@ -109,6 +110,7 @@ export async function listVisibleTutorials(actor: Actor): Promise<TutorialAdminI
     height: row.height,
     durationMs: row.duration_ms,
     seen: seen.has(row.id),
+    screen: row.screen ?? null,
   }))
 }
 

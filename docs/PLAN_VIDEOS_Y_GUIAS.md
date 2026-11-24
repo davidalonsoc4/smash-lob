@@ -193,9 +193,53 @@ Leyenda de prioridad: **A** = imprescindible para que la app se entienda, **B** 
 
 Las guías visuales se hacen en paralelo, empezando por **Detalle de partido ampliado**, **Notificaciones** y **Amistosos**, porque son las pantallas con más acciones y menos explicación.
 
+## Auditoría de guías (24 nov 2026)
+
+**Guías existentes: ¿siguen vigentes?** Comprobado leyendo el código y verificando, una a una, que cada elemento que señala una guía (`data-tour`) sigue existiendo en la pantalla. Los 30 puntos de anclaje existen (algunos se generan por código, como los de Ajustes y el selector de temporada). No he recorrido las guías dentro de la app.
+
+| Guía | Estado |
+|---|---|
+| Primeros pasos, Partidos y jornadas, Chats, Clasificación, Estadísticas, Administrar temporada | Vigentes. |
+| Pantalla de inicio | Vigente pero demasiado larga (11 pasos). Texto de «Ayuda visual» **actualizado** (menciona el vídeo de la pantalla). |
+| Ajustes | Texto de «Notificaciones» **actualizado** (seis interruptores y avisos obligatorios). |
+| Chat del partido | Vigente; un paso con un párrafo demasiado largo. |
+| Detalle de partido | Desactualizada por defecto: un solo paso, y no cubre sorteo del saque, resultado, confirmación, MVP, reserva ni incidencias. |
+
+**Pantallas sin guía, por orden de prioridad**
+1. Detalle de partido (ampliar), subir resultado y sorteo del saque.
+2. Ajustes de notificaciones.
+3. Amistosos (lista, detalle y chat).
+4. Pagos.
+5. Perfil y disponibilidad.
+6. Mis ligas (unirse, crear, cambiar).
+7. Actividad.
+8. Estadísticas por apartado (comparar, evolución, récords).
+9. Administración: liga, usuarios y roles, comunicados e incidencias.
+10. Torneos (cuando se habiliten).
+
+Las guías de esta lista se crean pantalla a pantalla: cada una exige marcar los elementos de la pantalla con `data-tour` y probar el recorrido dentro de la app.
+
+## Vídeo de cada pantalla
+
+Cada vídeo puede asignarse a una pantalla desde `/admin/tutorials` (campo «Pantalla del vídeo»). El botón de ayuda de esa pantalla ofrece entonces «Ver el vídeo de esta pantalla». Pantallas disponibles: Inicio, Partidos y jornadas, Detalle de partido, Chat del partido, Chats, Clasificación, Estadísticas, Ajustes, Ajustes de notificaciones, Perfil y disponibilidad, Amistosos, Pagos, Mis ligas, Actividad, Administrar temporada, Administrar liga, Usuarios y roles y Torneos. Si una pantalla tiene varios vídeos, se ofrece el primero por orden.
+
+Propuesta de asignación para los vídeos de prioridad A: sorteo del saque y subir resultado a «Detalle de partido»; configurar notificaciones a «Ajustes de notificaciones»; instalar la app y avisos a «Ajustes»; tu primera jornada a «Partidos y jornadas»; amistosos a «Amistosos»; crear temporada a «Administrar temporada»; crear tu liga a «Mis ligas».
+
 ## Antes de grabar
 
 - Revisar los 11 vídeos actuales contra la lista y marcar cuáles se rehacen.
 - Cada cambio de interfaz queda reflejado en la guía asociada; los vídeos se quedan desfasados antes, así que conviene no mostrar menús profundos que cambian a menudo.
 - Cuando una función cambia de nombre (como las Notificaciones, ahora en 6 interruptores), revisar los vídeos que la nombran.
 - Preguntas de producto abiertas: qué parte de torneos y liguilla está visible en producción, y si los vídeos de administración van solo para administradores (la biblioteca ya filtra por audiencia).
+
+## Subida masiva de vídeos
+
+En `/admin/tutorials`, el botón «Subir varios vídeos» permite elegir todos los archivos de una vez.
+
+- **Emparejado por nombre:** un MP4 y una imagen (JPG, PNG o WebP) con el mismo nombre forman un tutorial con su miniatura. Sin imagen, se toma un fotograma del vídeo.
+- **Orden:** los tutoriales se añaden por orden natural del nombre del archivo. Conviene numerarlos: `01_bienvenida.mp4`, `02_chat-de-la-liga.mp4`, `10_pagos.mp4`.
+- **Título:** se propone a partir del nombre, sin el número ni los guiones (`02_chat-de-la-liga` pasa a «Chat de la liga»), y se puede cambiar antes de subir.
+- **Pantalla:** cada vídeo puede asignarse a su pantalla antes de subir.
+- **Quién los ve:** por defecto quedan como **borrador**, para revisarlos y publicarlos después; también se pueden subir como públicos. No se envía el aviso al chat de las ligas.
+- **Límites:** MP4 de hasta 50 MB y miniaturas de hasta 5 MB. Los archivos que no se pueden usar se listan antes de subir.
+- **Si falla uno:** los demás siguen; se vuelve a pulsar «Subir» y solo se reintentan los pendientes.

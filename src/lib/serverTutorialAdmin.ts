@@ -2,7 +2,7 @@ import "server-only"
 
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
-import { TUTORIAL_AUDIENCES, TUTORIAL_BUCKET, isTutorialPath, type TutorialAudience } from "@/lib/tutorialVideos"
+import { TUTORIAL_AUDIENCES, TUTORIAL_BUCKET, isTutorialPath, isTutorialScreen, type TutorialAudience, type TutorialScreenId } from "@/lib/tutorialVideos"
 import { announceTutorialInLeagues } from "@/lib/serverTutorialChatShare"
 import { TUTORIAL_FIELDS, requireTutorialManager, type TutorialRow } from "@/lib/serverTutorials"
 import { normalizeBoundedText, validateUuid } from "@/lib/serverRequest"
@@ -19,7 +19,7 @@ export const adminFail = (error: string, status: number) => NextResponse.json({ 
 
 type Actor = Extract<Awaited<ReturnType<typeof requireTutorialAdmin>>, { ok: true }>["actor"]
 
-export type TutorialFields = { title: string; description: string; audience: TutorialAudience; leagueIds: string[]; publishAt: string | null }
+export type TutorialFields = { title: string; description: string; audience: TutorialAudience; leagueIds: string[]; publishAt: string | null; screen: TutorialScreenId | null }
 
 const MAX_SCHEDULE_AHEAD_MS = 2 * 365 * 24 * 3_600_000
 
@@ -46,7 +46,9 @@ export function parseTutorialFields(input: Record<string, unknown> | null): Tuto
   if (audience === "leagues" && ids.length === 0) return null
   const publishAt = parsePublishAt(input.publishAt, audience)
   if (publishAt === undefined) return null
-  return { title, description, audience, leagueIds: audience === "leagues" ? ids : [], publishAt }
+  const rawScreen = input.screen === undefined || input.screen === null || input.screen === "" ? null : input.screen
+  if (rawScreen !== null && !isTutorialScreen(rawScreen)) return null
+  return { title, description, audience, leagueIds: audience === "leagues" ? ids : [], publishAt, screen: rawScreen }
 }
 
 export async function tutorialFileExists(actor: Actor, path: string) {

@@ -24,7 +24,7 @@ export async function PATCH(request: Request, context: Context) {
   if (before?.error) return adminFail("tutorial_update_failed", 500)
   const updated = await auth.actor.supabase
     .from("tutorial_videos")
-    .update({ title: fields.title, description: fields.description, audience: fields.audience, ...tutorialScheduleColumns(fields, raw?.announce === true), ...(newPoster ? { poster_path: newPoster } : {}), updated_at: new Date().toISOString() })
+    .update({ title: fields.title, description: fields.description, audience: fields.audience, screen: fields.screen, ...tutorialScheduleColumns(fields, raw?.announce === true), ...(newPoster ? { poster_path: newPoster } : {}), updated_at: new Date().toISOString() })
     .eq("id", id)
     .select("id")
     .maybeSingle()

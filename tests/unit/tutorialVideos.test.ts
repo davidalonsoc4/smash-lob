@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildTutorialPath, canViewTutorial, formatTutorialDuration, getTutorialFileRule, isTutorialPath } from "@/lib/tutorialVideos"
+import { buildTutorialPath, canViewTutorial, formatTutorialDuration, getTutorialFileRule, getTutorialScreenForPath, isTutorialPath, isTutorialScreen } from "@/lib/tutorialVideos"
 
 const id = "11111111-2222-4333-8444-555555555555"
 const base = { leagueIds: [] as string[], memberLeagueIds: [] as string[], isSuperuser: false }
@@ -49,5 +49,23 @@ describe("tutorial files", () => {
     expect(formatTutorialDuration(65_400)).toBe("1:05")
     expect(formatTutorialDuration(0)).toBe("")
     expect(formatTutorialDuration(null)).toBe("")
+  })
+})
+
+describe("tutorial screens", () => {
+  it("maps a path to the screen whose video the help button offers", () => {
+    expect(getTutorialScreenForPath("/match/abc")).toBe("match")
+    expect(getTutorialScreenForPath("/match/abc/chat")).toBe("match-chat")
+    expect(getTutorialScreenForPath("/settings")).toBe("settings")
+    expect(getTutorialScreenForPath("/settings/notifications")).toBe("notification-settings")
+    expect(getTutorialScreenForPath("/personal-matches/xyz")).toBe("personal-matches")
+    expect(getTutorialScreenForPath("/admin/season/finances")).toBe("season-admin")
+    expect(getTutorialScreenForPath("/help")).toBeNull()
+  })
+
+  it("accepts only known screen ids", () => {
+    expect(isTutorialScreen("ranking")).toBe(true)
+    expect(isTutorialScreen("nope")).toBe(false)
+    expect(isTutorialScreen(null)).toBe(false)
   })
 })

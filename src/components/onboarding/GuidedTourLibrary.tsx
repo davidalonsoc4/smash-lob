@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useRef } from "react"
 import { useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getOnboardingCopy } from "@/features/onboarding/types"
@@ -12,6 +13,13 @@ export function GuidedTourLibrary() {
   const copy = getOnboardingCopy(locale)
   const { availableTours, progress, resetAllTours } = useOnboarding()
   const [resetDone, setResetDone] = useState(false)
+  const listRef = useRef<HTMLDetailsElement>(null)
+
+  // The help button links here: open the list so the visit lands on the guides, not on a closed row.
+  useEffect(() => {
+    if (window.location.hash === "#tutoriales-visuales" && listRef.current) listRef.current.open = true
+  }, [])
+
   const visibleTours = availableTours.filter((tour) => !tour.route.includes(":"))
   const doneCount = visibleTours.filter((tour) => hasCompletedCurrentTour(progress, tour)).length
 
@@ -31,7 +39,7 @@ export function GuidedTourLibrary() {
         </div>
       </div>
 
-      <details className="group mt-3">
+      <details ref={listRef} className="group mt-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl bg-neutral-100 px-3 py-2.5 text-xs font-black text-neutral-800">
           <span>{doneCount}/{visibleTours.length} {copy.completed.toLowerCase()}</span>
           <span className="grid h-6 w-6 place-items-center rounded-full bg-white text-base text-neutral-500 transition group-open:rotate-45">+</span>

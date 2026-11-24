@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { DialogCloseButton, FloatingDialog } from "@/components/ui/FloatingDialog"
-import { TutorialVideoCard } from "@/components/help/TutorialVideoCard"
-import { fetchTutorialVideoUrl, fetchTutorials, markTutorialSeen } from "@/lib/tutorialVideosClient"
+import { useEffect, useState } from "react"
+import { TutorialPlayerDialog, TutorialVideoCard } from "@/components/help/TutorialVideoCard"
+import { fetchTutorials } from "@/lib/tutorialVideosClient"
 import type { TutorialSummary } from "@/lib/tutorialVideos"
 import { useI18n } from "@/i18n/I18nProvider"
 
@@ -14,10 +13,7 @@ export function TutorialVideoLibrary({ onLoaded }: { onLoaded?: (count: number) 
   const { tx } = useI18n()
   const [tutorials, setTutorials] = useState<TutorialSummary[] | null>(null)
   const [current, setCurrent] = useState<TutorialSummary | null>(null)
-  const [videoUrl, setVideoUrl] = useState<string | null>(null)
-  const [failed, setFailed] = useState(false)
   const [showAll, setShowAll] = useState(false)
-  const marked = useRef<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -26,25 +22,8 @@ export function TutorialVideoLibrary({ onLoaded }: { onLoaded?: (count: number) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function open(tutorial: TutorialSummary) {
-    setCurrent(tutorial)
-    setVideoUrl(null)
-    setFailed(false)
-    marked.current = null
-    const url = await fetchTutorialVideoUrl(tutorial.id)
-    if (url) setVideoUrl(url)
-    else setFailed(true)
-  }
-  function close() {
-    setCurrent(null)
-    setVideoUrl(null)
-  }
-  function seen() {
-    if (!current || marked.current === current.id) return
-    marked.current = current.id
-    const id = current.id
+  function markSeen(id: string) {
     setTutorials((list) => list?.map((item) => (item.id === id ? { ...item, seen: true } : item)) ?? list)
-    void markTutorialSeen(id)
   }
 
   if (!tutorials?.length) return null
@@ -58,7 +37,7 @@ export function TutorialVideoLibrary({ onLoaded }: { onLoaded?: (count: number) 
       </p>
       <div className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-2">
         {(showAll ? tutorials : tutorials.slice(0, PREVIEW_COUNT)).map((tutorial) => (
-          <TutorialVideoCard key={tutorial.id} tutorial={tutorial} onOpen={() => void open(tutorial)} badge={tutorial.seen ? undefined : tx("Nuevo")} />
+          <TutorialVideoCard key={tutorial.id} tutorial={tutorial} onOpen={() => setCurrent(tutorial)} badge={tutorial.seen ? undefined : tx("Nuevo")} />
         ))}
       </div>
       {tutorials.length > PREVIEW_COUNT ? (
@@ -66,34 +45,7 @@ export function TutorialVideoLibrary({ onLoaded }: { onLoaded?: (count: number) 
           {showAll ? tx("Ver menos") : `${tx("Ver todos los vídeos")} (${tutorials.length})`}
         </button>
       ) : null}
-      <FloatingDialog open={Boolean(current)} onClose={close} title={current?.title ?? tx("Vídeos tutoriales")} variant="content">
-        {current ? (
-          <div className="space-y-3 p-3">
-            <div className="flex items-center gap-2">
-              <h2 className="min-w-0 flex-1 truncate font-bold">{current.title}</h2>
-              <DialogCloseButton onClick={close} />
-            </div>
-            {videoUrl ? (
-              <video
-                src={videoUrl}
-                poster={current.posterUrl ?? undefined}
-                controls
-                playsInline
-                autoPlay
-                preload="metadata"
-                onPlay={seen}
-                className="max-h-[70vh] w-full rounded-xl bg-black"
-                style={current.width && current.height ? { aspectRatio: `${current.width} / ${current.height}` } : undefined}
-              />
-            ) : failed ? (
-              <p role="alert" className="text-sm font-bold text-red-700">{tx("No se ha podido cargar el vídeo.")}</p>
-            ) : (
-              <p className="text-sm font-semibold text-neutral-600">{tx("Cargando el vídeo…")}</p>
-            )}
-            {current.description ? <p className="text-sm font-semibold leading-6 text-neutral-700">{current.description}</p> : null}
-          </div>
-        ) : null}
-      </FloatingDialog>
+      <TutorialPlayerDialog tutorial={current} onClose={() => setCurrent(null)} onSeen={markSeen} />
     </section>
   )
 }

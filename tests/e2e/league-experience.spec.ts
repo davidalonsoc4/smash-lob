@@ -2021,6 +2021,26 @@ test("help shows the video tutorials this person may see and plays one", async (
   expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
 })
 
+test("the help button of a screen offers the video assigned to that screen", async ({ page }) => {
+  await setup(page, "dark", "classic")
+  const tutorials = [
+    { id: "t1", title: "Cómo leer la clasificación", description: "", position: 1, posterUrl: null, width: null, height: null, durationMs: 40_000, seen: false, screen: "ranking" },
+    { id: "t2", title: "Un vídeo general", description: "", position: 2, posterUrl: null, width: null, height: null, durationMs: 40_000, seen: false, screen: null },
+  ]
+  await page.route("**/api/tutorials**", route => {
+    const url = new URL(route.request().url())
+    if (url.pathname === "/api/tutorials") return route.fulfill({ json: { tutorials } })
+    return route.fulfill({ json: { videoUrl: "http://localhost/none.mp4" } })
+  })
+  await page.goto("/ranking")
+  await page.getByRole("button", { name: "Ayuda de esta pantalla", exact: true }).click()
+  const dialog = page.getByRole("dialog", { name: "Ayuda de esta pantalla" })
+  await expect(dialog.getByRole("link", { name: "Ayuda y tutoriales" })).toBeVisible()
+  await dialog.getByRole("button", { name: "Ver el vídeo de esta pantalla" }).click()
+  const player = page.getByRole("dialog", { name: "Cómo leer la clasificación" })
+  await expect(player.locator("video")).toHaveAttribute("src", "http://localhost/none.mp4")
+})
+
 test("tutorial management lets the app admin watch each tutorial, drafts included", async ({ page }) => {
   await setup(page, "dark", "classic", true, false, true)
   const tutorials = [
@@ -2045,6 +2065,42 @@ test("tutorial management lets the app admin watch each tutorial, drafts include
   await expect(page.getByRole("dialog", { name: "Bienvenida" })).toContainText("Primer vídeo.")
   const results = await new AxeBuilder({ page }).analyze()
   expect(results.violations.filter((item) => item.impact === "serious" || item.impact === "critical")).toEqual([])
+})
+
+test("bulk upload pairs videos with pictures, keeps the file order and records each tutorial", async ({ page }) => {
+  await setup(page, "dark", "classic", true, false, true)
+  const created: Record<string, unknown>[] = []
+  let counter = 0
+  await page.route("**/api/application-admin/tutorials", route => {
+    if (route.request().method() === "POST") { created.push(route.request().postDataJSON()); return route.fulfill({ status: 201, json: { id: "new" } }) }
+    return route.fulfill({ json: { tutorials: [], leagues: [] } })
+  })
+  await page.route("**/api/application-admin/tutorials/upload", route => {
+    counter += 1
+    const path = `00000000-0000-4000-8000-${String(counter).padStart(12, "0")}.mp4`
+    return route.fulfill({ json: { path, uploadUrl: `https://qa.supabase.co/upload/${counter}` } })
+  })
+  await page.route("https://qa.supabase.co/upload/**", route => route.fulfill({ status: 200, body: "", headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "PUT, OPTIONS", "access-control-allow-headers": "*" } }))
+  await page.goto("/admin/tutorials")
+  await page.locator("[data-bulk-open]").click()
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64")
+  await page.locator('input[type="file"]').setInputFiles([
+    { name: "02_chat-de-la-liga.mp4", mimeType: "video/mp4", buffer: Buffer.alloc(2000) },
+    { name: "02_chat-de-la-liga.png", mimeType: "image/png", buffer: png },
+    { name: "01_bienvenida.mp4", mimeType: "video/mp4", buffer: Buffer.alloc(2000) },
+    { name: "suelta.png", mimeType: "image/png", buffer: png },
+  ])
+  const rows = page.locator("[data-bulk-row]")
+  await expect(rows).toHaveCount(2)
+  await expect(rows.nth(0).getByRole("textbox")).toHaveValue("Bienvenida")
+  await expect(rows.nth(1).getByRole("textbox")).toHaveValue("Chat de la liga")
+  await expect(page.getByRole("status")).toContainText("suelta.png")
+  await rows.nth(1).getByRole("combobox").selectOption("match")
+  await page.locator("[data-bulk-upload]").click()
+  await expect(page.getByRole("button", { name: "Listo" })).toBeVisible({ timeout: 60_000 })
+  expect(created.map((item) => item.title)).toEqual(["Bienvenida", "Chat de la liga"])
+  expect(created.map((item) => item.screen)).toEqual([null, "match"])
+  expect(created.every((item) => item.audience === "draft" && item.announce === false)).toBe(true)
 })
 
 test("tutorial management schedules a publication and shows what is scheduled", async ({ page }) => {

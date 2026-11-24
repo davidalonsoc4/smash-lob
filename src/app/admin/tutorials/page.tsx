@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { TutorialForm } from "@/components/admin/TutorialForm"
+import { TutorialBulkForm, TutorialForm } from "@/components/admin/TutorialForm"
 import { TutorialPreviewDialog } from "@/components/admin/TutorialPreviewDialog"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
@@ -12,7 +12,7 @@ import { deleteTutorial, fetchAdminTutorials, reorderTutorials, type TutorialLea
 import { formatTutorialDuration, type TutorialAdminItem } from "@/lib/tutorialVideos"
 import { useI18n } from "@/i18n/I18nProvider"
 
-const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, leagueIds: [] as string[], publishAt: null as string | null }
+const EMPTY_DRAFT = { title: "", description: "", audience: "draft" as const, leagueIds: [] as string[], publishAt: null as string | null, screen: null as string | null }
 
 export default function AdminTutorialsPage() {
   const { tx, locale } = useI18n()
@@ -22,6 +22,7 @@ export default function AdminTutorialsPage() {
   const [leagues, setLeagues] = useState<TutorialLeagueOption[]>([])
   const [error, setError] = useState(false)
   const [form, setForm] = useState<{ editing: TutorialAdminItem | null } | null>(null)
+  const [bulk, setBulk] = useState(false)
   const [preview, setPreview] = useState<TutorialAdminItem | null>(null)
 
   const load = useCallback(async () => {
@@ -67,6 +68,9 @@ export default function AdminTutorialsPage() {
           <button type="button" onClick={() => setForm({ editing: null })} className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-950 px-4 text-center text-sm font-black text-white">
             + {tx("Añadir vídeo")}
           </button>
+          <button type="button" data-bulk-open onClick={() => setBulk(true)} className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-neutral-100 px-4 text-center text-sm font-black text-neutral-950">
+            {tx("Subir varios vídeos")}
+          </button>
           {error ? <p role="alert" className="text-sm font-bold text-red-700">{tx("No se ha podido completar la operación.")}</p> : null}
           {items?.length === 0 ? <EmptyState title={tx("Aún no hay tutoriales")} description={tx("Sube el primer vídeo para empezar.")} /> : null}
           {items?.map((item, index) => (
@@ -95,11 +99,14 @@ export default function AdminTutorialsPage() {
             </AppCard>
           ))}
           <TutorialPreviewDialog tutorial={preview} onClose={() => setPreview(null)} />
+          <FloatingDialog open={bulk} onClose={() => setBulk(false)} title={tx("Subir varios vídeos")} className="league-chat-edit-dialog tutorial-form-dialog">
+            {bulk ? <TutorialBulkForm onDone={() => { setBulk(false); void load() }} onCancel={() => setBulk(false)} /> : null}
+          </FloatingDialog>
           <FloatingDialog open={Boolean(form)} onClose={() => setForm(null)} title={form?.editing ? tx("Editar tutorial") : tx("Nuevo tutorial")} className="league-chat-edit-dialog tutorial-form-dialog">
             {form ? (
               <TutorialForm
                 editingId={form.editing?.id ?? null}
-                initial={form.editing ? { title: form.editing.title, description: form.editing.description, audience: form.editing.audience, leagueIds: form.editing.leagueIds, publishAt: form.editing.publishAt } : EMPTY_DRAFT}
+                initial={form.editing ? { title: form.editing.title, description: form.editing.description, audience: form.editing.audience, leagueIds: form.editing.leagueIds, publishAt: form.editing.publishAt, screen: form.editing.screen ?? null } : EMPTY_DRAFT}
                 leagues={leagues}
                 announcedLeagueIds={form.editing?.announcedLeagueIds ?? []}
                 onDone={() => { setForm(null); void load() }}

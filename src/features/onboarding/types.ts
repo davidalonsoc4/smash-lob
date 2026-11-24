@@ -54,6 +54,7 @@ export type OnboardingCopy = {
   startCurrent: string
   repeatCurrent: string
   allTutorials: string
+  screenVideo: string
   noTourTitle: string
   noTourDescription: string
   close: string
@@ -81,9 +82,10 @@ export function getOnboardingCopy(locale: Locale): OnboardingCopy {
       helpDescription: "See a short visual guide to the features available here.",
       startCurrent: "Start guide",
       repeatCurrent: "Repeat guide",
-      allTutorials: "All tutorials",
+      allTutorials: "Help and tutorials",
+      screenVideo: "Watch this screen's video",
       noTourTitle: "No guide on this screen",
-      noTourDescription: "Open the tutorial library to see the available guides.",
+      noTourDescription: "Open Help to see the available videos, guides and rules.",
       close: "Close",
       previous: "Previous",
       next: "Next",
@@ -109,9 +111,10 @@ export function getOnboardingCopy(locale: Locale): OnboardingCopy {
       helpDescription: "Ikusi hemen dauden funtzioen gida bisual laburra.",
       startCurrent: "Gida hasi",
       repeatCurrent: "Gida errepikatu",
-      allTutorials: "Tutorial guztiak",
+      allTutorials: "Laguntza eta tutorialak",
+      screenVideo: "Ikusi pantaila honen bideoa",
       noTourTitle: "Ez dago gidarik pantaila honetan",
-      noTourDescription: "Ireki tutorialen liburutegia eskuragarri dauden gidak ikusteko.",
+      noTourDescription: "Ireki Laguntza eskuragarri dauden bideoak, gidak eta arauak ikusteko.",
       close: "Itxi",
       previous: "Aurrekoa",
       next: "Hurrengoa",
@@ -136,9 +139,10 @@ export function getOnboardingCopy(locale: Locale): OnboardingCopy {
     helpDescription: "Consulta una guía visual breve de las funciones disponibles aquí.",
     startCurrent: "Ver guía",
     repeatCurrent: "Repetir guía",
-    allTutorials: "Todos los tutoriales",
+    allTutorials: "Ayuda y tutoriales",
+    screenVideo: "Ver el vídeo de esta pantalla",
     noTourTitle: "Esta pantalla no tiene guía",
-    noTourDescription: "Abre la biblioteca para consultar todos los tutoriales disponibles.",
+    noTourDescription: "Abre Ayuda para ver los vídeos, las guías y las reglas disponibles.",
     close: "Cerrar",
     previous: "Anterior",
     next: "Siguiente",

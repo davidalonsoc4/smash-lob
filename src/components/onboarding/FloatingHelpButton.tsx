@@ -2,7 +2,11 @@
 
 import Link from "next/link"
 import { FloatingDialog, DialogCloseButton } from "@/components/ui/FloatingDialog"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import { TutorialPlayerDialog } from "@/components/help/TutorialVideoCard"
+import { fetchTutorials } from "@/lib/tutorialVideosClient"
+import { getTutorialScreenForPath, type TutorialSummary } from "@/lib/tutorialVideos"
 import { useI18n } from "@/i18n/I18nProvider"
 import { getOnboardingCopy } from "@/features/onboarding/types"
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider"
@@ -23,6 +27,20 @@ export function FloatingHelpButton() {
   const copy = getOnboardingCopy(locale)
   const { currentTour, progress, startCurrentTour } = useOnboarding()
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  const screen = getTutorialScreenForPath(pathname ?? "")
+  const [screenVideo, setScreenVideo] = useState<TutorialSummary | null>(null)
+  const [playing, setPlaying] = useState<TutorialSummary | null>(null)
+
+  // The video of this screen (if one was assigned to it) is looked up when the panel opens.
+  useEffect(() => {
+    if (!open || !screen) return
+    let cancelled = false
+    void fetchTutorials().then((list) => {
+      if (!cancelled) setScreenVideo(list?.find((item) => item.screen === screen) ?? null)
+    })
+    return () => { cancelled = true }
+  }, [open, screen])
   const completed = currentTour ? hasCompletedCurrentTour(progress, currentTour) : false
 
   return (
@@ -62,14 +80,28 @@ export function FloatingHelpButton() {
               </button>
             ) : null}
 
+            {screen && screenVideo?.screen === screen ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false)
+                  setPlaying(screenVideo)
+                }}
+                className="app-dialog-option mt-2 justify-center"
+              >
+                {copy.screenVideo}
+              </button>
+            ) : null}
+
             <Link
-              href="/help#tutoriales-visuales"
+              href="/help"
               onClick={() => setOpen(false)}
               className="app-dialog-option mt-2 justify-center"
             >
               {copy.allTutorials}
             </Link>
       </FloatingDialog>
+      <TutorialPlayerDialog tutorial={playing} onClose={() => setPlaying(null)} />
     </>
   )
 }

@@ -85,7 +85,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Ayuda visual",
-          description: "Abre la guía de la pantalla actual o consulta la biblioteca completa de tutoriales.",
+          description: "Abre la guía de la pantalla actual, su vídeo si lo tiene, o entra en Ayuda para ver todos los tutoriales y las reglas.",
         },
       ],
     },
@@ -148,7 +148,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Notificaciones",
-          description: "Configura los avisos push y decide qué notificaciones quieres recibir. Los mensajes de una misma conversación se agrupan en una sola notificación del chat.",
+          description: "Activa los avisos push en este dispositivo y decide cuáles quieres recibir en seis interruptores. Las Novedades de la liga y las menciones en el chat llegan siempre.",
         },
         {
           title: "Tus ligas y Mis partidos",
@@ -254,7 +254,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Visual help",
-          description: "Open the guide for the current screen or browse the complete tutorial library.",
+          description: "Open the guide for the current screen, its video if it has one, or go to Help for all the tutorials and rules.",
         },
       ],
     },
@@ -317,7 +317,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Notifications",
-          description: "Configure push alerts and choose which notifications you want to receive. Messages from the same conversation are grouped into a single chat notification.",
+          description: "Turn on push alerts on this device and choose which ones you want with six switches. League news and chat mentions always arrive.",
         },
         {
           title: "Your leagues and My matches",
@@ -423,7 +423,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Laguntza bisuala",
-          description: "Ireki uneko pantailaren gida edo ikusi tutorialen liburutegi osoa.",
+          description: "Ireki uneko pantailaren gida, bere bideoa baldin badu, edo sartu Laguntzan tutorial eta arau guztiak ikusteko.",
         },
       ],
     },
@@ -486,7 +486,7 @@ const tourTexts: Record<Locale, Record<OnboardingTourKey, LocalizedTourText>> = 
         },
         {
           title: "Jakinarazpenak",
-          description: "Konfiguratu push abisuak eta aukeratu zein jakinarazpen jaso nahi dituzun. Elkarrizketa bereko mezuak chat jakinarazpen bakarrean taldekatzen dira.",
+          description: "Aktibatu push abisuak gailu honetan eta aukeratu sei etengailuren bidez zeintzuk jaso nahi dituzun. Ligaren berriak eta txateko aipamenak beti iristen dira.",
         },
         {
           title: "Zure ligak eta Nire partidak",

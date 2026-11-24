@@ -34,6 +34,38 @@ export function isTutorialPath(path: unknown, kind: "video" | "poster") {
   return kind === "video" ? match[1].toLowerCase() === "mp4" : match[1].toLowerCase() !== "mp4"
 }
 
+/** Screens a tutorial video can belong to. The help button of each screen offers the video of that screen. */
+export const TUTORIAL_SCREENS = [
+  { id: "home", label: "Inicio", pattern: /^\/league\/home(\/|$)/ },
+  { id: "matches", label: "Partidos y jornadas", pattern: /^\/matches(\/|$)/ },
+  { id: "match-chat", label: "Chat del partido", pattern: /^\/match\/[^/]+\/chat(\/|$)/ },
+  { id: "match", label: "Detalle de partido", pattern: /^\/match\/[^/]+\/?$/ },
+  { id: "chats", label: "Chats", pattern: /^\/chats(\/|$)/ },
+  { id: "ranking", label: "Clasificación", pattern: /^\/ranking(\/|$)/ },
+  { id: "statistics", label: "Estadísticas", pattern: /^\/statistics(\/|$)/ },
+  { id: "notification-settings", label: "Ajustes de notificaciones", pattern: /^\/settings\/notifications(\/|$)/ },
+  { id: "profile", label: "Perfil y disponibilidad", pattern: /^\/(settings\/profile|availability|profile)(\/|$)/ },
+  { id: "settings", label: "Ajustes", pattern: /^\/settings\/?$/ },
+  { id: "personal-matches", label: "Amistosos", pattern: /^\/personal-matches(\/|$)/ },
+  { id: "payments", label: "Pagos", pattern: /^\/payments(\/|$)/ },
+  { id: "leagues", label: "Mis ligas", pattern: /^\/leagues(\/|$)/ },
+  { id: "activity", label: "Actividad", pattern: /^\/activity(\/|$)/ },
+  { id: "season-admin", label: "Administrar temporada", pattern: /^\/admin\/season(\/|$)/ },
+  { id: "league-admin", label: "Administrar liga", pattern: /^\/admin\/league(\/|$)/ },
+  { id: "users-admin", label: "Usuarios y roles", pattern: /^\/admin\/users(\/|$)/ },
+  { id: "tournaments", label: "Torneos", pattern: /^\/tournaments(\/|$)/ },
+] as const
+export type TutorialScreenId = (typeof TUTORIAL_SCREENS)[number]["id"]
+
+export function isTutorialScreen(value: unknown): value is TutorialScreenId {
+  return typeof value === "string" && TUTORIAL_SCREENS.some((screen) => screen.id === value)
+}
+
+/** The tutorial screen a path belongs to, or null when no video is organised for it. */
+export function getTutorialScreenForPath(pathname: string): TutorialScreenId | null {
+  return TUTORIAL_SCREENS.find((screen) => screen.pattern.test(pathname))?.id ?? null
+}
+
 export type TutorialAccess = {
   audience: TutorialAudience
   /** Leagues the tutorial is limited to (only meaningful for 'leagues'). */
@@ -72,6 +104,8 @@ export type TutorialSummary = {
   height: number | null
   durationMs: number | null
   seen: boolean
+  /** Screen this video explains (see TUTORIAL_SCREENS); empty when it is general. */
+  screen?: string | null
 }
 
 export type TutorialAdminItem = TutorialSummary & {

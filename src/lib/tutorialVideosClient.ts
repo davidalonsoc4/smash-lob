@@ -68,6 +68,8 @@ export type TutorialDraft = {
   leagueIds: string[]
   /** Moment it goes live (ISO); null publishes right away. */
   publishAt: string | null
+  /** Screen the video explains (an id of TUTORIAL_SCREENS); null for a general video. */
+  screen: string | null
 }
 
 /** ISO moment -> value of a datetime-local input (the viewer's own time zone). */
