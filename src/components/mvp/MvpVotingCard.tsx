@@ -137,6 +137,7 @@ export function MvpVotingCard({
       {resultActions}
       {!matchProgress.complete ? (
     <AppCard
+      data-tour="match-mvp"
       className={`p-2.5 ${
         hasPendingVote
           ? "border-amber-300 bg-amber-50/70 ring-1 ring-amber-200"

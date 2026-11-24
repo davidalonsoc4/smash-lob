@@ -17,10 +17,22 @@ describe("guided onboarding", () => {
       "chats",
       "chat",
       "match",
+      "competitions",
+      "notification-settings",
+      "personal-matches",
+      "personal-match",
+      "payments",
       "ranking",
       "statistics",
       "settings",
     ])
+    expect(getTourForPathname({ pathname: "/leagues", locale: "es", audience: playerAudience })?.key).toBe("competitions")
+    expect(getTourForPathname({ pathname: "/settings/notifications", locale: "es", audience: playerAudience })?.key).toBe("notification-settings")
+    expect(getTourForPathname({ pathname: "/personal-matches", locale: "es", audience: playerAudience })?.key).toBe("personal-matches")
+    expect(getTourForPathname({ pathname: "/personal-matches/019fc39c-26cf-43e1-9d4b-9439d3366675", locale: "es", audience: playerAudience })?.key).toBe("personal-match")
+    expect(getTourForPathname({ pathname: "/personal-matches/new", locale: "es", audience: playerAudience })).toBeNull()
+    expect(getTourForPathname({ pathname: "/personal-matches/019fc39c-26cf-43e1-9d4b-9439d3366675/chat", locale: "es", audience: playerAudience })).toBeNull()
+    expect(getTourForPathname({ pathname: "/payments", locale: "es", audience: playerAudience })?.key).toBe("payments")
     expect(getTourForPathname({ pathname: "/matches", locale: "es", audience: playerAudience })?.key).toBe("matches")
     expect(getTourForPathname({ pathname: "/chats", locale: "es", audience: playerAudience })?.key).toBe("chats")
     expect(getTourForPathname({ pathname: "/match/019fc39c-26cf-43e1-9d4b-9439d3366675", locale: "es", audience: playerAudience })?.key).toBe("match")

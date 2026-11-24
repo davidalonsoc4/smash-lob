@@ -61,7 +61,7 @@ export default function PersonalMatchesPage() {
       <FloatingCreateButton href="/personal-matches/new" label={tx("Crear nuevo encuentro")} />
 
       {!loading && dashboard.upcoming.length > 0 ? (
-        <section className="space-y-2">
+        <section data-tour="friendly-upcoming" className="space-y-2">
           <div className="flex items-center justify-between gap-3 px-1">
             <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">{tx("Próximos partidos")}</p>
             <span className="type-caption font-bold text-neutral-400">
@@ -76,7 +76,7 @@ export default function PersonalMatchesPage() {
         </section>
       ) : null}
 
-      <section className="space-y-2">
+      <section data-tour="friendly-history" className="space-y-2">
         <div className="flex items-center justify-between px-1">
           <p className="type-caption font-black uppercase tracking-[0.2em] text-neutral-400">
             Historial

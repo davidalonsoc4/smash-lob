@@ -17,6 +17,11 @@ const tourKeys = new Set<OnboardingTourKey>([
   "settings",
   "chats",
   "match",
+  "competitions",
+  "notification-settings",
+  "personal-matches",
+  "personal-match",
+  "payments",
   "chat",
 ])
 

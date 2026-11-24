@@ -1053,6 +1053,13 @@ test("friendly match detail: directions and calendar buttons share weight, size 
 })
 
 test.describe("coin toss in the detail of a friendly", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      const guides = JSON.parse(localStorage.getItem("smash-lob-guided-onboarding-v1") ?? "{}")
+      guides["personal-match"] = { tourKey: "personal-match", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null }
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(guides))
+    })
+  })
   const item = {
     id: "qa-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2026-11-26T16:00:00Z", resultRecordedAt: null,
     locationName: "Portugalete · Pando · Pista 1", sets: [], canManage: true, canDelete: true, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null,
@@ -1323,4 +1330,34 @@ test("notification settings show six grouped switches and a note about the requi
   expect(saved).toMatchObject({ match_upcoming: false, match_coin_toss: false, match_chat: true })
   await expect(page.locator("[data-required-note]")).toContainText("Novedades de la liga")
   await expect(page.locator("[data-required-notification]")).toHaveCount(0)
+})
+
+test("the guide of a friendly only walks the parts the person can see", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-20T12:00:00Z"))
+  const item = {
+    id: "qa-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2026-11-26T16:00:00Z", resultRecordedAt: null,
+    locationName: "Portugalete · Pando · Pista 1", sets: [], canManage: true, canDelete: true, leagueId: null, leagueName: null, seasonId: null, seasonName: null, round: null,
+    participants: [
+      { team: 1, slot: 1, displayName: "David Alonso", isCurrentUser: true, personKey: "a" },
+      { team: 1, slot: 2, displayName: "Álvaro Ruiz", isCurrentUser: false, personKey: "b" },
+      { team: 2, slot: 1, displayName: "Alain Alexei", isCurrentUser: false, personKey: "c" },
+      { team: 2, slot: 2, displayName: "Unai García", isCurrentUser: false, personKey: "d" },
+    ],
+  }
+  await page.route("**/api/personal-matches/qa-friendly", route => route.fulfill({ json: { item } }))
+  await page.route("**/api/personal-matches/qa-friendly/coin-toss", route => route.fulfill({ json: { coinToss: null, window: { state: "open", opensAt: null } } }))
+  await page.goto("/personal-matches/qa-friendly?tour=personal-match")
+  const dialog = page.getByRole("dialog")
+  const seen: string[] = []
+  for (let step = 0; step < 12; step++) {
+    await expect(dialog.getByRole("heading").first()).toBeVisible()
+    seen.push((await dialog.getByRole("heading").first().innerText()).trim())
+    const finish = dialog.getByRole("button", { name: "Terminar" })
+    if (await finish.count()) { await finish.click(); break }
+    await dialog.getByRole("button", { name: "Siguiente" }).click()
+  }
+  await expect(dialog).toHaveCount(0)
+  expect(seen).toEqual(expect.arrayContaining(["Estado del amistoso", "Parejas y marcador", "Jugadores del amistoso", "Resultado", "Un amistoso es personal", "Eliminar el partido"]))
+  expect(seen.length).toBeGreaterThanOrEqual(6)
+  console.log("friendly guide steps:", seen.join(" | "))
 })

@@ -56,7 +56,7 @@ export function MatchDetailView({
           <div className="app-match-header-row flex min-w-0 items-center justify-between gap-2.5">
             <h1 className="type-page-title min-w-0 font-black tracking-tight">{title}</h1>
 
-            <div className="flex shrink-0 flex-col items-end gap-0.5">
+            <div data-tour="match-status" className="flex shrink-0 flex-col items-end gap-0.5">
               <MatchStatusBadge
                 variant={statusVariant}
                 status={status}
@@ -82,7 +82,7 @@ export function MatchDetailView({
 
       {beforePairing}
 
-      <MatchDetailPairingPanel {...pairing} />
+      <div data-tour="match-pairing"><MatchDetailPairingPanel {...pairing} /></div>
 
       {children}
     </div>

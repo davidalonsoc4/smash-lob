@@ -27,13 +27,16 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/tournaments", route => route.fulfill({ json: { tournaments: [] } }))
   await page.addInitScript(() => {
     localStorage.setItem("smash-lob:competition-launch-popup-v2:qa-v1-1@example.test", "dismissed")
+    const guides = JSON.parse(localStorage.getItem("smash-lob-guided-onboarding-v1") ?? "{}")
+    guides.competitions = { tourKey: "competitions", tourVersion: 1, status: "completed", completedAt: "2026-08-06T00:00:00.000Z", skippedAt: null }
+    localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(guides))
     localStorage.setItem("smash-lob-user-league-memberships", JSON.stringify([{ userId: "qa-v1-1@example.test", leagueId: "league-smash-lob", playerId: "davo", role: "admin" }]))
   })
 })
 
 test("share menu offers three branded QR destinations without changing league access", async ({ page }, testInfo) => {
   await page.route("**/api/leagues/*/spectator-invite", route => route.fulfill({ json: { code: "READ", url: "http://127.0.0.1:3100/spectate/READ" } }))
-  await page.addInitScript(() => localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }])))))
+  await page.addInitScript(() => localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7], ["competitions", 1]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }])))))
   await page.goto("/leagues")
   await page.getByRole("button", { name: "Compartir invitación", exact: true }).click()
   await expect(page.getByRole("dialog").getByRole("img")).toBeVisible()
@@ -311,7 +314,7 @@ for (const theme of ["light", "dark"] as const) {
     await context.addInitScript(({ mode, style }) => {
       localStorage.setItem("smash-lob-theme-mode", mode)
       localStorage.setItem("smash-lob-visual-style", style)
-      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7], ["competitions", 1]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
     }, { mode: theme, style: visualStyle })
     const upcoming = {
       id: "fixture-friendly", origin: "friendly", status: "scheduled", scheduledAt: "2099-10-17T18:00:00Z", resultRecordedAt: null,
@@ -481,7 +484,7 @@ for (const theme of ["light", "dark"] as const) {
       localStorage.setItem("smash-lob-theme-mode", mode)
       localStorage.setItem("smash-lob-visual-style", "competition")
       localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([
-        ["app-introduction", 1], ["home", 7], ["matches", 2], ["ranking", 2], ["statistics", 2], ["settings", 4],
+        ["app-introduction", 1], ["home", 7], ["competitions", 1], ["matches", 2], ["ranking", 2], ["statistics", 2], ["settings", 4],
       ].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
     }, theme)
     await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [], upcoming: [], hasMore: false, nextOffset: null } }))
@@ -540,7 +543,7 @@ for (const canCreate of [true, false]) {
     })
     await page.addInitScript(() => {
       localStorage.setItem("smash-lob-active-league", "league-smash-lob")
-      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
+      localStorage.setItem("smash-lob-guided-onboarding-v1", JSON.stringify(Object.fromEntries([["app-introduction", 1], ["home", 7], ["competitions", 1]].map(([tourKey, tourVersion]) => [tourKey, { tourKey, tourVersion, status: "completed", completedAt: "2026-08-06T00:00:00Z", skippedAt: null }]))))
     })
     await page.goto("/league/home")
     await expect(page.locator('[data-preseason-phase="locked"]')).toBeVisible()
@@ -635,4 +638,20 @@ test("calendar keeps own latest finished match neutral", async ({ page }) => {
   await expect(card).not.toHaveClass(/match-preview-featured/)
   await expect(card.locator('[data-match-preview="result"]')).toBeVisible()
 
+})
+
+test("the guides of Mis Competiciones and notification settings walk their visible steps", async ({ page }) => {
+  await page.route("**/api/personal-matches?**", route => route.fulfill({ json: { items: [], upcoming: [], hasMore: false, nextOffset: null } }))
+  for (const [path, tour, titles] of [
+    ["/leagues", "competitions", ["Tu actividad personal", "Tus ligas", "Ver todas", "Botón de crear"]],
+    ["/settings/notifications", "notification-settings", ["Este dispositivo", "Todo o nada", "Seis grupos de avisos", "Avisos que siempre llegan"]],
+  ] as const) {
+    await page.goto(`${path}?tour=${tour}`)
+    const dialog = page.getByRole("dialog")
+    for (const [index, title] of titles.entries()) {
+      await expect(dialog.getByRole("heading", { name: title })).toBeVisible()
+      await dialog.getByRole("button", { name: index === titles.length - 1 ? "Terminar" : "Siguiente" }).click()
+    }
+    await expect(dialog).toHaveCount(0)
+  }
 })

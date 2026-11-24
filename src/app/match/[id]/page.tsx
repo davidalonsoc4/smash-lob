@@ -374,7 +374,7 @@ export default function MatchDetailPage() {
     match.rankingCounts !== false
 
   const prioritizeResult = match.status === "finished" || getMatchDisplayStatus(match) === "result_pending"
-  const resultSection = (isMatchParticipant || isAdmin) && (canEnterResult || shouldShowResultWorkflow) ? <section className="space-y-3" aria-label={tx("Resultado del partido")}>
+  const resultSection = (isMatchParticipant || isAdmin) && (canEnterResult || shouldShowResultWorkflow) ? <section data-tour="match-result" className="space-y-3" aria-label={tx("Resultado del partido")}>
       {shouldShowResultWorkflow && canMutateSeason ? (
         <MatchResultConfirmationCard
           matchId={match.id}
@@ -564,8 +564,8 @@ export default function MatchDetailPage() {
         sideStatistics: buildSideStatistics(storedMatches.map(item => ({ ...item, resultCounts: item.rankingCounts !== false && getMatchResultConfirmationState({ matchId: item.id, participantIds: [...item.teamA, ...item.teamB], reporterPlayerId: item.resultReportedByPlayerId, resultRecordedAt: item.resultRecordedAt, resultLocked: item.resultLocked, confirmations: resultConfirmations, mode: getSeasonRoundSettings(item.seasonId).resultConfirmationMode }).countsForRanking })), playerProfiles, seasonPlayers),
       }}
     >
-      <MatchCoinTossPanel kind="league" matchId={match.id} knownToss={(storedMatch as WithCoinToss<MatchData> | undefined)?.coinToss} scheduledAt={match.scheduledAt} myTeam={match.teamA.includes(currentUserId) ? 1 : match.teamB.includes(currentUserId) ? 2 : null} canToss={canManageMatch} matchOpen={match.status === "scheduled" || match.status === "scheduling"}
-        teamNames={[match.teamA.map(id => getPlayerDisplayName(id, players)).join(" + "), match.teamB.map(id => getPlayerDisplayName(id, players)).join(" + ")]} />
+      <div data-tour="match-coin-toss" className="empty:hidden"><MatchCoinTossPanel kind="league" matchId={match.id} knownToss={(storedMatch as WithCoinToss<MatchData> | undefined)?.coinToss} scheduledAt={match.scheduledAt} myTeam={match.teamA.includes(currentUserId) ? 1 : match.teamB.includes(currentUserId) ? 2 : null} canToss={canManageMatch} matchOpen={match.status === "scheduled" || match.status === "scheduling"}
+        teamNames={[match.teamA.map(id => getPlayerDisplayName(id, players)).join(" + "), match.teamB.map(id => getPlayerDisplayName(id, players)).join(" + ")]} /></div>
 
       <MatchActionsContent
         match={match}
@@ -620,7 +620,7 @@ export default function MatchDetailPage() {
       ) : null}
 
       {shouldShowSchedulePanel ? (
-        <MatchScheduleForm
+        <div data-tour="match-schedule"><MatchScheduleForm
           matchId={match.id}
           leagueId={activeLeague.id}
           seasonId={activeSeason.id}
@@ -668,7 +668,7 @@ export default function MatchDetailPage() {
               ><CalendarAddIcon />{tx("Calendario")}</AddToCalendarButton>
             ) : null
           }
-        />
+        /></div>
       ) : null}
 
       {roundSettings.organizationBallsAssigned && ballCustodianName ? (
@@ -681,7 +681,7 @@ export default function MatchDetailPage() {
 
       {(match.status === "scheduled" || match.courtBooking.isReserved) &&
       canViewCourtBooking ? (
-        <CourtBookingPanel
+        <div data-tour="match-court-booking"><CourtBookingPanel
           key={`${match.id}:${match.courtBooking.isReserved}`}
           matchId={match.id}
           teamA={match.teamA}
@@ -694,7 +694,7 @@ export default function MatchDetailPage() {
           ballPurchasesDisabled={roundSettings.organizationBallsAssigned}
           shouldFocusBooking={shouldFocusBooking}
           initiallyExpanded={false}
-        />
+        /></div>
       ) : null}
 
       {!prioritizeResult ? resultSection : null}

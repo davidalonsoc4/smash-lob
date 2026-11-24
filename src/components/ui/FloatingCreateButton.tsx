@@ -11,6 +11,6 @@ export function FloatingCreateButton({ label, href, onClick }: { label: string; 
   const { visualStyle, competitionAccent } = useTheme()
   const icon = <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke={getFloatingIconStroke(visualStyle, competitionAccent)} strokeWidth="1.8" strokeLinecap="round"><path d="M12 4v16M4 12h16" /></svg>
   return href
-    ? <Link href={href} aria-label={label} title={label} className={className} style={style}>{icon}</Link>
-    : <button type="button" onClick={onClick} aria-label={label} title={label} aria-haspopup="dialog" className={className} style={style}>{icon}</button>
+    ? <Link href={href} data-tour="floating-create" aria-label={label} title={label} className={className} style={style}>{icon}</Link>
+    : <button type="button" data-tour="floating-create" onClick={onClick} aria-label={label} title={label} aria-haspopup="dialog" className={className} style={style}>{icon}</button>
 }

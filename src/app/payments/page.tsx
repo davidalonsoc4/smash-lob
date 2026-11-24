@@ -560,6 +560,7 @@ export default function PaymentsPage() {
       </header>
 
       <div
+        data-tour="payments-tabs"
         className="grid rounded-2xl bg-neutral-100 p-1 text-xs font-black"
         style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
       >
@@ -567,6 +568,7 @@ export default function PaymentsPage() {
           <button
             key={tab.id}
             type="button"
+            data-tour={tab.id === "all" ? "payments-admin-tab" : undefined}
             onClick={() => setActiveTab(tab.id)}
             className={`rounded-xl px-3 py-2 ${
               activeTab === tab.id ? "bg-white shadow-sm" : "text-neutral-500"
@@ -578,7 +580,7 @@ export default function PaymentsPage() {
       </div>
 
       {activeTab !== "all" ? (
-        <div className="grid grid-cols-3 rounded-2xl border border-neutral-200 bg-white p-1 text-xs font-black">
+        <div data-tour="payments-scope" className="grid grid-cols-3 rounded-2xl border border-neutral-200 bg-white p-1 text-xs font-black">
           {paymentScopeOptions.map((scope) => (
             <button
               key={scope.id}
@@ -597,7 +599,7 @@ export default function PaymentsPage() {
       ) : null}
 
       {activeTab !== "all" && paymentScope === "league" ? (
-        <AppCard>
+        <AppCard data-tour="payments-league-picker">
           <div className="grid gap-3">
             <label className="block type-caption font-black uppercase tracking-[0.16em] text-neutral-500">
               {tx("Liga")}
@@ -635,6 +637,7 @@ export default function PaymentsPage() {
       {activeTab === "status" ? (
         <>
           <AppCard
+            data-tour="payments-summary"
             className={
               pendingPaymentCount > 0 ? "border-amber-200 bg-amber-50" : ""
             }
@@ -678,7 +681,7 @@ export default function PaymentsPage() {
           </AppCard>
 
           {paymentScope === "league" ? (
-            <AppCard className="overflow-hidden p-0">
+            <AppCard data-tour="payments-economy" className="overflow-hidden p-0">
             <button
               type="button"
               onClick={() => setIsEconomyExpanded((current) => !current)}
@@ -807,7 +810,7 @@ export default function PaymentsPage() {
             </AppCard>
           ) : null}
 
-          <AppCard>
+          <AppCard data-tour="payments-pending">
             <p className="text-sm font-black text-neutral-950">
               {tx("Pagos pendientes")}
             </p>

@@ -360,7 +360,7 @@ export default function NotificationSettingsPage() {
 
       </header>
 
-      <div id="device" className="settings-search-target">
+      <div id="device" data-tour="notifications-device" className="settings-search-target">
       <AppCard className="p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -424,7 +424,7 @@ export default function NotificationSettingsPage() {
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div data-tour="notifications-bulk" className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={disableAll}
@@ -444,7 +444,7 @@ export default function NotificationSettingsPage() {
           </div>
         </div>
 
-        <div className="mt-2 divide-y divide-neutral-100">
+        <div data-tour="notifications-groups" className="mt-2 divide-y divide-neutral-100">
           {notificationGroupViews.map((group) => {
             const isEnabled = isNotificationGroupEnabled(preferences, notificationGroupKeys[group.id])
 
@@ -483,7 +483,7 @@ export default function NotificationSettingsPage() {
         </div>
       </AppCard>
 
-      <p data-required-note className="px-1 text-xs font-semibold leading-4 text-neutral-500">{t.notifications.requiredNote}</p>
+      <p data-required-note data-tour="notifications-required" className="px-1 text-xs font-semibold leading-4 text-neutral-500">{t.notifications.requiredNote}</p>
 
       {error ? (
         <p className="rounded-2xl bg-red-50 px-3 py-2 text-center text-xs font-semibold text-red-700">

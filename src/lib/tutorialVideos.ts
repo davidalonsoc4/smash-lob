@@ -48,7 +48,7 @@ export const TUTORIAL_SCREENS = [
   { id: "settings", label: "Ajustes", pattern: /^\/settings\/?$/ },
   { id: "personal-matches", label: "Amistosos", pattern: /^\/personal-matches(\/|$)/ },
   { id: "payments", label: "Pagos", pattern: /^\/payments(\/|$)/ },
-  { id: "leagues", label: "Mis ligas", pattern: /^\/leagues(\/|$)/ },
+  { id: "leagues", label: "Mis Competiciones", pattern: /^\/leagues(\/|$)/ },
   { id: "activity", label: "Actividad", pattern: /^\/activity(\/|$)/ },
   { id: "season-admin", label: "Administrar temporada", pattern: /^\/admin\/season(\/|$)/ },
   { id: "league-admin", label: "Administrar liga", pattern: /^\/admin\/league(\/|$)/ },

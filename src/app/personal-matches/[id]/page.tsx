@@ -153,24 +153,24 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
         showFinishedPlayerMetadata: false,
       }}
     >
-      <MatchCoinTossPanel kind="friendly" matchId={item.id} scheduledAt={item.scheduledAt} myTeam={item.participants.find(participant => participant.isCurrentUser)?.team ?? null} canToss={item.canManage} matchOpen={item.status === "scheduled"}
-        teamNames={[1, 2].map(team => item.participants.filter(participant => participant.team === team).sort((a, b) => a.slot - b.slot).map(participant => participant.displayName).join(" + ")) as [string, string]} />
+      <div data-tour="match-coin-toss" className="empty:hidden"><MatchCoinTossPanel kind="friendly" matchId={item.id} scheduledAt={item.scheduledAt} myTeam={item.participants.find(participant => participant.isCurrentUser)?.team ?? null} canToss={item.canManage} matchOpen={item.status === "scheduled"}
+        teamNames={[1, 2].map(team => item.participants.filter(participant => participant.team === team).sort((a, b) => a.slot - b.slot).map(participant => participant.displayName).join(" + ")) as [string, string]} /></div>
 
-      <PersonalMatchParticipantsPanel match={item} onUpdated={updateItem} />
+      <div data-tour="friendly-participants"><PersonalMatchParticipantsPanel match={item} onUpdated={updateItem} /></div>
 
-      <PersonalMatchSchedulePanel match={item} onUpdated={updateItem} />
+      <div data-tour="friendly-schedule" className="empty:hidden"><PersonalMatchSchedulePanel match={item} onUpdated={updateItem} /></div>
 
-      <PersonalMatchCourtBookingPanel match={item} onUpdated={updateItem} />
+      <div data-tour="friendly-court" className="empty:hidden"><PersonalMatchCourtBookingPanel match={item} onUpdated={updateItem} /></div>
 
       {item.status === "scheduled" && item.canManage ? (
-        <PersonalMatchResultForm
+        <div data-tour="friendly-result"><PersonalMatchResultForm
           match={item}
           mode="create"
           onSaved={(nextItem) => {
             updateItem(nextItem)
             setEditingResult(false)
           }}
-        />
+        /></div>
       ) : null}
 
       {item.status === "finished" && item.canManage && !editingResult ? (
@@ -197,13 +197,14 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
         />
       ) : null}
 
-      <AppCard className="border-blue-100 bg-blue-50 p-3">
+      <AppCard data-tour="friendly-personal-note" className="border-blue-100 bg-blue-50 p-3">
         <p className="text-xs font-black text-blue-950">{tx("Partido personal")}</p>
         <p className="mt-1 type-caption font-semibold leading-4 text-blue-700">{tx("Este encuentro no pertenece a ninguna competición y no afecta a clasificación, estadísticas oficiales, récords ni MVP de tus ligas.")}</p>
       </AppCard>
 
       {item.canDelete ? (
         <button
+          data-tour="friendly-delete"
           type="button"
           disabled={deleting}
           onClick={() => void deleteMatch()}
