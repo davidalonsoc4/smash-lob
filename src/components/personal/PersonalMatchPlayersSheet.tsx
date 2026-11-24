@@ -9,8 +9,15 @@ import { sortPersonalMatchParticipants, type PersonalMatchItem } from "@/lib/per
 type Chip = { id: string; name: string; avatarUrl: string | null; personKey: string | null; rate: number | null }
 type Stat = { personKey: string; winRate: number | null; matches: number }
 
-// Court seen from above: slots 0-1 are pair A (top half), 2-3 pair B (bottom half).
-const slotStyle = (index: number) => ({ left: index % 2 === 0 ? "4%" : "52%", top: index < 2 ? "7%" : "53%" })
+// Court seen from above, as it is in real life: 20 x 10 m, so twice as wide as it is tall, with the net in the middle.
+// Pair A plays on the left, pair B on the right. The backhand player stands closer to the net, the drive player further back, one on each side.
+const SLOT_POSITIONS = [
+  { left: 21, top: 9 }, { left: 3, top: 63 },
+  { left: 54, top: 63 }, { left: 72, top: 9 },
+] as const
+const CHIP_WIDTH = 25
+const CHIP_HEIGHT = 28
+const slotStyle = (index: number) => ({ left: `${SLOT_POSITIONS[index].left}%`, top: `${SLOT_POSITIONS[index].top}%` })
 const PAIR_COLORS = ["#38bdf8", "#fb923c"] as const
 
 function initials(name: string) {
@@ -18,24 +25,25 @@ function initials(name: string) {
 }
 
 function CourtLines() {
+  // Service lines are 6.95 m from the net on a 10 m half: 34.75 % of the court length each side.
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-[3%]">
-      <div className="absolute inset-0 rounded-sm border-2 border-white/90" />
-      <div className="absolute inset-x-0 top-[26%] h-0.5 bg-white/80" />
-      <div className="absolute inset-x-0 top-[74%] h-0.5 bg-white/80" />
-      <div className="absolute bottom-[26%] left-1/2 top-[26%] w-0.5 -translate-x-1/2 bg-white/80" />
-      <div className="absolute inset-x-[-3%] top-1/2 h-1.5 -translate-y-1/2 bg-white/95 shadow-[0_3px_6px_rgba(0,0,0,0.35)]" />
+      <div className="absolute inset-0 border-2 border-white" />
+      <div className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-neutral-950" style={{ left: "15.25%" }} />
+      <div className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-neutral-950" style={{ left: "84.75%" }} />
+      <div className="absolute inset-x-[15.25%] top-1/2 h-0.5 -translate-y-1/2 bg-neutral-950" />
+      <div className="absolute inset-y-[-3%] left-1/2 w-1.5 -translate-x-1/2 bg-neutral-950 shadow-[0_0_6px_rgba(0,0,0,0.5)]" />
     </div>
   )
 }
 
 function RatePill({ rate, label }: { rate: number | null; label: string }) {
   return (
-    <span className="flex w-full max-w-[84%] flex-col items-center gap-0.5">
-      <span className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
+    <span className="mt-0.5 flex w-full items-center gap-1">
+      <span className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-neutral-200">
         <span className="block h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${rate ?? 0}%` }} />
       </span>
-      <span className="type-caption font-bold leading-none text-neutral-500">{rate === null ? label : `${rate}%`}</span>
+      <span className="shrink-0 type-caption font-bold leading-none text-neutral-500" title={rate === null ? label : undefined}>{rate === null ? "–" : `${rate}%`}</span>
     </span>
   )
 }
@@ -165,11 +173,11 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
           <button type="button" onClick={onClose} aria-label={tx("Cerrar")} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600 active:scale-95">✕</button>
         </div>
 
-        <div className="mt-3">{pairHeader(0)}</div>
+        <div className="mt-3 flex items-center justify-between gap-2">{pairHeader(0)}{pairHeader(1)}</div>
         <div className="relative mt-1.5 w-full select-none overflow-hidden rounded-2xl bg-slate-900 p-1.5 shadow-inner">
-          <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "10 / 12", background: "linear-gradient(180deg,#2f7fd1 0%,#2563b0 50%,#2f7fd1 100%)" }}>
+          <div className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: "2 / 1", background: "linear-gradient(90deg,#2f7fd1 0%,#2563b0 50%,#2f7fd1 100%)" }}>
             <CourtLines />
-            {[0, 1, 2, 3].map((index) => <div key={`slot-${index}`} data-slot-index={index} aria-hidden="true" className="absolute h-[40%] w-[44%] rounded-xl bg-white/10" style={slotStyle(index)} />)}
+            {[0, 1, 2, 3].map((index) => <div key={`slot-${index}`} data-slot-index={index} aria-hidden="true" className="absolute rounded-lg bg-white/10" style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%` }} />)}
             {order.map((chip, index) => {
               const player = players[index]
               const dragging = drag?.index === index
@@ -187,23 +195,22 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                   onPointerUp={finishDrag}
                   onPointerCancel={() => setDrag(null)}
                   onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tapSlot(index) } }}
-                  className={`absolute flex h-[40%] w-[44%] touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-xl bg-white px-1 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
-                  style={{ ...slotStyle(index), borderTop: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
+                  className={`absolute flex touch-none cursor-grab items-center gap-1.5 rounded-lg bg-white px-1.5 text-left ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
+                  style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderLeft: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
                 >
-                  <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600" style={{ boxShadow: `0 0 0 2px ${color}` }}>
+                  <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-xs font-black text-neutral-600" style={{ boxShadow: `0 0 0 2px ${color}` }}>
                     {chip.avatarUrl ? <img src={chip.avatarUrl} alt="" draggable={false} className="h-full w-full object-cover" /> : initials(chip.name)}
                   </span>
-                  <span className="w-full truncate text-xs font-black text-neutral-950">{chip.name}</span>
-                  <RatePill rate={player.rate} label={tx("sin datos")} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-black leading-tight text-neutral-950">{chip.name}</span>
+                    <RatePill rate={player.rate} label={tx("sin datos")} />
+                  </span>
                 </button>
               )
             })}
           </div>
         </div>
-        <div className="mt-1.5 flex items-center justify-between">
-          {pairHeader(1)}
-          {hasRates ? <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black text-neutral-600">{tx("Diferencia")}: {Math.round(pairingGap(pairPlayers))}%</span> : null}
-        </div>
+        <div className="mt-1.5 flex justify-center">{hasRates ? <span className="rounded-full bg-neutral-100 px-2 py-0.5 type-caption font-black text-neutral-600">{tx("Diferencia")}: {Math.round(pairingGap(pairPlayers))}%</span> : null}</div>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button type="button" onClick={mix} className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm font-black text-neutral-900 transition active:scale-[0.97] active:bg-neutral-100">
