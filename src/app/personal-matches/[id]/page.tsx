@@ -12,7 +12,6 @@ import type { CoinToss } from "@/lib/matchCoinToss"
 import { MatchDetailView } from "@/components/match/MatchDetailView"
 import { ActionsMenuShell } from "@/components/match/MatchActionsMenu"
 import { PersonalMatchPlayersSheet } from "@/components/personal/PersonalMatchPlayersSheet"
-import { PersonalMatchParticipantsPanel } from "@/components/personal/PersonalMatchParticipantsPanel"
 import { PersonalMatchCourtBookingPanel } from "@/components/personal/PersonalMatchCourtBookingPanel"
 import { PersonalMatchResultForm } from "@/components/personal/PersonalMatchResultForm"
 import { PersonalMatchSchedulePanel } from "@/components/personal/PersonalMatchSchedulePanel"
@@ -164,8 +163,7 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
       <div data-tour="match-coin-toss" className="empty:hidden"><MatchCoinTossPanel kind="friendly" matchId={item.id} scheduledAt={item.scheduledAt} myTeam={item.participants.find(participant => participant.isCurrentUser)?.team ?? null} canToss={item.canManage} matchOpen={item.status === "scheduled"}
         teamNames={[1, 2].map(team => item.participants.filter(participant => participant.team === team).sort((a, b) => a.slot - b.slot).map(participant => participant.displayName).join(" + ")) as [string, string]} /></div>
 
-      <div data-tour="friendly-participants"><PersonalMatchParticipantsPanel match={item} onUpdated={updateItem} /></div>
-      {playersOpen ? <PersonalMatchPlayersSheet key={item.participants.map(participant => participant.displayName).join("|")} match={item} onClose={() => setPlayersOpen(false)} onUpdated={updateItem} /> : null}
+      {playersOpen ? <PersonalMatchPlayersSheet match={item} onClose={() => setPlayersOpen(false)} onUpdated={updateItem} /> : null}
 
       <div data-tour="friendly-schedule" className="empty:hidden"><PersonalMatchSchedulePanel match={item} onUpdated={updateItem} /></div>
 

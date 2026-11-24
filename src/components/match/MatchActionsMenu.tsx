@@ -30,7 +30,6 @@ export function ActionsMenuShell({ chatHref, items, menuOpen, onMenuOpenChange }
   if (items.length === 0 && !chatHref) return null
   return (
     <div className="app-match-actions fixed z-40 flex flex-col items-end gap-2" style={{ right: "max(14px, calc((100vw - var(--app-shell-width, 448px)) / 2 + 14px))", bottom: "calc(84px + env(safe-area-inset-bottom, 0px))" }}>
-      {chatHref ? <MatchChatActionLink href={chatHref} /> : null}
       {items.length > 0 ? <div data-tour="match-actions-menu" className="relative">
         <button type="button" aria-expanded={menuOpen} aria-label={tx("Más acciones del partido")} title={tx("Más acciones")} onClick={() => onMenuOpenChange(!menuOpen)} className="app-floating-control grid h-10 w-10 place-items-center rounded-full border border-neutral-200 bg-white/95 text-neutral-600 shadow-lg backdrop-blur transition active:scale-95 active:bg-neutral-100">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor"><circle cx="5" cy="12" r="1.75" /><circle cx="12" cy="12" r="1.75" /><circle cx="19" cy="12" r="1.75" /></svg>
@@ -39,6 +38,7 @@ export function ActionsMenuShell({ chatHref, items, menuOpen, onMenuOpenChange }
           {items.map((item) => <button key={item.key} type="button" onClick={() => { item.onSelect(); onMenuOpenChange(false) }} className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm font-black hover:bg-neutral-100"><span aria-hidden="true">{item.icon}</span>{item.label}</button>)}
         </div> : null}
       </div> : null}
+      {chatHref ? <MatchChatActionLink href={chatHref} outlined /> : null}
     </div>
   )
 }

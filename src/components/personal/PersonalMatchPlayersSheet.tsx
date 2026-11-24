@@ -4,16 +4,30 @@ import { useI18n } from "@/i18n/I18nProvider"
 import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import { rememberCoinToss } from "@/lib/matchCoinTossClient"
 import { nextBalanced, pairId, pairingGap, shuffleList } from "@/lib/pairingBalance"
-import { sortPersonalMatchParticipants, type PersonalMatchItem } from "@/lib/personalMatches"
+import { PersonalMatchPlayerPicker, type PickedPlayer } from "@/components/personal/PersonalMatchPlayerPicker"
+import { sortPersonalMatchParticipants, type PersonalMatchItem, type PersonalMatchParticipant, type PersonalMatchPerson } from "@/lib/personalMatches"
 
-type Chip = { id: string; name: string; avatarUrl: string | null; personKey: string | null; rate: number | null }
+type Chip = { id: string; name: string; avatarUrl: string | null; personKey: string | null; rate: number | null; locked: boolean }
+const LONG_PRESS_MS = 1200
+
+function toChip(participant: PersonalMatchParticipant, index: number): Chip {
+  return {
+    id: `p${index}`,
+    name: participant.displayName,
+    avatarUrl: participant.avatarUrl ?? null,
+    personKey: participant.personKey && !participant.personKey.startsWith("external:") ? participant.personKey : null,
+    rate: null,
+    locked: participant.isCurrentUser,
+  }
+}
 type Stat = { personKey: string; winRate: number | null; matches: number }
 
 // Court seen from above, drawn wider than the real 10 x 20 m so the cards have room for the names, with the net across the middle.
 // Pair A plays at the top, pair B at the bottom. The backhand player stands closer to the net, the drive player further back, one on each side.
+// As in the detail screen: the first name of pair A is the backhand, the first name of pair B is the drive.
 const SLOT_POSITIONS = [
-  { left: 2, top: 3 }, { left: 51, top: 26 },
-  { left: 2, top: 54 }, { left: 51, top: 77 },
+  { left: 51, top: 26 }, { left: 2, top: 3 },
+  { left: 51, top: 77 }, { left: 2, top: 54 },
 ] as const
 const CHIP_WIDTH = 47
 const CHIP_HEIGHT = 20
@@ -59,13 +73,7 @@ function RatePill({ rate, label }: { rate: number | null; label: string }) {
 
 export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match: PersonalMatchItem; onClose: () => void; onUpdated: (match: PersonalMatchItem) => void }) {
   const { tx } = useI18n()
-  const [order, setOrder] = useState<Chip[]>(() => sortPersonalMatchParticipants(match.participants).map((participant, index) => ({
-    id: `p${index}`,
-    name: participant.displayName,
-    avatarUrl: participant.avatarUrl ?? null,
-    personKey: participant.personKey && !participant.personKey.startsWith("external:") ? participant.personKey : null,
-    rate: null,
-  })))
+  const [order, setOrder] = useState<Chip[]>(() => sortPersonalMatchParticipants(match.participants).map(toChip))
   const [stats, setStats] = useState<Stat[]>([])
   const [selected, setSelected] = useState<number | null>(null)
   const [drag, setDrag] = useState<{ index: number; x: number; y: number; startX: number; startY: number } | null>(null)
@@ -78,6 +86,13 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
   const [sheetY, setSheetY] = useState(0)
   const [sheetDragging, setSheetDragging] = useState(false)
   const sheetStart = useRef(0)
+  const pressTimer = useRef<number | null>(null)
+  const longFired = useRef(false)
+  const [pickerIndex, setPickerIndex] = useState<number | null>(null)
+  const [people, setPeople] = useState<PersonalMatchPerson[]>([])
+  const [loadingPeople, setLoadingPeople] = useState(false)
+  const [pickerSaving, setPickerSaving] = useState(false)
+  const [pickerError, setPickerError] = useState<string | null>(null)
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setEntered(true))
@@ -114,14 +129,67 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
     else setSheetY(0)
   }
 
-  useEffect(() => {
-    let active = true
+  function loadStats() {
     fetch(`/api/personal-matches/${encodeURIComponent(match.id)}/pairing-stats`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { stats?: Stat[] } | null) => { if (active && payload?.stats) setStats(payload.stats) })
+      .then((payload: { stats?: Stat[] } | null) => { if (payload?.stats) setStats(payload.stats) })
       .catch(() => undefined)
-    return () => { active = false }
-  }, [match.id])
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadStats() }, [match.id])
+
+  async function openPicker(index: number) {
+    setPickerError(null)
+    setPickerIndex(index)
+    if (people.length > 0 || loadingPeople) return
+    setLoadingPeople(true)
+    try {
+      const response = await fetch("/api/personal-matches/people", { cache: "no-store" })
+      const payload = (await response.json()) as { people?: PersonalMatchPerson[] }
+      if (!response.ok) throw new Error("people_failed")
+      const available = payload.people ?? []
+      const known = new Set(available.map((person) => person.key))
+      // People of this match that come from leagues the editor cannot see stay selectable.
+      const existing = match.participants.flatMap((participant): PersonalMatchPerson[] => {
+        const key = participant.personKey
+        if (!key || key.startsWith("external:") || known.has(key)) return []
+        known.add(key)
+        return [{ key, displayName: participant.displayName, avatarUrl: participant.avatarUrl ?? null, sourceLeagueNames: [], isSelf: participant.isCurrentUser }]
+      })
+      setPeople([...available, ...existing])
+    } catch {
+      setPickerError(tx("No se han podido cargar los jugadores disponibles."))
+    } finally {
+      setLoadingPeople(false)
+    }
+  }
+
+  async function changePlayer(pick: PickedPlayer) {
+    if (pickerIndex === null) return
+    setPickerSaving(true)
+    setPickerError(null)
+    try {
+      const next = order.map((chip, index) => (index === pickerIndex ? { personKey: pick.personKey, name: pick.displayName } : { personKey: chip.personKey, name: chip.name }))
+      const response = await fetch(`/api/personal-matches/${encodeURIComponent(match.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "participants", participants: next.map((entry, index) => ({ team: index < 2 ? 1 : 2, slot: (index % 2) + 1, personKey: entry.personKey, displayName: entry.name })) }),
+      })
+      const payload = (await response.json()) as { item?: PersonalMatchItem; coinTossReset?: boolean }
+      if (!response.ok || !payload.item) throw new Error("change_failed")
+      if (payload.coinTossReset) rememberCoinToss("friendly", match.id, null)
+      requestMatchDashboardRefresh()
+      onUpdated(payload.item)
+      setOrder(sortPersonalMatchParticipants(payload.item.participants).map(toChip))
+      setSelected(null)
+      setPickerIndex(null)
+      loadStats()
+    } catch {
+      setPickerError(tx("No se ha podido cambiar el jugador."))
+    } finally {
+      setPickerSaving(false)
+    }
+  }
 
   const players = useMemo(() => order.map((chip) => ({ ...chip, rate: stats.find((stat) => stat.personKey === chip.personKey)?.winRate ?? null })), [order, stats])
   const pairPlayers = players.map((player) => ({ key: player.id, rate: player.rate }))
@@ -214,7 +282,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="type-panel-title text-neutral-950">{tx("Gestionar jugadores")}</p>
-              <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Toca un jugador y luego otro para intercambiarlos, o arrástralo.")}</p>
+              <p className="mt-0.5 type-caption font-semibold text-neutral-500">{tx("Toca un jugador y luego otro para intercambiarlos, o arrástralo. Mantén pulsado uno para cambiarlo por otro jugador.")}</p>
             </div>
             <button type="button" onClick={requestClose} aria-label={tx("Cerrar")} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-600 active:scale-95">✕</button>
           </div>
@@ -236,10 +304,24 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                   data-player-chip
                   aria-pressed={selected === index}
                   aria-label={chip.name}
-                  onPointerDown={(event) => setDrag({ index, x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY })}
-                  onPointerMove={(event) => { if (drag?.index === index) setDrag({ ...drag, x: event.clientX, y: event.clientY }) }}
-                  onPointerUp={finishDrag}
-                  onPointerCancel={() => setDrag(null)}
+                  onPointerDown={(event) => {
+                    setDrag({ index, x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY })
+                    longFired.current = false
+                    if (pressTimer.current) window.clearTimeout(pressTimer.current)
+                    if (!chip.locked) pressTimer.current = window.setTimeout(() => { longFired.current = true; setDrag(null); void openPicker(index) }, LONG_PRESS_MS)
+                  }}
+                  onPointerMove={(event) => {
+                    if (drag?.index !== index) return
+                    if (pressTimer.current && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 8) { window.clearTimeout(pressTimer.current); pressTimer.current = null }
+                    setDrag({ ...drag, x: event.clientX, y: event.clientY })
+                  }}
+                  onPointerUp={(event) => {
+                    if (pressTimer.current) { window.clearTimeout(pressTimer.current); pressTimer.current = null }
+                    if (longFired.current) { longFired.current = false; setDrag(null); return }
+                    finishDrag(event)
+                  }}
+                  onPointerCancel={() => { if (pressTimer.current) window.clearTimeout(pressTimer.current); setDrag(null) }}
+                  onContextMenu={(event) => event.preventDefault()}
                   onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tapSlot(index) } }}
                   className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pt-1.5 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
                   style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderTop: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
@@ -277,6 +359,19 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
           <button type="button" onClick={() => void save()} disabled={saving || !changed} className="flex-1 rounded-xl bg-neutral-950 px-3 py-2.5 text-sm font-black text-white disabled:bg-neutral-300">{saving ? tx("Guardando...") : tx("Guardar")}</button>
         </div>
       </div>
+      {pickerIndex !== null ? (
+        <PersonalMatchPlayerPicker
+          open
+          playerName={order[pickerIndex].name}
+          people={people}
+          usedKeys={new Set(order.flatMap((chip, index) => (chip.personKey && index !== pickerIndex ? [chip.personKey] : [])))}
+          loading={loadingPeople}
+          saving={pickerSaving}
+          error={pickerError}
+          onClose={() => setPickerIndex(null)}
+          onConfirm={(player) => void changePlayer(player)}
+        />
+      ) : null}
     </div>
   )
 }

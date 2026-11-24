@@ -39,7 +39,7 @@ describe("friendly match permissions", () => {
 
   it("preserves other-league accounts when participants are updated", async () => {
     const server = await readFile("src/lib/serverPersonalMatches.ts", "utf8")
-    const panel = await readFile("src/components/personal/PersonalMatchParticipantsPanel.tsx", "utf8")
+    const panel = await readFile("src/components/personal/PersonalMatchPlayersSheet.tsx", "utf8")
     expect(server).toContain("existingParticipants: ReadonlyArray<")
     expect(server).toContain("const originalParticipants = originalResult.data ?? []")
     expect(server).toContain("    originalParticipants,")

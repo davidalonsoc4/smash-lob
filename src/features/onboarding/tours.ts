@@ -847,7 +847,7 @@ const tourStructure: Array<{
       { selector: "[data-tour='match-status']", side: "bottom" },
       { selector: "[data-tour='match-pairing']", side: "bottom" },
       { selector: "[data-tour='match-coin-toss']", side: "top" },
-      { selector: "[data-tour='friendly-participants']", side: "top" },
+      { selector: "[data-tour='match-actions-menu']", side: "left" },
       { selector: "[data-tour='friendly-schedule']", side: "top" },
       { selector: "[data-tour='friendly-court']", side: "top" },
       { selector: "[data-tour='friendly-result']", side: "top" },

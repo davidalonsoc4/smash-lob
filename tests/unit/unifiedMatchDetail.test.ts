@@ -10,7 +10,7 @@ describe("unified match detail", () => {
         read("src/app/match/[id]/page.tsx"),
         read("src/app/personal-matches/[id]/page.tsx"),
         read("src/components/match/MatchDetailView.tsx"),
-        read("src/components/personal/PersonalMatchParticipantsPanel.tsx"),
+        read("src/components/personal/PersonalMatchPlayersSheet.tsx"),
         read("src/components/personal/PersonalMatchParticipantSelector.tsx"),
         read("src/app/api/personal-matches/[id]/route.ts"),
         read("src/lib/serverPersonalMatches.ts"),
@@ -26,8 +26,8 @@ describe("unified match detail", () => {
     expect(sharedView).toContain("<BackButton")
     expect(sharedView).toContain("<MatchStatusBadge")
     expect(sharedView).toContain("<MatchDetailPairingPanel")
-    expect(personalPage).toContain("<PersonalMatchParticipantsPanel")
-    expect(editor).toContain("<PersonalMatchParticipantSelector")
+    expect(personalPage).toContain("<PersonalMatchPlayersSheet")
+    expect(editor).toContain("<PersonalMatchPlayerPicker")
     expect(editor).toContain('action: "participants"')
     expect(selector).toContain("Otro jugador...")
     expect(detailRoute).toContain('match.status !== "scheduled"')
