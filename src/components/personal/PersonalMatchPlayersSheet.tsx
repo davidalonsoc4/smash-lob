@@ -12,8 +12,8 @@ type Stat = { personKey: string; winRate: number | null; matches: number }
 // Court seen from above, drawn wider than the real 10 x 20 m so the cards have room for the names, with the net across the middle.
 // Pair A plays at the top, pair B at the bottom. The backhand player stands closer to the net, the drive player further back, one on each side.
 const SLOT_POSITIONS = [
-  { left: 2, top: 26 }, { left: 51, top: 3 },
-  { left: 51, top: 54 }, { left: 2, top: 77 },
+  { left: 2, top: 3 }, { left: 51, top: 26 },
+  { left: 2, top: 54 }, { left: 51, top: 77 },
 ] as const
 const CHIP_WIDTH = 47
 const CHIP_HEIGHT = 20
@@ -244,7 +244,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                   className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pt-1.5 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
                   style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderTop: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
                 >
-                  <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600" style={{ boxShadow: `0 0 0 2px ${color}` }}>
+                  <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600">
                     {chip.avatarUrl ? <img src={chip.avatarUrl} alt="" draggable={false} className="h-full w-full object-cover" /> : initials(chip.name)}
                   </span>
                   <span className="block w-full truncate text-sm font-black leading-tight text-neutral-950">{chip.name}</span>
