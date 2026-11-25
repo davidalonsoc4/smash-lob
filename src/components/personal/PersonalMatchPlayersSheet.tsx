@@ -26,11 +26,11 @@ type Stat = { personKey: string; elo: number | null; matches: number; provisiona
 // Pair A plays at the top, pair B at the bottom. The backhand player stands closer to the net, the drive player further back, one on each side.
 // As in the detail screen: the first name of pair A is the backhand, the first name of pair B is the drive.
 const SLOT_POSITIONS = [
-  { left: 51, top: 24 }, { left: 2, top: 3 },
-  { left: 51, top: 75 }, { left: 2, top: 54 },
+  { left: 51, top: 26 }, { left: 2, top: 3 },
+  { left: 51, top: 77 }, { left: 2, top: 54 },
 ] as const
 const CHIP_WIDTH = 47
-const CHIP_HEIGHT = 23
+const CHIP_HEIGHT = 21
 const slotStyle = (index: number) => ({ left: `${SLOT_POSITIONS[index].left}%`, top: `${SLOT_POSITIONS[index].top}%` })
 const PAIR_COLORS = ["#a855f7", "#fb923c"] as const
 
@@ -338,7 +338,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                   onPointerCancel={() => { if (pressTimer.current) window.clearTimeout(pressTimer.current); setDrag(null) }}
                   onContextMenu={(event) => event.preventDefault()}
                   onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tapSlot(index) } }}
-                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pt-2 pb-1 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
+                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pt-1.5 pb-1 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
                   style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderTop: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
                 >
                   <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600">
