@@ -155,7 +155,7 @@ function PersonalMatchDetail({ account, id, initialItem }: { account: string; id
         pointsA: scoreboard.pointsA,
         pointsB: scoreboard.pointsB,
         sets: item.sets,
-        linkPlayers: false,
+        linkPlayers: true,
         showPendingPlayerMetadata: true,
         showFinishedPlayerMetadata: false,
       }}

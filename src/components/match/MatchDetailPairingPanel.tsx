@@ -31,6 +31,12 @@ type MatchDetailPairingPanelProps = {
   showPositionHelp?: boolean
 }
 
+// League players open their league profile; people of a friendly open their global card.
+function playerHref(player: PlayerProfile) {
+  if (player.leagueId !== "personal") return `/player/${player.slug}`
+  return player.userId ? `/player-card/${player.userId}` : null
+}
+
 function DetailPlayer({
   playerId,
   players,
@@ -88,9 +94,9 @@ function DetailPlayer({
   const nameLine = (
     <div className={`flex min-w-0 items-center gap-1.5 ${alignment === "right" ? "flex-row-reverse" : ""}`}>
       <div className="min-w-0 flex-1 overflow-hidden">
-      {linkPlayers && player ? (
+      {linkPlayers && player && playerHref(player) ? (
         <Link
-          href={`/player/${player.slug}`}
+          href={playerHref(player)!}
           className="block min-w-0 text-center underline-offset-4 active:underline"
         >
           {name}
@@ -230,9 +236,9 @@ function FinishedPlayerName({
   return (
     <div className="min-w-0 text-left">
       <div className="min-w-0 overflow-hidden">
-        {linkPlayers && player ? (
+        {linkPlayers && player && playerHref(player) ? (
           <Link
-            href={`/player/${player.slug}`}
+            href={playerHref(player)!}
             className="block min-w-0 text-left underline-offset-4 active:underline"
           >
             {name}

@@ -91,7 +91,7 @@ describe("match detail pairing panel", () => {
     expect(leaguePage).not.toContain("<MatchScoreboard")
 
     expect(personalPage).toContain("<MatchDetailView")
-    expect(personalPage).toContain("linkPlayers: false")
+    expect(personalPage).toContain("linkPlayers: true")
     expect(personalPage).toContain("showPendingPlayerMetadata: true")
     expect(personalPage).toContain("showFinishedPlayerMetadata: false")
     expect(personalPage).toContain("buildPersonalMatchDetailModel(item)")

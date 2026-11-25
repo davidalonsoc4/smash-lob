@@ -6,7 +6,7 @@ import { computeRatings, type PlayerRating, type RatingMatch, type RatingSet } f
 type Supabase = NonNullable<ReturnType<typeof createSupabaseServiceClient>>
 
 export type RatedPerson = PlayerRating & { displayName: string; email: string | null; avatarUrl: string | null }
-export type RatingsOverview = { people: RatedPerson[]; labels: Record<string, string>; matchCount: number; excludedMatchCount: number }
+export type RatingsOverview = { people: RatedPerson[]; labels: Record<string, string>; matchCount: number; excludedMatchCount: number; matches: RatingMatch[] }
 
 const asSets = (value: unknown): RatingSet[] =>
   Array.isArray(value)
@@ -95,5 +95,5 @@ export async function loadRatingsOverview(supabase: Supabase): Promise<RatingsOv
       return { ...player, displayName: labels[player.key], email: user.email ? String(user.email) : null, avatarUrl: typeof user.avatar_url === "string" ? user.avatar_url : null }
     })
     .sort((left, right) => right.rating - left.rating)
-  return { people, labels, matchCount: matches.length, excludedMatchCount: excluded }
+  return { people, labels, matchCount: matches.length, excludedMatchCount: excluded, matches }
 }

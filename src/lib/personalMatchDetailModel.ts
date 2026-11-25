@@ -30,7 +30,7 @@ export function buildPersonalMatchDetailModel(match: PersonalMatchItem) {
       displayName: participant.displayName,
       avatarInitials: initials(participant.displayName),
       avatarUrl: participant.avatarUrl ?? null,
-      userId: null,
+      userId: participant.personKey?.startsWith("user:") ? participant.personKey.slice(5) : null,
       preferredSide: participant.preferredSide ?? null,
       dominantHand: participant.dominantHand ?? null,
     }

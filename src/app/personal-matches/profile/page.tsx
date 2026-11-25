@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { useSessionResource } from "@/hooks/useSessionResource"
 import { PersonalProfileStatistics } from "@/components/personal/PersonalProfileStatistics"
+import { PersonalRatingCard } from "@/components/personal/PersonalRatingCard"
 import type { PersonalProfileSection } from "@/components/player/ProfileSectionTabs"
 import { PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
 import { AppCard } from "@/components/ui/AppCard"
@@ -130,6 +131,8 @@ export default function PersonalProfilePage() {
           context="global"
         />
       </header>
+
+      <PersonalRatingCard />
 
       <AppCard data-personal-global-filters className="!p-2">
         <div className={`grid gap-1`} style={{ gridTemplateColumns: `repeat(${filterOptions.length}, minmax(0, 1fr))` }}>
