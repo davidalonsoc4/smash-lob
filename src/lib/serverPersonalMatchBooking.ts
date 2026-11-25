@@ -1,7 +1,7 @@
 import "server-only"
 
 import type { CourtBooking, CourtBookingReservation } from "@/context/MatchDataProvider"
-import { getEmptyCourtBooking, normalizeCourtBooking } from "@/lib/courtBooking"
+import { buildCourtBooking, handOverPayments, getEmptyCourtBooking, normalizeCourtBooking } from "@/lib/courtBooking"
 import type { AuthenticatedAppUser } from "@/lib/serverAuth"
 
 type PersonalMatchBookingAccess = {
@@ -127,4 +127,49 @@ export async function savePersonalMatchBooking(
   })
 
   if (error) throw new Error("personal_match_booking_update_failed")
+}
+
+// After the people of a friendly change, the money follows the people: the ones who stay keep what they paid and
+// owe their share, and whoever replaces a person who had paid takes over that payment (the share is split again
+// between the current players, so the debts move from one person to another). Returns what the editor should know.
+export async function rebalancePersonalMatchBooking(
+  actor: AuthenticatedAppUser,
+  matchId: string,
+  change: { removed: Array<{ id: string; displayName: string }>; added: Array<{ id: string; displayName: string }> },
+): Promise<string[]> {
+  if (!change.removed.length && !change.added.length) return []
+  const [bookingResult, participantsResult] = await Promise.all([
+    actor.supabase
+      .from("personal_match_bookings")
+      .select("is_reserved,booking_reservations,booking_transfers,booking_updated_at")
+      .eq("match_id", matchId)
+      .maybeSingle(),
+    actor.supabase.from("personal_match_participants").select("id").eq("match_id", matchId),
+  ])
+  if (bookingResult.error || participantsResult.error) throw new Error("personal_match_booking_lookup_failed")
+  if (!bookingResult.data) return []
+
+  const raw = bookingResult.data.booking_reservations
+  const payload = raw && typeof raw === "object" ? (raw as { reservations?: unknown; ballPurchases?: unknown }) : {}
+  const current = normalizeCourtBooking({
+    isReserved: bookingResult.data.is_reserved,
+    reservations: Array.isArray(payload.reservations) ? payload.reservations : [],
+    ballPurchases: Array.isArray(payload.ballPurchases) ? payload.ballPurchases : [],
+    transfers: Array.isArray(bookingResult.data.booking_transfers) ? bookingResult.data.booking_transfers : [],
+    updatedAt: bookingResult.data.booking_updated_at,
+  })
+  if (current.reservations.length + current.ballPurchases.length === 0) return []
+
+  const reservations = handOverPayments(current.reservations, change.removed, change.added)
+  const ballPurchases = handOverPayments(current.ballPurchases, change.removed, change.added)
+  const notes = [...reservations.notes, ...ballPurchases.notes]
+
+  const booking = buildCourtBooking({
+    participantIds: (participantsResult.data ?? []).map((participant) => String(participant.id)),
+    reservations: reservations.payments,
+    ballPurchases: ballPurchases.payments,
+    previousTransfers: current.transfers,
+  })
+  await savePersonalMatchBooking(actor, matchId, booking)
+  return notes
 }

@@ -243,3 +243,30 @@ export function getBookingPaymentSummary(booking: CourtBooking, playerId: string
   const state = !booking.isReserved ? "incomplete" : toPay > 0 && toReceive > 0 ? "both" : toPay > 0 ? "pay" : toReceive > 0 ? "receive" : pending.length === 0 ? "settled" : isParticipant ? "personal-settled" : "others-pending"
   return { state, toPay, toReceive }
 }
+
+/** Whoever leaves hands over what they paid to whoever takes their place (in the order they were swapped). */
+export function handOverPayments(
+  payments: CourtBookingReservation[],
+  removed: ReadonlyArray<{ id: string; displayName: string }>,
+  added: ReadonlyArray<{ id: string; displayName: string }>,
+): { payments: CourtBookingReservation[]; notes: string[] } {
+  const successor = new Map(removed.map((person, index) => [person.id, added[index] ?? null]))
+  const merged = new Map<string, number>()
+  const notes: string[] = []
+  for (const payment of payments) {
+    const leaving = removed.find((person) => person.id === payment.playerId)
+    const amount = formatMoney(payment.amount)
+    if (!leaving) {
+      merged.set(payment.playerId, roundMoney((merged.get(payment.playerId) ?? 0) + payment.amount))
+      continue
+    }
+    const takesOver = successor.get(leaving.id)
+    if (!takesOver) {
+      notes.push(`${leaving.displayName} había pagado ${amount} y ya no juega: ese pago se ha quitado.`)
+      continue
+    }
+    merged.set(takesOver.id, roundMoney((merged.get(takesOver.id) ?? 0) + payment.amount))
+    notes.push(`${leaving.displayName} había pagado ${amount}: ese pago pasa a ${takesOver.displayName}. Revísalo en Pagos y reservas.`)
+  }
+  return { payments: [...merged.entries()].map(([playerId, amount]) => ({ playerId, amount })), notes }
+}

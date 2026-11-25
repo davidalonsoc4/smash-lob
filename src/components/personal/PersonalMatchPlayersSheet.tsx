@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
+import { showActionFeedback } from "@/lib/actionFeedback"
+import type { CoinToss } from "@/lib/matchCoinToss"
 import { rememberCoinToss } from "@/lib/matchCoinTossClient"
 import { DialogCloseButton, FloatingDialog } from "@/components/ui/FloatingDialog"
 import { bestBalanced, pairId, pairingGap, shufflePairs, winChance } from "@/lib/pairingBalance"
@@ -184,9 +186,11 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "participants", participants: next.map((entry, index) => ({ team: index < 2 ? 1 : 2, slot: (index % 2) + 1, personKey: entry.personKey, displayName: entry.name })) }),
       })
-      const payload = (await response.json()) as { item?: PersonalMatchItem; coinTossReset?: boolean }
+      const payload = (await response.json()) as { item?: PersonalMatchItem; coinTossReset?: boolean; coinToss?: CoinToss | null; bookingNotes?: string[] }
       if (!response.ok || !payload.item) throw new Error("change_failed")
       if (payload.coinTossReset) rememberCoinToss("friendly", match.id, null)
+      else if (payload.coinToss) rememberCoinToss("friendly", match.id, payload.coinToss)
+      payload.bookingNotes?.forEach((message) => showActionFeedback({ tone: "info", message, durationMs: 9000 }))
       requestMatchDashboardRefresh()
       onUpdated(payload.item)
       setOrder(sortPersonalMatchParticipants(payload.item.participants).map(toChip))
@@ -263,9 +267,11 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "participants", participants: order.map((chip, index) => ({ team: index < 2 ? 1 : 2, slot: (index % 2) + 1, personKey: chip.personKey, displayName: chip.name })) }),
       })
-      const payload = (await response.json()) as { item?: PersonalMatchItem; coinTossReset?: boolean }
+      const payload = (await response.json()) as { item?: PersonalMatchItem; coinTossReset?: boolean; coinToss?: CoinToss | null; bookingNotes?: string[] }
       if (!response.ok || !payload.item) throw new Error("save_failed")
       if (payload.coinTossReset) rememberCoinToss("friendly", match.id, null)
+      else if (payload.coinToss) rememberCoinToss("friendly", match.id, payload.coinToss)
+      payload.bookingNotes?.forEach((message) => showActionFeedback({ tone: "info", message, durationMs: 9000 }))
       if (payload.item.status === "finished") requestPersonalProfileHistoryRefresh()
       else requestMatchDashboardRefresh()
       onUpdated(payload.item)

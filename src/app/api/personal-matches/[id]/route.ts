@@ -23,6 +23,7 @@ import { normalizePersonalMatchParticipantDrafts } from "@/lib/serverPersonalMat
 import { broadcastPersonalMatchChatRefresh } from "@/lib/serverChatRealtime"
 import { isMissingPersonalLocationColumnsError } from "@/lib/serverPersonalLocationSchema"
 import { dispatchPersonalMatchPush } from "@/lib/serverPersonalMatchPush"
+import { rebalancePersonalMatchBooking } from "@/lib/serverPersonalMatchBooking"
 import { loadCoinToss } from "@/lib/serverMatchCoinToss"
 
 export const runtime = "nodejs"
@@ -34,6 +35,16 @@ type UpdatePersonalMatchBody = {
   locationName?: unknown
   sets?: unknown
   participants?: unknown
+}
+
+// Who is in team 1 (ignoring the order inside it): if the pairs stay the same but swap sides, the toss has to follow the pair.
+async function readTeamOneSignature(supabase: SupabaseClient, matchId: string) {
+  const { data } = await supabase.from("personal_match_participants").select("team,user_id,source_player_id,display_name").eq("match_id", matchId)
+  return (data ?? [])
+    .filter((row) => row.team === 1)
+    .map((row) => row.user_id ?? row.source_player_id ?? String(row.display_name).trim().toLowerCase())
+    .sort()
+    .join("+")
 }
 
 // Who plays with whom, ignoring the order of the pairs and of the players inside them.
@@ -117,6 +128,8 @@ export async function PATCH(
 
     const nowIso = new Date().toISOString()
     let coinTossReset = false
+    let coinTossFlipped = false
+    let bookingNotes: string[] = []
     if (action === "schedule") {
       const scheduledAt = validateIsoDateTime(body?.scheduledAt)
       const timestamp = scheduledAt ? Date.parse(scheduledAt) : Number.NaN
@@ -215,11 +228,26 @@ export async function PATCH(
         )
       }
       const pairsBefore = await readPairSignature(authResult.actor.supabase, matchId)
-      await replacePersonalMatchParticipants(authResult.actor, matchId, drafts)
+      const teamOneBefore = await readTeamOneSignature(authResult.actor.supabase, matchId)
+      const replaced = await replacePersonalMatchParticipants(authResult.actor, matchId, drafts)
+      // The money follows the people: debts move from whoever leaves to whoever arrives.
+      bookingNotes = await rebalancePersonalMatchBooking(authResult.actor, matchId, replaced).catch(() => [])
       // New pairs mean the toss no longer says anything: it is removed so the coin can be tossed again.
       if (pairsBefore !== (await readPairSignature(authResult.actor.supabase, matchId))) {
         const removed = await authResult.actor.supabase.from("match_coin_tosses").delete().eq("personal_match_id", matchId)
         coinTossReset = !removed.error
+      } else if (teamOneBefore !== (await readTeamOneSignature(authResult.actor.supabase, matchId))) {
+        // Same pairs but they swapped sides (A <-> B): the toss follows each pair, so its teams are flipped too.
+        const toss = await authResult.actor.supabase.from("match_coin_tosses").select("called_heads_team,winner_team,serving_team").eq("personal_match_id", matchId).maybeSingle()
+        if (toss.data) {
+          const flip = (team: number | null) => (team === 1 ? 2 : team === 2 ? 1 : team)
+          await authResult.actor.supabase.from("match_coin_tosses").update({
+            called_heads_team: flip(toss.data.called_heads_team),
+            winner_team: flip(toss.data.winner_team),
+            serving_team: flip(toss.data.serving_team),
+          }).eq("personal_match_id", matchId)
+          coinTossFlipped = true
+        }
       }
       const { error } = await authResult.actor.supabase
         .from("personal_matches")
@@ -247,7 +275,9 @@ export async function PATCH(
     }).catch(() => null)
 
     const item = await loadPersonalMatch(authResult.actor, matchId)
-    return NextResponse.json({ item, coinTossReset })
+    // When the toss was flipped the client has to ask for it again.
+    const coinToss = coinTossFlipped ? await loadCoinToss(authResult.actor.supabase, { kind: "friendly", matchId }) : null
+    return NextResponse.json({ item, coinTossReset, bookingNotes, ...(coinToss?.ok ? { coinToss: coinToss.toss } : {}) })
   } catch (error) {
     const message = error instanceof Error ? error.message : "personal_match_update_failed"
     if (

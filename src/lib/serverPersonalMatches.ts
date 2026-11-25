@@ -378,14 +378,23 @@ export async function resolvePersonalMatchParticipantDrafts(
   return participants
 }
 
+export type ReplacedParticipants = {
+  /** People that were in the match and no longer are (with the id their payments were recorded under). */
+  removed: Array<{ id: string; displayName: string }>
+  /** People that were not in the match and now are. */
+  added: Array<{ id: string; displayName: string }>
+}
+
+// Participants keep their id when the same person stays in the match (even in another slot or pair): the
+// payments, debts and transfers of the court booking are recorded under that id.
 export async function replacePersonalMatchParticipants(
   actor: AuthenticatedAppUser,
   matchId: string,
   drafts: PersonalMatchParticipantDraft[],
-) {
+): Promise<ReplacedParticipants> {
   const originalResult = await actor.supabase
     .from("personal_match_participants")
-    .select("team,slot,user_id,source_player_id,display_name")
+    .select("id,team,slot,user_id,source_player_id,display_name")
     .eq("match_id", matchId)
 
   if (originalResult.error) {
@@ -407,16 +416,28 @@ export async function replacePersonalMatchParticipants(
     throw new Error("personal_match_participants_update_failed")
   }
 
+  const keyOf = (row: { user_id: string | null; source_player_id: string | null; display_name: string }) =>
+    getParticipantPersonKey({ userId: row.user_id, sourcePlayerId: row.source_player_id, displayName: row.display_name })
+  const originalByKey = new Map(originalParticipants.map((row) => [keyOf(row), row]))
+  const keptIds = new Set<string>()
+  const rowsToInsert = participants.map((participant) => {
+    const original = originalByKey.get(keyOf(participant))
+    if (original && !keptIds.has(original.id)) keptIds.add(original.id)
+    else return { match_id: matchId, ...participant }
+    return { id: original.id, match_id: matchId, ...participant }
+  })
   const insertResult = await actor.supabase
     .from("personal_match_participants")
-    .insert(
-      participants.map((participant) => ({
-        match_id: matchId,
-        ...participant,
-      })),
-    )
+    .insert(rowsToInsert)
+    .select("id,user_id,source_player_id,display_name")
 
-  if (!insertResult.error) return
+  if (!insertResult.error) {
+    const originalIds = new Set(originalParticipants.map((row) => row.id))
+    return {
+      removed: originalParticipants.filter((row) => !keptIds.has(row.id)).map((row) => ({ id: row.id, displayName: row.display_name })),
+      added: (insertResult.data ?? []).filter((row) => !originalIds.has(row.id)).map((row) => ({ id: row.id, displayName: row.display_name })),
+    }
+  }
 
   await actor.supabase
     .from("personal_match_participants")
@@ -426,6 +447,7 @@ export async function replacePersonalMatchParticipants(
   if (originalParticipants.length > 0) {
     await actor.supabase.from("personal_match_participants").insert(
       originalParticipants.map((participant) => ({
+        id: participant.id,
         match_id: matchId,
         team: participant.team,
         slot: participant.slot,
