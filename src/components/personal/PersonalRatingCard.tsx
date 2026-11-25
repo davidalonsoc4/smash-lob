@@ -21,7 +21,7 @@ export function PersonalRatingCard() {
   if (!mine) return null
   const { rating } = mine
   return (
-    <Link href={`/player-card/${mine.userId}`} className="block">
+    <Link href={`/personal-matches/player/${mine.userId}`} className="block">
       <AppCard className="!p-3">
         <div className="flex items-center gap-3">
           {rating ? <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-lg font-black" style={{ background: levelColor(rating.level), color: "#ffffff" }}>{Math.round(rating.level)}</span> : <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-neutral-200 text-sm font-black text-neutral-500">–</span>}

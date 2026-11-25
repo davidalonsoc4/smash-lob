@@ -34,7 +34,7 @@ type MatchDetailPairingPanelProps = {
 // League players open their league profile; people of a friendly open their global card.
 function playerHref(player: PlayerProfile) {
   if (player.leagueId !== "personal") return `/player/${player.slug}`
-  return player.userId ? `/player-card/${player.userId}` : null
+  return player.userId ? `/personal-matches/player/${player.userId}` : null
 }
 
 function DetailPlayer({
