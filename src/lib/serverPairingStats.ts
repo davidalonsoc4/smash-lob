@@ -1,4 +1,5 @@
 import type { AuthenticatedAppUser } from "@/lib/serverAuth"
+import { loadRatingsOverview } from "@/lib/serverRatings"
 
 export type PairingStat = { personKey: string; winRate: number | null; matches: number }
 
@@ -23,6 +24,7 @@ function teamWon(sets: unknown, team: 1 | 2): boolean | null {
   return own === other ? null : own > other
 }
 
+// While the rating system is being tuned, only the superuser sees the level (0-100); everyone else keeps the win rate.
 // Only a percentage per linked player is returned, never the matches themselves, and only to someone who manages the friendly.
 export async function loadPairingStats(actor: AuthenticatedAppUser, matchId: string): Promise<PairingStat[]> {
   const db = actor.supabase
@@ -91,8 +93,13 @@ export async function loadPairingStats(actor: AuthenticatedAppUser, matchId: str
     }
   }
 
+  const levels = actor.user.isSuperuser ? new Map((await loadRatingsOverview(db)).people.map((rated) => [rated.key, rated])) : null
   return people.flatMap((person) => {
     if (!person.personKey) return []
+    if (levels) {
+      const rated = person.userId ? levels.get(person.userId) : undefined
+      return [{ personKey: person.personKey, matches: rated?.matches ?? 0, winRate: rated ? Math.round(rated.level) : null }]
+    }
     const counted = tally.get(person.userId ? `user:${person.userId}` : person.personKey)
     return [{ personKey: person.personKey, matches: counted?.matches ?? 0, winRate: counted && counted.matches > 0 ? Math.round((counted.wins / counted.matches) * 100) : null }]
   })
