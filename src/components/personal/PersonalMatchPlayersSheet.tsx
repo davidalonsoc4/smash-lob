@@ -52,12 +52,6 @@ function CourtLines() {
   )
 }
 
-// Colour of the bar, relative to the four players of this match: red for the lowest Elo, green for the highest.
-function rateColor(position: number) {
-  const hue = position <= 50 ? (position / 50) * 42 : 42 + ((position - 50) / 50) * 88
-  return `hsl(${Math.round(hue)} 82% 48%)`
-}
-
 // A pair gap of this many Elo points (or more) is shown fully red; 0 is fully green.
 const GAP_RED = 300
 
@@ -67,17 +61,9 @@ function gapColor(gap: number) {
   return `hsl(${hue} 80% 36%)`
 }
 
-// Elo of the player: the number, with a thin bar that only compares the four players of this match.
-function EloPill({ elo, low, high, label }: { elo: number | null; low: number; high: number; label: string }) {
-  const position = elo === null ? 0 : high > low ? Math.round(((elo - low) / (high - low)) * 100) : 50
-  return (
-    <span className="mt-0.5 flex w-full items-center gap-1.5" title={elo === null ? label : undefined}>
-      <span className="h-1 min-w-0 flex-1 overflow-hidden rounded-full" style={{ background: "rgba(148,163,184,0.35)" }}>
-        <span className="block h-full rounded-full transition-all duration-500" style={{ width: `${elo === null ? 0 : Math.max(8, position)}%`, background: elo === null ? "transparent" : rateColor(position) }} />
-      </span>
-      <span className="shrink-0 text-right type-caption font-bold leading-none text-neutral-500">{elo === null ? "–" : elo}</span>
-    </span>
-  )
+// Elo of the player, as a plain number: it only means something next to the others.
+function EloPill({ elo, label }: { elo: number | null; label: string }) {
+  return <span className="mt-0.5 block type-caption font-bold leading-none text-neutral-500" title={elo === null ? label : undefined}>{elo === null ? "–" : `${elo} Elo`}</span>
 }
 
 export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match: PersonalMatchItem; onClose: () => void; onUpdated: (match: PersonalMatchItem) => void }) {
@@ -205,9 +191,6 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
   }), [order, stats])
   const pairPlayers = players.map((player) => ({ key: player.id, elo: player.elo }))
   const hasRates = players.some((player) => player.elo !== null)
-  const knownElos = players.flatMap((player) => (player.elo === null ? [] : [player.elo]))
-  const lowElo = Math.min(...knownElos)
-  const highElo = Math.max(...knownElos)
   const teamElo = (a: number, b: number) => Math.round(((players[a].elo ?? 1000) + (players[b].elo ?? 1000)) / 2)
   const original = useMemo(() => sortPersonalMatchParticipants(match.participants).map((participant) => `${participant.team}-${participant.slot}-${participant.displayName}`).join("|"), [match.participants])
   const current = order.map((chip, index) => `${index < 2 ? 1 : 2}-${(index % 2) + 1}-${chip.name}`).join("|")
@@ -345,7 +328,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                     {chip.avatarUrl ? <img src={chip.avatarUrl} alt="" draggable={false} className="h-full w-full object-cover" /> : initials(chip.name)}
                   </span>
                   <span className="block w-full truncate text-sm font-black leading-tight text-neutral-950">{chip.name}</span>
-                  <EloPill elo={player.elo} low={lowElo} high={highElo} label={tx("sin datos")} />
+                  <EloPill elo={player.elo} label={tx("sin datos")} />
                 </button>
               )
             })}
