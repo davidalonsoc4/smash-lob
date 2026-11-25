@@ -49,7 +49,7 @@ export default async function PlayerCardPage({ params }: { params: Promise<{ use
         failed={items === null}
         topSlot={
           <>
-            {card.rating ? <PlayerRatingDetail rating={card.rating} labels={card.labels} /> : null}
+            {card.rating ? <PlayerRatingDetail rating={card.rating} labels={card.labels} showEvents={card.ratingDetail} /> : null}
             {!card.isSelf ? (
               <div className="grid grid-cols-2 gap-2">
                 <Record title="Contigo de pareja" record={card.together} />

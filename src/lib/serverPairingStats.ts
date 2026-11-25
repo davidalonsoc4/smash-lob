@@ -93,7 +93,7 @@ export async function loadPairingStats(actor: AuthenticatedAppUser, matchId: str
     }
   }
 
-  const levels = actor.user.isSuperuser ? new Map((await loadRatingsOverview(db)).people.map((rated) => [rated.key, rated])) : null
+  const levels = new Map((await loadRatingsOverview(db)).people.map((rated) => [rated.key, rated]))
   return people.flatMap((person) => {
     if (!person.personKey) return []
     if (levels) {
