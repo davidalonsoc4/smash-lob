@@ -80,6 +80,8 @@ export type CourtBookingTransfer = {
   amount: number;
   isPaid: boolean;
   paidAt: string | null;
+  /** Refund owed to someone who left the match: they are no longer a participant, so their name and account travel here. */
+  departed?: { id: string; name: string; userId: string | null };
 };
 
 export type CourtBooking = {

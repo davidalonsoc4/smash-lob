@@ -381,7 +381,7 @@ export async function resolvePersonalMatchParticipantDrafts(
 
 export type ReplacedParticipants = {
   /** People that were in the match and no longer are (with the id their payments were recorded under). */
-  removed: Array<{ id: string; displayName: string }>
+  removed: Array<{ id: string; displayName: string; userId: string | null }>
   /** People that were not in the match and now are. */
   added: Array<{ id: string; displayName: string }>
 }
@@ -436,7 +436,7 @@ export async function replacePersonalMatchParticipants(
   if (!insertResult.error) {
     const originalIds = new Set(originalParticipants.map((row) => row.id))
     return {
-      removed: originalParticipants.filter((row) => !keptIds.has(row.id)).map((row) => ({ id: row.id, displayName: row.display_name })),
+      removed: originalParticipants.filter((row) => !keptIds.has(row.id)).map((row) => ({ id: row.id, displayName: row.display_name, userId: row.user_id })),
       added: (insertResult.data ?? []).filter((row) => !originalIds.has(row.id)).map((row) => ({ id: row.id, displayName: row.display_name })),
     }
   }

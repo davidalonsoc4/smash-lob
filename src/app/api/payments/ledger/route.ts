@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import type { CourtBookingTransfer } from "@/context/MatchDataProvider"
+import { normalizeDeparted } from "@/lib/courtBooking"
 import { PAYMENT_LEDGER_ACCOUNT_HEADER, type PaymentLedgerItem } from "@/lib/paymentLedger"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { enforceRequestRateLimit } from "@/lib/serverRateLimit"
@@ -76,6 +77,7 @@ function parseTransfers(value: unknown): CourtBookingTransfer[] {
       amount,
       isPaid: Boolean(transfer.isPaid),
       paidAt: typeof transfer.paidAt === "string" ? transfer.paidAt : null,
+      ...(normalizeDeparted(transfer.departed) ? { departed: normalizeDeparted(transfer.departed)! } : {}),
     }]
   })
 }
@@ -139,9 +141,16 @@ export async function GET(request: Request) {
     const leagueIds = [...leaguePlayerByLeagueId.keys()]
 
     const currentPersonalParticipants = (personalMembershipsResult.data ?? []) as PersonalParticipantRow[]
-    const personalMatchIds = uniqueStrings(
-      currentPersonalParticipants.map((participant) => participant.match_id),
-    )
+    // Friendlies the user left after having paid: they are owed a refund that lives in the booking of that match.
+    const refundBookingsResult = await actor.supabase
+      .from("personal_match_bookings")
+      .select("match_id")
+      .contains("booking_transfers", [{ departed: { userId: actor.user.id } }])
+    if (refundBookingsResult.error) throw new Error("payment_ledger_refund_lookup_failed")
+    const personalMatchIds = uniqueStrings([
+      ...currentPersonalParticipants.map((participant) => participant.match_id),
+      ...((refundBookingsResult.data ?? []) as Array<{ match_id: string }>).map((row) => row.match_id),
+    ])
 
     const [leagueMatchesResult, leaguesResult, seasonsResult, playersResult] =
       leagueIds.length > 0
@@ -266,37 +275,35 @@ export async function GET(request: Request) {
 
     ;((personalBookingsResult.data ?? []) as PersonalBookingRow[]).forEach((booking) => {
       const currentParticipantId = currentParticipantByMatchId.get(booking.match_id)
-      if (!currentParticipantId) return
 
       parseTransfers(booking.booking_transfers).forEach((transfer) => {
-        if (
-          transfer.fromPlayerId !== currentParticipantId &&
-          transfer.toPlayerId !== currentParticipantId
-        ) {
-          return
-        }
+        // A refund to someone who already left: they are not a participant any more, their account travels in the transfer.
+        const refundToMe = transfer.departed?.userId === actor.user.id ? transfer.departed.id : null
+        const mineId = refundToMe ?? currentParticipantId
+        if (!mineId) return
+        if (transfer.fromPlayerId !== mineId && transfer.toPlayerId !== mineId) return
 
         const match = personalMatchById.get(booking.match_id)
         items.push({
           source: "friendly",
           matchId: booking.match_id,
           transferId: transfer.id,
-          direction: transfer.fromPlayerId === currentParticipantId ? "owe" : "owed",
+          direction: transfer.fromPlayerId === mineId ? "owe" : "owed",
           amount: transfer.amount,
           isPaid: transfer.isPaid,
           canMarkPending:
-            transfer.toPlayerId === currentParticipantId ||
+            (!refundToMe && transfer.toPlayerId === currentParticipantId) ||
             match?.created_by_user_id === actor.user.id,
           paidAt: transfer.paidAt,
           eventAt: match?.played_at ?? null,
-          fromName: personalParticipantNames.get(transfer.fromPlayerId) ?? "Jugador",
-          toName: personalParticipantNames.get(transfer.toPlayerId) ?? "Jugador",
+          fromName: personalParticipantNames.get(transfer.fromPlayerId) ?? (transfer.departed?.id === transfer.fromPlayerId ? transfer.departed.name : "Jugador"),
+          toName: personalParticipantNames.get(transfer.toPlayerId) ?? (transfer.departed?.id === transfer.toPlayerId ? transfer.departed.name : "Jugador"),
           leagueId: null,
           leagueName: null,
           seasonId: null,
           seasonName: null,
           round: null,
-          href: `/personal-matches/${booking.match_id}`,
+          href: refundToMe ? "/payments" : `/personal-matches/${booking.match_id}`,
         })
       })
     })

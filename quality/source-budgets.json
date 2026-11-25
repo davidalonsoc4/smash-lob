@@ -7,7 +7,7 @@
     "src/app/admin/season/page.tsx": 6320,
     "src/lib/changelog.ts": 2700,
     "src/context/LeagueAccessProvider.tsx": 2010,
-    "src/context/MatchDataProvider.tsx": 1835,
+    "src/context/MatchDataProvider.tsx": 1840,
     "src/app/league/home/page.tsx": 1510,
     "src/i18n/locales/enText.ts": 3400,
     "src/i18n/locales/euText.ts": 3400,

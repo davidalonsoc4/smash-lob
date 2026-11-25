@@ -35,6 +35,13 @@ export function getEmptyCourtBooking(): CourtBooking {
   }
 }
 
+export function normalizeDeparted(value: unknown): CourtBookingTransfer["departed"] | null {
+  if (!value || typeof value !== "object") return null
+  const candidate = value as { id?: unknown; name?: unknown; userId?: unknown }
+  if (typeof candidate.id !== "string" || !candidate.id) return null
+  return { id: candidate.id, name: typeof candidate.name === "string" && candidate.name ? candidate.name : "Jugador", userId: typeof candidate.userId === "string" ? candidate.userId : null }
+}
+
 export function normalizeCourtBooking(value: Partial<CourtBooking> | null | undefined): CourtBooking {
   if (!value) {
     return getEmptyCourtBooking()
@@ -67,6 +74,7 @@ export function normalizeCourtBooking(value: Partial<CourtBooking> | null | unde
             amount: normalizeAmount(Number(transfer.amount)),
             isPaid: Boolean(transfer.isPaid),
             paidAt: typeof transfer.paidAt === "string" ? transfer.paidAt : null,
+            ...(normalizeDeparted(transfer.departed) ? { departed: normalizeDeparted(transfer.departed)! } : {}),
           }))
           .filter(
             (transfer) =>
@@ -189,11 +197,19 @@ export function buildCourtBooking({
     }
   }
 
+  // Refunds owed to people who left the match are kept as they are (while the other side still plays).
+  const refunds = previousTransfers.filter((transfer) => {
+    const departed = transfer.departed
+    if (!departed) return false
+    const other = departed.id === transfer.toPlayerId ? transfer.fromPlayerId : transfer.toPlayerId
+    return uniqueParticipantIds.includes(other)
+  })
+
   return {
     isReserved: true,
     reservations: cleanReservations,
     ballPurchases: cleanBallPurchases,
-    transfers,
+    transfers: [...transfers, ...refunds],
     updatedAt: new Date().toISOString(),
   }
 }
@@ -269,4 +285,35 @@ export function handOverPayments(
     notes.push(`${leaving.displayName} había pagado ${amount}: ese pago pasa a ${takesOver.displayName}. Revísalo en Pagos y reservas.`)
   }
   return { payments: [...merged.entries()].map(([playerId, amount]) => ({ playerId, amount })), notes }
+}
+
+/**
+ * Whoever leaves after having paid their share gets it back from whoever collected it: a new refund transfer (still
+ * unpaid) for each of their paid transfers, as long as the collector is still playing. Unpaid shares just move to the
+ * newcomer when the booking is rebuilt, so they need nothing here.
+ */
+export function refundsForDeparted(
+  transfers: CourtBookingTransfer[],
+  removed: ReadonlyArray<{ id: string; displayName: string; userId?: string | null }>,
+  stillPlaying: ReadonlySet<string>,
+): { refunds: CourtBookingTransfer[]; notes: string[] } {
+  const refunds: CourtBookingTransfer[] = []
+  const notes: string[] = []
+  for (const person of removed) {
+    for (const transfer of transfers) {
+      if (transfer.departed || transfer.fromPlayerId !== person.id || !transfer.isPaid) continue
+      if (!stillPlaying.has(transfer.toPlayerId)) continue
+      refunds.push({
+        id: `refund--${transfer.toPlayerId}--${person.id}--${transfer.amount.toFixed(2)}`,
+        fromPlayerId: transfer.toPlayerId,
+        toPlayerId: person.id,
+        amount: transfer.amount,
+        isPaid: false,
+        paidAt: null,
+        departed: { id: person.id, name: person.displayName, userId: person.userId ?? null },
+      })
+      notes.push(`${person.displayName} ya había pagado ${formatMoney(transfer.amount)}: hay que devolvérselo (aparece en Pagos y reservas).`)
+    }
+  }
+  return { refunds, notes }
 }

@@ -1,7 +1,7 @@
 import "server-only"
 
 import type { CourtBooking, CourtBookingReservation } from "@/context/MatchDataProvider"
-import { buildCourtBooking, handOverPayments, getEmptyCourtBooking, normalizeCourtBooking } from "@/lib/courtBooking"
+import { buildCourtBooking, handOverPayments, getEmptyCourtBooking, normalizeCourtBooking, refundsForDeparted } from "@/lib/courtBooking"
 import type { AuthenticatedAppUser } from "@/lib/serverAuth"
 
 type PersonalMatchBookingAccess = {
@@ -135,7 +135,7 @@ export async function savePersonalMatchBooking(
 export async function rebalancePersonalMatchBooking(
   actor: AuthenticatedAppUser,
   matchId: string,
-  change: { removed: Array<{ id: string; displayName: string }>; added: Array<{ id: string; displayName: string }> },
+  change: { removed: Array<{ id: string; displayName: string; userId?: string | null }>; added: Array<{ id: string; displayName: string }> },
 ): Promise<string[]> {
   if (!change.removed.length && !change.added.length) return []
   const [bookingResult, participantsResult] = await Promise.all([
@@ -164,12 +164,17 @@ export async function rebalancePersonalMatchBooking(
   const ballPurchases = handOverPayments(current.ballPurchases, change.removed, change.added)
   const notes = [...reservations.notes, ...ballPurchases.notes]
 
-  const booking = buildCourtBooking({
-    participantIds: (participantsResult.data ?? []).map((participant) => String(participant.id)),
+  const participantIds = (participantsResult.data ?? []).map((participant) => String(participant.id))
+  const built = buildCourtBooking({
+    participantIds,
     reservations: reservations.payments,
     ballPurchases: ballPurchases.payments,
     previousTransfers: current.transfers,
   })
+  // Whoever leaves after paying gets their money back from whoever collected it; the newcomer owes it again.
+  const { refunds, notes: refundNotes } = refundsForDeparted(current.transfers, change.removed, new Set(participantIds))
+  const known = new Set(built.transfers.map((transfer) => transfer.id))
+  const booking = { ...built, transfers: [...built.transfers, ...refunds.filter((refund) => !known.has(refund.id))] }
   await savePersonalMatchBooking(actor, matchId, booking)
-  return notes
+  return [...notes, ...refundNotes]
 }

@@ -49,8 +49,8 @@ type ReservationInput = {
   amount: string
 }
 
-function getPlayerName(playerId: string, players: PlayerProfile[]) {
-  return players.find((player) => player.id === playerId)?.displayName ?? playerId
+function getPlayerName(playerId: string, players: PlayerProfile[], departed?: { id: string; name: string }) {
+  return players.find((player) => player.id === playerId)?.displayName ?? (departed?.id === playerId ? departed.name : playerId)
 }
 
 function getInitialReservationInputs({
@@ -610,8 +610,8 @@ export function CourtBookingPanel({
                     <div>
                       <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1 space-y-1">
-                        <p className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2 leading-snug text-neutral-900"><span className="font-semibold text-neutral-500">{tx("Paga")}</span><span className="break-words font-bold">{getPlayerName(transfer.fromPlayerId, players)}</span></p>
-                        <p className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2 leading-snug text-neutral-900"><span className="font-semibold text-neutral-500">{tx("Recibe")}</span><span className="break-words font-bold">{getPlayerName(transfer.toPlayerId, players)}</span></p>
+                        <p className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2 leading-snug text-neutral-900"><span className="font-semibold text-neutral-500">{tx("Paga")}</span><span className="break-words font-bold">{getPlayerName(transfer.fromPlayerId, players, transfer.departed)}</span></p>
+                        <p className="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-2 leading-snug text-neutral-900"><span className="font-semibold text-neutral-500">{tx("Recibe")}</span><span className="break-words font-bold">{getPlayerName(transfer.toPlayerId, players, transfer.departed)}</span></p>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-base font-bold text-neutral-950">
@@ -681,7 +681,7 @@ export function CourtBookingPanel({
               <div className="mt-1.5 space-y-1">
                 {pendingCurrentUserTransfers.map((transfer) => (
                   <p key={transfer.id} className="text-xs font-semibold">
-                    {tx("Paga")} {formatMoney(transfer.amount)} {tx("a")} {getPlayerName(transfer.toPlayerId, players)}.
+                    {tx("Paga")} {formatMoney(transfer.amount)} {tx("a")} {getPlayerName(transfer.toPlayerId, players, transfer.departed)}.
                   </p>
                 ))}
               </div>
