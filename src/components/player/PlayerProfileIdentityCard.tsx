@@ -58,21 +58,33 @@ export function EloChip({ elo, differenceToViewer = null, children }: { elo: Elo
   const difference = differenceToViewer === null ? null : Math.round(differenceToViewer)
   return (
     <div className="flex flex-col items-end gap-0.5">
-      <button type="button" onClick={() => setOpen(true)} aria-label={tx("Ver el nivel")} className="inline-flex items-baseline gap-1 rounded-lg border border-neutral-300 bg-neutral-100 px-2.5 py-1 text-sm font-black text-neutral-900 transition active:scale-[0.97]">
+      <button type="button" onClick={() => setOpen(true)} aria-label={tx("Ver el nivel")} className="inline-flex items-baseline gap-1 rounded-lg bg-neutral-100 px-2.5 py-1 text-sm font-black text-neutral-900">
         {Math.round(elo.rating)}<span className="type-caption font-bold text-neutral-500">Elo</span>
       </button>
       {elo.provisional ? <span className="type-caption font-semibold text-neutral-500">{tx("provisional")}</span> : null}
       <FloatingDialog open={open} onClose={() => setOpen(false)} title={tx("Nivel")} variant="content">
-        <div className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <p className="type-panel-title font-black">{tx("Nivel")}</p>
+        <div className="space-y-3 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-500">{tx("Nivel")}</p>
             <DialogCloseButton onClick={() => setOpen(false)} />
           </div>
-          <p className="mt-2 text-4xl font-black leading-none">{Math.round(elo.rating)}<span className="ml-1 text-base font-bold text-neutral-500">Elo</span></p>
-          <p className="mt-2 type-caption font-semibold text-neutral-600">{elo.matches} {tx("partidos")} · {elo.wins} {tx("ganados")}</p>
-          {elo.provisional ? <p className="type-caption font-semibold text-neutral-500">{tx("Provisional: aún con pocos partidos, puede moverse mucho.")}</p> : null}
-          {difference !== null && difference !== 0 ? <p className="mt-1 type-caption font-black text-neutral-800">{difference > 0 ? `${difference} ${tx("Elo por encima de ti")}` : `${-difference} ${tx("Elo por debajo de ti")}`}</p> : null}
-          <p className="mt-2 type-caption font-semibold text-neutral-500">{tx("Es relativo a los jugadores de la app: solo sirve para compararse con otros.")}</p>
+          <div className="rounded-2xl bg-neutral-100 px-4 py-3 text-center">
+            <p className="text-5xl font-black leading-none">{Math.round(elo.rating)}</p>
+            <p className="mt-1 type-caption font-black uppercase tracking-[0.2em] text-neutral-500">Elo</p>
+            {elo.provisional ? <p className="mx-auto mt-2 w-fit rounded-full border border-amber-500/50 px-2.5 py-0.5 type-caption font-black text-amber-600">{tx("provisional")}</p> : null}
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-xl bg-neutral-100 px-3 py-2"><p className="text-xl font-black leading-tight">{elo.matches}</p><p className="type-caption font-bold text-neutral-500">{tx("partidos")}</p></div>
+            <div className="rounded-xl bg-neutral-100 px-3 py-2"><p className="text-xl font-black leading-tight">{elo.wins}</p><p className="type-caption font-bold text-neutral-500">{tx("ganados")}</p></div>
+          </div>
+          {difference !== null && difference !== 0 ? (
+            <p className={`rounded-xl px-3 py-2 text-center text-sm font-black ${difference > 0 ? "bg-emerald-500/15 text-emerald-500" : "bg-red-500/15 text-red-500"}`}>
+              {difference > 0 ? `${difference} ${tx("Elo por encima de ti")}` : `${-difference} ${tx("Elo por debajo de ti")}`}
+            </p>
+          ) : null}
+          <p className="type-caption font-semibold leading-4 text-neutral-500">
+            {elo.provisional ? `${tx("Provisional: aún con pocos partidos, puede moverse mucho.")} ` : ""}{tx("Es relativo a los jugadores de la app: solo sirve para compararse con otros.")}
+          </p>
           {children}
         </div>
       </FloatingDialog>
