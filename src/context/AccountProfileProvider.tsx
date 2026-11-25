@@ -214,6 +214,11 @@ export function AccountProfileProvider({ children }: { children: React.ReactNode
     }
   }, [])
 
+  // Warm the friendlies list as soon as the account is known, so "Competiciones" already has them when it opens.
+  useEffect(() => {
+    if (profile) void matchDashboard.refresh()
+  }, [matchDashboard, profile])
+
   useEffect(() => {
     const { chats, preview, announcements, activity, notificationReads } = leagueScreenData
     const chatChanged = () => { chatList.invalidate(); chats.invalidate(); preview.invalidate() }
