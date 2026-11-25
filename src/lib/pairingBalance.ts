@@ -1,6 +1,6 @@
-export type PairingPlayer = { key: string; rate: number | null }
+export type PairingPlayer = { key: string; elo: number | null }
 // Four players in slot order: [team1 slot1, team1 slot2, team2 slot1, team2 slot2].
-const NEUTRAL = 50
+const NEUTRAL = 1000
 
 function randomInt(limit: number) {
   const bytes = new Uint32Array(1)
@@ -19,7 +19,7 @@ export function shuffleList<T>(items: readonly T[]): T[] {
   return list
 }
 
-const average = (a: PairingPlayer, b: PairingPlayer) => ((a.rate ?? NEUTRAL) + (b.rate ?? NEUTRAL)) / 2
+const average = (a: PairingPlayer, b: PairingPlayer) => ((a.elo ?? NEUTRAL) + (b.elo ?? NEUTRAL)) / 2
 
 // The three ways to split four players into two pairs, best balanced first, with the gap between pairs.
 export function balancedSplits(players: readonly PairingPlayer[]) {

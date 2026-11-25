@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { balancedSplits, bestBalanced, pairId, pairingGap, shufflePairs } from "@/lib/pairingBalance"
 
-const players = [{ key: "a", rate: 80 }, { key: "b", rate: 70 }, { key: "c", rate: 30 }, { key: "d", rate: 20 }]
+const players = [{ key: "a", elo: 1200 }, { key: "b", elo: 1100 }, { key: "c", elo: 900 }, { key: "d", elo: 800 }]
 
 describe("pairing balance", () => {
   it("puts the best with the worst first", () => {
@@ -17,7 +17,7 @@ describe("pairing balance", () => {
   })
 
   it("treats missing rates as neutral", () => {
-    expect(pairingGap([{ key: "a", rate: null }, { key: "b", rate: null }, { key: "c", rate: 50 }, { key: "d", rate: null }])).toBe(0)
+    expect(pairingGap([{ key: "a", elo: null }, { key: "b", elo: null }, { key: "c", elo: 1000 }, { key: "d", elo: null }])).toBe(0)
   })
 
   it("shuffling always changes the pairs and keeps everyone", () => {
