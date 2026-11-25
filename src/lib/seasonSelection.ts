@@ -54,6 +54,16 @@ export function writeSeenSeasonId(leagueId: string, seasonId: string) {
   try { window.localStorage.setItem(`${seenSeasonKeyPrefix}${leagueId}`, seasonId) } catch { /* private mode: the season is only offered again next time */ }
 }
 
+export function clearSeenSeasonId(leagueId: string) {
+  if (typeof window === "undefined" || !leagueId) return
+  try { window.localStorage.removeItem(`${seenSeasonKeyPrefix}${leagueId}`) } catch { /* nothing to clear */ }
+}
+
+/** The newest season of a league the person can see: the one they play, or any for who manages the league. */
+export function getNewestAvailableSeasonId({ seasons, leagueId, participatingSeasonIds, canManage }: { seasons: Season[]; leagueId: string; participatingSeasonIds: ReadonlySet<string>; canManage: boolean }) {
+  return getNewestLeagueSeasons(seasons, leagueId).find(season => canManage || participatingSeasonIds.has(season.id))?.id ?? null
+}
+
 /**
  * The newest season of a league the person can see (the one they play, or any for who manages the league), when it is
  * not the one they were last taken to. The first visit after a new season exists lands there; afterwards the person
@@ -66,6 +76,6 @@ export function getNewSeasonToOffer({ seasons, leagueId, participatingSeasonIds,
   canManage: boolean
   seenSeasonId: string | null
 }) {
-  const newest = getNewestLeagueSeasons(seasons, leagueId).find(season => canManage || participatingSeasonIds.has(season.id))
-  return newest && newest.id !== seenSeasonId ? newest.id : null
+  const newest = getNewestAvailableSeasonId({ seasons, leagueId, participatingSeasonIds, canManage })
+  return newest && newest !== seenSeasonId ? newest : null
 }

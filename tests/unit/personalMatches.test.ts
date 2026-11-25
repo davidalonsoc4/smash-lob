@@ -102,3 +102,10 @@ describe("personal matches", () => {
     )
   })
 })
+
+describe("league match label", () => {
+  it("adds the season after the league, separated by a dot", () => {
+    const label = getPersonalMatchOriginLabel({ origin: "league", leagueName: "Smash & Lob Pro League", seasonName: "Temporada 1" })
+    expect(label).toBe("Smash & Lob Pro League · Temporada 1")
+  })
+})

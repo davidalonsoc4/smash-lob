@@ -34,6 +34,7 @@ import { isRoundRevealedToPlayers } from "@/lib/progressiveCalendar"
 import { getLeagueActivityMatches } from "@/lib/leagueActivity"
 import type { PersonalMatchItem } from "@/lib/personalMatches"
 import { normalizeAccentColor } from "@/lib/visualStyle"
+import { clearSeenSeasonId, getNewestAvailableSeasonId, writeSelectedSeasonId } from "@/lib/seasonSelection"
 import { getSeasonPreviewCountdown, SCHEDULED_SEASON_TIME_ZONE } from "@/lib/seasonScheduling"
 
 const actionClass = "app-action-button flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-black text-neutral-900 transition active:bg-neutral-100"
@@ -47,6 +48,15 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
   const memberLeagues = userLeagues.filter(league => getMembershipForLeague(league.id))
   const { matches, resultConfirmations } = useMatchData()
   const { seasons, playerProfiles, seasonPlayers, getActiveSeasonByLeagueId, getSeasonRoundSettings } = useSeasonSettings()
+  // Coming in from the list of leagues always lands on the newest season the person can see, even a locked upcoming one.
+  function enterLeague(leagueId: string) {
+    const playerId = getMembershipForLeague(leagueId)?.playerId ?? null
+    const participating = new Set(seasonPlayers.filter(row => row.playerId === playerId && row.status !== "withdrawn").map(row => row.seasonId))
+    const newest = getNewestAvailableSeasonId({ seasons, leagueId, participatingSeasonIds: participating, canManage: isLeagueAdmin(leagueId) })
+    if (newest) writeSelectedSeasonId(leagueId, newest)
+    else clearSeenSeasonId(leagueId)
+    changeActiveLeague(leagueId)
+  }
   const countedMatches = view === "leagues" ? matches.map(match => ({
     ...match,
     resultCounts: match.rankingCounts !== false && getMatchResultConfirmationState({
@@ -134,7 +144,7 @@ export function CompetitionsOverview({ view = "summary" }: { view?: "summary" | 
     const seasonPlayerCount = view === "leagues" ? seasonPlayers.filter(player => player.seasonId === season.id).length : 0
     const ranking = view === "leagues" ? (league.modality === "fixed_pairs" ? calculateLeaguePairRanking : calculateSeasonRanking)({ seasonId: season.id, playerProfiles, seasonPlayers, matches: countedMatches }) : []
     const leader = ranking.find(player => player.points > 0) ?? null
-    return <button key={league.id} data-content-enter={showSummaryEntrance ? Math.min(index + 1, 3) : undefined} type="button" onClick={() => changeActiveLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} data-phase={season.totalRounds ? season.status : "empty"} style={{ "--league-card-accent": normalizeAccentColor(league.accentColor) } as CSSProperties} className={`${view === "summary" ? styles.league : styles.leagueCard} w-full rounded-2xl border text-left transition active:scale-[0.99] ${view === "leagues" ? "p-4" : "p-3"}`}>
+    return <button key={league.id} data-content-enter={showSummaryEntrance ? Math.min(index + 1, 3) : undefined} type="button" onClick={() => enterLeague(league.id)} aria-label={tx(`Entrar en ${league.name}`)} data-phase={season.totalRounds ? season.status : "empty"} style={{ "--league-card-accent": normalizeAccentColor(league.accentColor) } as CSSProperties} className={`${view === "summary" ? styles.league : styles.leagueCard} w-full rounded-2xl border text-left transition active:scale-[0.99] ${view === "leagues" ? "p-4" : "p-3"}`}>
       <span className={`flex min-w-0 gap-3 ${view === "summary" ? "items-center" : "items-start"}`}>
         <span className={view === "leagues" ? styles.logoWell : "shrink-0"}><LeagueLogo league={league} size={view === "leagues" ? "lg" : "md"} /></span>
         <span className="min-w-0 flex-1">

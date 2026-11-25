@@ -15,6 +15,7 @@ import { formatShortDate } from "@/lib/rounds"
 import { FitText } from "@/components/ui/FitText"
 import { useActiveLeague } from "@/context/ActiveLeagueProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
+import { writeSelectedSeasonId } from "@/lib/seasonSelection"
 import { normalizeAccentColor } from "@/lib/visualStyle"
 import { getMatchDisplayStatus } from "@/lib/matchLifecycle"
 import { MatchStatusBadge } from "@/components/matches/MatchStatusBadge"
@@ -144,6 +145,8 @@ export function PersonalMatchCard({ match, hideEventMeta = false, compactBadges 
       className="absolute inset-0 w-full rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-offset-2"
       onClick={() => {
         if (!match.leagueId || !activateLeague(match.leagueId)) return
+        // Open the match in its own season: the league may be showing a newer one that is still locked.
+        if (match.seasonId) writeSelectedSeasonId(match.leagueId, match.seasonId)
         router.push(match.preview?.hidden ? "/league/home" : `/match/${encodeURIComponent(match.id)}`)
       }}
       aria-label={tx(`Abrir partido de ${match.leagueName ?? tx("liga")}`)}

@@ -191,9 +191,11 @@ export function getPersonalMatchTeamNames(
 }
 
 export function getPersonalMatchOriginLabel(
-  match: Pick<PersonalMatchItem, "origin" | "leagueName">,
+  match: Pick<PersonalMatchItem, "origin" | "leagueName"> & Partial<Pick<PersonalMatchItem, "seasonName">>,
 ) {
-  return match.origin === "league" ? match.leagueName || "Liga" : "Amistoso"
+  if (match.origin !== "league") return "Amistoso"
+  // League and season, separated by a mid-height dot: outside a league there is no other hint of which season it was.
+  return [match.leagueName || "Liga", match.seasonName].filter(Boolean).join(" · ")
 }
 
 function stableStringHash(value: string) {
