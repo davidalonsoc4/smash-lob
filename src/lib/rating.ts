@@ -107,3 +107,27 @@ export function pairLevelGap(ratings: ReadonlyMap<string, number>, pairA: readon
   const level = (pair: readonly string[]) => pair.reduce((total, key) => total + ratingToLevel(ratings.get(key) ?? BASE), 0) / pair.length
   return Math.abs(level(pairA) - level(pairB))
 }
+
+export type RatingSummary = { rating: number; matches: number; wins: number; provisional: boolean; gamesFor: number; gamesAgainst: number; friendlyMatches: number; avgExpected: number }
+
+/** Lo que alimenta el cálculo de una persona, resumido (no revela partidos concretos). */
+export function summarizeRating(player: PlayerRating): RatingSummary {
+  let gamesFor = 0
+  let gamesAgainst = 0
+  let expectedTotal = 0
+  let friendlyMatches = 0
+  for (const event of player.events) {
+    const sets = event.score.split(" ").map((part) => part.split("-").map(Number))
+    const setsA = sets.filter(([a, b]) => a > b).length
+    const setsB = sets.filter(([a, b]) => b > a).length
+    const onA = (setsA > setsB) === event.won
+    for (const [a, b] of sets) {
+      gamesFor += onA ? a : b
+      gamesAgainst += onA ? b : a
+    }
+    expectedTotal += event.expected
+    if (event.kind === "friendly") friendlyMatches += 1
+  }
+  const matches = player.events.length
+  return { rating: player.rating, matches: player.matches, wins: player.wins, provisional: player.provisional, gamesFor, gamesAgainst, friendlyMatches, avgExpected: matches ? expectedTotal / matches : 0.5 }
+}

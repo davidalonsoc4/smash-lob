@@ -4,6 +4,7 @@ import { EloChip, PlayerProfileIdentityCard } from "@/components/player/PlayerPr
 import { PlayerRatingEvents } from "@/components/player/PlayerRatingDetail"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
+import { summarizeRating } from "@/lib/rating"
 import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
 import { loadVisibleFinishedMatchesOfUser } from "@/lib/serverPersonalMatches"
@@ -43,7 +44,7 @@ export default async function PlayerCardPage({ params }: { params: Promise<{ use
         <BackButton fallbackHref="/personal-matches" label="Volver" />
         <PlayerProfileIdentityCard player={{ displayName: card.displayName, avatarUrl: card.avatarUrl }} positionLabel={getPlayerSideAndHandLabel(card.preferredSide, card.dominantHand)} context="global" trailing={card.rating ? (
           <EloChip
-            elo={{ rating: card.rating.rating, matches: card.rating.matches, wins: card.rating.wins, provisional: card.rating.provisional }}
+            elo={summarizeRating(card.rating)}
             differenceToViewer={card.isSelf || card.viewerRating === null ? null : card.rating.rating - card.viewerRating}
           >
             {card.ratingDetail ? <PlayerRatingEvents rating={card.rating} labels={card.labels} /> : null}

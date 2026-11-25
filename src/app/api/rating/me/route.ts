@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
+import { summarizeRating } from "@/lib/rating"
 import { loadRatingsOverview } from "@/lib/serverRatings"
 
 export const runtime = "nodejs"
@@ -12,7 +13,7 @@ export async function GET() {
   try {
     const { people } = await loadRatingsOverview(authResult.actor.supabase)
     const mine = people.find((person) => person.key === authResult.actor.user.id)
-    return NextResponse.json({ userId: authResult.actor.user.id, rating: mine ? { level: mine.level, rating: mine.rating, matches: mine.matches, wins: mine.wins, provisional: mine.provisional } : null })
+    return NextResponse.json({ userId: authResult.actor.user.id, rating: mine ? summarizeRating(mine) : null })
   } catch {
     return NextResponse.json({ error: "rating_failed" }, { status: 500 })
   }
