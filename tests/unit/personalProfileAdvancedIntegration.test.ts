@@ -6,7 +6,7 @@ const read = (path: string) => readFile(path, "utf8")
 describe("personal profile advanced statistics", () => {
   it("exposes summary, relation rankings and head-to-head under the existing filters", async () => {
     const [page, view, stats, tabs] = await Promise.all([
-      read("src/app/personal-matches/profile/page.tsx"),
+      Promise.all([read("src/app/personal-matches/profile/page.tsx"), read("src/components/personal/PersonalProfileView.tsx")]).then((files) => files.join(" ")),
       read("src/components/personal/PersonalProfileStatistics.tsx"),
       read("src/lib/personalProfileStats.ts"),
       read("src/components/player/ProfileSectionTabs.tsx"),
@@ -40,7 +40,7 @@ describe("personal profile advanced statistics", () => {
       read("src/lib/personalMatches.ts"),
       read("src/app/api/personal-matches/route.ts"),
       read("src/lib/serverPersonalMatches.ts"),
-      read("src/app/personal-matches/profile/page.tsx"),
+      Promise.all([read("src/app/personal-matches/profile/page.tsx"), read("src/components/personal/PersonalProfileView.tsx")]).then((files) => files.join(" ")),
       read("src/lib/personalProfileHistory.ts"),
     ])
 

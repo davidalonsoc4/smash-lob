@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation"
+import { PersonalProfileView } from "@/components/personal/PersonalProfileView"
 import { PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
 import { PlayerRatingDetail } from "@/components/player/PlayerRatingDetail"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
 import { requireAuthenticatedAppUser } from "@/lib/serverAuth"
+import { loadVisibleFinishedMatchesOfUser } from "@/lib/serverPersonalMatches"
 import { loadPlayerCard, type PlayerCardRecord } from "@/lib/serverPlayerCard"
 import { validateUuid } from "@/lib/serverRequest"
 
@@ -32,6 +34,8 @@ export default async function PlayerCardPage({ params }: { params: Promise<{ use
   if (!authResult.ok) notFound()
   const card = await loadPlayerCard(authResult.actor, userId)
   if (!card || card === "forbidden") notFound()
+  // Only matches the viewer can already see (shared friendlies and leagues they belong to or follow).
+  const items = await loadVisibleFinishedMatchesOfUser(authResult.actor, userId).catch(() => null)
 
   return (
     <div className="space-y-3">
@@ -39,13 +43,25 @@ export default async function PlayerCardPage({ params }: { params: Promise<{ use
         <BackButton fallbackHref="/personal-matches" label="Volver" />
         <PlayerProfileIdentityCard player={{ displayName: card.displayName, avatarUrl: card.avatarUrl }} positionLabel={getPlayerSideAndHandLabel(card.preferredSide, card.dominantHand)} context="global" />
       </header>
-      {card.rating ? <PlayerRatingDetail rating={card.rating} labels={card.labels} /> : null}
-      {!card.isSelf ? (
-        <div className="grid grid-cols-2 gap-2">
-          <Record title="Contigo de pareja" record={card.together} />
-          <Record title="Contra ti" record={card.against} />
-        </div>
-      ) : null}
+      <PersonalProfileView
+        items={items ?? []}
+        loaded
+        failed={items === null}
+        topSlot={
+          <>
+            {card.rating ? <PlayerRatingDetail rating={card.rating} labels={card.labels} /> : null}
+            {!card.isSelf ? (
+              <div className="grid grid-cols-2 gap-2">
+                <Record title="Contigo de pareja" record={card.together} />
+                <Record title="Contra ti" record={card.against} />
+              </div>
+            ) : null}
+          </>
+        }
+        leagueFilterCount={new Set((items ?? []).filter((match) => match.origin === "league").map((match) => match.leagueId)).size}
+        failedText="No se han podido cargar las estadísticas de este jugador."
+        emptyDescription="Aquí solo aparecen los partidos que tú también puedes ver (amistosos compartidos y tus ligas)."
+      />
     </div>
   )
 }

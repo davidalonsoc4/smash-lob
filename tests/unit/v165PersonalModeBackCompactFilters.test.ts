@@ -5,7 +5,7 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
   it("adds the standard BackButton to Personal Matches and Global Profile", async () => {
     const [matches, profile] = await Promise.all([
       readFile("src/app/personal-matches/page.tsx", "utf8"),
-      readFile("src/app/personal-matches/profile/page.tsx", "utf8"),
+      Promise.all([readFile("src/app/personal-matches/profile/page.tsx", "utf8"), readFile("src/components/personal/PersonalProfileView.tsx", "utf8")]).then((files) => files.join(" ")),
     ])
 
     expect(matches).toContain('import { BackButton } from "@/components/ui/BackButton"')
@@ -15,15 +15,15 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
   })
 
   it("replaces the tall three-select filter card with compact origin chips and two selects", async () => {
-    const profile = await readFile("src/app/personal-matches/profile/page.tsx", "utf8")
+    const profile = await Promise.all([readFile("src/app/personal-matches/profile/page.tsx", "utf8"), readFile("src/components/personal/PersonalProfileView.tsx", "utf8")]).then((files) => files.join(" "))
 
     expect(profile).toContain("data-personal-global-filters")
     expect(profile).toMatch(/\["all",\s*tx\("Todos"\),\s*tx\("Todos los partidos"\)\]|\["all", "Todos", "Todos los partidos"\]/)
-    expect(profile).toContain('participatingLeagues.length === 1 ? "Liga" : "Ligas"')
+    expect(profile).toContain('leagueFilterCount === 1 ? "Liga" : "Ligas"')
     expect(profile).toContain('match.origin === "friendly"')
-    expect(profile).toContain('items.filter((match) => match.origin === "friendly").length === 1 ? "Amistoso" : "Amistosos"')
-    expect(profile).toContain('participatingLeagues.length ?')
-    expect(profile).toContain('hasFriendlyMatches ?')
+    expect(profile).toContain('friendlyCount === 1 ? "Amistoso" : "Amistosos"')
+    expect(profile).toContain('leagueFilterCount > 0 ?')
+    expect(profile).toContain('friendlyCount > 0 ?')
     expect(profile).toContain('origin === "league" ? (')
     expect(profile).toMatch(/aria-label=(?:"Liga"|\{tx\("Liga"\)\})/)
     expect(profile).toMatch(/aria-label=(?:"Temporada"|\{tx\("Temporada"\)\})/)
@@ -35,7 +35,7 @@ describe("v1.6.5 personal mode back controls and compact global filters", () => 
 
   it("keeps filter behavior and compacts the statistics section selector", async () => {
     const [profile, statistics, tabs] = await Promise.all([
-      readFile("src/app/personal-matches/profile/page.tsx", "utf8"),
+      Promise.all([readFile("src/app/personal-matches/profile/page.tsx", "utf8"), readFile("src/components/personal/PersonalProfileView.tsx", "utf8")]).then((files) => files.join(" ")),
       readFile("src/components/personal/PersonalProfileStatistics.tsx", "utf8"),
       readFile("src/components/player/ProfileSectionTabs.tsx", "utf8"),
     ])

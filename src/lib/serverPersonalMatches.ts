@@ -1078,3 +1078,47 @@ export function sortDashboardItems(items: PersonalMatchItem[]) {
     return rightTime - leftTime
   })
 }
+
+// Finished matches of another person, limited to what the viewer can already see: friendlies the viewer also took part
+// in, and league matches of leagues the viewer belongs to (or follows). The items are seen from that person's side,
+// so `isCurrentUser` marks them and the usual personal-profile statistics can be reused as they are.
+export async function loadVisibleFinishedMatchesOfUser(
+  actor: AuthenticatedAppUser,
+  targetUserId: string,
+): Promise<PersonalMatchItem[]> {
+  const db = actor.supabase
+  const target: AuthenticatedAppUser = { ...actor, user: { ...actor.user, id: targetUserId } }
+  const [viewerMemberships, viewerSpectating, targetMemberships] = await Promise.all([
+    db.from("league_memberships").select("league_id").eq("user_id", actor.user.id),
+    db.from("league_spectators").select("league_id").eq("user_id", actor.user.id),
+    loadLeagueMemberships(target),
+  ])
+  if (viewerMemberships.error || viewerSpectating.error) throw new Error("player_history_access_failed")
+  const visibleLeagues = new Set([...(viewerMemberships.data ?? []), ...(viewerSpectating.data ?? [])].map((row) => String(row.league_id)))
+
+  const indexRows: HistoryIndexRow[] = []
+  for (let offset = 0; offset < 2000; offset += 100) {
+    const page = await db.rpc("server_list_user_match_history", { p_user_id: targetUserId, p_limit: 100, p_offset: offset })
+    if (page.error) throw new Error("player_history_index_failed")
+    const rows = ((page.data ?? []) as unknown[]).filter(isHistoryIndexRow)
+    indexRows.push(...rows)
+    if (rows.length < 100) break
+  }
+
+  const friendlyIds = indexRows.filter((row) => row.source === "friendly").map((row) => row.match_id)
+  const leagueIds = indexRows.filter((row) => row.source === "league").map((row) => row.match_id)
+  const [sharedFriendlies, leagueOwners] = await Promise.all([
+    friendlyIds.length ? db.from("personal_match_participants").select("match_id").eq("user_id", actor.user.id).in("match_id", friendlyIds) : Promise.resolve({ data: [], error: null }),
+    leagueIds.length ? db.from("matches").select("id,league_id").in("id", leagueIds) : Promise.resolve({ data: [], error: null }),
+  ])
+  if (sharedFriendlies.error || leagueOwners.error) throw new Error("player_history_visibility_failed")
+  const seesAll = actor.user.isSuperuser
+  const sharedFriendlyIds = new Set(seesAll ? friendlyIds : (sharedFriendlies.data ?? []).map((row) => String(row.match_id)))
+  const visibleLeagueMatchIds = new Set((leagueOwners.data ?? []).filter((row) => seesAll || visibleLeagues.has(String(row.league_id))).map((row) => String(row.id)))
+
+  const [friendlyItems, leagueItems] = await Promise.all([
+    loadPersonalRows(target, friendlyIds.filter((id) => sharedFriendlyIds.has(id)), { includeAvatars: true }),
+    loadLeagueRows(target, leagueIds.filter((id) => visibleLeagueMatchIds.has(id)), targetMemberships, { includeAvatars: true }),
+  ])
+  return [...friendlyItems, ...leagueItems].filter((item) => item.status === "finished")
+}

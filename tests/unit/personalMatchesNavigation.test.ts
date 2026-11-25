@@ -7,7 +7,7 @@ describe("personal matches navigation", () => {
       readFile("src/components/layout/AppShell.tsx", "utf8"),
       readFile("src/components/personal/PersonalMatchesNav.tsx", "utf8"),
       readFile("src/app/personal-matches/page.tsx", "utf8"),
-      readFile("src/app/personal-matches/profile/page.tsx", "utf8"),
+      (Promise.all([readFile("src/app/personal-matches/profile/page.tsx", "utf8"), readFile("src/components/personal/PersonalProfileView.tsx", "utf8")]).then((files) => files.join(" "))),
       readFile("src/components/player/PlayerProfileIdentityCard.tsx", "utf8"),
       readFile("src/app/personal-matches/new/page.tsx", "utf8"),
       readFile("src/app/personal-matches/[id]/page.tsx", "utf8"),
