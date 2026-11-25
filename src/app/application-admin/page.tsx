@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic"
 const items = [
   { href: "/application-admin/users", title: "Usuarios", description: "Gestiona cuentas globales, permisos, suspensiones, dispositivos y propiedad de ligas." },
   { href: "/application-admin/locations", title: "Ubicaciones", description: "Consulta usos, corrige partidos futuros y elimina lugares del catálogo global sin perder el histórico." },
+  { href: "/application-admin/ratings", title: "Nivel de los jugadores", description: "Prueba interna del sistema de nivel (Elo): cómo se calcula y qué partidos lo mueven. Solo visible para ti." },
   { href: "/application-admin/suggestions", title: "Sugerencias recibidas", description: "Revisa, clasifica y anota las propuestas enviadas por los usuarios." },
   { href: "/admin/tutorials", title: "Tutoriales", description: "Sube vídeos de ayuda y elige quién puede verlos: toda la app o ligas concretas." },
 ]

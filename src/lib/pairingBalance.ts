@@ -36,10 +36,19 @@ export function pairingGap(players: readonly PairingPlayer[]) {
 
 const pairId = (players: readonly PairingPlayer[]) => [[players[0].key, players[1].key].sort().join("+"), [players[2].key, players[3].key].sort().join("+")].sort().join("|")
 
-// Next best split different from the current one; wraps around once every option was shown.
-export function nextBalanced(players: readonly PairingPlayer[], shown: readonly string[]) {
-  const splits = balancedSplits(players)
-  const pending = splits.find((split) => !shown.includes(pairId(split.order))) ?? splits[0]
-  return { order: pending.order, id: pairId(pending.order), exhausted: !splits.some((split) => !shown.includes(pairId(split.order)) && pairId(split.order) !== pairId(pending.order)) }
+// The single most balanced split. If the current pairs already are that split, they are kept as they are.
+export function bestBalanced<T extends PairingPlayer>(players: readonly T[]): T[] {
+  const [best] = balancedSplits(players)
+  return (pairId(best.order) === pairId(players) ? [...players] : best.order) as T[]
+}
+
+// Random split into different pairs: never one that keeps the current pairs, so players always change pair.
+export function shufflePairs<T extends PairingPlayer>(players: readonly T[]): T[] {
+  const [p0, p1, p2, p3] = players
+  const options = [[p0, p2, p1, p3], [p0, p3, p1, p2]]
+  const [a, b, c, d] = options[randomInt(options.length)]
+  const first = randomInt(2) === 0 ? [a, b] : [b, a]
+  const second = randomInt(2) === 0 ? [c, d] : [d, c]
+  return (randomInt(2) === 0 ? [...first, ...second] : [...second, ...first]) as T[]
 }
 export { pairId }

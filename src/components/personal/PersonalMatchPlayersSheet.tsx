@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import { rememberCoinToss } from "@/lib/matchCoinTossClient"
-import { nextBalanced, pairId, pairingGap, shuffleList } from "@/lib/pairingBalance"
+import { bestBalanced, pairId, pairingGap, shufflePairs } from "@/lib/pairingBalance"
 import { PersonalMatchPlayerPicker, type PickedPlayer } from "@/components/personal/PersonalMatchPlayerPicker"
 import { sortPersonalMatchParticipants, type PersonalMatchItem, type PersonalMatchParticipant, type PersonalMatchPerson } from "@/lib/personalMatches"
 
@@ -59,6 +59,12 @@ function rateColor(rate: number) {
   return `hsl(${Math.round(hue)} 82% 48%)`
 }
 
+// Colour of the pair-gap pill: intense green at 0 (perfectly balanced) to intense red at 100.
+function gapColor(gap: number) {
+  const hue = Math.round((1 - Math.min(100, Math.max(0, gap)) / 100) * 130)
+  return `hsl(${hue} 80% 36%)`
+}
+
 // Win rate: a thin bar that fills up to the rate, in the colour that rate deserves.
 function RatePill({ rate, label }: { rate: number | null; label: string }) {
   return (
@@ -77,7 +83,6 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
   const [stats, setStats] = useState<Stat[]>([])
   const [selected, setSelected] = useState<number | null>(null)
   const [drag, setDrag] = useState<{ index: number; x: number; y: number; startX: number; startY: number } | null>(null)
-  const [shown, setShown] = useState<string[]>([])
   const [note, setNote] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -209,18 +214,19 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
     else { swap(selected, index); setSelected(null) }
   }
   function mix() {
-    setOrder((list) => shuffleList(list))
+    // Always moves players between pairs, never inside the same pair.
+    const next = shufflePairs(pairPlayers)
+    setOrder(next.map((player) => order.find((chip) => chip.id === player.key)!))
     setSelected(null)
     setNote(null)
   }
   function balance() {
-    const fresh = shown.length >= 3 ? [] : shown
-    const next = nextBalanced(pairPlayers, fresh)
-    const same = pairId(next.order) === pairId(pairPlayers)
-    setOrder(next.order.map((player) => order.find((chip) => chip.id === player.key)!))
-    setShown([...fresh, next.id])
+    // A single option: the split with the smallest gap between pairs.
+    const next = bestBalanced(pairPlayers)
+    const same = pairId(next) === pairId(pairPlayers)
+    if (!same) setOrder(next.map((player) => order.find((chip) => chip.id === player.key)!))
     setSelected(null)
-    setNote(same ? tx("Estas parejas ya son las más equilibradas.") : fresh.length > 0 && next.exhausted ? tx("Ya has visto todas las combinaciones.") : null)
+    setNote(same ? tx("Estas parejas ya son las más equilibradas.") : null)
   }
 
   function slotFromPoint(x: number, y: number) {
@@ -338,7 +344,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
         </div>
         <div className="mt-1.5 grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
           {pairHeader(0)}
-          {hasRates ? <span title={tx("Diferencia")} className="rounded-full bg-amber-100 px-3 py-0.5 text-sm font-black text-amber-800 ring-1 ring-amber-300">{Math.round(pairingGap(pairPlayers))}%</span> : <span />}
+          {hasRates ? <span title={tx("Diferencia")} className="rounded-full px-3 py-0.5 text-sm font-black" style={{ background: gapColor(pairingGap(pairPlayers)), color: "#ffffff" }}>{Math.round(pairingGap(pairPlayers))}%</span> : <span />}
           {pairHeader(1)}
         </div>
 
