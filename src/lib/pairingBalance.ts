@@ -52,3 +52,6 @@ export function shufflePairs<T extends PairingPlayer>(players: readonly T[]): T[
   return (randomInt(2) === 0 ? [...first, ...second] : [...second, ...first]) as T[]
 }
 export { pairId }
+
+/** Probability (0.5-1) that the pair with more Elo wins, for a given gap between the average Elo of both pairs. */
+export const winChance = (gap: number) => 1 / (1 + Math.pow(10, -Math.abs(gap) / 400))

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import { rememberCoinToss } from "@/lib/matchCoinTossClient"
-import { bestBalanced, pairId, pairingGap, shufflePairs } from "@/lib/pairingBalance"
+import { bestBalanced, pairId, pairingGap, shufflePairs, winChance } from "@/lib/pairingBalance"
 import { PersonalMatchPlayerPicker, type PickedPlayer } from "@/components/personal/PersonalMatchPlayerPicker"
 import { sortPersonalMatchParticipants, type PersonalMatchItem, type PersonalMatchParticipant, type PersonalMatchPerson } from "@/lib/personalMatches"
 
@@ -53,17 +53,30 @@ function CourtLines() {
 }
 
 // A pair gap of this many Elo points (or more) is shown fully red; 0 is fully green.
-const GAP_RED = 300
+const GAP_RED = 250
 
-// Colour of the pair-gap pill: intense green at 0 (perfectly balanced) to intense red at 300 Elo.
+// Colour of the pair-gap pill: intense green at 0 (perfectly balanced) to intense red at 250 Elo, one continuous gradient.
 function gapColor(gap: number) {
   const hue = Math.round((1 - Math.min(GAP_RED, Math.max(0, gap)) / GAP_RED) * 130)
   return `hsl(${hue} 80% 36%)`
 }
 
-// Elo of the player, as a plain number: it only means something next to the others.
-function EloPill({ elo, label }: { elo: number | null; label: string }) {
-  return <span className="mt-0.5 block type-caption font-bold leading-none text-neutral-500" title={elo === null ? label : undefined}>{elo === null ? "–" : `${elo} Elo`}</span>
+// Position (0-100) on the red-amber-green gradient: the amber middle is the average Elo of this match, and
+// ±150 Elo from it reaches the full red / green. It is distance in Elo points, not a rescaling of the four players.
+const DOT_SPAN = 150
+function dotColor(elo: number, mean: number) {
+  const position = 50 + 50 * Math.max(-1, Math.min(1, (elo - mean) / DOT_SPAN))
+  const hue = position <= 50 ? (position / 50) * 42 : 42 + ((position - 50) / 50) * 88
+  return `hsl(${Math.round(hue)} 82% 48%)`
+}
+
+// Elo of the player: a colour dot (how far above or below the average of the match) and the number.
+function EloPill({ elo, mean, label }: { elo: number | null; mean: number; label: string }) {
+  return (
+    <span className="-mt-0.5 flex items-center justify-center gap-1.5 type-caption font-bold leading-none text-neutral-500" title={elo === null ? label : undefined}>
+      {elo === null ? "–" : (<><span className="h-2 w-2 shrink-0 rounded-full" style={{ background: dotColor(elo, mean) }} />{elo} Elo</>)}
+    </span>
+  )
 }
 
 export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match: PersonalMatchItem; onClose: () => void; onUpdated: (match: PersonalMatchItem) => void }) {
@@ -191,6 +204,8 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
   }), [order, stats])
   const pairPlayers = players.map((player) => ({ key: player.id, elo: player.elo }))
   const hasRates = players.some((player) => player.elo !== null)
+  const knownElos = players.flatMap((player) => (player.elo === null ? [] : [player.elo]))
+  const meanElo = knownElos.length ? knownElos.reduce((total, value) => total + value, 0) / knownElos.length : 1000
   const teamElo = (a: number, b: number) => Math.round(((players[a].elo ?? 1000) + (players[b].elo ?? 1000)) / 2)
   const original = useMemo(() => sortPersonalMatchParticipants(match.participants).map((participant) => `${participant.team}-${participant.slot}-${participant.displayName}`).join("|"), [match.participants])
   const current = order.map((chip, index) => `${index < 2 ? 1 : 2}-${(index % 2) + 1}-${chip.name}`).join("|")
@@ -321,14 +336,14 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                   onPointerCancel={() => { if (pressTimer.current) window.clearTimeout(pressTimer.current); setDrag(null) }}
                   onContextMenu={(event) => event.preventDefault()}
                   onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tapSlot(index) } }}
-                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pt-1.5 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
+                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pb-1.5 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
                   style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderTop: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
                 >
                   <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600">
                     {chip.avatarUrl ? <img src={chip.avatarUrl} alt="" draggable={false} className="h-full w-full object-cover" /> : initials(chip.name)}
                   </span>
                   <span className="block w-full truncate text-sm font-black leading-tight text-neutral-950">{chip.name}</span>
-                  <EloPill elo={player.elo} label={tx("sin datos")} />
+                  <EloPill elo={player.elo} mean={meanElo} label={tx("sin datos")} />
                 </button>
               )
             })}
@@ -336,7 +351,12 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
         </div>
         <div className="mt-1.5 grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
           {pairHeader(0)}
-          {hasRates ? <span title={tx("Diferencia")} className="rounded-full px-3 py-0.5 text-sm font-black" style={{ background: gapColor(pairingGap(pairPlayers)), color: "#ffffff" }}>{Math.round(pairingGap(pairPlayers))}</span> : <span />}
+          {hasRates ? (
+            <span title={tx("Diferencia de Elo entre parejas y probabilidad de ganar de la pareja con más Elo")} className="flex flex-col items-center rounded-2xl px-3 py-0.5 leading-tight" style={{ background: gapColor(pairingGap(pairPlayers)), color: "#ffffff" }}>
+              <span className="text-sm font-black">{Math.round(pairingGap(pairPlayers))}</span>
+              <span className="type-micro font-bold opacity-90">{Math.round(winChance(pairingGap(pairPlayers)) * 100)} %</span>
+            </span>
+          ) : <span />}
           {pairHeader(1)}
         </div>
 

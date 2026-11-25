@@ -28,3 +28,12 @@ describe("pairing balance", () => {
     }
   })
 })
+
+describe("win chance", () => {
+  it("is 50 % for equal pairs and grows with the gap", async () => {
+    const { winChance } = await import("@/lib/pairingBalance")
+    expect(winChance(0)).toBe(0.5)
+    expect(Math.round(winChance(100) * 100)).toBe(64)
+    expect(Math.round(winChance(282) * 100)).toBe(84)
+  })
+})
