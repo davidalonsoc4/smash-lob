@@ -41,7 +41,7 @@ describe("v1.8.0 chats and polish", () => {
     const identity = await readFile("src/components/player/PlayerProfileIdentityCard.tsx", "utf8")
     const matchDetail = await readFile("src/components/match/MatchDetailPairingPanel.tsx", "utf8")
     expect(profile).toContain("positionLabel={playerPositionLabel}")
-    expect(identity).toContain('tx("Posición preferida")')
+    expect(identity).toContain("{positionLabel}")
     expect(matchDetail).toContain('metadataPlacement="after-name"')
   })
 

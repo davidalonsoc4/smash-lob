@@ -3,8 +3,7 @@
 import { useMemo, useState } from "react"
 import { useSessionResource } from "@/hooks/useSessionResource"
 import { PersonalProfileView } from "@/components/personal/PersonalProfileView"
-import { PersonalRatingCard, PersonalRatingChip } from "@/components/personal/PersonalRatingCard"
-import { PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
+import { PersonalRatingChip, PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { useAccountProfile } from "@/context/AccountProfileProvider"
 import { useLeagueAccess } from "@/context/LeagueAccessProvider"
@@ -44,7 +43,6 @@ export default function PersonalProfilePage() {
         loaded={cachedItems !== null}
         failed={failed}
         animate={animate}
-        topSlot={<PersonalRatingCard />}
         leagueFilterCount={participatingLeagues.length}
       />
     </div>

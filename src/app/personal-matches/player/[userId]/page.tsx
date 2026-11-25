@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { PersonalProfileView } from "@/components/personal/PersonalProfileView"
-import { PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
-import { EloChip, PlayerRatingDetail } from "@/components/player/PlayerRatingDetail"
+import { EloChip, PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
+import { PlayerRatingEvents } from "@/components/player/PlayerRatingDetail"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
@@ -41,7 +41,14 @@ export default async function PlayerCardPage({ params }: { params: Promise<{ use
     <div className="space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/personal-matches" label="Volver" />
-        <PlayerProfileIdentityCard player={{ displayName: card.displayName, avatarUrl: card.avatarUrl }} positionLabel={getPlayerSideAndHandLabel(card.preferredSide, card.dominantHand)} context="global" trailing={card.rating ? <EloChip rating={card.rating.rating} /> : undefined} />
+        <PlayerProfileIdentityCard player={{ displayName: card.displayName, avatarUrl: card.avatarUrl }} positionLabel={getPlayerSideAndHandLabel(card.preferredSide, card.dominantHand)} context="global" trailing={card.rating ? (
+          <EloChip
+            elo={{ rating: card.rating.rating, matches: card.rating.matches, wins: card.rating.wins, provisional: card.rating.provisional }}
+            differenceToViewer={card.isSelf || card.viewerRating === null ? null : card.rating.rating - card.viewerRating}
+          >
+            {card.ratingDetail ? <PlayerRatingEvents rating={card.rating} labels={card.labels} /> : null}
+          </EloChip>
+        ) : undefined} />
       </header>
       <PersonalProfileView
         items={items ?? []}
@@ -49,7 +56,6 @@ export default async function PlayerCardPage({ params }: { params: Promise<{ use
         failed={items === null}
         topSlot={
           <>
-            {card.rating ? <PlayerRatingDetail rating={card.rating} labels={card.labels} showEvents={card.ratingDetail} viewerRating={card.isSelf ? null : card.viewerRating} /> : null}
             {!card.isSelf ? (
               <div className="grid grid-cols-2 gap-2">
                 <Record title="Contigo de pareja" record={card.together} />
