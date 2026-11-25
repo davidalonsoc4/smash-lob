@@ -1,3 +1,5 @@
+"use client"
+
 import type { ReactNode } from "react"
 import { PlayerAvatar } from "@/components/player/PlayerAvatar"
 import { useI18n } from "@/i18n/I18nProvider"
