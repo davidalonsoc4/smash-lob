@@ -31,12 +31,6 @@ export function ratingToLevel(rating: number) {
   return 100 / (1 + Math.pow(10, (BASE - rating) / SCALE))
 }
 
-/** Referencia visual (no es un nivel absoluto: todos los niveles son relativos a los jugadores de la app). */
-export const RATING_BANDS = [{ from: 1300, label: "Élite" }, { from: 1100, label: "Avanzado" }, { from: 900, label: "Medio" }, { from: -Infinity, label: "Iniciación" }] as const
-export const ratingBand = (rating: number) => RATING_BANDS.find((band) => rating >= band.from)!.label
-/** Posición (0-100 %) en la barra de referencia, de 700 a 1400 Elo. */
-export const ratingBarPosition = (rating: number) => Math.round(Math.min(1, Math.max(0, (rating - 700) / 700)) * 100)
-
 export function expectedScore(ratingA: number, ratingB: number) {
   return 1 / (1 + Math.pow(10, (ratingB - ratingA) / SCALE))
 }

@@ -2,7 +2,6 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { AppCard } from "@/components/ui/AppCard"
 import { useI18n } from "@/i18n/I18nProvider"
-import { ratingBand, ratingBarPosition } from "@/lib/rating"
 
 type MyRating = { userId: string; rating: { level: number; rating: number; matches: number; wins: number; provisional: boolean } | null }
 
@@ -37,24 +36,15 @@ export function PersonalRatingCard() {
   return (
     <Link href={`/personal-matches/player/${mine.userId}`} className="block">
       <AppCard className="!p-3">
-        {rating ? (
-          <>
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="type-panel-title font-black">{tx("Nivel")}</p>
-              <span className="type-caption font-bold text-neutral-500">{tx(ratingBand(rating.rating))}{rating.provisional ? ` · ${tx("provisional")}` : ""}</span>
-            </div>
-            <p className="mt-1 text-4xl font-black leading-none text-neutral-950">{Math.round(rating.rating)} <span className="text-base font-bold text-neutral-500">Elo</span></p>
-            <div className="relative mt-4 h-2 rounded-full" style={{ background: "linear-gradient(90deg,#E24B4A,#EF9F27,#97C459,#1D9E75)" }}>
-              <span className="absolute -top-1 h-4 w-1 -translate-x-1/2 rounded-full bg-neutral-950" style={{ left: `${ratingBarPosition(rating.rating)}%` }} />
-            </div>
-            <p className="mt-2 type-caption font-semibold text-neutral-500">{rating.matches} {tx("partidos")} · {rating.wins} {tx("ganados")}</p>
-          </>
-        ) : (
-          <>
-            <p className="type-panel-title font-black">{tx("Nivel")}</p>
-            <p className="type-caption font-semibold text-neutral-500">{tx("Todavía sin partidos terminados.")}</p>
-          </>
-        )}
+        <div className="flex items-center gap-3">
+          {rating ? <p className="shrink-0 text-3xl font-black leading-none text-neutral-950">{Math.round(rating.rating)}<span className="ml-1 text-sm font-bold text-neutral-500">Elo</span></p> : null}
+          <div className="min-w-0 flex-1">
+            <p className="type-caption font-black text-neutral-800">{tx("Nivel")}{rating?.provisional ? ` · ${tx("provisional")}` : ""}</p>
+            <p className="type-caption font-semibold leading-4 text-neutral-500">
+              {rating ? `${rating.matches} ${tx("partidos")} · ${rating.wins} ${tx("ganados")}` : tx("Todavía sin partidos terminados.")}
+            </p>
+          </div>
+        </div>
       </AppCard>
     </Link>
   )

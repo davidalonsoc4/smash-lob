@@ -1,5 +1,5 @@
 import { AppCard } from "@/components/ui/AppCard"
-import { ratingBand, ratingBarPosition, type PlayerRating } from "@/lib/rating"
+import type { PlayerRating } from "@/lib/rating"
 
 const dateLabel = (value: string) => (value ? new Date(value).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "2-digit" }) : "")
 
@@ -14,22 +14,17 @@ export function PlayerRatingDetail({ rating, labels, showEvents = true, viewerRa
   const difference = viewerRating === null ? null : Math.round(rating.rating - viewerRating)
   return (
     <AppCard className="!p-0">
-      <div className="p-3">
-        <div className="flex items-baseline justify-between gap-2">
-          <p className="type-panel-title font-black">Nivel</p>
-          <span className="type-caption font-bold text-neutral-500">{ratingBand(rating.rating)}{rating.provisional ? " · provisional" : ""}</span>
+      <div className="flex items-center gap-3 p-3">
+        <p className="shrink-0 text-3xl font-black leading-none text-neutral-950">{Math.round(rating.rating)}<span className="ml-1 text-sm font-bold text-neutral-500">Elo</span></p>
+        <div className="min-w-0 flex-1">
+          <p className="type-caption font-black text-neutral-800">Nivel{rating.provisional ? " · provisional" : ""}</p>
+          <p className="type-caption font-semibold leading-4 text-neutral-500">
+            {rating.matches} {rating.matches === 1 ? "partido" : "partidos"} · {rating.wins} {rating.wins === 1 ? "ganado" : "ganados"}{rating.provisional ? ". Aún con pocos partidos: puede moverse mucho." : "."}
+          </p>
+          {difference !== null && difference !== 0 ? (
+            <p className="type-caption font-black text-neutral-700">{difference > 0 ? `${difference} Elo por encima de ti` : `${-difference} Elo por debajo de ti`}</p>
+          ) : null}
         </div>
-        <p className="mt-1 text-4xl font-black leading-none text-neutral-950">{Math.round(rating.rating)} <span className="text-base font-bold text-neutral-500">Elo</span></p>
-        <div className="relative mt-4 h-2 rounded-full" style={{ background: "linear-gradient(90deg,#E24B4A,#EF9F27,#97C459,#1D9E75)" }}>
-          <span className="absolute -top-1 h-4 w-1 -translate-x-1/2 rounded-full bg-neutral-950" style={{ left: `${ratingBarPosition(rating.rating)}%` }} />
-        </div>
-        <div className="mt-1 flex justify-between type-caption font-semibold text-neutral-400"><span>700</span><span>1000</span><span>1400</span></div>
-        <p className="mt-2 type-caption font-semibold text-neutral-500">
-          {rating.matches} partidos · {rating.wins} ganados. {rating.provisional ? "Aún con pocos partidos: puede moverse mucho." : "Calculado con todos sus partidos, de liga y amistosos."}
-        </p>
-        {difference !== null && difference !== 0 ? (
-          <p className="mt-1 type-caption font-black text-neutral-700">{difference > 0 ? `${difference} Elo por encima de ti` : `${-difference} Elo por debajo de ti`}</p>
-        ) : null}
       </div>
       {showEvents ? <details className="border-t border-neutral-100">
         <summary className="cursor-pointer list-none px-3 py-2 type-caption font-black text-neutral-700">Ver partidos que lo mueven</summary>
