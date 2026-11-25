@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useI18n } from "@/i18n/I18nProvider"
 import { requestMatchDashboardRefresh, requestPersonalProfileHistoryRefresh } from "@/lib/appRefreshEvents"
 import { rememberCoinToss } from "@/lib/matchCoinTossClient"
+import { DialogCloseButton, FloatingDialog } from "@/components/ui/FloatingDialog"
 import { bestBalanced, pairId, pairingGap, shufflePairs, winChance } from "@/lib/pairingBalance"
 import { PersonalMatchPlayerPicker, type PickedPlayer } from "@/components/personal/PersonalMatchPlayerPicker"
 import { sortPersonalMatchParticipants, type PersonalMatchItem, type PersonalMatchParticipant, type PersonalMatchPerson } from "@/lib/personalMatches"
@@ -25,13 +26,13 @@ type Stat = { personKey: string; elo: number | null; matches: number; provisiona
 // Pair A plays at the top, pair B at the bottom. The backhand player stands closer to the net, the drive player further back, one on each side.
 // As in the detail screen: the first name of pair A is the backhand, the first name of pair B is the drive.
 const SLOT_POSITIONS = [
-  { left: 51, top: 26 }, { left: 2, top: 3 },
-  { left: 51, top: 77 }, { left: 2, top: 54 },
+  { left: 51, top: 24 }, { left: 2, top: 3 },
+  { left: 51, top: 75 }, { left: 2, top: 54 },
 ] as const
 const CHIP_WIDTH = 47
-const CHIP_HEIGHT = 20
+const CHIP_HEIGHT = 23
 const slotStyle = (index: number) => ({ left: `${SLOT_POSITIONS[index].left}%`, top: `${SLOT_POSITIONS[index].top}%` })
-const PAIR_COLORS = ["#38bdf8", "#fb923c"] as const
+const PAIR_COLORS = ["#a855f7", "#fb923c"] as const
 
 function initials(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("")
@@ -83,6 +84,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
   const { tx } = useI18n()
   const [order, setOrder] = useState<Chip[]>(() => sortPersonalMatchParticipants(match.participants).map(toChip))
   const [stats, setStats] = useState<Stat[]>([])
+  const [gapInfo, setGapInfo] = useState(false)
   const [selected, setSelected] = useState<number | null>(null)
   const [drag, setDrag] = useState<{ index: number; x: number; y: number; startX: number; startY: number } | null>(null)
   const [note, setNote] = useState<string | null>(null)
@@ -336,7 +338,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
                   onPointerCancel={() => { if (pressTimer.current) window.clearTimeout(pressTimer.current); setDrag(null) }}
                   onContextMenu={(event) => event.preventDefault()}
                   onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tapSlot(index) } }}
-                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pb-1.5 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
+                  className={`absolute flex touch-none cursor-grab flex-col items-center justify-center gap-1 rounded-lg bg-white px-2 pt-2 pb-1 text-center ${dragging ? "z-20 cursor-grabbing shadow-2xl" : "z-10 shadow-lg transition-all duration-500 ease-out"} ${selected === index ? "ring-4 ring-amber-400" : ""}`}
                   style={{ ...slotStyle(index), width: `${CHIP_WIDTH}%`, height: `${CHIP_HEIGHT}%`, borderTop: `4px solid ${color}`, ...(dragging && drag ? { transform: `translate(${drag.x - drag.startX}px, ${drag.y - drag.startY}px) scale(1.05)` } : {}) }}
                 >
                   <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-100 text-sm font-black text-neutral-600">
@@ -352,13 +354,42 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
         <div className="mt-1.5 grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
           {pairHeader(0)}
           {hasRates ? (
-            <span title={tx("Diferencia de Elo entre parejas y probabilidad de ganar de la pareja con más Elo")} className="flex flex-col items-center rounded-2xl px-3 py-0.5 leading-tight" style={{ background: gapColor(pairingGap(pairPlayers)), color: "#ffffff" }}>
+            <button type="button" aria-label={tx("Qué significan estos números")} onClick={() => setGapInfo(true)} className="flex flex-col items-center rounded-2xl px-3 py-0.5 leading-tight" style={{ background: gapColor(pairingGap(pairPlayers)), color: "#ffffff" }}>
               <span className="text-sm font-black">{Math.round(pairingGap(pairPlayers))}</span>
               <span className="type-micro font-bold opacity-90">{Math.round(winChance(pairingGap(pairPlayers)) * 100)} %</span>
-            </span>
+            </button>
           ) : <span />}
           {pairHeader(1)}
         </div>
+        <FloatingDialog open={gapInfo} onClose={() => setGapInfo(false)} title={tx("Diferencia entre parejas")} variant="content">
+          <div className="space-y-3 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="type-caption font-black uppercase tracking-[0.14em] text-neutral-500">{tx("Diferencia entre parejas")}</p>
+              <DialogCloseButton onClick={() => setGapInfo(false)} />
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-center">
+              <div className="rounded-xl px-3 py-2 text-white" style={{ background: gapColor(pairingGap(pairPlayers)) }}>
+                <p className="text-3xl font-black leading-none">{Math.round(pairingGap(pairPlayers))}</p>
+                <p className="mt-1 type-caption font-bold">{tx("puntos de Elo")}</p>
+              </div>
+              <div className="rounded-xl px-3 py-2 text-white" style={{ background: gapColor(pairingGap(pairPlayers)) }}>
+                <p className="text-3xl font-black leading-none">{Math.round(winChance(pairingGap(pairPlayers)) * 100)} %</p>
+                <p className="mt-1 type-caption font-bold">{tx("prob. de ganar de la pareja fuerte")}</p>
+              </div>
+            </div>
+            <div className="rounded-xl bg-neutral-100 px-3 py-1">
+              {([0, 1] as const).map((pair) => (
+                <div key={pair} className="flex items-center justify-between gap-3 border-b border-neutral-200 py-1.5 last:border-0">
+                  <p className="flex min-w-0 items-center gap-1.5 text-sm font-black"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: PAIR_COLORS[pair] }} /><span className="truncate">{players[pair * 2].name} · {players[pair * 2 + 1].name}</span></p>
+                  <p className="shrink-0 text-sm font-black">{teamElo(pair * 2, pair * 2 + 1)} Elo</p>
+                </div>
+              ))}
+            </div>
+            <p className="type-caption font-semibold leading-4 text-neutral-500">
+              {tx("El número de arriba es la diferencia entre el Elo medio de las dos parejas. El de abajo es la probabilidad de que gane la pareja con más Elo según esa diferencia: un 50 % significa parejas igualadas (verde) y cuanto más sube, más desequilibrado está el partido (rojo). Es una estimación, no un pronóstico: no tiene en cuenta el día ni el marcador.")}
+            </p>
+          </div>
+        </FloatingDialog>
 
         <div className="mt-1.5 grid shrink-0 grid-cols-2 gap-2">
           <button type="button" onClick={mix} className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-sm font-black text-neutral-900 transition active:scale-[0.97] active:bg-neutral-100">
