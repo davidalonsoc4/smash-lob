@@ -6,11 +6,11 @@ import { showActionFeedback } from "@/lib/actionFeedback"
 import type { CoinToss } from "@/lib/matchCoinToss"
 import { rememberCoinToss } from "@/lib/matchCoinTossClient"
 import { DialogCloseButton, FloatingDialog } from "@/components/ui/FloatingDialog"
-import { bestBalanced, pairId, pairingGap, shufflePairs, winChance } from "@/lib/pairingBalance"
+import { bestBalanced, pairId, pairingGap, shouldSwapBySide, shufflePairs, winChance } from "@/lib/pairingBalance"
 import { PersonalMatchPlayerPicker, type PickedPlayer } from "@/components/personal/PersonalMatchPlayerPicker"
 import { sortPersonalMatchParticipants, type PersonalMatchItem, type PersonalMatchParticipant, type PersonalMatchPerson } from "@/lib/personalMatches"
 
-type Chip = { id: string; name: string; avatarUrl: string | null; personKey: string | null; locked: boolean }
+type Chip = { id: string; name: string; avatarUrl: string | null; personKey: string | null; locked: boolean; side: PersonalMatchParticipant["preferredSide"] }
 const LONG_PRESS_MS = 1200
 
 function toChip(participant: PersonalMatchParticipant, index: number): Chip {
@@ -20,6 +20,7 @@ function toChip(participant: PersonalMatchParticipant, index: number): Chip {
     avatarUrl: participant.avatarUrl ?? null,
     personKey: participant.personKey && !participant.personKey.startsWith("external:") ? participant.personKey : null,
     locked: participant.isCurrentUser,
+    side: participant.preferredSide ?? null,
   }
 }
 type Stat = { personKey: string; elo: number | null; matches: number; provisional: boolean }
@@ -226,10 +227,21 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
     if (selected === null) setSelected(index)
     else { swap(selected, index); setSelected(null) }
   }
+  // Inside each pair, backhand and drive players stand where they play (silently; the first slot of pair A is the backhand,
+  // the first of pair B the drive). Only used by Mezclar / Equilibrar.
+  function placeBySide(list: Chip[]): Chip[] {
+    const eloOf = (chip: Chip) => stats.find((item) => item.personKey === chip.personKey)?.elo ?? null
+    const next = [...list]
+    for (const [first, slot] of [[0, "reves"], [2, "drive"]] as const) {
+      const a = next[first], b = next[first + 1]
+      if (shouldSwapBySide({ side: a.side, elo: eloOf(a) }, { side: b.side, elo: eloOf(b) }, slot)) { next[first] = b; next[first + 1] = a }
+    }
+    return next
+  }
   function mix() {
     // Always moves players between pairs, never inside the same pair.
     const next = shufflePairs(pairPlayers)
-    setOrder(next.map((player) => order.find((chip) => chip.id === player.key)!))
+    setOrder(placeBySide(next.map((player) => order.find((chip) => chip.id === player.key)!)))
     setSelected(null)
     setNote(null)
   }
@@ -237,7 +249,7 @@ export function PersonalMatchPlayersSheet({ match, onClose, onUpdated }: { match
     // A single option: the split with the smallest gap between pairs.
     const next = bestBalanced(pairPlayers)
     const same = pairId(next) === pairId(pairPlayers)
-    if (!same) setOrder(next.map((player) => order.find((chip) => chip.id === player.key)!))
+    if (!same) setOrder(placeBySide(next.map((player) => order.find((chip) => chip.id === player.key)!)))
     setSelected(null)
     setNote(same ? tx("Estas parejas ya son las más equilibradas.") : null)
   }

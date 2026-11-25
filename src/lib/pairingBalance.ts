@@ -55,3 +55,30 @@ export { pairId }
 
 /** Probability (0.5-1) that the pair with more Elo wins, for a given gap between the average Elo of both pairs. */
 export const winChance = (gap: number) => 1 / (1 + Math.pow(10, -Math.abs(gap) / 400))
+
+export type Side = "drive" | "reves" | "versatile" | null | undefined
+
+/**
+ * Which of the two players of a pair stands in the first slot. `firstSlot` is the position that slot has on court.
+ * A player with a chosen side gets it; a versatile one adapts; if both want the same side (or neither has one) the one with
+ * more Elo keeps it. Returns true when the two should be swapped. Purely cosmetic: nobody is told about it.
+ */
+export function shouldSwapBySide(
+  first: { side: Side; elo: number | null },
+  second: { side: Side; elo: number | null },
+  firstSlot: "reves" | "drive",
+): boolean {
+  const pick = (side: Side) => (side === "drive" || side === "reves" ? side : null)
+  const a = pick(first.side)
+  const b = pick(second.side)
+  const secondSlot = firstSlot === "reves" ? "drive" : "reves"
+  if (a === firstSlot && b !== firstSlot) return false
+  if (b === secondSlot && a !== secondSlot) return false
+  if (a === secondSlot && b !== secondSlot) return true
+  if (b === firstSlot && a !== firstSlot) return true
+  if (a && a === b) {
+    const higherIsFirst = (first.elo ?? NEUTRAL) >= (second.elo ?? NEUTRAL)
+    return (a === firstSlot) !== higherIsFirst
+  }
+  return false
+}

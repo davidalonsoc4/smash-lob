@@ -1,4 +1,5 @@
 import "server-only"
+import { randomUUID } from "node:crypto"
 
 import type { AuthenticatedAppUser } from "@/lib/serverAuth"
 import { mapSupabaseMatch, matchSelect } from "@/lib/supabaseMatches"
@@ -422,8 +423,9 @@ export async function replacePersonalMatchParticipants(
   const keptIds = new Set<string>()
   const rowsToInsert = participants.map((participant) => {
     const original = originalByKey.get(keyOf(participant))
+    // Every row carries an explicit id: a bulk insert whose rows have different keys turns the missing id into null.
     if (original && !keptIds.has(original.id)) keptIds.add(original.id)
-    else return { match_id: matchId, ...participant }
+    else return { id: randomUUID(), match_id: matchId, ...participant }
     return { id: original.id, match_id: matchId, ...participant }
   })
   const insertResult = await actor.supabase
