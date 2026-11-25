@@ -15,10 +15,11 @@ export type PlayerCard = {
   isSelf: boolean
   together: PlayerCardRecord
   against: PlayerCardRecord
-  /** Only while the rating system is hidden: the superuser sees it, nobody else. */
   rating: PlayerRating | null
   labels: Record<string, string>
   ratingDetail: boolean
+  /** Elo of whoever is looking, to compare against. */
+  viewerRating: number | null
 }
 
 function winnerTeam(match: RatingMatch) {
@@ -85,5 +86,6 @@ export async function loadPlayerCard(actor: AuthenticatedAppUser, userId: string
     // The match-by-match breakdown names people and matches the viewer may not see: superuser only.
     labels: actor.user.isSuperuser ? overview.labels : {},
     ratingDetail: actor.user.isSuperuser,
+    viewerRating: overview.people.find((person) => person.key === actor.user.id)?.rating ?? null,
   }
 }

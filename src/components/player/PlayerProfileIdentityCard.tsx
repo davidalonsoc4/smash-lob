@@ -10,6 +10,8 @@ type PlayerProfileIdentityCardProps = {
   context: "global" | "league"
   leagueName?: string
   contextDetails?: ReactNode
+  /** Small element on the right of the name (e.g. the Elo). */
+  trailing?: ReactNode
 }
 
 export function PlayerProfileIdentityCard({
@@ -18,6 +20,7 @@ export function PlayerProfileIdentityCard({
   context,
   leagueName,
   contextDetails,
+  trailing,
 }: PlayerProfileIdentityCardProps) {
   const { tx } = useI18n()
   const contextLabel = context === "global" ? tx("Perfil global") : leagueName ?? tx("Liga")
@@ -38,6 +41,7 @@ export function PlayerProfileIdentityCard({
             </p>
           ) : null}
         </div>
+        {trailing ? <div className="shrink-0 self-start">{trailing}</div> : null}
       </div>
     </div>
   )

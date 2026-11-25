@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { PersonalProfileView } from "@/components/personal/PersonalProfileView"
 import { PlayerProfileIdentityCard } from "@/components/player/PlayerProfileIdentityCard"
-import { PlayerRatingDetail } from "@/components/player/PlayerRatingDetail"
+import { EloChip, PlayerRatingDetail } from "@/components/player/PlayerRatingDetail"
 import { AppCard } from "@/components/ui/AppCard"
 import { BackButton } from "@/components/ui/BackButton"
 import { getPlayerSideAndHandLabel } from "@/lib/accountProfile"
@@ -41,7 +41,7 @@ export default async function PlayerCardPage({ params }: { params: Promise<{ use
     <div className="space-y-3">
       <header className="app-page-header">
         <BackButton fallbackHref="/personal-matches" label="Volver" />
-        <PlayerProfileIdentityCard player={{ displayName: card.displayName, avatarUrl: card.avatarUrl }} positionLabel={getPlayerSideAndHandLabel(card.preferredSide, card.dominantHand)} context="global" />
+        <PlayerProfileIdentityCard player={{ displayName: card.displayName, avatarUrl: card.avatarUrl }} positionLabel={getPlayerSideAndHandLabel(card.preferredSide, card.dominantHand)} context="global" trailing={card.rating ? <EloChip rating={card.rating.rating} /> : undefined} />
       </header>
       <PersonalProfileView
         items={items ?? []}
@@ -49,7 +49,7 @@ export default async function PlayerCardPage({ params }: { params: Promise<{ use
         failed={items === null}
         topSlot={
           <>
-            {card.rating ? <PlayerRatingDetail rating={card.rating} labels={card.labels} showEvents={card.ratingDetail} /> : null}
+            {card.rating ? <PlayerRatingDetail rating={card.rating} labels={card.labels} showEvents={card.ratingDetail} viewerRating={card.isSelf ? null : card.viewerRating} /> : null}
             {!card.isSelf ? (
               <div className="grid grid-cols-2 gap-2">
                 <Record title="Contigo de pareja" record={card.together} />
