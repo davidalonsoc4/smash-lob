@@ -594,71 +594,96 @@ export function useMatchChatViewport({
     const visualViewport = window.visualViewport
     const html = document.documentElement
     const pageBody = document.body
-    const previousHtmlOverflow = html.style.overflow
-    const previousBodyOverflow = pageBody.style.overflow
-    const previousBodyOverscroll = pageBody.style.overscrollBehavior
-    const previousMatchChatActive = html.dataset.matchChatActive
+    const previous = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: pageBody.style.overflow,
+      bodyOverscroll: pageBody.style.overscrollBehavior,
+      bodyPosition: pageBody.style.position,
+      bodyInset: pageBody.style.inset,
+      bodyWidth: pageBody.style.width,
+      matchChatActive: html.dataset.matchChatActive,
+      scrollY: window.scrollY,
+    }
     let restingViewportHeight = visualViewport?.height ?? window.innerHeight
+    let lastHeight = -1
+    let lastTop = -1
+    let lastInset = ""
+    let frame = 0
 
     html.dataset.matchChatActive = "true"
     html.style.overflow = "hidden"
     pageBody.style.overflow = "hidden"
     pageBody.style.overscrollBehavior = "none"
+    // The page itself must never move: iOS pans it to reveal the focused field, which is what made the chat jump.
+    pageBody.style.position = "fixed"
+    pageBody.style.inset = "0"
+    pageBody.style.width = "100%"
 
-    const syncViewport = (
-      keepLatestVisible = false,
-      forceComposerFocused = false,
-    ) => {
-      const visibleHeight = visualViewport?.height ?? window.innerHeight
-      const visibleTop = visualViewport?.offsetTop ?? 0
-      const composerFocused =
-        forceComposerFocused || document.activeElement === composerRef.current
+    // One measurement per frame, applied only when something changed, so the bar and the messages never fight each other.
+    const applyViewport = (keepLatestVisible: boolean, forceComposerFocused: boolean) => {
+      if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0)
+      const visibleHeight = Math.round(visualViewport?.height ?? window.innerHeight)
+      const visibleTop = Math.round(visualViewport?.offsetTop ?? 0)
+      const composerFocused = forceComposerFocused || document.activeElement === composerRef.current
 
       if (!composerFocused) restingViewportHeight = visibleHeight
+      const keyboardLikelyOpen = composerFocused && restingViewportHeight - visibleHeight > 120
+      const inset = keyboardLikelyOpen ? "0px" : "env(safe-area-inset-bottom, 0px)"
 
-      const keyboardLikelyOpen =
-        composerFocused && restingViewportHeight - visibleHeight > 120
+      if (inset !== lastInset) {
+        root.style.setProperty("--match-chat-bottom-inset", inset)
+        lastInset = inset
+      }
+      if (visibleHeight === lastHeight && visibleTop === lastTop) return
 
       const panel = messagesRef.current
-      const nearLatest = Boolean(panel && panel.scrollHeight - panel.scrollTop - panel.clientHeight < 120)
-      root.style.height = `${Math.round(visibleHeight)}px`
-      root.style.top = `${Math.round(visibleTop)}px`
-      root.style.setProperty(
-        "--match-chat-bottom-inset",
-        keyboardLikelyOpen ? "0px" : "env(safe-area-inset-bottom, 0px)",
-      )
-
-      if (keepLatestVisible && nearLatest) {
-        window.requestAnimationFrame(() => {
-          const panel = messagesRef.current
-          if (panel) panel.scrollTop = panel.scrollHeight
-        })
-      }
+      const distanceFromBottom = panel ? panel.scrollHeight - panel.scrollTop - panel.clientHeight : 0
+      const stickToLatest = keepLatestVisible && distanceFromBottom < 120
+      lastHeight = visibleHeight
+      lastTop = visibleTop
+      root.style.height = `${visibleHeight}px`
+      root.style.top = `${visibleTop}px`
+      // Same messages in view after the resize: keep the distance to the bottom (or stay glued to the latest one).
+      if (panel) panel.scrollTop = panel.scrollHeight - panel.clientHeight - (stickToLatest ? 0 : distanceFromBottom)
     }
 
-    const handleViewportResize = () => syncViewport(true)
-    const handleViewportScroll = () => syncViewport(false)
+    let pendingLatest = false
+    let pendingFocused = false
+    const schedule = (keepLatestVisible = false, forceComposerFocused = false) => {
+      pendingLatest ||= keepLatestVisible
+      pendingFocused ||= forceComposerFocused
+      if (frame) return
+      frame = window.requestAnimationFrame(() => {
+        frame = 0
+        const latest = pendingLatest
+        const focused = pendingFocused
+        pendingLatest = false
+        pendingFocused = false
+        applyViewport(latest, focused)
+      })
+    }
+
+    const handleViewportResize = () => schedule(true)
+    const handleViewportScroll = () => schedule(false)
     const focusTimers: number[] = []
     const clearFocusTimers = () => focusTimers.splice(0).forEach(timer => window.clearTimeout(timer))
 
     const handleComposerFocus = (event: FocusEvent) => {
       if (event.target !== composerRef.current) return
       clearFocusTimers()
-      restingViewportHeight = Math.max(
-        restingViewportHeight,
-        window.innerHeight,
-        visualViewport?.height ?? 0,
-      )
-      syncViewport(true, true)
-      for (const delay of [0, 80, 180, 320]) {
-        focusTimers.push(window.setTimeout(() => syncViewport(true, true), delay))
+      restingViewportHeight = Math.max(restingViewportHeight, window.innerHeight, visualViewport?.height ?? 0)
+      schedule(true, true)
+      // The keyboard animates for a while: re-check until it settles (nothing is applied when nothing changed).
+      for (const delay of [80, 180, 320, 500]) {
+        focusTimers.push(window.setTimeout(() => schedule(true, true), delay))
       }
     }
 
-    syncViewport(false)
+    applyViewport(false, false)
     visualViewport?.addEventListener("resize", handleViewportResize)
     visualViewport?.addEventListener("scroll", handleViewportScroll)
     window.addEventListener("resize", handleViewportResize)
+    window.addEventListener("scroll", handleViewportScroll)
     root.addEventListener("focusin", handleComposerFocus)
     root.addEventListener("focusout", clearFocusTimers)
 
@@ -666,14 +691,20 @@ export function useMatchChatViewport({
       visualViewport?.removeEventListener("resize", handleViewportResize)
       visualViewport?.removeEventListener("scroll", handleViewportScroll)
       window.removeEventListener("resize", handleViewportResize)
+      window.removeEventListener("scroll", handleViewportScroll)
       root.removeEventListener("focusin", handleComposerFocus)
       root.removeEventListener("focusout", clearFocusTimers)
       clearFocusTimers()
-      html.style.overflow = previousHtmlOverflow
-      pageBody.style.overflow = previousBodyOverflow
-      pageBody.style.overscrollBehavior = previousBodyOverscroll
-      if (previousMatchChatActive === undefined) delete html.dataset.matchChatActive
-      else html.dataset.matchChatActive = previousMatchChatActive
+      if (frame) window.cancelAnimationFrame(frame)
+      html.style.overflow = previous.htmlOverflow
+      pageBody.style.overflow = previous.bodyOverflow
+      pageBody.style.overscrollBehavior = previous.bodyOverscroll
+      pageBody.style.position = previous.bodyPosition
+      pageBody.style.inset = previous.bodyInset
+      pageBody.style.width = previous.bodyWidth
+      window.scrollTo(0, previous.scrollY)
+      if (previous.matchChatActive === undefined) delete html.dataset.matchChatActive
+      else html.dataset.matchChatActive = previous.matchChatActive
     }
   }, [composerRef, messagesRef, viewportRef])
 }
